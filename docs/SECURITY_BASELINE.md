@@ -46,6 +46,8 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 - Production images are scanned for high and critical vulnerabilities.
 - Release images are immutable and identified by digest and source SHA.
 - Build contexts exclude development credentials, local data, test output, documentation, and deployment configuration.
+- Runtime stages use targeted copies and do not contain Composer, Git, Bash, frontend source, test tooling, deployment files, or unrelated repository content.
+- CI fails if a broad `COPY . .` instruction is reintroduced.
 
 ## Operations
 
