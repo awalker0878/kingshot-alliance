@@ -30,8 +30,10 @@ final class AppServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
 
+        $environment = $this->app->environment();
         $appScheme = strtolower((string) parse_url((string) config('app.url'), PHP_URL_SCHEME));
-        if ($this->app->environment(['staging', 'production']) && $appScheme === 'https') {
+
+        if (in_array($environment, ['staging', 'production'], true) && $appScheme === 'https') {
             URL::forceScheme('https');
         }
     }
