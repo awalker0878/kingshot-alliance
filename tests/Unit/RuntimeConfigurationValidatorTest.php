@@ -97,20 +97,49 @@ final class RuntimeConfigurationValidatorTest extends TestCase
         config([
             'app.url' => 'http://staging.example.test',
             'session.secure' => false,
+            'operations.allow_insecure_loopback_staging' => true,
         ]);
 
         $errors = (new RuntimeConfigurationValidator())->errors('staging');
 
-        self::assertContains('Externally reachable staging APP_URL must use HTTPS.', $errors);
-        self::assertContains('Externally reachable staging session cookies must be secure.', $errors);
+        self::assertContains(
+            'Staging APP_URL must use HTTPS unless insecure loopback staging is explicitly approved.',
+            $errors,
+        );
+        self::assertContains(
+            'Staging session cookies must be secure unless insecure loopback staging is explicitly approved.',
+            $errors,
+        );
     }
 
-    public function test_loopback_staging_allows_http_for_ephemeral_validation(): void
+    public function test_loopback_staging_requires_explicit_approval(): void
     {
         $this->configureRequiredValues();
         config([
             'app.url' => 'http://127.0.0.1:18080',
             'session.secure' => false,
+            'operations.allow_insecure_loopback_staging' => false,
+        ]);
+
+        $errors = (new RuntimeConfigurationValidator())->errors('staging');
+
+        self::assertContains(
+            'Staging APP_URL must use HTTPS unless insecure loopback staging is explicitly approved.',
+            $errors,
+        );
+        self::assertContains(
+            'Staging session cookies must be secure unless insecure loopback staging is explicitly approved.',
+            $errors,
+        );
+    }
+
+    public function test_approved_loopback_staging_allows_http_for_ephemeral_validation(): void
+    {
+        $this->configureRequiredValues();
+        config([
+            'app.url' => 'http://127.0.0.1:18080',
+            'session.secure' => false,
+            'operations.allow_insecure_loopback_staging' => true,
         ]);
 
         self::assertSame([], (new RuntimeConfigurationValidator())->errors('staging'));
@@ -198,6 +227,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'operations.release_sha' => str_repeat('a', 40),
             'operations.trusted_proxies' => '',
             'operations.allow_trust_all_proxies' => false,
+            'operations.allow_insecure_loopback_staging' => false,
         ]);
     }
 }
