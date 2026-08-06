@@ -2,34 +2,70 @@
 
 ## Release artifact
 
-Deploy an immutable production image built from a tagged commit. Record:
+Deploy one immutable application image built from a reviewed commit. The same digest runs the PHP-FPM application, Nginx web entry point, Horizon worker, scheduler, and one-shot migration job.
+
+Record:
 
 - source commit
-- image digest
+- image repository and SHA-256 digest
 - application version
-- build and dependency evidence
+- build, test, and dependency evidence
 - migration set
-- rollback image
+- previously approved rollback digest
 
-## Staging deployment
+Mutable tags such as `latest`, branch names, or release labels are not accepted by `bin/deploy`.
 
-1. Confirm CI and security checks pass.
-2. Create a PostgreSQL backup and verify its manifest.
-3. Deploy the release image to staging by digest.
-4. Run migrations once using a release job.
-5. Start application, worker, and scheduler processes.
-6. Verify `/up` and `/health/ready`.
-7. Exercise the home page, database, cache, queue, mail, and object-storage paths.
-8. Verify JSON logs include version, release SHA, request ID, and trace ID.
-9. Observe error rate, latency, queue depth, worker failures, and database health.
-10. Record acceptance evidence.
+## Prepare staging
+
+Create the environment file outside version control:
+
+```bash
+cp deploy/staging.env.example deploy/staging.env
+```
+
+Set a generated `APP_KEY`, a strong database password, the correct staging URL, and environment-specific integrations. Empty required values fail before deployment.
+
+The default topology is `docker-compose.staging.yml`. It provides:
+
+- `app` — PHP-FPM
+- `web` — unprivileged Nginx on container port 8080
+- `worker` — Horizon
+- `scheduler` — Laravel scheduler
+- `release` — one-shot migrations
+- private PostgreSQL and Redis services for the Phase 0 staging demonstration
+
+## Deploy by digest
+
+```bash
+ENV_FILE=deploy/staging.env \
+STAGING_URL=https://staging.example.test \
+./bin/deploy ghcr.io/owner/kingshot-alliance@sha256:<64-hex-digest>
+```
+
+The command:
+
+1. Rejects mutable image references.
+2. Validates the Compose and environment inputs.
+3. Pulls the exact digest.
+4. Starts PostgreSQL and Redis.
+5. Creates a checksummed backup when replacing a running release.
+6. Runs migrations once through the `release` service.
+7. Replaces app, web, worker, and scheduler services with the same digest.
+8. Requires both `/up` and `/health/ready` to pass.
+9. Prints service state and recent logs on failure.
+
+Set `STAGING_HTTP_PORT` when direct host-port exposure differs from 8080. Set `HEALTHCHECK_ATTEMPTS` to adjust the default 30 two-second attempts.
+
+## CI staging demonstration
+
+The container CI job builds the runtime image, launches the staging topology, runs migrations, verifies liveness and readiness, performs a checksummed backup and restore, verifies readiness again, and scans the image. This provides repeatable infrastructure-level acceptance evidence without claiming a production deployment.
 
 ## Production promotion
 
-Production promotion uses the same image digest validated in staging. Configuration values may differ, but the image must not be rebuilt.
+Production promotion must use the same image digest accepted in staging. Configuration may differ, but the image must not be rebuilt.
 
-Migrations are run by one controlled release job. Web instances must never race to migrate during startup.
+Use an environment-specific production orchestrator and managed data services where available. Preserve the same controls: digest-only images, a single release job, health gates, backup evidence, and explicit rollback digest.
 
 ## Post-deployment
 
-Observe the release through the agreed stabilization window. Close only after the release checklist and monitoring evidence are complete.
+Observe the release through the agreed stabilization window. Record JSON logs, error rate, latency, queue depth, worker failures, and database health before closing the release.
