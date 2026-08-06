@@ -2,8 +2,8 @@
 
 FROM node:24-alpine AS frontend
 WORKDIR /app
-COPY package.json ./
-RUN npm install --ignore-scripts --no-audit --no-fund
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
 COPY resources ./resources
 COPY tsconfig.json vite.config.ts ./
 RUN npm run build
@@ -45,7 +45,7 @@ COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
 FROM php-base AS vendor
 WORKDIR /app
-COPY composer.json artisan ./
+COPY composer.json composer.lock artisan ./
 COPY app ./app
 COPY bootstrap ./bootstrap
 COPY config ./config
