@@ -44,7 +44,8 @@ final class ReadinessController
 
     private function cacheIsReady(): bool
     {
-        $key = 'health:ready:'.request()->attributes->get('request_id');
+        $requestId = request()->attributes->get('request_id');
+        $key = 'health:ready:'.(is_string($requestId) ? $requestId : 'unassigned');
 
         try {
             Cache::put($key, true, 10);
