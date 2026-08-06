@@ -9,11 +9,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Horizon\Horizon;
+use Laravel\Pulse\Pulse;
 
 final class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        Horizon::auth(static fn (): bool => false);
+
+        $this->callAfterResolving(
+            Pulse::class,
+            static function (Pulse $pulse): void {
+                $pulse->ignoreRoutes();
+            },
+        );
     }
 
     public function boot(): void
