@@ -53,7 +53,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 AssignRequestContext::applyResponseHeaders($response, $request);
             }
 
-            return SecurityHeaders::apply($response);
+            return SecurityHeaders::apply(
+                $response,
+                $request instanceof Request ? $request : null,
+            );
         });
     })
     ->create();
