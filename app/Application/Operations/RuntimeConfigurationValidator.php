@@ -80,6 +80,11 @@ final class RuntimeConfigurationValidator
             $errors[] = 'Pulse recording must remain disabled until its schema and access policy are introduced.';
         }
 
+        $horizonMaxProcesses = config("horizon.environments.{$environment}.supervisor-1.maxProcesses");
+        if (! is_int($horizonMaxProcesses) || $horizonMaxProcesses < 1 || $horizonMaxProcesses > 64) {
+            $errors[] = 'Hosted Horizon supervisors must run between 1 and 64 worker processes.';
+        }
+
         $trustedProxies = array_values(array_filter(array_map(
             static fn (string $proxy): string => trim($proxy),
             explode(',', (string) config('operations.trusted_proxies')),
