@@ -2,11 +2,12 @@
 
 ## Application
 
-- HTTPS and secure session cookies are mandatory for externally reachable hosted environments. The ephemeral CI staging demonstration may use loopback HTTP and insecure cookies only when `APP_URL` resolves to `localhost`, `127.0.0.1`, or `::1`.
+- HTTPS and secure session cookies are mandatory for externally reachable hosted environments. The ephemeral CI staging demonstration may use loopback HTTP and insecure cookies only when `APP_URL` resolves to `localhost`, `127.0.0.1`, or `::1` and `ALLOW_INSECURE_LOOPBACK_STAGING=true` is explicitly set.
 - Hosted startup requires a valid 32-byte AES-256 application key, a non-placeholder version, and a 40-character lowercase Git release SHA.
 - Hosted startup requires PostgreSQL plus Redis-backed cache, queues, and sessions; session payload encryption and `lax` or `strict` SameSite protection cannot be disabled.
 - Production startup additionally fails when debugging is enabled, `APP_URL` is not HTTPS, secure session cookies are disabled, or PostgreSQL permits plaintext fallback.
 - Production responses include HTTP Strict Transport Security; health responses are explicitly non-cacheable and stateless.
+- Public health responses expose only aggregate status and request correlation, never dependency-level results or immutable release metadata.
 - Sessions are encrypted, HTTP-only, and same-site restricted.
 - State-changing browser requests use CSRF protection.
 - Responses include clickjacking, content-sniffing, referrer, permissions, and opener controls, including rendered error responses.
@@ -71,7 +72,7 @@ Operational dashboards follow the same boundary. Pulse registers no dashboard ro
 - Request IDs and W3C trace IDs correlate logs and are returned on successful and rendered error responses.
 - Valid upstream trace IDs and sampling flags are preserved while a new local parent/span ID represents the current request.
 - Invalid trace context, including all-zero trace or parent identifiers, is discarded and replaced.
-- Health endpoints separate liveness from dependency readiness and do not start browser sessions.
+- Health endpoints separate liveness from dependency readiness, do not start browser sessions, and return no dependency-level or release-identifying data to public callers.
 - `bootstrap/cache` remains image-owned and is not persisted or shared between releases; each digest uses the package manifest built into that image.
 - Staging application roles run as non-root, use read-only filesystems, set `no-new-privileges`, and drop all Linux capabilities.
 - The web role mounts runtime storage read-only; write access remains limited to application roles that require it.
