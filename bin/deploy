@@ -67,6 +67,18 @@ runtime_services_are_running() {
   return 0
 }
 
+runtime_services_use_requested_image() {
+  for service in app web worker scheduler; do
+    container_id="$(compose ps -q "$service")"
+    [ -n "$container_id" ] || return 1
+
+    actual_image="$(docker inspect --format '{{.Config.Image}}' "$container_id" 2>/dev/null || true)"
+    [ "$actual_image" = "$image" ] || return 1
+  done
+
+  return 0
+}
+
 compose config --quiet
 
 had_running_app=false
@@ -95,6 +107,7 @@ attempt=1
 max_attempts="${HEALTHCHECK_ATTEMPTS:-30}"
 while [ "$attempt" -le "$max_attempts" ]; do
   if runtime_services_are_running \
+    && runtime_services_use_requested_image \
     && curl --fail --silent --show-error "$url/up" >/dev/null \
     && curl --fail --silent --show-error "$url/health/ready" >/dev/null; then
     echo "Deployment healthy: $image"
@@ -106,7 +119,14 @@ while [ "$attempt" -le "$max_attempts" ]; do
   attempt=$((attempt + 1))
 done
 
-echo "Deployment failed health checks after $max_attempts attempts." >&2
+echo "Deployment failed health or image verification after $max_attempts attempts." >&2
 compose ps >&2
+for service in app web worker scheduler; do
+  container_id="$(compose ps -q "$service" 2>/dev/null || true)"
+  if [ -n "$container_id" ]; then
+    actual_image="$(docker inspect --format '{{.Config.Image}}' "$container_id" 2>/dev/null || printf 'unknown')"
+    printf '%s image: %s\n' "$service" "$actual_image" >&2
+  fi
+done
 compose logs --tail=100 app web worker scheduler >&2 || true
 exit 70
