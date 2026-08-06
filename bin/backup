@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+set -eu
+
+timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+destination="${BACKUP_DIR:-./backups}"
+mkdir -p "$destination"
+
+database_file="$destination/database-$timestamp.sql.gz"
+manifest_file="$destination/manifest-$timestamp.txt"
+
+docker compose exec -T postgres sh -lc   'pg_dump --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --format=plain --no-owner --no-privileges'   | gzip -9 > "$database_file"
+
+{
+  echo "created_at=$timestamp"
+  echo "database_file=$(basename "$database_file")"
+  echo "release_sha=${RELEASE_SHA:-unknown}"
+  sha256sum "$database_file"
+} > "$manifest_file"
+
+echo "Backup created: $database_file"

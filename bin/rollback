@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+set -eu
+
+release="${1:?Usage: bin/rollback previous-release-tag}"
+
+echo "Rollback contract for release: $release"
+echo "Deploy the previous immutable image, then follow docs/runbooks/rollback.md."
+echo "Database rollback is never automatic; use a forward fix unless an approved reversible migration exists."

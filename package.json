@@ -1,0 +1,45 @@
+{
+  "$schema": "https://www.schemastore.org/package.json",
+  "name": "kingshot-alliance",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11 <12"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "format": "prettier --write resources/",
+    "format:check": "prettier --check resources/",
+    "lint": "eslint . --fix",
+    "lint:check": "eslint .",
+    "types:check": "vue-tsc --noEmit",
+    "check": "npm run lint:check && npm run format:check && npm run types:check && npm run build",
+    "audit": "npm audit --audit-level=high"
+  },
+  "dependencies": {
+    "@inertiajs/vite": "^3.0.0",
+    "@inertiajs/vue3": "^3.0.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "concurrently": "^9.0.1",
+    "laravel-vite-plugin": "^3.1",
+    "tailwindcss": "^4.1.1",
+    "vite": "^8.0.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@types/node": "^24.0.0",
+    "@vue/eslint-config-typescript": "^14.3.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-vue": "^9.32.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.23.0",
+    "vue-tsc": "^2.2.4"
+  }
+}

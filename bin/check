@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+set -eu
+
+docker compose run --rm app composer validate --strict
+docker compose run --rm app composer audit
+docker compose run --rm app composer check
+docker compose run --rm node npm run check
+docker compose config --quiet

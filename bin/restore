@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+set -eu
+
+backup_file="${1:-}"
+
+if [ -z "$backup_file" ] || [ ! -f "$backup_file" ]; then
+  echo "Usage: bin/restore path/to/database.sql.gz" >&2
+  exit 64
+fi
+
+echo "This operation replaces the local database."
+echo "Set CONFIRM_RESTORE=YES to continue."
+
+if [ "${CONFIRM_RESTORE:-NO}" != "YES" ]; then
+  exit 65
+fi
+
+docker compose stop app worker scheduler
+docker compose exec -T postgres sh -lc   'dropdb --if-exists --username="$POSTGRES_USER" "$POSTGRES_DB" && createdb --username="$POSTGRES_USER" "$POSTGRES_DB"'
+
+gzip -dc "$backup_file" | docker compose exec -T postgres sh -lc   'psql --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"'
+
+docker compose start app worker scheduler
+docker compose exec -T app php artisan migrate --force
+
+echo "Restore completed."

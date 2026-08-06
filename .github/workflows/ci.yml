@@ -1,0 +1,158 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: PHP quality and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8.8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      APP_DEBUG: false
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: array
+      REDIS_HOST: 127.0.0.1
+      PULSE_ENABLED: false
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer manifest
+        run: composer validate --strict
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Check dependency advisories
+        run: composer audit
+
+      - name: Preserve generated Composer lock
+        uses: actions/upload-artifact@v4
+        with:
+          name: composer-lock
+          path: composer.lock
+          retention-days: 3
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Run PHP checks
+        run: composer check
+
+  frontend:
+    name: Frontend quality and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install frontend dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Check dependency advisories
+        run: npm audit --audit-level=high
+
+      - name: Preserve generated npm lock
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-lock
+          path: package-lock.json
+          retention-days: 3
+
+      - name: Run frontend checks
+        run: npm run check
+
+  container:
+    name: Container build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+      - backend
+      - frontend
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate Compose configuration
+        run: cp .env.example .env && docker compose config --quiet
+
+      - name: Build production image
+        run: |
+          docker build \
+            --target runtime \
+            --build-arg APP_VERSION="${GITHUB_REF_NAME}" \
+            --build-arg RELEASE_SHA="${GITHUB_SHA}" \
+            --tag kingshot-alliance:${GITHUB_SHA} \
+            .
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@0.32.0
+        with:
+          image-ref: kingshot-alliance:${{ github.sha }}
+          format: table
+          exit-code: '1'
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true

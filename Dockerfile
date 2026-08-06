@@ -1,0 +1,99 @@
+# syntax=docker/dockerfile:1.7
+
+FROM node:24-alpine AS frontend
+WORKDIR /app
+COPY package.json ./
+RUN npm install --ignore-scripts --no-audit --no-fund
+COPY resources ./resources
+COPY tsconfig.json vite.config.ts ./
+RUN npm run build
+
+FROM composer:2.10 AS composer
+
+FROM php:8.5-fpm-alpine AS php-base
+
+RUN apk add --no-cache \
+        bash \
+        curl \
+        icu-libs \
+        libpq \
+        libzip \
+        postgresql-client \
+    && apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        icu-dev \
+        libxml2-dev \
+        libzip-dev \
+        oniguruma-dev \
+        postgresql-dev \
+    && docker-php-ext-install -j"$(nproc)" \
+        dom \
+        intl \
+        mbstring \
+        opcache \
+        pcntl \
+        pdo_pgsql \
+        simplexml \
+        xml \
+        xmlwriter \
+        zip \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
+
+COPY --from=composer /usr/bin/composer /usr/local/bin/composer
+
+FROM php-base AS vendor
+WORKDIR /app
+COPY composer.json artisan ./
+COPY app ./app
+COPY bootstrap ./bootstrap
+COPY config ./config
+COPY database ./database
+COPY public ./public
+COPY resources/views ./resources/views
+COPY routes ./routes
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --no-progress \
+    --no-scripts \
+    --prefer-dist \
+    --optimize-autoloader
+
+FROM php-base AS runtime
+
+ARG APP_VERSION=dev
+ARG RELEASE_SHA=local
+
+ENV APP_VERSION=${APP_VERSION} \
+    RELEASE_SHA=${RELEASE_SHA} \
+    PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
+
+WORKDIR /var/www/html
+
+COPY --from=vendor /app/vendor ./vendor
+COPY . .
+COPY --from=frontend /app/public/build ./public/build
+COPY docker/php/php.ini /usr/local/etc/php/conf.d/99-kingshot.ini
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/10-opcache.ini
+COPY docker/entrypoint.sh /usr/local/bin/kingshot-entrypoint
+
+RUN php artisan package:discover --ansi \
+    && chmod +x /usr/local/bin/kingshot-entrypoint \
+    && chown -R www-data:www-data storage bootstrap/cache
+
+USER www-data
+
+EXPOSE 9000
+
+ENTRYPOINT ["kingshot-entrypoint"]
+CMD ["php-fpm"]
+
+FROM runtime AS development
+
+USER root
+RUN apk add --no-cache git
+USER www-data
+
+ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS=1

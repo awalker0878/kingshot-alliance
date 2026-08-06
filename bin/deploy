@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+set -eu
+
+image="${1:?Usage: bin/deploy registry/image:tag}"
+
+echo "Deployment contract for image: $image"
+echo "1. Verify immutable image digest and release attestation."
+echo "2. Put application workers into a controlled drain."
+echo "3. Run database backup and migration preflight."
+echo "4. Deploy the image to staging."
+echo "5. Run /up and /health/ready smoke checks."
+echo "6. Promote only after acceptance evidence is recorded."
