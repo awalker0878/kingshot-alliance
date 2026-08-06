@@ -27,9 +27,21 @@ final class AssignRequestContext
             'trace_id' => $traceId,
         ]);
 
-        $response = $next($request);
-        $response->headers->set('X-Request-ID', $requestId);
-        $response->headers->set('traceparent', $traceparent);
+        return self::applyResponseHeaders($next($request), $request);
+    }
+
+    public static function applyResponseHeaders(Response $response, Request $request): Response
+    {
+        $requestId = $request->attributes->get('request_id');
+        $traceparent = $request->attributes->get('traceparent');
+
+        if (is_string($requestId) && $requestId !== '') {
+            $response->headers->set('X-Request-ID', $requestId);
+        }
+
+        if (is_string($traceparent) && $traceparent !== '') {
+            $response->headers->set('traceparent', $traceparent);
+        }
 
         return $response;
     }
