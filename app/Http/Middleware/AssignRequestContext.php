@@ -47,10 +47,24 @@ final class AssignRequestContext
     {
         $candidate = $request->headers->get('traceparent');
 
-        if (is_string($candidate) && preg_match('/^00-[a-f0-9]{32}-[a-f0-9]{16}-0[01]$/', $candidate) === 1) {
+        if (is_string($candidate) && $this->isValidTraceparent($candidate)) {
             return $candidate;
         }
 
         return sprintf('00-%s-%s-01', bin2hex(random_bytes(16)), bin2hex(random_bytes(8)));
+    }
+
+    private function isValidTraceparent(string $candidate): bool
+    {
+        if (preg_match(
+            '/^00-([a-f0-9]{32})-([a-f0-9]{16})-([a-f0-9]{2})$/',
+            $candidate,
+            $matches,
+        ) !== 1) {
+            return false;
+        }
+
+        return $matches[1] !== str_repeat('0', 32)
+            && $matches[2] !== str_repeat('0', 16);
     }
 }
