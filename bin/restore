@@ -84,7 +84,12 @@ if [ -z "$web_service" ]; then
 fi
 
 plain_file="$(mktemp "${TMPDIR:-/tmp}/kingshot-restore.XXXXXX")"
-trap 'rm -f "$plain_file"' EXIT HUP INT TERM
+cleanup() {
+  rm -f "$plain_file"
+}
+trap cleanup EXIT
+trap 'exit 1' HUP INT TERM
+
 gzip -dc "$backup_file" > "$plain_file"
 test -s "$plain_file"
 
