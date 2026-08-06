@@ -27,11 +27,13 @@ cp deploy/staging.env.example deploy/staging.env
 chmod 600 deploy/staging.env
 ```
 
-Set a generated 32-byte Laravel `APP_KEY`, a strong database password, the correct staging URL, and environment-specific integrations. Hosted startup fails unless PostgreSQL and Redis-backed cache, queues, and encrypted sessions remain enabled with `lax` or `strict` SameSite protection.
+Set a generated 32-byte Laravel `APP_KEY`, a strong database password, the correct HTTPS staging URL, and environment-specific integrations. Hosted startup fails unless PostgreSQL and Redis-backed cache, queues, and encrypted sessions remain enabled with secure cookies and `lax` or `strict` SameSite protection.
 
 Do not set `APP_VERSION` or `RELEASE_SHA` in the runtime environment. Those values are baked into the immutable image and must match its OCI labels. `bin/deploy` rejects runtime overrides that differ from the reviewed image.
 
 Configure explicit proxy addresses through `TRUSTED_PROXIES`. Using `TRUSTED_PROXIES=*` also requires `ALLOW_TRUST_ALL_PROXIES=true` and an architecture in which the application service is inaccessible except through a controlled internal ingress.
+
+`ALLOW_INSECURE_LOOPBACK_STAGING` must remain `false` for deployable environments. It exists only for the ephemeral CI topology, where the application is bound to a loopback URL and explicitly sets the flag to `true`; the validator rejects the exception for any non-loopback host.
 
 The default topology is `docker-compose.staging.yml`. It provides:
 
@@ -73,7 +75,7 @@ Set `STAGING_HTTP_PORT` when direct host-port exposure differs from 8080. Set `D
 
 ## CI staging demonstration
 
-The container CI job builds the runtime image, validates source-control and build-context exclusions, verifies OCI revision and license metadata, launches the staging topology, proves every runtime role uses the built image ID and release metadata, runs migrations, verifies liveness and readiness, performs a checksummed backup and restore, validates owner-only backup modes and manifest provenance, verifies service and image identity after restore, and scans the image. Loopback HTTP is used only inside this ephemeral CI topology; externally reachable hosted environments require HTTPS.
+The container CI job builds the runtime image, validates source-control and build-context exclusions, verifies OCI revision and license metadata, launches the staging topology, proves every runtime role uses the built image ID and release metadata, runs migrations, verifies liveness and readiness, performs a checksummed backup and restore, validates owner-only backup modes and manifest provenance, verifies service and image identity after restore, and scans the image. Loopback HTTP and insecure cookies are enabled only for this ephemeral topology through the explicit `ALLOW_INSECURE_LOOPBACK_STAGING=true` exception; externally reachable hosted environments require HTTPS and secure cookies.
 
 ## Production promotion
 
