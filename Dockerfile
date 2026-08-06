@@ -94,6 +94,5 @@ FROM runtime AS development
 
 USER root
 RUN apk add --no-cache git
-USER www-data
 
 ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS=1

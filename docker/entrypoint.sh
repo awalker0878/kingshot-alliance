@@ -10,6 +10,12 @@ mkdir -p \
   storage/logs \
   bootstrap/cache
 
+case "${APP_ENV:-production}" in
+  staging|production)
+    php artisan app:config-check
+    ;;
+esac
+
 if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
   php artisan migrate --force
 fi
