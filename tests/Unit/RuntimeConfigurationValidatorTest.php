@@ -91,6 +91,31 @@ final class RuntimeConfigurationValidatorTest extends TestCase
         );
     }
 
+    public function test_external_staging_requires_https_and_secure_cookies(): void
+    {
+        $this->configureRequiredValues();
+        config([
+            'app.url' => 'http://staging.example.test',
+            'session.secure' => false,
+        ]);
+
+        $errors = (new RuntimeConfigurationValidator())->errors('staging');
+
+        self::assertContains('Externally reachable staging APP_URL must use HTTPS.', $errors);
+        self::assertContains('Externally reachable staging session cookies must be secure.', $errors);
+    }
+
+    public function test_loopback_staging_allows_http_for_ephemeral_validation(): void
+    {
+        $this->configureRequiredValues();
+        config([
+            'app.url' => 'http://127.0.0.1:18080',
+            'session.secure' => false,
+        ]);
+
+        self::assertSame([], (new RuntimeConfigurationValidator())->errors('staging'));
+    }
+
     public function test_trust_all_proxy_wildcard_must_be_the_only_entry(): void
     {
         $this->configureRequiredValues();
