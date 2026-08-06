@@ -101,6 +101,29 @@ configured_runtime_metadata_matches_image() {
     && [ "$configured_version" = "$expected_version" ]
 }
 
+wait_for_postgres() {
+  attempt=1
+  max_attempts="${DATABASE_READY_ATTEMPTS:-30}"
+
+  while [ "$attempt" -le "$max_attempts" ]; do
+    if compose exec -T postgres sh -lc \
+      'pg_isready --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"' >/dev/null 2>&1; then
+      return 0
+    fi
+
+    sleep 2
+    attempt=$((attempt + 1))
+  done
+
+  echo "PostgreSQL did not become ready after $max_attempts attempts." >&2
+  return 1
+}
+
+database_schema_state() {
+  compose exec -T postgres sh -lc \
+    'psql --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --tuples-only --no-align --set ON_ERROR_STOP=on --command="select case when exists (select 1 from pg_catalog.pg_tables where schemaname = '\''public'\'') then '\''populated'\'' else '\''empty'\'' end"'
+}
+
 runtime_services_are_running() {
   running_services="$(compose ps --status running --services)"
 
@@ -133,12 +156,6 @@ runtime_services_match_image_metadata() {
 }
 
 compose config --quiet
-
-had_running_app=false
-if compose ps --status running --services 2>/dev/null | grep -qx app; then
-  had_running_app=true
-fi
-
 compose pull app web worker scheduler release
 load_expected_image_metadata
 
@@ -148,14 +165,24 @@ if ! configured_runtime_metadata_matches_image; then
 fi
 
 compose up -d postgres redis
+wait_for_postgres
+schema_state="$(database_schema_state)"
 
-if [ "$had_running_app" = true ] && [ "${SKIP_BACKUP:-NO}" != "YES" ]; then
-  COMPOSE_FILE="$compose_file" \
-  ENV_FILE="$env_file" \
-  APP_IMAGE="$image" \
-  STAGING_ENV_FILE="$env_file" \
-  ./bin/backup
-fi
+case "$schema_state" in
+  populated)
+    if [ "${SKIP_BACKUP:-NO}" != "YES" ]; then
+      COMPOSE_FILE="$compose_file" \
+      ENV_FILE="$env_file" \
+      STAGING_ENV_FILE="$env_file" \
+      ./bin/backup
+    fi
+    ;;
+  empty) ;;
+  *)
+    echo "Unable to determine whether the PostgreSQL schema requires a backup: $schema_state" >&2
+    exit 69
+    ;;
+esac
 
 if [ "${SKIP_MIGRATIONS:-NO}" != "YES" ]; then
   compose --profile release run --rm release
