@@ -64,6 +64,43 @@ compose() {
   docker compose --env-file "$env_file" -f "$compose_file" "$@"
 }
 
+load_expected_image_metadata() {
+  expected_image_id="$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || true)"
+  expected_release_sha="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image" 2>/dev/null || true)"
+  expected_version="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.version"}}' "$image" 2>/dev/null || true)"
+  expected_license="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.licenses"}}' "$image" 2>/dev/null || true)"
+
+  if [ -z "$expected_image_id" ]; then
+    echo "Unable to resolve the pulled image ID: $image" >&2
+    return 1
+  fi
+
+  if ! printf '%s' "$expected_release_sha" | grep -Eq '^[a-f0-9]{40}$'; then
+    echo "Image OCI revision must be a 40-character lowercase Git SHA: $expected_release_sha" >&2
+    return 1
+  fi
+
+  if [ -z "$expected_version" ] || [ "$expected_version" = "dev" ]; then
+    echo "Image OCI version must be non-empty and non-placeholder." >&2
+    return 1
+  fi
+
+  if [ "$expected_license" != "GPL-3.0-only" ]; then
+    echo "Unexpected image license metadata: $expected_license" >&2
+    return 1
+  fi
+}
+
+configured_runtime_metadata_matches_image() {
+  configured_metadata="$(compose run --rm --no-deps -T --entrypoint sh app -lc \
+    'printf "%s\n%s\n" "${RELEASE_SHA:-}" "${APP_VERSION:-}"')"
+  configured_release_sha="$(printf '%s\n' "$configured_metadata" | sed -n '1p')"
+  configured_version="$(printf '%s\n' "$configured_metadata" | sed -n '2p')"
+
+  [ "$configured_release_sha" = "$expected_release_sha" ] \
+    && [ "$configured_version" = "$expected_version" ]
+}
+
 runtime_services_are_running() {
   running_services="$(compose ps --status running --services)"
 
@@ -76,16 +113,20 @@ runtime_services_are_running() {
   return 0
 }
 
-runtime_services_use_requested_image() {
-  expected_image_id="$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || true)"
-  [ -n "$expected_image_id" ] || return 1
-
+runtime_services_match_image_metadata() {
   for service in app web worker scheduler; do
     container_id="$(compose ps -q "$service")"
     [ -n "$container_id" ] || return 1
 
     actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id" 2>/dev/null || true)"
     [ "$actual_image_id" = "$expected_image_id" ] || return 1
+
+    container_environment="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$container_id" 2>/dev/null || true)"
+    actual_release_sha="$(printf '%s\n' "$container_environment" | sed -n 's/^RELEASE_SHA=//p' | tail -n 1)"
+    actual_version="$(printf '%s\n' "$container_environment" | sed -n 's/^APP_VERSION=//p' | tail -n 1)"
+
+    [ "$actual_release_sha" = "$expected_release_sha" ] || return 1
+    [ "$actual_version" = "$expected_version" ] || return 1
   done
 
   return 0
@@ -99,6 +140,13 @@ if compose ps --status running --services 2>/dev/null | grep -qx app; then
 fi
 
 compose pull app web worker scheduler release
+load_expected_image_metadata
+
+if ! configured_runtime_metadata_matches_image; then
+  echo "Runtime APP_VERSION or RELEASE_SHA overrides do not match the immutable image metadata." >&2
+  exit 65
+fi
+
 compose up -d postgres redis
 
 if [ "$had_running_app" = true ] && [ "${SKIP_BACKUP:-NO}" != "YES" ]; then
@@ -119,10 +167,11 @@ attempt=1
 max_attempts="${HEALTHCHECK_ATTEMPTS:-30}"
 while [ "$attempt" -le "$max_attempts" ]; do
   if runtime_services_are_running \
-    && runtime_services_use_requested_image \
+    && runtime_services_match_image_metadata \
     && curl --fail --silent --show-error "$url/up" >/dev/null \
     && curl --fail --silent --show-error "$url/health/ready" >/dev/null; then
     echo "Deployment healthy: $image"
+    echo "Release: $expected_version ($expected_release_sha)"
     echo "Endpoint: $url"
     exit 0
   fi
@@ -131,10 +180,10 @@ while [ "$attempt" -le "$max_attempts" ]; do
   attempt=$((attempt + 1))
 done
 
-echo "Deployment failed health or image verification after $max_attempts attempts." >&2
+echo "Deployment failed health, image, or release-metadata verification after $max_attempts attempts." >&2
 compose ps >&2
-expected_image_id="$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || printf 'unknown')"
 printf 'Expected image ID: %s\n' "$expected_image_id" >&2
+printf 'Expected release: %s (%s)\n' "$expected_version" "$expected_release_sha" >&2
 for service in app web worker scheduler; do
   container_id="$(compose ps -q "$service" 2>/dev/null || true)"
   if [ -n "$container_id" ]; then
