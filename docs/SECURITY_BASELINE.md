@@ -73,6 +73,7 @@ Operational dashboards follow the same boundary. Pulse registers no dashboard ro
 - Valid upstream trace IDs and sampling flags are preserved while a new local parent/span ID represents the current request.
 - Invalid trace context, including all-zero trace or parent identifiers, is discarded and replaced.
 - Health endpoints separate liveness from dependency readiness, do not start browser sessions, and return no dependency-level or release-identifying data to public callers.
+- Local development publishes the application, Vite, PostgreSQL, and Redis only on `127.0.0.1`; CI fails if those default Compose bindings are broadened to all host interfaces.
 - `bootstrap/cache` remains image-owned and is not persisted or shared between releases; each digest uses the package manifest built into that image.
 - Staging application roles run as non-root, use read-only filesystems, set `no-new-privileges`, and drop all Linux capabilities.
 - The web role mounts runtime storage read-only; write access remains limited to application roles that require it.
