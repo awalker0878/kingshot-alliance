@@ -46,7 +46,7 @@ final class RecordRequestMetrics
 
         return [
             'method' => $request->method(),
-            'route' => $routeName ?? $request->path(),
+            'route' => is_string($routeName) && $routeName !== '' ? $routeName : 'unmatched',
             'duration_ms' => round((hrtime(true) - $startedAt) / 1_000_000, 2),
         ];
     }
