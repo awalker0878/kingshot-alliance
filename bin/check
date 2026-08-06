@@ -1,8 +1,20 @@
 #!/usr/bin/env sh
 set -eu
 
+for script in bin/*; do
+  sh -n "$script"
+done
+
 docker compose run --rm app composer validate --strict
 docker compose run --rm app composer audit
 docker compose run --rm app composer check
 docker compose run --rm node npm run check
 docker compose config --quiet
+
+APP_IMAGE="example.invalid/kingshot-alliance@sha256:0000000000000000000000000000000000000000000000000000000000000000" \
+DB_PASSWORD="configuration-validation-only" \
+STAGING_ENV_FILE="deploy/staging.env.example" \
+docker compose \
+  --env-file deploy/staging.env.example \
+  -f docker-compose.staging.yml \
+  config --quiet
