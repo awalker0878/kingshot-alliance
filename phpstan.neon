@@ -6,5 +6,5 @@ parameters:
         - app
         - routes
     level: 8
+    phpVersion: 80500
     treatPhpDocTypesAsCertain: false
-    checkMissingIterableValueType: false
