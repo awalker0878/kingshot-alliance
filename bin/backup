@@ -28,12 +28,16 @@ command -v sha256sum >/dev/null 2>&1 || {
   echo "sha256sum is required." >&2
   exit 69
 }
+command -v mktemp >/dev/null 2>&1 || {
+  echo "mktemp is required." >&2
+  exit 69
+}
 
 database_file="$destination/database-$timestamp.sql.gz"
 manifest_file="$destination/manifest-$timestamp.txt"
-plain_file="$destination/.database-$timestamp.sql"
-database_temp="$destination/.database-$timestamp.sql.gz"
-manifest_temp="$destination/.manifest-$timestamp.txt"
+plain_file="$(mktemp "$destination/.database-$timestamp.sql.XXXXXX")"
+database_temp="$(mktemp "$destination/.database-$timestamp.sql.gz.XXXXXX")"
+manifest_temp="$(mktemp "$destination/.manifest-$timestamp.txt.XXXXXX")"
 published=false
 
 cleanup() {
@@ -59,11 +63,13 @@ fi
 
 app_container="$(compose ps -q app 2>/dev/null || true)"
 release_sha="unknown"
-image_ref="${APP_IMAGE:-unknown}"
+image_ref="unknown"
 
 if [ -n "$app_container" ]; then
   release_sha="$(compose exec -T app sh -lc 'printf "%s" "${RELEASE_SHA:-unknown}"' 2>/dev/null || printf 'unknown')"
-  image_ref="$(docker inspect --format '{{.Config.Image}}' "$app_container" 2>/dev/null || printf '%s' "$image_ref")"
+  image_ref="$(docker inspect --format '{{.Config.Image}}' "$app_container" 2>/dev/null || printf 'unknown')"
+elif [ -n "${APP_IMAGE:-}" ]; then
+  image_ref="$APP_IMAGE"
 fi
 
 compose exec -T postgres sh -lc \
