@@ -4,13 +4,13 @@
 
 - HTTPS is mandatory outside local development.
 - Production startup fails when debugging is enabled, `APP_URL` is not HTTPS, secure session cookies are disabled, or PostgreSQL permits plaintext fallback.
-- Production responses include HTTP Strict Transport Security; health responses are explicitly non-cacheable.
+- Production responses include HTTP Strict Transport Security; health responses are explicitly non-cacheable and stateless.
 - Sessions are encrypted, HTTP-only, and same-site restricted.
 - State-changing browser requests use CSRF protection.
 - Responses include clickjacking, content-sniffing, referrer, permissions, and opener controls, including rendered error responses.
 - Content Security Policy is enabled after deployment-specific asset origins are approved.
 - Trusted proxy addresses are configured explicitly through `TRUSTED_PROXIES`; trust-all is permitted only when the application service is unreachable except through a controlled internal ingress.
-- Nginx routes dynamic requests only through Laravel's `/index.php` front controller, rejects other PHP paths, and suppresses server-version disclosure.
+- Nginx routes dynamic requests only through Laravel's `/index.php` front controller, rejects other PHP paths, suppresses server-version disclosure, and excludes query strings and referrers from access logs.
 - API and authentication routes use named rate limits.
 - Privileged changes require authorization, confirmation, and audit.
 - Error responses do not expose stack traces in staging or production.
@@ -23,6 +23,7 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 
 - Secrets are injected at runtime and never committed.
 - Production secrets use a managed secret store.
+- Deployment environment files must be owner-readable only with mode `400` or `600`.
 - Rotation ownership and expiry are documented.
 - Logs, exception context, CI output, and support exports must redact secrets.
 - Git and Docker exclusions prevent deployment environments, Composer credentials, backups, runtime keys, and `storage/app` data from entering commits or image build contexts.
@@ -32,7 +33,8 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 
 - PostgreSQL connections require encryption in hosted production environments.
 - Backups are access controlled, compressed only after a successful database dump, recorded in a SHA-256 manifest, verified before restore, and tested through destructive recovery exercises.
-- Backup archives, manifests, and restore working files are created with owner-only permissions through a restrictive process umask.
+- Backup archives, manifests, and restore working files use collision-resistant temporary paths and owner-only permissions.
+- Verified archive and manifest pairs are published atomically; interruption or failure removes incomplete output.
 - Restore operations fail closed when their matching manifest is absent or invalid unless an explicit unverified-restore override is approved.
 - Generated backups are excluded from source control and Docker image build contexts.
 - Object storage defaults to private visibility and fails on write errors.
@@ -51,13 +53,16 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 - Build contexts exclude development credentials, local data, test output, documentation, and deployment configuration.
 - Runtime stages use targeted copies and do not contain Composer, Git, Bash, frontend source, test tooling, deployment files, or unrelated repository content.
 - CI fails if a broad `COPY . .` instruction is reintroduced.
+- Lockfile generation stages untracked files before comparison, verifies the preserved Composer artifact when available, and regenerates from reviewed constraints only when that artifact is unavailable.
 
 ## Operations
 
 - Request IDs and W3C trace IDs correlate logs and are returned on successful and rendered error responses.
+- Valid upstream trace IDs and sampling flags are preserved while a new local parent/span ID represents the current request.
 - Invalid trace context, including all-zero trace or parent identifiers, is discarded and replaced.
-- Health endpoints separate liveness from dependency readiness.
+- Health endpoints separate liveness from dependency readiness and do not start browser sessions.
 - `bootstrap/cache` remains image-owned and is not persisted or shared between releases; each digest uses the package manifest built into that image.
+- Staging application roles run as non-root, use read-only filesystems, set `no-new-privileges`, and drop all Linux capabilities.
 - The web role mounts runtime storage read-only; write access remains limited to application roles that require it.
 - Backup manifests record the running release SHA and image reference, and CI validates both before destructive restore.
 - Production debugging is disabled.
