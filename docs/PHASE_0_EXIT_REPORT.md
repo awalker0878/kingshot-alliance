@@ -14,6 +14,7 @@
 - Explicit trusted-proxy handling with separate approval for trust-all configurations
 - Structured logs, request IDs, W3C trace propagation with local span identity, stateless health checks, and privacy-preserving request metrics
 - Public landing and health responses that omit dependency-level status and immutable release identifiers
+- Loopback-only default bindings for the local application, Vite, PostgreSQL, and Redis services
 - Security and correlation headers on normal and rendered error responses
 - Production HSTS and non-cacheable liveness/readiness responses
 - CI for PHP, frontend, containers, dependency review, CodeQL, and image scanning
@@ -48,6 +49,7 @@
 - [x] Latest changed runtime PHP, provider, configuration, and test files pass syntax lint
 - [x] Hosted configuration validator logic was exercised independently: secure staging passes, unapproved loopback HTTP fails, explicitly approved loopback CI staging passes, external HTTP still fails, and insecure architecture, storage, worker, session, Pulse, and proxy overrides are rejected
 - [x] Public readiness and landing responses have regression tests that exclude dependency-level results and release identifiers
+- [x] Local Compose exposes published development ports only on `127.0.0.1`, with a CI-invoked regression guard
 - [x] Sanctum, Pulse, and Horizon Phase 0 route boundaries have regression tests
 - [x] Latest deployment, backup, restore, and quality scripts pass `sh -n`
 - [x] Latest workflow YAML and Prettier JSON pass local parsing
@@ -125,6 +127,7 @@
 60. Restore used `compose start`, so a successful database import could fail to recover service availability when runtime containers did not already exist.
 61. Pull-request and branch-push lock workflows used different concurrency keys and could race while committing identical lockfiles.
 62. Public landing and readiness responses exposed the deployment environment, full Git release SHA, and individual database/cache readiness results.
+63. Local PostgreSQL, unauthenticated Redis, Vite, and the web application were published on every host interface instead of loopback only.
 
 ## External validation state
 
