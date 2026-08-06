@@ -16,7 +16,7 @@
 
 ## Identity and access
 
-Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1. The foundation reserves Sanctum and Laravel authorization mechanisms but does not create user or role tables early.
+Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1. The foundation reserves Sanctum and Laravel authorization mechanisms but does not create user, token, or role tables early. Sanctum migrations remain unpublished and its CSRF-cookie route is disabled until Phase 1 explicitly enables the authentication surface.
 
 ## Secrets
 
