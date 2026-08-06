@@ -14,7 +14,7 @@ Record:
 - migration set
 - previously approved rollback digest
 
-Mutable tags such as `latest`, branch names, or release labels are not accepted by `bin/deploy`.
+Mutable tags such as `latest`, branch names, or release labels are not accepted by `bin/deploy`. The image must declare a non-placeholder OCI version, a 40-character lowercase Git revision, and `GPL-3.0-only` license metadata.
 
 Each image owns its `bootstrap/cache` contents. Do not mount a persistent or shared volume over that path, clear it during deployment, or copy cache files between releases. This ensures a rollback digest uses the package manifest built into that exact image.
 
@@ -27,7 +27,11 @@ cp deploy/staging.env.example deploy/staging.env
 chmod 600 deploy/staging.env
 ```
 
-Set a generated `APP_KEY`, a strong database password, the correct staging URL, and environment-specific integrations. Empty required values fail before deployment.
+Set a generated 32-byte Laravel `APP_KEY`, a strong database password, the correct staging URL, and environment-specific integrations. Hosted startup fails unless PostgreSQL and Redis-backed cache, queues, and encrypted sessions remain enabled with `lax` or `strict` SameSite protection.
+
+Do not set `APP_VERSION` or `RELEASE_SHA` in the runtime environment. Those values are baked into the immutable image and must match its OCI labels. `bin/deploy` rejects runtime overrides that differ from the reviewed image.
+
+Configure explicit proxy addresses through `TRUSTED_PROXIES`. Using `TRUSTED_PROXIES=*` also requires `ALLOW_TRUST_ALL_PROXIES=true` and an architecture in which the application service is inaccessible except through a controlled internal ingress.
 
 The default topology is `docker-compose.staging.yml`. It provides:
 
@@ -50,29 +54,33 @@ STAGING_URL=https://staging.example.test \
 
 The command:
 
-1. Rejects mutable image references.
+1. Rejects mutable image references and broadly readable environment files.
 2. Validates the Compose and environment inputs.
-3. Pulls the exact digest.
-4. Starts PostgreSQL and Redis.
-5. Creates a checksummed, owner-readable-only backup when replacing a running release.
-6. Runs migrations once through the `release` service.
-7. Replaces app, web, worker, and scheduler services with the same digest.
-8. Resolves the requested digest to a local image ID and proves every runtime role uses that exact image ID.
-9. Requires both `/up` and `/health/ready` to pass.
-10. Prints expected and actual image identities, service state, and recent logs on failure.
+3. Pulls the exact digest and validates image ID, version, Git revision, and license metadata.
+4. Rejects runtime `APP_VERSION` or `RELEASE_SHA` overrides that differ from the image.
+5. Starts PostgreSQL and Redis and waits for database readiness.
+6. Inspects the PostgreSQL schema; a populated schema is backed up even when the prior application container is stopped or unhealthy. Only a verified empty first-deployment schema skips backup unless `SKIP_BACKUP=YES` is explicitly supplied.
+7. Creates a checksummed, owner-readable-only backup before migrations.
+8. Runs migrations once through the `release` service.
+9. Replaces app, web, worker, and scheduler services with the same digest.
+10. Proves every runtime role uses the expected image ID, application version, and release SHA.
+11. Requires both `/up` and `/health/ready` to pass.
+12. Prints expected and actual image identities, release metadata, service state, and recent logs on failure.
 
-Set `STAGING_HTTP_PORT` when direct host-port exposure differs from 8080. Set `HEALTHCHECK_ATTEMPTS` to adjust the default 30 two-second attempts.
+Set `STAGING_HTTP_PORT` when direct host-port exposure differs from 8080. Set `DATABASE_READY_ATTEMPTS` or `HEALTHCHECK_ATTEMPTS` to adjust the default 30 two-second attempts.
+
+`SKIP_BACKUP=YES` and `SKIP_MIGRATIONS=YES` are controlled emergency or rollback inputs. Their use must be recorded with the release evidence; they are not normal deployment defaults.
 
 ## CI staging demonstration
 
-The container CI job builds the runtime image, validates source-control and build-context exclusions, verifies OCI revision and license metadata, launches the staging topology, proves every runtime role uses the built image ID, runs migrations, verifies liveness and readiness, performs a checksummed backup and restore, validates owner-only backup modes and manifest provenance, verifies service and image identity after restore, and scans the image. This provides repeatable infrastructure-level acceptance evidence without claiming a production deployment.
+The container CI job builds the runtime image, validates source-control and build-context exclusions, verifies OCI revision and license metadata, launches the staging topology, proves every runtime role uses the built image ID and release metadata, runs migrations, verifies liveness and readiness, performs a checksummed backup and restore, validates owner-only backup modes and manifest provenance, verifies service and image identity after restore, and scans the image. Loopback HTTP is used only inside this ephemeral CI topology; externally reachable hosted environments require HTTPS.
 
 ## Production promotion
 
 Production promotion must use the same image digest accepted in staging. Configuration may differ, but the image must not be rebuilt.
 
-Use an environment-specific production orchestrator and managed data services where available. Preserve the same controls: digest-only images, verified image identity, OCI provenance, image-owned package manifests, a single release job, least-privilege storage mounts, health gates, backup evidence, and an explicit rollback digest.
+Use an environment-specific production orchestrator and managed data services where available. Preserve the same controls: digest-only images, verified image and release identity, OCI provenance, image-owned package manifests, a single release job, least-privilege storage mounts, health gates, backup evidence, and an explicit rollback digest.
 
 ## Post-deployment
 
-Observe the release through the agreed stabilization window. Record JSON logs, error rate, latency, queue depth, worker failures, database health, deployed digest, image ID, and source revision before closing the release.
+Observe the release through the agreed stabilization window. Record JSON logs, error rate, latency, queue depth, worker failures, database health, deployed digest, image ID, application version, and source revision before closing the release.
