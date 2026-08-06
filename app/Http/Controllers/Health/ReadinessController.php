@@ -14,17 +14,14 @@ final class ReadinessController
     public function __invoke(): JsonResponse
     {
         $checks = [
-            'database' => $this->databaseIsReady(),
-            'cache' => $this->cacheIsReady(),
+            $this->databaseIsReady(),
+            $this->cacheIsReady(),
         ];
 
         $ready = ! in_array(false, $checks, true);
 
         return response()->json([
             'status' => $ready ? 'ready' : 'not_ready',
-            'checks' => $checks,
-            'version' => config('operations.version'),
-            'release_sha' => config('operations.release_sha'),
             'request_id' => request()->attributes->get('request_id'),
         ], $ready ? 200 : 503);
     }
