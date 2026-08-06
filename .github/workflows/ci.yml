@@ -118,9 +118,9 @@ jobs:
         run: npm run check
 
   container:
-    name: Container build
+    name: Container, staging, and recovery
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     needs:
       - backend
       - frontend
@@ -129,8 +129,52 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Validate Compose configuration
-        run: cp .env.example .env && docker compose config --quiet
+      - name: Create CI staging environment
+        shell: bash
+        run: |
+          cat > .env.staging.ci <<'EOF'
+          APP_NAME="Kingshot Alliance"
+          APP_ENV=staging
+          APP_KEY=base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+          APP_DEBUG=false
+          APP_URL=http://127.0.0.1:18080
+          APP_TIMEZONE=UTC
+          LOG_CHANNEL=stack
+          LOG_STACK=stderr
+          LOG_LEVEL=info
+          DB_CONNECTION=pgsql
+          DB_HOST=postgres
+          DB_PORT=5432
+          DB_DATABASE=kingshot_staging
+          DB_USERNAME=kingshot_staging
+          DB_PASSWORD=kingshot-staging-ci
+          CACHE_STORE=redis
+          SESSION_DRIVER=redis
+          SESSION_ENCRYPT=true
+          SESSION_SECURE_COOKIE=false
+          QUEUE_CONNECTION=redis
+          REDIS_CLIENT=phpredis
+          REDIS_HOST=redis
+          REDIS_PASSWORD=null
+          REDIS_PORT=6379
+          FILESYSTEM_DISK=local
+          MAIL_MAILER=log
+          MAIL_FROM_ADDRESS=noreply@example.test
+          MAIL_FROM_NAME="Kingshot Alliance"
+          PULSE_ENABLED=false
+          HORIZON_PREFIX=kingshot_staging_ci_horizon:
+          SECURITY_CSP_ENABLED=true
+          EOF
+
+          echo "APP_IMAGE=kingshot-alliance:${GITHUB_SHA}" >> "$GITHUB_ENV"
+          echo "STAGING_ENV_FILE=.env.staging.ci" >> "$GITHUB_ENV"
+          echo "STAGING_HTTP_PORT=18080" >> "$GITHUB_ENV"
+
+      - name: Validate Compose configurations
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+          docker compose --env-file .env.staging.ci -f docker-compose.staging.yml config --quiet
 
       - name: Build production image
         run: |
@@ -138,14 +182,53 @@ jobs:
             --target runtime \
             --build-arg APP_VERSION="${GITHUB_REF_NAME}" \
             --build-arg RELEASE_SHA="${GITHUB_SHA}" \
-            --tag kingshot-alliance:${GITHUB_SHA} \
+            --tag "${APP_IMAGE}" \
             .
+
+      - name: Run ephemeral staging deployment
+        run: |
+          compose=(docker compose --env-file .env.staging.ci -f docker-compose.staging.yml)
+          "${compose[@]}" --profile release run --rm release
+          "${compose[@]}" up -d app web worker scheduler
+
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:18080/up >/dev/null \
+              && curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          "${compose[@]}" ps
+          exit 1
+
+      - name: Demonstrate backup and restore
+        shell: bash
+        run: |
+          export COMPOSE_FILE=docker-compose.staging.yml
+          export ENV_FILE=.env.staging.ci
+          export BACKUP_DIR="${RUNNER_TEMP}/backups"
+
+          ./bin/backup
+          backup_file="$(find "$BACKUP_DIR" -name 'database-*.sql.gz' -print -quit)"
+          test -n "$backup_file"
+
+          CONFIRM_RESTORE=YES ./bin/restore "$backup_file"
+          curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null
 
       - name: Scan image
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: kingshot-alliance:${{ github.sha }}
+          image-ref: ${{ env.APP_IMAGE }}
           format: table
           exit-code: '1'
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+
+      - name: Show staging logs on failure
+        if: failure()
+        run: docker compose --env-file .env.staging.ci -f docker-compose.staging.yml logs --tail=150
+
+      - name: Remove ephemeral staging environment
+        if: always()
+        run: docker compose --env-file .env.staging.ci -f docker-compose.staging.yml down -v --remove-orphans
