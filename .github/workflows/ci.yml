@@ -62,13 +62,13 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Verify Composer lockfile
         run: test -f composer.lock
 
       - name: Configure PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
           extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
@@ -97,13 +97,13 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Verify npm lockfile
         run: test -f package-lock.json
 
       - name: Configure Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '24'
           cache: npm
@@ -127,7 +127,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Create CI staging environment
         shell: bash
@@ -152,6 +152,7 @@ jobs:
           SESSION_DRIVER=redis
           SESSION_ENCRYPT=true
           SESSION_SECURE_COOKIE=false
+          SESSION_SAME_SITE=lax
           QUEUE_CONNECTION=redis
           REDIS_CLIENT=phpredis
           REDIS_HOST=redis
@@ -163,7 +164,10 @@ jobs:
           MAIL_FROM_NAME="Kingshot Alliance"
           PULSE_ENABLED=false
           HORIZON_PREFIX=kingshot_staging_ci_horizon:
+          HORIZON_STAGING_MAX_PROCESSES=3
           SECURITY_CSP_ENABLED=true
+          TRUSTED_PROXIES=
+          ALLOW_TRUST_ALL_PROXIES=false
           EOF
 
           chmod 600 .env.staging.ci
@@ -194,17 +198,22 @@ jobs:
             .
 
           image_id="$(docker image inspect --format '{{.Id}}' "$APP_IMAGE")"
+          version="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.version"}}' "$APP_IMAGE")"
           revision="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$APP_IMAGE")"
           license="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.licenses"}}' "$APP_IMAGE")"
 
+          test -n "$version"
+          test "$version" != "dev"
           test "$revision" = "$GITHUB_SHA"
           test "$license" = "GPL-3.0-only"
 
           echo "APP_IMAGE_ID=$image_id" >> "$GITHUB_ENV"
+          echo "APP_IMAGE_VERSION=$version" >> "$GITHUB_ENV"
           {
             echo "### Phase 0 immutable image evidence"
             echo "- Reference: \`$APP_IMAGE\`"
             echo "- Image ID: \`$image_id\`"
+            echo "- Application version: \`$version\`"
             echo "- Source revision: \`$revision\`"
             echo "- License: \`$license\`"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -220,6 +229,7 @@ jobs:
             running_services="$("${compose[@]}" ps --status running --services)"
             services_ready=true
             images_ready=true
+            metadata_ready=true
 
             for service in app web worker scheduler; do
               if ! grep -qx "$service" <<< "$running_services"; then
@@ -229,17 +239,24 @@ jobs:
 
               container_id="$("${compose[@]}" ps -q "$service")"
               actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id")"
+              container_environment="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$container_id")"
+              actual_release_sha="$(sed -n 's/^RELEASE_SHA=//p' <<< "$container_environment" | tail -n 1)"
+              actual_version="$(sed -n 's/^APP_VERSION=//p' <<< "$container_environment" | tail -n 1)"
+
               if [ "$actual_image_id" != "$APP_IMAGE_ID" ]; then
                 images_ready=false
+              fi
+
+              if [ "$actual_release_sha" != "$GITHUB_SHA" ] || [ "$actual_version" != "$APP_IMAGE_VERSION" ]; then
+                metadata_ready=false
               fi
             done
 
             if [ "$services_ready" = true ] \
               && [ "$images_ready" = true ] \
+              && [ "$metadata_ready" = true ] \
               && curl --fail --silent http://127.0.0.1:18080/up >/dev/null \
               && curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null; then
-              release_sha="$("${compose[@]}" exec -T app sh -lc 'printf "%s" "${RELEASE_SHA:-}"')"
-              test "$release_sha" = "$GITHUB_SHA"
               exit 0
             fi
             sleep 2
@@ -268,6 +285,8 @@ jobs:
           test -n "$manifest_file"
           test "$(stat -c '%a' "$backup_file")" = "600"
           test "$(stat -c '%a' "$manifest_file")" = "600"
+          grep -Fx "database_file=$(basename "$backup_file")" "$manifest_file"
+          grep -Eq '^database_sha256=[a-f0-9]{64}$' "$manifest_file"
           grep -Fx "release_sha=$GITHUB_SHA" "$manifest_file"
           grep -Fx "image_ref=$APP_IMAGE" "$manifest_file"
 
@@ -278,6 +297,7 @@ jobs:
             running_services="$("${compose[@]}" ps --status running --services)"
             services_ready=true
             images_ready=true
+            metadata_ready=true
 
             for service in app web worker scheduler; do
               if ! grep -qx "$service" <<< "$running_services"; then
@@ -287,13 +307,22 @@ jobs:
 
               container_id="$("${compose[@]}" ps -q "$service")"
               actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id")"
+              container_environment="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$container_id")"
+              actual_release_sha="$(sed -n 's/^RELEASE_SHA=//p' <<< "$container_environment" | tail -n 1)"
+              actual_version="$(sed -n 's/^APP_VERSION=//p' <<< "$container_environment" | tail -n 1)"
+
               if [ "$actual_image_id" != "$APP_IMAGE_ID" ]; then
                 images_ready=false
+              fi
+
+              if [ "$actual_release_sha" != "$GITHUB_SHA" ] || [ "$actual_version" != "$APP_IMAGE_VERSION" ]; then
+                metadata_ready=false
               fi
             done
 
             if [ "$services_ready" = true ] \
               && [ "$images_ready" = true ] \
+              && [ "$metadata_ready" = true ] \
               && curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null; then
               exit 0
             fi
@@ -303,7 +332,7 @@ jobs:
           exit 1
 
       - name: Scan image
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ env.APP_IMAGE }}
           format: table
