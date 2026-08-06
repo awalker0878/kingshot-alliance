@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 set -eu
+umask 077
 
 backup_file="${1:-}"
 compose_file="${COMPOSE_FILE:-docker-compose.yml}"
