@@ -170,12 +170,13 @@ jobs:
           echo "STAGING_ENV_FILE=.env.staging.ci" >> "$GITHUB_ENV"
           echo "STAGING_HTTP_PORT=18080" >> "$GITHUB_ENV"
 
-      - name: Validate scripts and Compose configurations
+      - name: Validate scripts, exclusions, and Compose configurations
         run: |
           for script in bin/*; do
             sh -n "$script"
           done
 
+          sh bin/check-build-context
           cp .env.example .env
           docker compose config --quiet
           docker compose --env-file .env.staging.ci -f docker-compose.staging.yml config --quiet
@@ -193,7 +194,6 @@ jobs:
         shell: bash
         run: |
           compose=(docker compose --env-file .env.staging.ci -f docker-compose.staging.yml)
-          "${compose[@]}" --profile release run --rm --entrypoint php release artisan optimize:clear
           "${compose[@]}" --profile release run --rm release
           "${compose[@]}" up -d app web worker scheduler
 
