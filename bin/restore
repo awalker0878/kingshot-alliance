@@ -57,15 +57,33 @@ if [ -z "$manifest_file" ] || [ ! -f "$manifest_file" ]; then
     exit 66
   fi
 else
+  manifest_database_count="$(grep -c '^database_file=' "$manifest_file" || true)"
+  manifest_checksum_count="$(grep -c '^database_sha256=' "$manifest_file" || true)"
+  manifest_database="$(sed -n 's/^database_file=//p' "$manifest_file" | head -n 1)"
   expected_checksum="$(sed -n 's/^database_sha256=//p' "$manifest_file" | head -n 1)"
   actual_checksum="$(sha256sum "$backup_file" | awk '{print $1}')"
 
-  if [ -z "$expected_checksum" ] || [ "$actual_checksum" != "$expected_checksum" ]; then
-    echo "Backup checksum verification failed." >&2
+  if [ "$manifest_database_count" != "1" ] \
+    || [ "$manifest_checksum_count" != "1" ] \
+    || [ "$manifest_database" != "$backup_name" ] \
+    || ! printf '%s' "$expected_checksum" | grep -Eq '^[a-f0-9]{64}$' \
+    || [ "$actual_checksum" != "$expected_checksum" ]; then
+    echo "Backup manifest or checksum verification failed." >&2
     exit 65
   fi
 
-  echo "Backup checksum verified: $actual_checksum"
+  echo "Backup manifest and checksum verified: $actual_checksum"
+fi
+
+if ! compose ps --status running --services | grep -qx postgres; then
+  echo "The PostgreSQL service is not running." >&2
+  exit 69
+fi
+
+if ! compose exec -T postgres sh -lc \
+  'pg_isready --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"' >/dev/null 2>&1; then
+  echo "PostgreSQL is not ready for restore." >&2
+  exit 69
 fi
 
 echo "This operation replaces the selected database."
@@ -104,4 +122,4 @@ compose exec -T postgres sh -lc \
 compose run --rm app php artisan migrate --force
 compose start app "$web_service" worker scheduler
 
-echo "Restore completed and application services restarted."
+echo "Restore import completed and application services restarted. Verify readiness before declaring recovery successful."
