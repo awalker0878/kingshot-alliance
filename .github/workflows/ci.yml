@@ -64,6 +64,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      - name: Verify Composer lockfile
+        run: test -f composer.lock
+
       - name: Configure PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -72,21 +75,14 @@ jobs:
           coverage: none
           tools: composer:v2
 
-      - name: Validate Composer manifest
+      - name: Validate Composer manifest and lockfile
         run: composer validate --strict
 
-      - name: Install PHP dependencies
+      - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Check dependency advisories
         run: composer audit
-
-      - name: Preserve generated Composer lock
-        uses: actions/upload-artifact@v7
-        with:
-          name: composer-lock
-          path: composer.lock
-          retention-days: 3
 
       - name: Run migrations
         run: php artisan migrate --force
@@ -103,24 +99,20 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      - name: Verify npm lockfile
+        run: test -f package-lock.json
+
       - name: Configure Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '24'
-          package-manager-cache: false
+          cache: npm
 
-      - name: Install frontend dependencies
-        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
 
       - name: Check dependency advisories
         run: npm audit --audit-level=high
-
-      - name: Preserve generated npm lock
-        uses: actions/upload-artifact@v7
-        with:
-          name: npm-lock
-          path: package-lock.json
-          retention-days: 3
 
       - name: Run frontend checks
         run: npm run check
