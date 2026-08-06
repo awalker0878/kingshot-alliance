@@ -22,4 +22,9 @@ assert_ignore .dockerignore 'deploy'
 assert_ignore .dockerignore 'storage/app/*'
 assert_ignore .dockerignore 'storage/*.key'
 
-printf 'Sensitive source-control and Docker build-context exclusions are present.\n'
+if grep -Eq '^COPY[[:space:]]+\.[[:space:]]+\.$' Dockerfile; then
+  echo 'The immutable runtime image must not use a broad COPY . . instruction.' >&2
+  exit 1
+fi
+
+printf 'Sensitive exclusions and targeted Docker copy rules are present.\n'
