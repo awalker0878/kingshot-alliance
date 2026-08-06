@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Check out branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
@@ -37,9 +37,10 @@ jobs:
         run: composer update --no-install --no-interaction --no-progress
 
       - name: Configure Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
+          package-manager-cache: false
 
       - name: Generate npm lock
         run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
