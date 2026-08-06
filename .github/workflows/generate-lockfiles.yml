@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Check out pull request branch
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
@@ -37,7 +37,7 @@ jobs:
         run: composer update --no-install --no-interaction --no-progress
 
       - name: Configure Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           package-manager-cache: false
