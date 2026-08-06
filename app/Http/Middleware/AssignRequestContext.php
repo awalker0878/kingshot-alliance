@@ -60,7 +60,12 @@ final class AssignRequestContext
         $candidate = $request->headers->get('traceparent');
 
         if (is_string($candidate) && $this->isValidTraceparent($candidate)) {
-            return $candidate;
+            return sprintf(
+                '00-%s-%s-%s',
+                substr($candidate, 3, 32),
+                bin2hex(random_bytes(8)),
+                substr($candidate, -2),
+            );
         }
 
         return sprintf('00-%s-%s-01', bin2hex(random_bytes(16)), bin2hex(random_bytes(8)));
