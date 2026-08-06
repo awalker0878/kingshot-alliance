@@ -85,6 +85,8 @@ if [ "$had_running_app" = true ] && [ "${SKIP_BACKUP:-NO}" != "YES" ]; then
   ./bin/backup
 fi
 
+compose --profile release run --rm --entrypoint php release artisan optimize:clear
+
 if [ "${SKIP_MIGRATIONS:-NO}" != "YES" ]; then
   compose --profile release run --rm release
 fi
