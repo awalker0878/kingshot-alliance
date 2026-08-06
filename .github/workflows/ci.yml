@@ -166,6 +166,7 @@ jobs:
           SECURITY_CSP_ENABLED=true
           EOF
 
+          chmod 600 .env.staging.ci
           echo "APP_IMAGE=kingshot-alliance:${GITHUB_SHA}" >> "$GITHUB_ENV"
           echo "STAGING_ENV_FILE=.env.staging.ci" >> "$GITHUB_ENV"
           echo "STAGING_HTTP_PORT=18080" >> "$GITHUB_ENV"
@@ -177,11 +178,13 @@ jobs:
           done
 
           sh bin/check-build-context
+          test "$(stat -c '%a' .env.staging.ci)" = "600"
           cp .env.example .env
           docker compose config --quiet
           docker compose --env-file .env.staging.ci -f docker-compose.staging.yml config --quiet
 
-      - name: Build production image
+      - name: Build and identify production image
+        shell: bash
         run: |
           docker build \
             --target runtime \
@@ -189,6 +192,22 @@ jobs:
             --build-arg RELEASE_SHA="${GITHUB_SHA}" \
             --tag "${APP_IMAGE}" \
             .
+
+          image_id="$(docker image inspect --format '{{.Id}}' "$APP_IMAGE")"
+          revision="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$APP_IMAGE")"
+          license="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.licenses"}}' "$APP_IMAGE")"
+
+          test "$revision" = "$GITHUB_SHA"
+          test "$license" = "GPL-3.0-only"
+
+          echo "APP_IMAGE_ID=$image_id" >> "$GITHUB_ENV"
+          {
+            echo "### Phase 0 immutable image evidence"
+            echo "- Reference: \`$APP_IMAGE\`"
+            echo "- Image ID: \`$image_id\`"
+            echo "- Source revision: \`$revision\`"
+            echo "- License: \`$license\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run ephemeral staging deployment
         shell: bash
@@ -200,22 +219,39 @@ jobs:
           for attempt in $(seq 1 30); do
             running_services="$("${compose[@]}" ps --status running --services)"
             services_ready=true
+            images_ready=true
 
             for service in app web worker scheduler; do
               if ! grep -qx "$service" <<< "$running_services"; then
                 services_ready=false
+                continue
+              fi
+
+              container_id="$("${compose[@]}" ps -q "$service")"
+              actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id")"
+              if [ "$actual_image_id" != "$APP_IMAGE_ID" ]; then
+                images_ready=false
               fi
             done
 
             if [ "$services_ready" = true ] \
+              && [ "$images_ready" = true ] \
               && curl --fail --silent http://127.0.0.1:18080/up >/dev/null \
               && curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null; then
+              release_sha="$("${compose[@]}" exec -T app sh -lc 'printf "%s" "${RELEASE_SHA:-}"')"
+              test "$release_sha" = "$GITHUB_SHA"
               exit 0
             fi
             sleep 2
           done
 
           "${compose[@]}" ps
+          for service in app web worker scheduler; do
+            container_id="$("${compose[@]}" ps -q "$service" 2>/dev/null || true)"
+            if [ -n "$container_id" ]; then
+              docker inspect --format "$service: {{.Config.Image}} {{.Image}}" "$container_id"
+            fi
+          done
           exit 1
 
       - name: Demonstrate backup and restore
@@ -227,12 +263,38 @@ jobs:
 
           ./bin/backup
           backup_file="$(find "$BACKUP_DIR" -name 'database-*.sql.gz' -print -quit)"
+          manifest_file="$(find "$BACKUP_DIR" -name 'manifest-*.txt' -print -quit)"
           test -n "$backup_file"
+          test -n "$manifest_file"
+          test "$(stat -c '%a' "$backup_file")" = "600"
+          test "$(stat -c '%a' "$manifest_file")" = "600"
+          grep -Fx "release_sha=$GITHUB_SHA" "$manifest_file"
+          grep -Fx "image_ref=$APP_IMAGE" "$manifest_file"
 
           CONFIRM_RESTORE=YES ./bin/restore "$backup_file"
 
+          compose=(docker compose --env-file .env.staging.ci -f docker-compose.staging.yml)
           for attempt in $(seq 1 30); do
-            if curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null; then
+            running_services="$("${compose[@]}" ps --status running --services)"
+            services_ready=true
+            images_ready=true
+
+            for service in app web worker scheduler; do
+              if ! grep -qx "$service" <<< "$running_services"; then
+                services_ready=false
+                continue
+              fi
+
+              container_id="$("${compose[@]}" ps -q "$service")"
+              actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id")"
+              if [ "$actual_image_id" != "$APP_IMAGE_ID" ]; then
+                images_ready=false
+              fi
+            done
+
+            if [ "$services_ready" = true ] \
+              && [ "$images_ready" = true ] \
+              && curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null; then
               exit 0
             fi
             sleep 2
