@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - agent/phase-0-engineering-foundation
 
 permissions:
   actions: read
@@ -11,15 +14,15 @@ permissions:
 
 jobs:
   generate:
-    if: github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.actor != 'github-actions[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      - name: Check out pull request branch
+      - name: Check out implementation branch
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Configure PHP
@@ -77,6 +80,8 @@ jobs:
 
       - name: Commit lock files
         shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
         run: |
           set -euo pipefail
           git add composer.lock package-lock.json
@@ -89,6 +94,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Add dependency lock files"
-          git push origin "HEAD:${GITHUB_HEAD_REF}"
+          git push origin "HEAD:${TARGET_BRANCH}"
 
-          echo "The lockfile commit updates this pull request. Approve the resulting pull-request workflows if GitHub requests approval." >> "$GITHUB_STEP_SUMMARY"
+          echo "The lockfile commit updates this pull request. Remove this temporary workflow in the next repository-owner commit to trigger validation against the locked head." >> "$GITHUB_STEP_SUMMARY"
