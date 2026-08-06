@@ -20,6 +20,7 @@
 - Checksummed backup and fail-closed restore controls
 - Source-control and image-build exclusions for secrets, backups, credentials, keys, and runtime data
 - Image-owned package manifests with no persistent or cross-release `bootstrap/cache` state
+- Sanctum package foundation with migrations unpublished and authentication routes disabled until Phase 1
 - Architecture records, security baseline, contribution controls, release controls, and runbooks
 
 ## Validation evidence
@@ -32,6 +33,7 @@
 - [x] PostgreSQL startup and baseline migrations completed in an earlier Actions run
 - [x] Six Pint findings from that run were corrected
 - [x] Latest changed runtime PHP and test files pass syntax lint
+- [x] Sanctum configuration and Phase 0 route-boundary test pass PHP syntax lint
 - [x] Latest changed deployment, restore, entrypoint, and quality scripts pass `sh -n`
 - [x] Latest workflow YAML and Prettier JSON pass local parsing
 - [x] Mandatory Git and Docker exclusions are enforced by a dedicated CI-invoked check
@@ -66,10 +68,11 @@
 21. Missing source-control exclusions for generated backups and the real staging environment file.
 22. A persistent shared `bootstrap/cache` volume that hid the manifest baked into immutable images and could leak cache state across releases and rollbacks.
 23. Writable runtime storage granted unnecessarily to the web-only container.
+24. Sanctum's CSRF-cookie route exposed before the Phase 1 authentication surface was authorized.
 
 ## External blocker
 
-GitHub reported a major Actions outage on August 6, 2026. At 17:02 UTC, GitHub reported that workflow runs were still failing or delayed in starting, queued jobs could time out, and some Actions API requests were returning errors. The Phase 0 workflows remain queued without runner assignment.
+GitHub reported a major Actions outage on August 6, 2026. At 17:02 UTC, GitHub reported that workflow runs were still failing or delayed in starting, queued jobs could time out, and some Actions API requests were returning errors. The latest Phase 0 head has not received workflow runs or status checks.
 
 This is not acceptance evidence. Every pending check must execute successfully after service recovery.
 
