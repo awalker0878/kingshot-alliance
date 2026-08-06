@@ -10,6 +10,7 @@
 - Responses include clickjacking, content-sniffing, referrer, permissions, and opener controls, including rendered error responses.
 - Content Security Policy is enabled after deployment-specific asset origins are approved.
 - Trusted proxy addresses are configured explicitly through `TRUSTED_PROXIES`; trust-all is permitted only when the application service is unreachable except through a controlled internal ingress.
+- Nginx routes dynamic requests only through Laravel's `/index.php` front controller, rejects other PHP paths, and suppresses server-version disclosure.
 - API and authentication routes use named rate limits.
 - Privileged changes require authorization, confirmation, and audit.
 - Error responses do not expose stack traces in staging or production.
@@ -31,6 +32,7 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 
 - PostgreSQL connections require encryption in hosted production environments.
 - Backups are access controlled, compressed only after a successful database dump, recorded in a SHA-256 manifest, verified before restore, and tested through destructive recovery exercises.
+- Backup archives, manifests, and restore working files are created with owner-only permissions through a restrictive process umask.
 - Restore operations fail closed when their matching manifest is absent or invalid unless an explicit unverified-restore override is approved.
 - Generated backups are excluded from source control and Docker image build contexts.
 - Object storage defaults to private visibility and fails on write errors.
@@ -44,7 +46,8 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 - Dependabot monitors Composer, npm, Docker, and GitHub Actions.
 - CodeQL analyzes PHP and TypeScript.
 - Production images are scanned for high and critical vulnerabilities.
-- Release images are immutable and identified by digest and source SHA.
+- Release images are immutable and identified by digest, local image ID, source SHA, and OCI metadata.
+- Deployment and staging checks prove that app, web, worker, and scheduler roles run the expected immutable image ID.
 - Build contexts exclude development credentials, local data, test output, documentation, and deployment configuration.
 - Runtime stages use targeted copies and do not contain Composer, Git, Bash, frontend source, test tooling, deployment files, or unrelated repository content.
 - CI fails if a broad `COPY . .` instruction is reintroduced.
@@ -56,5 +59,6 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 - Health endpoints separate liveness from dependency readiness.
 - `bootstrap/cache` remains image-owned and is not persisted or shared between releases; each digest uses the package manifest built into that image.
 - The web role mounts runtime storage read-only; write access remains limited to application roles that require it.
+- Backup manifests record the running release SHA and image reference, and CI validates both before destructive restore.
 - Production debugging is disabled.
 - Incident response follows `docs/runbooks/incident-response.md`.
