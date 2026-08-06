@@ -20,6 +20,7 @@
 - Checksummed backup and fail-closed restore controls
 - Source-control and image-build exclusions for secrets, backups, credentials, keys, and runtime data
 - Image-owned package manifests with no persistent or cross-release `bootstrap/cache` state
+- Targeted production-image copies with build and development tooling excluded from runtime
 - Sanctum package foundation with migrations unpublished and authentication routes disabled until Phase 1
 - Existing GPL-3.0 repository licensing preserved in source and Composer metadata
 - Architecture records, security baseline, contribution controls, release controls, and runbooks
@@ -37,7 +38,7 @@
 - [x] Sanctum configuration and Phase 0 route-boundary test pass PHP syntax lint
 - [x] Latest changed deployment, restore, entrypoint, and quality scripts pass `sh -n`
 - [x] Latest workflow YAML and Prettier JSON pass local parsing
-- [x] Mandatory Git and Docker exclusions are enforced by a dedicated CI-invoked check
+- [x] Mandatory Git and Docker exclusions and targeted copy rules are enforced by a dedicated CI-invoked check
 - [x] The exact GPL-3.0 license blob from `main` is restored and Composer declares `GPL-3.0-only`
 - [ ] Laravel tests, Larastan, and final Pint validation
 - [ ] ESLint, Prettier, Vue type checking, and Vite build
@@ -72,6 +73,7 @@
 23. Writable runtime storage granted unnecessarily to the web-only container.
 24. Sanctum's CSRF-cookie route exposed before the Phase 1 authentication surface was authorized.
 25. The existing GPL-3.0 license was silently replaced with MIT text and inconsistent Composer metadata.
+26. A broad `COPY . .` and shared base tooling caused development files, Composer, Git, Bash, frontend sources, and unrelated repository content to enter the production runtime image.
 
 ## External blocker
 
