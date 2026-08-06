@@ -2,7 +2,7 @@
 
 ## Application
 
-- HTTPS is mandatory for externally reachable hosted environments. The ephemeral CI staging demonstration may use loopback HTTP only.
+- HTTPS and secure session cookies are mandatory for externally reachable hosted environments. The ephemeral CI staging demonstration may use loopback HTTP and insecure cookies only when `APP_URL` resolves to `localhost`, `127.0.0.1`, or `::1`.
 - Hosted startup requires a valid 32-byte AES-256 application key, a non-placeholder version, and a 40-character lowercase Git release SHA.
 - Hosted startup requires PostgreSQL plus Redis-backed cache, queues, and sessions; session payload encryption and `lax` or `strict` SameSite protection cannot be disabled.
 - Production startup additionally fails when debugging is enabled, `APP_URL` is not HTTPS, secure session cookies are disabled, or PostgreSQL permits plaintext fallback.
