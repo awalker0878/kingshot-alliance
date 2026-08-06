@@ -1,0 +1,60 @@
+name: Generate lock files
+
+on:
+  push:
+    branches:
+      - agent/phase-0-engineering-foundation
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generate-lockfiles-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_sqlite, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Generate Composer lock
+        run: composer update --no-install --no-interaction --no-progress
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Generate npm lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Commit lock files
+        shell: bash
+        run: |
+          if git diff --quiet -- composer.lock package-lock.json && \
+             git diff --cached --quiet -- composer.lock package-lock.json; then
+            echo "Lock files are already current."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add composer.lock package-lock.json
+          git commit -m "Add dependency lock files"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
