@@ -3,10 +3,12 @@
 ## Application
 
 - HTTPS is mandatory outside local development.
+- Production startup fails when debugging is enabled, `APP_URL` is not HTTPS, secure session cookies are disabled, or PostgreSQL permits plaintext fallback.
 - Sessions are encrypted, HTTP-only, and same-site restricted.
 - State-changing browser requests use CSRF protection.
-- Responses include clickjacking, content-sniffing, referrer, permissions, and opener controls.
+- Responses include clickjacking, content-sniffing, referrer, permissions, and opener controls, including rendered error responses.
 - Content Security Policy is enabled after deployment-specific asset origins are approved.
+- Trusted proxy addresses are configured explicitly through `TRUSTED_PROXIES`; trust-all is permitted only when the application service is unreachable except through a controlled internal ingress.
 - API and authentication routes use named rate limits.
 - Privileged changes require authorization, confirmation, and audit.
 - Error responses do not expose stack traces in staging or production.
@@ -24,8 +26,9 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 
 ## Data
 
-- PostgreSQL connections use encryption in hosted environments.
-- Backups are encrypted, access controlled, verified, and tested.
+- PostgreSQL connections require encryption in hosted production environments.
+- Backups are access controlled, compressed only after a successful database dump, recorded in a SHA-256 manifest, verified before restore, and tested through destructive recovery exercises.
+- Restore operations fail closed when their matching manifest is absent or invalid unless an explicit unverified-restore override is approved.
 - Object storage defaults to private visibility and fails on write errors.
 - Sensitive exports are authorized, time limited, and audited.
 - Retention and deletion rules are defined with each domain.
@@ -41,7 +44,9 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 
 ## Operations
 
-- Request IDs and trace IDs correlate logs.
+- Request IDs and W3C trace IDs correlate logs and are returned on successful and rendered error responses.
+- Invalid trace context, including all-zero trace or parent identifiers, is discarded and replaced.
 - Health endpoints separate liveness from dependency readiness.
+- Runtime containers do not mutate shared Laravel caches concurrently; cache clearing occurs once through the controlled release job.
 - Production debugging is disabled.
 - Incident response follows `docs/runbooks/incident-response.md`.
