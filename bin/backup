@@ -34,22 +34,32 @@ if ! compose ps --status running --services | grep -qx postgres; then
 fi
 
 database_file="$destination/database-$timestamp.sql.gz"
+plain_file="$destination/.database-$timestamp.sql"
 manifest_file="$destination/manifest-$timestamp.txt"
+trap 'rm -f "$plain_file"' EXIT HUP INT TERM
 
-docker_release_sha="${RELEASE_SHA:-unknown}"
+app_container="$(compose ps -q app 2>/dev/null || true)"
+release_sha="unknown"
 image_ref="${APP_IMAGE:-unknown}"
+
+if [ -n "$app_container" ]; then
+  release_sha="$(compose exec -T app sh -lc 'printf "%s" "${RELEASE_SHA:-unknown}"' 2>/dev/null || printf 'unknown')"
+  image_ref="$(docker inspect --format '{{.Config.Image}}' "$app_container" 2>/dev/null || printf '%s' "$image_ref")"
+fi
 
 compose exec -T postgres sh -lc \
   'pg_dump --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --format=plain --no-owner --no-privileges' \
-  | gzip -9 > "$database_file"
+  > "$plain_file"
 
+gzip -9 < "$plain_file" > "$database_file"
+gzip -t "$database_file"
 checksum="$(sha256sum "$database_file" | awk '{print $1}')"
 
 {
   echo "created_at=$timestamp"
   echo "database_file=$(basename "$database_file")"
   echo "database_sha256=$checksum"
-  echo "release_sha=$docker_release_sha"
+  echo "release_sha=$release_sha"
   echo "image_ref=$image_ref"
 } > "$manifest_file"
 
