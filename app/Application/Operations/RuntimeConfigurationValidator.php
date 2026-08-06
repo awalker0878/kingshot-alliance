@@ -69,8 +69,27 @@ final class RuntimeConfigurationValidator
             $errors[] = 'Hosted session cookies must use lax or strict SameSite protection.';
         }
 
-        $trustedProxies = trim((string) config('operations.trusted_proxies'));
-        if ($trustedProxies === '*' && config('operations.allow_trust_all_proxies') !== true) {
+        $filesystem = (string) config('filesystems.default');
+        if (! in_array($filesystem, ['local', 's3'], true)) {
+            $errors[] = 'Hosted releases must use the private local or S3 filesystem disk.';
+        } elseif ($filesystem === 's3' && blank(config('filesystems.disks.s3.bucket'))) {
+            $errors[] = 'Hosted S3 storage requires a configured bucket.';
+        }
+
+        if (config('pulse.enabled') !== false) {
+            $errors[] = 'Pulse recording must remain disabled until its schema and access policy are introduced.';
+        }
+
+        $trustedProxies = array_values(array_filter(array_map(
+            static fn (string $proxy): string => trim($proxy),
+            explode(',', (string) config('operations.trusted_proxies')),
+        )));
+
+        if (in_array('*', $trustedProxies, true) && $trustedProxies !== ['*']) {
+            $errors[] = 'The trust-all proxy wildcard must be the only TRUSTED_PROXIES entry.';
+        }
+
+        if ($trustedProxies === ['*'] && config('operations.allow_trust_all_proxies') !== true) {
             $errors[] = 'Trusting every proxy requires explicit ALLOW_TRUST_ALL_PROXIES approval.';
         }
 
