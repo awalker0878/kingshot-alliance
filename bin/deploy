@@ -1,12 +1,99 @@
 #!/usr/bin/env sh
 set -eu
 
-image="${1:?Usage: bin/deploy registry/image:tag}"
+image="${1:-}"
 
-echo "Deployment contract for image: $image"
-echo "1. Verify immutable image digest and release attestation."
-echo "2. Put application workers into a controlled drain."
-echo "3. Run database backup and migration preflight."
-echo "4. Deploy the image to staging."
-echo "5. Run /up and /health/ready smoke checks."
-echo "6. Promote only after acceptance evidence is recorded."
+if [ -z "$image" ]; then
+  echo "Usage: bin/deploy registry/image@sha256:<64-hex-digest>" >&2
+  exit 64
+fi
+
+case "$image" in
+  *@sha256:*) ;;
+  *)
+    echo "Deployment requires an immutable image digest, not a mutable tag: $image" >&2
+    exit 65
+    ;;
+esac
+
+digest="${image##*@sha256:}"
+if ! printf '%s' "$digest" | grep -Eq '^[a-f0-9]{64}$'; then
+  echo "Invalid sha256 image digest: $image" >&2
+  exit 65
+fi
+
+compose_file="${COMPOSE_FILE:-docker-compose.staging.yml}"
+env_file="${ENV_FILE:-deploy/staging.env}"
+port="${STAGING_HTTP_PORT:-8080}"
+url="${STAGING_URL:-http://127.0.0.1:$port}"
+
+if [ ! -f "$compose_file" ]; then
+  echo "Compose file not found: $compose_file" >&2
+  exit 66
+fi
+
+if [ ! -f "$env_file" ]; then
+  echo "Environment file not found: $env_file" >&2
+  echo "Create it from deploy/staging.env.example and supply real secrets." >&2
+  exit 66
+fi
+
+command -v docker >/dev/null 2>&1 || {
+  echo "Docker is required." >&2
+  exit 69
+}
+command -v curl >/dev/null 2>&1 || {
+  echo "curl is required for deployment health checks." >&2
+  exit 69
+}
+
+export APP_IMAGE="$image"
+export STAGING_ENV_FILE="$env_file"
+export STAGING_HTTP_PORT="$port"
+
+compose() {
+  docker compose --env-file "$env_file" -f "$compose_file" "$@"
+}
+
+compose config --quiet
+
+had_running_app=false
+if compose ps --status running --services 2>/dev/null | grep -qx app; then
+  had_running_app=true
+fi
+
+compose pull app web worker scheduler release
+compose up -d postgres redis
+
+if [ "$had_running_app" = true ] && [ "${SKIP_BACKUP:-NO}" != "YES" ]; then
+  COMPOSE_FILE="$compose_file" \
+  ENV_FILE="$env_file" \
+  APP_IMAGE="$image" \
+  STAGING_ENV_FILE="$env_file" \
+  ./bin/backup
+fi
+
+if [ "${SKIP_MIGRATIONS:-NO}" != "YES" ]; then
+  compose --profile release run --rm release
+fi
+
+compose up -d --remove-orphans app web worker scheduler
+
+attempt=1
+max_attempts="${HEALTHCHECK_ATTEMPTS:-30}"
+while [ "$attempt" -le "$max_attempts" ]; do
+  if curl --fail --silent --show-error "$url/up" >/dev/null \
+    && curl --fail --silent --show-error "$url/health/ready" >/dev/null; then
+    echo "Deployment healthy: $image"
+    echo "Endpoint: $url"
+    exit 0
+  fi
+
+  sleep 2
+  attempt=$((attempt + 1))
+done
+
+echo "Deployment failed health checks after $max_attempts attempts." >&2
+compose ps >&2
+compose logs --tail=100 app web worker scheduler >&2 || true
+exit 70
