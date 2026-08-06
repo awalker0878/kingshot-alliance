@@ -4,26 +4,30 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - agent/phase-0-engineering-foundation
+  workflow_dispatch:
 
 permissions:
   actions: read
   contents: write
 
 concurrency:
-  group: generate-lockfiles-${{ github.event.pull_request.number }}
+  group: generate-lockfiles-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   generate:
-    if: github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.actor != 'github-actions[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      - name: Check out pull request branch
+      - name: Check out source branch
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Configure PHP
@@ -83,6 +87,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          target_branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
           git add composer.lock package-lock.json
 
           if git diff --cached --quiet -- composer.lock package-lock.json; then
@@ -93,6 +98,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Add dependency lock files"
-          git push origin "HEAD:${GITHUB_HEAD_REF}"
+          git push origin "HEAD:${target_branch}"
 
           echo "The lockfile commit updates this pull request. A repository-owner commit that removes this temporary workflow will then trigger the final validation suite on the locked head." >> "$GITHUB_STEP_SUMMARY"
