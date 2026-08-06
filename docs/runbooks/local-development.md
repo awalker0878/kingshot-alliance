@@ -6,7 +6,7 @@
 - Git
 - At least 4 GB of free memory for the development stack
 
-PHP, Composer, Node, PostgreSQL, and Redis run inside containers.
+PHP, Composer, Node, PostgreSQL, and Redis run inside containers. The committed `composer.lock` and `package-lock.json` files are required so local development, CI, and production images use the same dependency graph.
 
 ## First setup
 
@@ -15,7 +15,7 @@ cp .env.example .env
 ./bin/setup
 ```
 
-The setup command builds the images, installs dependencies, creates the application key, runs migrations, and starts the stack.
+The setup command verifies the lockfiles, builds the images, installs locked dependencies, creates the application key, runs migrations, and starts the stack.
 
 ## Services
 
@@ -46,7 +46,13 @@ docker compose logs -f app worker
 ### Empty vendor volume
 
 ```bash
-docker compose run --rm app composer install
+docker compose run --rm app composer install --no-interaction --no-progress --prefer-dist
+```
+
+### Empty node_modules volume
+
+```bash
+docker compose run --rm node npm ci --no-audit --no-fund
 ```
 
 ### Stale configuration
