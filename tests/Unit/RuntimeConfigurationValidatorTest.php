@@ -9,6 +9,26 @@ use Tests\TestCase;
 
 final class RuntimeConfigurationValidatorTest extends TestCase
 {
+    public function test_staging_rejects_placeholder_release_metadata(): void
+    {
+        $this->configureRequiredValues();
+        config([
+            'operations.version' => 'dev',
+            'operations.release_sha' => 'local',
+        ]);
+
+        $errors = (new RuntimeConfigurationValidator())->errors('staging');
+
+        self::assertContains(
+            'Hosted releases must declare a non-placeholder application version.',
+            $errors,
+        );
+        self::assertContains(
+            'Hosted releases must declare a 40-character lowercase Git release SHA.',
+            $errors,
+        );
+    }
+
     public function test_production_rejects_insecure_runtime_configuration(): void
     {
         $this->configureRequiredValues();
@@ -51,6 +71,8 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'database.connections.pgsql.database' => 'kingshot',
             'database.connections.pgsql.username' => 'kingshot',
             'database.connections.pgsql.password' => 'secret',
+            'operations.version' => 'v0.1.0',
+            'operations.release_sha' => str_repeat('a', 40),
         ]);
     }
 }
