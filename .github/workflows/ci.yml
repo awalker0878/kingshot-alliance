@@ -170,8 +170,12 @@ jobs:
           echo "STAGING_ENV_FILE=.env.staging.ci" >> "$GITHUB_ENV"
           echo "STAGING_HTTP_PORT=18080" >> "$GITHUB_ENV"
 
-      - name: Validate Compose configurations
+      - name: Validate scripts and Compose configurations
         run: |
+          for script in bin/*; do
+            sh -n "$script"
+          done
+
           cp .env.example .env
           docker compose config --quiet
           docker compose --env-file .env.staging.ci -f docker-compose.staging.yml config --quiet
@@ -186,13 +190,24 @@ jobs:
             .
 
       - name: Run ephemeral staging deployment
+        shell: bash
         run: |
           compose=(docker compose --env-file .env.staging.ci -f docker-compose.staging.yml)
           "${compose[@]}" --profile release run --rm release
           "${compose[@]}" up -d app web worker scheduler
 
           for attempt in $(seq 1 30); do
-            if curl --fail --silent http://127.0.0.1:18080/up >/dev/null \
+            running_services="$("${compose[@]}" ps --status running --services)"
+            services_ready=true
+
+            for service in app web worker scheduler; do
+              if ! grep -qx "$service" <<< "$running_services"; then
+                services_ready=false
+              fi
+            done
+
+            if [ "$services_ready" = true ] \
+              && curl --fail --silent http://127.0.0.1:18080/up >/dev/null \
               && curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null; then
               exit 0
             fi
@@ -214,7 +229,15 @@ jobs:
           test -n "$backup_file"
 
           CONFIRM_RESTORE=YES ./bin/restore "$backup_file"
-          curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null
+
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          exit 1
 
       - name: Scan image
         uses: aquasecurity/trivy-action@v0.36.0
