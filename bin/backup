@@ -61,7 +61,7 @@ if ! compose ps --status running --services | grep -qx postgres; then
   exit 69
 fi
 
-app_container="$(compose ps -q app 2>/dev/null || true)"
+app_container="$(compose ps --all --quiet app 2>/dev/null || true)"
 release_sha="unknown"
 image_ref="unknown"
 
