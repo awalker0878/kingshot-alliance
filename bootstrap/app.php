@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Health\ReadinessController;
 use App\Http\Middleware\AssignRequestContext;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RecordRequestMetrics;
@@ -10,6 +11,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -17,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: static function (): void {
+            Route::get('/health/ready', ReadinessController::class)
+                ->name('health.ready');
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $trustedProxies = array_values(array_filter(array_map(
@@ -41,13 +47,21 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->context(static fn (): array => [
-            'request_id' => request()?->attributes->get('request_id'),
-            'trace_id' => request()?->attributes->get('trace_id'),
-        ]);
+        $exceptions->context(static function (): array {
+            $request = app()->bound('request') ? request() : null;
+
+            return [
+                'request_id' => $request instanceof Request
+                    ? $request->attributes->get('request_id')
+                    : null,
+                'trace_id' => $request instanceof Request
+                    ? $request->attributes->get('trace_id')
+                    : null,
+            ];
+        });
 
         $exceptions->respond(static function (Response $response): Response {
-            $request = request();
+            $request = app()->bound('request') ? request() : null;
 
             if ($request instanceof Request) {
                 AssignRequestContext::applyResponseHeaders($response, $request);
