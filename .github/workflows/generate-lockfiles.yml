@@ -4,25 +4,26 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - agent/phase-0-engineering-foundation
 
 permissions:
   actions: read
   contents: write
 
+concurrency:
+  group: generate-lockfiles-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   generate:
-    if: github.actor != 'github-actions[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    if: github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      - name: Check out implementation branch
+      - name: Check out pull request branch
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Configure PHP
@@ -80,8 +81,6 @@ jobs:
 
       - name: Commit lock files
         shell: bash
-        env:
-          TARGET_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
         run: |
           set -euo pipefail
           git add composer.lock package-lock.json
@@ -94,6 +93,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Add dependency lock files"
-          git push origin "HEAD:${TARGET_BRANCH}"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
 
-          echo "The lockfile commit updates this pull request. Remove this temporary workflow in the next repository-owner commit to trigger validation against the locked head." >> "$GITHUB_STEP_SUMMARY"
+          echo "The lockfile commit updates this pull request. A repository-owner commit that removes this temporary workflow will then trigger the final validation suite on the locked head." >> "$GITHUB_STEP_SUMMARY"
