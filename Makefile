@@ -2,11 +2,13 @@
 
 setup:
 	@test -f .env || cp .env.example .env
+	@test -f composer.lock
+	@test -f package-lock.json
 	docker compose build
-	docker compose run --rm app composer install
+	docker compose run --rm app composer install --no-interaction --no-progress --prefer-dist
 	docker compose run --rm app php artisan key:generate
 	docker compose run --rm app php artisan migrate
-	docker compose run --rm node npm install --ignore-scripts --no-audit --no-fund
+	docker compose run --rm node npm ci --no-audit --no-fund
 	docker compose up -d
 
 up:
