@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Application\Operations\RuntimeConfigurationValidator;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
@@ -9,21 +10,13 @@ Artisan::command('about:phase', function (): void {
     $this->info('Kingshot Alliance — Phase 0 engineering foundation');
 })->purpose('Display the current implementation phase');
 
-Artisan::command('app:config-check', function (): int {
-    $required = config('operations.required_configuration', []);
+Artisan::command('app:config-check', function (RuntimeConfigurationValidator $validator): int {
+    $errors = $validator->errors(app()->environment());
 
-    if (! is_array($required)) {
-        $this->error('The required runtime configuration list is invalid.');
-
-        return 1;
-    }
-
-    $missing = collect($required)
-        ->filter(static fn (mixed $key): bool => is_string($key) && blank(config($key)))
-        ->values();
-
-    if ($missing->isNotEmpty()) {
-        $this->error('Missing required runtime configuration: '.$missing->implode(', '));
+    if ($errors !== []) {
+        foreach ($errors as $error) {
+            $this->error($error);
+        }
 
         return 1;
     }
