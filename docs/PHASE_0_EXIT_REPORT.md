@@ -19,6 +19,7 @@
 - Digest-only deployment and rollback controls
 - Checksummed backup and fail-closed restore controls
 - Source-control and image-build exclusions for secrets, backups, credentials, keys, and runtime data
+- Image-owned package manifests with no persistent or cross-release `bootstrap/cache` state
 - Architecture records, security baseline, contribution controls, release controls, and runbooks
 
 ## Validation evidence
@@ -33,7 +34,7 @@
 - [x] Latest changed runtime PHP and test files pass syntax lint
 - [x] Latest changed deployment, restore, entrypoint, and quality scripts pass `sh -n`
 - [x] Latest workflow YAML and Prettier JSON pass local parsing
-- [x] Mandatory Git and Docker exclusions are enforced by `bin/check`
+- [x] Mandatory Git and Docker exclusions are enforced by a dedicated CI-invoked check
 - [ ] Laravel tests, Larastan, and final Pint validation
 - [ ] ESLint, Prettier, Vue type checking, and Vite build
 - [ ] Immutable image build and multi-role staging smoke test
@@ -63,6 +64,8 @@
 19. Repeated Composer dependency resolution despite an existing verified lock artifact.
 20. Docker build contexts that could include backups, deployment secrets, Composer credentials, runtime keys, or `storage/app` data.
 21. Missing source-control exclusions for generated backups and the real staging environment file.
+22. A persistent shared `bootstrap/cache` volume that hid the manifest baked into immutable images and could leak cache state across releases and rollbacks.
+23. Writable runtime storage granted unnecessarily to the web-only container.
 
 ## External blocker
 
