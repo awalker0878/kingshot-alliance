@@ -11,7 +11,7 @@
 - State-changing browser requests use CSRF protection.
 - Responses include clickjacking, content-sniffing, referrer, permissions, and opener controls, including rendered error responses.
 - Content Security Policy is enabled after deployment-specific asset origins are approved.
-- Trusted proxy addresses are configured explicitly through `TRUSTED_PROXIES`; `TRUSTED_PROXIES=*` also requires `ALLOW_TRUST_ALL_PROXIES=true` and is permitted only behind a controlled internal ingress.
+- Trusted proxy addresses are configured explicitly through `TRUSTED_PROXIES`; `TRUSTED_PROXIES=*` must be the only proxy entry, also requires `ALLOW_TRUST_ALL_PROXIES=true`, and is permitted only behind a controlled internal ingress.
 - Nginx routes dynamic requests only through Laravel's `/index.php` front controller, rejects other PHP paths, suppresses server-version disclosure, and excludes URI paths, query strings, referrers, and forwarded-address chains from access logs.
 - Application request metrics record named routes or the constant `unmatched`, never unclassified request paths.
 - API and authentication routes use named rate limits.
@@ -21,6 +21,8 @@
 ## Identity and access
 
 Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1. The foundation reserves Sanctum and Laravel authorization mechanisms but does not create user, token, or role tables early. Sanctum migrations remain unpublished and its CSRF-cookie route is disabled until Phase 1 explicitly enables the authentication surface.
+
+Operational dashboards follow the same boundary. Pulse registers no dashboard route and recording remains disabled until its schema and access policy are introduced. Horizon workers remain available, but the dashboard and mutation APIs are explicitly denied in every environment until Phase 1 provides an authorized operator identity model.
 
 ## Secrets
 
@@ -35,6 +37,7 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 ## Data
 
 - PostgreSQL connections require encryption in hosted production environments.
+- Hosted default storage is restricted to the private local disk or a configured S3 disk; the public disk cannot become the default through environment overrides.
 - A populated PostgreSQL schema is backed up before migrations even when the previous application container is stopped or unhealthy; only a verified empty schema skips the first-deployment backup.
 - Backups are access controlled, compressed only after a successful database dump, recorded in a SHA-256 manifest, verified before restore, and tested through destructive recovery exercises.
 - Backup archives, manifests, and restore working files use collision-resistant temporary paths and owner-only permissions.
@@ -53,6 +56,7 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 - Dependency Review blocks high-severity additions.
 - Dependabot monitors Composer, npm, Docker, and GitHub Actions.
 - CodeQL analyzes PHP and TypeScript.
+- Every external GitHub Action is pinned to a reviewed 40-character commit SHA, with its release version retained as a comment. CI fails if a mutable action tag or branch is introduced.
 - Production images are scanned for high and critical vulnerabilities.
 - Release images are immutable and identified by digest, local image ID, source SHA, and OCI metadata.
 - Deployment rejects missing or placeholder OCI version/revision metadata, verifies GPL-3.0-only license metadata, and fails if runtime `APP_VERSION` or `RELEASE_SHA` overrides differ from the immutable image.
@@ -71,6 +75,7 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 - `bootstrap/cache` remains image-owned and is not persisted or shared between releases; each digest uses the package manifest built into that image.
 - Staging application roles run as non-root, use read-only filesystems, set `no-new-privileges`, and drop all Linux capabilities.
 - The web role mounts runtime storage read-only; write access remains limited to application roles that require it.
+- Horizon has explicit local, staging, and production supervisor settings. Hosted supervisor counts must remain between 1 and 64 processes.
 - Backup manifests record the running release SHA and image reference, and CI validates both before destructive restore.
 - Production debugging is disabled.
 - Incident response follows `docs/runbooks/incident-response.md`.
