@@ -29,15 +29,22 @@ command -v sha256sum >/dev/null 2>&1 || {
   exit 69
 }
 
+database_file="$destination/database-$timestamp.sql.gz"
+manifest_file="$destination/manifest-$timestamp.txt"
+plain_file="$destination/.database-$timestamp.sql"
+database_temp="$destination/.database-$timestamp.sql.gz"
+manifest_temp="$destination/.manifest-$timestamp.txt"
+trap 'rm -f "$plain_file" "$database_temp" "$manifest_temp"' EXIT HUP INT TERM
+
+if [ -e "$database_file" ] || [ -e "$manifest_file" ]; then
+  echo "Backup destination already exists for timestamp: $timestamp" >&2
+  exit 73
+fi
+
 if ! compose ps --status running --services | grep -qx postgres; then
   echo "The PostgreSQL service is not running." >&2
   exit 69
 fi
-
-database_file="$destination/database-$timestamp.sql.gz"
-plain_file="$destination/.database-$timestamp.sql"
-manifest_file="$destination/manifest-$timestamp.txt"
-trap 'rm -f "$plain_file"' EXIT HUP INT TERM
 
 app_container="$(compose ps -q app 2>/dev/null || true)"
 release_sha="unknown"
@@ -52,9 +59,9 @@ compose exec -T postgres sh -lc \
   'pg_dump --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --format=plain --no-owner --no-privileges' \
   > "$plain_file"
 
-gzip -9 < "$plain_file" > "$database_file"
-gzip -t "$database_file"
-checksum="$(sha256sum "$database_file" | awk '{print $1}')"
+gzip -9 < "$plain_file" > "$database_temp"
+gzip -t "$database_temp"
+checksum="$(sha256sum "$database_temp" | awk '{print $1}')"
 
 {
   echo "created_at=$timestamp"
@@ -62,7 +69,10 @@ checksum="$(sha256sum "$database_file" | awk '{print $1}')"
   echo "database_sha256=$checksum"
   echo "release_sha=$release_sha"
   echo "image_ref=$image_ref"
-} > "$manifest_file"
+} > "$manifest_temp"
+
+mv "$manifest_temp" "$manifest_file"
+mv "$database_temp" "$database_file"
 
 printf 'Backup created: %s\n' "$database_file"
 printf 'Manifest created: %s\n' "$manifest_file"
