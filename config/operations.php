@@ -7,6 +7,7 @@ return [
     'release_sha' => env('RELEASE_SHA', 'local'),
     'trusted_proxies' => env('TRUSTED_PROXIES', ''),
     'allow_trust_all_proxies' => (bool) env('ALLOW_TRUST_ALL_PROXIES', false),
+    'allow_insecure_loopback_staging' => (bool) env('ALLOW_INSECURE_LOOPBACK_STAGING', false),
     'required_configuration' => [
         'app.key',
         'app.url',
