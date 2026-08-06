@@ -55,6 +55,18 @@ compose() {
   docker compose --env-file "$env_file" -f "$compose_file" "$@"
 }
 
+runtime_services_are_running() {
+  running_services="$(compose ps --status running --services)"
+
+  for service in app web worker scheduler; do
+    if ! printf '%s\n' "$running_services" | grep -qx "$service"; then
+      return 1
+    fi
+  done
+
+  return 0
+}
+
 compose config --quiet
 
 had_running_app=false
@@ -82,7 +94,8 @@ compose up -d --remove-orphans app web worker scheduler
 attempt=1
 max_attempts="${HEALTHCHECK_ATTEMPTS:-30}"
 while [ "$attempt" -le "$max_attempts" ]; do
-  if curl --fail --silent --show-error "$url/up" >/dev/null \
+  if runtime_services_are_running \
+    && curl --fail --silent --show-error "$url/up" >/dev/null \
     && curl --fail --silent --show-error "$url/health/ready" >/dev/null; then
     echo "Deployment healthy: $image"
     echo "Endpoint: $url"
