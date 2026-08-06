@@ -1,28 +1,28 @@
 name: Generate lock files
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/phase-0-engineering-foundation
+      - main
 
 permissions:
   contents: write
 
 concurrency:
-  group: generate-lockfiles-${{ github.ref }}
+  group: generate-lockfiles-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   generate:
-    if: github.actor != 'github-actions[bot]'
+    if: github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      - name: Check out branch
+      - name: Check out pull request branch
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Configure PHP
@@ -58,4 +58,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add composer.lock package-lock.json
           git commit -m "Add dependency lock files"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
