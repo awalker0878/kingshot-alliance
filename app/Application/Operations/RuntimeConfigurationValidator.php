@@ -101,16 +101,17 @@ final class RuntimeConfigurationValidator
         $appUrl = (string) config('app.url');
         $appScheme = strtolower((string) parse_url($appUrl, PHP_URL_SCHEME));
         $appHost = strtolower((string) parse_url($appUrl, PHP_URL_HOST));
-        $isLoopbackStaging = $environment === 'staging'
-            && in_array($appHost, ['localhost', '127.0.0.1', '::1'], true);
+        $isApprovedLoopbackStaging = $environment === 'staging'
+            && in_array($appHost, ['localhost', '127.0.0.1', '::1'], true)
+            && config('operations.allow_insecure_loopback_staging') === true;
 
         if ($environment === 'staging') {
-            if ($appScheme !== 'https' && ! $isLoopbackStaging) {
-                $errors[] = 'Externally reachable staging APP_URL must use HTTPS.';
+            if ($appScheme !== 'https' && ! $isApprovedLoopbackStaging) {
+                $errors[] = 'Staging APP_URL must use HTTPS unless insecure loopback staging is explicitly approved.';
             }
 
-            if (config('session.secure') !== true && ! $isLoopbackStaging) {
-                $errors[] = 'Externally reachable staging session cookies must be secure.';
+            if (config('session.secure') !== true && ! $isApprovedLoopbackStaging) {
+                $errors[] = 'Staging session cookies must be secure unless insecure loopback staging is explicitly approved.';
             }
 
             return $errors;
