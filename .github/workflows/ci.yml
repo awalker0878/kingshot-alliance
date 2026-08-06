@@ -193,6 +193,7 @@ jobs:
         shell: bash
         run: |
           compose=(docker compose --env-file .env.staging.ci -f docker-compose.staging.yml)
+          "${compose[@]}" --profile release run --rm --entrypoint php release artisan optimize:clear
           "${compose[@]}" --profile release run --rm release
           "${compose[@]}" up -d app web worker scheduler
 
