@@ -66,8 +66,11 @@ release_sha="unknown"
 image_ref="unknown"
 
 if [ -n "$app_container" ]; then
-  release_sha="$(compose exec -T app sh -lc 'printf "%s" "${RELEASE_SHA:-unknown}"' 2>/dev/null || printf 'unknown')"
-  image_ref="$(docker inspect --format '{{.Config.Image}}' "$app_container" 2>/dev/null || printf 'unknown')"
+  container_environment="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$app_container" 2>/dev/null || true)"
+  release_sha="$(printf '%s\n' "$container_environment" | sed -n 's/^RELEASE_SHA=//p' | tail -n 1)"
+  image_ref="$(docker inspect --format '{{.Config.Image}}' "$app_container" 2>/dev/null || true)"
+  [ -n "$release_sha" ] || release_sha="unknown"
+  [ -n "$image_ref" ] || image_ref="unknown"
 elif [ -n "${APP_IMAGE:-}" ]; then
   image_ref="$APP_IMAGE"
 fi
@@ -88,8 +91,10 @@ checksum="$(sha256sum "$database_temp" | awk '{print $1}')"
   echo "image_ref=$image_ref"
 } > "$manifest_temp"
 
-mv "$manifest_temp" "$manifest_file"
+# Publish the archive first and the manifest last. The manifest is the commit
+# marker that the backup pair is complete and eligible for restore.
 mv "$database_temp" "$database_file"
+mv "$manifest_temp" "$manifest_file"
 published=true
 
 printf 'Backup created: %s\n' "$database_file"
