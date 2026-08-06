@@ -34,7 +34,17 @@ manifest_file="$destination/manifest-$timestamp.txt"
 plain_file="$destination/.database-$timestamp.sql"
 database_temp="$destination/.database-$timestamp.sql.gz"
 manifest_temp="$destination/.manifest-$timestamp.txt"
-trap 'rm -f "$plain_file" "$database_temp" "$manifest_temp"' EXIT HUP INT TERM
+published=false
+
+cleanup() {
+  rm -f "$plain_file" "$database_temp" "$manifest_temp"
+
+  if [ "$published" != true ]; then
+    rm -f "$database_file" "$manifest_file"
+  fi
+}
+
+trap cleanup EXIT HUP INT TERM
 
 if [ -e "$database_file" ] || [ -e "$manifest_file" ]; then
   echo "Backup destination already exists for timestamp: $timestamp" >&2
@@ -73,6 +83,7 @@ checksum="$(sha256sum "$database_temp" | awk '{print $1}')"
 
 mv "$manifest_temp" "$manifest_file"
 mv "$database_temp" "$database_file"
+published=true
 
 printf 'Backup created: %s\n' "$database_file"
 printf 'Manifest created: %s\n' "$manifest_file"
