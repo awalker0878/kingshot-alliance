@@ -52,6 +52,7 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 - Request IDs and W3C trace IDs correlate logs and are returned on successful and rendered error responses.
 - Invalid trace context, including all-zero trace or parent identifiers, is discarded and replaced.
 - Health endpoints separate liveness from dependency readiness.
-- Runtime containers do not mutate shared Laravel caches concurrently; cache clearing occurs once through the controlled release job.
+- `bootstrap/cache` remains image-owned and is not persisted or shared between releases; each digest uses the package manifest built into that image.
+- The web role mounts runtime storage read-only; write access remains limited to application roles that require it.
 - Production debugging is disabled.
 - Incident response follows `docs/runbooks/incident-response.md`.
