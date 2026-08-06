@@ -18,6 +18,7 @@ RUN apk add --no-cache \
         icu-libs \
         libpq \
         libzip \
+        nginx \
         postgresql-client \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
@@ -75,6 +76,8 @@ WORKDIR /var/www/html
 COPY --from=vendor /app/vendor ./vendor
 COPY . .
 COPY --from=frontend /app/public/build ./public/build
+COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/99-kingshot.ini
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/10-opcache.ini
 COPY docker/entrypoint.sh /usr/local/bin/kingshot-entrypoint
@@ -85,7 +88,7 @@ RUN php artisan package:discover --ansi \
 
 USER www-data
 
-EXPOSE 9000
+EXPOSE 8080 9000
 
 ENTRYPOINT ["kingshot-entrypoint"]
 CMD ["php-fpm"]
