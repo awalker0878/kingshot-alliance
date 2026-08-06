@@ -15,6 +15,8 @@ Record:
 
 Mutable tags such as `latest`, branch names, or release labels are not accepted by `bin/deploy`.
 
+Each image owns its `bootstrap/cache` contents. Do not mount a persistent or shared volume over that path, clear it during deployment, or copy cache files between releases. This ensures a rollback digest uses the package manifest built into that exact image.
+
 ## Prepare staging
 
 Create the environment file outside version control:
@@ -28,11 +30,13 @@ Set a generated `APP_KEY`, a strong database password, the correct staging URL, 
 The default topology is `docker-compose.staging.yml`. It provides:
 
 - `app` — PHP-FPM
-- `web` — unprivileged Nginx on container port 8080
+- `web` — unprivileged Nginx on container port 8080 with runtime storage mounted read-only
 - `worker` — Horizon
 - `scheduler` — Laravel scheduler
 - `release` — one-shot migrations
 - private PostgreSQL and Redis services for the Phase 0 staging demonstration
+
+Application roles that require runtime writes share the `storage` volume. The web-only role does not receive write access. Package and framework manifests remain inside the immutable image.
 
 ## Deploy by digest
 
@@ -58,13 +62,13 @@ Set `STAGING_HTTP_PORT` when direct host-port exposure differs from 8080. Set `H
 
 ## CI staging demonstration
 
-The container CI job builds the runtime image, launches the staging topology, runs migrations, verifies liveness and readiness, performs a checksummed backup and restore, verifies readiness again, and scans the image. This provides repeatable infrastructure-level acceptance evidence without claiming a production deployment.
+The container CI job builds the runtime image, validates source-control and build-context exclusions, launches the staging topology, runs migrations, verifies liveness and readiness, performs a checksummed backup and restore, verifies readiness again, and scans the image. This provides repeatable infrastructure-level acceptance evidence without claiming a production deployment.
 
 ## Production promotion
 
 Production promotion must use the same image digest accepted in staging. Configuration may differ, but the image must not be rebuilt.
 
-Use an environment-specific production orchestrator and managed data services where available. Preserve the same controls: digest-only images, a single release job, health gates, backup evidence, and explicit rollback digest.
+Use an environment-specific production orchestrator and managed data services where available. Preserve the same controls: digest-only images, image-owned package manifests, a single release job, least-privilege storage mounts, health gates, backup evidence, and an explicit rollback digest.
 
 ## Post-deployment
 
