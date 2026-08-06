@@ -9,7 +9,8 @@
 - Laravel 13, PHP 8.5, Inertia, Vue, TypeScript, PostgreSQL, and Redis foundation
 - Docker local environment and one immutable multi-role runtime image
 - App, unprivileged web, worker, scheduler, release, database, and cache services
-- Required-variable, hosted architecture, release-provenance, session-security, private-storage, worker-bound, and production transport validation
+- Required-variable, hosted architecture, release-provenance, session-security, private-storage, worker-bound, hosted-transport, and production transport validation
+- HTTPS and secure-cookie enforcement for hosted staging, with an explicit CI-only loopback exception
 - Explicit trusted-proxy handling with separate approval for trust-all configurations
 - Structured logs, request IDs, W3C trace propagation with local span identity, stateless health checks, and privacy-preserving request metrics
 - Security and correlation headers on normal and rendered error responses
@@ -21,6 +22,7 @@
 - OCI source, revision, version, and license metadata on the runtime image
 - Schema-state-based pre-migration backup, including stopped or unhealthy previous application containers
 - Checksummed backup and fail-closed restore controls with owner-only files and manifest-last completion semantics
+- Idempotent post-restore recreation of app, web, worker, and scheduler containers
 - Source-control and image-build exclusions for secrets, backups, credentials, keys, and runtime data
 - Image-owned package manifests with no persistent or cross-release `bootstrap/cache` state
 - Targeted production-image copies with build and development tooling excluded from runtime
@@ -38,12 +40,12 @@
 - [x] Earlier Composer lock artifact recovered and structurally validated
 - [x] Composer lock artifact ZIP and lock-file SHA-256 values recorded in the recovery workflow
 - [x] Composer lock `content-hash` exactly matches the current dependency-relevant Composer manifest fields
-- [x] Lock generation stages untracked files before comparison and has a controlled artifact-expiry fallback
+- [x] Lock generation stages untracked files before comparison, serializes PR/push/manual runs by source branch, and has a controlled artifact-expiry fallback
 - [x] Composer dependency resolution and security audit completed in an earlier Actions run
 - [x] PostgreSQL startup and baseline migrations completed in an earlier Actions run
 - [x] Six Pint findings from that run were corrected
 - [x] Latest changed runtime PHP, provider, configuration, and test files pass syntax lint
-- [x] Hosted configuration validator logic was exercised independently: the secure baseline passes and insecure architecture, storage, worker, session, Pulse, and proxy overrides are rejected
+- [x] Hosted configuration validator logic was exercised independently: secure staging passes, unapproved loopback HTTP fails, explicitly approved loopback CI staging passes, external HTTP still fails, and insecure architecture, storage, worker, session, Pulse, and proxy overrides are rejected
 - [x] Sanctum, Pulse, and Horizon Phase 0 route boundaries have regression tests
 - [x] Latest deployment, backup, restore, and quality scripts pass `sh -n`
 - [x] Latest workflow YAML and Prettier JSON pass local parsing
@@ -115,12 +117,17 @@
 54. Hosted configuration could select the public filesystem as the default or select S3 without a bucket.
 55. A trust-all proxy wildcard could be mixed with explicit proxy addresses, creating ambiguous trust behavior.
 56. GitHub Actions workflows referenced mutable release tags instead of reviewed immutable action commits.
+57. Externally reachable staging could use HTTP and insecure cookies because transport controls were production-only.
+58. A loopback-looking `APP_URL` alone could activate the insecure staging exception without explicit approval.
+59. Secure staging did not force HTTPS URL generation from the validated hosted URL.
+60. Restore used `compose start`, so a successful database import could fail to recover service availability when runtime containers did not already exist.
+61. Pull-request and branch-push lock workflows used different concurrency keys and could race while committing identical lockfiles.
 
 ## External validation state
 
-GitHub is reporting an active Actions major outage on August 6, 2026. Workflow starts are delayed or failing, queued jobs may time out, GitHub-hosted runner capacity is constrained, Actions API requests may fail, and webhook delivery is delayed. Pull-request, branch-push, and reopen events for the latest Phase 0 heads have therefore not produced reliable execution evidence.
+GitHub's official status API reports an active major partial outage on August 6, 2026. Capacity remains constrained; jobs may be delayed, fail, or time out, and webhook delivery may be delayed. Current lock generation is accepted and serialized by source branch but remains queued without runner steps.
 
-Earlier Phase 0 runs remain queued or concurrency-pending without job logs. Temporary event-delivery workarounds were removed after the live incident confirmed the infrastructure cause. No green status is inferred from missing, pending, queued, cancelled, or absent runs.
+No green status is inferred from missing, pending, queued, cancelled, or absent runs. The outage prevents the latest head from supplying final PHP, frontend, container, recovery, CodeQL, dependency-review, or image-scan evidence.
 
 The Composer lock artifact remains available until August 9, 2026. The lock workflow verifies and uses it while available; if it is unavailable, Composer regenerates the lock from the reviewed constraints without executing package scripts.
 
