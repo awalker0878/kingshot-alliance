@@ -1,7 +1,7 @@
 # Phase 0 Exit Report
 
 **Phase:** Engineering Foundation  
-**Status:** Implementation candidate — external validation pending  
+**Status:** Implementation candidate — external validation blocked  
 **Branch:** `agent/phase-0-engineering-foundation`
 
 ## Delivered
@@ -9,23 +9,24 @@
 - Laravel 13, PHP 8.5, Inertia, Vue, TypeScript, PostgreSQL, and Redis foundation
 - Docker local environment and one immutable multi-role runtime image
 - App, unprivileged web, worker, scheduler, release, database, and cache services
-- Required-variable and production security configuration validation
-- Explicit trusted-proxy handling
-- Structured logs, request IDs, W3C trace propagation with local span identity, stateless health checks, and request metrics
+- Required-variable, hosted architecture, release-provenance, session-security, and production transport validation
+- Explicit trusted-proxy handling with separate approval for trust-all configurations
+- Structured logs, request IDs, W3C trace propagation with local span identity, stateless health checks, and privacy-preserving request metrics
 - Security and correlation headers on normal and rendered error responses
 - Production HSTS and non-cacheable liveness/readiness responses
 - CI for PHP, frontend, containers, dependency review, CodeQL, and image scanning
 - Ephemeral staging, migration, health, backup, destructive restore, and post-restore gates
-- Digest-only deployment and rollback controls with exact runtime image-ID verification
+- Digest-only deployment and rollback controls with exact runtime image, version, and release-SHA verification
 - OCI source, revision, version, and license metadata on the runtime image
-- Checksummed, atomically published backup and fail-closed restore controls with owner-only file permissions
+- Schema-state-based pre-migration backup, including stopped or unhealthy previous application containers
+- Checksummed backup and fail-closed restore controls with owner-only files and manifest-last completion semantics
 - Source-control and image-build exclusions for secrets, backups, credentials, keys, and runtime data
 - Image-owned package manifests with no persistent or cross-release `bootstrap/cache` state
 - Targeted production-image copies with build and development tooling excluded from runtime
 - Non-root, read-only staging application roles with all Linux capabilities dropped
 - Sanctum package foundation with migrations unpublished and authentication routes disabled until Phase 1
 - Existing GPL-3.0 repository licensing preserved in source and Composer metadata
-- Restricted Nginx PHP execution through the Laravel front controller with version and sensitive query-log disclosure disabled
+- Restricted Nginx PHP execution through the Laravel front controller with version and sensitive request-path disclosure disabled
 - Architecture records, security baseline, contribution controls, release controls, issue templates, and operational runbooks
 
 ## Validation evidence
@@ -34,13 +35,14 @@
 - [x] Earlier Composer lock artifact recovered and structurally validated
 - [x] Composer lock artifact ZIP and lock-file SHA-256 values recorded in the recovery workflow
 - [x] Composer lock `content-hash` exactly matches the current dependency-relevant Composer manifest fields
-- [x] Lock generation now stages untracked files before comparison and has a controlled artifact-expiry fallback
+- [x] Lock generation stages untracked files before comparison and has a controlled artifact-expiry fallback
 - [x] Composer dependency resolution and security audit completed in an earlier Actions run
 - [x] PostgreSQL startup and baseline migrations completed in an earlier Actions run
 - [x] Six Pint findings from that run were corrected
 - [x] Latest changed runtime PHP and test files pass syntax lint
+- [x] Hosted configuration validator logic was exercised independently: the secure baseline passes and all eight insecure architecture/session overrides are rejected
 - [x] Sanctum configuration and Phase 0 route-boundary test pass PHP syntax lint
-- [x] Latest changed deployment, restore, entrypoint, and quality scripts pass `sh -n`
+- [x] Latest deployment, backup, and restore scripts pass `sh -n`
 - [x] Latest workflow YAML and Prettier JSON pass local parsing
 - [x] Nginx configuration passes local syntax validation
 - [x] Mandatory Git and Docker exclusions and targeted copy rules are enforced by a dedicated CI-invoked check
@@ -48,7 +50,7 @@
 - [ ] Laravel tests, Larastan, and final Pint validation
 - [ ] ESLint, Prettier, Vue type checking, and Vite build
 - [ ] Immutable image build, OCI metadata verification, capability-restricted multi-role staging smoke test
-- [ ] Backup and restore demonstration with private file mode, atomic publication, provenance, and post-restore image evidence
+- [ ] Backup and restore demonstration with private file mode, manifest binding, provenance, and post-restore image evidence
 - [ ] Dependency review, CodeQL, and image vulnerability scan
 
 ## Findings corrected during the gate
@@ -95,14 +97,24 @@
 40. Deployment accepted environment files with group- or world-readable permissions.
 41. The lock generator used `git diff` before staging, so new untracked lockfiles would be mistaken for unchanged files and never committed.
 42. Lock generation had no safe fallback after the preserved Composer artifact expired.
+43. Hosted startup accepted placeholder application versions and release SHAs.
+44. Runtime environment overrides could disagree with the immutable image's OCI version and revision while deployment still succeeded.
+45. Pre-migration backup depended on a running application container, so a populated database could be migrated without backup after an application crash or manual stop.
+46. A backup manifest could be published before its archive, leaving a misleading completion marker during an interrupted rename sequence.
+47. Restore did not prove that its manifest named the selected archive or contained exactly one filename and checksum entry.
+48. Restore could stop application services before discovering that PostgreSQL was unavailable.
+49. Application metrics and Nginx access logs could record sensitive unmatched paths or future route tokens.
+50. Hosted startup permitted invalid application keys, non-PostgreSQL databases, non-Redis cache/queue/session backends, unencrypted session payloads, weak SameSite settings, and unapproved trust-all proxy configurations.
 
 ## External validation state
 
-GitHub's public status currently reports Actions as operational. The repository's latest pull-request head has nevertheless not received workflow runs yet, while earlier heads were queued or cancelled by the configured concurrency controls. This is a repository event or residual queue condition, not acceptance evidence.
+GitHub is reporting an active Actions major outage on August 6, 2026. Workflow starts are delayed or failing, queued jobs may time out, Actions API requests may fail, and webhook delivery is delayed. Pull-request, branch-push, and reopen events for the latest Phase 0 heads have therefore not produced reliable execution evidence.
+
+Earlier Phase 0 runs remain queued or concurrency-pending without job logs. Temporary event-delivery workarounds were removed after the live incident confirmed the infrastructure cause. No green status is inferred from missing, pending, queued, cancelled, or absent runs.
 
 The Composer lock artifact remains available until August 9, 2026. The lock workflow verifies and uses it while available; if it is unavailable, Composer regenerates the lock from the reviewed constraints without executing package scripts.
 
-The lockfile workflow commits through `GITHUB_TOKEN`. GitHub may place follow-on pull-request workflows in an approval-required state. Those runs must be explicitly approved and completed against the locked head commit before acceptance.
+The lockfile workflow commits through `GITHUB_TOKEN`. After both locks are committed, a repository-owner commit must remove the temporary workflow and trigger the final validation suite against the locked head. Any approval-required runs must be explicitly approved and completed before acceptance.
 
 ## Exit criteria
 
@@ -110,8 +122,8 @@ The lockfile workflow commits through `GITHUB_TOKEN`. GitHub may place follow-on
 |---|---|---|
 | New developer can build and run the application | Pending | Clean-machine setup using committed lockfiles |
 | Required CI passes | Pending | All pull-request checks green on the locked head commit |
-| Staging deploys repeatedly from one immutable image | Pending | Accepted image ID/digest, OCI revision evidence, and deployment record |
-| Backup and restore work against staging data | Pending | Successful recovery job, checksum, private file modes, atomic publication, provenance, and restore record |
+| Staging deploys repeatedly from one immutable image | Pending | Accepted image ID/digest, OCI revision/version evidence, and deployment record |
+| Backup and restore work against staging data | Pending | Successful recovery job, checksum, private file modes, manifest binding, provenance, and restore record |
 | No unapproved shortcut or hidden global state | Ready for review | Architecture and code review |
 | Main branch protection is enforceable | Pending | Applied settings using the stable documented check names |
 
