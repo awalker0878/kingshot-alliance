@@ -1,7 +1,7 @@
 # Phase 0 Exit Report
 
 **Phase:** Engineering Foundation  
-**Status:** Implementation candidate — external validation blocked  
+**Status:** Implementation candidate — external validation pending  
 **Branch:** `agent/phase-0-engineering-foundation`
 
 ## Delivered
@@ -16,13 +16,15 @@
 - Production HSTS and non-cacheable liveness/readiness responses
 - CI for PHP, frontend, containers, dependency review, CodeQL, and image scanning
 - Ephemeral staging, migration, health, backup, destructive restore, and post-restore gates
-- Digest-only deployment and rollback controls
-- Checksummed backup and fail-closed restore controls
+- Digest-only deployment and rollback controls with exact runtime image-ID verification
+- OCI source, revision, version, and license metadata on the runtime image
+- Checksummed backup and fail-closed restore controls with owner-only file permissions
 - Source-control and image-build exclusions for secrets, backups, credentials, keys, and runtime data
 - Image-owned package manifests with no persistent or cross-release `bootstrap/cache` state
 - Targeted production-image copies with build and development tooling excluded from runtime
 - Sanctum package foundation with migrations unpublished and authentication routes disabled until Phase 1
 - Existing GPL-3.0 repository licensing preserved in source and Composer metadata
+- Restricted Nginx PHP execution through the Laravel front controller with version disclosure disabled
 - Architecture records, security baseline, contribution controls, release controls, and runbooks
 
 ## Validation evidence
@@ -30,7 +32,7 @@
 - [ ] `composer.lock` and `package-lock.json` committed
 - [x] Earlier Composer lock artifact recovered and structurally validated
 - [x] Composer lock artifact ZIP and lock-file SHA-256 values recorded in the recovery workflow
-- [x] Composer dependency constraints are unchanged from the recovered artifact
+- [x] Composer lock `content-hash` exactly matches the current dependency-relevant Composer manifest fields
 - [x] Composer dependency resolution and security audit completed in an earlier Actions run
 - [x] PostgreSQL startup and baseline migrations completed in an earlier Actions run
 - [x] Six Pint findings from that run were corrected
@@ -38,12 +40,13 @@
 - [x] Sanctum configuration and Phase 0 route-boundary test pass PHP syntax lint
 - [x] Latest changed deployment, restore, entrypoint, and quality scripts pass `sh -n`
 - [x] Latest workflow YAML and Prettier JSON pass local parsing
+- [x] Nginx configuration passes local syntax validation
 - [x] Mandatory Git and Docker exclusions and targeted copy rules are enforced by a dedicated CI-invoked check
 - [x] The exact GPL-3.0 license blob from `main` is restored and Composer declares `GPL-3.0-only`
 - [ ] Laravel tests, Larastan, and final Pint validation
 - [ ] ESLint, Prettier, Vue type checking, and Vite build
-- [ ] Immutable image build and multi-role staging smoke test
-- [ ] Backup and restore demonstration
+- [ ] Immutable image build, OCI metadata verification, and multi-role staging smoke test
+- [ ] Backup and restore demonstration with private file-mode and provenance evidence
 - [ ] Dependency review, CodeQL, and image vulnerability scan
 
 ## Findings corrected during the gate
@@ -74,12 +77,18 @@
 24. Sanctum's CSRF-cookie route exposed before the Phase 1 authentication surface was authorized.
 25. The existing GPL-3.0 license was silently replaced with MIT text and inconsistent Composer metadata.
 26. A broad `COPY . .` and shared base tooling caused development files, Composer, Git, Bash, frontend sources, and unrelated repository content to enter the production runtime image.
+27. Backup archives, manifests, and restore working files inherited the operator's umask and could be group- or world-readable.
+28. Deployment health checks did not prove that every runtime role used the requested immutable image.
+29. Runtime images lacked OCI revision and license metadata needed to connect staging evidence to the reviewed commit.
+30. PHPStan configuration used an option removed in PHPStan 2, which would fail before static analysis began.
+31. Readiness cache-key construction passed a mixed request attribute into string concatenation under level-8 static analysis.
+32. Nginx would execute any PHP file placed under `public` and disclosed its version.
 
-## External blocker
+## External validation state
 
-GitHub reported a major Actions outage on August 6, 2026. At 17:02 UTC, GitHub reported that workflow runs were still failing or delayed in starting, queued jobs could time out, and some Actions API requests were returning errors. The latest Phase 0 head has not received workflow runs or status checks.
+GitHub's public status currently reports Actions as operational. The repository's latest pull-request head has nevertheless not received workflow runs yet, while earlier heads were queued or cancelled by the configured concurrency controls. This is a repository event or residual queue condition, not acceptance evidence.
 
-This is not acceptance evidence. Every pending check must execute successfully after service recovery.
+The Composer lock artifact remains available until August 9, 2026. The lockfile workflow must recover it before expiration or regenerate the lock from the unchanged dependency constraints.
 
 The lockfile workflow commits through `GITHUB_TOKEN`. GitHub may place follow-on pull-request workflows in an approval-required state. Those runs must be explicitly approved and completed against the locked head commit before acceptance.
 
@@ -89,8 +98,8 @@ The lockfile workflow commits through `GITHUB_TOKEN`. GitHub may place follow-on
 |---|---|---|
 | New developer can build and run the application | Pending | Clean-machine setup using committed lockfiles |
 | Required CI passes | Pending | All pull-request checks green on the locked head commit |
-| Staging deploys repeatedly from one immutable image | Pending | Accepted image digest and deployment record |
-| Backup and restore work against staging data | Pending | Successful recovery job and restore record |
+| Staging deploys repeatedly from one immutable image | Pending | Accepted image ID/digest, OCI revision evidence, and deployment record |
+| Backup and restore work against staging data | Pending | Successful recovery job, checksum, private file modes, provenance, and restore record |
 | No unapproved shortcut or hidden global state | Ready for review | Architecture and code review |
 | Main branch protection is enforceable | Pending | Applied settings using the stable documented check names |
 
