@@ -9,7 +9,7 @@
         "alliance",
         "community"
     ],
-    "license": "MIT",
+    "license": "GPL-3.0-only",
     "require": {
         "php": ">=8.5 <8.6",
         "ext-json": "*",
