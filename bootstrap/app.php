@@ -9,6 +9,8 @@ use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -43,5 +45,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'request_id' => request()?->attributes->get('request_id'),
             'trace_id' => request()?->attributes->get('trace_id'),
         ]);
+
+        $exceptions->respond(static function (Response $response): Response {
+            $request = request();
+
+            if ($request instanceof Request) {
+                AssignRequestContext::applyResponseHeaders($response, $request);
+            }
+
+            return SecurityHeaders::apply($response);
+        });
     })
     ->create();
