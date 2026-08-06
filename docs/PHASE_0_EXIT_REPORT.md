@@ -9,12 +9,13 @@
 - Laravel 13, PHP 8.5, Inertia, Vue, TypeScript, PostgreSQL, and Redis foundation
 - Docker local environment and one immutable multi-role runtime image
 - App, unprivileged web, worker, scheduler, release, database, and cache services
-- Required-variable, hosted architecture, release-provenance, session-security, and production transport validation
+- Required-variable, hosted architecture, release-provenance, session-security, private-storage, worker-bound, and production transport validation
 - Explicit trusted-proxy handling with separate approval for trust-all configurations
 - Structured logs, request IDs, W3C trace propagation with local span identity, stateless health checks, and privacy-preserving request metrics
 - Security and correlation headers on normal and rendered error responses
 - Production HSTS and non-cacheable liveness/readiness responses
 - CI for PHP, frontend, containers, dependency review, CodeQL, and image scanning
+- Every external GitHub Action pinned to a verified commit SHA with CI regression enforcement
 - Ephemeral staging, migration, health, backup, destructive restore, and post-restore gates
 - Digest-only deployment and rollback controls with exact runtime image, version, and release-SHA verification
 - OCI source, revision, version, and license metadata on the runtime image
@@ -25,6 +26,8 @@
 - Targeted production-image copies with build and development tooling excluded from runtime
 - Non-root, read-only staging application roles with all Linux capabilities dropped
 - Sanctum package foundation with migrations unpublished and authentication routes disabled until Phase 1
+- Pulse dashboard routes and recording disabled until schema and authorization exist
+- Horizon workers retained with explicit local/staging/production limits while dashboard and mutation APIs remain denied
 - Existing GPL-3.0 repository licensing preserved in source and Composer metadata
 - Restricted Nginx PHP execution through the Laravel front controller with version and sensitive request-path disclosure disabled
 - Architecture records, security baseline, contribution controls, release controls, issue templates, and operational runbooks
@@ -39,13 +42,14 @@
 - [x] Composer dependency resolution and security audit completed in an earlier Actions run
 - [x] PostgreSQL startup and baseline migrations completed in an earlier Actions run
 - [x] Six Pint findings from that run were corrected
-- [x] Latest changed runtime PHP and test files pass syntax lint
-- [x] Hosted configuration validator logic was exercised independently: the secure baseline passes and all eight insecure architecture/session overrides are rejected
-- [x] Sanctum configuration and Phase 0 route-boundary test pass PHP syntax lint
-- [x] Latest deployment, backup, and restore scripts pass `sh -n`
+- [x] Latest changed runtime PHP, provider, configuration, and test files pass syntax lint
+- [x] Hosted configuration validator logic was exercised independently: the secure baseline passes and insecure architecture, storage, worker, session, Pulse, and proxy overrides are rejected
+- [x] Sanctum, Pulse, and Horizon Phase 0 route boundaries have regression tests
+- [x] Latest deployment, backup, restore, and quality scripts pass `sh -n`
 - [x] Latest workflow YAML and Prettier JSON pass local parsing
 - [x] Nginx configuration passes local syntax validation
-- [x] Mandatory Git and Docker exclusions and targeted copy rules are enforced by a dedicated CI-invoked check
+- [x] Mandatory Git and Docker exclusions, targeted copy rules, and immutable action references are enforced by a CI-invoked check
+- [x] All external workflow actions are pinned to verified 40-character commits
 - [x] The exact GPL-3.0 license blob from `main` is restored and Composer declares `GPL-3.0-only`
 - [ ] Laravel tests, Larastan, and final Pint validation
 - [ ] ESLint, Prettier, Vue type checking, and Vite build
@@ -105,10 +109,16 @@
 48. Restore could stop application services before discovering that PostgreSQL was unavailable.
 49. Application metrics and Nginx access logs could record sensitive unmatched paths or future route tokens.
 50. Hosted startup permitted invalid application keys, non-PostgreSQL databases, non-Redis cache/queue/session backends, unencrypted session payloads, weak SameSite settings, and unapproved trust-all proxy configurations.
+51. Horizon's dashboard and mutation APIs could be authorized in non-local environments by package-default Sentinel behavior before an operator identity model existed.
+52. Horizon had no explicit staging supervisor configuration and hosted worker counts were not bounded.
+53. Pulse dashboard routes and recording could be enabled before its schema and access policy existed.
+54. Hosted configuration could select the public filesystem as the default or select S3 without a bucket.
+55. A trust-all proxy wildcard could be mixed with explicit proxy addresses, creating ambiguous trust behavior.
+56. GitHub Actions workflows referenced mutable release tags instead of reviewed immutable action commits.
 
 ## External validation state
 
-GitHub is reporting an active Actions major outage on August 6, 2026. Workflow starts are delayed or failing, queued jobs may time out, Actions API requests may fail, and webhook delivery is delayed. Pull-request, branch-push, and reopen events for the latest Phase 0 heads have therefore not produced reliable execution evidence.
+GitHub is reporting an active Actions major outage on August 6, 2026. Workflow starts are delayed or failing, queued jobs may time out, GitHub-hosted runner capacity is constrained, Actions API requests may fail, and webhook delivery is delayed. Pull-request, branch-push, and reopen events for the latest Phase 0 heads have therefore not produced reliable execution evidence.
 
 Earlier Phase 0 runs remain queued or concurrency-pending without job logs. Temporary event-delivery workarounds were removed after the live incident confirmed the infrastructure cause. No green status is inferred from missing, pending, queued, cancelled, or absent runs.
 
