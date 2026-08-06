@@ -43,17 +43,22 @@ final class SecurityHeadersTest extends TestCase
         }
     }
 
-    public function test_valid_request_id_and_trace_context_are_propagated(): void
+    public function test_valid_request_id_and_trace_context_continue_with_a_local_span(): void
     {
         $requestId = (string) Str::uuid();
-        $traceparent = '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-a3';
+        $incomingTraceparent = '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-a3';
 
-        $this->withHeaders([
+        $response = $this->withHeaders([
             'X-Request-ID' => $requestId,
-            'traceparent' => $traceparent,
+            'traceparent' => $incomingTraceparent,
         ])->get('/')
-            ->assertHeader('X-Request-ID', $requestId)
-            ->assertHeader('traceparent', $traceparent);
+            ->assertHeader('X-Request-ID', $requestId);
+
+        $outgoingTraceparent = (string) $response->headers->get('traceparent');
+
+        self::assertSame(substr($incomingTraceparent, 3, 32), substr($outgoingTraceparent, 3, 32));
+        self::assertNotSame(substr($incomingTraceparent, 36, 16), substr($outgoingTraceparent, 36, 16));
+        self::assertSame(substr($incomingTraceparent, -2), substr($outgoingTraceparent, -2));
     }
 
     public function test_invalid_correlation_headers_are_replaced(): void
