@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 set -eu
+umask 077
 
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 destination="${BACKUP_DIR:-./backups}"
