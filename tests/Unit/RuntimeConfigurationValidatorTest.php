@@ -40,6 +40,8 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'session.driver' => 'file',
             'session.encrypt' => false,
             'session.same_site' => 'none',
+            'filesystems.default' => 'public',
+            'pulse.enabled' => true,
             'operations.trusted_proxies' => '*',
             'operations.allow_trust_all_proxies' => false,
         ]);
@@ -53,9 +55,42 @@ final class RuntimeConfigurationValidatorTest extends TestCase
         self::assertContains('Hosted releases must use Redis-backed sessions.', $errors);
         self::assertContains('Hosted session payloads must be encrypted.', $errors);
         self::assertContains('Hosted session cookies must use lax or strict SameSite protection.', $errors);
+        self::assertContains('Hosted releases must use the private local or S3 filesystem disk.', $errors);
+        self::assertContains(
+            'Pulse recording must remain disabled until its schema and access policy are introduced.',
+            $errors,
+        );
         self::assertContains(
             'Trusting every proxy requires explicit ALLOW_TRUST_ALL_PROXIES approval.',
             $errors,
+        );
+    }
+
+    public function test_hosted_s3_storage_requires_a_bucket(): void
+    {
+        $this->configureRequiredValues();
+        config([
+            'filesystems.default' => 's3',
+            'filesystems.disks.s3.bucket' => '',
+        ]);
+
+        self::assertContains(
+            'Hosted S3 storage requires a configured bucket.',
+            (new RuntimeConfigurationValidator())->errors('staging'),
+        );
+    }
+
+    public function test_trust_all_proxy_wildcard_must_be_the_only_entry(): void
+    {
+        $this->configureRequiredValues();
+        config([
+            'operations.trusted_proxies' => '10.0.0.0/8,*',
+            'operations.allow_trust_all_proxies' => true,
+        ]);
+
+        self::assertContains(
+            'The trust-all proxy wildcard must be the only TRUSTED_PROXIES entry.',
+            (new RuntimeConfigurationValidator())->errors('staging'),
         );
     }
 
@@ -118,6 +153,9 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'session.encrypt' => true,
             'session.same_site' => 'lax',
             'session.secure' => true,
+            'filesystems.default' => 'local',
+            'filesystems.disks.s3.bucket' => 'kingshot',
+            'pulse.enabled' => false,
             'operations.version' => 'v0.1.0',
             'operations.release_sha' => str_repeat('a', 40),
             'operations.trusted_proxies' => '',
