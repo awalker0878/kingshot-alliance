@@ -68,12 +68,15 @@ runtime_services_are_running() {
 }
 
 runtime_services_use_requested_image() {
+  expected_image_id="$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || true)"
+  [ -n "$expected_image_id" ] || return 1
+
   for service in app web worker scheduler; do
     container_id="$(compose ps -q "$service")"
     [ -n "$container_id" ] || return 1
 
-    actual_image="$(docker inspect --format '{{.Config.Image}}' "$container_id" 2>/dev/null || true)"
-    [ "$actual_image" = "$image" ] || return 1
+    actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id" 2>/dev/null || true)"
+    [ "$actual_image_id" = "$expected_image_id" ] || return 1
   done
 
   return 0
@@ -121,11 +124,14 @@ done
 
 echo "Deployment failed health or image verification after $max_attempts attempts." >&2
 compose ps >&2
+expected_image_id="$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || printf 'unknown')"
+printf 'Expected image ID: %s\n' "$expected_image_id" >&2
 for service in app web worker scheduler; do
   container_id="$(compose ps -q "$service" 2>/dev/null || true)"
   if [ -n "$container_id" ]; then
-    actual_image="$(docker inspect --format '{{.Config.Image}}' "$container_id" 2>/dev/null || printf 'unknown')"
-    printf '%s image: %s\n' "$service" "$actual_image" >&2
+    actual_image_ref="$(docker inspect --format '{{.Config.Image}}' "$container_id" 2>/dev/null || printf 'unknown')"
+    actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id" 2>/dev/null || printf 'unknown')"
+    printf '%s image: %s (%s)\n' "$service" "$actual_image_ref" "$actual_image_id" >&2
   fi
 done
 compose logs --tail=100 app web worker scheduler >&2 || true
