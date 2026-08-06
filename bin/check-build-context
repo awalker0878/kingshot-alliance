@@ -11,6 +11,15 @@ assert_ignore() {
   fi
 }
 
+assert_local_port_binding() {
+  mapping="$1"
+
+  if ! grep -Fq -- "- \"$mapping\"" docker-compose.yml; then
+    printf 'Required loopback-only local port binding is missing: %s\n' "$mapping" >&2
+    exit 1
+  fi
+}
+
 assert_workflow_actions_are_pinned() {
   find .github/workflows -type f \( -name '*.yml' -o -name '*.yaml' \) -print |
     while IFS= read -r workflow; do
@@ -51,6 +60,10 @@ if grep -Eq '^COPY[[:space:]]+\.[[:space:]]+\.$' Dockerfile; then
   exit 1
 fi
 
+assert_local_port_binding '127.0.0.1:8080:8080'
+assert_local_port_binding '127.0.0.1:5173:5173'
+assert_local_port_binding '127.0.0.1:5432:5432'
+assert_local_port_binding '127.0.0.1:6379:6379'
 assert_workflow_actions_are_pinned
 
-printf 'Sensitive exclusions, targeted Docker copies, and immutable workflow actions are present.\n'
+printf 'Sensitive exclusions, loopback-only local ports, targeted Docker copies, and immutable workflow actions are present.\n'
