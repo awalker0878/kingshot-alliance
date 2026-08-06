@@ -1,0 +1,102 @@
+name: kingshot-alliance-staging
+
+x-runtime: &runtime
+  image: ${APP_IMAGE:?APP_IMAGE must be an immutable image digest}
+  env_file:
+    - ${STAGING_ENV_FILE:-deploy/staging.env}
+  init: true
+  restart: unless-stopped
+  read_only: true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+  volumes:
+    - app_storage:/var/www/html/storage
+    - app_cache:/var/www/html/bootstrap/cache
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  app:
+    <<: *runtime
+    command: php-fpm
+    healthcheck:
+      test: ["CMD", "php", "artisan", "about", "--only=environment"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  web:
+    <<: *runtime
+    command: ["nginx", "-g", "daemon off;"]
+    ports:
+      - "${STAGING_HTTP_PORT:-8080}:8080"
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/up"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  worker:
+    <<: *runtime
+    command: php artisan horizon
+    depends_on:
+      app:
+        condition: service_healthy
+
+  scheduler:
+    <<: *runtime
+    command: php artisan schedule:work
+    depends_on:
+      app:
+        condition: service_healthy
+
+  release:
+    <<: *runtime
+    command: php artisan migrate --force
+    restart: "no"
+    profiles:
+      - release
+
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:?DB_DATABASE is required}
+      POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME is required}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:8.8-alpine
+    command: redis-server --appendonly yes --maxmemory-policy noeviction
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  app_cache:
+  app_storage:
+  postgres_data:
+  redis_data:
