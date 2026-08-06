@@ -1,7 +1,7 @@
 # Phase 0 Exit Report
 
 **Phase:** Engineering Foundation  
-**Status:** Implementation candidate — external gates pending  
+**Status:** Implementation candidate — external validation blocked  
 **Branch:** `agent/phase-0-engineering-foundation`
 
 ## Delivered
@@ -20,32 +20,55 @@
 - Architecture records, security guidance, delivery controls, and operational runbooks
 - Backup, restore, deploy, rollback, setup, and quality scripts
 - Contribution guide, issue templates, pull-request template, CODEOWNERS, and branch-protection recommendations
+- Locked dependency installation enforced by CI, Docker, Composer setup, `bin/setup`, and the Makefile
+- Current supported GitHub Action majors for checkout, Node setup, artifact upload, CodeQL, and dependency review
 
-## Local validation completed
+## Validation evidence
 
-- [ ] Composer dependency installation and lock generation (CI validation pending)
+- [ ] Composer and npm lockfiles committed
+- [x] Composer dependency resolution completed in GitHub Actions
+- [x] Composer security audit reported no vulnerability advisories
+- [x] PostgreSQL service startup and baseline migrations completed in GitHub Actions
+- [x] Six Pint formatting findings were identified and corrected
 - [x] JSON manifests parse
 - [x] YAML workflows and Compose definition parse
 - [x] PHP source files pass syntax lint using the available PHP runtime
 - [x] Shell scripts pass static syntax checks
 - [ ] Laravel runtime tests
-- [ ] Larastan and Pint
+- [ ] Larastan and final Pint validation
 - [ ] ESLint, Prettier, Vue type check, and Vite build
 - [ ] Production container build
-- [ ] Dependency and image vulnerability scans
+- [ ] Dependency review, CodeQL, and image vulnerability scans
 
-The unchecked validations require package or container downloads and are delegated to GitHub Actions because the implementation environment does not have external package-network or Docker access.
+The unchecked validations require package downloads, hosted runners, or Docker. The implementation environment does not have external package-network or Docker access.
+
+## Findings corrected during the gate
+
+1. Pinned ParaTest 7.20.0 for compatibility with PHPUnit 12.
+2. Removed a Sanctum pruning schedule that depended on a Phase 1 table.
+3. Moved staging and production configuration validation out of Composer package discovery and into container startup.
+4. Corrected container permissions and Composer availability for development workflows.
+5. Corrected invalid `actions/checkout@v7` and `actions/setup-node@v7` references to supported v6 releases.
+6. Replaced unlocked normal builds with `composer install` plus committed lock validation and `npm ci`.
+7. Updated the production Docker stages to require both lockfiles.
+8. Removed repeated frontend dependency installation from normal container startup.
+
+## External validation blocker
+
+On August 6, 2026, GitHub reported a partial outage for GitHub Actions. Workflow runs were failing to start or failing during execution, and some Actions REST API requests were returning errors. The Phase 0 workflows are currently queued without runner assignment during that incident.
+
+This is an external platform blocker, not acceptance evidence. All checks must execute successfully after service recovery.
 
 ## Exit criteria
 
 | Criterion | Status | Evidence required |
 |---|---|---|
-| New developer can build and run from documented steps | Pending | Clean-machine setup demonstration |
-| Required CI passes on a representative pull request | Pending | All PR checks green |
-| Staging deploys repeatably from tagged image | Pending | Staging deployment record and image digest |
+| New developer can build and run from documented steps | Pending | Clean-machine setup demonstration using committed lockfiles |
+| Required CI passes on a representative pull request | Pending | All PR checks green after Actions recovery |
+| Staging deploys repeatably from tagged image | Pending | Staging deployment record and immutable image digest |
 | Backup and restore demonstrated against staging data | Pending | Restore evidence record |
 | No unapproved shortcut or hidden global state | Ready for review | Architecture and code review |
 
 ## Decision
 
-Do not begin Phase 1 until the pending validation is completed, CI findings are fixed, and this report is updated to **Accepted**.
+Do not begin Phase 1 until the lockfiles are committed, pending validation is completed, CI findings are fixed, staging and recovery demonstrations are recorded, and this report is updated to **Accepted**.
