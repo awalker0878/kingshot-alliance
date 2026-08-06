@@ -3,18 +3,55 @@ set -eu
 
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 destination="${BACKUP_DIR:-./backups}"
+compose_file="${COMPOSE_FILE:-docker-compose.yml}"
+env_file="${ENV_FILE:-}"
 mkdir -p "$destination"
+
+compose() {
+  if [ -n "$env_file" ]; then
+    docker compose --env-file "$env_file" -f "$compose_file" "$@"
+  else
+    docker compose -f "$compose_file" "$@"
+  fi
+}
+
+command -v docker >/dev/null 2>&1 || {
+  echo "Docker is required." >&2
+  exit 69
+}
+command -v gzip >/dev/null 2>&1 || {
+  echo "gzip is required." >&2
+  exit 69
+}
+command -v sha256sum >/dev/null 2>&1 || {
+  echo "sha256sum is required." >&2
+  exit 69
+}
+
+if ! compose ps --status running --services | grep -qx postgres; then
+  echo "The PostgreSQL service is not running." >&2
+  exit 69
+fi
 
 database_file="$destination/database-$timestamp.sql.gz"
 manifest_file="$destination/manifest-$timestamp.txt"
 
-docker compose exec -T postgres sh -lc   'pg_dump --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --format=plain --no-owner --no-privileges'   | gzip -9 > "$database_file"
+docker_release_sha="${RELEASE_SHA:-unknown}"
+image_ref="${APP_IMAGE:-unknown}"
+
+compose exec -T postgres sh -lc \
+  'pg_dump --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --format=plain --no-owner --no-privileges' \
+  | gzip -9 > "$database_file"
+
+checksum="$(sha256sum "$database_file" | awk '{print $1}')"
 
 {
   echo "created_at=$timestamp"
   echo "database_file=$(basename "$database_file")"
-  echo "release_sha=${RELEASE_SHA:-unknown}"
-  sha256sum "$database_file"
+  echo "database_sha256=$checksum"
+  echo "release_sha=$docker_release_sha"
+  echo "image_ref=$image_ref"
 } > "$manifest_file"
 
-echo "Backup created: $database_file"
+printf 'Backup created: %s\n' "$database_file"
+printf 'Manifest created: %s\n' "$manifest_file"
