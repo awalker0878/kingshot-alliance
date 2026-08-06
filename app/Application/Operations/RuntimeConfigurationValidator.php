@@ -98,7 +98,21 @@ final class RuntimeConfigurationValidator
             $errors[] = 'Trusting every proxy requires explicit ALLOW_TRUST_ALL_PROXIES approval.';
         }
 
-        if ($environment !== 'production') {
+        $appUrl = (string) config('app.url');
+        $appScheme = strtolower((string) parse_url($appUrl, PHP_URL_SCHEME));
+        $appHost = strtolower((string) parse_url($appUrl, PHP_URL_HOST));
+        $isLoopbackStaging = $environment === 'staging'
+            && in_array($appHost, ['localhost', '127.0.0.1', '::1'], true);
+
+        if ($environment === 'staging') {
+            if ($appScheme !== 'https' && ! $isLoopbackStaging) {
+                $errors[] = 'Externally reachable staging APP_URL must use HTTPS.';
+            }
+
+            if (config('session.secure') !== true && ! $isLoopbackStaging) {
+                $errors[] = 'Externally reachable staging session cookies must be secure.';
+            }
+
             return $errors;
         }
 
@@ -106,8 +120,7 @@ final class RuntimeConfigurationValidator
             $errors[] = 'Production debugging must be disabled.';
         }
 
-        $appUrl = (string) config('app.url');
-        if (strtolower((string) parse_url($appUrl, PHP_URL_SCHEME)) !== 'https') {
+        if ($appScheme !== 'https') {
             $errors[] = 'Production APP_URL must use HTTPS.';
         }
 
