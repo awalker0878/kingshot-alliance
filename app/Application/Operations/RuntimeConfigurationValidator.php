@@ -25,6 +25,19 @@ final class RuntimeConfigurationValidator
             }
         }
 
+        if (in_array($environment, ['staging', 'production'], true)) {
+            $version = trim((string) config('operations.version'));
+            $releaseSha = trim((string) config('operations.release_sha'));
+
+            if ($version === '' || $version === 'dev') {
+                $errors[] = 'Hosted releases must declare a non-placeholder application version.';
+            }
+
+            if (preg_match('/^[a-f0-9]{40}$/', $releaseSha) !== 1) {
+                $errors[] = 'Hosted releases must declare a 40-character lowercase Git release SHA.';
+            }
+        }
+
         if ($environment !== 'production') {
             return $errors;
         }
