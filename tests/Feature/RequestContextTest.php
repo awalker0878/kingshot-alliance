@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -41,5 +42,25 @@ final class RequestContextTest extends TestCase
             '/^00-(?!0{32})[a-f0-9]{32}-(?!0{16})[a-f0-9]{16}-[a-f0-9]{2}$/',
             $traceparent,
         );
+    }
+
+    public function test_rendered_error_responses_keep_correlation_and_security_headers(): void
+    {
+        Route::get('/_test/failure', static function (): never {
+            abort(500);
+        });
+
+        $requestId = (string) Str::uuid();
+        $traceparent = '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01';
+
+        $this->withHeaders([
+            'X-Request-ID' => $requestId,
+            'traceparent' => $traceparent,
+        ])->get('/_test/failure')
+            ->assertStatus(500)
+            ->assertHeader('X-Request-ID', $requestId)
+            ->assertHeader('traceparent', $traceparent)
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('X-Frame-Options', 'DENY');
     }
 }
