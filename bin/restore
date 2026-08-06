@@ -120,6 +120,6 @@ compose exec -T postgres sh -lc \
   < "$plain_file"
 
 compose run --rm app php artisan migrate --force
-compose start app "$web_service" worker scheduler
+compose up -d app "$web_service" worker scheduler
 
-echo "Restore import completed and application services restarted. Verify readiness before declaring recovery successful."
+echo "Restore import completed and application services recreated. Verify readiness before declaring recovery successful."
