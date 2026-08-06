@@ -4,6 +4,7 @@
 
 - HTTPS is mandatory outside local development.
 - Production startup fails when debugging is enabled, `APP_URL` is not HTTPS, secure session cookies are disabled, or PostgreSQL permits plaintext fallback.
+- Production responses include HTTP Strict Transport Security; health responses are explicitly non-cacheable.
 - Sessions are encrypted, HTTP-only, and same-site restricted.
 - State-changing browser requests use CSRF protection.
 - Responses include clickjacking, content-sniffing, referrer, permissions, and opener controls, including rendered error responses.
@@ -23,12 +24,15 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 - Production secrets use a managed secret store.
 - Rotation ownership and expiry are documented.
 - Logs, exception context, CI output, and support exports must redact secrets.
+- Git and Docker exclusions prevent deployment environments, Composer credentials, backups, runtime keys, and `storage/app` data from entering commits or image build contexts.
+- `bin/check` fails when mandatory secret and data exclusions are removed.
 
 ## Data
 
 - PostgreSQL connections require encryption in hosted production environments.
 - Backups are access controlled, compressed only after a successful database dump, recorded in a SHA-256 manifest, verified before restore, and tested through destructive recovery exercises.
 - Restore operations fail closed when their matching manifest is absent or invalid unless an explicit unverified-restore override is approved.
+- Generated backups are excluded from source control and Docker image build contexts.
 - Object storage defaults to private visibility and fails on write errors.
 - Sensitive exports are authorized, time limited, and audited.
 - Retention and deletion rules are defined with each domain.
@@ -41,6 +45,7 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 - CodeQL analyzes PHP and TypeScript.
 - Production images are scanned for high and critical vulnerabilities.
 - Release images are immutable and identified by digest and source SHA.
+- Build contexts exclude development credentials, local data, test output, documentation, and deployment configuration.
 
 ## Operations
 
