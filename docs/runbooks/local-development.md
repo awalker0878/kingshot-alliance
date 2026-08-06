@@ -19,6 +19,8 @@ The setup command verifies the lockfiles, builds the images, installs locked dep
 
 ## Services
 
+All published development ports bind explicitly to `127.0.0.1`. PostgreSQL, Redis, Vite, and the web application are not exposed on other host interfaces by the default Compose configuration.
+
 | Service | Purpose | Local endpoint |
 |---|---|---|
 | nginx | Web entry point | `http://localhost:8080` |
@@ -28,6 +30,8 @@ The setup command verifies the lockfiles, builds the images, installs locked dep
 | scheduler | Laravel scheduler | internal |
 | postgres | PostgreSQL | `localhost:5432` |
 | redis | Cache and queues | `localhost:6379` |
+
+Do not replace the loopback bindings with all-interface mappings such as `5432:5432` or `6379:6379`. The local Redis service has no authentication because it is intended to remain reachable only from the Compose network and the developer's loopback interface.
 
 ## Common commands
 
