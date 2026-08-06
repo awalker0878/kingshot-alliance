@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+set -eu
+
+assert_ignore() {
+  file="$1"
+  pattern="$2"
+
+  if ! grep -Fqx "$pattern" "$file"; then
+    printf 'Required exclusion [%s] is missing from %s.\n' "$pattern" "$file" >&2
+    exit 1
+  fi
+}
+
+assert_ignore .gitignore '/auth.json'
+assert_ignore .gitignore '/backups/'
+assert_ignore .gitignore '/deploy/staging.env'
+assert_ignore .gitignore '/storage/app/*'
+assert_ignore .gitignore '/storage/*.key'
+assert_ignore .dockerignore 'auth.json'
+assert_ignore .dockerignore 'backups'
+assert_ignore .dockerignore 'deploy'
+assert_ignore .dockerignore 'storage/app/*'
+assert_ignore .dockerignore 'storage/*.key'
+
+printf 'Sensitive source-control and Docker build-context exclusions are present.\n'
