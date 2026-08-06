@@ -23,13 +23,16 @@ final class HealthCheckTest extends TestCase
         $response->assertHeader('Pragma', 'no-cache');
     }
 
-    public function test_readiness_checks_database_and_cache_without_sessions_or_caching(): void
+    public function test_readiness_checks_dependencies_without_exposing_details_sessions_or_caching(): void
     {
         $response = $this->get('/health/ready')
             ->assertOk()
-            ->assertJsonPath('status', 'ready')
-            ->assertJsonPath('checks.database', true)
-            ->assertJsonPath('checks.cache', true);
+            ->assertJsonPath('status', 'ready');
+
+        $payload = $response->json();
+        self::assertIsArray($payload);
+        self::assertSame(['status', 'request_id'], array_keys($payload));
+        self::assertIsString($payload['request_id']);
 
         self::assertStringContainsString(
             'no-store',
