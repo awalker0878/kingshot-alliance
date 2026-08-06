@@ -3,9 +3,6 @@ import { Head } from '@inertiajs/vue3';
 
 type ApplicationMetadata = {
   name: string;
-  environment: string;
-  version: string;
-  releaseSha: string;
 };
 
 defineProps<{
@@ -29,22 +26,14 @@ defineProps<{
         observable operations, repeatable delivery, and accessible interfaces.
       </p>
 
-      <dl class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <dl class="mt-12 grid gap-4 sm:grid-cols-2">
         <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
           <dt class="text-sm text-slate-400">Application</dt>
           <dd class="mt-2 font-semibold">{{ application.name }}</dd>
         </div>
         <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <dt class="text-sm text-slate-400">Environment</dt>
-          <dd class="mt-2 font-semibold">{{ application.environment }}</dd>
-        </div>
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <dt class="text-sm text-slate-400">Version</dt>
-          <dd class="mt-2 font-mono text-sm">{{ application.version }}</dd>
-        </div>
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <dt class="text-sm text-slate-400">Release</dt>
-          <dd class="mt-2 truncate font-mono text-sm">{{ application.releaseSha }}</dd>
+          <dt class="text-sm text-slate-400">Foundation</dt>
+          <dd class="mt-2 font-semibold">Engineering baseline</dd>
         </div>
       </dl>
 
