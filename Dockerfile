@@ -69,6 +69,12 @@ ENV APP_VERSION=${APP_VERSION} \
     RELEASE_SHA=${RELEASE_SHA} \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
 
+LABEL org.opencontainers.image.title="Kingshot Alliance" \
+      org.opencontainers.image.source="https://github.com/awalker0878/kingshot-alliance" \
+      org.opencontainers.image.version="${APP_VERSION}" \
+      org.opencontainers.image.revision="${RELEASE_SHA}" \
+      org.opencontainers.image.licenses="GPL-3.0-only"
+
 WORKDIR /var/www/html
 
 COPY --from=vendor /app/vendor ./vendor
