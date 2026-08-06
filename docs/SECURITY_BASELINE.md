@@ -2,15 +2,18 @@
 
 ## Application
 
-- HTTPS is mandatory outside local development.
-- Production startup fails when debugging is enabled, `APP_URL` is not HTTPS, secure session cookies are disabled, or PostgreSQL permits plaintext fallback.
+- HTTPS is mandatory for externally reachable hosted environments. The ephemeral CI staging demonstration may use loopback HTTP only.
+- Hosted startup requires a valid 32-byte AES-256 application key, a non-placeholder version, and a 40-character lowercase Git release SHA.
+- Hosted startup requires PostgreSQL plus Redis-backed cache, queues, and sessions; session payload encryption and `lax` or `strict` SameSite protection cannot be disabled.
+- Production startup additionally fails when debugging is enabled, `APP_URL` is not HTTPS, secure session cookies are disabled, or PostgreSQL permits plaintext fallback.
 - Production responses include HTTP Strict Transport Security; health responses are explicitly non-cacheable and stateless.
 - Sessions are encrypted, HTTP-only, and same-site restricted.
 - State-changing browser requests use CSRF protection.
 - Responses include clickjacking, content-sniffing, referrer, permissions, and opener controls, including rendered error responses.
 - Content Security Policy is enabled after deployment-specific asset origins are approved.
-- Trusted proxy addresses are configured explicitly through `TRUSTED_PROXIES`; trust-all is permitted only when the application service is unreachable except through a controlled internal ingress.
-- Nginx routes dynamic requests only through Laravel's `/index.php` front controller, rejects other PHP paths, suppresses server-version disclosure, and excludes query strings and referrers from access logs.
+- Trusted proxy addresses are configured explicitly through `TRUSTED_PROXIES`; `TRUSTED_PROXIES=*` also requires `ALLOW_TRUST_ALL_PROXIES=true` and is permitted only behind a controlled internal ingress.
+- Nginx routes dynamic requests only through Laravel's `/index.php` front controller, rejects other PHP paths, suppresses server-version disclosure, and excludes URI paths, query strings, referrers, and forwarded-address chains from access logs.
+- Application request metrics record named routes or the constant `unmatched`, never unclassified request paths.
 - API and authentication routes use named rate limits.
 - Privileged changes require authorization, confirmation, and audit.
 - Error responses do not expose stack traces in staging or production.
@@ -32,9 +35,12 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 ## Data
 
 - PostgreSQL connections require encryption in hosted production environments.
+- A populated PostgreSQL schema is backed up before migrations even when the previous application container is stopped or unhealthy; only a verified empty schema skips the first-deployment backup.
 - Backups are access controlled, compressed only after a successful database dump, recorded in a SHA-256 manifest, verified before restore, and tested through destructive recovery exercises.
 - Backup archives, manifests, and restore working files use collision-resistant temporary paths and owner-only permissions.
-- Verified archive and manifest pairs are published atomically; interruption or failure removes incomplete output.
+- The verified archive is published first and its manifest last; the manifest is the completion marker for a restorable pair. Interruption or failure removes incomplete output.
+- Backup provenance is derived from the existing application container, including a stopped container, and never substitutes the incoming deployment target as the source release.
+- Restore validates exactly one archive name and checksum entry, confirms the manifest names the selected archive, verifies gzip and SHA-256 integrity, and confirms PostgreSQL readiness before stopping application services.
 - Restore operations fail closed when their matching manifest is absent or invalid unless an explicit unverified-restore override is approved.
 - Generated backups are excluded from source control and Docker image build contexts.
 - Object storage defaults to private visibility and fails on write errors.
@@ -49,7 +55,8 @@ Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1
 - CodeQL analyzes PHP and TypeScript.
 - Production images are scanned for high and critical vulnerabilities.
 - Release images are immutable and identified by digest, local image ID, source SHA, and OCI metadata.
-- Deployment and staging checks prove that app, web, worker, and scheduler roles run the expected immutable image ID.
+- Deployment rejects missing or placeholder OCI version/revision metadata, verifies GPL-3.0-only license metadata, and fails if runtime `APP_VERSION` or `RELEASE_SHA` overrides differ from the immutable image.
+- Deployment and staging checks prove that app, web, worker, and scheduler roles run the expected immutable image ID and release metadata.
 - Build contexts exclude development credentials, local data, test output, documentation, and deployment configuration.
 - Runtime stages use targeted copies and do not contain Composer, Git, Bash, frontend source, test tooling, deployment files, or unrelated repository content.
 - CI fails if a broad `COPY . .` instruction is reintroduced.
