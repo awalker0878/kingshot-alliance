@@ -168,6 +168,7 @@ jobs:
           SECURITY_CSP_ENABLED=true
           TRUSTED_PROXIES=
           ALLOW_TRUST_ALL_PROXIES=false
+          ALLOW_INSECURE_LOOPBACK_STAGING=true
           EOF
 
           chmod 600 .env.staging.ci
