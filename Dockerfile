@@ -13,13 +13,11 @@ FROM composer:2.10 AS composer
 FROM php:8.5-fpm-alpine AS php-base
 
 RUN apk add --no-cache \
-        bash \
         curl \
         icu-libs \
         libpq \
         libzip \
         nginx \
-        postgresql-client \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
         icu-dev \
@@ -42,10 +40,10 @@ RUN apk add --no-cache \
     && docker-php-ext-enable redis \
     && apk del .build-deps
 
-COPY --from=composer /usr/bin/composer /usr/local/bin/composer
-
 FROM php-base AS vendor
 WORKDIR /app
+COPY --from=composer /usr/bin/composer /usr/local/bin/composer
+RUN apk add --no-cache git
 COPY composer.json composer.lock artisan ./
 COPY app ./app
 COPY bootstrap ./bootstrap
@@ -74,7 +72,15 @@ ENV APP_VERSION=${APP_VERSION} \
 WORKDIR /var/www/html
 
 COPY --from=vendor /app/vendor ./vendor
-COPY . .
+COPY app ./app
+COPY bootstrap ./bootstrap
+COPY config ./config
+COPY database ./database
+COPY public ./public
+COPY resources/views ./resources/views
+COPY routes ./routes
+COPY storage ./storage
+COPY artisan composer.json composer.lock LICENSE ./
 COPY --from=frontend /app/public/build ./public/build
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
@@ -96,6 +102,7 @@ CMD ["php-fpm"]
 FROM runtime AS development
 
 USER root
-RUN apk add --no-cache git
+COPY --from=composer /usr/bin/composer /usr/local/bin/composer
+RUN apk add --no-cache bash git
 
 ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS=1
