@@ -82,7 +82,7 @@ if [ -z "$web_service" ]; then
   esac
 fi
 
-plain_file="$(mktemp "${TMPDIR:-/tmp}/kingshot-restore.XXXXXX.sql")"
+plain_file="$(mktemp "${TMPDIR:-/tmp}/kingshot-restore.XXXXXX")"
 trap 'rm -f "$plain_file"' EXIT HUP INT TERM
 gzip -dc "$backup_file" > "$plain_file"
 test -s "$plain_file"
