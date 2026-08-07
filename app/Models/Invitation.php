@@ -6,13 +6,11 @@ namespace App\Models;
 
 use App\Domain\Identity\Enums\InvitationStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 final class Invitation extends Model
 {
-    use HasFactory;
     use HasUlids;
 
     public $incrementing = false;
@@ -45,16 +43,19 @@ final class Invitation extends Model
         ];
     }
 
+    /** @return BelongsTo<Alliance, $this> */
     public function alliance(): BelongsTo
     {
         return $this->belongsTo(Alliance::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function inviter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'invited_by_user_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function acceptedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'accepted_by_user_id');
