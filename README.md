@@ -4,9 +4,9 @@ Enterprise-ready, multi-alliance coordination platform for the Kingshot communit
 
 ## Current phase
 
-**Phase 0 — Engineering Foundation**
+**Phases 0–4 complete — Phase 5 (Contributions and reporting) is next**
 
-The repository currently contains the Laravel 13 application foundation, Vue and TypeScript frontend, PostgreSQL and Redis runtime, Docker development environment, quality gates, security controls, observability baseline, architecture decisions, and operational runbooks. Product-domain implementation begins only after the Phase 0 exit gate is satisfied.
+The integrated product currently includes the engineering foundation, identity and multi-tenancy, content/public presence, events and rallies, and recruitment. The Phase 1–4 alignment audit is the current cross-domain ownership reference. Phase 5 functionality has not been introduced early as placeholders.
 
 ## Technology baseline
 
@@ -46,12 +46,13 @@ Every response receives a request ID and W3C `traceparent` correlation header.
 
 ## Documentation
 
+- [Project wiki](docs/wiki/README.md)
 - [Program implementation plan](docs/IMPLEMENTATION_PLAN.md)
+- [Phases 1–4 alignment audit](docs/PHASES_1_4_ALIGNMENT_AUDIT.md)
 - [Local development](docs/runbooks/local-development.md)
 - [Architecture decisions](docs/architecture/README.md)
 - [Definition of done](docs/DEFINITION_OF_DONE.md)
 - [Security baseline](docs/SECURITY_BASELINE.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
-- [Phase 0 exit report](docs/PHASE_0_EXIT_REPORT.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security reporting](SECURITY.md)
