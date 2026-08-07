@@ -277,6 +277,7 @@ function leaveAlliance(): void {
             >
               <select
                 v-model="statusSelections[member.id]"
+                :aria-label="`Membership status for ${member.user.name}`"
                 class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
               >
                 <option value="active">Active</option>
@@ -315,6 +316,7 @@ function leaveAlliance(): void {
           <div v-if="props.membershipManagement.rolesAllowed" class="mt-4 flex flex-wrap gap-2">
             <select
               v-model="roleSelections[member.id]"
+              :aria-label="`Role to add for ${member.user.name}`"
               class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
             >
               <option value="">Choose role</option>
