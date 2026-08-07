@@ -45,6 +45,11 @@ final class User extends Authenticatable implements MustVerifyEmailContract
         'two_factor_recovery_codes',
     ];
 
+    protected static function newFactory(): UserFactory
+    {
+        return UserFactory::new();
+    }
+
     protected function casts(): array
     {
         return [
