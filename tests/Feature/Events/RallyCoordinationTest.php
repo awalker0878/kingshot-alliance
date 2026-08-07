@@ -89,69 +89,56 @@ final class RallyCoordinationTest extends TestCase
             ->where('alliance_id', $alliance->id)
             ->where('user_id', $owner->id)
             ->sole();
+        $assign = $this->app->make(AssignRallyMember::class);
 
-        $leader = $this->app->make(AssignRallyMember::class)->handle(
-            actor: $owner,
-            alliance: $alliance,
-            group: $group,
-            membership: $ownerMembership,
-            role: RallyAssignmentRole::Leader,
-        );
-        self::assertSame(RallyAssignmentStatus::Confirmed, $leader->status);
+        $lead = $assign->handle($owner, $alliance, $group, $ownerMembership, RallyAssignmentRole::Lead, 1);
+        $first = $assign->handle($owner, $alliance, $group, $firstJoiner, RallyAssignmentRole::Joiner);
+        $second = $assign->handle($owner, $alliance, $group, $secondJoiner, RallyAssignmentRole::Joiner);
 
-        $first = $this->app->make(AssignRallyMember::class)->handle(
-            actor: $owner,
-            alliance: $alliance,
-            group: $group,
-            membership: $firstJoiner,
-            role: RallyAssignmentRole::Joiner,
-        );
-        self::assertSame(RallyAssignmentStatus::Confirmed, $first->status);
+        self::assertSame(RallyAssignmentStatus::Assigned, $lead->status);
+        self::assertSame(RallyAssignmentStatus::Assigned, $first->status);
+        self::assertSame(RallyAssignmentStatus::Standby, $second->status);
+        self::assertSame(3, RallyAssignment::query()->where('rally_group_id', $group->id)->count());
 
-        $second = $this->app->make(AssignRallyMember::class)->handle(
-            actor: $owner,
+        $saved = $this->app->make(SaveMemberFormation::class)->handle(
+            actor: $firstJoiner->user,
             alliance: $alliance,
-            group: $group,
-            membership: $secondJoiner,
-            role: RallyAssignmentRole::Joiner,
-        );
-        self::assertSame(RallyAssignmentStatus::Waitlisted, $second->status);
-
-        $memberFormation = $this->app->make(SaveMemberFormation::class)->handle(
-            actor: $owner,
-            alliance: $alliance,
-            membership: $firstJoiner,
-            name: 'My Bear March',
-            composition: new FormationComposition(10, 10, 80),
+            name: 'My bear formation',
+            composition: $composition,
             heroes: ['Chenko'],
+            isDefault: true,
         );
-        self::assertSame(80, $memberFormation->archer_percent);
-        self::assertSame(3, RallyAssignment::query()->where('alliance_id', $alliance->id)->count());
+
+        self::assertSame($firstJoiner->id, $saved->membership_id);
+        self::assertTrue($saved->is_default);
+        self::assertSame('Alliance strategy review', $guidance->source);
+        self::assertSame(80, $recommended->archer_percent);
     }
 
     public function test_rally_assignment_rejects_membership_from_another_alliance(): void
     {
         $owner = User::factory()->create();
         $otherOwner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Primary Rally', 'primary-rally');
-        $other = $this->app->make(CreateAlliance::class)->handle($otherOwner, 'Other Rally', 'other-rally');
+        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'First Rally', 'first-rally');
+        $otherAlliance = $this->app->make(CreateAlliance::class)->handle($otherOwner, 'Other Rally', 'other-rally');
 
         $event = $this->app->make(CreateEvent::class)->handle(
-            $owner,
-            $alliance,
-            'Primary Event',
-            CarbonImmutable::parse('2026-08-09 20:00', 'UTC'),
-            30,
+            actor: $owner,
+            alliance: $alliance,
+            title: 'Tenant Rally',
+            firstLocalStart: CarbonImmutable::parse('2026-08-08 20:00', $alliance->timezone),
+            durationMinutes: 30,
         );
         /** @var EventOccurrence $occurrence */
         $occurrence = $event->occurrences->sole();
-        $group = $this->app->make(CreateRallyGroup::class)->handle($owner, $alliance, $occurrence, 'Primary Group');
+        $group = $this->app->make(CreateRallyGroup::class)->handle($owner, $alliance, $occurrence, 'Main Rally');
         $otherMembership = AllianceMembership::query()
-            ->where('alliance_id', $other->id)
+            ->where('alliance_id', $otherAlliance->id)
             ->where('user_id', $otherOwner->id)
             ->sole();
 
         $this->expectException(AuthorizationException::class);
+
         $this->app->make(AssignRallyMember::class)->handle(
             $owner,
             $alliance,
@@ -170,6 +157,6 @@ final class RallyCoordinationTest extends TestCase
             'user_id' => $user->id,
             'status' => MembershipStatus::Active,
             'joined_at' => now(),
-        ]);
+        ])->load('user');
     }
 }
