@@ -9,4 +9,5 @@ enum EventReminderDeliveryStatus: string
     case Pending = 'pending';
     case Queued = 'queued';
     case Sent = 'sent';
+    case Cancelled = 'cancelled';
 }
