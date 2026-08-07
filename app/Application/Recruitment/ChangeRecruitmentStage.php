@@ -138,7 +138,6 @@ final class ChangeRecruitmentStage
             $this->audit->record('recruitment.candidate.stage_changed', $actor, $locked, $alliance, [
                 'from_stage' => $from->value,
                 'to_stage' => $target->value,
-                'reason' => $reason,
             ]);
             $this->outbox->record('recruitment.candidate.stage_changed', $alliance, $locked, [
                 'candidate_id' => $locked->id,
