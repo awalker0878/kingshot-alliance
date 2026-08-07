@@ -21,13 +21,14 @@ The public profile controls:
 - language
 - alliance time zone
 - description
-- recruitment status
 - primary branding color
 - logo and banner
 
 Upload branding media first, then select the uploaded image for the logo or banner slot and save the public profile.
 
 Only clean, active images belonging to the current alliance can be used as public branding.
+
+Recruitment availability is not a content-profile setting. Phase 4 recruitment settings are authoritative for whether applications are closed, public, or invitation-only. Authorized recruiters manage that state in the **Recruitment** workspace, and the public alliance page reads it directly.
 
 ## Categories
 
