@@ -42,6 +42,29 @@ final class RecruitmentQuestion extends Model
         ];
     }
 
+    public function type(): RecruitmentQuestionType
+    {
+        $value = $this->getAttribute('question_type');
+
+        return $value instanceof RecruitmentQuestionType
+            ? $value
+            : RecruitmentQuestionType::from((string) $value);
+    }
+
+    /** @return list<string> */
+    public function optionValues(): array
+    {
+        $options = $this->getAttribute('options');
+        if (! is_array($options)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $options,
+            static fn (mixed $option): bool => is_string($option),
+        ));
+    }
+
     /** @return BelongsTo<Alliance, $this> */
     public function alliance(): BelongsTo
     {
