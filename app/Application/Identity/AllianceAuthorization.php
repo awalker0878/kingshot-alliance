@@ -9,6 +9,7 @@ use App\Domain\Identity\Enums\MembershipStatus;
 use App\Models\Alliance;
 use App\Models\AllianceMembership;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 
 final class AllianceAuthorization
 {
@@ -27,10 +28,10 @@ final class AllianceAuthorization
             ->where('alliance_id', $alliance->id)
             ->where('user_id', $user->id)
             ->where('status', MembershipStatus::Active->value)
-            ->whereHas('roles', function ($roleQuery) use ($alliance, $permission): void {
+            ->whereHas('roles', function (Builder $roleQuery) use ($alliance, $permission): void {
                 $roleQuery
                     ->where('roles.alliance_id', $alliance->id)
-                    ->whereHas('permissions', static function ($permissionQuery) use ($permission): void {
+                    ->whereHas('permissions', static function (Builder $permissionQuery) use ($permission): void {
                         $permissionQuery->where('permissions.key', $permission->value);
                     });
             })
