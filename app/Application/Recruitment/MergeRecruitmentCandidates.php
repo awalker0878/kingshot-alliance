@@ -9,6 +9,7 @@ use App\Application\Identity\AuditRecorder;
 use App\Domain\Identity\Authorization\PermissionKey;
 use App\Models\Alliance;
 use App\Models\RecruitmentCandidate;
+use App\Models\RecruitmentNote;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +83,15 @@ final class MergeRecruitmentCandidates
                 'updated_by_user_id' => $actor->id,
             ])->save();
 
+            if ($reason !== null && trim($reason) !== '') {
+                RecruitmentNote::query()->create([
+                    'alliance_id' => $alliance->id,
+                    'candidate_id' => $targetCandidate->id,
+                    'author_membership_id' => $this->actorMembershipId($actor, $alliance),
+                    'body' => 'Merge reason: '.trim($reason),
+                ]);
+            }
+
             $sourceCandidate->forceFill([
                 'merged_into_id' => $targetCandidate->id,
                 'next_action_at' => null,
@@ -91,7 +101,6 @@ final class MergeRecruitmentCandidates
             $this->audit->record('recruitment.candidate.merged', $actor, $sourceCandidate, $alliance, [
                 'source_candidate_id' => $sourceCandidate->id,
                 'target_candidate_id' => $targetCandidate->id,
-                'reason' => $reason === null ? null : trim($reason),
             ]);
             $this->outbox->record('recruitment.candidate.merged', $alliance, $sourceCandidate, [
                 'source_candidate_id' => $sourceCandidate->id,
@@ -100,6 +109,15 @@ final class MergeRecruitmentCandidates
 
             return $targetCandidate->refresh();
         });
+    }
+
+    private function actorMembershipId(User $actor, Alliance $alliance): string
+    {
+        return (string) DB::table('alliance_memberships')
+            ->where('alliance_id', $alliance->id)
+            ->where('user_id', $actor->id)
+            ->where('status', 'active')
+            ->value('id');
     }
 
     private function copyReviewers(
