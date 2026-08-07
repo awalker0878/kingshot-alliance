@@ -8,6 +8,7 @@ use App\Domain\Content\Enums\RecruitmentStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/** @property RecruitmentStatus $recruitment_status */
 final class AllianceProfile extends Model
 {
     public $incrementing = false;
