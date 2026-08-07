@@ -39,12 +39,14 @@ final readonly class ManageAllianceLifecycle
             throw new InvalidArgumentException('Only active or suspended alliances can be closed.');
         }
 
-        $settings = AlliancePlatformSetting::query()->find($alliance->id);
-        $retentionDays = $settings?->retention_days ?? 30;
+        $settings = AlliancePlatformSetting::query()->whereKey($alliance->id)->first();
+        $retentionDays = $settings instanceof AlliancePlatformSetting
+            ? (int) $settings->retention_days
+            : 30;
 
         return $this->transition($actor, $alliance, AllianceStatus::Closed, $reason, [
             'closed_at' => now(),
-            'retention_until' => now()->addDays(max(1, min(3650, (int) $retentionDays))),
+            'retention_until' => now()->addDays(max(1, min(3650, $retentionDays))),
         ], 'platform.alliance.closed');
     }
 
