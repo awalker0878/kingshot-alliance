@@ -1,0 +1,367 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Alliance;
+
+use App\Application\Content\ArchiveContentItem;
+use App\Application\Content\ArchiveMediaAsset;
+use App\Application\Content\ContentPresenter;
+use App\Application\Content\ContentQuery;
+use App\Application\Content\DeleteContentCategory;
+use App\Application\Content\PublishContentItem;
+use App\Application\Content\RestoreContentRevision;
+use App\Application\Content\SaveContentCategory;
+use App\Application\Content\SaveContentItem;
+use App\Application\Content\UpdateAlliancePublicProfile;
+use App\Application\Content\UploadMediaAsset;
+use App\Application\Identity\AllianceAuthorization;
+use App\Application\Identity\AllianceContext;
+use App\Domain\Content\Enums\ContentType;
+use App\Domain\Content\Enums\ContentVisibility;
+use App\Domain\Content\Enums\RecruitmentStatus;
+use App\Domain\Identity\Authorization\PermissionKey;
+use App\Http\Controllers\Controller;
+use App\Models\AllianceBrandingMedia;
+use App\Models\AllianceProfile;
+use App\Models\ContentCategory;
+use App\Models\ContentItem;
+use App\Models\ContentRevision;
+use App\Models\MediaAsset;
+use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
+
+final class ContentManagementController extends Controller
+{
+    public function index(
+        Request $request,
+        AllianceContext $context,
+        AllianceAuthorization $authorization,
+        ContentQuery $content,
+        ContentPresenter $presenter,
+    ): Response {
+        $user = $request->user();
+        abort_unless($user instanceof User, 401);
+        $alliance = $context->alliance();
+
+        if (! $authorization->allows($user, $alliance, PermissionKey::ContentManage)) {
+            throw new AuthorizationException;
+        }
+
+        $profile = AllianceProfile::query()->where('alliance_id', $alliance->id)->first();
+        $branding = AllianceBrandingMedia::query()
+            ->where('alliance_id', $alliance->id)
+            ->pluck('media_id', 'slot');
+        $categories = ContentCategory::query()
+            ->where('alliance_id', $alliance->id)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+        $items = $content->managerList($alliance);
+        $items->load('revisions');
+        $media = MediaAsset::query()
+            ->where('alliance_id', $alliance->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return Inertia::render('Alliance/ContentManage', [
+            'alliance' => [
+                'id' => $alliance->id,
+                'name' => $alliance->name,
+                'slug' => $alliance->slug,
+                'kingdom' => $alliance->kingdom,
+                'language' => $alliance->language,
+                'timezone' => $alliance->timezone,
+                'description' => $profile?->description,
+                'recruitmentStatus' => $profile?->recruitment_status->value ?? RecruitmentStatus::Closed->value,
+                'primaryColor' => $profile?->primary_color,
+                'logoMediaId' => $branding->get('logo'),
+                'bannerMediaId' => $branding->get('banner'),
+                'publicUrl' => route('public.alliances.show', $alliance->slug),
+            ],
+            'contentTypes' => array_map(static fn (ContentType $type): array => [
+                'value' => $type->value,
+                'label' => $type->label(),
+            ], ContentType::cases()),
+            'visibilityOptions' => array_map(static fn (ContentVisibility $visibility): array => [
+                'value' => $visibility->value,
+                'label' => ucfirst($visibility->value),
+            ], ContentVisibility::cases()),
+            'recruitmentOptions' => array_map(static fn (RecruitmentStatus $status): array => [
+                'value' => $status->value,
+                'label' => match ($status) {
+                    RecruitmentStatus::Open => 'Open',
+                    RecruitmentStatus::Closed => 'Closed',
+                    RecruitmentStatus::InvitationOnly => 'Invitation only',
+                },
+            ], RecruitmentStatus::cases()),
+            'categories' => $categories->map(static fn (ContentCategory $category): array => [
+                'id' => (string) $category->id,
+                'name' => (string) $category->name,
+                'slug' => (string) $category->slug,
+                'sortOrder' => (int) $category->sort_order,
+            ])->values()->all(),
+            'content' => $items->map(function (ContentItem $item) use ($presenter): array {
+                $data = $presenter->item($item, true);
+                $data['revisions'] = $item->revisions->map(static fn (ContentRevision $revision): array => [
+                    'id' => (string) $revision->id,
+                    'revisionNumber' => (int) $revision->revision_number,
+                    'title' => (string) $revision->title,
+                    'createdAt' => $revision->created_at?->toIso8601String(),
+                ])->values()->all();
+
+                return $data;
+            })->values()->all(),
+            'media' => $media->map(static fn (MediaAsset $asset): array => [
+                'id' => (string) $asset->id,
+                'name' => (string) $asset->original_name,
+                'mimeType' => (string) $asset->mime_type,
+                'sizeBytes' => (int) $asset->size_bytes,
+                'scanStatus' => $asset->scan_status->value,
+                'lifecycleStatus' => $asset->lifecycle_status->value,
+                'createdAt' => $asset->created_at?->toIso8601String(),
+            ])->values()->all(),
+        ]);
+    }
+
+    public function updateProfile(
+        Request $request,
+        AllianceContext $context,
+        UpdateAlliancePublicProfile $updateProfile,
+    ): RedirectResponse {
+        $user = $this->user($request);
+        $alliance = $context->alliance();
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'kingdom' => ['nullable', 'string', 'max:64'],
+            'language' => ['required', 'string', 'max:16', 'regex:/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/'],
+            'timezone' => ['required', 'timezone'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'recruitment_status' => ['required', Rule::enum(RecruitmentStatus::class)],
+            'primary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'logo_media_id' => ['nullable', 'string', 'ulid'],
+            'banner_media_id' => ['nullable', 'string', 'ulid'],
+        ]);
+
+        $updateProfile->handle($alliance, $user, $validated);
+
+        return back()->with('status', 'public-profile-updated');
+    }
+
+    public function storeCategory(
+        Request $request,
+        AllianceContext $context,
+        SaveContentCategory $saveCategory,
+    ): RedirectResponse {
+        $user = $this->user($request);
+        $alliance = $context->alliance();
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'slug' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('content_categories', 'slug')->where('alliance_id', $alliance->id),
+            ],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
+        ]);
+
+        $saveCategory->handle(
+            $alliance,
+            $user,
+            (string) $validated['name'],
+            (string) $validated['slug'],
+            (int) ($validated['sort_order'] ?? 0),
+        );
+
+        return back()->with('status', 'content-category-saved');
+    }
+
+    public function updateCategory(
+        Request $request,
+        AllianceContext $context,
+        SaveContentCategory $saveCategory,
+        string $category,
+    ): RedirectResponse {
+        $user = $this->user($request);
+        $alliance = $context->alliance();
+        $existing = ContentCategory::query()
+            ->where('id', $category)
+            ->where('alliance_id', $alliance->id)
+            ->firstOrFail();
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'slug' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('content_categories', 'slug')
+                    ->where('alliance_id', $alliance->id)
+                    ->ignore($existing->id),
+            ],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
+        ]);
+
+        $saveCategory->handle(
+            $alliance,
+            $user,
+            (string) $validated['name'],
+            (string) $validated['slug'],
+            (int) ($validated['sort_order'] ?? 0),
+            (string) $existing->id,
+        );
+
+        return back()->with('status', 'content-category-saved');
+    }
+
+    public function destroyCategory(
+        Request $request,
+        AllianceContext $context,
+        DeleteContentCategory $deleteCategory,
+        string $category,
+    ): RedirectResponse {
+        $deleteCategory->handle($context->alliance(), $this->user($request), $category);
+
+        return back()->with('status', 'content-category-deleted');
+    }
+
+    public function storeContent(
+        Request $request,
+        AllianceContext $context,
+        SaveContentItem $saveContent,
+    ): RedirectResponse {
+        $alliance = $context->alliance();
+        $validated = $this->validateContent($request, $alliance->id);
+
+        $saveContent->handle($alliance, $this->user($request), $validated);
+
+        return back()->with('status', 'content-saved');
+    }
+
+    public function updateContent(
+        Request $request,
+        AllianceContext $context,
+        SaveContentItem $saveContent,
+        string $content,
+    ): RedirectResponse {
+        $alliance = $context->alliance();
+        $existing = ContentItem::query()
+            ->where('id', $content)
+            ->where('alliance_id', $alliance->id)
+            ->firstOrFail();
+        $validated = $this->validateContent($request, $alliance->id, $existing);
+
+        $saveContent->handle($alliance, $this->user($request), $validated, (string) $existing->id);
+
+        return back()->with('status', 'content-saved');
+    }
+
+    public function publishContent(
+        Request $request,
+        AllianceContext $context,
+        PublishContentItem $publish,
+        string $content,
+    ): RedirectResponse {
+        $validated = $request->validate([
+            'scheduled_for' => ['nullable', 'date'],
+        ]);
+        $scheduledFor = isset($validated['scheduled_for'])
+            ? Carbon::parse((string) $validated['scheduled_for'])->utc()
+            : null;
+
+        $publish->handle($context->alliance(), $this->user($request), $content, $scheduledFor);
+
+        return back()->with('status', $scheduledFor?->isFuture() ? 'content-scheduled' : 'content-published');
+    }
+
+    public function archiveContent(
+        Request $request,
+        AllianceContext $context,
+        ArchiveContentItem $archive,
+        string $content,
+    ): RedirectResponse {
+        $archive->handle($context->alliance(), $this->user($request), $content);
+
+        return back()->with('status', 'content-archived');
+    }
+
+    public function restoreRevision(
+        Request $request,
+        AllianceContext $context,
+        RestoreContentRevision $restore,
+        string $content,
+        string $revision,
+    ): RedirectResponse {
+        $restore->handle($context->alliance(), $this->user($request), $content, $revision);
+
+        return back()->with('status', 'content-revision-restored');
+    }
+
+    public function storeMedia(
+        Request $request,
+        AllianceContext $context,
+        UploadMediaAsset $upload,
+    ): RedirectResponse {
+        $maxKilobytes = max(1, (int) config('content.media_max_kilobytes', 8192));
+        $mimes = implode(',', (array) config('content.media_mime_types', []));
+        $validated = $request->validate([
+            'media' => ['required', 'file', 'max:'.$maxKilobytes, 'mimetypes:'.$mimes],
+        ]);
+        $file = $validated['media'] ?? null;
+        abort_unless($file instanceof UploadedFile, 422);
+
+        $upload->handle($context->alliance(), $this->user($request), $file);
+
+        return back()->with('status', 'media-uploaded');
+    }
+
+    public function archiveMedia(
+        Request $request,
+        AllianceContext $context,
+        ArchiveMediaAsset $archive,
+        string $media,
+    ): RedirectResponse {
+        $archive->handle($context->alliance(), $this->user($request), $media);
+
+        return back()->with('status', 'media-archived');
+    }
+
+    private function user(Request $request): User
+    {
+        $user = $request->user();
+        abort_unless($user instanceof User, 401);
+
+        return $user;
+    }
+
+    /** @return array<string, mixed> */
+    private function validateContent(Request $request, string $allianceId, ?ContentItem $existing = null): array
+    {
+        $slugRule = Rule::unique('content_items', 'slug')->where('alliance_id', $allianceId);
+
+        if ($existing instanceof ContentItem) {
+            $slugRule->ignore($existing->id);
+        }
+
+        return $request->validate([
+            'category_id' => ['nullable', 'string', 'ulid'],
+            'type' => ['required', Rule::enum(ContentType::class)],
+            'visibility' => ['required', Rule::enum(ContentVisibility::class)],
+            'title' => ['required', 'string', 'max:180'],
+            'slug' => ['required', 'string', 'max:180', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slugRule],
+            'summary' => ['nullable', 'string', 'max:500'],
+            'body' => ['required', 'string', 'max:50000'],
+            'locale' => ['required', 'string', 'max:16', 'regex:/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
+        ]);
+    }
+}
