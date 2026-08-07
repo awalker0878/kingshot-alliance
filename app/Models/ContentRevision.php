@@ -9,7 +9,13 @@ use App\Domain\Content\Enums\ContentVisibility;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property ContentType $type
+ * @property ContentVisibility $visibility
+ * @property Carbon|null $created_at
+ */
 final class ContentRevision extends Model
 {
     use HasUlids;
