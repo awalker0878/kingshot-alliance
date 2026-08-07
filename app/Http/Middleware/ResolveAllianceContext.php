@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Application\Identity\AllianceContext;
 use App\Domain\Identity\Enums\MembershipStatus;
+use App\Domain\Shared\Tenancy\TenantContextSnapshot;
 use App\Models\Alliance;
 use App\Models\AllianceMembership;
 use App\Models\User;
@@ -51,10 +52,12 @@ final readonly class ResolveAllianceContext
         $this->context->activate($alliance, $user);
         $request->attributes->set('alliance_id', $membership->alliance_id);
         $request->attributes->set('alliance_membership_id', $membership->id);
+        $request->attributes->set('tenant_context', TenantContextSnapshot::fromRequest($request));
 
         try {
             return $next($request);
         } finally {
+            $request->attributes->remove('tenant_context');
             $this->context->clear();
         }
     }
