@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 
-const props = defineProps<{
+defineProps<{
   alliance: { name: string; slug: string; timezone: string };
   content: {
     typeLabel: string;
