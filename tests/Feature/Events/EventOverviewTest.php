@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Events;
 
-use App\Application\Events\CreateEvent;
-use App\Application\Identity\CreateAlliance;
-use App\Models\EventOccurrence;
-use App\Models\User;
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Events\Actions\CreateEvent;
+use App\Domain\Events\Models\EventOccurrence;
+use App\Domain\Identity\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;

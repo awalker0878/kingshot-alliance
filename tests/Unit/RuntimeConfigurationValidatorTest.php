@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Application\Operations\RuntimeConfigurationValidator;
+use App\Domain\Platform\Services\RuntimeConfigurationValidator;
 use Tests\TestCase;
 
 final class RuntimeConfigurationValidatorTest extends TestCase

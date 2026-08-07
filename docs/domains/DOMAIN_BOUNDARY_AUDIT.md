@@ -1,0 +1,873 @@
+# Domain Boundary Audit
+
+Generated from the current Phase 0–4 domain-first runtime after the implementation-plan structure refactor.
+
+## Runtime ownership
+
+- **Alliances:** 11 PHP runtime files
+- **Audit:** 2 PHP runtime files
+- **Authorization:** 8 PHP runtime files
+- **Content:** 33 PHP runtime files
+- **Contributions:** 0 PHP runtime files
+- **Events:** 19 PHP runtime files
+- **Identity:** 15 PHP runtime files
+- **Integrations:** 0 PHP runtime files
+- **Kingdoms:** 0 PHP runtime files
+- **Memberships:** 17 PHP runtime files
+- **Notifications:** 8 PHP runtime files
+- **Platform:** 11 PHP runtime files
+- **Rallies:** 14 PHP runtime files
+- **Recruitment:** 45 PHP runtime files
+
+Domains with zero PHP files are intentional only when their implementation phase has not started.
+
+## Cross-domain dependency summary
+
+- `Alliances` → `Audit`: 2 imports
+- `Alliances` → `Authorization`: 8 imports
+- `Alliances` → `Content`: 16 imports
+- `Alliances` → `Events`: 2 imports
+- `Alliances` → `Identity`: 8 imports
+- `Alliances` → `Memberships`: 13 imports
+- `Alliances` → `Platform`: 6 imports
+- `Alliances` → `Recruitment`: 1 imports
+- `Audit` → `Alliances`: 2 imports
+- `Audit` → `Identity`: 2 imports
+- `Authorization` → `Alliances`: 5 imports
+- `Authorization` → `Audit`: 2 imports
+- `Authorization` → `Identity`: 3 imports
+- `Authorization` → `Memberships`: 7 imports
+- `Authorization` → `Platform`: 2 imports
+- `Content` → `Alliances`: 24 imports
+- `Content` → `Audit`: 10 imports
+- `Content` → `Authorization`: 22 imports
+- `Content` → `Identity`: 12 imports
+- `Content` → `Platform`: 5 imports
+- `Events` → `Alliances`: 13 imports
+- `Events` → `Audit`: 5 imports
+- `Events` → `Authorization`: 10 imports
+- `Events` → `Identity`: 8 imports
+- `Events` → `Memberships`: 8 imports
+- `Events` → `Notifications`: 1 imports
+- `Events` → `Platform`: 3 imports
+- `Events` → `Rallies`: 19 imports
+- `Identity` → `Alliances`: 1 imports
+- `Identity` → `Audit`: 8 imports
+- `Identity` → `Memberships`: 10 imports
+- `Identity` → `Platform`: 14 imports
+- `Memberships` → `Alliances`: 12 imports
+- `Memberships` → `Audit`: 6 imports
+- `Memberships` → `Authorization`: 16 imports
+- `Memberships` → `Identity`: 12 imports
+- `Memberships` → `Platform`: 9 imports
+- `Notifications` → `Alliances`: 1 imports
+- `Notifications` → `Audit`: 1 imports
+- `Notifications` → `Authorization`: 2 imports
+- `Notifications` → `Events`: 11 imports
+- `Notifications` → `Identity`: 1 imports
+- `Notifications` → `Memberships`: 1 imports
+- `Notifications` → `Platform`: 2 imports
+- `Platform` → `Alliances`: 2 imports
+- `Platform` → `Content`: 2 imports
+- `Platform` → `Events`: 2 imports
+- `Platform` → `Identity`: 1 imports
+- `Platform` → `Memberships`: 2 imports
+- `Platform` → `Notifications`: 3 imports
+- `Platform` → `Recruitment`: 1 imports
+- `Rallies` → `Alliances`: 7 imports
+- `Rallies` → `Audit`: 6 imports
+- `Rallies` → `Authorization`: 10 imports
+- `Rallies` → `Events`: 10 imports
+- `Rallies` → `Identity`: 6 imports
+- `Rallies` → `Memberships`: 6 imports
+- `Recruitment` → `Alliances`: 32 imports
+- `Recruitment` → `Audit`: 18 imports
+- `Recruitment` → `Authorization`: 34 imports
+- `Recruitment` → `Identity`: 20 imports
+- `Recruitment` → `Memberships`: 15 imports
+- `Recruitment` → `Platform`: 5 imports
+
+## Dependency type summary
+
+- `Actions`: 15
+- `Enums`: 77
+- `Events`: 2
+- `Http`: 28
+- `Models`: 251
+- `Queries`: 7
+- `Services`: 125
+- `ValueObjects`: 3
+
+## Direct cross-domain model dependencies
+
+These are the highest-risk dependencies because they couple one domain to another domain’s persistence internals.
+
+- `Alliances` → `Authorization`: `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Authorization\Models\Role`
+- `Alliances` → `Authorization`: `app/Domain/Alliances/Http/Controllers/DashboardController.php` imports `App\Domain\Authorization\Models\Role`
+- `Alliances` → `Authorization`: `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Authorization\Models\Role`
+- `Alliances` → `Content`: `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Models\AllianceBrandingMedia`
+- `Alliances` → `Content`: `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Models\AllianceProfile`
+- `Alliances` → `Content`: `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Models\ContentCategory`
+- `Alliances` → `Content`: `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Models\ContentItem`
+- `Alliances` → `Content`: `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Content\Models\AllianceBrandingMedia`
+- `Alliances` → `Content`: `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Content\Models\AllianceProfile`
+- `Alliances` → `Content`: `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Content\Models\ContentCategory`
+- `Alliances` → `Content`: `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Content\Models\ContentItem`
+- `Alliances` → `Content`: `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Content\Models\MediaAsset`
+- `Alliances` → `Events`: `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Events\Models\Event`
+- `Alliances` → `Identity`: `app/Domain/Alliances/Actions/CreateAlliance.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity`: `app/Domain/Alliances/Http/Controllers/ActivateAllianceController.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity`: `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity`: `app/Domain/Alliances/Http/Controllers/CreateAllianceController.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity`: `app/Domain/Alliances/Http/Controllers/DashboardController.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity`: `app/Domain/Alliances/Http/Middleware/ResolveAllianceContext.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity`: `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity`: `app/Domain/Alliances/Services/AllianceContext.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Memberships`: `app/Domain/Alliances/Actions/CreateAlliance.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships`: `app/Domain/Alliances/Http/Controllers/ActivateAllianceController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships`: `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships`: `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Alliances` → `Memberships`: `app/Domain/Alliances/Http/Controllers/DashboardController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships`: `app/Domain/Alliances/Http/Middleware/ResolveAllianceContext.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships`: `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships`: `app/Domain/Alliances/Services/AllianceContext.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Platform`: `app/Domain/Alliances/Actions/CreateAlliance.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Audit` → `Alliances`: `app/Domain/Audit/Models/AuditEvent.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Audit` → `Alliances`: `app/Domain/Audit/Services/AuditRecorder.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Audit` → `Identity`: `app/Domain/Audit/Models/AuditEvent.php` imports `App\Domain\Identity\Models\User`
+- `Audit` → `Identity`: `app/Domain/Audit/Services/AuditRecorder.php` imports `App\Domain\Identity\Models\User`
+- `Authorization` → `Alliances`: `app/Domain/Authorization/Actions/AssignMembershipRole.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Authorization` → `Alliances`: `app/Domain/Authorization/Actions/RemoveMembershipRole.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Authorization` → `Alliances`: `app/Domain/Authorization/Models/Role.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Authorization` → `Alliances`: `app/Domain/Authorization/Services/AllianceAuthorization.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Authorization` → `Alliances`: `app/Domain/Authorization/Services/AllianceRoleProvisioner.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Authorization` → `Identity`: `app/Domain/Authorization/Actions/AssignMembershipRole.php` imports `App\Domain\Identity\Models\User`
+- `Authorization` → `Identity`: `app/Domain/Authorization/Actions/RemoveMembershipRole.php` imports `App\Domain\Identity\Models\User`
+- `Authorization` → `Identity`: `app/Domain/Authorization/Services/AllianceAuthorization.php` imports `App\Domain\Identity\Models\User`
+- `Authorization` → `Memberships`: `app/Domain/Authorization/Actions/AssignMembershipRole.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Authorization` → `Memberships`: `app/Domain/Authorization/Actions/RemoveMembershipRole.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Authorization` → `Memberships`: `app/Domain/Authorization/Models/Role.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Authorization` → `Memberships`: `app/Domain/Authorization/Services/AllianceAuthorization.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Authorization` → `Platform`: `app/Domain/Authorization/Actions/AssignMembershipRole.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Authorization` → `Platform`: `app/Domain/Authorization/Actions/RemoveMembershipRole.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Content` → `Alliances`: `app/Domain/Content/Actions/ArchiveContentItem.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Actions/ArchiveMediaAsset.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Actions/DeleteContentCategory.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Actions/PublishContentItem.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Actions/PublishScheduledContent.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Actions/RestoreContentRevision.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Actions/SaveContentCategory.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Actions/SaveContentItem.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Actions/UpdateAlliancePublicProfile.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Actions/UploadMediaAsset.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Http/Controllers/PublicBrandingMediaController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Http/Controllers/PublicContentController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Models/AllianceBrandingMedia.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Models/AllianceProfile.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Models/ContentCategory.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Models/ContentItem.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Models/MediaAsset.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Queries/ContentQuery.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances`: `app/Domain/Content/Services/ContentOutbox.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Identity`: `app/Domain/Content/Actions/ArchiveContentItem.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity`: `app/Domain/Content/Actions/ArchiveMediaAsset.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity`: `app/Domain/Content/Actions/DeleteContentCategory.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity`: `app/Domain/Content/Actions/PublishContentItem.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity`: `app/Domain/Content/Actions/RestoreContentRevision.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity`: `app/Domain/Content/Actions/SaveContentCategory.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity`: `app/Domain/Content/Actions/SaveContentItem.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity`: `app/Domain/Content/Actions/UpdateAlliancePublicProfile.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity`: `app/Domain/Content/Actions/UploadMediaAsset.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity`: `app/Domain/Content/Http/Controllers/ContentManagementController.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity`: `app/Domain/Content/Http/Controllers/MemberContentController.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity`: `app/Domain/Content/Services/ContentRevisionWriter.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Platform`: `app/Domain/Content/Services/ContentOutbox.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Events` → `Alliances`: `app/Domain/Events/Actions/CancelEventRegistration.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances`: `app/Domain/Events/Actions/CreateEvent.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances`: `app/Domain/Events/Actions/CreateEventFromTemplate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances`: `app/Domain/Events/Actions/CreateEventTemplate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances`: `app/Domain/Events/Actions/RecordEventAttendance.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances`: `app/Domain/Events/Actions/RegisterForEvent.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances`: `app/Domain/Events/Models/Event.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances`: `app/Domain/Events/Models/EventOccurrence.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances`: `app/Domain/Events/Models/EventTemplate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances`: `app/Domain/Events/Queries/AllianceEventQuery.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances`: `app/Domain/Events/Services/EventOutbox.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Identity`: `app/Domain/Events/Actions/CancelEventRegistration.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity`: `app/Domain/Events/Actions/CreateEvent.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity`: `app/Domain/Events/Actions/CreateEventFromTemplate.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity`: `app/Domain/Events/Actions/CreateEventTemplate.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity`: `app/Domain/Events/Actions/RecordEventAttendance.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity`: `app/Domain/Events/Actions/RegisterForEvent.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity`: `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity`: `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Memberships`: `app/Domain/Events/Actions/CancelEventRegistration.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Events` → `Memberships`: `app/Domain/Events/Actions/RegisterForEvent.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Events` → `Memberships`: `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Events` → `Memberships`: `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Events` → `Memberships`: `app/Domain/Events/Models/EventRegistration.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Events` → `Platform`: `app/Domain/Events/Services/EventOutbox.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Events` → `Rallies`: `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\Models\EventRecommendedFormation`
+- `Events` → `Rallies`: `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\Models\MemberFormation`
+- `Events` → `Rallies`: `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\Models\RallyAssignment`
+- `Events` → `Rallies`: `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\Models\RallyGroup`
+- `Events` → `Rallies`: `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\Models\RallyGuidanceRule`
+- `Events` → `Rallies`: `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Models\EventRecommendedFormation`
+- `Events` → `Rallies`: `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Models\RallyAssignment`
+- `Events` → `Rallies`: `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Models\RallyGroup`
+- `Events` → `Rallies`: `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Models\RallyGuidanceRule`
+- `Identity` → `Alliances`: `app/Domain/Identity/Http/Controllers/RegistrationController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Identity` → `Memberships`: `app/Domain/Identity/Http/Controllers/AuthenticatedSessionController.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Identity` → `Memberships`: `app/Domain/Identity/Http/Controllers/RegistrationController.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Identity` → `Memberships`: `app/Domain/Identity/Http/Controllers/TwoFactorChallengeController.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Identity` → `Memberships`: `app/Domain/Identity/Models/User.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Identity` → `Platform`: `app/Domain/Identity/Actions/RegisterUser.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Identity` → `Platform`: `app/Domain/Identity/Http/Controllers/ProfileController.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Identity` → `Platform`: `app/Domain/Identity/Services/TwoFactorManager.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Alliances`: `app/Domain/Memberships/Actions/AcceptInvitation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances`: `app/Domain/Memberships/Actions/CreateInvitation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances`: `app/Domain/Memberships/Actions/LeaveAlliance.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances`: `app/Domain/Memberships/Actions/ResendInvitation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances`: `app/Domain/Memberships/Actions/RevokeInvitation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances`: `app/Domain/Memberships/Actions/UpdateMembershipStatus.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances`: `app/Domain/Memberships/Http/Controllers/InvitationAcceptanceController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances`: `app/Domain/Memberships/Models/AllianceMembership.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances`: `app/Domain/Memberships/Models/Invitation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances`: `app/Domain/Memberships/Services/MembershipAdministrationGuard.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Authorization`: `app/Domain/Memberships/Actions/AcceptInvitation.php` imports `App\Domain\Authorization\Models\Role`
+- `Memberships` → `Authorization`: `app/Domain/Memberships/Actions/UpdateMembershipStatus.php` imports `App\Domain\Authorization\Models\Role`
+- `Memberships` → `Authorization`: `app/Domain/Memberships/Models/AllianceMembership.php` imports `App\Domain\Authorization\Models\Role`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Actions/AcceptInvitation.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Actions/CreateInvitation.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Actions/LeaveAlliance.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Actions/ResendInvitation.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Actions/RevokeInvitation.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Actions/UpdateMembershipStatus.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Http/Controllers/InvitationAcceptanceController.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Http/Controllers/InvitationController.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Http/Controllers/MembershipController.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Models/AllianceMembership.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Models/Invitation.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity`: `app/Domain/Memberships/Services/MembershipAdministrationGuard.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Platform`: `app/Domain/Memberships/Actions/AcceptInvitation.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Platform`: `app/Domain/Memberships/Actions/CreateInvitation.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Platform`: `app/Domain/Memberships/Actions/LeaveAlliance.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Platform`: `app/Domain/Memberships/Actions/ResendInvitation.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Platform`: `app/Domain/Memberships/Actions/RevokeInvitation.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Platform`: `app/Domain/Memberships/Actions/UpdateMembershipStatus.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Notifications` → `Alliances`: `app/Domain/Notifications/Actions/CreateEventReminderRule.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Notifications` → `Events`: `app/Domain/Notifications/Actions/CreateEventReminderRule.php` imports `App\Domain\Events\Models\Event`
+- `Notifications` → `Events`: `app/Domain/Notifications/Actions/QueueDueEventReminders.php` imports `App\Domain\Events\Models\EventRegistration`
+- `Notifications` → `Events`: `app/Domain/Notifications/Actions/SyncEventReminderDeliveries.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Notifications` → `Events`: `app/Domain/Notifications/Actions/SyncEventReminderDeliveries.php` imports `App\Domain\Events\Models\EventRegistration`
+- `Notifications` → `Events`: `app/Domain/Notifications/Actions/SyncUpcomingEventReminders.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Notifications` → `Events`: `app/Domain/Notifications/Models/EventReminderDelivery.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Notifications` → `Events`: `app/Domain/Notifications/Models/EventReminderRule.php` imports `App\Domain\Events\Models\Event`
+- `Notifications` → `Identity`: `app/Domain/Notifications/Actions/CreateEventReminderRule.php` imports `App\Domain\Identity\Models\User`
+- `Notifications` → `Memberships`: `app/Domain/Notifications/Models/EventReminderDelivery.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Notifications` → `Platform`: `app/Domain/Notifications/Actions/QueueDueEventReminders.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Platform` → `Alliances`: `app/Domain/Platform/Models/OutboxMessage.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Platform` → `Events`: `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Events\Models\Event`
+- `Platform` → `Events`: `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Platform` → `Identity`: `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Identity\Models\User`
+- `Platform` → `Memberships`: `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Platform` → `Notifications`: `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Notifications\Models\EventReminderDelivery`
+- `Rallies` → `Alliances`: `app/Domain/Rallies/Actions/AssignRallyMember.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances`: `app/Domain/Rallies/Actions/CreateEventRecommendedFormation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances`: `app/Domain/Rallies/Actions/CreateRallyGroup.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances`: `app/Domain/Rallies/Actions/CreateRallyGuidanceRule.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances`: `app/Domain/Rallies/Actions/RecordRallyParticipation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances`: `app/Domain/Rallies/Actions/SaveMemberFormation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances`: `app/Domain/Rallies/Models/RallyGuidanceRule.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Events`: `app/Domain/Rallies/Actions/CreateEventRecommendedFormation.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Rallies` → `Events`: `app/Domain/Rallies/Actions/CreateRallyGroup.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Rallies` → `Events`: `app/Domain/Rallies/Models/EventRecommendedFormation.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Rallies` → `Events`: `app/Domain/Rallies/Models/RallyGroup.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Rallies` → `Identity`: `app/Domain/Rallies/Actions/AssignRallyMember.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Identity`: `app/Domain/Rallies/Actions/CreateEventRecommendedFormation.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Identity`: `app/Domain/Rallies/Actions/CreateRallyGroup.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Identity`: `app/Domain/Rallies/Actions/CreateRallyGuidanceRule.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Identity`: `app/Domain/Rallies/Actions/RecordRallyParticipation.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Identity`: `app/Domain/Rallies/Actions/SaveMemberFormation.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Memberships`: `app/Domain/Rallies/Actions/AssignRallyMember.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Rallies` → `Memberships`: `app/Domain/Rallies/Actions/SaveMemberFormation.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Rallies` → `Memberships`: `app/Domain/Rallies/Models/MemberFormation.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Rallies` → `Memberships`: `app/Domain/Rallies/Models/RallyAssignment.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/AddRecruitmentNote.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/AssignRecruitmentReviewer.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/ChangeRecruitmentStage.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/ConfigureRecruitmentSettings.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/ConvertAcceptedRecruitmentCandidate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/CreateRecruitmentDecisionTemplate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/CreateRecruitmentOnboardingItem.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/CreateRecruitmentQuestion.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/IssueRecruitmentApplicationInvite.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/MarkRecruitmentCandidateJoined.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/MarkRecruitmentCommunicationSent.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/MergeRecruitmentCandidates.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/PrepareRecruitmentDecisionCommunication.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/PurgeExpiredRecruitmentCandidates.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/SubmitRecruitmentApplication.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/TagRecruitmentCandidate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/UpdateRecruitmentOnboardingStatus.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Actions/UpdateRecruitmentQuestion.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Http/Controllers/PublicRecruitmentController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Models/RecruitmentApplicationInvite.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Models/RecruitmentCandidate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Models/RecruitmentQuestion.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Models/RecruitmentSetting.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Queries/PublicRecruitmentQuery.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Queries/RecruitmentDuplicateFinder.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Queries/RecruitmentMetricsQuery.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances`: `app/Domain/Recruitment/Services/RecruitmentOutbox.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/AddRecruitmentNote.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/AssignRecruitmentReviewer.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/ChangeRecruitmentStage.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/ConfigureRecruitmentSettings.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/ConvertAcceptedRecruitmentCandidate.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/CreateRecruitmentDecisionTemplate.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/CreateRecruitmentOnboardingItem.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/CreateRecruitmentQuestion.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/IssueRecruitmentApplicationInvite.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/MarkRecruitmentCandidateJoined.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/MarkRecruitmentCommunicationSent.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/MergeRecruitmentCandidates.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/PrepareRecruitmentDecisionCommunication.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/SubmitRecruitmentApplication.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/TagRecruitmentCandidate.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/UpdateRecruitmentOnboardingStatus.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Actions/UpdateRecruitmentQuestion.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Http/Controllers/PublicRecruitmentController.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity`: `app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Memberships`: `app/Domain/Recruitment/Actions/AddRecruitmentNote.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships`: `app/Domain/Recruitment/Actions/AssignRecruitmentReviewer.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships`: `app/Domain/Recruitment/Actions/ConvertAcceptedRecruitmentCandidate.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Recruitment` → `Memberships`: `app/Domain/Recruitment/Enums/RecruitmentApplicationMode.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Recruitment` → `Memberships`: `app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships`: `app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships`: `app/Domain/Recruitment/Models/RecruitmentCandidate.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships`: `app/Domain/Recruitment/Models/RecruitmentCandidate.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Recruitment` → `Memberships`: `app/Domain/Recruitment/Models/RecruitmentNote.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships`: `app/Domain/Recruitment/ValueObjects/ConvertedRecruitmentCandidate.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Recruitment` → `Platform`: `app/Domain/Recruitment/Services/RecruitmentOutbox.php` imports `App\Domain\Platform\Models\OutboxMessage`
+
+## All cross-domain imports
+
+- `Alliances` → `Audit` (Services): `app/Domain/Alliances/Actions/CreateAlliance.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Alliances` → `Audit` (Services): `app/Domain/Alliances/Http/Controllers/ActivateAllianceController.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Alliances` → `Authorization` (Enums): `app/Domain/Alliances/Actions/CreateAlliance.php` imports `App\Domain\Authorization\Enums\DefaultAllianceRole`
+- `Alliances` → `Authorization` (Enums): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Alliances` → `Authorization` (Models): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Authorization\Models\Role`
+- `Alliances` → `Authorization` (Models): `app/Domain/Alliances/Http/Controllers/DashboardController.php` imports `App\Domain\Authorization\Models\Role`
+- `Alliances` → `Authorization` (Models): `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Authorization\Models\Role`
+- `Alliances` → `Authorization` (Services): `app/Domain/Alliances/Actions/CreateAlliance.php` imports `App\Domain\Authorization\Services\AllianceRoleProvisioner`
+- `Alliances` → `Authorization` (Services): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Alliances` → `Authorization` (Services): `app/Domain/Alliances/Services/AllianceContext.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Alliances` → `Content` (Enums): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Content\Enums\ContentType`
+- `Alliances` → `Content` (Enums): `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Enums\ContentStatus`
+- `Alliances` → `Content` (Enums): `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Enums\ContentVisibility`
+- `Alliances` → `Content` (Models): `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Models\AllianceBrandingMedia`
+- `Alliances` → `Content` (Models): `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Models\AllianceProfile`
+- `Alliances` → `Content` (Models): `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Models\ContentCategory`
+- `Alliances` → `Content` (Models): `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Models\ContentItem`
+- `Alliances` → `Content` (Models): `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Content\Models\AllianceBrandingMedia`
+- `Alliances` → `Content` (Models): `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Content\Models\AllianceProfile`
+- `Alliances` → `Content` (Models): `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Content\Models\ContentCategory`
+- `Alliances` → `Content` (Models): `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Content\Models\ContentItem`
+- `Alliances` → `Content` (Models): `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Content\Models\MediaAsset`
+- `Alliances` → `Content` (Queries): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Content\Queries\ContentQuery`
+- `Alliances` → `Content` (Queries): `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Queries\ContentQuery`
+- `Alliances` → `Content` (Services): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Content\Services\ContentPresenter`
+- `Alliances` → `Content` (Services): `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Content\Services\ContentPresenter`
+- `Alliances` → `Events` (Models): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Events\Models\Event`
+- `Alliances` → `Events` (Queries): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Events\Queries\AllianceEventQuery`
+- `Alliances` → `Identity` (Models): `app/Domain/Alliances/Actions/CreateAlliance.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity` (Models): `app/Domain/Alliances/Http/Controllers/ActivateAllianceController.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity` (Models): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity` (Models): `app/Domain/Alliances/Http/Controllers/CreateAllianceController.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity` (Models): `app/Domain/Alliances/Http/Controllers/DashboardController.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity` (Models): `app/Domain/Alliances/Http/Middleware/ResolveAllianceContext.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity` (Models): `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Identity` (Models): `app/Domain/Alliances/Services/AllianceContext.php` imports `App\Domain\Identity\Models\User`
+- `Alliances` → `Memberships` (Enums): `app/Domain/Alliances/Actions/CreateAlliance.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Alliances` → `Memberships` (Enums): `app/Domain/Alliances/Http/Controllers/ActivateAllianceController.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Alliances` → `Memberships` (Enums): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Memberships\Enums\InvitationStatus`
+- `Alliances` → `Memberships` (Enums): `app/Domain/Alliances/Http/Controllers/DashboardController.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Alliances` → `Memberships` (Enums): `app/Domain/Alliances/Http/Middleware/ResolveAllianceContext.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Alliances` → `Memberships` (Models): `app/Domain/Alliances/Actions/CreateAlliance.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships` (Models): `app/Domain/Alliances/Http/Controllers/ActivateAllianceController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships` (Models): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships` (Models): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Alliances` → `Memberships` (Models): `app/Domain/Alliances/Http/Controllers/DashboardController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships` (Models): `app/Domain/Alliances/Http/Middleware/ResolveAllianceContext.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships` (Models): `app/Domain/Alliances/Models/Alliance.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Memberships` (Models): `app/Domain/Alliances/Services/AllianceContext.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Alliances` → `Platform` (Http): `app/Domain/Alliances/Http/Controllers/ActivateAllianceController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Alliances` → `Platform` (Http): `app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Alliances` → `Platform` (Http): `app/Domain/Alliances/Http/Controllers/CreateAllianceController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Alliances` → `Platform` (Http): `app/Domain/Alliances/Http/Controllers/DashboardController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Alliances` → `Platform` (Http): `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Alliances` → `Platform` (Models): `app/Domain/Alliances/Actions/CreateAlliance.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Alliances` → `Recruitment` (Queries): `app/Domain/Alliances/Http/Controllers/PublicAllianceController.php` imports `App\Domain\Recruitment\Queries\PublicRecruitmentQuery`
+- `Audit` → `Alliances` (Models): `app/Domain/Audit/Models/AuditEvent.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Audit` → `Alliances` (Models): `app/Domain/Audit/Services/AuditRecorder.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Audit` → `Identity` (Models): `app/Domain/Audit/Models/AuditEvent.php` imports `App\Domain\Identity\Models\User`
+- `Audit` → `Identity` (Models): `app/Domain/Audit/Services/AuditRecorder.php` imports `App\Domain\Identity\Models\User`
+- `Authorization` → `Alliances` (Models): `app/Domain/Authorization/Actions/AssignMembershipRole.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Authorization` → `Alliances` (Models): `app/Domain/Authorization/Actions/RemoveMembershipRole.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Authorization` → `Alliances` (Models): `app/Domain/Authorization/Models/Role.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Authorization` → `Alliances` (Models): `app/Domain/Authorization/Services/AllianceAuthorization.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Authorization` → `Alliances` (Models): `app/Domain/Authorization/Services/AllianceRoleProvisioner.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Authorization` → `Audit` (Services): `app/Domain/Authorization/Actions/AssignMembershipRole.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Authorization` → `Audit` (Services): `app/Domain/Authorization/Actions/RemoveMembershipRole.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Authorization` → `Identity` (Models): `app/Domain/Authorization/Actions/AssignMembershipRole.php` imports `App\Domain\Identity\Models\User`
+- `Authorization` → `Identity` (Models): `app/Domain/Authorization/Actions/RemoveMembershipRole.php` imports `App\Domain\Identity\Models\User`
+- `Authorization` → `Identity` (Models): `app/Domain/Authorization/Services/AllianceAuthorization.php` imports `App\Domain\Identity\Models\User`
+- `Authorization` → `Memberships` (Enums): `app/Domain/Authorization/Actions/AssignMembershipRole.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Authorization` → `Memberships` (Enums): `app/Domain/Authorization/Services/AllianceAuthorization.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Authorization` → `Memberships` (Models): `app/Domain/Authorization/Actions/AssignMembershipRole.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Authorization` → `Memberships` (Models): `app/Domain/Authorization/Actions/RemoveMembershipRole.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Authorization` → `Memberships` (Models): `app/Domain/Authorization/Models/Role.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Authorization` → `Memberships` (Models): `app/Domain/Authorization/Services/AllianceAuthorization.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Authorization` → `Memberships` (Services): `app/Domain/Authorization/Actions/RemoveMembershipRole.php` imports `App\Domain\Memberships\Services\MembershipAdministrationGuard`
+- `Authorization` → `Platform` (Models): `app/Domain/Authorization/Actions/AssignMembershipRole.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Authorization` → `Platform` (Models): `app/Domain/Authorization/Actions/RemoveMembershipRole.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Content` → `Alliances` (Enums): `app/Domain/Content/Http/Controllers/PublicBrandingMediaController.php` imports `App\Domain\Alliances\Enums\AllianceStatus`
+- `Content` → `Alliances` (Enums): `app/Domain/Content/Http/Controllers/PublicContentController.php` imports `App\Domain\Alliances\Enums\AllianceStatus`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Actions/ArchiveContentItem.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Actions/ArchiveMediaAsset.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Actions/DeleteContentCategory.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Actions/PublishContentItem.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Actions/PublishScheduledContent.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Actions/RestoreContentRevision.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Actions/SaveContentCategory.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Actions/SaveContentItem.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Actions/UpdateAlliancePublicProfile.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Actions/UploadMediaAsset.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Http/Controllers/PublicBrandingMediaController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Http/Controllers/PublicContentController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Models/AllianceBrandingMedia.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Models/AllianceProfile.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Models/ContentCategory.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Models/ContentItem.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Models/MediaAsset.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Queries/ContentQuery.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Models): `app/Domain/Content/Services/ContentOutbox.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Content` → `Alliances` (Services): `app/Domain/Content/Http/Controllers/ContentManagementController.php` imports `App\Domain\Alliances\Services\AllianceContext`
+- `Content` → `Alliances` (Services): `app/Domain/Content/Http/Controllers/MemberContentController.php` imports `App\Domain\Alliances\Services\AllianceContext`
+- `Content` → `Alliances` (ValueObjects): `app/Domain/Content/Actions/UploadMediaAsset.php` imports `App\Domain\Alliances\ValueObjects\TenantContextSnapshot`
+- `Content` → `Audit` (Services): `app/Domain/Content/Actions/ArchiveContentItem.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Content` → `Audit` (Services): `app/Domain/Content/Actions/ArchiveMediaAsset.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Content` → `Audit` (Services): `app/Domain/Content/Actions/DeleteContentCategory.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Content` → `Audit` (Services): `app/Domain/Content/Actions/PublishContentItem.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Content` → `Audit` (Services): `app/Domain/Content/Actions/PublishScheduledContent.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Content` → `Audit` (Services): `app/Domain/Content/Actions/RestoreContentRevision.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Content` → `Audit` (Services): `app/Domain/Content/Actions/SaveContentCategory.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Content` → `Audit` (Services): `app/Domain/Content/Actions/SaveContentItem.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Content` → `Audit` (Services): `app/Domain/Content/Actions/UpdateAlliancePublicProfile.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Content` → `Audit` (Services): `app/Domain/Content/Actions/UploadMediaAsset.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Content` → `Authorization` (Enums): `app/Domain/Content/Actions/ArchiveContentItem.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Content` → `Authorization` (Enums): `app/Domain/Content/Actions/ArchiveMediaAsset.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Content` → `Authorization` (Enums): `app/Domain/Content/Actions/DeleteContentCategory.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Content` → `Authorization` (Enums): `app/Domain/Content/Actions/PublishContentItem.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Content` → `Authorization` (Enums): `app/Domain/Content/Actions/RestoreContentRevision.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Content` → `Authorization` (Enums): `app/Domain/Content/Actions/SaveContentCategory.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Content` → `Authorization` (Enums): `app/Domain/Content/Actions/SaveContentItem.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Content` → `Authorization` (Enums): `app/Domain/Content/Actions/UpdateAlliancePublicProfile.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Content` → `Authorization` (Enums): `app/Domain/Content/Actions/UploadMediaAsset.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Content` → `Authorization` (Enums): `app/Domain/Content/Http/Controllers/ContentManagementController.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Content` → `Authorization` (Enums): `app/Domain/Content/Http/Controllers/MemberContentController.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Content` → `Authorization` (Services): `app/Domain/Content/Actions/ArchiveContentItem.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Content` → `Authorization` (Services): `app/Domain/Content/Actions/ArchiveMediaAsset.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Content` → `Authorization` (Services): `app/Domain/Content/Actions/DeleteContentCategory.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Content` → `Authorization` (Services): `app/Domain/Content/Actions/PublishContentItem.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Content` → `Authorization` (Services): `app/Domain/Content/Actions/RestoreContentRevision.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Content` → `Authorization` (Services): `app/Domain/Content/Actions/SaveContentCategory.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Content` → `Authorization` (Services): `app/Domain/Content/Actions/SaveContentItem.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Content` → `Authorization` (Services): `app/Domain/Content/Actions/UpdateAlliancePublicProfile.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Content` → `Authorization` (Services): `app/Domain/Content/Actions/UploadMediaAsset.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Content` → `Authorization` (Services): `app/Domain/Content/Http/Controllers/ContentManagementController.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Content` → `Authorization` (Services): `app/Domain/Content/Http/Controllers/MemberContentController.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Content` → `Identity` (Models): `app/Domain/Content/Actions/ArchiveContentItem.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity` (Models): `app/Domain/Content/Actions/ArchiveMediaAsset.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity` (Models): `app/Domain/Content/Actions/DeleteContentCategory.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity` (Models): `app/Domain/Content/Actions/PublishContentItem.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity` (Models): `app/Domain/Content/Actions/RestoreContentRevision.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity` (Models): `app/Domain/Content/Actions/SaveContentCategory.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity` (Models): `app/Domain/Content/Actions/SaveContentItem.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity` (Models): `app/Domain/Content/Actions/UpdateAlliancePublicProfile.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity` (Models): `app/Domain/Content/Actions/UploadMediaAsset.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity` (Models): `app/Domain/Content/Http/Controllers/ContentManagementController.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity` (Models): `app/Domain/Content/Http/Controllers/MemberContentController.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Identity` (Models): `app/Domain/Content/Services/ContentRevisionWriter.php` imports `App\Domain\Identity\Models\User`
+- `Content` → `Platform` (Http): `app/Domain/Content/Http/Controllers/ContentManagementController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Content` → `Platform` (Http): `app/Domain/Content/Http/Controllers/MemberContentController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Content` → `Platform` (Http): `app/Domain/Content/Http/Controllers/PublicBrandingMediaController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Content` → `Platform` (Http): `app/Domain/Content/Http/Controllers/PublicContentController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Content` → `Platform` (Models): `app/Domain/Content/Services/ContentOutbox.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Events` → `Alliances` (Models): `app/Domain/Events/Actions/CancelEventRegistration.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances` (Models): `app/Domain/Events/Actions/CreateEvent.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances` (Models): `app/Domain/Events/Actions/CreateEventFromTemplate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances` (Models): `app/Domain/Events/Actions/CreateEventTemplate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances` (Models): `app/Domain/Events/Actions/RecordEventAttendance.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances` (Models): `app/Domain/Events/Actions/RegisterForEvent.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances` (Models): `app/Domain/Events/Models/Event.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances` (Models): `app/Domain/Events/Models/EventOccurrence.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances` (Models): `app/Domain/Events/Models/EventTemplate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances` (Models): `app/Domain/Events/Queries/AllianceEventQuery.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances` (Models): `app/Domain/Events/Services/EventOutbox.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Events` → `Alliances` (Services): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Alliances\Services\AllianceContext`
+- `Events` → `Alliances` (Services): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Alliances\Services\AllianceContext`
+- `Events` → `Audit` (Services): `app/Domain/Events/Actions/CancelEventRegistration.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Events` → `Audit` (Services): `app/Domain/Events/Actions/CreateEvent.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Events` → `Audit` (Services): `app/Domain/Events/Actions/CreateEventTemplate.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Events` → `Audit` (Services): `app/Domain/Events/Actions/RecordEventAttendance.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Events` → `Audit` (Services): `app/Domain/Events/Actions/RegisterForEvent.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Events` → `Authorization` (Enums): `app/Domain/Events/Actions/CreateEvent.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Events` → `Authorization` (Enums): `app/Domain/Events/Actions/CreateEventTemplate.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Events` → `Authorization` (Enums): `app/Domain/Events/Actions/RecordEventAttendance.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Events` → `Authorization` (Enums): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Events` → `Authorization` (Enums): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Events` → `Authorization` (Services): `app/Domain/Events/Actions/CreateEvent.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Events` → `Authorization` (Services): `app/Domain/Events/Actions/CreateEventTemplate.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Events` → `Authorization` (Services): `app/Domain/Events/Actions/RecordEventAttendance.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Events` → `Authorization` (Services): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Events` → `Authorization` (Services): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Events` → `Identity` (Models): `app/Domain/Events/Actions/CancelEventRegistration.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity` (Models): `app/Domain/Events/Actions/CreateEvent.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity` (Models): `app/Domain/Events/Actions/CreateEventFromTemplate.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity` (Models): `app/Domain/Events/Actions/CreateEventTemplate.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity` (Models): `app/Domain/Events/Actions/RecordEventAttendance.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity` (Models): `app/Domain/Events/Actions/RegisterForEvent.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity` (Models): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Identity` (Models): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Identity\Models\User`
+- `Events` → `Memberships` (Enums): `app/Domain/Events/Actions/CancelEventRegistration.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Events` → `Memberships` (Enums): `app/Domain/Events/Actions/RegisterForEvent.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Events` → `Memberships` (Enums): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Events` → `Memberships` (Models): `app/Domain/Events/Actions/CancelEventRegistration.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Events` → `Memberships` (Models): `app/Domain/Events/Actions/RegisterForEvent.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Events` → `Memberships` (Models): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Events` → `Memberships` (Models): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Events` → `Memberships` (Models): `app/Domain/Events/Models/EventRegistration.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Events` → `Notifications` (Actions): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Notifications\Actions\CreateEventReminderRule`
+- `Events` → `Platform` (Http): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Events` → `Platform` (Http): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Events` → `Platform` (Models): `app/Domain/Events/Services/EventOutbox.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Events` → `Rallies` (Actions): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\Actions\SaveMemberFormation`
+- `Events` → `Rallies` (Actions): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Actions\AssignRallyMember`
+- `Events` → `Rallies` (Actions): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Actions\CreateEventRecommendedFormation`
+- `Events` → `Rallies` (Actions): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Actions\CreateRallyGroup`
+- `Events` → `Rallies` (Actions): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Actions\CreateRallyGuidanceRule`
+- `Events` → `Rallies` (Actions): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Actions\RecordRallyParticipation`
+- `Events` → `Rallies` (Enums): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Enums\RallyAssignmentRole`
+- `Events` → `Rallies` (Enums): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Enums\RallyAssignmentStatus`
+- `Events` → `Rallies` (Models): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\Models\EventRecommendedFormation`
+- `Events` → `Rallies` (Models): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\Models\MemberFormation`
+- `Events` → `Rallies` (Models): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\Models\RallyAssignment`
+- `Events` → `Rallies` (Models): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\Models\RallyGroup`
+- `Events` → `Rallies` (Models): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\Models\RallyGuidanceRule`
+- `Events` → `Rallies` (Models): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Models\EventRecommendedFormation`
+- `Events` → `Rallies` (Models): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Models\RallyAssignment`
+- `Events` → `Rallies` (Models): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Models\RallyGroup`
+- `Events` → `Rallies` (Models): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\Models\RallyGuidanceRule`
+- `Events` → `Rallies` (ValueObjects): `app/Domain/Events/Http/Controllers/EventCalendarController.php` imports `App\Domain\Rallies\ValueObjects\FormationComposition`
+- `Events` → `Rallies` (ValueObjects): `app/Domain/Events/Http/Controllers/EventManagementController.php` imports `App\Domain\Rallies\ValueObjects\FormationComposition`
+- `Identity` → `Alliances` (Models): `app/Domain/Identity/Http/Controllers/RegistrationController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Identity` → `Audit` (Services): `app/Domain/Identity/Actions/RegisterUser.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Identity` → `Audit` (Services): `app/Domain/Identity/Http/Controllers/AuthenticatedSessionController.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Identity` → `Audit` (Services): `app/Domain/Identity/Http/Controllers/ConfirmPasswordController.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Identity` → `Audit` (Services): `app/Domain/Identity/Http/Controllers/ProfileController.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Identity` → `Audit` (Services): `app/Domain/Identity/Http/Controllers/ResetPasswordController.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Identity` → `Audit` (Services): `app/Domain/Identity/Http/Controllers/TwoFactorChallengeController.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Identity` → `Audit` (Services): `app/Domain/Identity/Http/Controllers/VerifyEmailController.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Identity` → `Audit` (Services): `app/Domain/Identity/Services/TwoFactorManager.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Identity` → `Memberships` (Actions): `app/Domain/Identity/Http/Controllers/AuthenticatedSessionController.php` imports `App\Domain\Memberships\Actions\AcceptInvitation`
+- `Identity` → `Memberships` (Actions): `app/Domain/Identity/Http/Controllers/RegistrationController.php` imports `App\Domain\Memberships\Actions\AcceptInvitation`
+- `Identity` → `Memberships` (Actions): `app/Domain/Identity/Http/Controllers/TwoFactorChallengeController.php` imports `App\Domain\Memberships\Actions\AcceptInvitation`
+- `Identity` → `Memberships` (Models): `app/Domain/Identity/Http/Controllers/AuthenticatedSessionController.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Identity` → `Memberships` (Models): `app/Domain/Identity/Http/Controllers/RegistrationController.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Identity` → `Memberships` (Models): `app/Domain/Identity/Http/Controllers/TwoFactorChallengeController.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Identity` → `Memberships` (Models): `app/Domain/Identity/Models/User.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Identity` → `Memberships` (Queries): `app/Domain/Identity/Http/Controllers/AuthenticatedSessionController.php` imports `App\Domain\Memberships\Queries\FindPendingInvitation`
+- `Identity` → `Memberships` (Queries): `app/Domain/Identity/Http/Controllers/RegistrationController.php` imports `App\Domain\Memberships\Queries\FindPendingInvitation`
+- `Identity` → `Memberships` (Queries): `app/Domain/Identity/Http/Controllers/TwoFactorChallengeController.php` imports `App\Domain\Memberships\Queries\FindPendingInvitation`
+- `Identity` → `Platform` (Http): `app/Domain/Identity/Http/Controllers/AuthenticatedSessionController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Identity` → `Platform` (Http): `app/Domain/Identity/Http/Controllers/ConfirmPasswordController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Identity` → `Platform` (Http): `app/Domain/Identity/Http/Controllers/EmailVerificationNotificationController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Identity` → `Platform` (Http): `app/Domain/Identity/Http/Controllers/EmailVerificationPromptController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Identity` → `Platform` (Http): `app/Domain/Identity/Http/Controllers/ForgotPasswordController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Identity` → `Platform` (Http): `app/Domain/Identity/Http/Controllers/ProfileController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Identity` → `Platform` (Http): `app/Domain/Identity/Http/Controllers/RegistrationController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Identity` → `Platform` (Http): `app/Domain/Identity/Http/Controllers/ResetPasswordController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Identity` → `Platform` (Http): `app/Domain/Identity/Http/Controllers/TwoFactorChallengeController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Identity` → `Platform` (Http): `app/Domain/Identity/Http/Controllers/TwoFactorController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Identity` → `Platform` (Http): `app/Domain/Identity/Http/Controllers/VerifyEmailController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Identity` → `Platform` (Models): `app/Domain/Identity/Actions/RegisterUser.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Identity` → `Platform` (Models): `app/Domain/Identity/Http/Controllers/ProfileController.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Identity` → `Platform` (Models): `app/Domain/Identity/Services/TwoFactorManager.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Alliances` (Models): `app/Domain/Memberships/Actions/AcceptInvitation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances` (Models): `app/Domain/Memberships/Actions/CreateInvitation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances` (Models): `app/Domain/Memberships/Actions/LeaveAlliance.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances` (Models): `app/Domain/Memberships/Actions/ResendInvitation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances` (Models): `app/Domain/Memberships/Actions/RevokeInvitation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances` (Models): `app/Domain/Memberships/Actions/UpdateMembershipStatus.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances` (Models): `app/Domain/Memberships/Http/Controllers/InvitationAcceptanceController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances` (Models): `app/Domain/Memberships/Models/AllianceMembership.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances` (Models): `app/Domain/Memberships/Models/Invitation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances` (Models): `app/Domain/Memberships/Services/MembershipAdministrationGuard.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Memberships` → `Alliances` (Services): `app/Domain/Memberships/Http/Controllers/InvitationController.php` imports `App\Domain\Alliances\Services\AllianceContext`
+- `Memberships` → `Alliances` (Services): `app/Domain/Memberships/Http/Controllers/MembershipController.php` imports `App\Domain\Alliances\Services\AllianceContext`
+- `Memberships` → `Audit` (Services): `app/Domain/Memberships/Actions/AcceptInvitation.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Memberships` → `Audit` (Services): `app/Domain/Memberships/Actions/CreateInvitation.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Memberships` → `Audit` (Services): `app/Domain/Memberships/Actions/LeaveAlliance.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Memberships` → `Audit` (Services): `app/Domain/Memberships/Actions/ResendInvitation.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Memberships` → `Audit` (Services): `app/Domain/Memberships/Actions/RevokeInvitation.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Memberships` → `Audit` (Services): `app/Domain/Memberships/Actions/UpdateMembershipStatus.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Memberships` → `Authorization` (Actions): `app/Domain/Memberships/Http/Controllers/MembershipController.php` imports `App\Domain\Authorization\Actions\AssignMembershipRole`
+- `Memberships` → `Authorization` (Actions): `app/Domain/Memberships/Http/Controllers/MembershipController.php` imports `App\Domain\Authorization\Actions\RemoveMembershipRole`
+- `Memberships` → `Authorization` (Enums): `app/Domain/Memberships/Actions/AcceptInvitation.php` imports `App\Domain\Authorization\Enums\DefaultAllianceRole`
+- `Memberships` → `Authorization` (Enums): `app/Domain/Memberships/Actions/CreateInvitation.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Memberships` → `Authorization` (Enums): `app/Domain/Memberships/Actions/ResendInvitation.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Memberships` → `Authorization` (Enums): `app/Domain/Memberships/Actions/RevokeInvitation.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Memberships` → `Authorization` (Enums): `app/Domain/Memberships/Actions/UpdateMembershipStatus.php` imports `App\Domain\Authorization\Enums\DefaultAllianceRole`
+- `Memberships` → `Authorization` (Enums): `app/Domain/Memberships/Services/MembershipAdministrationGuard.php` imports `App\Domain\Authorization\Enums\DefaultAllianceRole`
+- `Memberships` → `Authorization` (Enums): `app/Domain/Memberships/Services/MembershipAdministrationGuard.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Memberships` → `Authorization` (Models): `app/Domain/Memberships/Actions/AcceptInvitation.php` imports `App\Domain\Authorization\Models\Role`
+- `Memberships` → `Authorization` (Models): `app/Domain/Memberships/Actions/UpdateMembershipStatus.php` imports `App\Domain\Authorization\Models\Role`
+- `Memberships` → `Authorization` (Models): `app/Domain/Memberships/Models/AllianceMembership.php` imports `App\Domain\Authorization\Models\Role`
+- `Memberships` → `Authorization` (Services): `app/Domain/Memberships/Actions/CreateInvitation.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Memberships` → `Authorization` (Services): `app/Domain/Memberships/Actions/ResendInvitation.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Memberships` → `Authorization` (Services): `app/Domain/Memberships/Actions/RevokeInvitation.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Memberships` → `Authorization` (Services): `app/Domain/Memberships/Services/MembershipAdministrationGuard.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Actions/AcceptInvitation.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Actions/CreateInvitation.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Actions/LeaveAlliance.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Actions/ResendInvitation.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Actions/RevokeInvitation.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Actions/UpdateMembershipStatus.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Http/Controllers/InvitationAcceptanceController.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Http/Controllers/InvitationController.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Http/Controllers/MembershipController.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Models/AllianceMembership.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Models/Invitation.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Identity` (Models): `app/Domain/Memberships/Services/MembershipAdministrationGuard.php` imports `App\Domain\Identity\Models\User`
+- `Memberships` → `Platform` (Http): `app/Domain/Memberships/Http/Controllers/InvitationAcceptanceController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Memberships` → `Platform` (Http): `app/Domain/Memberships/Http/Controllers/InvitationController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Memberships` → `Platform` (Http): `app/Domain/Memberships/Http/Controllers/MembershipController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Memberships` → `Platform` (Models): `app/Domain/Memberships/Actions/AcceptInvitation.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Platform` (Models): `app/Domain/Memberships/Actions/CreateInvitation.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Platform` (Models): `app/Domain/Memberships/Actions/LeaveAlliance.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Platform` (Models): `app/Domain/Memberships/Actions/ResendInvitation.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Platform` (Models): `app/Domain/Memberships/Actions/RevokeInvitation.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Memberships` → `Platform` (Models): `app/Domain/Memberships/Actions/UpdateMembershipStatus.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Notifications` → `Alliances` (Models): `app/Domain/Notifications/Actions/CreateEventReminderRule.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Notifications` → `Audit` (Services): `app/Domain/Notifications/Actions/CreateEventReminderRule.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Notifications` → `Authorization` (Enums): `app/Domain/Notifications/Actions/CreateEventReminderRule.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Notifications` → `Authorization` (Services): `app/Domain/Notifications/Actions/CreateEventReminderRule.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Notifications` → `Events` (Enums): `app/Domain/Notifications/Actions/QueueDueEventReminders.php` imports `App\Domain\Events\Enums\EventRegistrationStatus`
+- `Notifications` → `Events` (Enums): `app/Domain/Notifications/Actions/SyncEventReminderDeliveries.php` imports `App\Domain\Events\Enums\EventRegistrationStatus`
+- `Notifications` → `Events` (Enums): `app/Domain/Notifications/Actions/SyncUpcomingEventReminders.php` imports `App\Domain\Events\Enums\EventOccurrenceStatus`
+- `Notifications` → `Events` (Models): `app/Domain/Notifications/Actions/CreateEventReminderRule.php` imports `App\Domain\Events\Models\Event`
+- `Notifications` → `Events` (Models): `app/Domain/Notifications/Actions/QueueDueEventReminders.php` imports `App\Domain\Events\Models\EventRegistration`
+- `Notifications` → `Events` (Models): `app/Domain/Notifications/Actions/SyncEventReminderDeliveries.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Notifications` → `Events` (Models): `app/Domain/Notifications/Actions/SyncEventReminderDeliveries.php` imports `App\Domain\Events\Models\EventRegistration`
+- `Notifications` → `Events` (Models): `app/Domain/Notifications/Actions/SyncUpcomingEventReminders.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Notifications` → `Events` (Models): `app/Domain/Notifications/Models/EventReminderDelivery.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Notifications` → `Events` (Models): `app/Domain/Notifications/Models/EventReminderRule.php` imports `App\Domain\Events\Models\Event`
+- `Notifications` → `Events` (Services): `app/Domain/Notifications/Actions/CreateEventReminderRule.php` imports `App\Domain\Events\Services\EventOutbox`
+- `Notifications` → `Identity` (Models): `app/Domain/Notifications/Actions/CreateEventReminderRule.php` imports `App\Domain\Identity\Models\User`
+- `Notifications` → `Memberships` (Models): `app/Domain/Notifications/Models/EventReminderDelivery.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Notifications` → `Platform` (Events): `app/Domain/Notifications/Actions/MarkEventReminderPublished.php` imports `App\Domain\Platform\Events\OutboxPublished`
+- `Notifications` → `Platform` (Models): `app/Domain/Notifications/Actions/QueueDueEventReminders.php` imports `App\Domain\Platform\Models\OutboxMessage`
+- `Platform` → `Alliances` (Models): `app/Domain/Platform/Models/OutboxMessage.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Platform` → `Alliances` (Services): `app/Domain/Platform/Providers/AppServiceProvider.php` imports `App\Domain\Alliances\Services\AllianceContext`
+- `Platform` → `Content` (Services): `app/Domain/Platform/Providers/AppServiceProvider.php` imports `App\Domain\Content\Services\BasicMediaScanner`
+- `Platform` → `Content` (Services): `app/Domain/Platform/Providers/AppServiceProvider.php` imports `App\Domain\Content\Services\MediaScanner`
+- `Platform` → `Events` (Models): `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Events\Models\Event`
+- `Platform` → `Events` (Models): `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Platform` → `Identity` (Models): `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Identity\Models\User`
+- `Platform` → `Memberships` (Enums): `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Platform` → `Memberships` (Models): `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Platform` → `Notifications` (Actions): `app/Domain/Platform/Providers/AppServiceProvider.php` imports `App\Domain\Notifications\Actions\MarkEventReminderPublished`
+- `Platform` → `Notifications` (Enums): `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Notifications\Enums\EventReminderDeliveryStatus`
+- `Platform` → `Notifications` (Models): `app/Domain/Platform/Http/Middleware/HandleInertiaRequests.php` imports `App\Domain\Notifications\Models\EventReminderDelivery`
+- `Platform` → `Recruitment` (Actions): `app/Domain/Platform/Providers/AppServiceProvider.php` imports `App\Domain\Recruitment\Actions\MarkRecruitmentCandidateJoined`
+- `Rallies` → `Alliances` (Models): `app/Domain/Rallies/Actions/AssignRallyMember.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances` (Models): `app/Domain/Rallies/Actions/CreateEventRecommendedFormation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances` (Models): `app/Domain/Rallies/Actions/CreateRallyGroup.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances` (Models): `app/Domain/Rallies/Actions/CreateRallyGuidanceRule.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances` (Models): `app/Domain/Rallies/Actions/RecordRallyParticipation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances` (Models): `app/Domain/Rallies/Actions/SaveMemberFormation.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Alliances` (Models): `app/Domain/Rallies/Models/RallyGuidanceRule.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Rallies` → `Audit` (Services): `app/Domain/Rallies/Actions/AssignRallyMember.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Rallies` → `Audit` (Services): `app/Domain/Rallies/Actions/CreateEventRecommendedFormation.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Rallies` → `Audit` (Services): `app/Domain/Rallies/Actions/CreateRallyGroup.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Rallies` → `Audit` (Services): `app/Domain/Rallies/Actions/CreateRallyGuidanceRule.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Rallies` → `Audit` (Services): `app/Domain/Rallies/Actions/RecordRallyParticipation.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Rallies` → `Audit` (Services): `app/Domain/Rallies/Actions/SaveMemberFormation.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Rallies` → `Authorization` (Enums): `app/Domain/Rallies/Actions/AssignRallyMember.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Rallies` → `Authorization` (Enums): `app/Domain/Rallies/Actions/CreateEventRecommendedFormation.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Rallies` → `Authorization` (Enums): `app/Domain/Rallies/Actions/CreateRallyGroup.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Rallies` → `Authorization` (Enums): `app/Domain/Rallies/Actions/CreateRallyGuidanceRule.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Rallies` → `Authorization` (Enums): `app/Domain/Rallies/Actions/RecordRallyParticipation.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Rallies` → `Authorization` (Services): `app/Domain/Rallies/Actions/AssignRallyMember.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Rallies` → `Authorization` (Services): `app/Domain/Rallies/Actions/CreateEventRecommendedFormation.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Rallies` → `Authorization` (Services): `app/Domain/Rallies/Actions/CreateRallyGroup.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Rallies` → `Authorization` (Services): `app/Domain/Rallies/Actions/CreateRallyGuidanceRule.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Rallies` → `Authorization` (Services): `app/Domain/Rallies/Actions/RecordRallyParticipation.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Rallies` → `Events` (Models): `app/Domain/Rallies/Actions/CreateEventRecommendedFormation.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Rallies` → `Events` (Models): `app/Domain/Rallies/Actions/CreateRallyGroup.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Rallies` → `Events` (Models): `app/Domain/Rallies/Models/EventRecommendedFormation.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Rallies` → `Events` (Models): `app/Domain/Rallies/Models/RallyGroup.php` imports `App\Domain\Events\Models\EventOccurrence`
+- `Rallies` → `Events` (Services): `app/Domain/Rallies/Actions/AssignRallyMember.php` imports `App\Domain\Events\Services\EventOutbox`
+- `Rallies` → `Events` (Services): `app/Domain/Rallies/Actions/CreateEventRecommendedFormation.php` imports `App\Domain\Events\Services\EventOutbox`
+- `Rallies` → `Events` (Services): `app/Domain/Rallies/Actions/CreateRallyGroup.php` imports `App\Domain\Events\Services\EventOutbox`
+- `Rallies` → `Events` (Services): `app/Domain/Rallies/Actions/CreateRallyGuidanceRule.php` imports `App\Domain\Events\Services\EventOutbox`
+- `Rallies` → `Events` (Services): `app/Domain/Rallies/Actions/RecordRallyParticipation.php` imports `App\Domain\Events\Services\EventOutbox`
+- `Rallies` → `Events` (Services): `app/Domain/Rallies/Actions/SaveMemberFormation.php` imports `App\Domain\Events\Services\EventOutbox`
+- `Rallies` → `Identity` (Models): `app/Domain/Rallies/Actions/AssignRallyMember.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Identity` (Models): `app/Domain/Rallies/Actions/CreateEventRecommendedFormation.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Identity` (Models): `app/Domain/Rallies/Actions/CreateRallyGroup.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Identity` (Models): `app/Domain/Rallies/Actions/CreateRallyGuidanceRule.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Identity` (Models): `app/Domain/Rallies/Actions/RecordRallyParticipation.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Identity` (Models): `app/Domain/Rallies/Actions/SaveMemberFormation.php` imports `App\Domain\Identity\Models\User`
+- `Rallies` → `Memberships` (Enums): `app/Domain/Rallies/Actions/AssignRallyMember.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Rallies` → `Memberships` (Enums): `app/Domain/Rallies/Actions/SaveMemberFormation.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Rallies` → `Memberships` (Models): `app/Domain/Rallies/Actions/AssignRallyMember.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Rallies` → `Memberships` (Models): `app/Domain/Rallies/Actions/SaveMemberFormation.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Rallies` → `Memberships` (Models): `app/Domain/Rallies/Models/MemberFormation.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Rallies` → `Memberships` (Models): `app/Domain/Rallies/Models/RallyAssignment.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Alliances` (Enums): `app/Domain/Recruitment/Http/Controllers/PublicRecruitmentController.php` imports `App\Domain\Alliances\Enums\AllianceStatus`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/AddRecruitmentNote.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/AssignRecruitmentReviewer.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/ChangeRecruitmentStage.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/ConfigureRecruitmentSettings.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/ConvertAcceptedRecruitmentCandidate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/CreateRecruitmentDecisionTemplate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/CreateRecruitmentOnboardingItem.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/CreateRecruitmentQuestion.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/IssueRecruitmentApplicationInvite.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/MarkRecruitmentCandidateJoined.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/MarkRecruitmentCommunicationSent.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/MergeRecruitmentCandidates.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/PrepareRecruitmentDecisionCommunication.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/PurgeExpiredRecruitmentCandidates.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/SubmitRecruitmentApplication.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/TagRecruitmentCandidate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/UpdateRecruitmentOnboardingStatus.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Actions/UpdateRecruitmentQuestion.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Http/Controllers/PublicRecruitmentController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Models/RecruitmentApplicationInvite.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Models/RecruitmentCandidate.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Models/RecruitmentQuestion.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Models/RecruitmentSetting.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Queries/PublicRecruitmentQuery.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Queries/RecruitmentDuplicateFinder.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Queries/RecruitmentMetricsQuery.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Models): `app/Domain/Recruitment/Services/RecruitmentOutbox.php` imports `App\Domain\Alliances\Models\Alliance`
+- `Recruitment` → `Alliances` (Services): `app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php` imports `App\Domain\Alliances\Services\AllianceContext`
+- `Recruitment` → `Alliances` (Services): `app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php` imports `App\Domain\Alliances\Services\AllianceContext`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/AddRecruitmentNote.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/AssignRecruitmentReviewer.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/ChangeRecruitmentStage.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/ConfigureRecruitmentSettings.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/ConvertAcceptedRecruitmentCandidate.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/CreateRecruitmentDecisionTemplate.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/CreateRecruitmentOnboardingItem.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/CreateRecruitmentQuestion.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/IssueRecruitmentApplicationInvite.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/MarkRecruitmentCandidateJoined.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/MarkRecruitmentCommunicationSent.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/MergeRecruitmentCandidates.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/PrepareRecruitmentDecisionCommunication.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/PurgeExpiredRecruitmentCandidates.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/SubmitRecruitmentApplication.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/TagRecruitmentCandidate.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/UpdateRecruitmentOnboardingStatus.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Audit` (Services): `app/Domain/Recruitment/Actions/UpdateRecruitmentQuestion.php` imports `App\Domain\Audit\Services\AuditRecorder`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/AddRecruitmentNote.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/AssignRecruitmentReviewer.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/ChangeRecruitmentStage.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/ConfigureRecruitmentSettings.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/ConvertAcceptedRecruitmentCandidate.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/CreateRecruitmentDecisionTemplate.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/CreateRecruitmentOnboardingItem.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/CreateRecruitmentQuestion.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/IssueRecruitmentApplicationInvite.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/MarkRecruitmentCommunicationSent.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/MergeRecruitmentCandidates.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/PrepareRecruitmentDecisionCommunication.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/TagRecruitmentCandidate.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/UpdateRecruitmentOnboardingStatus.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Actions/UpdateRecruitmentQuestion.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Enums): `app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php` imports `App\Domain\Authorization\Enums\PermissionKey`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/AddRecruitmentNote.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/AssignRecruitmentReviewer.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/ChangeRecruitmentStage.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/ConfigureRecruitmentSettings.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/ConvertAcceptedRecruitmentCandidate.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/CreateRecruitmentDecisionTemplate.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/CreateRecruitmentOnboardingItem.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/CreateRecruitmentQuestion.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/IssueRecruitmentApplicationInvite.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/MarkRecruitmentCommunicationSent.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/MergeRecruitmentCandidates.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/PrepareRecruitmentDecisionCommunication.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/TagRecruitmentCandidate.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/UpdateRecruitmentOnboardingStatus.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Actions/UpdateRecruitmentQuestion.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Authorization` (Services): `app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php` imports `App\Domain\Authorization\Services\AllianceAuthorization`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/AddRecruitmentNote.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/AssignRecruitmentReviewer.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/ChangeRecruitmentStage.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/ConfigureRecruitmentSettings.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/ConvertAcceptedRecruitmentCandidate.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/CreateRecruitmentDecisionTemplate.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/CreateRecruitmentOnboardingItem.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/CreateRecruitmentQuestion.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/IssueRecruitmentApplicationInvite.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/MarkRecruitmentCandidateJoined.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/MarkRecruitmentCommunicationSent.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/MergeRecruitmentCandidates.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/PrepareRecruitmentDecisionCommunication.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/SubmitRecruitmentApplication.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/TagRecruitmentCandidate.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/UpdateRecruitmentOnboardingStatus.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Actions/UpdateRecruitmentQuestion.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Http/Controllers/PublicRecruitmentController.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Identity` (Models): `app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php` imports `App\Domain\Identity\Models\User`
+- `Recruitment` → `Memberships` (Actions): `app/Domain/Recruitment/Actions/ConvertAcceptedRecruitmentCandidate.php` imports `App\Domain\Memberships\Actions\CreateInvitation`
+- `Recruitment` → `Memberships` (Enums): `app/Domain/Recruitment/Actions/AddRecruitmentNote.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Recruitment` → `Memberships` (Enums): `app/Domain/Recruitment/Actions/AssignRecruitmentReviewer.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Recruitment` → `Memberships` (Enums): `app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Recruitment` → `Memberships` (Enums): `app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php` imports `App\Domain\Memberships\Enums\MembershipStatus`
+- `Recruitment` → `Memberships` (Models): `app/Domain/Recruitment/Actions/AddRecruitmentNote.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships` (Models): `app/Domain/Recruitment/Actions/AssignRecruitmentReviewer.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships` (Models): `app/Domain/Recruitment/Actions/ConvertAcceptedRecruitmentCandidate.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Recruitment` → `Memberships` (Models): `app/Domain/Recruitment/Enums/RecruitmentApplicationMode.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Recruitment` → `Memberships` (Models): `app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships` (Models): `app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships` (Models): `app/Domain/Recruitment/Models/RecruitmentCandidate.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships` (Models): `app/Domain/Recruitment/Models/RecruitmentCandidate.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Recruitment` → `Memberships` (Models): `app/Domain/Recruitment/Models/RecruitmentNote.php` imports `App\Domain\Memberships\Models\AllianceMembership`
+- `Recruitment` → `Memberships` (Models): `app/Domain/Recruitment/ValueObjects/ConvertedRecruitmentCandidate.php` imports `App\Domain\Memberships\Models\Invitation`
+- `Recruitment` → `Platform` (Events): `app/Domain/Recruitment/Actions/MarkRecruitmentCandidateJoined.php` imports `App\Domain\Platform\Events\OutboxPublished`
+- `Recruitment` → `Platform` (Http): `app/Domain/Recruitment/Http/Controllers/PublicRecruitmentController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Recruitment` → `Platform` (Http): `app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Recruitment` → `Platform` (Http): `app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php` imports `App\Domain\Platform\Http\Controllers\Controller`
+- `Recruitment` → `Platform` (Models): `app/Domain/Recruitment/Services/RecruitmentOutbox.php` imports `App\Domain\Platform\Models\OutboxMessage`
+
+## Repository structure status
+
+- `app/` directories: Domain
+- `tests/` directories: Architecture, Feature, Integration, Performance, TenantIsolation, Unit
+- `docs/` directories: architecture, domains, runbooks
+

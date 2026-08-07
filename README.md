@@ -46,12 +46,12 @@ Every response receives a request ID and W3C `traceparent` correlation header.
 
 ## Documentation
 
-- [Program implementation plan](docs/IMPLEMENTATION_PLAN.md)
-- [Local development](docs/runbooks/local-development.md)
-- [Architecture decisions](docs/architecture/README.md)
-- [Definition of done](docs/DEFINITION_OF_DONE.md)
-- [Security baseline](docs/SECURITY_BASELINE.md)
-- [Release checklist](docs/RELEASE_CHECKLIST.md)
-- [Phase 0 exit report](docs/PHASE_0_EXIT_REPORT.md)
+- [Program implementation plan](docs/product/IMPLEMENTATION_PLAN.md)
+- [Local development](docs/operations/runbooks/local-development.md)
+- [Architecture decisions](docs/adr/README.md)
+- [Definition of done](docs/product/DEFINITION_OF_DONE.md)
+- [Security baseline](docs/security/SECURITY_BASELINE.md)
+- [Release checklist](docs/operations/RELEASE_CHECKLIST.md)
+- [Phase 0 exit report](docs/product/PHASE_0_EXIT_REPORT.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security reporting](SECURITY.md)
