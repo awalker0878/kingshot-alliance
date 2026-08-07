@@ -24,6 +24,7 @@ final class EmailVerificationPromptController extends Controller
 
         return Inertia::render('Auth/VerifyEmail', [
             'status' => $request->session()->get('status'),
+            'email' => $user->email,
         ]);
     }
 }
