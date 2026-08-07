@@ -1,0 +1,51 @@
+name: Domain Structure Refactor V3
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: domain-structure-refactor-v3
+  cancel-in-progress: true
+
+jobs:
+  refactor:
+    if: github.head_ref == 'agent/app-architecture-alignment' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: agent/app-architecture-alignment
+          fetch-depth: 0
+
+      - name: Fix literal namespace replacement
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/scripts/domain_refactor.py')
+          lines = path.read_text().splitlines()
+          for index, line in enumerate(lines):
+              if line.strip().startswith("text = re.sub(r'^namespace\\s+[^;]+;'"):
+                  indent = line[:len(line) - len(line.lstrip())]
+                  lines[index] = indent + "text = re.sub(r'^namespace\\s+[^;]+;', lambda _: f'namespace {namespace};', text, count=1, flags=re.M)"
+                  break
+          else:
+              raise RuntimeError('Namespace replacement line was not found')
+          path.write_text('\n'.join(lines) + '\n')
+          PY
+
+      - name: Apply canonical domain structure
+        run: python3 .github/scripts/domain_refactor.py
+
+      - name: Commit domain-first refactor
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Align app runtime with domain-first implementation plan"
+          git push origin HEAD:agent/app-architecture-alignment
