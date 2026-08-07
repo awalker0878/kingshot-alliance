@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 final class Role extends Model
 {
-    use HasFactory;
     use HasUlids;
 
     public $incrementing = false;
@@ -33,16 +31,19 @@ final class Role extends Model
         ];
     }
 
+    /** @return BelongsTo<Alliance, $this> */
     public function alliance(): BelongsTo
     {
         return $this->belongsTo(Alliance::class);
     }
 
+    /** @return BelongsToMany<Permission, $this> */
     public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class, 'role_permissions');
     }
 
+    /** @return BelongsToMany<AllianceMembership, $this> */
     public function memberships(): BelongsToMany
     {
         return $this->belongsToMany(AllianceMembership::class, 'membership_roles', 'role_id', 'membership_id');
