@@ -72,6 +72,15 @@ final class RecruitmentCandidate extends Model
         ];
     }
 
+    public function recruitmentStage(): RecruitmentStage
+    {
+        $value = $this->getAttribute('stage');
+
+        return $value instanceof RecruitmentStage
+            ? $value
+            : RecruitmentStage::from((string) $value);
+    }
+
     /** @return BelongsTo<Alliance, $this> */
     public function alliance(): BelongsTo
     {
