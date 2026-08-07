@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +16,8 @@ use Laravel\Sanctum\HasApiTokens;
 final class User extends Authenticatable implements MustVerifyEmailContract
 {
     use HasApiTokens;
+
+    /** @use HasFactory<UserFactory> */
     use HasFactory;
     use MustVerifyEmail;
     use Notifiable;
@@ -44,6 +47,7 @@ final class User extends Authenticatable implements MustVerifyEmailContract
         ];
     }
 
+    /** @return HasMany<AllianceMembership, $this> */
     public function memberships(): HasMany
     {
         return $this->hasMany(AllianceMembership::class);
