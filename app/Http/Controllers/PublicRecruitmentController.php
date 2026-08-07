@@ -77,7 +77,7 @@ final class PublicRecruitmentController extends Controller
             'application' => [
                 'open' => $isOpen,
                 'mode' => $settings?->application_mode->value ?? RecruitmentApplicationMode::Closed->value,
-                'title' => $settings?->title ?? 'Recruitment applications are closed',
+                'title' => $settings instanceof RecruitmentSetting ? (string) $settings->title : 'Recruitment applications are closed',
                 'introduction' => $settings?->introduction,
                 'token' => $tokenValid ? $applicationToken : null,
             ],

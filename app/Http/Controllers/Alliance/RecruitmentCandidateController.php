@@ -72,7 +72,7 @@ final class RecruitmentCandidateController extends Controller
         $templates = RecruitmentDecisionTemplate::query()
             ->where('alliance_id', $alliance->id)
             ->where('is_active', true)
-            ->where('decision_stage', $record->stage->value)
+            ->where('decision_stage', $record->recruitmentStage()->value)
             ->orderBy('name')
             ->get();
 
@@ -81,7 +81,7 @@ final class RecruitmentCandidateController extends Controller
             $answerData[] = [
                 'id' => (string) $answer->id,
                 'prompt' => (string) $answer->prompt_snapshot,
-                'type' => $answer->question_type_snapshot->value,
+                'type' => $answer->questionType()->value,
                 'answer' => $answer->answer,
             ];
         }
@@ -129,8 +129,8 @@ final class RecruitmentCandidateController extends Controller
 
             $historyData[] = [
                 'id' => (string) $history->id,
-                'from' => $history->from_stage?->value,
-                'to' => $history->to_stage->value,
+                'from' => $history->fromStage()?->value,
+                'to' => $history->toStage()->value,
                 'reason' => $history->reason,
                 'changedAt' => $history->changed_at->toIso8601String(),
             ];
@@ -146,7 +146,7 @@ final class RecruitmentCandidateController extends Controller
                 'id' => (string) $communication->id,
                 'subject' => (string) $communication->subject,
                 'body' => (string) $communication->body,
-                'status' => $communication->status->value,
+                'status' => $communication->communicationStatus()->value,
                 'sentAt' => $communication->sent_at?->toIso8601String(),
                 'createdAt' => $communication->created_at?->toIso8601String(),
             ];
@@ -167,7 +167,7 @@ final class RecruitmentCandidateController extends Controller
                 'name' => (string) $item->name,
                 'description' => $item->description,
                 'required' => (bool) $item->is_required,
-                'status' => $onboarding->status->value,
+                'status' => $onboarding->onboardingStatus()->value,
                 'completedAt' => $onboarding->completed_at?->toIso8601String(),
             ];
         }
@@ -179,7 +179,7 @@ final class RecruitmentCandidateController extends Controller
                 'name' => (string) $duplicate->full_name,
                 'email' => (string) $duplicate->email,
                 'contactHandle' => $duplicate->contact_handle,
-                'stage' => $duplicate->stage->value,
+                'stage' => $duplicate->recruitmentStage()->value,
                 'submittedAt' => $duplicate->submitted_at->toIso8601String(),
             ];
         }
@@ -202,7 +202,7 @@ final class RecruitmentCandidateController extends Controller
             $templateData[] = [
                 'id' => (string) $template->id,
                 'name' => (string) $template->name,
-                'decisionStage' => $template->decision_stage->value,
+                'decisionStage' => $template->decisionStage()->value,
                 'subject' => (string) $template->subject,
             ];
         }
@@ -218,7 +218,7 @@ final class RecruitmentCandidateController extends Controller
                 'email' => (string) $record->email,
                 'contactHandle' => $record->contact_handle,
                 'source' => $record->source,
-                'stage' => $record->stage->value,
+                'stage' => $record->recruitmentStage()->value,
                 'submittedAt' => $record->submitted_at->toIso8601String(),
                 'firstRespondedAt' => $record->first_responded_at?->toIso8601String(),
                 'nextActionAt' => $record->next_action_at?->toIso8601String(),
@@ -239,7 +239,7 @@ final class RecruitmentCandidateController extends Controller
             'duplicates' => $duplicateData,
             'members' => $memberData,
             'decisionTemplates' => $templateData,
-            'stageOptions' => $this->manualStageOptions($record->stage),
+            'stageOptions' => $this->manualStageOptions($record->recruitmentStage()),
             'onboardingStatusOptions' => array_map(
                 static fn (RecruitmentOnboardingStatus $status): string => $status->value,
                 RecruitmentOnboardingStatus::cases(),
@@ -268,7 +268,7 @@ final class RecruitmentCandidateController extends Controller
             $record,
             RecruitmentStage::from($validated['stage']),
             $validated['reason'] ?? null,
-            isset($validated['next_action_at']) ? CarbonImmutable::parse($validated['next_action_at']) : null,
+            isset($validated['next_action_at']) && is_string($validated['next_action_at']) ? CarbonImmutable::parse($validated['next_action_at'], (string) $alliance->timezone) : null,
         );
 
         return back();

@@ -122,7 +122,7 @@ final class RecruitmentManagementController extends Controller
             $templateData[] = [
                 'id' => (string) $template->id,
                 'name' => (string) $template->name,
-                'decisionStage' => $template->decision_stage->value,
+                'decisionStage' => $template->decisionStage()->value,
                 'subject' => (string) $template->subject,
                 'body' => (string) $template->body,
                 'active' => (bool) $template->is_active,
