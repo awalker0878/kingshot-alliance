@@ -93,7 +93,10 @@ final readonly class AllianceDataExportService
         ];
     }
 
-    /** @param array<string, mixed> $row @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
     private function sanitizeRow(array $row): array
     {
         foreach (self::REDACTED_COLUMNS as $column) {
