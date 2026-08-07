@@ -9,7 +9,6 @@ use App\Domain\Identity\Enums\AllianceStatus;
 use App\Domain\Identity\Enums\MembershipStatus;
 use App\Models\Alliance;
 use App\Models\AllianceMembership;
-use App\Models\AuditEvent;
 use App\Models\OutboxMessage;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +16,10 @@ use RuntimeException;
 
 final readonly class CreateAlliance
 {
-    public function __construct(private AllianceRoleProvisioner $roles) {}
+    public function __construct(
+        private AllianceRoleProvisioner $roles,
+        private AuditRecorder $audit,
+    ) {}
 
     public function handle(
         User $owner,
@@ -56,18 +58,16 @@ final readonly class CreateAlliance
                 'alliance_id' => $alliance->id,
             ]);
 
-            AuditEvent::query()->create([
-                'alliance_id' => $alliance->id,
-                'actor_user_id' => $owner->id,
-                'event' => 'alliance.created',
-                'subject_type' => Alliance::class,
-                'subject_id' => $alliance->id,
-                'metadata' => [
+            $this->audit->record(
+                event: 'alliance.created',
+                actor: $owner,
+                subject: $alliance,
+                alliance: $alliance,
+                metadata: [
                     'name' => $alliance->name,
                     'slug' => $alliance->slug,
                 ],
-                'created_at' => now(),
-            ]);
+            );
 
             OutboxMessage::query()->create([
                 'alliance_id' => $alliance->id,
