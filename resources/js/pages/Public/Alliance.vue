@@ -115,15 +115,24 @@ function formatPublished(value: string | null): string {
       <section aria-labelledby="content-heading">
         <div class="flex items-center justify-between gap-4">
           <div>
-            <p class="text-sm font-semibold tracking-[0.16em] text-cyan-300 uppercase">Public hub</p>
+            <p class="text-sm font-semibold tracking-[0.16em] text-cyan-300 uppercase">
+              Public hub
+            </p>
             <h2 id="content-heading" class="mt-1 text-2xl font-bold">Alliance content</h2>
           </div>
-          <span class="text-sm text-slate-400">{{ content.length }} result{{ content.length === 1 ? '' : 's' }}</span>
+          <span class="text-sm text-slate-400"
+            >{{ content.length }} result{{ content.length === 1 ? '' : 's' }}</span
+          >
         </div>
 
-        <form class="mt-6 grid gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:grid-cols-2" @submit.prevent="applyFilters">
+        <form
+          class="mt-6 grid gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:grid-cols-2"
+          @submit.prevent="applyFilters"
+        >
           <div class="sm:col-span-2">
-            <label class="text-sm font-medium text-slate-200" for="public-search">Search content</label>
+            <label class="text-sm font-medium text-slate-200" for="public-search"
+              >Search content</label
+            >
             <input
               id="public-search"
               v-model="filters.q"
@@ -134,7 +143,11 @@ function formatPublished(value: string | null): string {
           </div>
           <div>
             <label class="text-sm font-medium text-slate-200" for="public-type">Content type</label>
-            <select id="public-type" v-model="filters.type" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2">
+            <select
+              id="public-type"
+              v-model="filters.type"
+              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            >
               <option value="">All types</option>
               <option value="announcement">Announcements</option>
               <option value="guide">Guides</option>
@@ -145,32 +158,52 @@ function formatPublished(value: string | null): string {
           </div>
           <div>
             <label class="text-sm font-medium text-slate-200" for="public-category">Category</label>
-            <select id="public-category" v-model="filters.category" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2">
+            <select
+              id="public-category"
+              v-model="filters.category"
+              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            >
               <option value="">All categories</option>
               <option v-for="category in categories" :key="category.slug" :value="category.slug">
                 {{ category.name }}
               </option>
             </select>
           </div>
-          <div class="sm:col-span-2 flex flex-wrap gap-3">
-            <button class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950" type="submit">
+          <div class="flex flex-wrap gap-3 sm:col-span-2">
+            <button
+              class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950"
+              type="submit"
+            >
               Apply filters
             </button>
-            <button class="rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="button" @click="clearFilters">
+            <button
+              class="rounded-lg border border-slate-700 px-4 py-2 font-semibold"
+              type="button"
+              @click="clearFilters"
+            >
               Clear
             </button>
           </div>
         </form>
 
         <div v-if="content.length" class="mt-6 grid gap-4">
-          <article v-for="item in content" :key="item.id" class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-            <div class="flex flex-wrap items-center gap-2 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+          <article
+            v-for="item in content"
+            :key="item.id"
+            class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"
+          >
+            <div
+              class="flex flex-wrap items-center gap-2 text-xs font-semibold tracking-wide text-slate-400 uppercase"
+            >
               <span>{{ item.typeLabel }}</span>
               <span v-if="item.category">· {{ item.category.name }}</span>
               <span>· {{ item.locale }}</span>
             </div>
             <h3 class="mt-2 text-xl font-semibold">
-              <Link class="hover:text-cyan-200" :href="`/alliances/${alliance.slug}/content/${item.slug}`">
+              <Link
+                class="hover:text-cyan-200"
+                :href="`/alliances/${alliance.slug}/content/${item.slug}`"
+              >
                 {{ item.title }}
               </Link>
             </h3>
@@ -180,15 +213,22 @@ function formatPublished(value: string | null): string {
             </p>
           </article>
         </div>
-        <p v-else class="mt-6 rounded-2xl border border-dashed border-slate-700 p-8 text-center text-slate-400">
+        <p
+          v-else
+          class="mt-6 rounded-2xl border border-dashed border-slate-700 p-8 text-center text-slate-400"
+        >
           No public content matches these filters.
         </p>
       </section>
 
-      <aside class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 lg:self-start" aria-labelledby="activities-heading">
+      <aside
+        class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 lg:self-start"
+        aria-labelledby="activities-heading"
+      >
         <h2 id="activities-heading" class="text-lg font-semibold">Upcoming activities</h2>
         <p class="mt-3 text-sm text-slate-400">
-          Event schedules arrive in Phase {{ upcomingActivitiesPhase }}. This Phase 2 page intentionally does not create placeholder event records.
+          Event schedules arrive in Phase {{ upcomingActivitiesPhase }}. This Phase 2 page
+          intentionally does not create placeholder event records.
         </p>
       </aside>
     </div>

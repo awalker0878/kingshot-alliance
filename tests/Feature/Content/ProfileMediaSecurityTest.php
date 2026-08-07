@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Content;
 
 use App\Application\Content\ArchiveMediaAsset;
-use App\Application\Content\MediaScanResult;
 use App\Application\Content\MediaScanner;
+use App\Application\Content\MediaScanResult;
 use App\Application\Content\UpdateAlliancePublicProfile;
 use App\Application\Content\UploadMediaAsset;
 use App\Application\Identity\CreateAlliance;
@@ -113,7 +113,8 @@ final class ProfileMediaSecurityTest extends TestCase
     {
         Storage::fake('local');
         config()->set('content.media_disk', 'local');
-        $this->app->instance(MediaScanner::class, new class implements MediaScanner {
+        $this->app->instance(MediaScanner::class, new class implements MediaScanner
+        {
             public function scan(UploadedFile $file): MediaScanResult
             {
                 return new MediaScanResult(false, 'Rejected by test scanner.');

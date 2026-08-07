@@ -33,7 +33,9 @@ function formatPublished(value: string | null): string {
     </Link>
 
     <article class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 sm:p-10">
-      <div class="flex flex-wrap gap-2 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+      <div
+        class="flex flex-wrap gap-2 text-xs font-semibold tracking-wide text-slate-400 uppercase"
+      >
         <span>{{ content.typeLabel }}</span>
         <span v-if="content.category">· {{ content.category.name }}</span>
         <span>· {{ content.locale }}</span>
@@ -44,7 +46,9 @@ function formatPublished(value: string | null): string {
       <p v-if="content.publishedAt" class="mt-4 text-sm text-slate-500">
         Published {{ formatPublished(content.publishedAt) }} · Displayed in {{ viewerTimezone }}
       </p>
-      <div class="mt-8 whitespace-pre-wrap text-base leading-8 text-slate-200">{{ content.body }}</div>
+      <div class="mt-8 text-base leading-8 whitespace-pre-wrap text-slate-200">
+        {{ content.body }}
+      </div>
     </article>
   </main>
 </template>
