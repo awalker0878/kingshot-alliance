@@ -15,6 +15,7 @@ use App\Domain\Identity\Authorization\DefaultAllianceRole;
 use App\Domain\Identity\Enums\MembershipStatus;
 use App\Models\Alliance;
 use App\Models\AllianceMembership;
+use App\Models\OutboxMessage;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -134,6 +135,14 @@ final class MembershipAdministrationTest extends TestCase
             ->handle($alliance, $owner, $membership->id, MembershipStatus::Removed);
         self::assertFalse($removed->roles()->exists());
 
+        try {
+            $this->app->make(AssignMembershipRole::class)
+                ->handle($alliance, $owner, $membership->id, $officerRole->id);
+            self::fail('Inactive memberships must not receive hidden role assignments.');
+        } catch (ValidationException) {
+            self::assertFalse($membership->refresh()->roles()->exists());
+        }
+
         $active = $this->app->make(UpdateMembershipStatus::class)
             ->handle($alliance, $owner, $membership->id, MembershipStatus::Active);
         self::assertSame(MembershipStatus::Active, $active->status);
@@ -141,6 +150,59 @@ final class MembershipAdministrationTest extends TestCase
             [DefaultAllianceRole::Member->value],
             $active->roles()->pluck('roles.key')->sort()->values()->all(),
         );
+    }
+
+    public function test_role_assignment_is_idempotent_and_can_be_repeated_after_removal(): void
+    {
+        $owner = User::factory()->create();
+        $member = User::factory()->create(['email' => 'repeat-role@example.com']);
+        $alliance = $this->app->make(CreateAlliance::class)
+            ->handle($owner, 'Repeat Roles', 'repeat-roles');
+        $membership = $this->join($alliance, $owner, $member);
+        $officerRole = $this->role($alliance, DefaultAllianceRole::Officer);
+        $assign = $this->app->make(AssignMembershipRole::class);
+
+        $assign->handle($alliance, $owner, $membership->id, $officerRole->id);
+        $assign->handle($alliance, $owner, $membership->id, $officerRole->id);
+
+        self::assertSame(1, OutboxMessage::query()
+            ->where('event_type', 'membership.role_assigned')
+            ->where('aggregate_id', $membership->id)
+            ->count());
+
+        $this->app->make(RemoveMembershipRole::class)
+            ->handle($alliance, $owner, $membership->id, $officerRole->id);
+        $reassigned = $assign->handle($alliance, $owner, $membership->id, $officerRole->id);
+
+        self::assertTrue($reassigned->roles()->where('roles.id', $officerRole->id)->exists());
+        self::assertSame(2, OutboxMessage::query()
+            ->where('event_type', 'membership.role_assigned')
+            ->where('aggregate_id', $membership->id)
+            ->count());
+    }
+
+    public function test_member_can_leave_rejoin_and_leave_again_without_outbox_collision(): void
+    {
+        $owner = User::factory()->create();
+        $member = User::factory()->create(['email' => 'returning@example.com']);
+        $alliance = $this->app->make(CreateAlliance::class)
+            ->handle($owner, 'Return Cycle', 'return-cycle');
+        $membership = $this->join($alliance, $owner, $member);
+
+        $this->app->make(LeaveAlliance::class)->handle($alliance, $member);
+
+        $issued = $this->app->make(CreateInvitation::class)
+            ->handle($alliance, $owner, $member->email);
+        $this->app->make(AcceptInvitation::class)->handle($member, $issued->token);
+
+        $leftAgain = $this->app->make(LeaveAlliance::class)->handle($alliance, $member);
+
+        self::assertSame($membership->id, $leftAgain->id);
+        self::assertSame(MembershipStatus::Left, $leftAgain->status);
+        self::assertSame(2, OutboxMessage::query()
+            ->where('event_type', 'membership.left')
+            ->where('aggregate_id', $membership->id)
+            ->count());
     }
 
     public function test_membership_admin_action_cannot_address_another_alliance(): void
