@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { reactive } from 'vue';
 
 const props = defineProps<{
   alliance: {
@@ -25,11 +26,28 @@ const props = defineProps<{
     }>;
     issuedLink: string | null;
   };
+  membershipManagement: {
+    allowed: boolean;
+    rolesAllowed: boolean;
+    members: Array<{
+      id: string;
+      user: { id: number; name: string; email: string };
+      status: string;
+      roles: Array<{ id: string; key: string; name: string }>;
+    }>;
+    roleCatalog: Array<{ id: string; key: string; name: string }>;
+    currentUserId: number;
+  };
 }>();
 
 const inviteForm = useForm({
   email: '',
 });
+
+const statusSelections = reactive<Record<string, string>>(
+  Object.fromEntries(props.membershipManagement.members.map((member) => [member.id, member.status])),
+);
+const roleSelections = reactive<Record<string, string>>({});
 
 function sendInvitation(): void {
   inviteForm.post('/alliance/invitations', {
@@ -44,6 +62,44 @@ function resendInvitation(id: string): void {
 
 function revokeInvitation(id: string): void {
   router.delete(`/alliance/invitations/${id}`, { preserveScroll: true });
+}
+
+function updateMembershipStatus(id: string): void {
+  router.patch(
+    `/alliance/memberships/${id}/status`,
+    { status: statusSelections[id] },
+    { preserveScroll: true },
+  );
+}
+
+function assignRole(membershipId: string): void {
+  const roleId = roleSelections[membershipId];
+  if (!roleId) return;
+
+  router.put(
+    `/alliance/memberships/${membershipId}/roles/${roleId}`,
+    {},
+    {
+      preserveScroll: true,
+      onSuccess: () => {
+        roleSelections[membershipId] = '';
+      },
+    },
+  );
+}
+
+function removeRole(membershipId: string, roleId: string): void {
+  router.delete(`/alliance/memberships/${membershipId}/roles/${roleId}`, {
+    preserveScroll: true,
+  });
+}
+
+function leaveAlliance(): void {
+  if (!window.confirm(`Leave ${props.alliance.name}? You will lose your current alliance roles.`)) {
+    return;
+  }
+
+  router.delete('/alliance/membership');
 }
 </script>
 
@@ -78,6 +134,13 @@ function revokeInvitation(id: string): void {
           </dd>
         </div>
       </dl>
+      <button
+        class="mt-6 text-sm font-semibold text-rose-300 hover:text-rose-200"
+        type="button"
+        @click="leaveAlliance"
+      >
+        Leave alliance
+      </button>
     </section>
 
     <section
@@ -170,6 +233,101 @@ function revokeInvitation(id: string): void {
             </tr>
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <section
+      v-if="props.membershipManagement.allowed || props.membershipManagement.rolesAllowed"
+      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-8"
+    >
+      <h2 class="text-2xl font-semibold">Membership administration</h2>
+      <p class="mt-2 text-sm text-slate-400">
+        Status changes follow the alliance role hierarchy. Only owners can change role assignments.
+      </p>
+
+      <div class="mt-6 space-y-4">
+        <article
+          v-for="member in props.membershipManagement.members"
+          :key="member.id"
+          class="rounded-xl border border-slate-800 p-5"
+        >
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h3 class="font-semibold">
+                {{ member.user.name }}
+                <span v-if="member.user.id === props.membershipManagement.currentUserId" class="text-slate-500">
+                  (you)
+                </span>
+              </h3>
+              <p class="mt-1 text-sm text-slate-400">{{ member.user.email }}</p>
+              <p class="mt-2 text-xs text-slate-500 capitalize">Status: {{ member.status }}</p>
+            </div>
+
+            <div
+              v-if="props.membershipManagement.allowed && member.user.id !== props.membershipManagement.currentUserId"
+              class="flex gap-2"
+            >
+              <select
+                v-model="statusSelections[member.id]"
+                class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+              >
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="removed">Removed</option>
+              </select>
+              <button
+                class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold"
+                type="button"
+                @click="updateMembershipStatus(member.id)"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span
+              v-for="role in member.roles"
+              :key="role.id"
+              class="inline-flex items-center gap-2 rounded-full bg-slate-800 px-3 py-1 text-xs"
+            >
+              {{ role.name }}
+              <button
+                v-if="props.membershipManagement.rolesAllowed"
+                class="font-bold text-rose-300"
+                :aria-label="`Remove ${role.name} from ${member.user.name}`"
+                type="button"
+                @click="removeRole(member.id, role.id)"
+              >
+                ×
+              </button>
+            </span>
+          </div>
+
+          <div v-if="props.membershipManagement.rolesAllowed" class="mt-4 flex flex-wrap gap-2">
+            <select
+              v-model="roleSelections[member.id]"
+              class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+            >
+              <option value="">Choose role</option>
+              <option
+                v-for="role in props.membershipManagement.roleCatalog"
+                :key="role.id"
+                :disabled="member.roles.some((assigned) => assigned.id === role.id)"
+                :value="role.id"
+              >
+                {{ role.name }}
+              </option>
+            </select>
+            <button
+              class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold"
+              type="button"
+              @click="assignRole(member.id)"
+            >
+              Add role
+            </button>
+          </div>
+        </article>
       </div>
     </section>
   </main>
