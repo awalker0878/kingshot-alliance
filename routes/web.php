@@ -141,46 +141,6 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
 
             Route::get('/alliance/recruitment', [RecruitmentManagementController::class, 'index'])
                 ->name('alliance.recruitment.index');
-            Route::patch('/alliance/recruitment/settings', [RecruitmentManagementController::class, 'updateSettings'])
-                ->name('alliance.recruitment.settings.update');
-            Route::post('/alliance/recruitment/questions', [RecruitmentManagementController::class, 'storeQuestion'])
-                ->name('alliance.recruitment.questions.store');
-            Route::post('/alliance/recruitment/application-invites', [RecruitmentManagementController::class, 'issueApplicationInvite'])
-                ->name('alliance.recruitment.application-invites.store');
-            Route::post('/alliance/recruitment/decision-templates', [RecruitmentManagementController::class, 'storeDecisionTemplate'])
-                ->name('alliance.recruitment.decision-templates.store');
-            Route::post('/alliance/recruitment/onboarding-items', [RecruitmentManagementController::class, 'storeOnboardingItem'])
-                ->name('alliance.recruitment.onboarding-items.store');
-            Route::patch('/alliance/recruitment/{candidate}/stage', [RecruitmentCandidateController::class, 'updateStage'])
-                ->whereUlid('candidate')
-                ->name('alliance.recruitment.candidates.stage.update');
-            Route::put('/alliance/recruitment/{candidate}/reviewers/{membership}', [RecruitmentCandidateController::class, 'assignReviewer'])
-                ->whereUlid('candidate')
-                ->whereUlid('membership')
-                ->name('alliance.recruitment.candidates.reviewers.store');
-            Route::post('/alliance/recruitment/{candidate}/notes', [RecruitmentCandidateController::class, 'addNote'])
-                ->whereUlid('candidate')
-                ->name('alliance.recruitment.candidates.notes.store');
-            Route::put('/alliance/recruitment/{candidate}/tags', [RecruitmentCandidateController::class, 'tag'])
-                ->whereUlid('candidate')
-                ->name('alliance.recruitment.candidates.tags.store');
-            Route::post('/alliance/recruitment/{candidate}/merge/{target}', [RecruitmentCandidateController::class, 'merge'])
-                ->whereUlid('candidate')
-                ->whereUlid('target')
-                ->name('alliance.recruitment.candidates.merge');
-            Route::post('/alliance/recruitment/{candidate}/communications/{template}', [RecruitmentCandidateController::class, 'prepareCommunication'])
-                ->whereUlid('candidate')
-                ->whereUlid('template')
-                ->name('alliance.recruitment.candidates.communications.store');
-            Route::patch('/alliance/recruitment/communications/{communication}/sent', [RecruitmentCandidateController::class, 'markCommunicationSent'])
-                ->whereUlid('communication')
-                ->name('alliance.recruitment.communications.sent');
-            Route::post('/alliance/recruitment/{candidate}/convert', [RecruitmentCandidateController::class, 'convert'])
-                ->whereUlid('candidate')
-                ->name('alliance.recruitment.candidates.convert');
-            Route::patch('/alliance/recruitment/onboarding/{onboarding}', [RecruitmentCandidateController::class, 'updateOnboarding'])
-                ->whereUlid('onboarding')
-                ->name('alliance.recruitment.onboarding.update');
             Route::get('/alliance/recruitment/{candidate}', [RecruitmentCandidateController::class, 'show'])
                 ->whereUlid('candidate')
                 ->name('alliance.recruitment.candidates.show');
@@ -213,35 +173,76 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                 ->whereUlid('occurrence')
                 ->name('alliance.events.show');
 
-            Route::post('/alliance/events', [EventManagementController::class, 'storeEvent'])
-                ->name('alliance.events.store');
-            Route::post('/alliance/event-templates', [EventManagementController::class, 'storeTemplate'])
-                ->name('alliance.event-templates.store');
-            Route::post('/alliance/event-templates/events', [EventManagementController::class, 'storeTemplateEvent'])
-                ->name('alliance.event-templates.events.store');
-            Route::post('/alliance/events/{event}/reminders', [EventManagementController::class, 'storeReminder'])
-                ->whereUlid('event')
-                ->name('alliance.events.reminders.store');
-            Route::post('/alliance/rally-guidance', [EventManagementController::class, 'storeGuidance'])
-                ->name('alliance.rally-guidance.store');
-            Route::post('/alliance/events/{occurrence}/formations', [EventManagementController::class, 'storeRecommendedFormation'])
-                ->whereUlid('occurrence')
-                ->name('alliance.events.formations.store');
-            Route::post('/alliance/events/{occurrence}/rally-groups', [EventManagementController::class, 'storeRallyGroup'])
-                ->whereUlid('occurrence')
-                ->name('alliance.events.rally-groups.store');
-            Route::put('/alliance/rally-groups/{group}/assignments', [EventManagementController::class, 'assignMember'])
-                ->whereUlid('group')
-                ->name('alliance.rally-groups.assignments.store');
-            Route::patch('/alliance/events/{occurrence}/registrations/{registration}/attendance', [EventManagementController::class, 'recordAttendance'])
-                ->whereUlid('occurrence')
-                ->whereUlid('registration')
-                ->name('alliance.events.attendance.update');
-            Route::patch('/alliance/rally-assignments/{assignment}/participation', [EventManagementController::class, 'recordParticipation'])
-                ->whereUlid('assignment')
-                ->name('alliance.rally-assignments.participation.update');
-
             Route::middleware('password.confirm')->group(function (): void {
+                Route::patch('/alliance/recruitment/settings', [RecruitmentManagementController::class, 'updateSettings'])
+                    ->name('alliance.recruitment.settings.update');
+                Route::post('/alliance/recruitment/questions', [RecruitmentManagementController::class, 'storeQuestion'])
+                    ->name('alliance.recruitment.questions.store');
+                Route::post('/alliance/recruitment/application-invites', [RecruitmentManagementController::class, 'issueApplicationInvite'])
+                    ->name('alliance.recruitment.application-invites.store');
+                Route::post('/alliance/recruitment/decision-templates', [RecruitmentManagementController::class, 'storeDecisionTemplate'])
+                    ->name('alliance.recruitment.decision-templates.store');
+                Route::post('/alliance/recruitment/onboarding-items', [RecruitmentManagementController::class, 'storeOnboardingItem'])
+                    ->name('alliance.recruitment.onboarding-items.store');
+                Route::patch('/alliance/recruitment/{candidate}/stage', [RecruitmentCandidateController::class, 'updateStage'])
+                    ->whereUlid('candidate')
+                    ->name('alliance.recruitment.candidates.stage.update');
+                Route::put('/alliance/recruitment/{candidate}/reviewers/{membership}', [RecruitmentCandidateController::class, 'assignReviewer'])
+                    ->whereUlid('candidate')
+                    ->whereUlid('membership')
+                    ->name('alliance.recruitment.candidates.reviewers.store');
+                Route::post('/alliance/recruitment/{candidate}/notes', [RecruitmentCandidateController::class, 'addNote'])
+                    ->whereUlid('candidate')
+                    ->name('alliance.recruitment.candidates.notes.store');
+                Route::put('/alliance/recruitment/{candidate}/tags', [RecruitmentCandidateController::class, 'tag'])
+                    ->whereUlid('candidate')
+                    ->name('alliance.recruitment.candidates.tags.store');
+                Route::post('/alliance/recruitment/{candidate}/merge/{target}', [RecruitmentCandidateController::class, 'merge'])
+                    ->whereUlid('candidate')
+                    ->whereUlid('target')
+                    ->name('alliance.recruitment.candidates.merge');
+                Route::post('/alliance/recruitment/{candidate}/communications/{template}', [RecruitmentCandidateController::class, 'prepareCommunication'])
+                    ->whereUlid('candidate')
+                    ->whereUlid('template')
+                    ->name('alliance.recruitment.candidates.communications.store');
+                Route::patch('/alliance/recruitment/communications/{communication}/sent', [RecruitmentCandidateController::class, 'markCommunicationSent'])
+                    ->whereUlid('communication')
+                    ->name('alliance.recruitment.communications.sent');
+                Route::post('/alliance/recruitment/{candidate}/convert', [RecruitmentCandidateController::class, 'convert'])
+                    ->whereUlid('candidate')
+                    ->name('alliance.recruitment.candidates.convert');
+                Route::patch('/alliance/recruitment/onboarding/{onboarding}', [RecruitmentCandidateController::class, 'updateOnboarding'])
+                    ->whereUlid('onboarding')
+                    ->name('alliance.recruitment.onboarding.update');
+
+                Route::post('/alliance/events', [EventManagementController::class, 'storeEvent'])
+                    ->name('alliance.events.store');
+                Route::post('/alliance/event-templates', [EventManagementController::class, 'storeTemplate'])
+                    ->name('alliance.event-templates.store');
+                Route::post('/alliance/event-templates/events', [EventManagementController::class, 'storeTemplateEvent'])
+                    ->name('alliance.event-templates.events.store');
+                Route::post('/alliance/events/{event}/reminders', [EventManagementController::class, 'storeReminder'])
+                    ->whereUlid('event')
+                    ->name('alliance.events.reminders.store');
+                Route::post('/alliance/rally-guidance', [EventManagementController::class, 'storeGuidance'])
+                    ->name('alliance.rally-guidance.store');
+                Route::post('/alliance/events/{occurrence}/formations', [EventManagementController::class, 'storeRecommendedFormation'])
+                    ->whereUlid('occurrence')
+                    ->name('alliance.events.formations.store');
+                Route::post('/alliance/events/{occurrence}/rally-groups', [EventManagementController::class, 'storeRallyGroup'])
+                    ->whereUlid('occurrence')
+                    ->name('alliance.events.rally-groups.store');
+                Route::put('/alliance/rally-groups/{group}/assignments', [EventManagementController::class, 'assignMember'])
+                    ->whereUlid('group')
+                    ->name('alliance.rally-groups.assignments.store');
+                Route::patch('/alliance/events/{occurrence}/registrations/{registration}/attendance', [EventManagementController::class, 'recordAttendance'])
+                    ->whereUlid('occurrence')
+                    ->whereUlid('registration')
+                    ->name('alliance.events.attendance.update');
+                Route::patch('/alliance/rally-assignments/{assignment}/participation', [EventManagementController::class, 'recordParticipation'])
+                    ->whereUlid('assignment')
+                    ->name('alliance.rally-assignments.participation.update');
+
                 Route::patch('/alliance/public-profile', [ContentManagementController::class, 'updateProfile'])
                     ->name('alliance.public-profile.update');
 
