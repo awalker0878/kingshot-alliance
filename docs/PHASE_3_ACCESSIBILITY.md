@@ -59,23 +59,35 @@ This does not require a spreadsheet or coordinator-only screen.
 
 Phase 3 follows the existing dark application visual system. Important state is accompanied by text labels such as `registered`, `waitlisted`, `standby`, `attended`, `no-show`, and reminder text rather than being communicated by color alone.
 
-Automated frontend checks remain mandatory, but they do not replace manual contrast/focus review. Final visual acceptance should confirm contrast and focus visibility against the deployed staging theme.
+Automated frontend checks remain mandatory, but they do not replace deployment-specific contrast/focus review.
 
 ## Reduced ambiguity in game guidance
 
 Recommended troop ratios are printed as numeric percentages and heroes as text. Guidance provenance/effective dates are presented in text when available. Members do not need to infer formation meaning from an image alone.
 
+## Automated regression evidence
+
+`EventAccessibilityGuardTest` applies the same accepted source-level guard pattern used in Phase 2 to all three new Phase 3 Vue pages. It fails if a page:
+
+- loses its `<main>` landmark;
+- introduces raw `v-html` rendering;
+- introduces a positive `tabindex`; or
+- adds a native button without an explicit `type`.
+
+The normal frontend gate additionally runs ESLint, Prettier, Vue/TypeScript checking, and the production Vite build.
+
 ## Regression expectations
 
 A Phase 3 accessibility regression is release-blocking if it causes any of the following:
 
-- registration/cancellation cannot be completed with keyboard controls;
-- a form field loses an accessible label;
+- registration/cancellation cannot be completed with native keyboard controls;
+- a required form field loses an accessible label;
 - event time is presented without a clear zone;
 - guidance becomes image-only or color-only;
 - reminder content is unavailable to keyboard/screen-reader users;
-- narrow layouts hide a required action or require horizontal interaction for the primary member workflow.
+- narrow layouts hide a required action or require horizontal interaction for the primary member workflow;
+- the source-level accessibility guard or frontend quality pipeline fails.
 
-## Evidence still required at release gate
+## Release-readiness boundary
 
-The final Phase 3 staging head must pass the existing frontend lint/type/build pipeline. The exit report must also record a staging keyboard/mobile smoke review of Events, Event Detail, and Coordinator pages before product acceptance.
+The agreed Phase 3 automated acceptance standard matches the accepted Phase 2 standard: structural accessibility source guards plus the normal frontend quality/build pipeline. Production branding contrast, device-specific reflow, keyboard smoke testing, and assistive-technology testing remain deployment/release-readiness activities because they depend on the final browser, content, and branding configuration.
