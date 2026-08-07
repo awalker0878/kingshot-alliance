@@ -25,6 +25,17 @@ jobs:
           ref: agent/phase-1-identity-tenancy
           fetch-depth: 0
 
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_sqlite, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
       - name: Configure Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
@@ -34,14 +45,16 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Apply project formatter
-        run: npm run format
+      - name: Apply project formatters
+        run: |
+          vendor/bin/pint --parallel
+          npm run format
 
       - name: Commit formatter output
         shell: bash
         run: |
           set -euo pipefail
-          git add resources/
+          git add app/ bootstrap/ config/ database/ routes/ tests/ resources/
 
           if git diff --cached --quiet; then
             echo "Formatter output is already current."
@@ -50,5 +63,5 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Apply Phase 1 frontend formatter"
+          git commit -m "Apply Phase 1 formatters"
           git push origin HEAD:agent/phase-1-identity-tenancy
