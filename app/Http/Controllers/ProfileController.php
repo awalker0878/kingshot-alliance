@@ -32,7 +32,12 @@ final class ProfileController extends Controller
                 'emailVerified' => $user->hasVerifiedEmail(),
                 'timezone' => $user->timezone,
                 'twoFactorEnabled' => $user->two_factor_confirmed_at !== null,
+                'twoFactorPending' => $user->two_factor_confirmed_at === null
+                    && (string) $user->two_factor_secret !== '',
             ],
+            'twoFactorSetup' => $request->session()->get('twoFactorSetup'),
+            'twoFactorRecoveryCodes' => $request->session()->get('twoFactorRecoveryCodes'),
+            'status' => $request->session()->get('status'),
         ]);
     }
 
