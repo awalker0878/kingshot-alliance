@@ -42,6 +42,7 @@ final class PlatformAdministrationTest extends TestCase
         $administrator->forceFill(['two_factor_confirmed_at' => now()])->save();
 
         $this->actingAs($administrator)
+            ->withSession(['auth.password_confirmed_at' => 0])
             ->get('/platform')
             ->assertRedirect(route('password.confirm'));
     }
