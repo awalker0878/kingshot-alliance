@@ -1,0 +1,153 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Contributions\Services;
+
+use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Contributions\Models\ContributionReportRun;
+use App\Domain\Contributions\Queries\ContributionReportingQuery;
+use App\Domain\Identity\Models\User;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
+use RuntimeException;
+
+final class ContributionReportExporter
+{
+    public const REPORT_VERSION = 'phase5.v1';
+
+    public function __construct(
+        private readonly ContributionReportingQuery $reports,
+        private readonly AuditRecorder $audit,
+    ) {}
+
+    /** @return array{content: string, mime: string, filename: string, run: ContributionReportRun} */
+    public function export(Alliance $alliance, User $actor, string $format): array
+    {
+        if (! in_array($format, ['csv', 'spreadsheet'], true)) {
+            throw new InvalidArgumentException('Unsupported contribution report format.');
+        }
+
+        $rows = $this->reports->reportRows($alliance);
+        $content = $format === 'csv'
+            ? $this->csv($alliance, $rows)
+            : $this->spreadsheet($alliance, $rows);
+        $checksum = hash('sha256', $content);
+        $idempotencyKey = hash('sha256', $alliance->id.'|'.$actor->id.'|'.$format.'|'.Str::ulid());
+
+        $run = ContributionReportRun::query()->create([
+            'alliance_id' => $alliance->id,
+            'requested_by_user_id' => $actor->id,
+            'format' => $format,
+            'status' => 'completed',
+            'report_version' => self::REPORT_VERSION,
+            'filters' => [],
+            'row_count' => count($rows),
+            'checksum' => $checksum,
+            'idempotency_key' => $idempotencyKey,
+            'completed_at' => now(),
+        ]);
+
+        $this->audit->record('contribution.report.exported', $actor, $run, $alliance, [
+            'format' => $format,
+            'report_version' => self::REPORT_VERSION,
+            'row_count' => count($rows),
+            'checksum' => $checksum,
+        ]);
+
+        return [
+            'content' => $content,
+            'mime' => $format === 'csv' ? 'text/csv; charset=UTF-8' : 'application/vnd.ms-excel; charset=UTF-8',
+            'filename' => sprintf('%s-contributions.%s', $alliance->slug, $format === 'csv' ? 'csv' : 'xls'),
+            'run' => $run,
+        ];
+    }
+
+    /** @param list<array<string, scalar|null>> $rows */
+    private function csv(Alliance $alliance, array $rows): string
+    {
+        $handle = fopen('php://temp', 'w+');
+        if ($handle === false) {
+            throw new RuntimeException('Unable to allocate CSV export buffer.');
+        }
+
+        $headers = $this->headers();
+        fputcsv($handle, $headers);
+
+        foreach ($rows as $row) {
+            $normalized = ['report_version' => self::REPORT_VERSION, 'alliance_id' => $alliance->id] + $row;
+            fputcsv($handle, array_map(static fn (string $key): string => (string) ($normalized[$key] ?? ''), $headers));
+        }
+
+        rewind($handle);
+        $content = stream_get_contents($handle);
+        fclose($handle);
+
+        if ($content === false) {
+            throw new RuntimeException('Unable to read CSV export buffer.');
+        }
+
+        return $content;
+    }
+
+    /** @param list<array<string, scalar|null>> $rows */
+    private function spreadsheet(Alliance $alliance, array $rows): string
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $xml .= '<?mso-application progid="Excel.Sheet"?>';
+        $xml .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
+        $xml .= '<Worksheet ss:Name="Contributions"><Table>';
+        $headers = $this->headers();
+        $xml .= $this->spreadsheetRow($headers);
+
+        foreach ($rows as $row) {
+            $normalized = ['report_version' => self::REPORT_VERSION, 'alliance_id' => $alliance->id] + $row;
+            $xml .= $this->spreadsheetRow(array_map(
+                static fn (string $key): string => (string) ($normalized[$key] ?? ''),
+                $headers,
+            ));
+        }
+
+        return $xml.'</Table></Worksheet></Workbook>';
+    }
+
+    /** @param list<string> $values */
+    private function spreadsheetRow(array $values): string
+    {
+        $cells = '';
+        foreach ($values as $value) {
+            $cells .= '<Cell><Data ss:Type="String">'.htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8').'</Data></Cell>';
+        }
+
+        return '<Row>'.$cells.'</Row>';
+    }
+
+    /** @return list<string> */
+    private function headers(): array
+    {
+        return [
+            'report_version',
+            'alliance_id',
+            'record_id',
+            'member',
+            'category',
+            'unit',
+            'value',
+            'period_start',
+            'period_end',
+            'status',
+            'source',
+            'data_class',
+            'evidence',
+            'calculation_key',
+            'calculation_version',
+            'correction_of_record_id',
+            'recorded_at',
+            'approved_at',
+            'reversed_at',
+            'reversal_reason',
+            'correction_reason',
+        ];
+    }
+}
