@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Content\Actions\PublishScheduledContent;
+use App\Domain\Notifications\Actions\QueueDueContributionReports;
 use App\Domain\Notifications\Actions\QueueDueEventReminders;
 use App\Domain\Notifications\Actions\SyncUpcomingEventReminders;
 use App\Domain\Platform\Actions\PublishOutboxBatch;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('about:phase', function (): void {
-    $this->info('Kingshot Alliance — Phase 4 recruitment');
+    $this->info('Kingshot Alliance — Phase 5 contributions and reporting');
 })->purpose('Display the current implementation phase');
 
 Artisan::command('app:config-check', function (RuntimeConfigurationValidator $validator): int {
@@ -55,6 +56,14 @@ Artisan::command('events:queue-reminders {--limit=100}', function (QueueDueEvent
     return 0;
 })->purpose('Queue due event reminders through the transactional outbox');
 
+Artisan::command('contributions:queue-reports {--limit=50}', function (QueueDueContributionReports $queue): int {
+    $limit = max(1, min(250, (int) $this->option('limit')));
+    $queued = $queue->handle($limit);
+    $this->info(sprintf('Queued %d due contribution report(s).', $queued));
+
+    return 0;
+})->purpose('Queue due contribution reports through the notification outbox');
+
 Artisan::command('recruitment:purge-expired {--limit=100}', function (PurgeExpiredRecruitmentCandidates $purge): int {
     $limit = max(1, min(1000, (int) $this->option('limit')));
     $anonymized = $purge->handle($limit);
@@ -80,6 +89,10 @@ Schedule::command('events:sync-reminders --limit=250')
     ->onOneServer()
     ->withoutOverlapping(10);
 Schedule::command('events:queue-reminders --limit=100')
+    ->everyMinute()
+    ->onOneServer()
+    ->withoutOverlapping(10);
+Schedule::command('contributions:queue-reports --limit=50')
     ->everyMinute()
     ->onOneServer()
     ->withoutOverlapping(10);

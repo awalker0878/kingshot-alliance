@@ -14,6 +14,7 @@ enum PermissionKey: string
     case ContentManage = 'content.manage';
     case EventManage = 'events.manage';
     case RecruitmentManage = 'recruitment.manage';
+    case ContributionManage = 'contributions.manage';
 
     public function description(): string
     {
@@ -26,6 +27,7 @@ enum PermissionKey: string
             self::ContentManage => 'Manage alliance content.',
             self::EventManage => 'Manage alliance events and rally configuration.',
             self::RecruitmentManage => 'Manage recruitment workflows.',
+            self::ContributionManage => 'Manage alliance contribution records, reporting, exports, and report schedules.',
         };
     }
 }

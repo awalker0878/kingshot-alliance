@@ -40,6 +40,7 @@ enum DefaultAllianceRole: string
                 PermissionKey::ContentManage,
                 PermissionKey::EventManage,
                 PermissionKey::RecruitmentManage,
+                PermissionKey::ContributionManage,
             ],
             self::Officer => [
                 PermissionKey::AllianceView,

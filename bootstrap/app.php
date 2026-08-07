@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         then: static function (): void {
             Route::get('/health/ready', ReadinessController::class)
                 ->name('health.ready');
+            Route::middleware('web')->group(base_path('routes/contributions.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
