@@ -23,6 +23,13 @@ final readonly class TwoFactorManager
 
         DB::transaction(function () use ($user, $secret): void {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+
+            if ($locked->two_factor_confirmed_at !== null) {
+                throw ValidationException::withMessages([
+                    'two_factor' => 'Two-factor authentication is already enabled.',
+                ]);
+            }
+
             $locked->forceFill([
                 'two_factor_secret' => $secret,
                 'two_factor_recovery_codes' => null,
@@ -51,6 +58,13 @@ final readonly class TwoFactorManager
     {
         return DB::transaction(function () use ($user, $code): array {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+
+            if ($locked->two_factor_confirmed_at !== null) {
+                throw ValidationException::withMessages([
+                    'two_factor' => 'Two-factor authentication is already enabled.',
+                ]);
+            }
+
             $secret = (string) $locked->two_factor_secret;
 
             if ($secret === '' || ! $this->totp->verify($secret, $code)) {
