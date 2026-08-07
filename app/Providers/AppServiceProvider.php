@@ -62,5 +62,13 @@ final class AppServiceProvider extends ServiceProvider
                 Str::lower(trim((string) $request->input('email'))).'|'.(string) $request->ip(),
             ),
         );
+
+        RateLimiter::for(
+            'two-factor-challenge',
+            static fn (Request $request): Limit => Limit::perMinute(5)->by(
+                (string) $request->session()->get('identity.two_factor_challenge_user_id', 'guest')
+                .'|'.(string) $request->ip(),
+            ),
+        );
     }
 }
