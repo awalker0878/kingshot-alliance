@@ -19,6 +19,7 @@ final class User extends Authenticatable implements MustVerifyEmailContract
 
     /** @use HasFactory<UserFactory> */
     use HasFactory;
+
     use MustVerifyEmail;
     use Notifiable;
 
