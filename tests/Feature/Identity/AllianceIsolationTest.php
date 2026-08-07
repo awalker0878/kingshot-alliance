@@ -13,7 +13,9 @@ use App\Domain\Identity\Enums\MembershipStatus;
 use App\Models\AllianceMembership;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use LogicException;
 use Tests\TestCase;
 
@@ -21,7 +23,7 @@ final class AllianceIsolationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_authorization_rejects_non_members_and_cross_alliance_role_leakage(): void
+    public function test_authorization_and_database_constraints_reject_cross_alliance_role_leakage(): void
     {
         $firstOwner = User::factory()->create();
         $secondOwner = User::factory()->create();
@@ -47,18 +49,27 @@ final class AllianceIsolationTest extends TestCase
             ->where('key', DefaultAllianceRole::Owner->value)
             ->sole();
 
-        // Deliberately corrupt the pivot with a role owned by another alliance.
-        $secondMembership->roles()->attach($firstOwnerRole->id);
+        try {
+            DB::transaction(static function () use ($secondMembership, $firstOwnerRole, $secondAlliance): void {
+                $secondMembership->roles()->attach($firstOwnerRole->id, [
+                    'alliance_id' => $secondAlliance->id,
+                ]);
+            });
 
-        self::assertFalse($authorization->allows($firstOwner, $secondAlliance, PermissionKey::AllianceView));
-        self::assertFalse($authorization->allows($firstOwner, $secondAlliance, PermissionKey::AllianceManage));
+            self::fail('The database must reject a role owned by another alliance.');
+        } catch (QueryException) {
+            self::assertFalse($authorization->allows($firstOwner, $secondAlliance, PermissionKey::AllianceView));
+            self::assertFalse($authorization->allows($firstOwner, $secondAlliance, PermissionKey::AllianceManage));
+        }
 
         $secondMemberRole = Role::query()
             ->where('alliance_id', $secondAlliance->id)
             ->where('key', DefaultAllianceRole::Member->value)
             ->sole();
 
-        $secondMembership->roles()->attach($secondMemberRole->id);
+        $secondMembership->roles()->attach($secondMemberRole->id, [
+            'alliance_id' => $secondAlliance->id,
+        ]);
 
         self::assertTrue($authorization->allows($firstOwner, $secondAlliance, PermissionKey::AllianceView));
         self::assertFalse($authorization->allows($firstOwner, $secondAlliance, PermissionKey::AllianceManage));
