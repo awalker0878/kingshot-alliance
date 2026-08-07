@@ -7,15 +7,13 @@ namespace App\Domain\Integrations\Jobs;
 use App\Domain\Integrations\Actions\DeliverWebhook;
 use App\Domain\Integrations\Enums\WebhookDeliveryStatus;
 use App\Domain\Integrations\Models\WebhookDelivery;
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable as FoundationQueueable;
+use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
 final class DeliverWebhookJob implements ShouldBeUnique, ShouldQueue
 {
-    use FoundationQueueable;
     use Queueable;
 
     public int $tries = 5;
