@@ -18,6 +18,7 @@ const props = defineProps<{
   };
   contentHub: {
     canManage: boolean;
+    canManageEvents: boolean;
     notices: Array<{
       id: string;
       title: string;
@@ -26,8 +27,12 @@ const props = defineProps<{
       visibility: string;
       publishedAt: string | null;
     }>;
-    upcomingActivities: unknown[];
-    upcomingActivitiesPhase: number;
+    upcomingActivities: Array<{
+      id: string;
+      title: string;
+      startsAt: string;
+      allianceTimezone: string;
+    }>;
   };
   invitationManagement: {
     allowed: boolean;
@@ -117,6 +122,18 @@ function leaveAlliance(): void {
 
   router.delete('/alliance/membership');
 }
+
+function formatActivityTime(startsAt: string, timeZone: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone,
+    timeZoneName: 'short',
+  }).format(new Date(startsAt));
+}
 </script>
 
 <template>
@@ -152,11 +169,18 @@ function leaveAlliance(): void {
       </dl>
       <div class="mt-6 flex flex-wrap gap-4 text-sm font-semibold">
         <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/content">Content hub</Link>
+        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/events">Events</Link>
         <Link
           v-if="contentHub.canManage"
           class="text-cyan-300 hover:text-cyan-200"
           href="/alliance/content/manage"
           >Manage content</Link
+        >
+        <Link
+          v-if="contentHub.canManageEvents"
+          class="text-cyan-300 hover:text-cyan-200"
+          href="/alliance/events/manage"
+          >Coordinate events</Link
         >
         <a
           class="text-cyan-300 hover:text-cyan-200"
@@ -206,11 +230,31 @@ function leaveAlliance(): void {
       </div>
 
       <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <h2 class="text-xl font-semibold">Upcoming activities</h2>
-        <p class="mt-3 text-sm text-slate-400">
-          Event scheduling is owned by Phase {{ contentHub.upcomingActivitiesPhase }}. Phase 2 keeps
-          this dashboard slot ready without creating placeholder event records.
-        </p>
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-xl font-semibold">Upcoming activities</h2>
+          <Link
+            class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+            href="/alliance/events"
+            >View all</Link
+          >
+        </div>
+        <div v-if="contentHub.upcomingActivities.length" class="mt-4 space-y-3">
+          <article
+            v-for="activity in contentHub.upcomingActivities"
+            :key="activity.id"
+            class="rounded-xl border border-slate-800 p-4"
+          >
+            <h3 class="font-semibold">
+              <Link class="hover:text-cyan-200" :href="`/alliance/events/${activity.id}`">
+                {{ activity.title }}
+              </Link>
+            </h3>
+            <p class="mt-1 text-sm text-slate-400">
+              {{ formatActivityTime(activity.startsAt, activity.allianceTimezone) }}
+            </p>
+          </article>
+        </div>
+        <p v-else class="mt-4 text-sm text-slate-500">No scheduled events in the next 30 days.</p>
       </div>
     </section>
 
