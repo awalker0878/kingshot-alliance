@@ -21,9 +21,41 @@
 
 ## Identity and access
 
-Identity, MFA, alliance roles, invitations, and audit implementation are Phase 1. The foundation reserves Sanctum and Laravel authorization mechanisms but does not create user, token, or role tables early. Sanctum migrations remain unpublished and its CSRF-cookie route is disabled until Phase 1 explicitly enables the authentication surface.
+- One global user identity may belong to multiple alliances; identity rows are not duplicated per tenant.
+- Registration canonicalizes email addresses before uniqueness validation and supports open or invitation-only mode.
+- Registration requires email verification before alliance mutation routes become available.
+- Login regenerates the session identifier, uses a generic invalid-credential response, and is throttled by normalized email plus source IP.
+- Logout invalidates the session and rotates the CSRF token.
+- Password-reset requests do not reveal whether an account exists. Password reset and password change revoke personal access tokens; password changes also invalidate other authenticated sessions through Laravel's session-authentication mechanism.
+- Profile email changes clear verification and require the new address to be verified.
+- Authenticated routes use `auth.session` so password-hash changes invalidate stale sessions.
+- Active alliance context is explicit session state and is revalidated against an active membership on every tenant-scoped request. Missing context fails closed; stale or suspended membership clears the saved context.
+- Alliance activation resolves the target through the user's active memberships rather than trusting global route-model binding.
+- Alliance-scoped authorization checks both user membership and tenant-scoped role permissions.
+- `membership_roles` carries composite tenant foreign keys so PostgreSQL rejects assigning a role from one alliance to a membership in another alliance even if application code is defective.
+- Membership administration enforces role hierarchy and last-owner safety. Leaving or removing a member strips role assignments so later reactivation cannot restore stale privilege.
+- Invitation bearer tokens are high-entropy values stored only as hashes, bound to the intended email address, expire, are one-time use, and rotate on resend. Acceptance/resend/revoke use transactional row locks.
+- Invitation, membership, role, and leave operations require a verified account plus recent password confirmation in addition to tenant authorization.
+- MFA uses RFC 6238 TOTP. Secrets are stored through encrypted model casts and excluded from serialization.
+- MFA recovery codes are stored only as SHA-256 hashes, shown only when created/regenerated, and consumed once.
+- Confirmed MFA interrupts password login before an authenticated session is established. Successful challenge regenerates the session identifier; challenge attempts are separately rate limited.
+- Starting MFA enrollment cannot overwrite an already-confirmed factor. Enrollment, confirmation, recovery-code regeneration, and disable operations require a verified account and recent password confirmation.
+- Authentication, recovery, MFA, alliance, invitation, membership, and role transitions write attributable audit records where the operation is security relevant.
+- The Phase 1 threat assessment is maintained in `docs/PHASE_1_THREAT_MODEL.md`.
 
-Operational dashboards follow the same boundary. Pulse registers no dashboard route and recording remains disabled until its schema and access policy are introduced. Horizon workers remain available, but the dashboard and mutation APIs are explicitly denied in every environment until Phase 1 provides an authorized operator identity model.
+Operational dashboards follow the same boundary. Pulse registers no dashboard route and recording remains disabled until its schema and access policy are introduced. Horizon workers remain available, but the dashboard and mutation APIs remain explicitly denied because Phase 1 introduces alliance identity rather than a platform-operator administration model.
+
+## Tenancy and asynchronous boundaries
+
+- Tenant-owned application queries use an explicit alliance identifier rather than hidden global tenant state.
+- Tenant-scoped requests carry an immutable `TenantContextSnapshot` containing the alliance and membership identifiers required to propagate context safely.
+- The snapshot is serializable for queued work and provides the canonical tenant prefix for cache keys, storage paths, export paths, and structured log context.
+- Tenant storage/export helpers reject unsafe path segments rather than allowing traversal outside the tenant prefix.
+- Request middleware attaches the snapshot only after validating active membership and removes it in a `finally` block after the request.
+- Meaningful persisted changes write an outbox row within the same database transaction as the domain mutation.
+- Outbox publication is at-least-once. Every message has a globally unique idempotency key that is passed to consumers for deduplication.
+- PostgreSQL publishers claim work with `FOR UPDATE SKIP LOCKED`, lease through `available_at`, track attempts, record bounded `last_error` diagnostics, and retry with bounded backoff.
+- The outbox publisher runs from the scheduler with overlap and single-server protection; a compatible lock path is retained for the SQLite local/test database.
 
 ## Secrets
 
@@ -48,8 +80,9 @@ Operational dashboards follow the same boundary. Pulse registers no dashboard ro
 - Restore operations fail closed when their matching manifest is absent or invalid unless an explicit unverified-restore override is approved.
 - Generated backups are excluded from source control and Docker image build contexts.
 - Object storage defaults to private visibility and fails on write errors.
-- Sensitive exports are authorized, time limited, and audited.
+- Sensitive exports are authorized, tenant-prefixed, time limited, and audited when export domains are introduced.
 - Retention and deletion rules are defined with each domain.
+- Phase 1 migration and rollback behavior is documented in `docs/PHASE_1_MIGRATION_ROLLBACK.md`; normal application rollback does not automatically reverse database migrations.
 
 ## Dependencies and supply chain
 
@@ -72,6 +105,7 @@ Operational dashboards follow the same boundary. Pulse registers no dashboard ro
 - Request IDs and W3C trace IDs correlate logs and are returned on successful and rendered error responses.
 - Valid upstream trace IDs and sampling flags are preserved while a new local parent/span ID represents the current request.
 - Invalid trace context, including all-zero trace or parent identifiers, is discarded and replaced.
+- Phase 1 audit records retain request/trace correlation where an HTTP request is present, plus actor, tenant, subject, and event metadata appropriate to the action.
 - Health endpoints separate liveness from dependency readiness, do not start browser sessions, and return no dependency-level or release-identifying data to public callers.
 - Local development publishes the application, Vite, PostgreSQL, and Redis only on `127.0.0.1`; CI fails if those default Compose bindings are broadened to all host interfaces.
 - `bootstrap/cache` remains image-owned and is not persisted or shared between releases; each digest uses the package manifest built into that image.
