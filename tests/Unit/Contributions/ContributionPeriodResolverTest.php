@@ -21,7 +21,7 @@ final class ContributionPeriodResolverTest extends TestCase
         ]);
         $at = CarbonImmutable::parse('2026-08-07 01:30:00', 'UTC');
 
-        $period = (new ContributionPeriodResolver())->current($category, 'America/Toronto', $at);
+        $period = (new ContributionPeriodResolver)->current($category, 'America/Toronto', $at);
 
         self::assertSame('2026-08-03', $period['start']->toDateString());
         self::assertSame('2026-08-09', $period['end']->toDateString());
@@ -37,7 +37,7 @@ final class ContributionPeriodResolverTest extends TestCase
             'data_class' => ContributionDataClass::RecordedFact,
         ]);
 
-        $period = (new ContributionPeriodResolver())->current($category, 'UTC');
+        $period = (new ContributionPeriodResolver)->current($category, 'UTC');
 
         self::assertSame('2026-08-01', $period['start']->toDateString());
         self::assertSame('2026-08-31', $period['end']->toDateString());

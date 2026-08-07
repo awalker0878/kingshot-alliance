@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\TenantIsolation\Contributions;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Contributions\Actions\CreateContributionCategory;
 use App\Domain\Contributions\Actions\RecordContribution;
 use App\Domain\Contributions\Enums\ContributionDataClass;

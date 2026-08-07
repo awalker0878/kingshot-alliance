@@ -171,6 +171,9 @@ function formatActivityTime(startsAt: string, timeZone: string): string {
       <div class="mt-6 flex flex-wrap gap-4 text-sm font-semibold">
         <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/content">Content hub</Link>
         <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/events">Events</Link>
+        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/contributions"
+          >Contributions</Link
+        >
         <Link
           v-if="contentHub.canManageRecruitment"
           class="text-cyan-300 hover:text-cyan-200"

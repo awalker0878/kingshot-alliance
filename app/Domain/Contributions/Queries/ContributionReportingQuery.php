@@ -301,7 +301,7 @@ final class ContributionReportingQuery
     }
 
     /** @param Collection<int, ContributionCategory> $categories
-     *  @return list<array<string, mixed>>
+     * @return list<array<string, mixed>>
      */
     private function leaderboards(Alliance $alliance, Collection $categories): array
     {
