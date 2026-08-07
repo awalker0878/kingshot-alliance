@@ -101,6 +101,7 @@ final class RegistrationController extends Controller
 
         Auth::login($result['user']);
         $request->session()->regenerate();
+        $result['user']->sendEmailVerificationNotification();
 
         if ($result['alliance'] instanceof Alliance) {
             $request->session()->put(
@@ -111,6 +112,6 @@ final class RegistrationController extends Controller
             return redirect()->route('alliance.overview');
         }
 
-        return redirect()->route('dashboard');
+        return redirect()->route('verification.notice');
     }
 }
