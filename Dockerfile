@@ -15,12 +15,14 @@ FROM php:8.5-fpm-alpine AS php-base
 RUN apk add --no-cache \
         curl \
         icu-libs \
+        lexbor \
         libpq \
         libzip \
         nginx \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
         icu-dev \
+        lexbor-dev \
         libxml2-dev \
         libzip-dev \
         oniguruma-dev \
