@@ -48,7 +48,11 @@ The recruitment domain, public application flow, recruiter pipeline, decision/on
 
 ## Acceptance evidence
 
-Current checkpoint head before close-out passed CI, CodeQL, and Dependency Review. Final-head validation will be recorded after the remaining product-surface gaps are closed and implementation-only workflow scaffolding is removed.
+Checkpoint head `bb7e9c6271cb9202589e3cd273cd910c85593a6a` passed CI, CodeQL, and Dependency Review. Final-head validation will be recorded after the remaining product-surface gaps are closed, Phase 4 documentation is completed, and implementation-only workflow scaffolding is removed.
+
+## Close-out audit
+
+The final Phase 4 product audit must verify that recruiters can edit existing application questions and can discover the recruitment workspace from the alliance home surface. These are Phase 4-owned usability requirements, not Phase 5 placeholders.
 
 ## Exit criteria
 
