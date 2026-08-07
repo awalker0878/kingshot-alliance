@@ -19,6 +19,7 @@ use App\Models\OutboxMessage;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 final class EventReminderDeliveryTest extends TestCase
@@ -125,5 +126,74 @@ final class EventReminderDeliveryTest extends TestCase
         $delivery = EventReminderDelivery::query()->sole();
         self::assertSame(EventReminderDeliveryStatus::Cancelled, $delivery->status);
         self::assertSame(0, OutboxMessage::query()->where('event_type', 'event.reminder.requested')->count());
+    }
+
+    public function test_sent_reminder_inbox_is_scoped_to_the_active_alliance(): void
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-07 14:00:00', 'UTC'));
+
+        $owner = User::factory()->create();
+        $createAlliance = $this->app->make(CreateAlliance::class);
+        $firstAlliance = $createAlliance->handle(
+            owner: $owner,
+            name: 'First Reminder Alliance',
+            slug: 'first-reminder-alliance',
+            timezone: 'America/Toronto',
+        );
+        $secondAlliance = $createAlliance->handle(
+            owner: $owner,
+            name: 'Second Reminder Alliance',
+            slug: 'second-reminder-alliance',
+            timezone: 'UTC',
+        );
+
+        $createEvent = $this->app->make(CreateEvent::class);
+        $firstEvent = $createEvent->handle(
+            actor: $owner,
+            alliance: $firstAlliance,
+            title: 'Visible Reminder Event',
+            firstLocalStart: CarbonImmutable::parse('2026-08-07 11:00:00', 'America/Toronto'),
+            durationMinutes: 30,
+            registrationOpensMinutesBefore: 180,
+        );
+        $secondEvent = $createEvent->handle(
+            actor: $owner,
+            alliance: $secondAlliance,
+            title: 'Hidden Reminder Event',
+            firstLocalStart: CarbonImmutable::parse('2026-08-07 15:00:00', 'UTC'),
+            durationMinutes: 30,
+            registrationOpensMinutesBefore: 180,
+        );
+        /** @var EventOccurrence $firstOccurrence */
+        $firstOccurrence = $firstEvent->occurrences->sole();
+        /** @var EventOccurrence $secondOccurrence */
+        $secondOccurrence = $secondEvent->occurrences->sole();
+
+        $register = $this->app->make(RegisterForEvent::class);
+        $register->handle($owner, $firstAlliance, $firstOccurrence->id);
+        $register->handle($owner, $secondAlliance, $secondOccurrence->id);
+
+        $createRule = $this->app->make(CreateEventReminderRule::class);
+        $createRule->handle($owner, $firstAlliance, $firstEvent, 60);
+        $createRule->handle($owner, $secondAlliance, $secondEvent, 60);
+
+        $sync = $this->app->make(SyncEventReminderDeliveries::class);
+        self::assertSame(1, $sync->handle($firstOccurrence));
+        self::assertSame(1, $sync->handle($secondOccurrence));
+        self::assertSame(2, $this->app->make(QueueDueEventReminders::class)->handle());
+
+        OutboxMessage::query()->where('event_type', '!=', 'event.reminder.requested')->delete();
+        self::assertSame(2, $this->app->make(PublishOutboxBatch::class)->handle());
+
+        $sessionKey = (string) config('identity.active_alliance_session_key');
+        $this->actingAs($owner)
+            ->withSession([$sessionKey => $firstAlliance->id])
+            ->get('/alliance/events')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Alliance/Events/Index')
+                ->has('eventReminders', 1)
+                ->where('eventReminders.0.occurrenceId', $firstOccurrence->id)
+                ->where('eventReminders.0.title', 'Visible Reminder Event'));
     }
 }
