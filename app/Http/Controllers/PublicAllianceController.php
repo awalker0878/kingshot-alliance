@@ -13,6 +13,7 @@ use App\Models\Alliance;
 use App\Models\AllianceBrandingMedia;
 use App\Models\AllianceProfile;
 use App\Models\ContentCategory;
+use App\Models\ContentItem;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -51,6 +52,23 @@ final class PublicAllianceController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'slug']);
 
+        /** @var list<array{name: string, slug: string}> $categoryData */
+        $categoryData = [];
+        foreach ($categories as $category) {
+            $categoryData[] = [
+                'name' => (string) $category->name,
+                'slug' => (string) $category->slug,
+            ];
+        }
+
+        /** @var list<array<string, mixed>> $contentData */
+        $contentData = [];
+        foreach ($items as $item) {
+            if ($item instanceof ContentItem) {
+                $contentData[] = $presenter->item($item);
+            }
+        }
+
         return Inertia::render('Public/Alliance', [
             'alliance' => [
                 'name' => $alliance->name,
@@ -70,11 +88,8 @@ final class PublicAllianceController extends Controller
                 'category' => $request->string('category')->toString(),
                 'locale' => $request->string('locale')->toString(),
             ],
-            'categories' => $categories->map(static fn (ContentCategory $category): array => [
-                'name' => $category->name,
-                'slug' => $category->slug,
-            ])->values()->all(),
-            'content' => $items->map(fn ($item): array => $presenter->item($item))->values()->all(),
+            'categories' => $categoryData,
+            'content' => $contentData,
             'upcomingActivities' => [],
             'upcomingActivitiesPhase' => 3,
         ]);
