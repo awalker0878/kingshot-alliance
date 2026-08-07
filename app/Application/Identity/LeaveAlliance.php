@@ -10,6 +10,7 @@ use App\Models\AllianceMembership;
 use App\Models\OutboxMessage;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 final readonly class LeaveAlliance
 {
@@ -48,7 +49,7 @@ final readonly class LeaveAlliance
                 'event_type' => 'membership.left',
                 'aggregate_type' => AllianceMembership::class,
                 'aggregate_id' => $membership->id,
-                'idempotency_key' => 'membership.left:'.$membership->id,
+                'idempotency_key' => 'membership.left:'.$membership->id.':'.Str::ulid(),
                 'payload' => [
                     'alliance_id' => $alliance->id,
                     'membership_id' => $membership->id,
