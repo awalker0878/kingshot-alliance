@@ -1,0 +1,195 @@
+name: Finish phases 1-4 alignment
+
+on:
+  push:
+    branches:
+      - agent/phases-1-4-alignment
+
+permissions:
+  contents: write
+
+concurrency:
+  group: finish-phases-1-4-alignment
+  cancel-in-progress: true
+
+jobs:
+  finish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out alignment branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: agent/phases-1-4-alignment
+          fetch-depth: 0
+
+      - name: Finish route and UI alignment
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def one(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text()
+              n = text.count(old)
+              if n != 1:
+                  raise SystemExit(f'{path}: expected one match, got {n}: {old[:100]!r}')
+              p.write_text(text.replace(old, new, 1))
+
+          # Content manager no longer owns recruitment availability.
+          one(
+              'resources/js/pages/Alliance/ContentManage.vue',
+              "    description: string | null;\n    recruitmentStatus: string;\n    primaryColor: string | null;\n",
+              "    description: string | null;\n    primaryColor: string | null;\n",
+          )
+          one(
+              'resources/js/pages/Alliance/ContentManage.vue',
+              "  visibilityOptions: Array<{ value: string; label: string }>;\n  recruitmentOptions: Array<{ value: string; label: string }>;\n  categories: Category[];\n",
+              "  visibilityOptions: Array<{ value: string; label: string }>;\n  categories: Category[];\n",
+          )
+          one(
+              'resources/js/pages/Alliance/ContentManage.vue',
+              "  description: props.alliance.description ?? '',\n  recruitment_status: props.alliance.recruitmentStatus,\n  primary_color: props.alliance.primaryColor ?? '',\n",
+              "  description: props.alliance.description ?? '',\n  primary_color: props.alliance.primaryColor ?? '',\n",
+          )
+          one(
+              'resources/js/pages/Alliance/ContentManage.vue',
+              '''        <div>
+          <label class="text-sm font-medium" for="profile-recruitment">Recruitment status</label>
+          <select
+            id="profile-recruitment"
+            v-model="profileForm.recruitment_status"
+            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+          >
+            <option v-for="option in recruitmentOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+''',
+              '',
+          )
+          one(
+              'resources/js/pages/Alliance/ContentManage.vue',
+              "          Profile, content revisions, publication, categories, and branding media.\n",
+              "          Profile, content revisions, publication, categories, and branding media. Recruitment availability is managed in the Recruitment workspace.\n",
+          )
+
+          # Remove the obsolete Phase 2 event placeholder; Phase 3 has no public-event visibility contract.
+          one(
+              'resources/js/pages/Public/Alliance.vue',
+              "  content: ContentCard[];\n  upcomingActivities: unknown[];\n  upcomingActivitiesPhase: number;\n",
+              "  content: ContentCard[];\n",
+          )
+          one(
+              'resources/js/pages/Public/Alliance.vue',
+              '    <div class="mx-auto grid max-w-6xl gap-8 px-6 py-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:px-8">\n',
+              '    <div class="mx-auto max-w-6xl px-6 py-10 lg:px-8">\n',
+          )
+          one(
+              'resources/js/pages/Public/Alliance.vue',
+              '''
+      <aside
+        class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 lg:self-start"
+        aria-labelledby="activities-heading"
+      >
+        <h2 id="activities-heading" class="text-lg font-semibold">Upcoming activities</h2>
+        <p class="mt-3 text-sm text-slate-400">
+          Event schedules arrive in Phase {{ upcomingActivitiesPhase }}. This Phase 2 page
+          intentionally does not create placeholder event records.
+        </p>
+      </aside>
+''',
+              '',
+          )
+
+          # Require recent confirmation only for privileged coordinator/recruiter mutations.
+          routes = Path('routes/web.php')
+          text = routes.read_text()
+
+          recruitment_start = "            Route::patch('/alliance/recruitment/settings', [RecruitmentManagementController::class, 'updateSettings'])\n"
+          recruitment_read = "            Route::get('/alliance/recruitment/{candidate}', [RecruitmentCandidateController::class, 'show'])\n"
+          start = text.find(recruitment_start)
+          end = text.find(recruitment_read, start)
+          if start < 0 or end < 0:
+              raise SystemExit('Recruitment mutation route block not found')
+          block = text[start:end]
+          block = ''.join(('    ' + line) if line.strip() else line for line in block.splitlines(keepends=True))
+          text = text[:start] + "            Route::middleware('password.confirm')->group(function (): void {\n" + block + "            });\n" + text[end:]
+
+          event_start = "            Route::post('/alliance/events', [EventManagementController::class, 'storeEvent'])\n"
+          existing_confirm = "            Route::middleware('password.confirm')->group(function (): void {\n                Route::patch('/alliance/public-profile'"
+          start = text.find(event_start)
+          end = text.find(existing_confirm, start)
+          if start < 0 or end < 0:
+              raise SystemExit('Event coordinator mutation route block not found')
+          block = text[start:end]
+          block = ''.join(('    ' + line) if line.strip() else line for line in block.splitlines(keepends=True))
+          text = text[:start] + "            Route::middleware('password.confirm')->group(function (): void {\n" + block + "            });\n\n" + text[end:]
+          routes.write_text(text)
+
+          # Current user guides mention the confirmation boundary explicitly.
+          one(
+              'docs/EVENTS_AND_RALLIES.md',
+              'Members with the `events.manage` permission can open **Coordinate events** from the alliance home or Events page.\n',
+              'Members with the `events.manage` permission can open **Coordinate events** from the alliance home or Events page. Coordinator mutations require recent password confirmation; read-only coordination views remain available without forcing reconfirmation.\n',
+          )
+          one(
+              'docs/RECRUITMENT.md',
+              'Authorized recruiters open **Recruitment** from the active alliance home page. The workspace is visible only when the active membership has recruitment-management permission.\n',
+              'Authorized recruiters open **Recruitment** from the active alliance home page. The workspace is visible only when the active membership has recruitment-management permission. Recruiter mutations require recent password confirmation; read-only pipeline views remain available without forcing reconfirmation.\n',
+          )
+
+          # Fail if the integrated source still exposes the removed duplicates/placeholders.
+          roots = [Path('app'), Path('database'), Path('resources'), Path('routes'), Path('tests')]
+          for root in roots:
+              for path in root.rglob('*'):
+                  if not path.is_file():
+                      continue
+                  text = path.read_text(errors='ignore')
+                  if 'ContributionManage' in text or 'contributions.manage' in text:
+                      raise SystemExit(f'Future contribution permission remains: {path}')
+                  if 'recruitment_status' in text:
+                      raise SystemExit(f'Duplicate recruitment_status remains: {path}')
+          public_vue = Path('resources/js/pages/Public/Alliance.vue').read_text()
+          if 'upcomingActivitiesPhase' in public_vue or 'Event schedules arrive in Phase' in public_vue:
+              raise SystemExit('Stale Phase 2 event placeholder remains')
+          PY
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_sqlite, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          npm ci --no-audit --no-fund
+
+      - name: Format and validate focused changes
+        run: |
+          vendor/bin/pint app/Domain/Identity/Authorization/PermissionKey.php app/Domain/Identity/Authorization/DefaultAllianceRole.php app/Models/AllianceProfile.php app/Application/Content/UpdateAlliancePublicProfile.php app/Application/Recruitment/PublicRecruitmentQuery.php app/Http/Controllers/Alliance/ContentManagementController.php app/Http/Controllers/PublicAllianceController.php database/migrations/2026_08_07_010000_create_content_domain_tables.php routes/web.php tests/Feature/Content/ProfileMediaSecurityTest.php tests/Feature/Events/EventHttpTest.php tests/Feature/Recruitment/RecruitmentHttpTest.php
+          npx prettier --write resources/js/pages/Alliance/ContentManage.vue resources/js/pages/Public/Alliance.vue
+          php artisan test tests/Feature/Identity/CreateAllianceTest.php tests/Feature/Content/ProfileMediaSecurityTest.php tests/Feature/Content/ContentAuthorizationIsolationTest.php tests/Feature/Events/EventHttpTest.php tests/Feature/Recruitment/RecruitmentHttpTest.php
+          npm run check
+
+      - name: Commit final alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add app database docs resources routes tests
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Finish integrated phase alignment'
+          git push origin HEAD:agent/phases-1-4-alignment
