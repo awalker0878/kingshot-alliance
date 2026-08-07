@@ -9,7 +9,7 @@ use App\Domain\Contributions\Enums\ContributionPeriod;
 use App\Domain\Contributions\Models\ContributionCategory;
 use App\Domain\Contributions\Services\ContributionPeriodResolver;
 use Carbon\CarbonImmutable;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 final class ContributionPeriodResolverTest extends TestCase
 {
