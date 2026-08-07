@@ -72,11 +72,9 @@ The Phase 0 gate has corrected **63 implementation, security, reproducibility, r
 
 ## External validation state
 
-Both lockfiles are now committed and the temporary generator has been removed. The final validation trigger is the repository-owner commit `ea095942d967953bf3a355fec654f0fd34c74d41` plus this evidence update.
+Both lockfiles are committed and the temporary generator is removed. GitHub resolved the Actions incident at 02:04 UTC on August 7, 2026. GitHub noted that some push and pull-request events from the incident were not processed and cannot be replayed automatically, so this repository-owner evidence update intentionally creates a fresh post-recovery `synchronize` event for the locked branch.
 
-GitHub's official status API still reports an active major Actions incident on August 6, 2026. The latest incident update says webhook triggers remain throttled and runners can be assigned jobs that are no longer valid. Missing, pending, queued, cancelled, or absent checks are therefore **not** acceptance evidence.
-
-Do not infer a green gate until the required workflows execute successfully against the current locked owner head.
+No green gate is inferred until the required workflows execute successfully against the resulting current owner head. Missing, pending, queued, cancelled, or absent checks are not acceptance evidence.
 
 ## Exit criteria
 
