@@ -188,6 +188,31 @@ final class RuntimeConfigurationValidatorTest extends TestCase
         self::assertContains('Production PostgreSQL must require an encrypted connection.', $errors);
     }
 
+    public function test_production_rejects_local_content_media_storage(): void
+    {
+        $this->configureRequiredValues();
+        config(['content.media_disk' => 'local']);
+
+        self::assertContains(
+            'Production content media must use durable S3-backed storage.',
+            (new RuntimeConfigurationValidator)->errors('production'),
+        );
+    }
+
+    public function test_production_content_media_requires_an_s3_bucket(): void
+    {
+        $this->configureRequiredValues();
+        config([
+            'content.media_disk' => 's3',
+            'filesystems.disks.s3.bucket' => '',
+        ]);
+
+        self::assertContains(
+            'Production content media storage requires a configured S3 bucket.',
+            (new RuntimeConfigurationValidator)->errors('production'),
+        );
+    }
+
     public function test_production_accepts_secure_runtime_configuration(): void
     {
         $this->configureRequiredValues();
@@ -220,6 +245,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'session.secure' => true,
             'filesystems.default' => 'local',
             'filesystems.disks.s3.bucket' => 'kingshot',
+            'content.media_disk' => 's3',
             'pulse.enabled' => false,
             'horizon.environments.staging.supervisor-1.maxProcesses' => 3,
             'horizon.environments.production.supervisor-1.maxProcesses' => 10,
