@@ -34,4 +34,13 @@ final class RecruitmentDecisionTemplate extends Model
             'is_active' => 'boolean',
         ];
     }
+
+    public function decisionStage(): RecruitmentStage
+    {
+        $value = $this->getAttribute('decision_stage');
+
+        return $value instanceof RecruitmentStage
+            ? $value
+            : RecruitmentStage::from((string) $value);
+    }
 }
