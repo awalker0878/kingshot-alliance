@@ -8,7 +8,16 @@ use App\Domain\Identity\Enums\InvitationStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property InvitationStatus $status
+ * @property Carbon|null $expires_at
+ * @property Carbon|null $accepted_at
+ * @property Carbon|null $revoked_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 final class Invitation extends Model
 {
     use HasUlids;
