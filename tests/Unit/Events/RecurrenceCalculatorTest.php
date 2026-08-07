@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Events;
 
-use App\Application\Events\RecurrenceCalculator;
+use App\Domain\Events\Services\RecurrenceCalculator;
 use App\Domain\Events\Enums\RecurrenceFrequency;
 use Carbon\CarbonImmutable;
 use InvalidArgumentException;

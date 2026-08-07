@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Health\ReadinessController;
-use App\Http\Middleware\AssignRequestContext;
-use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\RecordRequestMetrics;
-use App\Http\Middleware\ResolveAllianceContext;
-use App\Http\Middleware\SecurityHeaders;
+use App\Domain\Platform\Http\Controllers\ReadinessController;
+use App\Domain\Platform\Http\Middleware\AssignRequestContext;
+use App\Domain\Platform\Http\Middleware\HandleInertiaRequests;
+use App\Domain\Platform\Http\Middleware\RecordRequestMetrics;
+use App\Domain\Alliances\Http\Middleware\ResolveAllianceContext;
+use App\Domain\Platform\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;

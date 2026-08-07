@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Identity;
 
-use App\Application\Identity\CreateAlliance;
-use App\Domain\Identity\Enums\MembershipStatus;
-use App\Domain\Shared\Tenancy\TenantContextSnapshot;
-use App\Models\AllianceMembership;
-use App\Models\AuditEvent;
-use App\Models\User;
+use App\Domain\Alliances\Models\Alliance;
+
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Alliances\ValueObjects\TenantContextSnapshot;
+use App\Domain\Alliances\Models\AllianceMembership;
+use App\Domain\Audit\Models\AuditEvent;
+use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

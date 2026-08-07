@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Content;
 
-use App\Application\Content\PublishContentItem;
-use App\Application\Content\SaveContentCategory;
-use App\Application\Content\SaveContentItem;
-use App\Application\Identity\AcceptInvitation;
-use App\Application\Identity\CreateAlliance;
-use App\Application\Identity\CreateInvitation;
+use App\Domain\Content\Actions\PublishContentItem;
+use App\Domain\Content\Actions\SaveContentCategory;
+use App\Domain\Content\Actions\SaveContentItem;
+use App\Domain\Memberships\Actions\AcceptInvitation;
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Memberships\Actions\CreateInvitation;
 use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;
-use App\Models\User;
+use App\Domain\Identity\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Content;
 
-use App\Application\Content\ArchiveMediaAsset;
-use App\Application\Content\MediaScanner;
-use App\Application\Content\MediaScanResult;
-use App\Application\Content\UpdateAlliancePublicProfile;
-use App\Application\Content\UploadMediaAsset;
-use App\Application\Identity\CreateAlliance;
-use App\Models\User;
+use App\Domain\Alliances\Models\Alliance;
+
+use App\Domain\Content\Actions\ArchiveMediaAsset;
+use App\Domain\Content\Services\MediaScanner;
+use App\Domain\Content\ValueObjects\MediaScanResult;
+use App\Domain\Content\Actions\UpdateAlliancePublicProfile;
+use App\Domain\Content\Actions\UploadMediaAsset;
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Identity;
 
-use App\Application\Identity\TotpService;
-use App\Application\Identity\TwoFactorManager;
-use App\Models\User;
+use App\Domain\Identity\Services\TotpService;
+use App\Domain\Identity\Services\TwoFactorManager;
+use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Identity;
 
-use App\Application\Identity\CreateAlliance;
-use App\Application\Identity\CreateInvitation;
-use App\Application\Identity\FindPendingInvitation;
-use App\Domain\Identity\Enums\InvitationStatus;
-use App\Models\AuditEvent;
-use App\Models\OutboxMessage;
-use App\Models\User;
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Memberships\Actions\CreateInvitation;
+use App\Domain\Memberships\Queries\FindPendingInvitation;
+use App\Domain\Memberships\Enums\InvitationStatus;
+use App\Domain\Audit\Models\AuditEvent;
+use App\Domain\Platform\Models\OutboxMessage;
+use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Content;
 
-use App\Application\Content\ArchiveContentItem;
-use App\Application\Content\PublishContentItem;
-use App\Application\Content\PublishScheduledContent;
-use App\Application\Content\RestoreContentRevision;
-use App\Application\Content\SaveContentItem;
-use App\Application\Identity\CreateAlliance;
+use App\Domain\Alliances\Models\Alliance;
+
+use App\Domain\Content\Actions\ArchiveContentItem;
+use App\Domain\Content\Actions\PublishContentItem;
+use App\Domain\Content\Actions\PublishScheduledContent;
+use App\Domain\Content\Actions\RestoreContentRevision;
+use App\Domain\Content\Actions\SaveContentItem;
+use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;
-use App\Models\ContentRevision;
-use App\Models\User;
+use App\Domain\Content\Models\ContentRevision;
+use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Identity;
 
-use App\Application\Identity\AllianceAuthorization;
-use App\Application\Identity\CreateAlliance;
-use App\Domain\Identity\Authorization\PermissionKey;
-use App\Domain\Identity\Enums\MembershipStatus;
-use App\Models\AllianceMembership;
-use App\Models\AuditEvent;
-use App\Models\OutboxMessage;
-use App\Models\Permission;
-use App\Models\Role;
-use App\Models\User;
+use App\Domain\Alliances\Models\Alliance;
+
+use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Alliances\Models\AllianceMembership;
+use App\Domain\Audit\Models\AuditEvent;
+use App\Domain\Platform\Models\OutboxMessage;
+use App\Domain\Authorization\Models\Permission;
+use App\Domain\Authorization\Models\Role;
+use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

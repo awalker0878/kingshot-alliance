@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Identity;
 
-use App\Application\Identity\AllianceAuthorization;
-use App\Application\Identity\AllianceContext;
-use App\Application\Identity\CreateAlliance;
-use App\Domain\Identity\Authorization\DefaultAllianceRole;
-use App\Domain\Identity\Authorization\PermissionKey;
-use App\Domain\Identity\Enums\MembershipStatus;
-use App\Models\AllianceMembership;
-use App\Models\Role;
-use App\Models\User;
+use App\Domain\Alliances\Models\Alliance;
+
+use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Alliances\Services\AllianceContext;
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Authorization\Enums\DefaultAllianceRole;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Alliances\Models\AllianceMembership;
+use App\Domain\Authorization\Models\Role;
+use App\Domain\Identity\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;

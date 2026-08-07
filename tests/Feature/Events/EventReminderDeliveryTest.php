@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Events;
 
-use App\Application\Events\CancelEventRegistration;
-use App\Application\Events\CreateEvent;
-use App\Application\Events\CreateEventReminderRule;
-use App\Application\Events\QueueDueEventReminders;
-use App\Application\Events\RegisterForEvent;
-use App\Application\Events\SyncEventReminderDeliveries;
-use App\Application\Identity\CreateAlliance;
-use App\Application\Shared\PublishOutboxBatch;
-use App\Domain\Events\Enums\EventReminderDeliveryStatus;
-use App\Models\EventOccurrence;
-use App\Models\EventReminderDelivery;
-use App\Models\OutboxMessage;
-use App\Models\User;
+use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Events\Models\Event;
+
+use App\Domain\Events\Actions\CancelEventRegistration;
+use App\Domain\Events\Actions\CreateEvent;
+use App\Domain\Events\Actions\CreateEventReminderRule;
+use App\Domain\Notifications\Actions\QueueDueEventReminders;
+use App\Domain\Events\Actions\RegisterForEvent;
+use App\Domain\Notifications\Actions\SyncEventReminderDeliveries;
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Platform\Actions\PublishOutboxBatch;
+use App\Domain\Notifications\Enums\EventReminderDeliveryStatus;
+use App\Domain\Events\Models\EventOccurrence;
+use App\Domain\Events\Models\EventReminderDelivery;
+use App\Domain\Platform\Models\OutboxMessage;
+use App\Domain\Identity\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;

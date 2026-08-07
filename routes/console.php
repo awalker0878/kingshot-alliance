@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Application\Content\PublishScheduledContent;
-use App\Application\Events\QueueDueEventReminders;
-use App\Application\Events\SyncUpcomingEventReminders;
-use App\Application\Operations\RuntimeConfigurationValidator;
-use App\Application\Recruitment\PurgeExpiredRecruitmentCandidates;
-use App\Application\Shared\PublishOutboxBatch;
+use App\Domain\Content\Actions\PublishScheduledContent;
+use App\Domain\Notifications\Actions\QueueDueEventReminders;
+use App\Domain\Notifications\Actions\SyncUpcomingEventReminders;
+use App\Domain\Platform\Services\RuntimeConfigurationValidator;
+use App\Domain\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
+use App\Domain\Platform\Actions\PublishOutboxBatch;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 

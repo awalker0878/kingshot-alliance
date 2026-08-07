@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Shared;
 
-use App\Application\Shared\PublishOutboxBatch;
-use App\Domain\Shared\Events\OutboxPublished;
-use App\Models\Alliance;
-use App\Models\OutboxMessage;
-use App\Models\User;
+use App\Domain\Platform\Actions\PublishOutboxBatch;
+use App\Domain\Platform\Events\OutboxPublished;
+use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Platform\Models\OutboxMessage;
+use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use RuntimeException;

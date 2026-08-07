@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Identity;
 
-use App\Application\Identity\AcceptInvitation;
-use App\Application\Identity\CreateAlliance;
-use App\Application\Identity\CreateInvitation;
-use App\Models\AllianceMembership;
-use App\Models\AuditEvent;
-use App\Models\User;
+use App\Domain\Alliances\Models\Alliance;
+
+use App\Domain\Memberships\Actions\AcceptInvitation;
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Memberships\Actions\CreateInvitation;
+use App\Domain\Alliances\Models\AllianceMembership;
+use App\Domain\Audit\Models\AuditEvent;
+use App\Domain\Identity\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;

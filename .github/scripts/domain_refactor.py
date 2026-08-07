@@ -24,7 +24,7 @@ def move_php(old: str, new: str, namespace: str) -> None:
     old_namespace = php_namespace(text)
     old_fqcn = f'{old_namespace}\\{source.stem}'
     new_fqcn = f'{namespace}\\{source.stem}'
-    text = re.sub(r'^namespace\s+[^;]+;', f'namespace {namespace};', text, count=1, flags=re.M)
+    text = re.sub(r'^namespace\s+[^;]+;', lambda _: f'namespace {namespace};', text, count=1, flags=re.M)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text)
     source.unlink()

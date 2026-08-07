@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Identity;
 
-use App\Application\Identity\TotpService;
+use App\Domain\Identity\Services\TotpService;
 use PHPUnit\Framework\TestCase;
 
 final class TotpServiceTest extends TestCase

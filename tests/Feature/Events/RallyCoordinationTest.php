@@ -4,21 +4,23 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Events;
 
-use App\Application\Events\AssignRallyMember;
-use App\Application\Events\CreateEvent;
-use App\Application\Events\CreateEventRecommendedFormation;
-use App\Application\Events\CreateRallyGroup;
-use App\Application\Events\CreateRallyGuidanceRule;
-use App\Application\Events\SaveMemberFormation;
-use App\Application\Identity\CreateAlliance;
-use App\Domain\Events\Enums\RallyAssignmentRole;
-use App\Domain\Events\Enums\RallyAssignmentStatus;
-use App\Domain\Events\FormationComposition;
-use App\Domain\Identity\Enums\MembershipStatus;
-use App\Models\AllianceMembership;
-use App\Models\EventOccurrence;
-use App\Models\RallyAssignment;
-use App\Models\User;
+use App\Domain\Alliances\Models\Alliance;
+
+use App\Domain\Rallies\Actions\AssignRallyMember;
+use App\Domain\Events\Actions\CreateEvent;
+use App\Domain\Events\Actions\CreateEventRecommendedFormation;
+use App\Domain\Rallies\Actions\CreateRallyGroup;
+use App\Domain\Rallies\Actions\CreateRallyGuidanceRule;
+use App\Domain\Rallies\Actions\SaveMemberFormation;
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Rallies\Enums\RallyAssignmentRole;
+use App\Domain\Rallies\Enums\RallyAssignmentStatus;
+use App\Domain\Rallies\ValueObjects\FormationComposition;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Alliances\Models\AllianceMembership;
+use App\Domain\Events\Models\EventOccurrence;
+use App\Domain\Rallies\Models\RallyAssignment;
+use App\Domain\Identity\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

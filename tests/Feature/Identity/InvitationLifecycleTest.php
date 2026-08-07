@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Identity;
 
-use App\Application\Identity\AcceptInvitation;
-use App\Application\Identity\CreateAlliance;
-use App\Application\Identity\CreateInvitation;
-use App\Application\Identity\FindPendingInvitation;
-use App\Application\Identity\ResendInvitation;
-use App\Application\Identity\RevokeInvitation;
-use App\Domain\Identity\Authorization\DefaultAllianceRole;
-use App\Domain\Identity\Enums\InvitationStatus;
-use App\Domain\Identity\Enums\MembershipStatus;
-use App\Models\AllianceMembership;
-use App\Models\User;
+use App\Domain\Alliances\Models\Alliance;
+
+use App\Domain\Memberships\Actions\AcceptInvitation;
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Memberships\Actions\CreateInvitation;
+use App\Domain\Memberships\Queries\FindPendingInvitation;
+use App\Domain\Memberships\Actions\ResendInvitation;
+use App\Domain\Memberships\Actions\RevokeInvitation;
+use App\Domain\Authorization\Enums\DefaultAllianceRole;
+use App\Domain\Memberships\Enums\InvitationStatus;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Alliances\Models\AllianceMembership;
+use App\Domain\Identity\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
