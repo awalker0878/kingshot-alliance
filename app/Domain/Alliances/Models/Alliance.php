@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Alliances\Models;
 
+use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -23,10 +24,19 @@ final class Alliance extends Model
     protected $fillable = [
         'name',
         'slug',
+        'kingdom',
+        'language',
         'timezone',
         'status',
         'created_by_user_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => AllianceStatus::class,
+        ];
+    }
 
     /** @return BelongsTo<User, $this> */
     public function creator(): BelongsTo
