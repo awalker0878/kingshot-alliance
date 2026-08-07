@@ -12,23 +12,50 @@ return [
 
     'environments' => [
         'production' => [
-            'supervisor-1' => [
-                'maxProcesses' => (int) env('HORIZON_PRODUCTION_MAX_PROCESSES', 10),
+            'core' => [
+                'queue' => ['default', 'notifications'],
+                'balance' => 'auto',
+                'maxProcesses' => (int) env('HORIZON_PRODUCTION_CORE_MAX_PROCESSES', 8),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
+            ],
+            'integrations' => [
+                'queue' => ['integrations'],
+                'balance' => 'auto',
+                'maxProcesses' => (int) env('HORIZON_PRODUCTION_INTEGRATION_MAX_PROCESSES', 4),
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'maintenance' => [
+                'queue' => ['maintenance'],
+                'balance' => 'simple',
+                'maxProcesses' => (int) env('HORIZON_PRODUCTION_MAINTENANCE_MAX_PROCESSES', 2),
             ],
         ],
 
         'staging' => [
-            'supervisor-1' => [
-                'maxProcesses' => (int) env('HORIZON_STAGING_MAX_PROCESSES', 3),
+            'core' => [
+                'queue' => ['default', 'notifications'],
+                'balance' => 'auto',
+                'maxProcesses' => (int) env('HORIZON_STAGING_CORE_MAX_PROCESSES', 3),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
+            ],
+            'integrations' => [
+                'queue' => ['integrations'],
+                'balance' => 'auto',
+                'maxProcesses' => (int) env('HORIZON_STAGING_INTEGRATION_MAX_PROCESSES', 2),
+            ],
+            'maintenance' => [
+                'queue' => ['maintenance'],
+                'balance' => 'simple',
+                'maxProcesses' => 1,
             ],
         ],
 
         'local' => [
             'supervisor-1' => [
+                'queue' => ['default', 'notifications', 'integrations', 'maintenance'],
                 'maxProcesses' => (int) env('HORIZON_LOCAL_MAX_PROCESSES', 3),
             ],
         ],
