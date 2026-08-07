@@ -1,0 +1,165 @@
+name: Phase 3 overview UI
+
+on:
+  push:
+    branches:
+      - agent/phase-3-events-and-rallies
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase3-overview-ui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: agent/phase-3-events-and-rallies
+          fetch-depth: 0
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Replace Phase 2 event placeholder
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('resources/js/pages/Alliance/Overview.vue')
+          text = path.read_text()
+
+          old_type = '''  contentHub: {
+            canManage: boolean;
+            notices: Array<{
+              id: string;
+              title: string;
+              slug: string;
+              summary: string | null;
+              visibility: string;
+              publishedAt: string | null;
+            }>;
+            upcomingActivities: unknown[];
+            upcomingActivitiesPhase: number;
+          };'''
+          new_type = '''  contentHub: {
+            canManage: boolean;
+            canManageEvents: boolean;
+            notices: Array<{
+              id: string;
+              title: string;
+              slug: string;
+              summary: string | null;
+              visibility: string;
+              publishedAt: string | null;
+            }>;
+            upcomingActivities: Array<{
+              id: string;
+              title: string;
+              startsAt: string;
+              allianceTimezone: string;
+            }>;
+          };'''
+
+          old_links = '''        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/content">Content hub</Link>
+            <Link
+              v-if="contentHub.canManage"
+              class="text-cyan-300 hover:text-cyan-200"
+              href="/alliance/content/manage"
+              >Manage content</Link
+            >'''
+          new_links = '''        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/content">Content hub</Link>
+            <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/events">Events</Link>
+            <Link
+              v-if="contentHub.canManage"
+              class="text-cyan-300 hover:text-cyan-200"
+              href="/alliance/content/manage"
+              >Manage content</Link
+            >
+            <Link
+              v-if="contentHub.canManageEvents"
+              class="text-cyan-300 hover:text-cyan-200"
+              href="/alliance/events/manage"
+              >Coordinate events</Link
+            >'''
+
+          old_placeholder = '''      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+            <h2 class="text-xl font-semibold">Upcoming activities</h2>
+            <p class="mt-3 text-sm text-slate-400">
+              Event scheduling is owned by Phase {{ contentHub.upcomingActivitiesPhase }}. Phase 2 keeps
+              this dashboard slot ready without creating placeholder event records.
+            </p>
+          </div>'''
+          new_placeholder = '''      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+            <div class="flex items-center justify-between gap-3">
+              <h2 class="text-xl font-semibold">Upcoming activities</h2>
+              <Link class="text-sm font-semibold text-cyan-300 hover:text-cyan-200" href="/alliance/events">
+                View all
+              </Link>
+            </div>
+            <div v-if="contentHub.upcomingActivities.length" class="mt-4 space-y-3">
+              <article
+                v-for="activity in contentHub.upcomingActivities"
+                :key="activity.id"
+                class="rounded-xl border border-slate-800 p-4"
+              >
+                <h3 class="font-semibold">
+                  <Link class="hover:text-cyan-200" :href="`/alliance/events/${activity.id}`">
+                    {{ activity.title }}
+                  </Link>
+                </h3>
+                <p class="mt-1 text-sm text-slate-400">
+                  {{
+                    new Intl.DateTimeFormat(undefined, {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      timeZone: activity.allianceTimezone,
+                      timeZoneName: 'short',
+                    }).format(new Date(activity.startsAt))
+                  }}
+                </p>
+              </article>
+            </div>
+            <p v-else class="mt-4 text-sm text-slate-500">No scheduled events in the next 30 days.</p>
+          </div>'''
+
+          for old, new, label in [
+              (old_type, new_type, 'contentHub type'),
+              (old_links, new_links, 'navigation links'),
+              (old_placeholder, new_placeholder, 'upcoming activities placeholder'),
+          ]:
+              if text.count(old) != 1:
+                  raise SystemExit(f'Expected exactly one {label} block; found {text.count(old)}')
+              text = text.replace(old, new)
+
+          path.write_text(text)
+          PY
+      - name: Format overview page
+        run: npx prettier --write resources/js/pages/Alliance/Overview.vue
+      - name: Commit overview integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add resources/js/pages/Alliance/Overview.vue
+          if git diff --cached --quiet; then
+            echo 'No overview changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Show upcoming events on alliance overview'
+          git push origin HEAD:agent/phase-3-events-and-rallies
