@@ -35,7 +35,7 @@ final class TwoFactorAuthenticationTest extends TestCase
         self::assertNotNull($user->two_factor_confirmed_at);
         self::assertCount(8, $recoveryCodes);
         self::assertCount(8, $user->two_factor_recovery_codes ?? []);
-        self::assertNotContains($recoveryCodes[0], $user->two_factor_recovery_codes ?? [], true);
+        self::assertFalse(in_array($recoveryCodes[0], $user->two_factor_recovery_codes ?? [], true));
         $this->assertDatabaseHas('audit_events', [
             'actor_user_id' => $user->id,
             'event' => 'auth.mfa.enabled',
