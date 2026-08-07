@@ -29,13 +29,13 @@ final class BasicMediaScanner implements MediaScanner
 
         $lower = strtolower($sample);
 
-        foreach (["<?php", '<script', 'powershell', 'cmd.exe', '/javascript'] as $signature) {
+        foreach (['<?php', '<script', 'powershell', 'cmd.exe', '/javascript'] as $signature) {
             if (str_contains($lower, $signature)) {
                 return new MediaScanResult(false, 'The uploaded file contains a blocked executable or script signature.');
             }
         }
 
-        if (str_starts_with($sample, "MZ") || str_starts_with($sample, "\x7FELF")) {
+        if (str_starts_with($sample, 'MZ') || str_starts_with($sample, chr(127).'ELF')) {
             return new MediaScanResult(false, 'Executable files are not permitted.');
         }
 
