@@ -17,6 +17,7 @@ use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -53,9 +54,18 @@ Route::middleware('guest')->group(function (): void {
         ->name('password.update');
 });
 
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', 'auth.session'])->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::delete('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
+        ->middleware('password.confirm')
+        ->name('profile.password.update');
+    Route::delete('/profile/sessions/other', [ProfileController::class, 'destroyOtherSessions'])
+        ->middleware('password.confirm')
+        ->name('profile.sessions.destroy-other');
 
     Route::get('/verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
