@@ -31,7 +31,7 @@ RUN apk add --no-cache \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && apk del .build-deps \
-    && php -r 'foreach (["dom", "intl", "mbstring", "opcache", "pcntl", "pdo_pgsql", "redis", "SimpleXML", "xml", "xmlwriter", "zip"] as $extension) { if (! extension_loaded($extension)) { fwrite(STDERR, "Missing PHP extension: {$extension}\n"); exit(1); } }'
+    && php -r 'foreach (["dom", "intl", "mbstring", "pcntl", "pdo_pgsql", "redis", "SimpleXML", "xml", "xmlwriter", "zip"] as $extension) { if (! extension_loaded($extension)) { fwrite(STDERR, "Missing PHP extension: {$extension}\n"); exit(1); } } if (! function_exists("opcache_get_status")) { fwrite(STDERR, "Missing PHP OPcache API\n"); exit(1); }'
 
 FROM php-base AS vendor
 WORKDIR /app
