@@ -8,21 +8,41 @@ use PHPUnit\Framework\TestCase;
 
 final class RepositoryStructureTest extends TestCase
 {
-    public function test_documentation_uses_the_implementation_plan_groups(): void
+    public function test_documentation_uses_only_the_implementation_plan_groups(): void
     {
-        foreach (['adr', 'domains', 'operations', 'product', 'security'] as $directory) {
-            self::assertDirectoryExists($this->root().'/docs/'.$directory);
-        }
-
-        self::assertDirectoryDoesNotExist($this->root().'/docs/architecture');
-        self::assertDirectoryDoesNotExist($this->root().'/docs/runbooks');
+        self::assertSame(
+            ['adr', 'domains', 'operations', 'product', 'security'],
+            $this->directories($this->root().'/docs'),
+        );
     }
 
-    public function test_test_suite_uses_the_implementation_plan_groups(): void
+    public function test_test_suite_uses_only_the_implementation_plan_groups(): void
     {
-        foreach (['Architecture', 'Feature', 'Integration', 'Performance', 'TenantIsolation', 'Unit'] as $directory) {
-            self::assertDirectoryExists($this->root().'/tests/'.$directory);
-        }
+        self::assertSame(
+            ['Architecture', 'Feature', 'Integration', 'Performance', 'TenantIsolation', 'Unit'],
+            $this->directories($this->root().'/tests'),
+        );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function directories(string $path): array
+    {
+        $entries = scandir($path);
+
+        self::assertIsArray($entries);
+
+        $directories = array_values(array_filter(
+            $entries,
+            static fn (string $entry): bool => $entry !== '.'
+                && $entry !== '..'
+                && is_dir($path.'/'.$entry),
+        ));
+
+        sort($directories);
+
+        return $directories;
     }
 
     private function root(): string
