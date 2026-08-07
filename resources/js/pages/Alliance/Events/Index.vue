@@ -15,11 +15,21 @@ type EventItem = {
   registration: { status: string; waitlistPosition: number | null } | null;
 };
 
+type EventReminder = {
+  id: string;
+  occurrenceId: string;
+  title: string;
+  startsAt: string;
+  sentAt: string;
+  allianceTimezone: string;
+};
+
 defineProps<{
   alliance: { id: string; name: string; timezone: string };
   userTimezone: string;
   canManage: boolean;
   events: EventItem[];
+  eventReminders: EventReminder[];
   exports: { csvUrl: string; icalUrl: string };
 }>();
 
@@ -106,6 +116,45 @@ function registrationLabel(event: EventItem): string {
         </Link>
       </div>
     </div>
+
+    <section
+      v-if="eventReminders.length"
+      class="mt-8 rounded-2xl border border-cyan-900 bg-cyan-950/30 p-5 sm:p-6"
+      aria-labelledby="event-reminders-heading"
+      aria-live="polite"
+    >
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold tracking-[0.18em] text-cyan-300 uppercase">In-app</p>
+          <h2 id="event-reminders-heading" class="mt-1 text-xl font-semibold">Event reminders</h2>
+        </div>
+        <span class="text-xs text-slate-400">Delivered within the last 7 days</span>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        <article
+          v-for="reminder in eventReminders"
+          :key="reminder.id"
+          class="flex flex-col justify-between gap-3 rounded-xl border border-cyan-900/70 bg-slate-950/40 p-4 sm:flex-row sm:items-center"
+        >
+          <div>
+            <h3 class="font-semibold">{{ reminder.title }}</h3>
+            <p class="mt-1 text-sm text-slate-300">
+              Starts {{ formatInZone(reminder.startsAt, userTimezone) }}
+            </p>
+            <p class="mt-1 text-xs text-slate-500">
+              Reminder delivered {{ formatInZone(reminder.sentAt, userTimezone) }}
+            </p>
+          </div>
+          <Link
+            class="shrink-0 rounded-lg border border-cyan-800 px-3 py-2 text-sm font-semibold text-cyan-200 hover:border-cyan-500"
+            :href="`/alliance/events/${reminder.occurrenceId}`"
+          >
+            Open event
+          </Link>
+        </article>
+      </div>
+    </section>
 
     <section class="mt-8" aria-labelledby="upcoming-events-heading">
       <h2 id="upcoming-events-heading" class="sr-only">Upcoming alliance events</h2>
