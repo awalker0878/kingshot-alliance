@@ -18,6 +18,7 @@ use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Recruitment\Enums\RecruitmentQuestionType;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Http\Controllers\Controller;
+use App\Models\Alliance;
 use App\Models\AllianceMembership;
 use App\Models\RecruitmentCandidate;
 use App\Models\RecruitmentDecisionTemplate;
@@ -321,7 +322,7 @@ final class RecruitmentManagementController extends Controller
         AllianceAuthorization $authorization,
         User $user,
         string $allianceId,
-        \App\Models\Alliance $alliance,
+        Alliance $alliance,
     ): void {
         if ($alliance->id !== $allianceId || ! $authorization->allows($user, $alliance, PermissionKey::RecruitmentManage)) {
             throw new AuthorizationException;

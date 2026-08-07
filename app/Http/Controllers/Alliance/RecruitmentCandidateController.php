@@ -27,7 +27,6 @@ use App\Models\RecruitmentCandidate;
 use App\Models\RecruitmentCandidateOnboarding;
 use App\Models\RecruitmentCommunication;
 use App\Models\RecruitmentDecisionTemplate;
-use App\Models\RecruitmentNote;
 use App\Models\RecruitmentStageHistory;
 use App\Models\RecruitmentTag;
 use App\Models\User;
