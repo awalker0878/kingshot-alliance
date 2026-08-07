@@ -13,6 +13,7 @@ use App\Domain\Identity\Authorization\PermissionKey;
 use App\Models\Alliance;
 use App\Models\Event;
 use App\Models\EventOccurrence;
+use App\Models\EventTemplate;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -42,9 +43,14 @@ final class CreateEvent
         ?CarbonImmutable $recurrenceUntilLocal = null,
         ?string $instructions = null,
         bool $publish = true,
+        ?EventTemplate $template = null,
     ): Event {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::EventManage)) {
             throw new AuthorizationException('You are not allowed to manage alliance events.');
+        }
+
+        if ($template !== null && $template->alliance_id !== $alliance->id) {
+            throw new AuthorizationException('The event template belongs to another alliance.');
         }
 
         if ($durationMinutes < 1 || $durationMinutes > 1440) {
@@ -76,6 +82,7 @@ final class CreateEvent
         return DB::transaction(function () use (
             $actor,
             $alliance,
+            $template,
             $title,
             $instructions,
             $localStart,
@@ -91,6 +98,7 @@ final class CreateEvent
         ): Event {
             $event = Event::query()->create([
                 'alliance_id' => $alliance->id,
+                'template_id' => $template?->id,
                 'title' => trim($title),
                 'instructions' => $instructions === null ? null : trim($instructions),
                 'timezone' => $alliance->timezone,
@@ -132,6 +140,7 @@ final class CreateEvent
                 subject: $event,
                 alliance: $alliance,
                 metadata: [
+                    'template_id' => $template?->id,
                     'recurrence' => $frequency->value,
                     'occurrence_count' => count($occurrenceStarts),
                     'published' => $publish,
@@ -139,6 +148,7 @@ final class CreateEvent
             );
 
             $this->outbox->record('event.created', $alliance, $event, [
+                'template_id' => $template?->id,
                 'recurrence' => $frequency->value,
                 'occurrence_count' => count($occurrenceStarts),
                 'published' => $publish,
