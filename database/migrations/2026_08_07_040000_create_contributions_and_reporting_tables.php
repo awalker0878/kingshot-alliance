@@ -66,6 +66,8 @@ return new class extends Migration
             $table->text('correction_reason')->nullable();
             $table->timestamps();
 
+            $table->unique(['id', 'alliance_id']);
+            $table->unique(['category_id', 'event_registration_id']);
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
             $table->foreign(['category_id', 'alliance_id'])
                 ->references(['id', 'alliance_id'])
@@ -79,12 +81,10 @@ return new class extends Migration
                 ->references(['id', 'alliance_id'])
                 ->on('event_registrations')
                 ->restrictOnDelete();
-            $table->foreign('correction_of_record_id')
-                ->references('id')
+            $table->foreign(['correction_of_record_id', 'alliance_id'])
+                ->references(['id', 'alliance_id'])
                 ->on('contribution_records')
                 ->restrictOnDelete();
-            $table->unique(['id', 'alliance_id']);
-            $table->unique(['category_id', 'event_registration_id']);
             $table->index(['alliance_id', 'membership_id', 'period_start', 'period_end']);
             $table->index(['alliance_id', 'category_id', 'status']);
         });
