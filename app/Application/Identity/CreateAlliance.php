@@ -13,7 +13,6 @@ use App\Models\AuditEvent;
 use App\Models\OutboxMessage;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 final readonly class CreateAlliance
