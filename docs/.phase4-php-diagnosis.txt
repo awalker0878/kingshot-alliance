@@ -70,6 +70,6 @@ Configuration: /home/runner/work/kingshot-alliance/kingshot-alliance/phpunit.xml
 ............................................................... 126 / 128 ( 98%)
 ..                                                              128 / 128 (100%)
 
-Time: 00:06.893, Memory: 36.50 MB
+Time: 00:06.852, Memory: 36.50 MB
 
 [30;42mOK (128 tests, 813 assertions)[0m
