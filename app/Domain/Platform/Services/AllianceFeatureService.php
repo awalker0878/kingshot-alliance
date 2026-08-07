@@ -44,9 +44,10 @@ final class AllianceFeatureService
             ->get()
             ->map(static fn (AllianceFeatureFlag $flag): array => [
                 'key' => (string) $flag->feature_key,
-                'enabled' => (bool) $flag->enabled,
-                'configuration' => is_array($flag->configuration) ? $flag->configuration : null,
+                'enabled' => $flag->enabled,
+                'configuration' => $flag->configuration,
             ])
+            ->values()
             ->all();
     }
 }
