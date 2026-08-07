@@ -39,16 +39,19 @@ final class AuditEvent extends Model
         ];
     }
 
+    /** @return BelongsTo<Alliance, $this> */
     public function alliance(): BelongsTo
     {
         return $this->belongsTo(Alliance::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function actor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'actor_user_id');
     }
 
+    /** @return MorphTo<Model, $this> */
     public function subject(): MorphTo
     {
         return $this->morphTo();
