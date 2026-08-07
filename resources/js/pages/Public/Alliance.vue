@@ -33,8 +33,6 @@ const props = defineProps<{
   filters: { q: string; type: string; category: string; locale: string };
   categories: Array<{ name: string; slug: string }>;
   content: ContentCard[];
-  upcomingActivities: unknown[];
-  upcomingActivitiesPhase: number;
 }>();
 
 const filters = reactive({ ...props.filters });
@@ -119,7 +117,7 @@ function formatPublished(value: string | null): string {
       </div>
     </section>
 
-    <div class="mx-auto grid max-w-6xl gap-8 px-6 py-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:px-8">
+    <div class="mx-auto max-w-6xl px-6 py-10 lg:px-8">
       <section aria-labelledby="content-heading">
         <div class="flex items-center justify-between gap-4">
           <div>
@@ -228,17 +226,6 @@ function formatPublished(value: string | null): string {
           No public content matches these filters.
         </p>
       </section>
-
-      <aside
-        class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 lg:self-start"
-        aria-labelledby="activities-heading"
-      >
-        <h2 id="activities-heading" class="text-lg font-semibold">Upcoming activities</h2>
-        <p class="mt-3 text-sm text-slate-400">
-          Event schedules arrive in Phase {{ upcomingActivitiesPhase }}. This Phase 2 page
-          intentionally does not create placeholder event records.
-        </p>
-      </aside>
     </div>
   </main>
 </template>
