@@ -38,7 +38,7 @@ final class AllianceFeatureService
     /** @return list<array{key: string, enabled: bool, configuration: array<string, mixed>|null}> */
     public function all(Alliance $alliance): array
     {
-        return AllianceFeatureFlag::query()
+        $flags = AllianceFeatureFlag::query()
             ->where('alliance_id', $alliance->id)
             ->orderBy('feature_key')
             ->get()
@@ -47,7 +47,8 @@ final class AllianceFeatureService
                 'enabled' => $flag->enabled,
                 'configuration' => $flag->configuration,
             ])
-            ->values()
             ->all();
+
+        return array_values($flags);
     }
 }
