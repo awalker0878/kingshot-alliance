@@ -1,0 +1,38 @@
+name: Phase 6 class diagnostic
+
+on:
+  push:
+    branches:
+      - agent/phase-6-platform-scale-administration
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    if: ${{ !contains(github.event.head_commit.message, 'Capture Phase 6 class diagnostic') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/phase-6-platform-scale-administration
+      - name: Capture declarations and paths
+        shell: bash
+        run: |
+          {
+            echo '=== declarations ==='
+            grep -RFn --include='*.php' 'class PlatformAdministrationController' . || true
+            echo '=== namespace mentions ==='
+            grep -RFn --include='*.php' 'App\\Domain\\Platform\\Http\\Controllers\\PlatformAdministrationController' . || true
+            echo '=== controller files ==='
+            find . -type f -iname '*PlatformAdministrationController*' -print | sort
+            echo '=== platform controller directory ==='
+            find app/Domain/Platform/Http/Controllers -maxdepth 1 -type f -print | sort
+            echo '=== composer psr4 ==='
+            grep -n 'App\\\\' composer.json || true
+          } > .github/phase6-class-diagnostic.log
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/phase6-class-diagnostic.log
+          git commit -m "Capture Phase 6 class diagnostic"
+          git push origin HEAD:agent/phase-6-platform-scale-administration
