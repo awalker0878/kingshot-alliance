@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property EventStatus $status
  * @property RecurrenceFrequency $recurrence_frequency
+ * @property Carbon $starts_at
  * @property Carbon|null $recurrence_until
  */
 final class Event extends Model
@@ -31,6 +32,7 @@ final class Event extends Model
         'title',
         'instructions',
         'timezone',
+        'starts_at',
         'duration_minutes',
         'capacity',
         'registration_opens_minutes_before',
@@ -49,6 +51,7 @@ final class Event extends Model
         return [
             'status' => EventStatus::class,
             'recurrence_frequency' => RecurrenceFrequency::class,
+            'starts_at' => 'datetime',
             'recurrence_weekdays' => 'array',
             'recurrence_until' => 'datetime',
         ];
