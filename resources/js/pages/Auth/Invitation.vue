@@ -28,7 +28,8 @@ function accept(): void {
       <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">Invitation</p>
       <h1 class="mt-3 text-3xl font-bold">Join {{ invitation.alliance.name }}</h1>
       <p class="mt-3 text-sm text-slate-300">
-        This invitation is for <strong>{{ invitation.email }}</strong>.
+        This invitation is for <strong>{{ invitation.email }}</strong
+        >.
       </p>
       <p v-if="invitation.expiresAt" class="mt-2 text-xs text-slate-500">
         Expires {{ new Date(invitation.expiresAt).toLocaleString() }}

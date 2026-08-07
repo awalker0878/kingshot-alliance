@@ -45,7 +45,9 @@ const inviteForm = useForm({
 });
 
 const statusSelections = reactive<Record<string, string>>(
-  Object.fromEntries(props.membershipManagement.members.map((member) => [member.id, member.status])),
+  Object.fromEntries(
+    props.membershipManagement.members.map((member) => [member.id, member.status]),
+  ),
 );
 const roleSelections = reactive<Record<string, string>>({});
 
@@ -158,7 +160,7 @@ function leaveAlliance(): void {
       >
         New invitation link:
         <a
-          class="ml-1 break-all font-semibold underline"
+          class="ml-1 font-semibold break-all underline"
           :href="props.invitationManagement.issuedLink"
           rel="noopener noreferrer"
           target="_blank"
@@ -195,9 +197,9 @@ function leaveAlliance(): void {
         <table class="min-w-full text-left text-sm">
           <thead class="text-slate-400">
             <tr>
-              <th class="pb-3 pr-5 font-medium">Email</th>
-              <th class="pb-3 pr-5 font-medium">Status</th>
-              <th class="pb-3 pr-5 font-medium">Expires</th>
+              <th class="pr-5 pb-3 font-medium">Email</th>
+              <th class="pr-5 pb-3 font-medium">Status</th>
+              <th class="pr-5 pb-3 font-medium">Expires</th>
               <th class="pb-3 font-medium">Actions</th>
             </tr>
           </thead>
@@ -255,7 +257,10 @@ function leaveAlliance(): void {
             <div>
               <h3 class="font-semibold">
                 {{ member.user.name }}
-                <span v-if="member.user.id === props.membershipManagement.currentUserId" class="text-slate-500">
+                <span
+                  v-if="member.user.id === props.membershipManagement.currentUserId"
+                  class="text-slate-500"
+                >
                   (you)
                 </span>
               </h3>
@@ -264,7 +269,10 @@ function leaveAlliance(): void {
             </div>
 
             <div
-              v-if="props.membershipManagement.allowed && member.user.id !== props.membershipManagement.currentUserId"
+              v-if="
+                props.membershipManagement.allowed &&
+                member.user.id !== props.membershipManagement.currentUserId
+              "
               class="flex gap-2"
             >
               <select

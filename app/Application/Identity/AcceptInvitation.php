@@ -36,7 +36,7 @@ final readonly class AcceptInvitation
                 ->firstOrFail();
 
             if (! hash_equals(Str::lower((string) $invitation->email), Str::lower((string) $user->email))) {
-                throw new AuthorizationException();
+                throw new AuthorizationException;
             }
 
             $alliance = $invitation->alliance;

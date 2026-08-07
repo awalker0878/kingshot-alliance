@@ -29,7 +29,7 @@ final readonly class RemoveMembershipRole
         string $roleId,
     ): AllianceMembership {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::RoleManage)) {
-            throw new AuthorizationException();
+            throw new AuthorizationException;
         }
 
         return DB::transaction(function () use ($alliance, $actor, $membershipId, $roleId): AllianceMembership {

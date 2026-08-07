@@ -9,7 +9,6 @@ use App\Domain\Identity\Authorization\PermissionKey;
 use App\Domain\Identity\Enums\MembershipStatus;
 use App\Models\Alliance;
 use App\Models\AllianceMembership;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -21,17 +20,17 @@ final readonly class MembershipAdministrationGuard
     public function assertCanManage(User $actor, Alliance $alliance, AllianceMembership $target): void
     {
         if ((string) $target->alliance_id !== (string) $alliance->id) {
-            throw new AuthorizationException();
+            throw new AuthorizationException;
         }
 
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::MembershipManage)) {
-            throw new AuthorizationException();
+            throw new AuthorizationException;
         }
 
         $actorMembership = $this->authorization->activeMembership($actor, $alliance);
 
         if (! $actorMembership instanceof AllianceMembership) {
-            throw new AuthorizationException();
+            throw new AuthorizationException;
         }
 
         if ((int) $target->user_id === (int) $actor->id) {
@@ -44,7 +43,7 @@ final readonly class MembershipAdministrationGuard
         $targetRank = $this->rank($target);
 
         if ($actorRank < $this->rankFor(DefaultAllianceRole::Owner) && $actorRank <= $targetRank) {
-            throw new AuthorizationException();
+            throw new AuthorizationException;
         }
     }
 

@@ -87,7 +87,11 @@ function submit(): void {
         Need an account?
         <Link
           class="font-semibold text-cyan-300 hover:text-cyan-200"
-          :href="props.invitationToken ? `/register?invitation=${encodeURIComponent(props.invitationToken)}` : '/register'"
+          :href="
+            props.invitationToken
+              ? `/register?invitation=${encodeURIComponent(props.invitationToken)}`
+              : '/register'
+          "
         >
           Register
         </Link>

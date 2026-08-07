@@ -14,7 +14,6 @@ use App\Domain\Identity\Authorization\DefaultAllianceRole;
 use App\Domain\Identity\Enums\InvitationStatus;
 use App\Domain\Identity\Enums\MembershipStatus;
 use App\Models\AllianceMembership;
-use App\Models\Invitation;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;

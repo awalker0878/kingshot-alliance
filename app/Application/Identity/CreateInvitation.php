@@ -28,7 +28,7 @@ final readonly class CreateInvitation
     public function handle(Alliance $alliance, User $actor, string $email): IssuedInvitation
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::InvitationManage)) {
-            throw new AuthorizationException();
+            throw new AuthorizationException;
         }
 
         $email = Str::lower(trim($email));

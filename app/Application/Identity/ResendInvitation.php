@@ -25,7 +25,7 @@ final readonly class ResendInvitation
     public function handle(Alliance $alliance, User $actor, string $invitationId): IssuedInvitation
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::InvitationManage)) {
-            throw new AuthorizationException();
+            throw new AuthorizationException;
         }
 
         return DB::transaction(function () use ($alliance, $actor, $invitationId): IssuedInvitation {
