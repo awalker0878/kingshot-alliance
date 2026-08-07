@@ -44,11 +44,11 @@ Replace informal recruitment tracking with a tenant-safe, auditable pipeline tha
 
 ## Implementation checkpoint
 
-Phase 4 has been initiated from accepted Phase 3 mainline. Recruitment implementation evidence will be recorded here as complete vertical slices pass the protected gates.
+The recruitment domain, public application flow, recruiter pipeline, decision/onboarding workflow, metrics, retention controls, migration/rollback tests, accessibility guards, and protected CI/security gates are implemented. A final product-surface audit identified question editing and recruiter navigation as the remaining close-out items before acceptance evidence can be finalized.
 
 ## Acceptance evidence
 
-Pending final-head validation.
+Current checkpoint head before close-out passed CI, CodeQL, and Dependency Review. Final-head validation will be recorded after the remaining product-surface gaps are closed and implementation-only workflow scaffolding is removed.
 
 ## Exit criteria
 
