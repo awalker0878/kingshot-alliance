@@ -28,7 +28,9 @@ function submitRecoveryCode(): void {
     <section class="w-full rounded-2xl border border-slate-800 bg-slate-900/70 p-8">
       <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">Security check</p>
       <h1 class="mt-3 text-3xl font-bold">Two-factor authentication</h1>
-      <p class="mt-2 text-sm text-slate-400">Enter the current six-digit code from your authenticator app.</p>
+      <p class="mt-2 text-sm text-slate-400">
+        Enter the current six-digit code from your authenticator app.
+      </p>
 
       <form class="mt-8 space-y-4" @submit.prevent="submitCode">
         <label class="block text-sm font-medium" for="two-factor-code">Authentication code</label>
@@ -43,7 +45,10 @@ function submitRecoveryCode(): void {
           type="text"
         />
         <p v-if="form.errors.code" class="text-sm text-rose-300">{{ form.errors.code }}</p>
-        <button class="w-full rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950" type="submit">
+        <button
+          class="w-full rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950"
+          type="submit"
+        >
           Verify code
         </button>
       </form>
@@ -60,7 +65,10 @@ function submitRecoveryCode(): void {
           placeholder="xxxx-xxxx-xxxx-xxxx"
           type="text"
         />
-        <button class="w-full rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="submit">
+        <button
+          class="w-full rounded-lg border border-slate-700 px-4 py-2 font-semibold"
+          type="submit"
+        >
           Use recovery code
         </button>
       </form>
