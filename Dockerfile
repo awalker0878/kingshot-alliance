@@ -21,23 +21,17 @@ RUN apk add --no-cache \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
         icu-dev \
-        libxml2-dev \
         libzip-dev \
-        oniguruma-dev \
         postgresql-dev \
     && docker-php-ext-install -j"$(nproc)" \
         intl \
-        mbstring \
-        opcache \
         pcntl \
         pdo_pgsql \
-        simplexml \
-        xml \
-        xmlwriter \
         zip \
     && pecl install redis \
     && docker-php-ext-enable redis \
-    && apk del .build-deps
+    && apk del .build-deps \
+    && php -r 'foreach (["dom", "intl", "mbstring", "opcache", "pcntl", "pdo_pgsql", "redis", "SimpleXML", "xml", "xmlwriter", "zip"] as $extension) { if (! extension_loaded($extension)) { fwrite(STDERR, "Missing PHP extension: {$extension}\n"); exit(1); } }'
 
 FROM php-base AS vendor
 WORKDIR /app
