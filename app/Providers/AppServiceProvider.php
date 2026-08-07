@@ -6,9 +6,12 @@ namespace App\Providers;
 
 use App\Application\Content\BasicMediaScanner;
 use App\Application\Content\MediaScanner;
+use App\Application\Events\MarkEventReminderPublished;
 use App\Application\Identity\AllianceContext;
+use App\Domain\Shared\Events\OutboxPublished;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -36,6 +39,10 @@ final class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiting();
+
+        Event::listen(OutboxPublished::class, function (OutboxPublished $event): void {
+            $this->app->make(MarkEventReminderPublished::class)->handle($event);
+        });
 
         $environment = $this->app->environment();
         $appScheme = strtolower((string) parse_url((string) config('app.url'), PHP_URL_SCHEME));
