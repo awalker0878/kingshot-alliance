@@ -38,6 +38,15 @@ final class RecruitmentCandidateOnboarding extends Model
         ];
     }
 
+    public function onboardingStatus(): RecruitmentOnboardingStatus
+    {
+        $value = $this->getAttribute('status');
+
+        return $value instanceof RecruitmentOnboardingStatus
+            ? $value
+            : RecruitmentOnboardingStatus::from((string) $value);
+    }
+
     /** @return BelongsTo<RecruitmentCandidate, $this> */
     public function candidate(): BelongsTo
     {
