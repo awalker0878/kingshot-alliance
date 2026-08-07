@@ -95,7 +95,7 @@ This review covers the Phase 2 public alliance profile, public/member content re
 
 Phase 2 feature tests cover public direct-slug isolation, member-only visibility, edit-to-draft behavior, revision restore, scheduled publication, cross-alliance category/media rejection, management authorization/password confirmation, tenant-prefixed media storage, malware-screen rejection, public-branding restrictions, and media lifecycle rules.
 
-The integrated Phase 1–4 regression suite additionally verifies that public recruitment state is derived from Phase 4 `RecruitmentSetting` rather than duplicated in the content-profile schema. See `docs/PHASES_1_4_ALIGNMENT_AUDIT.md`.
+The integrated Phase 1–4 regression suite additionally verifies that public recruitment state is derived from Phase 4 `RecruitmentSetting` rather than duplicated in the content-profile schema. See `docs/product/PHASES_1_4_ALIGNMENT_AUDIT.md`.
 
 CodeQL, dependency audits, PHPStan, frontend checks, PostgreSQL migration tests, immutable staging deployment, destructive recovery, and Trivy remain mandatory on the final acceptance head.
 

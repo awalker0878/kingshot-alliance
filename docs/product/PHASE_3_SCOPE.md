@@ -1,6 +1,6 @@
 # Phase 3 Scope — Events and Rallies
 
-Phase 3 implements the event/rally capabilities defined by `docs/IMPLEMENTATION_PLAN.md` and must remain within that boundary.
+Phase 3 implements the event/rally capabilities defined by `docs/product/IMPLEMENTATION_PLAN.md` and must remain within that boundary.
 
 ## In scope
 

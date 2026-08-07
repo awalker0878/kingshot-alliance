@@ -7,7 +7,7 @@
 
 ## Decision
 
-Phase 0 is **Accepted** against the five exit criteria approved in `docs/IMPLEMENTATION_PLAN.md`. Phase 1 may begin after PR #2 is merged to `main`.
+Phase 0 is **Accepted** against the five exit criteria approved in `docs/product/IMPLEMENTATION_PLAN.md`. Phase 1 may begin after PR #2 is merged to `main`.
 
 Phase 0 establishes the engineering and operational foundation only. It intentionally excludes Phase 1 identity and alliance-domain capabilities.
 
@@ -96,7 +96,7 @@ Major categories include dependency/toolchain compatibility, locked builds, PHP 
 
 ## Repository-hardening follow-up
 
-`docs/BRANCH_PROTECTION.md` contains validated stable check names and recommended repository settings. Enabling GitHub Dependency graph and applying the documented `main` branch-protection/ruleset policy are recommended repository-governance hardening actions before production use, but neither is one of the five approved Phase 0 exit criteria.
+`docs/operations/BRANCH_PROTECTION.md` contains validated stable check names and recommended repository settings. Enabling GitHub Dependency graph and applying the documented `main` branch-protection/ruleset policy are recommended repository-governance hardening actions before production use, but neither is one of the five approved Phase 0 exit criteria.
 
 ## Acceptance
 

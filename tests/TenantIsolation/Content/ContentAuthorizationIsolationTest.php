@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Content;
+namespace Tests\TenantIsolation\Content;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Content\Actions\PublishContentItem;

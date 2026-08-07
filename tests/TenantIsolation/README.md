@@ -1,3 +1,3 @@
-# TenantIsolation tests
+# Tenant-isolation tests
 
-This test group is required by the implementation-plan repository structure.
+Adversarial multi-alliance isolation tests live here. They verify that authorization, route resolution, queries, and persistence fail closed when records or memberships belong to another alliance.

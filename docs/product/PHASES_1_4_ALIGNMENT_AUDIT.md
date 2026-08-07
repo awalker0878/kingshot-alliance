@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-08-07  
 **Scope:** Integrated implementation on `main` after acceptance of Phases 1–4  
-**Reference:** `docs/IMPLEMENTATION_PLAN.md` plus all architecture decisions, security/definition-of-done standards, runbooks, phase exit reports, threat models, accessibility reviews, migration/rollback notes, operations guides, and user guides under `docs/`.
+**Reference:** `docs/product/IMPLEMENTATION_PLAN.md` plus all architecture decisions, security/definition-of-done standards, runbooks, phase exit reports, threat models, accessibility reviews, migration/rollback notes, operations guides, and user guides under `docs/`.
 
 ## Purpose
 
@@ -95,7 +95,7 @@ Recruiter read surfaces remain available to authorized recruiters without forced
 
 **Resolution:** Protect coordinator and recruiter mutation routes with `password.confirm`. Keep read-only management pages and member self-service event actions outside that middleware. Add HTTP regression tests for both the required confirmation and the existing tenant-isolation behavior behind a confirmed session.
 
-**Reason:** `docs/SECURITY_BASELINE.md` requires privileged changes to have authorization, confirmation, and audit. The integrated product should enforce that rule consistently across implemented domains.
+**Reason:** `docs/security/SECURITY_BASELINE.md` requires privileged changes to have authorization, confirmation, and audit. The integrated product should enforce that rule consistently across implemented domains.
 
 ## Deliberate non-changes
 

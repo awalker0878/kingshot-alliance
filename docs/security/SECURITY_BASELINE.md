@@ -41,7 +41,7 @@
 - Confirmed MFA interrupts password login before an authenticated session is established. Successful challenge regenerates the session identifier; challenge attempts are separately rate limited.
 - Starting MFA enrollment cannot overwrite an already-confirmed factor. Enrollment, confirmation, recovery-code regeneration, and disable operations require a verified account and recent password confirmation.
 - Authentication, recovery, MFA, alliance, invitation, membership, and role transitions write attributable audit records where the operation is security relevant.
-- The Phase 1 threat assessment is maintained in `docs/PHASE_1_THREAT_MODEL.md`.
+- The Phase 1 threat assessment is maintained in `docs/security/PHASE_1_THREAT_MODEL.md`.
 
 Operational dashboards follow the same boundary. Pulse registers no dashboard route and recording remains disabled until its schema and access policy are introduced. Horizon workers remain available, but the dashboard and mutation APIs remain explicitly denied because Phase 1 introduces alliance identity rather than a platform-operator administration model.
 
@@ -82,7 +82,7 @@ Operational dashboards follow the same boundary. Pulse registers no dashboard ro
 - Object storage defaults to private visibility and fails on write errors.
 - Sensitive exports are authorized, tenant-prefixed, time limited, and audited when export domains are introduced.
 - Retention and deletion rules are defined with each domain.
-- Phase 1 migration and rollback behavior is documented in `docs/PHASE_1_MIGRATION_ROLLBACK.md`; normal application rollback does not automatically reverse database migrations.
+- Phase 1 migration and rollback behavior is documented in `docs/operations/PHASE_1_MIGRATION_ROLLBACK.md`; normal application rollback does not automatically reverse database migrations.
 
 ## Dependencies and supply chain
 
@@ -114,4 +114,4 @@ Operational dashboards follow the same boundary. Pulse registers no dashboard ro
 - Horizon has explicit local, staging, and production supervisor settings. Hosted supervisor counts must remain between 1 and 64 processes.
 - Backup manifests record the running release SHA and image reference, and CI validates both before destructive restore.
 - Production debugging is disabled.
-- Incident response follows `docs/runbooks/incident-response.md`.
+- Incident response follows `docs/operations/runbooks/incident-response.md`.

@@ -1,3 +1,3 @@
 # Integration tests
 
-This test group is required by the implementation-plan repository structure.
+Integration tests verify behavior spanning multiple domain/application boundaries or infrastructure concerns, including migration rollback and transactional outbox publication.

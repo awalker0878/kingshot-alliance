@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Identity;
+namespace Tests\TenantIsolation\Identity;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Services\AllianceContext;

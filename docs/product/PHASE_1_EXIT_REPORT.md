@@ -118,10 +118,10 @@ Automated and route-level verification covers:
 
 ## Documentation and governance
 
-- Formal Phase 1 threat model: `docs/PHASE_1_THREAT_MODEL.md`.
-- Migration/rollback strategy: `docs/PHASE_1_MIGRATION_ROLLBACK.md`.
-- Targeted accessibility review: `docs/PHASE_1_ACCESSIBILITY_REVIEW.md`.
-- Updated security baseline: `docs/SECURITY_BASELINE.md`.
+- Formal Phase 1 threat model: `docs/security/PHASE_1_THREAT_MODEL.md`.
+- Migration/rollback strategy: `docs/operations/PHASE_1_MIGRATION_ROLLBACK.md`.
+- Targeted accessibility review: `docs/product/PHASE_1_ACCESSIBILITY_REVIEW.md`.
+- Updated security baseline: `docs/security/SECURITY_BASELINE.md`.
 - Existing deployment, rollback, backup/restore, incident-response, and branch-protection documentation remains applicable.
 
 The accessibility review identified two alliance-administration selects without accessible names; both were corrected before acceptance. No unresolved critical or high-risk finding remains in the implemented Phase 1 scope.

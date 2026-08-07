@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Shared;
+namespace Tests\Integration\Platform;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Identity\Models\User;

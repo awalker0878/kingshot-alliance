@@ -4,7 +4,7 @@ Generated from the repository filesystem on the architecture-alignment branch.
 
 ## Canonical target
 
-The source of truth is `docs/IMPLEMENTATION_PLAN.md` section 11.
+The source of truth is `docs/product/IMPLEMENTATION_PLAN.md` section 11.
 
 ## Top-level structure
 

@@ -2,7 +2,7 @@
 
 ## Delivery model
 
-Work is organized by the phase gates in `docs/IMPLEMENTATION_PLAN.md`. Implement only the active phase. Do not add compatibility shims, unused domain placeholders, speculative tables, or partial features from later phases.
+Work is organized by the phase gates in `docs/product/IMPLEMENTATION_PLAN.md`. Implement only the active phase. Do not add compatibility shims, unused domain placeholders, speculative tables, or partial features from later phases.
 
 ## Development workflow
 
