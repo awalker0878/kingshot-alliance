@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Alliances\Http\Middleware;
 
+use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Alliances\ValueObjects\TenantContextSnapshot;
@@ -47,6 +48,11 @@ final readonly class ResolveAllianceContext
 
         if (! $alliance instanceof Alliance) {
             throw new LogicException('An active membership must reference an alliance.');
+        }
+
+        if ($alliance->status !== AllianceStatus::Active) {
+            $request->session()->forget($sessionKey);
+            abort(403, 'The alliance is not currently active.');
         }
 
         $this->context->activate($alliance, $user);
