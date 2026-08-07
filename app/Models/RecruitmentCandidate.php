@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $withdrawn_at
  * @property Carbon|null $joined_at
  * @property Carbon|null $retention_due_at
+ * @property Carbon|null $anonymized_at
  */
 final class RecruitmentCandidate extends Model
 {
@@ -50,6 +51,7 @@ final class RecruitmentCandidate extends Model
         'withdrawn_at',
         'joined_at',
         'retention_due_at',
+        'anonymized_at',
         'created_by_user_id',
         'updated_by_user_id',
     ];
@@ -66,6 +68,7 @@ final class RecruitmentCandidate extends Model
             'withdrawn_at' => 'datetime',
             'joined_at' => 'datetime',
             'retention_due_at' => 'datetime',
+            'anonymized_at' => 'datetime',
         ];
     }
 
