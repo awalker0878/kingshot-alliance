@@ -1,6 +1,6 @@
 # Phase 5 Exit Report — Contributions and Reporting
 
-**Status:** Candidate — final CI/staging gates pending  
+**Status:** Accepted  
 **Phase:** 5 — Contributions and reporting
 
 ## Outcome
@@ -58,6 +58,20 @@ Phase-specific automated coverage includes:
 - contribution effective-period/timezone behavior;
 - structural accessibility guards for Phase 5 Vue pages.
 
+Final protected validation on the accepted implementation head passed:
+
+- PHP formatting and static analysis;
+- PostgreSQL migrations;
+- full backend test suite: 163 tests and 1,395 assertions;
+- frontend formatting, linting, type checking, and production build;
+- tenant-isolation and migration rollback/reapply coverage;
+- Dependency Review;
+- CodeQL;
+- immutable production-image build;
+- ephemeral staging deployment;
+- backup and restore demonstration;
+- container image vulnerability scan.
+
 ## Documentation
 
 - `docs/domains/CONTRIBUTIONS_AND_REPORTING.md`
@@ -68,6 +82,8 @@ Phase-specific automated coverage includes:
 
 ## Final gate
 
-This report remains **Candidate** until the final pull-request head passes formatting, static analysis, full backend/frontend tests, tenant-isolation and migration tests, dependency review, CodeQL, immutable-image staging deployment, backup/restore demonstration, and image scanning. Once those protected checks are green, this report may be updated to **Accepted** before merge.
+Phase 5 is **Accepted**. The implementation head passed the complete protected phase gate with no unresolved test, static-analysis, dependency, CodeQL, staging, recovery, or image-scan failure.
+
+This acceptance update is documentation-only and must itself pass the repository's protected checks before merge.
 
 Phase 6 platform scale/administration work is not included and must not begin as part of this phase.
