@@ -201,6 +201,9 @@ final class ContributionController extends Controller
         ApproveContributionRecord $approve,
     ): RedirectResponse {
         [$user, $alliance] = $this->requireManager($request, $context, $authorization);
+        $record = ContributionRecord::query()
+            ->where('alliance_id', $alliance->id)
+            ->findOrFail($record->id);
         $approve->handle($user, $alliance, $record);
 
         return back()->with('status', 'Contribution approved.');
@@ -214,6 +217,9 @@ final class ContributionController extends Controller
         CorrectContributionRecord $correct,
     ): RedirectResponse {
         [$user, $alliance] = $this->requireManager($request, $context, $authorization);
+        $record = ContributionRecord::query()
+            ->where('alliance_id', $alliance->id)
+            ->findOrFail($record->id);
         $validated = $request->validate([
             'value' => ['required', 'numeric', 'min:0'],
             'reason' => ['required', 'string', 'max:2000'],
@@ -239,6 +245,9 @@ final class ContributionController extends Controller
         ReverseContributionRecord $reverse,
     ): RedirectResponse {
         [$user, $alliance] = $this->requireManager($request, $context, $authorization);
+        $record = ContributionRecord::query()
+            ->where('alliance_id', $alliance->id)
+            ->findOrFail($record->id);
         $validated = $request->validate(['reason' => ['required', 'string', 'max:2000']]);
         $reverse->handle($user, $alliance, $record, $validated['reason']);
 
@@ -286,6 +295,9 @@ final class ContributionController extends Controller
         ResolveContributionDataQualityFlag $resolve,
     ): RedirectResponse {
         [$user, $alliance] = $this->requireManager($request, $context, $authorization);
+        $flag = ContributionDataQualityFlag::query()
+            ->where('alliance_id', $alliance->id)
+            ->findOrFail($flag->id);
         $resolve->handle($user, $alliance, $flag);
 
         return back()->with('status', 'Data-quality flag resolved.');
