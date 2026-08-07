@@ -36,13 +36,19 @@ final class IntegrationManagementController extends Controller
         abort_unless($user instanceof User, 401);
         $alliance = $context->alliance();
         abort_unless($authorization->allows($user, $alliance, PermissionKey::AllianceManage), 403);
-        $settings = AlliancePlatformSetting::query()->find($alliance->id);
+        $settings = AlliancePlatformSetting::query()->whereKey($alliance->id)->first();
+        $apiAccessEnabled = $settings instanceof AlliancePlatformSetting
+            ? (bool) $settings->api_access_enabled
+            : true;
+        $webhooksEnabled = $settings instanceof AlliancePlatformSetting
+            ? (bool) $settings->webhooks_enabled
+            : true;
 
         return Inertia::render('Alliance/Integrations/Manage', [
             'alliance' => ['id' => (string) $alliance->id, 'name' => (string) $alliance->name],
             'settings' => [
-                'apiAccessEnabled' => $settings?->api_access_enabled ?? true,
-                'webhooksEnabled' => $settings?->webhooks_enabled ?? true,
+                'apiAccessEnabled' => $apiAccessEnabled,
+                'webhooksEnabled' => $webhooksEnabled,
             ],
             'limits' => $entitlements->limits($alliance),
             'allowedScopes' => CreateApiCredential::allowedScopes(),
