@@ -30,7 +30,7 @@ jobs:
         run: |
           test -f composer.lock
           composer validate --strict
-          composer audit
+          composer audit --locked
 
       - name: Configure Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
