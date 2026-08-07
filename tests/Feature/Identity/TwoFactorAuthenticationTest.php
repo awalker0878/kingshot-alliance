@@ -8,6 +8,7 @@ use App\Application\Identity\TotpService;
 use App\Application\Identity\TwoFactorManager;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 final class TwoFactorAuthenticationTest extends TestCase
@@ -39,6 +40,27 @@ final class TwoFactorAuthenticationTest extends TestCase
             'actor_user_id' => $user->id,
             'event' => 'auth.mfa.enabled',
         ]);
+    }
+
+    public function test_enabled_mfa_cannot_be_overwritten_by_starting_enrollment_again(): void
+    {
+        $user = User::factory()->create();
+        $manager = $this->app->make(TwoFactorManager::class);
+        $totp = $this->app->make(TotpService::class);
+        $setup = $manager->begin($user);
+        $manager->confirm($user, $totp->codeForCounter($setup['secret'], intdiv(time(), 30)));
+        $user->refresh();
+        $confirmedSecret = $user->two_factor_secret;
+        $confirmedAt = $user->two_factor_confirmed_at;
+
+        try {
+            $manager->begin($user);
+            self::fail('Confirmed MFA must not be downgraded by restarting enrollment.');
+        } catch (ValidationException) {
+            $user->refresh();
+            self::assertSame($confirmedSecret, $user->two_factor_secret);
+            self::assertEquals($confirmedAt, $user->two_factor_confirmed_at);
+        }
     }
 
     public function test_confirmed_mfa_interrupts_password_login_until_totp_challenge_succeeds(): void
