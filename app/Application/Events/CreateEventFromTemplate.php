@@ -10,6 +10,7 @@ use App\Models\EventTemplate;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
+use InvalidArgumentException;
 
 final class CreateEventFromTemplate
 {
@@ -19,13 +20,17 @@ final class CreateEventFromTemplate
         User $actor,
         Alliance $alliance,
         EventTemplate $template,
-        CarbonImmutable $firstLocalStart,
+        ?CarbonImmutable $firstLocalStart,
         ?CarbonImmutable $recurrenceUntilLocal = null,
         ?string $title = null,
         bool $publish = true,
     ): Event {
         if ($template->alliance_id !== $alliance->id || ! $template->is_active) {
             throw new AuthorizationException('The event template is not available in the active alliance.');
+        }
+
+        if (! $firstLocalStart instanceof CarbonImmutable) {
+            throw new InvalidArgumentException('Event start date is required.');
         }
 
         return $this->createEvent->handle(
