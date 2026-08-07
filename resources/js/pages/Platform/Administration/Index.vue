@@ -72,7 +72,6 @@ const ownershipForm = useForm({ membership_id: '' });
 const featureForm = useForm({
   feature_key: '',
   enabled: true,
-  configuration: {} as Record<string, unknown>,
 });
 const selected = props.selectedAlliance
   ? (props.platform.alliances.find((alliance) => alliance.id === props.selectedAlliance?.id) ??
