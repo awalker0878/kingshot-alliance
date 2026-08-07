@@ -10,6 +10,7 @@ use App\Application\Events\CreateEventReminderRule;
 use App\Application\Events\QueueDueEventReminders;
 use App\Application\Events\RegisterForEvent;
 use App\Application\Events\SyncEventReminderDeliveries;
+use App\Application\Identity\CreateAlliance;
 use App\Application\Shared\PublishOutboxBatch;
 use App\Domain\Events\Enums\EventReminderDeliveryStatus;
 use App\Models\EventOccurrence;
@@ -35,7 +36,7 @@ final class EventReminderDeliveryTest extends TestCase
         CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-07 14:00:00', 'UTC'));
 
         $owner = User::factory()->create();
-        $alliance = $this->app->make(\App\Application\Identity\CreateAlliance::class)->handle(
+        $alliance = $this->app->make(CreateAlliance::class)->handle(
             owner: $owner,
             name: 'Reminder Alliance',
             slug: 'reminder-alliance',
@@ -90,7 +91,7 @@ final class EventReminderDeliveryTest extends TestCase
         CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-07 14:00:00', 'UTC'));
 
         $owner = User::factory()->create();
-        $alliance = $this->app->make(\App\Application\Identity\CreateAlliance::class)->handle(
+        $alliance = $this->app->make(CreateAlliance::class)->handle(
             owner: $owner,
             name: 'Cancelled Reminder Alliance',
             slug: 'cancelled-reminder-alliance',

@@ -6,8 +6,8 @@ namespace App\Application\Events;
 
 use App\Application\Identity\AllianceAuthorization;
 use App\Application\Identity\AuditRecorder;
-use App\Domain\Events\FormationComposition;
 use App\Domain\Events\Enums\RallyAssignmentRole;
+use App\Domain\Events\FormationComposition;
 use App\Domain\Identity\Authorization\PermissionKey;
 use App\Models\Alliance;
 use App\Models\EventOccurrence;
