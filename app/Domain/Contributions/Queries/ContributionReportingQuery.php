@@ -272,6 +272,10 @@ final class ContributionReportingQuery
             ->get()
             ->map(function (ContributionRecord $record): array {
                 $category = $record->category;
+                if (! $category instanceof ContributionCategory) {
+                    throw new LogicException('Contribution record must reference a category.');
+                }
+
                 $membership = $record->membership;
                 $user = $membership?->user;
 
