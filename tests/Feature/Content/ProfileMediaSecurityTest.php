@@ -41,7 +41,6 @@ final class ProfileMediaSecurityTest extends TestCase
             'language' => 'pt-BR',
             'timezone' => 'America/Sao_Paulo',
             'description' => '<b>Public description</b>',
-            'recruitment_status' => 'open',
             'primary_color' => '#22d3ee',
             'logo_media_id' => $asset->id,
             'banner_media_id' => null,
@@ -51,7 +50,7 @@ final class ProfileMediaSecurityTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('alliance.description', 'Public description')
-                ->where('alliance.recruitmentStatus', 'open')
+                ->where('alliance.recruitmentStatus', 'closed')
                 ->where('alliance.primaryColor', '#22D3EE')
                 ->where('alliance.logoUrl', route('public.alliances.branding', ['brand-alliance', 'logo'])));
 
@@ -73,7 +72,6 @@ final class ProfileMediaSecurityTest extends TestCase
             'language' => 'pt-BR',
             'timezone' => 'America/Sao_Paulo',
             'description' => 'Public description',
-            'recruitment_status' => 'open',
             'primary_color' => '#22D3EE',
             'logo_media_id' => null,
             'banner_media_id' => null,
@@ -102,7 +100,6 @@ final class ProfileMediaSecurityTest extends TestCase
             'language' => 'en',
             'timezone' => 'UTC',
             'description' => null,
-            'recruitment_status' => 'closed',
             'primary_color' => null,
             'logo_media_id' => $secondAsset->id,
             'banner_media_id' => null,
