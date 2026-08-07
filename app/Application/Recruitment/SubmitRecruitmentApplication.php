@@ -115,6 +115,7 @@ final class SubmitRecruitmentApplication
 
                 if ($error !== null) {
                     $errors['answers.'.$question->id] = $error;
+
                     continue;
                 }
 

@@ -16,8 +16,11 @@ final class RecruitmentCandidateOnboarding extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $table = 'recruitment_candidate_onboarding';
+
     protected $fillable = [
         'alliance_id',
         'candidate_id',

@@ -13,7 +13,9 @@ final class RecruitmentNote extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $fillable = ['alliance_id', 'candidate_id', 'author_membership_id', 'body'];
 
     /** @return BelongsTo<RecruitmentCandidate, $this> */

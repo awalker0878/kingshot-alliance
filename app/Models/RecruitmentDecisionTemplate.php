@@ -13,7 +13,9 @@ final class RecruitmentDecisionTemplate extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $fillable = [
         'alliance_id',
         'name',

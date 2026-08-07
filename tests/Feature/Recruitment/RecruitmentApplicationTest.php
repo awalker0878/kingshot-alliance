@@ -16,7 +16,6 @@ use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Recruitment\Enums\RecruitmentQuestionType;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Models\AllianceMembership;
-use App\Models\RecruitmentCandidate;
 use App\Models\RecruitmentStageHistory;
 use App\Models\Role;
 use App\Models\User;
