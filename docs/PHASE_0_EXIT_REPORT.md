@@ -41,16 +41,16 @@ Phase 0 establishes the engineering and operational foundation only. It intentio
 - [x] Temporary lock-generation workflow removed in repository-owner commit `ea095942d967953bf3a355fec654f0fd34c74d41`.
 - [x] Composer and npm installs use committed lockfiles in CI and supported build paths.
 
-### Automated implementation baseline
+### Final automated acceptance baseline
 
-Validated implementation head: `b9632edaed606cfae9f6ec18790f02a99ee658c3`.
+Validated source head: `9b9e525cabac831ba62601e9847bf8e0168183c1`.
 
-- [x] CI run `31141660754` completed successfully.
+- [x] **Dependency Review** run `31142532395` completed successfully using locked Composer/npm validation and security audits.
+- [x] **CodeQL** run `31142532453` completed successfully for JavaScript/TypeScript.
+- [x] **CI** run `31142532578` completed successfully.
   - PHP: locked Composer install/audit, PostgreSQL migrations, Pint, Larastan/PHPStan, and parallel PHPUnit.
   - Frontend: locked npm install/audit, ESLint, Prettier, Vue/TypeScript checking, and Vite production build.
   - Container/staging/recovery: build-context guards, PHP 8.5 production image build, OCI metadata, staging Compose, migrations, liveness/readiness, exact runtime-role image identity, private backup, destructive restore, post-restore health/image identity, and Trivy HIGH/CRITICAL scan.
-- [x] Dependency Review run `31141660750` completed successfully using locked Composer/npm audits without depending on repository Dependency graph settings.
-- [x] CodeQL run `31141660742` completed successfully for the supported JavaScript/TypeScript language set.
 - [x] PHP 8.5 OPcache is validated through its built-in API rather than a removed `opcache.so` artifact.
 
 ### Clean-machine and staging evidence
@@ -83,7 +83,7 @@ Validated implementation head: `b9632edaed606cfae9f6ec18790f02a99ee658c3`.
 | Approved Phase 0 criterion | Status | Evidence |
 |---|---|---|
 | A new developer can build and run the application from documented steps | **Passed** | Fresh hosted runners installed and built from committed locks; local Docker workflow is documented. |
-| CI is required and passes on a representative pull request | **Passed** | Dependency Review `31141660750`, CodeQL `31141660742`, CI `31141660754`. |
+| CI is required and passes on a representative pull request | **Passed** | Dependency Review `31142532395`, CodeQL `31142532453`, CI `31142532578`. |
 | Staging can be deployed repeatably from a tagged build | **Passed** | OCI metadata and exact image identity were verified across all staging runtime roles. |
 | Backup and restore have been demonstrated against staging data | **Passed** | Private backup, checksum/manifest/provenance validation, destructive restore, and post-restore identity checks passed. |
 | No product domain depends on unapproved framework shortcuts or hidden global state | **Passed** | Architecture review, CI guards, package/route boundary tests, minimized runtime, and explicit Phase 1 boundary. |
@@ -92,7 +92,7 @@ Validated implementation head: `b9632edaed606cfae9f6ec18790f02a99ee658c3`.
 
 The Phase 0 gate corrected more than sixty implementation, security, reproducibility, recovery, privacy, licensing, container, and CI defects before acceptance. The commit history and PR discussion are the audit trail for individual fixes.
 
-Major categories include dependency/toolchain compatibility, locked builds, PHP 8.5 runtime behavior, immutable release provenance, backup/restore integrity, container least privilege, hosted fail-closed configuration, session/proxy/transport controls, operational dashboard authorization, privacy-safe telemetry, workflow supply-chain pinning, repository-independent dependency auditing, supported CodeQL language configuration, Phase 0/Phase 1 boundaries, GPL licensing, and local network exposure controls.
+Major categories include dependency/toolchain compatibility, locked builds, PHP 8.5 runtime behavior, immutable release provenance, backup/restore integrity, container least privilege, hosted fail-closed configuration, session/proxy/transport controls, operational dashboard authorization, privacy-safe telemetry, workflow supply-chain pinning, repository-independent dependency auditing, supported CodeQL language configuration, Phase 0/Phase 1 boundaries, GPL licensing, and local-development network exposure controls.
 
 ## Repository-hardening follow-up
 
