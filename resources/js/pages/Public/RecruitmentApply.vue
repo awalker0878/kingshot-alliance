@@ -26,7 +26,8 @@ const props = defineProps<{
 
 const initialAnswers: Record<string, string | boolean | string[]> = {};
 for (const question of props.questions) {
-  initialAnswers[question.id] = question.type === 'multi_select' ? [] : question.type === 'checkbox' ? false : '';
+  initialAnswers[question.id] =
+    question.type === 'multi_select' ? [] : question.type === 'checkbox' ? false : '';
 }
 
 const form = useForm({
@@ -64,7 +65,9 @@ function answerError(questionId: string): string | undefined {
       <section class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/70 p-6 sm:p-8">
         <p class="text-sm font-semibold tracking-[0.18em] text-cyan-300 uppercase">Recruitment</p>
         <h1 class="mt-2 text-3xl font-bold sm:text-4xl">{{ application.title }}</h1>
-        <p v-if="alliance.kingdom" class="mt-2 text-sm text-slate-400">Kingdom {{ alliance.kingdom }}</p>
+        <p v-if="alliance.kingdom" class="mt-2 text-sm text-slate-400">
+          Kingdom {{ alliance.kingdom }}
+        </p>
         <p v-if="application.introduction" class="mt-5 whitespace-pre-line text-slate-300">
           {{ application.introduction }}
         </p>
@@ -76,7 +79,8 @@ function answerError(questionId: string): string | undefined {
         >
           <h2 class="font-semibold text-emerald-100">Application received</h2>
           <p class="mt-1 text-sm text-emerald-200/80">
-            Your application was submitted successfully. The alliance recruitment team can now review it.
+            Your application was submitted successfully. The alliance recruitment team can now
+            review it.
           </p>
         </div>
 
@@ -123,7 +127,9 @@ function answerError(questionId: string): string | undefined {
 
           <div class="grid gap-5 sm:grid-cols-2">
             <div>
-              <label class="text-sm font-medium" for="recruitment-handle">Game/contact handle</label>
+              <label class="text-sm font-medium" for="recruitment-handle"
+                >Game/contact handle</label
+              >
               <input
                 id="recruitment-handle"
                 v-model="form.contact_handle"
@@ -133,7 +139,9 @@ function answerError(questionId: string): string | undefined {
               />
             </div>
             <div>
-              <label class="text-sm font-medium" for="recruitment-source">How did you hear about us?</label>
+              <label class="text-sm font-medium" for="recruitment-source"
+                >How did you hear about us?</label
+              >
               <input
                 id="recruitment-source"
                 v-model="form.source"
@@ -144,22 +152,33 @@ function answerError(questionId: string): string | undefined {
             </div>
           </div>
 
-          <section v-if="questions.length" class="space-y-6" aria-labelledby="recruitment-questions-heading">
-            <h2 id="recruitment-questions-heading" class="text-xl font-semibold">Application questions</h2>
+          <section
+            v-if="questions.length"
+            class="space-y-6"
+            aria-labelledby="recruitment-questions-heading"
+          >
+            <h2 id="recruitment-questions-heading" class="text-xl font-semibold">
+              Application questions
+            </h2>
 
             <div v-for="question in questions" :key="question.id">
-              <fieldset v-if="question.type === 'multi_select'" class="rounded-xl border border-slate-800 p-4">
+              <fieldset
+                v-if="question.type === 'multi_select'"
+                class="rounded-xl border border-slate-800 p-4"
+              >
                 <legend class="px-1 font-medium">
                   {{ question.prompt }}<span v-if="question.required" aria-hidden="true"> *</span>
                 </legend>
-                <p v-if="question.helpText" class="mt-1 text-sm text-slate-400">{{ question.helpText }}</p>
+                <p v-if="question.helpText" class="mt-1 text-sm text-slate-400">
+                  {{ question.helpText }}
+                </p>
                 <div class="mt-3 grid gap-2">
-                  <label v-for="option in question.options" :key="option" class="flex items-center gap-2 text-sm">
-                    <input
-                      v-model="form.answers[question.id] as string[]"
-                      type="checkbox"
-                      :value="option"
-                    />
+                  <label
+                    v-for="option in question.options"
+                    :key="option"
+                    class="flex items-center gap-2 text-sm"
+                  >
+                    <input v-model="form.answers[question.id]" type="checkbox" :value="option" />
                     <span>{{ option }}</span>
                   </label>
                 </div>
@@ -168,12 +187,25 @@ function answerError(questionId: string): string | undefined {
                 </p>
               </fieldset>
 
-              <label v-else-if="question.type === 'checkbox'" class="flex gap-3 rounded-xl border border-slate-800 p-4">
-                <input v-model="form.answers[question.id] as boolean" type="checkbox" :required="question.required" />
+              <label
+                v-else-if="question.type === 'checkbox'"
+                class="flex gap-3 rounded-xl border border-slate-800 p-4"
+              >
+                <input
+                  v-model="form.answers[question.id]"
+                  type="checkbox"
+                  :required="question.required"
+                />
                 <span>
                   <span class="font-medium">{{ question.prompt }}</span>
-                  <span v-if="question.helpText" class="mt-1 block text-sm text-slate-400">{{ question.helpText }}</span>
-                  <span v-if="answerError(question.id)" class="mt-1 block text-sm text-rose-300" role="alert">
+                  <span v-if="question.helpText" class="mt-1 block text-sm text-slate-400">{{
+                    question.helpText
+                  }}</span>
+                  <span
+                    v-if="answerError(question.id)"
+                    class="mt-1 block text-sm text-rose-300"
+                    role="alert"
+                  >
                     {{ answerError(question.id) }}
                   </span>
                 </span>
@@ -183,28 +215,32 @@ function answerError(questionId: string): string | undefined {
                 <label class="font-medium" :for="`question-${question.id}`">
                   {{ question.prompt }}<span v-if="question.required" aria-hidden="true"> *</span>
                 </label>
-                <p v-if="question.helpText" class="mt-1 text-sm text-slate-400">{{ question.helpText }}</p>
+                <p v-if="question.helpText" class="mt-1 text-sm text-slate-400">
+                  {{ question.helpText }}
+                </p>
                 <textarea
                   v-if="question.type === 'long_text'"
                   :id="`question-${question.id}`"
-                  v-model="form.answers[question.id] as string"
+                  v-model="form.answers[question.id]"
                   class="mt-2 min-h-32 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
                   :required="question.required"
                 />
                 <select
                   v-else-if="question.type === 'select'"
                   :id="`question-${question.id}`"
-                  v-model="form.answers[question.id] as string"
+                  v-model="form.answers[question.id]"
                   class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
                   :required="question.required"
                 >
                   <option value="">Choose an option</option>
-                  <option v-for="option in question.options" :key="option" :value="option">{{ option }}</option>
+                  <option v-for="option in question.options" :key="option" :value="option">
+                    {{ option }}
+                  </option>
                 </select>
                 <input
                   v-else
                   :id="`question-${question.id}`"
-                  v-model="form.answers[question.id] as string"
+                  v-model="form.answers[question.id]"
                   class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
                   :required="question.required"
                 />

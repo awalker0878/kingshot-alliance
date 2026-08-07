@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 type Candidate = {
   id: string;
@@ -83,7 +84,9 @@ const questionForm = useForm({
   position: props.questions.length,
   active: true,
 });
-const questionOptions = defineModel<string>('questionOptions', { default: '' });
+const questionOptions = ref('');
+const candidatePlaceholder = '{{candidate_name}}';
+const alliancePlaceholder = '{{alliance_name}}';
 const inviteForm = useForm({ email: '', ttl_hours: 72 });
 const decisionForm = useForm({
   name: '',
@@ -174,7 +177,8 @@ function percentage(value: number): string {
         </Link>
         <h1 class="mt-4 text-3xl font-bold sm:text-4xl">Recruitment</h1>
         <p class="mt-2 max-w-3xl text-slate-400">
-          Manage applications, candidate progress, onboarding, and retention for {{ alliance.name }}.
+          Manage applications, candidate progress, onboarding, and retention for
+          {{ alliance.name }}.
         </p>
       </div>
       <a
@@ -195,7 +199,10 @@ function percentage(value: number): string {
       </div>
       <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
         <p class="text-sm text-slate-400">Average response</p>
-        <p class="mt-1 text-2xl font-bold">{{ metrics.averageResponseHours ?? '—' }}<span v-if="metrics.averageResponseHours !== null" class="text-sm"> h</span></p>
+        <p class="mt-1 text-2xl font-bold">
+          {{ metrics.averageResponseHours ?? '—'
+          }}<span v-if="metrics.averageResponseHours !== null" class="text-sm"> h</span>
+        </p>
       </div>
       <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
         <p class="text-sm text-slate-400">Accepted</p>
@@ -211,14 +218,23 @@ function percentage(value: number): string {
       </div>
     </section>
 
-    <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6" aria-labelledby="pipeline-heading">
+    <section
+      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
+      aria-labelledby="pipeline-heading"
+    >
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p class="text-xs font-semibold tracking-[0.16em] text-cyan-300 uppercase">Private recruiter view</p>
+          <p class="text-xs font-semibold tracking-[0.16em] text-cyan-300 uppercase">
+            Private recruiter view
+          </p>
           <h2 id="pipeline-heading" class="mt-1 text-2xl font-semibold">Candidate pipeline</h2>
         </div>
         <div class="flex flex-wrap gap-2 text-xs">
-          <span v-for="stage in candidateStages" :key="stage" class="rounded-full bg-slate-800 px-2.5 py-1 capitalize">
+          <span
+            v-for="stage in candidateStages"
+            :key="stage"
+            class="rounded-full bg-slate-800 px-2.5 py-1 capitalize"
+          >
             {{ stage }} {{ metrics.byStage[stage] ?? 0 }}
           </span>
         </div>
@@ -238,7 +254,10 @@ function percentage(value: number): string {
           <tbody class="divide-y divide-slate-800">
             <tr v-for="candidate in candidates" :key="candidate.id">
               <td class="py-4 pr-5">
-                <Link class="font-semibold hover:text-cyan-200" :href="`/alliance/recruitment/${candidate.id}`">
+                <Link
+                  class="font-semibold hover:text-cyan-200"
+                  :href="`/alliance/recruitment/${candidate.id}`"
+                >
                   {{ candidate.name }}
                 </Link>
                 <p class="mt-1 text-xs text-slate-500">{{ candidate.email }}</p>
@@ -255,54 +274,126 @@ function percentage(value: number): string {
     </section>
 
     <div class="mt-8 grid gap-6 xl:grid-cols-2">
-      <section class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6" aria-labelledby="application-settings-heading">
-        <h2 id="application-settings-heading" class="text-xl font-semibold">Application settings</h2>
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
+        aria-labelledby="application-settings-heading"
+      >
+        <h2 id="application-settings-heading" class="text-xl font-semibold">
+          Application settings
+        </h2>
         <form class="mt-5 space-y-4" @submit.prevent="saveSettings">
           <div>
             <label class="text-sm font-medium" for="recruitment-mode">Application mode</label>
-            <select id="recruitment-mode" v-model="settingsForm.mode" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2">
-              <option v-for="mode in applicationModes" :key="mode" :value="mode" class="capitalize">{{ mode }}</option>
+            <select
+              id="recruitment-mode"
+              v-model="settingsForm.mode"
+              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            >
+              <option v-for="mode in applicationModes" :key="mode" :value="mode" class="capitalize">
+                {{ mode }}
+              </option>
             </select>
           </div>
           <div>
             <label class="text-sm font-medium" for="recruitment-title">Public title</label>
-            <input id="recruitment-title" v-model="settingsForm.title" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" maxlength="160" required />
+            <input
+              id="recruitment-title"
+              v-model="settingsForm.title"
+              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              maxlength="160"
+              required
+            />
           </div>
           <div>
             <label class="text-sm font-medium" for="recruitment-introduction">Introduction</label>
-            <textarea id="recruitment-introduction" v-model="settingsForm.introduction" class="mt-1 min-h-28 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" maxlength="5000" />
+            <textarea
+              id="recruitment-introduction"
+              v-model="settingsForm.introduction"
+              class="mt-1 min-h-28 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              maxlength="5000"
+            />
           </div>
           <div class="grid gap-4 sm:grid-cols-2">
             <div>
-              <label class="text-sm font-medium" for="retention-days">Unsuccessful retention days</label>
-              <input id="retention-days" v-model.number="settingsForm.retention_days" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" type="number" min="1" max="3650" required />
+              <label class="text-sm font-medium" for="retention-days"
+                >Unsuccessful retention days</label
+              >
+              <input
+                id="retention-days"
+                v-model.number="settingsForm.retention_days"
+                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                type="number"
+                min="1"
+                max="3650"
+                required
+              />
             </div>
             <label class="flex items-center gap-2 pt-7 text-sm">
               <input v-model="settingsForm.open" type="checkbox" /> Applications open
             </label>
           </div>
-          <button class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950" type="submit">Save settings</button>
+          <button
+            class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950"
+            type="submit"
+          >
+            Save settings
+          </button>
         </form>
 
         <form class="mt-8 border-t border-slate-800 pt-6" @submit.prevent="issueInvite">
           <h3 class="font-semibold">Invitation-only application link</h3>
-          <p class="mt-1 text-sm text-slate-400">Issue an expiring one-time application link, optionally restricted to one email.</p>
+          <p class="mt-1 text-sm text-slate-400">
+            Issue an expiring one-time application link, optionally restricted to one email.
+          </p>
           <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_8rem_auto]">
-            <input v-model="inviteForm.email" class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" type="email" placeholder="Optional email" />
-            <input v-model.number="inviteForm.ttl_hours" class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" type="number" min="1" max="720" aria-label="Invitation lifetime in hours" />
-            <button class="rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="submit">Issue</button>
+            <input
+              v-model="inviteForm.email"
+              class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              type="email"
+              placeholder="Optional email"
+            />
+            <input
+              v-model.number="inviteForm.ttl_hours"
+              class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              type="number"
+              min="1"
+              max="720"
+              aria-label="Invitation lifetime in hours"
+            />
+            <button
+              class="rounded-lg border border-slate-700 px-4 py-2 font-semibold"
+              type="submit"
+            >
+              Issue
+            </button>
           </div>
-          <div v-if="issuedApplicationLink" class="mt-4 rounded-xl border border-emerald-800 bg-emerald-950/30 p-4 text-sm">
+          <div
+            v-if="issuedApplicationLink"
+            class="mt-4 rounded-xl border border-emerald-800 bg-emerald-950/30 p-4 text-sm"
+          >
             <p class="font-semibold text-emerald-100">New application link</p>
-            <a class="mt-1 block break-all text-emerald-200 underline" :href="issuedApplicationLink" target="_blank" rel="noopener noreferrer">{{ issuedApplicationLink }}</a>
+            <a
+              class="mt-1 block break-all text-emerald-200 underline"
+              :href="issuedApplicationLink"
+              target="_blank"
+              rel="noopener noreferrer"
+              >{{ issuedApplicationLink }}</a
+            >
           </div>
         </form>
       </section>
 
-      <section class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6" aria-labelledby="questions-heading">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
+        aria-labelledby="questions-heading"
+      >
         <h2 id="questions-heading" class="text-xl font-semibold">Application questions</h2>
         <div v-if="questions.length" class="mt-4 space-y-3">
-          <article v-for="question in questions" :key="question.id" class="rounded-xl border border-slate-800 p-4">
+          <article
+            v-for="question in questions"
+            :key="question.id"
+            class="rounded-xl border border-slate-800 p-4"
+          >
             <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
               <span class="capitalize">{{ question.type.replace('_', ' ') }}</span>
               <span>· position {{ question.position }}</span>
@@ -310,82 +401,221 @@ function percentage(value: number): string {
               <span>· {{ question.active ? 'active' : 'inactive' }}</span>
             </div>
             <h3 class="mt-1 font-semibold">{{ question.prompt }}</h3>
-            <p v-if="question.helpText" class="mt-1 text-sm text-slate-400">{{ question.helpText }}</p>
+            <p v-if="question.helpText" class="mt-1 text-sm text-slate-400">
+              {{ question.helpText }}
+            </p>
           </article>
         </div>
-        <form class="mt-6 border-t border-slate-800 pt-5 space-y-4" @submit.prevent="createQuestion">
+        <form
+          class="mt-6 space-y-4 border-t border-slate-800 pt-5"
+          @submit.prevent="createQuestion"
+        >
           <div>
             <label class="text-sm font-medium" for="question-prompt">New question</label>
-            <input id="question-prompt" v-model="questionForm.prompt" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" maxlength="240" required />
+            <input
+              id="question-prompt"
+              v-model="questionForm.prompt"
+              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              maxlength="240"
+              required
+            />
           </div>
           <div class="grid gap-4 sm:grid-cols-2">
             <div>
               <label class="text-sm font-medium" for="question-type">Type</label>
-              <select id="question-type" v-model="questionForm.type" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2">
-                <option v-for="type in questionTypes" :key="type" :value="type">{{ type.replace('_', ' ') }}</option>
+              <select
+                id="question-type"
+                v-model="questionForm.type"
+                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              >
+                <option v-for="type in questionTypes" :key="type" :value="type">
+                  {{ type.replace('_', ' ') }}
+                </option>
               </select>
             </div>
             <div>
               <label class="text-sm font-medium" for="question-position">Position</label>
-              <input id="question-position" v-model.number="questionForm.position" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" type="number" min="0" max="65535" />
+              <input
+                id="question-position"
+                v-model.number="questionForm.position"
+                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                type="number"
+                min="0"
+                max="65535"
+              />
             </div>
           </div>
           <div>
             <label class="text-sm font-medium" for="question-help">Help text</label>
-            <input id="question-help" v-model="questionForm.help_text" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" maxlength="2000" />
+            <input
+              id="question-help"
+              v-model="questionForm.help_text"
+              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              maxlength="2000"
+            />
           </div>
           <div v-if="['select', 'multi_select'].includes(questionForm.type)">
             <label class="text-sm font-medium" for="question-options">Options, one per line</label>
-            <textarea id="question-options" v-model="questionOptions" class="mt-1 min-h-28 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" />
+            <textarea
+              id="question-options"
+              v-model="questionOptions"
+              class="mt-1 min-h-28 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            />
           </div>
           <div class="flex flex-wrap gap-5 text-sm">
-            <label class="flex items-center gap-2"><input v-model="questionForm.required" type="checkbox" /> Required</label>
-            <label class="flex items-center gap-2"><input v-model="questionForm.active" type="checkbox" /> Active</label>
+            <label class="flex items-center gap-2"
+              ><input v-model="questionForm.required" type="checkbox" /> Required</label
+            >
+            <label class="flex items-center gap-2"
+              ><input v-model="questionForm.active" type="checkbox" /> Active</label
+            >
           </div>
-          <button class="rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="submit">Add question</button>
+          <button class="rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="submit">
+            Add question
+          </button>
         </form>
       </section>
 
-      <section class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6" aria-labelledby="decision-templates-heading">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
+        aria-labelledby="decision-templates-heading"
+      >
         <h2 id="decision-templates-heading" class="text-xl font-semibold">Decision templates</h2>
         <div v-if="decisionTemplates.length" class="mt-4 space-y-3">
-          <article v-for="template in decisionTemplates" :key="template.id" class="rounded-xl border border-slate-800 p-4">
-            <p class="text-xs font-semibold text-slate-500 uppercase">{{ template.decisionStage }} · {{ template.active ? 'active' : 'inactive' }}</p>
+          <article
+            v-for="template in decisionTemplates"
+            :key="template.id"
+            class="rounded-xl border border-slate-800 p-4"
+          >
+            <p class="text-xs font-semibold text-slate-500 uppercase">
+              {{ template.decisionStage }} · {{ template.active ? 'active' : 'inactive' }}
+            </p>
             <h3 class="mt-1 font-semibold">{{ template.name }}</h3>
             <p class="mt-1 text-sm text-slate-400">{{ template.subject }}</p>
           </article>
         </div>
-        <form class="mt-6 border-t border-slate-800 pt-5 space-y-4" @submit.prevent="createDecisionTemplate">
+        <form
+          class="mt-6 space-y-4 border-t border-slate-800 pt-5"
+          @submit.prevent="createDecisionTemplate"
+        >
           <div class="grid gap-4 sm:grid-cols-2">
-            <div><label class="text-sm font-medium" for="decision-name">Template name</label><input id="decision-name" v-model="decisionForm.name" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" required /></div>
-            <div><label class="text-sm font-medium" for="decision-stage">Decision</label><select id="decision-stage" v-model="decisionForm.decision_stage" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"><option value="accepted">Accepted</option><option value="declined">Declined</option></select></div>
+            <div>
+              <label class="text-sm font-medium" for="decision-name">Template name</label
+              ><input
+                id="decision-name"
+                v-model="decisionForm.name"
+                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                required
+              />
+            </div>
+            <div>
+              <label class="text-sm font-medium" for="decision-stage">Decision</label
+              ><select
+                id="decision-stage"
+                v-model="decisionForm.decision_stage"
+                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              >
+                <option value="accepted">Accepted</option>
+                <option value="declined">Declined</option>
+              </select>
+            </div>
           </div>
-          <div><label class="text-sm font-medium" for="decision-subject">Subject</label><input id="decision-subject" v-model="decisionForm.subject" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" required /></div>
-          <div><label class="text-sm font-medium" for="decision-body">Message</label><textarea id="decision-body" v-model="decisionForm.body" class="mt-1 min-h-32 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" required /></div>
-          <p class="text-xs text-slate-500">Supported placeholders: <code>{{ '{{candidate_name}}' }}</code> and <code>{{ '{{alliance_name}}' }}</code>.</p>
-          <label class="flex items-center gap-2 text-sm"><input v-model="decisionForm.active" type="checkbox" /> Active</label>
-          <button class="rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="submit">Add template</button>
+          <div>
+            <label class="text-sm font-medium" for="decision-subject">Subject</label
+            ><input
+              id="decision-subject"
+              v-model="decisionForm.subject"
+              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              required
+            />
+          </div>
+          <div>
+            <label class="text-sm font-medium" for="decision-body">Message</label
+            ><textarea
+              id="decision-body"
+              v-model="decisionForm.body"
+              class="mt-1 min-h-32 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              required
+            />
+          </div>
+          <p class="text-xs text-slate-500">
+            Supported placeholders: <code>{{ candidatePlaceholder }}</code> and
+            <code>{{ alliancePlaceholder }}</code
+            >.
+          </p>
+          <label class="flex items-center gap-2 text-sm"
+            ><input v-model="decisionForm.active" type="checkbox" /> Active</label
+          >
+          <button class="rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="submit">
+            Add template
+          </button>
         </form>
       </section>
 
-      <section class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6" aria-labelledby="onboarding-heading">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
+        aria-labelledby="onboarding-heading"
+      >
         <h2 id="onboarding-heading" class="text-xl font-semibold">Onboarding checklist</h2>
         <div v-if="onboardingItems.length" class="mt-4 space-y-3">
-          <article v-for="item in onboardingItems" :key="item.id" class="rounded-xl border border-slate-800 p-4">
-            <p class="text-xs text-slate-500">Position {{ item.position }} · {{ item.required ? 'required' : 'optional' }} · {{ item.active ? 'active' : 'inactive' }}</p>
+          <article
+            v-for="item in onboardingItems"
+            :key="item.id"
+            class="rounded-xl border border-slate-800 p-4"
+          >
+            <p class="text-xs text-slate-500">
+              Position {{ item.position }} · {{ item.required ? 'required' : 'optional' }} ·
+              {{ item.active ? 'active' : 'inactive' }}
+            </p>
             <h3 class="mt-1 font-semibold">{{ item.name }}</h3>
-            <p v-if="item.description" class="mt-1 text-sm text-slate-400">{{ item.description }}</p>
+            <p v-if="item.description" class="mt-1 text-sm text-slate-400">
+              {{ item.description }}
+            </p>
           </article>
         </div>
-        <form class="mt-6 border-t border-slate-800 pt-5 space-y-4" @submit.prevent="createOnboardingItem">
-          <div><label class="text-sm font-medium" for="onboarding-name">Item name</label><input id="onboarding-name" v-model="onboardingForm.name" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" required /></div>
-          <div><label class="text-sm font-medium" for="onboarding-description">Description</label><textarea id="onboarding-description" v-model="onboardingForm.description" class="mt-1 min-h-24 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" /></div>
-          <div><label class="text-sm font-medium" for="onboarding-position">Position</label><input id="onboarding-position" v-model.number="onboardingForm.position" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" type="number" min="0" max="65535" /></div>
-          <div class="flex flex-wrap gap-5 text-sm">
-            <label class="flex items-center gap-2"><input v-model="onboardingForm.required" type="checkbox" /> Required</label>
-            <label class="flex items-center gap-2"><input v-model="onboardingForm.active" type="checkbox" /> Active</label>
+        <form
+          class="mt-6 space-y-4 border-t border-slate-800 pt-5"
+          @submit.prevent="createOnboardingItem"
+        >
+          <div>
+            <label class="text-sm font-medium" for="onboarding-name">Item name</label
+            ><input
+              id="onboarding-name"
+              v-model="onboardingForm.name"
+              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              required
+            />
           </div>
-          <button class="rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="submit">Add onboarding item</button>
+          <div>
+            <label class="text-sm font-medium" for="onboarding-description">Description</label
+            ><textarea
+              id="onboarding-description"
+              v-model="onboardingForm.description"
+              class="mt-1 min-h-24 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            />
+          </div>
+          <div>
+            <label class="text-sm font-medium" for="onboarding-position">Position</label
+            ><input
+              id="onboarding-position"
+              v-model.number="onboardingForm.position"
+              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              type="number"
+              min="0"
+              max="65535"
+            />
+          </div>
+          <div class="flex flex-wrap gap-5 text-sm">
+            <label class="flex items-center gap-2"
+              ><input v-model="onboardingForm.required" type="checkbox" /> Required</label
+            >
+            <label class="flex items-center gap-2"
+              ><input v-model="onboardingForm.active" type="checkbox" /> Active</label
+            >
+          </div>
+          <button class="rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="submit">
+            Add onboarding item
+          </button>
         </form>
       </section>
     </div>
