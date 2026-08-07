@@ -26,6 +26,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['alliance_id', 'key']);
+            $table->unique(['id', 'alliance_id']);
         });
 
         Schema::create('role_permissions', function (Blueprint $table): void {
@@ -35,9 +36,23 @@ return new class extends Migration
         });
 
         Schema::create('membership_roles', function (Blueprint $table): void {
-            $table->foreignUlid('membership_id')->constrained('alliance_memberships')->cascadeOnDelete();
-            $table->foreignUlid('role_id')->constrained('roles')->cascadeOnDelete();
+            $table->ulid('alliance_id');
+            $table->ulid('membership_id');
+            $table->ulid('role_id');
+
             $table->primary(['membership_id', 'role_id']);
+            $table->index(['alliance_id', 'membership_id']);
+            $table->index(['alliance_id', 'role_id']);
+
+            $table->foreign(['membership_id', 'alliance_id'])
+                ->references(['id', 'alliance_id'])
+                ->on('alliance_memberships')
+                ->cascadeOnDelete();
+
+            $table->foreign(['role_id', 'alliance_id'])
+                ->references(['id', 'alliance_id'])
+                ->on('roles')
+                ->cascadeOnDelete();
         });
     }
 
