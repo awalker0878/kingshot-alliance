@@ -262,7 +262,7 @@ final class ContributionReportingQuery
     /** @return list<array<string, scalar|null>> */
     public function reportRows(Alliance $alliance): array
     {
-        return ContributionRecord::query()
+        return array_values(ContributionRecord::query()
             ->where('alliance_id', $alliance->id)
             ->with(['category', 'membership.user'])
             ->orderBy('period_start')
@@ -278,8 +278,8 @@ final class ContributionReportingQuery
                 return [
                     'record_id' => $record->id,
                     'member' => $user instanceof User ? $user->name : 'Unknown member',
-                    'category' => $category?->name ?? 'Unknown category',
-                    'unit' => $category?->unit ?? '',
+                    'category' => $category->name,
+                    'unit' => $category->unit,
                     'value' => (float) $record->value,
                     'period_start' => $record->period_start->toDateString(),
                     'period_end' => $record->period_end->toDateString(),
@@ -297,7 +297,7 @@ final class ContributionReportingQuery
                     'correction_reason' => $record->correction_reason,
                 ];
             })
-            ->all();
+            ->all());
     }
 
     /** @param Collection<int, ContributionCategory> $categories
@@ -340,7 +340,7 @@ final class ContributionReportingQuery
                 'calculationVersion' => $category->calculation_version,
                 'calculationDescription' => $category->calculation_description
                     ?? 'Approved records are summed for the selected category and period.',
-                'entries' => array_values($totals),
+                'entries' => $totals,
             ];
         }
 

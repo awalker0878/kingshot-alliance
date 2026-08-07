@@ -98,7 +98,8 @@ final class ContributionController extends Controller
         ]);
         $category = ContributionCategory::query()
             ->where('alliance_id', $alliance->id)
-            ->findOrFail($validated['category_id']);
+            ->whereKey((string) $validated['category_id'])
+            ->firstOrFail();
 
         $record->handle(
             $user,
@@ -175,10 +176,12 @@ final class ContributionController extends Controller
         $membership = AllianceMembership::query()
             ->where('alliance_id', $alliance->id)
             ->where('status', MembershipStatus::Active->value)
-            ->findOrFail($validated['membership_id']);
+            ->whereKey((string) $validated['membership_id'])
+            ->firstOrFail();
         $category = ContributionCategory::query()
             ->where('alliance_id', $alliance->id)
-            ->findOrFail($validated['category_id']);
+            ->whereKey((string) $validated['category_id'])
+            ->firstOrFail();
 
         $record->handle(
             $user,
@@ -320,7 +323,8 @@ final class ContributionController extends Controller
         $recipient = AllianceMembership::query()
             ->where('alliance_id', $alliance->id)
             ->where('status', MembershipStatus::Active->value)
-            ->findOrFail($validated['recipient_membership_id']);
+            ->whereKey((string) $validated['recipient_membership_id'])
+            ->firstOrFail();
 
         $create->handle(
             $user,
