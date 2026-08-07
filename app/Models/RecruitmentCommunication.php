@@ -41,6 +41,15 @@ final class RecruitmentCommunication extends Model
         ];
     }
 
+    public function communicationStatus(): RecruitmentCommunicationStatus
+    {
+        $value = $this->getAttribute('status');
+
+        return $value instanceof RecruitmentCommunicationStatus
+            ? $value
+            : RecruitmentCommunicationStatus::from((string) $value);
+    }
+
     /** @return BelongsTo<RecruitmentCandidate, $this> */
     public function candidate(): BelongsTo
     {
