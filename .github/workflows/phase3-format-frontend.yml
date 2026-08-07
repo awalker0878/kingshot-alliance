@@ -1,0 +1,48 @@
+name: Phase 3 frontend format
+
+on:
+  push:
+    branches:
+      - agent/phase-3-events-and-rallies
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase3-frontend-format-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: agent/phase-3-events-and-rallies
+          fetch-depth: 0
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Run Prettier on Phase 3 event pages
+        run: npx prettier --write resources/js/pages/Alliance/Events/Index.vue resources/js/pages/Alliance/Events/Show.vue resources/js/pages/Alliance/Events/Manage.vue
+      - name: Commit formatter output
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add resources/js/pages/Alliance/Events/Index.vue resources/js/pages/Alliance/Events/Show.vue resources/js/pages/Alliance/Events/Manage.vue
+          if git diff --cached --quiet; then
+            echo 'No frontend formatting changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Format Phase 3 event pages'
+          git push origin HEAD:agent/phase-3-events-and-rallies
