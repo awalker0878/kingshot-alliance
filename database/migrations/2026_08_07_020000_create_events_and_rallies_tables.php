@@ -40,6 +40,7 @@ return new class extends Migration
             $table->string('title', 160);
             $table->text('instructions')->nullable();
             $table->string('timezone', 64);
+            $table->timestamp('starts_at')->index();
             $table->unsignedInteger('duration_minutes');
             $table->unsignedInteger('capacity')->nullable();
             $table->unsignedInteger('registration_opens_minutes_before')->nullable();
@@ -59,7 +60,7 @@ return new class extends Migration
                 ->on('event_templates')
                 ->restrictOnDelete();
             $table->unique(['id', 'alliance_id']);
-            $table->index(['alliance_id', 'status', 'created_at']);
+            $table->index(['alliance_id', 'status', 'starts_at']);
         });
 
         Schema::create('event_occurrences', function (Blueprint $table): void {
@@ -282,6 +283,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->unique(['id', 'alliance_id']);
             $table->unique(['rally_group_id', 'membership_id']);
+            $table->unique(['rally_group_id', 'role', 'slot_number']);
             $table->index(['alliance_id', 'rally_group_id', 'role', 'status']);
         });
     }
