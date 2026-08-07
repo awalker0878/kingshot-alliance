@@ -39,7 +39,14 @@ Artisan::command('app:config-check', function (RuntimeConfigurationValidator $va
 })->purpose('Validate required staging and production configuration');
 
 Artisan::command('platform:admin:grant {email}', function (ManagePlatformAdministrator $manage): int {
-    $email = Str::lower(trim((string) $this->argument('email')));
+    $emailArgument = $this->argument('email');
+    if (! is_string($emailArgument)) {
+        $this->error('A valid email argument is required.');
+
+        return 1;
+    }
+
+    $email = Str::lower(trim($emailArgument));
     $user = User::query()->where('email', $email)->first();
     if (! $user instanceof User) {
         $this->error('No user exists with that email address.');
