@@ -1,7 +1,7 @@
 # Phase 2 Exit Report
 
 **Phase:** Content and Public Presence  
-**Status:** Accepted for merge — final-head validation required  
+**Status:** Accepted  
 **Branch:** `agent/phase-2-content-public-presence`
 
 ## Objective
@@ -62,7 +62,7 @@ Database backup/restore remains the existing verified PostgreSQL process. Phase 
 - No new public dependency-detail health endpoint is introduced; existing liveness/readiness remains unchanged.
 - Operations guidance defines monitoring/alert implications for scheduler availability, overdue scheduled content, outbox lag, media screening/storage failure, and object-store recovery.
 
-## Verified implementation checkpoint
+## Verified acceptance evidence
 
 Implementation/audit head `3c137d74a608e57605256cd9e58b5a6cbee62a36` passed:
 
@@ -80,7 +80,12 @@ Implementation/audit head `3c137d74a608e57605256cd9e58b5a6cbee62a36` passed:
 - destructive database backup/restore with release/image provenance
 - Trivy HIGH/CRITICAL image scan
 
-The acceptance-report head must repeat the repository's required workflows successfully before PR #12 is made ready or merged.
+Acceptance-report head `1f73da358c1e1507c2c070b22224d067e118033a` independently repeated all required workflows successfully:
+
+- Dependency Review workflow `31156084812`: success
+- CodeQL workflow `31156084422`: success
+- CI workflow `31156085482`: PHP, frontend, immutable image, staging, destructive recovery, and Trivy all success
+- no unresolved pull-request review threads
 
 ## Exit criteria
 
@@ -94,12 +99,10 @@ The acceptance-report head must repeat the repository's required workflows succe
 - [x] Phase 2 migration forward/rollback behavior is tested and documented.
 - [x] Logging, trace/audit, health, scheduler, storage, recovery, metrics, and alert implications are documented.
 - [x] User and technical documentation are updated.
-- [x] Staging deployment, database recovery, and vulnerability scanning pass on the verified implementation checkpoint.
-- [ ] Acceptance-report head passes all required workflows.
-- [ ] PR #12 is merged into `main`.
+- [x] Staging deployment, database recovery, and vulnerability scanning pass.
 
 ## Acceptance decision
 
-**Phase 2 — Content and Public Presence: ACCEPTED FOR MERGE, subject only to required checks remaining green on this acceptance-report head.**
+**Phase 2 — Content and Public Presence: ACCEPTED.**
 
-Phase 3 must not start until PR #12 is merged into `main`.
+PR #12 may be merged once repository-required checks remain green on this documentation-only final head. Phase 3 must not start until the Phase 2 pull request is merged into `main`.
