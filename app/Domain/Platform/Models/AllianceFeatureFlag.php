@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property bool $enabled
+ * @property array<string, mixed>|null $configuration
+ */
 final class AllianceFeatureFlag extends Model
 {
     use HasUlids;
