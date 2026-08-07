@@ -15,6 +15,8 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
+use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
@@ -41,6 +43,12 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])
         ->middleware('throttle:login')
         ->name('login.store');
+
+    Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'create'])
+        ->name('two-factor.login');
+    Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
+        ->middleware('throttle:two-factor-challenge')
+        ->name('two-factor.login.store');
 
     Route::get('/forgot-password', [ForgotPasswordController::class, 'create'])
         ->name('password.request');
@@ -80,6 +88,17 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
         ->name('password.confirm.store');
 
     Route::middleware('verified')->group(function (): void {
+        Route::middleware('password.confirm')->group(function (): void {
+            Route::post('/profile/two-factor', [TwoFactorController::class, 'begin'])
+                ->name('two-factor.enable');
+            Route::post('/profile/two-factor/confirm', [TwoFactorController::class, 'confirm'])
+                ->name('two-factor.confirm');
+            Route::post('/profile/two-factor/recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])
+                ->name('two-factor.recovery-codes');
+            Route::delete('/profile/two-factor', [TwoFactorController::class, 'destroy'])
+                ->name('two-factor.disable');
+        });
+
         Route::post('/alliances', CreateAllianceController::class)->name('alliances.store');
         Route::put('/alliances/{alliance}/active', ActivateAllianceController::class)
             ->whereUlid('alliance')
