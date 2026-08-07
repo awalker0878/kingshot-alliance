@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
+const props = defineProps<{
+  invitationToken: string | null;
+}>();
+
 const form = useForm({
   email: '',
   password: '',
   remember: false,
+  invitation_token: props.invitationToken ?? '',
 });
 
 function submit(): void {
@@ -24,6 +29,12 @@ function submit(): void {
       </p>
       <h1 class="mt-3 text-3xl font-bold">Sign in</h1>
       <p class="mt-2 text-sm text-slate-400">Access your alliances through one global account.</p>
+      <p
+        v-if="props.invitationToken"
+        class="mt-5 rounded-lg border border-cyan-700/60 bg-cyan-950/30 p-4 text-sm text-cyan-100"
+      >
+        Sign in with the invited account to continue accepting your alliance invitation.
+      </p>
 
       <form class="mt-8 space-y-5" @submit.prevent="submit">
         <div>
@@ -74,9 +85,12 @@ function submit(): void {
 
       <p class="mt-6 text-sm text-slate-400">
         Need an account?
-        <Link class="font-semibold text-cyan-300 hover:text-cyan-200" href="/register"
-          >Register</Link
+        <Link
+          class="font-semibold text-cyan-300 hover:text-cyan-200"
+          :href="props.invitationToken ? `/register?invitation=${encodeURIComponent(props.invitationToken)}` : '/register'"
         >
+          Register
+        </Link>
       </p>
     </section>
   </main>
