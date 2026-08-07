@@ -15,12 +15,14 @@ return new class extends Migration
             $table->foreignUlid('alliance_id')->nullable()->constrained('alliances')->nullOnDelete();
             $table->foreignId('actor_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('event', 120)->index();
-            $table->nullableUlidMorphs('subject');
+            $table->string('subject_type')->nullable();
+            $table->string('subject_id', 64)->nullable();
             $table->json('metadata')->nullable();
             $table->uuid('request_id')->nullable()->index();
             $table->string('trace_id', 32)->nullable()->index();
             $table->timestamp('created_at')->useCurrent();
 
+            $table->index(['subject_type', 'subject_id']);
             $table->index(['alliance_id', 'created_at']);
         });
     }
