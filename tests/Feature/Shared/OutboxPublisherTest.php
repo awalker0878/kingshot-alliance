@@ -6,7 +6,9 @@ namespace Tests\Feature\Shared;
 
 use App\Application\Shared\PublishOutboxBatch;
 use App\Domain\Shared\Events\OutboxPublished;
+use App\Models\Alliance;
 use App\Models\OutboxMessage;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use RuntimeException;
@@ -20,9 +22,15 @@ final class OutboxPublisherTest extends TestCase
     {
         Event::fake([OutboxPublished::class]);
 
+        $creator = User::factory()->create();
+        $alliance = Alliance::query()->create([
+            'name' => 'Outbox Test Alliance',
+            'slug' => 'outbox-test-alliance',
+            'created_by_user_id' => $creator->id,
+        ]);
         $message = $this->message([
-            'alliance_id' => '01JH0000000000000000000000',
-            'idempotency_key' => 'membership.changed:01JH0000000000000000000001',
+            'alliance_id' => $alliance->id,
+            'idempotency_key' => 'membership.changed:'.$alliance->id,
         ]);
 
         $published = $this->app->make(PublishOutboxBatch::class)->handle();
