@@ -6,7 +6,6 @@ namespace App\Domain\Recruitment\Models;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Memberships\Models\AllianceMembership;
-use App\Domain\Memberships\Models\Invitation;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -94,12 +93,6 @@ final class RecruitmentCandidate extends Model
     public function applicationInvite(): BelongsTo
     {
         return $this->belongsTo(RecruitmentApplicationInvite::class, 'application_invite_id');
-    }
-
-    /** @return BelongsTo<Invitation, $this> */
-    public function membershipInvitation(): BelongsTo
-    {
-        return $this->belongsTo(Invitation::class, 'membership_invitation_id');
     }
 
     /** @return BelongsTo<RecruitmentCandidate, $this> */
