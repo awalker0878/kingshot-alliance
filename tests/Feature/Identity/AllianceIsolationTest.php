@@ -79,10 +79,9 @@ final class AllianceIsolationTest extends TestCase
             ->allows($owner, $alliance, PermissionKey::AllianceView));
     }
 
-    public function test_alliance_context_requires_an_active_membership_and_can_be_cleared(): void
+    public function test_alliance_context_can_be_activated_and_cleared(): void
     {
         $owner = User::factory()->create();
-        $outsider = User::factory()->create();
         $alliance = $this->app->make(CreateAlliance::class)
             ->handle($owner, 'Context Alliance', 'context-alliance');
         $context = $this->app->make(AllianceContext::class);
@@ -95,14 +94,16 @@ final class AllianceIsolationTest extends TestCase
 
         $this->expectException(LogicException::class);
         $context->alliance();
+    }
 
-        $separateContext = $this->app->make(AllianceContext::class);
+    public function test_outsider_cannot_activate_alliance_context(): void
+    {
+        $owner = User::factory()->create();
+        $outsider = User::factory()->create();
+        $alliance = $this->app->make(CreateAlliance::class)
+            ->handle($owner, 'Private Alliance', 'private-alliance');
 
-        try {
-            $separateContext->activate($alliance, $outsider);
-            self::fail('An outsider must not activate alliance context.');
-        } catch (LogicException) {
-            self::assertTrue(true);
-        }
+        $this->expectException(LogicException::class);
+        $this->app->make(AllianceContext::class)->activate($alliance, $outsider);
     }
 }
