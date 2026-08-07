@@ -1,0 +1,62 @@
+name: Format Phase 2
+
+on:
+  push:
+    branches:
+      - agent/phase-2-content-public-presence
+
+permissions:
+  contents: write
+
+concurrency:
+  group: format-phase-2-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: agent/phase-2-content-public-presence
+          fetch-depth: 0
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run Pint formatter
+        run: vendor/bin/pint
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Run Prettier formatter
+        run: npx prettier --write resources/
+
+      - name: Commit formatter output
+        run: |
+          if git diff --quiet; then
+            echo 'No formatter changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app tests resources
+          git commit -m 'Format Phase 2 source'
+          git push origin HEAD:agent/phase-2-content-public-presence
