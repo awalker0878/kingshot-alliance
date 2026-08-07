@@ -34,7 +34,6 @@ return new class extends Migration
         Schema::create('alliance_profiles', function (Blueprint $table): void {
             $table->ulid('alliance_id')->primary();
             $table->text('description')->nullable();
-            $table->string('recruitment_status', 32)->default('closed')->index();
             $table->string('primary_color', 7)->nullable();
             $table->timestamps();
 
