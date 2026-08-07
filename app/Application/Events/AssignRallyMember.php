@@ -76,14 +76,16 @@ final class AssignRallyMember
             $status = RallyAssignmentStatus::Assigned;
 
             if ($role === RallyAssignmentRole::Joiner && $lockedGroup->max_joiners !== null) {
-                $assignedJoiners = RallyAssignment::query()
+                $assignedJoinersQuery = RallyAssignment::query()
                     ->where('rally_group_id', $lockedGroup->id)
                     ->where('role', RallyAssignmentRole::Joiner->value)
-                    ->where('status', RallyAssignmentStatus::Assigned->value)
-                    ->when($existing instanceof RallyAssignment, static fn ($query) => $query->whereKeyNot($existing->id))
-                    ->count();
+                    ->where('status', RallyAssignmentStatus::Assigned->value);
 
-                if ($assignedJoiners >= $lockedGroup->max_joiners) {
+                if ($existing instanceof RallyAssignment) {
+                    $assignedJoinersQuery->where('id', '!=', $existing->id);
+                }
+
+                if ($assignedJoinersQuery->count() >= $lockedGroup->max_joiners) {
                     $status = RallyAssignmentStatus::Standby;
                 }
             }
