@@ -9,6 +9,7 @@ use App\Application\Identity\AllianceContext;
 use App\Domain\Identity\Authorization\PermissionKey;
 use App\Domain\Identity\Enums\InvitationStatus;
 use App\Http\Controllers\Controller;
+use App\Models\AllianceMembership;
 use App\Models\Invitation;
 use App\Models\Role;
 use App\Models\User;
@@ -30,6 +31,8 @@ final class AllianceOverviewController extends Controller
         $alliance = $context->alliance();
         $membership = $context->membership()->loadMissing('roles:id,alliance_id,key,name');
         $canManageInvitations = $authorization->allows($user, $alliance, PermissionKey::InvitationManage);
+        $canManageMembers = $authorization->allows($user, $alliance, PermissionKey::MembershipManage);
+        $canManageRoles = $authorization->allows($user, $alliance, PermissionKey::RoleManage);
 
         /** @var list<array{key: string, name: string}> $roles */
         $roles = [];
@@ -70,6 +73,68 @@ final class AllianceOverviewController extends Controller
             }
         }
 
+        /** @var list<array{id: string, user: array{id: int, name: string, email: string}, status: string, roles: list<array{id: string, key: string, name: string}>}> $members */
+        $members = [];
+
+        if ($canManageMembers || $canManageRoles) {
+            foreach (AllianceMembership::query()
+                ->where('alliance_id', $alliance->id)
+                ->with([
+                    'user:id,name,email',
+                    'roles:id,alliance_id,key,name',
+                ])
+                ->orderBy('created_at')
+                ->get() as $member) {
+                $memberUser = $member->user;
+
+                if (! $memberUser instanceof User) {
+                    throw new LogicException('An alliance membership must reference a user.');
+                }
+
+                /** @var list<array{id: string, key: string, name: string}> $memberRoles */
+                $memberRoles = [];
+
+                foreach ($member->roles as $role) {
+                    if (! $role instanceof Role) {
+                        throw new LogicException('A membership role relation returned an unexpected model.');
+                    }
+
+                    $memberRoles[] = [
+                        'id' => (string) $role->id,
+                        'key' => (string) $role->key,
+                        'name' => (string) $role->name,
+                    ];
+                }
+
+                $members[] = [
+                    'id' => (string) $member->id,
+                    'user' => [
+                        'id' => (int) $memberUser->id,
+                        'name' => (string) $memberUser->name,
+                        'email' => (string) $memberUser->email,
+                    ],
+                    'status' => $member->status->value,
+                    'roles' => $memberRoles,
+                ];
+            }
+        }
+
+        /** @var list<array{id: string, key: string, name: string}> $roleCatalog */
+        $roleCatalog = [];
+
+        if ($canManageRoles) {
+            foreach (Role::query()
+                ->where('alliance_id', $alliance->id)
+                ->orderBy('name')
+                ->get() as $role) {
+                $roleCatalog[] = [
+                    'id' => (string) $role->id,
+                    'key' => (string) $role->key,
+                    'name' => (string) $role->name,
+                ];
+            }
+        }
+
         return Inertia::render('Alliance/Overview', [
             'alliance' => [
                 'id' => $alliance->id,
@@ -87,6 +152,13 @@ final class AllianceOverviewController extends Controller
                 'allowed' => $canManageInvitations,
                 'invitations' => $invitations,
                 'issuedLink' => $request->session()->get('invitationLink'),
+            ],
+            'membershipManagement' => [
+                'allowed' => $canManageMembers,
+                'rolesAllowed' => $canManageRoles,
+                'members' => $members,
+                'roleCatalog' => $roleCatalog,
+                'currentUserId' => $user->id,
             ],
         ]);
     }
