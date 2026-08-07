@@ -10,6 +10,7 @@ use App\Models\Alliance;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 final class AllianceRoleProvisioner
 {
@@ -31,10 +32,12 @@ final class AllianceRoleProvisioner
             ['description'],
         );
 
-        $permissions = Permission::query()
-            ->whereIn('key', array_column($permissionRows, 'key'))
-            ->get()
-            ->keyBy('key');
+        /** @var array<string, Permission> $permissions */
+        $permissions = [];
+
+        foreach (Permission::query()->whereIn('key', array_column($permissionRows, 'key'))->get() as $permission) {
+            $permissions[$permission->key] = $permission;
+        }
 
         $roles = [];
 
@@ -46,11 +49,19 @@ final class AllianceRoleProvisioner
                 'is_system' => true,
             ]);
 
-            $role->permissions()->sync(array_map(
-                static fn (PermissionKey $permission): string => (string) $permissions->getOrFail($permission->value)->id,
-                $roleTemplate->permissions(),
-            ));
+            $permissionIds = [];
 
+            foreach ($roleTemplate->permissions() as $permissionKey) {
+                $permission = $permissions[$permissionKey->value] ?? null;
+
+                if (! $permission instanceof Permission) {
+                    throw new RuntimeException('A default alliance permission was not provisioned.');
+                }
+
+                $permissionIds[] = $permission->id;
+            }
+
+            $role->permissions()->sync($permissionIds);
             $roles[$roleTemplate->value] = $role;
         }
 
