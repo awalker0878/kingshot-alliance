@@ -97,7 +97,10 @@ final readonly class ManageAllianceLifecycle
         }
 
         return DB::transaction(function () use ($actor, $alliance, $target, $reason, $attributes, $event): Alliance {
-            $locked = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $locked = Alliance::query()->whereKey($alliance->id)->lockForUpdate()->first();
+            if (! $locked instanceof Alliance) {
+                throw new InvalidArgumentException('Alliance no longer exists.');
+            }
             $previous = $locked->status;
             $locked->forceFill([
                 ...$attributes,

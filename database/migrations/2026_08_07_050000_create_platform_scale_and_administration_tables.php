@@ -12,17 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('alliances', function (Blueprint $table): void {
-            $table->timestamp('suspended_at')->nullable()->after('status');
-            $table->timestamp('closed_at')->nullable()->after('suspended_at');
-            $table->timestamp('deleted_at')->nullable()->after('closed_at');
-            $table->timestamp('restored_at')->nullable()->after('deleted_at');
-            $table->timestamp('retention_until')->nullable()->after('restored_at')->index();
-            $table->string('lifecycle_reason', 500)->nullable()->after('retention_until');
+            $table->timestamp('suspended_at')->nullable();
+            $table->timestamp('closed_at')->nullable();
+            $table->timestamp('deleted_at')->nullable();
+            $table->timestamp('restored_at')->nullable();
+            $table->timestamp('retention_until')->nullable()->index();
+            $table->string('lifecycle_reason', 500)->nullable();
         });
 
         Schema::table('users', function (Blueprint $table): void {
-            $table->timestamp('deletion_requested_at')->nullable()->after('two_factor_confirmed_at');
-            $table->timestamp('anonymized_at')->nullable()->after('deletion_requested_at');
+            $table->timestamp('deletion_requested_at')->nullable();
+            $table->timestamp('anonymized_at')->nullable();
         });
 
         Schema::create('platform_administrators', function (Blueprint $table): void {

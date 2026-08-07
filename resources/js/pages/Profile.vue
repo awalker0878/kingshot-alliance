@@ -85,13 +85,21 @@ function logout(): void {
         >
         <h1 class="mt-3 text-3xl font-bold">Account & security</h1>
       </div>
-      <button
-        class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold"
-        type="button"
-        @click="logout"
-      >
-        Sign out
-      </button>
+      <div class="flex flex-wrap items-center gap-3">
+        <Link
+          class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold"
+          href="/profile/delete-account"
+        >
+          Account deletion
+        </Link>
+        <button
+          class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold"
+          type="button"
+          @click="logout"
+        >
+          Sign out
+        </button>
+      </div>
     </header>
 
     <p
