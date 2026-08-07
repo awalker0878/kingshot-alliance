@@ -166,11 +166,11 @@ return new class extends Migration
             $table->foreign(['schedule_id', 'alliance_id'])
                 ->references(['id', 'alliance_id'])
                 ->on('contribution_report_schedules')
-                ->nullOnDelete();
+                ->restrictOnDelete();
             $table->foreign(['recipient_membership_id', 'alliance_id'])
                 ->references(['id', 'alliance_id'])
                 ->on('alliance_memberships')
-                ->nullOnDelete();
+                ->restrictOnDelete();
             $table->unique(['id', 'alliance_id']);
             $table->index(['alliance_id', 'status', 'created_at']);
         });
