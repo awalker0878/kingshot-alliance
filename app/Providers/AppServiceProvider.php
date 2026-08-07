@@ -8,6 +8,7 @@ use App\Application\Content\BasicMediaScanner;
 use App\Application\Content\MediaScanner;
 use App\Application\Events\MarkEventReminderPublished;
 use App\Application\Identity\AllianceContext;
+use App\Application\Recruitment\MarkRecruitmentCandidateJoined;
 use App\Domain\Shared\Events\OutboxPublished;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -42,6 +43,7 @@ final class AppServiceProvider extends ServiceProvider
 
         Event::listen(OutboxPublished::class, function (OutboxPublished $event): void {
             $this->app->make(MarkEventReminderPublished::class)->handle($event);
+            $this->app->make(MarkRecruitmentCandidateJoined::class)->handle($event);
         });
 
         $environment = $this->app->environment();
@@ -68,6 +70,13 @@ final class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for(
             'registration',
+            static fn (Request $request): Limit => Limit::perMinute(3)->by(
+                Str::lower(trim((string) $request->input('email'))).'|'.(string) $request->ip(),
+            ),
+        );
+
+        RateLimiter::for(
+            'recruitment-application',
             static fn (Request $request): Limit => Limit::perMinute(3)->by(
                 Str::lower(trim((string) $request->input('email'))).'|'.(string) $request->ip(),
             ),
