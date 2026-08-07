@@ -55,7 +55,9 @@ function submit(): void {
       </form>
 
       <p class="mt-6 text-sm text-slate-400">
-        <Link class="font-semibold text-cyan-300 hover:text-cyan-200" href="/login">Back to sign in</Link>
+        <Link class="font-semibold text-cyan-300 hover:text-cyan-200" href="/login"
+          >Back to sign in</Link
+        >
       </p>
     </section>
   </main>

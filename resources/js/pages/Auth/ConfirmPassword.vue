@@ -18,7 +18,9 @@ function submit(): void {
   <main class="mx-auto flex min-h-screen max-w-xl items-center px-6 py-16">
     <section class="w-full rounded-2xl border border-slate-800 bg-slate-900/70 p-8">
       <h1 class="text-3xl font-bold">Confirm your password</h1>
-      <p class="mt-2 text-sm text-slate-400">This action changes alliance access or permissions, so your password must be reconfirmed.</p>
+      <p class="mt-2 text-sm text-slate-400">
+        This action changes alliance access or permissions, so your password must be reconfirmed.
+      </p>
 
       <form class="mt-8 space-y-5" @submit.prevent="submit">
         <div>
@@ -31,7 +33,9 @@ function submit(): void {
             required
             type="password"
           />
-          <p v-if="form.errors.password" class="mt-1 text-sm text-rose-300">{{ form.errors.password }}</p>
+          <p v-if="form.errors.password" class="mt-1 text-sm text-rose-300">
+            {{ form.errors.password }}
+          </p>
         </div>
 
         <button
