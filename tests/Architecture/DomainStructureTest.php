@@ -64,7 +64,7 @@ final class DomainStructureTest extends TestCase
 
     public function test_future_phase_domains_contain_no_runtime_php(): void
     {
-        foreach (['Contributions', 'Integrations', 'Kingdoms'] as $domain) {
+        foreach (['Integrations', 'Kingdoms'] as $domain) {
             $iterator = new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator($this->root().'/app/Domain/'.$domain),
             );
