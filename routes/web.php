@@ -6,6 +6,7 @@ use App\Http\Controllers\Alliance\ActivateAllianceController;
 use App\Http\Controllers\Alliance\AllianceOverviewController;
 use App\Http\Controllers\Alliance\CreateAllianceController;
 use App\Http\Controllers\Alliance\InvitationController;
+use App\Http\Controllers\Alliance\MembershipController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\Auth\RegistrationController;
@@ -56,5 +57,19 @@ Route::middleware('auth')->group(function (): void {
         Route::delete('/alliance/invitations/{invitation}', [InvitationController::class, 'destroy'])
             ->whereUlid('invitation')
             ->name('alliance.invitations.destroy');
+
+        Route::patch('/alliance/memberships/{membership}/status', [MembershipController::class, 'updateStatus'])
+            ->whereUlid('membership')
+            ->name('alliance.memberships.status');
+        Route::put('/alliance/memberships/{membership}/roles/{role}', [MembershipController::class, 'assignRole'])
+            ->whereUlid('membership')
+            ->whereUlid('role')
+            ->name('alliance.memberships.roles.assign');
+        Route::delete('/alliance/memberships/{membership}/roles/{role}', [MembershipController::class, 'removeRole'])
+            ->whereUlid('membership')
+            ->whereUlid('role')
+            ->name('alliance.memberships.roles.remove');
+        Route::delete('/alliance/membership', [MembershipController::class, 'leave'])
+            ->name('alliance.membership.leave');
     });
 });
