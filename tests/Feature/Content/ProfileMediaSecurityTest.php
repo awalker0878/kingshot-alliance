@@ -113,8 +113,7 @@ final class ProfileMediaSecurityTest extends TestCase
     {
         Storage::fake('local');
         config()->set('content.media_disk', 'local');
-        $this->app->instance(MediaScanner::class, new class implements MediaScanner
-        {
+        $this->app->instance(MediaScanner::class, new class implements MediaScanner {
             public function scan(UploadedFile $file): MediaScanResult
             {
                 return new MediaScanResult(false, 'Rejected by test scanner.');
