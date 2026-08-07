@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Alliance\ActivateAllianceController;
 use App\Http\Controllers\Alliance\AllianceOverviewController;
+use App\Http\Controllers\Alliance\ContentManagementController;
 use App\Http\Controllers\Alliance\CreateAllianceController;
 use App\Http\Controllers\Alliance\InvitationController;
+use App\Http\Controllers\Alliance\MemberContentController;
 use App\Http\Controllers\Alliance\MembershipController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmPasswordController;
@@ -20,6 +22,9 @@ use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicAllianceController;
+use App\Http\Controllers\PublicBrandingMediaController;
+use App\Http\Controllers\PublicContentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -28,6 +33,18 @@ Route::get('/', static fn () => Inertia::render('Home', [
         'name' => config('app.name'),
     ],
 ]))->name('home');
+
+Route::get('/alliances/{slug}', PublicAllianceController::class)
+    ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->name('public.alliances.show');
+Route::get('/alliances/{slug}/content/{contentSlug}', PublicContentController::class)
+    ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->where('contentSlug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->name('public.alliances.content.show');
+Route::get('/alliances/{slug}/branding/{slot}', PublicBrandingMediaController::class)
+    ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->whereIn('slot', ['logo', 'banner'])
+    ->name('public.alliances.branding');
 
 Route::get('/invitations/{token}', [InvitationAcceptanceController::class, 'show'])
     ->where('token', '[A-Fa-f0-9]{64}')
@@ -109,8 +126,49 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
 
         Route::middleware('alliance.context')->group(function (): void {
             Route::get('/alliance', AllianceOverviewController::class)->name('alliance.overview');
+            Route::get('/alliance/content', [MemberContentController::class, 'index'])
+                ->name('alliance.content.index');
+            Route::get('/alliance/content/manage', [ContentManagementController::class, 'index'])
+                ->name('alliance.content.manage');
+            Route::get('/alliance/content/{contentSlug}', [MemberContentController::class, 'show'])
+                ->where('contentSlug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+                ->name('alliance.content.show');
 
             Route::middleware('password.confirm')->group(function (): void {
+                Route::patch('/alliance/public-profile', [ContentManagementController::class, 'updateProfile'])
+                    ->name('alliance.public-profile.update');
+
+                Route::post('/alliance/content/categories', [ContentManagementController::class, 'storeCategory'])
+                    ->name('alliance.content.categories.store');
+                Route::patch('/alliance/content/categories/{category}', [ContentManagementController::class, 'updateCategory'])
+                    ->whereUlid('category')
+                    ->name('alliance.content.categories.update');
+                Route::delete('/alliance/content/categories/{category}', [ContentManagementController::class, 'destroyCategory'])
+                    ->whereUlid('category')
+                    ->name('alliance.content.categories.destroy');
+
+                Route::post('/alliance/content', [ContentManagementController::class, 'storeContent'])
+                    ->name('alliance.content.store');
+                Route::patch('/alliance/content/{content}', [ContentManagementController::class, 'updateContent'])
+                    ->whereUlid('content')
+                    ->name('alliance.content.update');
+                Route::post('/alliance/content/{content}/publish', [ContentManagementController::class, 'publishContent'])
+                    ->whereUlid('content')
+                    ->name('alliance.content.publish');
+                Route::delete('/alliance/content/{content}', [ContentManagementController::class, 'archiveContent'])
+                    ->whereUlid('content')
+                    ->name('alliance.content.archive');
+                Route::post('/alliance/content/{content}/revisions/{revision}/restore', [ContentManagementController::class, 'restoreRevision'])
+                    ->whereUlid('content')
+                    ->whereUlid('revision')
+                    ->name('alliance.content.revisions.restore');
+
+                Route::post('/alliance/media', [ContentManagementController::class, 'storeMedia'])
+                    ->name('alliance.media.store');
+                Route::delete('/alliance/media/{media}', [ContentManagementController::class, 'archiveMedia'])
+                    ->whereUlid('media')
+                    ->name('alliance.media.archive');
+
                 Route::post('/alliance/invitations', [InvitationController::class, 'store'])
                     ->name('alliance.invitations.store');
                 Route::post('/alliance/invitations/{invitation}/resend', [InvitationController::class, 'resend'])
