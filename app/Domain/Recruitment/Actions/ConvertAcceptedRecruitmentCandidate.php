@@ -10,13 +10,12 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Memberships\Actions\CreateInvitation;
-use App\Domain\Memberships\Models\Invitation;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentOnboardingStatus;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentCandidateOnboarding;
 use App\Domain\Recruitment\Models\RecruitmentOnboardingItem;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use App\Domain\Recruitment\ValueObjects\ConvertedRecruitmentCandidate;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +27,7 @@ final class ConvertAcceptedRecruitmentCandidate
         private AllianceAuthorization $authorization,
         private CreateInvitation $createInvitation,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -60,18 +59,18 @@ final class ConvertAcceptedRecruitmentCandidate
             }
 
             if ($locked->membership_invitation_id !== null) {
-                $existing = Invitation::query()
-                    ->where('alliance_id', $alliance->id)
-                    ->whereKey($locked->membership_invitation_id)
-                    ->firstOrFail();
-
-                return new ConvertedRecruitmentCandidate($locked, $existing, null, false);
+                return new ConvertedRecruitmentCandidate(
+                    $locked,
+                    (string) $locked->membership_invitation_id,
+                    null,
+                    false,
+                );
             }
 
             $issued = $this->createInvitation->handle($alliance, $actor, (string) $locked->email);
 
             $locked->forceFill([
-                'membership_invitation_id' => $issued->invitation->id,
+                'membership_invitation_id' => $issued->invitationId,
                 'updated_by_user_id' => $actor->id,
             ])->save();
 
@@ -96,18 +95,18 @@ final class ConvertAcceptedRecruitmentCandidate
             }
 
             $this->audit->record('recruitment.candidate.converted', $actor, $locked, $alliance, [
-                'membership_invitation_id' => $issued->invitation->id,
+                'membership_invitation_id' => $issued->invitationId,
                 'onboarding_item_count' => $items->count(),
             ]);
-            $this->outbox->record('recruitment.candidate.converted', $alliance, $locked, [
+            $this->outbox->record('recruitment.candidate.converted', (string) $alliance->id, $locked, [
                 'candidate_id' => $locked->id,
-                'membership_invitation_id' => $issued->invitation->id,
+                'membership_invitation_id' => $issued->invitationId,
                 'onboarding_item_count' => $items->count(),
             ]);
 
             return new ConvertedRecruitmentCandidate(
                 $locked->refresh(),
-                $issued->invitation,
+                $issued->invitationId,
                 $issued->token,
                 true,
             );

@@ -6,16 +6,16 @@ namespace App\Domain\Recruitment\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Support\Facades\DB;
 
 final class PurgeExpiredRecruitmentCandidates
 {
     public function __construct(
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(int $limit = 100): int
@@ -55,7 +55,7 @@ final class PurgeExpiredRecruitmentCandidates
                     'stage' => $candidate->stage->value,
                     'retention_due_at' => $candidate->retention_due_at?->toIso8601String(),
                 ]);
-                $this->outbox->record('recruitment.candidate.anonymized', $alliance, $candidate, [
+                $this->outbox->record('recruitment.candidate.anonymized', (string) $alliance->id, $candidate, [
                     'candidate_id' => $candidate->id,
                     'stage' => $candidate->stage->value,
                 ]);

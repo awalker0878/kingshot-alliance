@@ -9,9 +9,9 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentOnboardingStatus;
 use App\Domain\Recruitment\Models\RecruitmentCandidateOnboarding;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 
@@ -20,7 +20,7 @@ final class UpdateRecruitmentOnboardingStatus
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -54,7 +54,7 @@ final class UpdateRecruitmentOnboardingStatus
                 'candidate_id' => $locked->candidate_id,
                 'status' => $status->value,
             ]);
-            $this->outbox->record('recruitment.onboarding.updated', $alliance, $locked, [
+            $this->outbox->record('recruitment.onboarding.updated', (string) $alliance->id, $locked, [
                 'candidate_id' => $locked->candidate_id,
                 'status' => $status->value,
             ]);

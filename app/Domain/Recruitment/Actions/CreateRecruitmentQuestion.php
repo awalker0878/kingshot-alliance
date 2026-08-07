@@ -9,9 +9,9 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentQuestionType;
 use App\Domain\Recruitment\Models\RecruitmentQuestion;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -21,7 +21,7 @@ final class CreateRecruitmentQuestion
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     /** @param list<string> $options */
@@ -87,7 +87,7 @@ final class CreateRecruitmentQuestion
                 'is_required' => $isRequired,
                 'position' => $position,
             ]);
-            $this->outbox->record('recruitment.question.created', $alliance, $question, [
+            $this->outbox->record('recruitment.question.created', (string) $alliance->id, $question, [
                 'question_type' => $type->value,
                 'is_required' => $isRequired,
             ]);

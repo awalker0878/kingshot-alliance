@@ -9,8 +9,8 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Events\Models\EventOccurrence;
-use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Rallies\Models\EventRecommendedFormation;
 use App\Domain\Rallies\Models\RallyGroup;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -22,7 +22,7 @@ final class CreateRallyGroup
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private EventOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -72,7 +72,7 @@ final class CreateRallyGroup
                 'occurrence_id' => $occurrence->id,
                 'max_joiners' => $maxJoiners,
             ]);
-            $this->outbox->record('rally.group.created', $alliance, $group, [
+            $this->outbox->record('rally.group.created', (string) $alliance->id, $group, [
                 'occurrence_id' => $occurrence->id,
             ]);
 

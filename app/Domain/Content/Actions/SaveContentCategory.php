@@ -9,9 +9,9 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Models\ContentCategory;
-use App\Domain\Content\Services\ContentOutbox;
 use App\Domain\Content\Services\ContentSanitizer;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 
@@ -21,7 +21,7 @@ final readonly class SaveContentCategory
         private AllianceAuthorization $authorization,
         private ContentSanitizer $sanitizer,
         private AuditRecorder $audit,
-        private ContentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -53,7 +53,7 @@ final readonly class SaveContentCategory
 
             $event = $categoryId === null ? 'content.category_created' : 'content.category_updated';
             $this->audit->record($event, $actor, $category, $alliance);
-            $this->outbox->record($event, $alliance, $category, [
+            $this->outbox->record($event, (string) $alliance->id, $category, [
                 'category_id' => $category->id,
                 'slug' => $category->slug,
             ]);

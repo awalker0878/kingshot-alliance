@@ -11,9 +11,9 @@ use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentNote;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -23,7 +23,7 @@ final class AddRecruitmentNote
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(User $actor, Alliance $alliance, RecruitmentCandidate $candidate, string $body): RecruitmentNote
@@ -62,7 +62,7 @@ final class AddRecruitmentNote
             $this->audit->record('recruitment.note.created', $actor, $note, $alliance, [
                 'candidate_id' => $candidate->id,
             ]);
-            $this->outbox->record('recruitment.note.created', $alliance, $note, [
+            $this->outbox->record('recruitment.note.created', (string) $alliance->id, $note, [
                 'candidate_id' => $candidate->id,
             ]);
 

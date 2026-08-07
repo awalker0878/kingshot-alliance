@@ -10,8 +10,8 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Models\ContentItem;
-use App\Domain\Content\Services\ContentOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 
@@ -20,7 +20,7 @@ final readonly class ArchiveContentItem
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private ContentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(Alliance $alliance, User $actor, string $contentItemId): ContentItem
@@ -46,7 +46,7 @@ final readonly class ArchiveContentItem
             $this->audit->record('content.archived', $actor, $item, $alliance, [
                 'revision_number' => $item->current_revision_number,
             ]);
-            $this->outbox->record('content.archived', $alliance, $item, [
+            $this->outbox->record('content.archived', (string) $alliance->id, $item, [
                 'content_item_id' => $item->id,
                 'revision_number' => $item->current_revision_number,
             ]);

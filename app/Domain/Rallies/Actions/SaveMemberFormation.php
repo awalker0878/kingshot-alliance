@@ -6,10 +6,10 @@ namespace App\Domain\Rallies\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Rallies\Models\MemberFormation;
 use App\Domain\Rallies\ValueObjects\FormationComposition;
 use DomainException;
@@ -19,7 +19,7 @@ final class SaveMemberFormation
 {
     public function __construct(
         private AuditRecorder $audit,
-        private EventOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     /** @param list<string> $heroes */
@@ -81,7 +81,7 @@ final class SaveMemberFormation
             $this->audit->record('formation.saved', $actor, $formation, $alliance, [
                 'is_default' => $isDefault,
             ]);
-            $this->outbox->record('formation.saved', $alliance, $formation, [
+            $this->outbox->record('formation.saved', (string) $alliance->id, $formation, [
                 'membership_id' => $membership->id,
             ]);
 

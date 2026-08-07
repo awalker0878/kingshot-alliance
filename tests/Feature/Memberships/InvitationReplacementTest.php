@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Identity;
+namespace Tests\Feature\Memberships;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Audit\Models\AuditEvent;

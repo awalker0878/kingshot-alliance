@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Identity;
+namespace Tests\Feature\Memberships;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Authorization\Enums\DefaultAllianceRole;
@@ -14,6 +14,7 @@ use App\Domain\Memberships\Actions\RevokeInvitation;
 use App\Domain\Memberships\Enums\InvitationStatus;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Memberships\Models\Invitation;
 use App\Domain\Memberships\Queries\FindPendingInvitation;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -34,9 +35,9 @@ final class InvitationLifecycleTest extends TestCase
         $issued = $this->app->make(CreateInvitation::class)
             ->handle($alliance, $owner, 'MEMBER@example.com');
 
-        self::assertSame('member@example.com', $issued->invitation->email);
-        self::assertNotSame($issued->token, $issued->invitation->token_hash);
-        self::assertSame(hash('sha256', $issued->token), $issued->invitation->token_hash);
+        self::assertSame('member@example.com', Invitation::query()->findOrFail($issued->invitationId)->email);
+        self::assertNotSame($issued->token, Invitation::query()->findOrFail($issued->invitationId)->token_hash);
+        self::assertSame(hash('sha256', $issued->token), Invitation::query()->findOrFail($issued->invitationId)->token_hash);
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,
             'actor_user_id' => $owner->id,
@@ -54,7 +55,7 @@ final class InvitationLifecycleTest extends TestCase
         self::assertSame(MembershipStatus::Active, $membership->status);
         self::assertTrue($membership->roles()->where('roles.key', DefaultAllianceRole::Member->value)->exists());
 
-        $invitation = $issued->invitation->refresh();
+        $invitation = Invitation::query()->findOrFail($issued->invitationId)->refresh();
         self::assertSame(InvitationStatus::Accepted, $invitation->status);
         self::assertSame($member->id, $invitation->accepted_by_user_id);
         self::assertNull($this->app->make(FindPendingInvitation::class)->byToken($issued->token));
@@ -99,7 +100,7 @@ final class InvitationLifecycleTest extends TestCase
             ->handle($first, $firstOwner, 'rotate@example.com');
 
         $resent = $this->app->make(ResendInvitation::class)
-            ->handle($first, $firstOwner, $issued->invitation->id);
+            ->handle($first, $firstOwner, $issued->invitationId);
 
         self::assertNotSame($issued->token, $resent->token);
         self::assertNull($this->app->make(FindPendingInvitation::class)->byToken($issued->token));
@@ -107,14 +108,14 @@ final class InvitationLifecycleTest extends TestCase
 
         try {
             $this->app->make(RevokeInvitation::class)
-                ->handle($second, $secondOwner, $resent->invitation->id);
+                ->handle($second, $secondOwner, $resent->invitationId);
             self::fail('An invitation from another alliance must not be addressable.');
         } catch (ModelNotFoundException) {
-            self::assertSame(InvitationStatus::Pending, $resent->invitation->refresh()->status);
+            self::assertSame(InvitationStatus::Pending, Invitation::query()->findOrFail($resent->invitationId)->refresh()->status);
         }
 
         $revoked = $this->app->make(RevokeInvitation::class)
-            ->handle($first, $firstOwner, $resent->invitation->id);
+            ->handle($first, $firstOwner, $resent->invitationId);
         self::assertSame(InvitationStatus::Revoked, $revoked->status);
         self::assertNull($this->app->make(FindPendingInvitation::class)->byToken($resent->token));
     }
@@ -148,7 +149,7 @@ final class InvitationLifecycleTest extends TestCase
             'status' => MembershipStatus::Active->value,
         ]);
         $this->assertDatabaseHas('invitations', [
-            'id' => $issued->invitation->id,
+            'id' => $issued->invitationId,
             'status' => InvitationStatus::Accepted->value,
             'accepted_by_user_id' => $newUser->id,
         ]);

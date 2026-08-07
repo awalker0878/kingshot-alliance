@@ -10,10 +10,10 @@ use App\Domain\Events\Enums\EventOccurrenceStatus;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
-use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Platform\Services\OutboxRecorder;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -21,7 +21,7 @@ final class RegisterForEvent
 {
     public function __construct(
         private AuditRecorder $audit,
-        private EventOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(User $actor, Alliance $alliance, string $occurrenceId): EventRegistration
@@ -119,7 +119,7 @@ final class RegisterForEvent
                 metadata: ['status' => $status->value],
             );
 
-            $this->outbox->record('event.registration.created', $alliance, $registration, [
+            $this->outbox->record('event.registration.created', (string) $alliance->id, $registration, [
                 'occurrence_id' => $occurrence->id,
                 'membership_id' => $membership->id,
                 'status' => $status->value,

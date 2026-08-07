@@ -8,17 +8,17 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Identity\Models\User;
 use App\Domain\Platform\Events\OutboxPublished;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentStageHistory;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Support\Facades\DB;
 
 final class MarkRecruitmentCandidateJoined
 {
     public function __construct(
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(OutboxPublished $event): void
@@ -77,7 +77,7 @@ final class MarkRecruitmentCandidateJoined
             $this->audit->record('recruitment.candidate.joined', $actor, $candidate, $alliance, [
                 'membership_invitation_id' => $invitationId,
             ]);
-            $this->outbox->record('recruitment.candidate.joined', $alliance, $candidate, [
+            $this->outbox->record('recruitment.candidate.joined', (string) $alliance->id, $candidate, [
                 'candidate_id' => $candidate->id,
                 'membership_invitation_id' => $invitationId,
             ]);

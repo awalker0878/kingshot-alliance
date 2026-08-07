@@ -11,8 +11,8 @@ use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
-use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -22,7 +22,7 @@ final class RecordEventAttendance
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private EventOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -75,7 +75,7 @@ final class RecordEventAttendance
                 'occurrence_id' => $occurrence->id,
                 'status' => $attendanceStatus->value,
             ]);
-            $this->outbox->record('event.attendance.recorded', $alliance, $locked, [
+            $this->outbox->record('event.attendance.recorded', (string) $alliance->id, $locked, [
                 'occurrence_id' => $occurrence->id,
                 'membership_id' => $locked->membership_id,
                 'status' => $attendanceStatus->value,

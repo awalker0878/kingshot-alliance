@@ -10,8 +10,8 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Events\Enums\RecurrenceFrequency;
 use App\Domain\Events\Models\EventTemplate;
-use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -21,7 +21,7 @@ final class CreateEventTemplate
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private EventOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -84,7 +84,7 @@ final class CreateEventTemplate
             $this->audit->record('event.template.created', $actor, $template, $alliance, [
                 'recurrence' => $frequency->value,
             ]);
-            $this->outbox->record('event.template.created', $alliance, $template, [
+            $this->outbox->record('event.template.created', (string) $alliance->id, $template, [
                 'recurrence' => $frequency->value,
             ]);
 

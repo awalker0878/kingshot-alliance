@@ -11,9 +11,9 @@ use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Models\ContentItem;
 use App\Domain\Content\Models\ContentRevision;
-use App\Domain\Content\Services\ContentOutbox;
 use App\Domain\Content\Services\ContentRevisionWriter;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 
@@ -23,7 +23,7 @@ final readonly class RestoreContentRevision
         private AllianceAuthorization $authorization,
         private ContentRevisionWriter $revisions,
         private AuditRecorder $audit,
-        private ContentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(Alliance $alliance, User $actor, string $contentItemId, string $revisionId): ContentItem
@@ -69,7 +69,7 @@ final readonly class RestoreContentRevision
                 'restored_from_revision' => $restoredFrom,
                 'revision_number' => $newRevision->revision_number,
             ]);
-            $this->outbox->record('content.revision_restored', $alliance, $item, [
+            $this->outbox->record('content.revision_restored', (string) $alliance->id, $item, [
                 'content_item_id' => $item->id,
                 'restored_from_revision' => $restoredFrom,
                 'revision_number' => $newRevision->revision_number,

@@ -9,9 +9,9 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
 use App\Domain\Notifications\Models\EventReminderRule;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -21,7 +21,7 @@ final class CreateEventReminderRule
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private EventOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -67,7 +67,7 @@ final class CreateEventReminderRule
                 'minutes_before_start' => $minutesBeforeStart,
                 'channel' => $channel,
             ]);
-            $this->outbox->record('event.reminder.rule.created', $alliance, $rule, [
+            $this->outbox->record('event.reminder.rule.created', (string) $alliance->id, $rule, [
                 'event_id' => $event->id,
                 'minutes_before_start' => $minutesBeforeStart,
                 'channel' => $channel,

@@ -9,9 +9,9 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentNote;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -22,7 +22,7 @@ final class MergeRecruitmentCandidates
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -103,7 +103,7 @@ final class MergeRecruitmentCandidates
                 'source_candidate_id' => $sourceCandidate->id,
                 'target_candidate_id' => $targetCandidate->id,
             ]);
-            $this->outbox->record('recruitment.candidate.merged', $alliance, $sourceCandidate, [
+            $this->outbox->record('recruitment.candidate.merged', (string) $alliance->id, $sourceCandidate, [
                 'source_candidate_id' => $sourceCandidate->id,
                 'target_candidate_id' => $targetCandidate->id,
             ]);

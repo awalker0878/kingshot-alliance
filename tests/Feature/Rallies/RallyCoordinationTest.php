@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Events;
+namespace Tests\Feature\Rallies;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Events\Actions\CreateEvent;

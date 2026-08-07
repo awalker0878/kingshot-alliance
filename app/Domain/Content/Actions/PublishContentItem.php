@@ -10,8 +10,8 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Models\ContentItem;
-use App\Domain\Content\Services\ContentOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +21,7 @@ final readonly class PublishContentItem
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private ContentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(Alliance $alliance, User $actor, string $contentItemId, ?Carbon $scheduledFor = null): ContentItem
@@ -53,7 +53,7 @@ final readonly class PublishContentItem
                 'revision_number' => $item->current_revision_number,
                 'scheduled_for' => $item->scheduled_for?->toIso8601String(),
             ]);
-            $this->outbox->record($event, $alliance, $item, [
+            $this->outbox->record($event, (string) $alliance->id, $item, [
                 'content_item_id' => $item->id,
                 'revision_number' => $item->current_revision_number,
                 'scheduled_for' => $item->scheduled_for?->toIso8601String(),

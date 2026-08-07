@@ -9,9 +9,9 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Models\RecruitmentApplicationInvite;
 use App\Domain\Recruitment\Services\RecruitmentApplicationTokenService;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use App\Domain\Recruitment\ValueObjects\IssuedRecruitmentApplicationInvite;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +24,7 @@ final class IssueRecruitmentApplicationInvite
         private AllianceAuthorization $authorization,
         private RecruitmentApplicationTokenService $tokens,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -57,7 +57,7 @@ final class IssueRecruitmentApplicationInvite
                 'email_restricted' => $normalizedEmail !== null,
                 'expires_at' => $invite->expires_at->toIso8601String(),
             ]);
-            $this->outbox->record('recruitment.application_invite.created', $alliance, $invite, [
+            $this->outbox->record('recruitment.application_invite.created', (string) $alliance->id, $invite, [
                 'email_restricted' => $normalizedEmail !== null,
                 'expires_at' => $invite->expires_at->toIso8601String(),
             ]);

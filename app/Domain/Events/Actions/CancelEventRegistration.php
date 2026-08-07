@@ -9,10 +9,10 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
-use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Platform\Services\OutboxRecorder;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -20,7 +20,7 @@ final class CancelEventRegistration
 {
     public function __construct(
         private AuditRecorder $audit,
-        private EventOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(User $actor, Alliance $alliance, string $occurrenceId): EventRegistration
@@ -90,14 +90,14 @@ final class CancelEventRegistration
                 metadata: ['promoted_registration_id' => $promoted?->id],
             );
 
-            $this->outbox->record('event.registration.cancelled', $alliance, $registration, [
+            $this->outbox->record('event.registration.cancelled', (string) $alliance->id, $registration, [
                 'occurrence_id' => $occurrence->id,
                 'membership_id' => $membership->id,
                 'promoted_registration_id' => $promoted?->id,
             ]);
 
             if ($promoted instanceof EventRegistration) {
-                $this->outbox->record('event.registration.promoted', $alliance, $promoted, [
+                $this->outbox->record('event.registration.promoted', (string) $alliance->id, $promoted, [
                     'occurrence_id' => $occurrence->id,
                     'membership_id' => $promoted->membership_id,
                 ]);

@@ -105,14 +105,14 @@ final class RecruitmentCoordinationTest extends TestCase
         $converted = $convert->handle($owner, $alliance, $candidate);
         self::assertTrue($converted->wasCreated);
         self::assertNotNull($converted->token);
-        self::assertSame($converted->invitation->id, $candidate->refresh()->membership_invitation_id);
+        self::assertSame($converted->invitationId, $candidate->refresh()->membership_invitation_id);
         $onboarding = RecruitmentCandidateOnboarding::query()->where('candidate_id', $candidate->id)->sole();
         self::assertSame(RecruitmentOnboardingStatus::Pending, $onboarding->status);
 
         $repeat = $convert->handle($owner, $alliance, $candidate->refresh());
         self::assertFalse($repeat->wasCreated);
         self::assertNull($repeat->token);
-        self::assertSame($converted->invitation->id, $repeat->invitation->id);
+        self::assertSame($converted->invitationId, $repeat->invitationId);
 
         $this->app->make(AcceptInvitation::class)->handle($candidateUser, (string) $converted->token);
         $this->app->make(PublishOutboxBatch::class)->handle(500);

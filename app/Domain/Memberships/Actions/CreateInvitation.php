@@ -132,7 +132,7 @@ final readonly class CreateInvitation
                 'attempts' => 0,
             ]);
 
-            return new IssuedInvitation($invitation, $token);
+            return new IssuedInvitation((string) $invitation->id, $token);
         });
     }
 }

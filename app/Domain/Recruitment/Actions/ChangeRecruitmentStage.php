@@ -9,11 +9,11 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentSetting;
 use App\Domain\Recruitment\Models\RecruitmentStageHistory;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +24,7 @@ final class ChangeRecruitmentStage
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -140,7 +140,7 @@ final class ChangeRecruitmentStage
                 'from_stage' => $from->value,
                 'to_stage' => $target->value,
             ]);
-            $this->outbox->record('recruitment.candidate.stage_changed', $alliance, $locked, [
+            $this->outbox->record('recruitment.candidate.stage_changed', (string) $alliance->id, $locked, [
                 'candidate_id' => $locked->id,
                 'from_stage' => $from->value,
                 'to_stage' => $target->value,

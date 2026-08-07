@@ -9,8 +9,8 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Events\Models\EventOccurrence;
-use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Rallies\Enums\RallyAssignmentRole;
 use App\Domain\Rallies\Models\EventRecommendedFormation;
 use App\Domain\Rallies\Models\RallyGuidanceRule;
@@ -23,7 +23,7 @@ final class CreateEventRecommendedFormation
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private EventOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     /** @param list<string> $heroes */
@@ -81,7 +81,7 @@ final class CreateEventRecommendedFormation
                 'occurrence_id' => $occurrence->id,
                 'assignment_role' => $assignmentRole->value,
             ]);
-            $this->outbox->record('event.formation.created', $alliance, $formation, [
+            $this->outbox->record('event.formation.created', (string) $alliance->id, $formation, [
                 'occurrence_id' => $occurrence->id,
                 'assignment_role' => $assignmentRole->value,
             ]);

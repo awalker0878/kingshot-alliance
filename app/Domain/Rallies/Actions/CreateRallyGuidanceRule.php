@@ -8,8 +8,8 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Rallies\Models\RallyGuidanceRule;
 use App\Domain\Rallies\ValueObjects\FormationComposition;
 use Carbon\CarbonImmutable;
@@ -22,7 +22,7 @@ final class CreateRallyGuidanceRule
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private EventOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     /** @param list<string> $heroRecommendations */
@@ -92,7 +92,7 @@ final class CreateRallyGuidanceRule
                 'effective_from' => $effectiveFrom->toDateString(),
                 'source' => $rule->source,
             ]);
-            $this->outbox->record('rally.guidance.created', $alliance, $rule, [
+            $this->outbox->record('rally.guidance.created', (string) $alliance->id, $rule, [
                 'effective_from' => $effectiveFrom->toDateString(),
             ]);
 

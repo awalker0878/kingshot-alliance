@@ -11,8 +11,8 @@ use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,7 +23,7 @@ final class AssignRecruitmentReviewer
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -68,7 +68,7 @@ final class AssignRecruitmentReviewer
             $this->audit->record('recruitment.reviewer.assigned', $actor, $candidate, $alliance, [
                 'reviewer_membership_id' => $reviewer->id,
             ]);
-            $this->outbox->record('recruitment.reviewer.assigned', $alliance, $candidate, [
+            $this->outbox->record('recruitment.reviewer.assigned', (string) $alliance->id, $candidate, [
                 'candidate_id' => $candidate->id,
                 'reviewer_membership_id' => $reviewer->id,
             ]);

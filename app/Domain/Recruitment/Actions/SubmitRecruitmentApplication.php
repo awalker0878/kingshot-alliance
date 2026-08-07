@@ -7,6 +7,7 @@ namespace App\Domain\Recruitment\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Recruitment\Enums\RecruitmentQuestionType;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
@@ -17,7 +18,6 @@ use App\Domain\Recruitment\Models\RecruitmentQuestion;
 use App\Domain\Recruitment\Models\RecruitmentSetting;
 use App\Domain\Recruitment\Models\RecruitmentStageHistory;
 use App\Domain\Recruitment\Services\RecruitmentApplicationTokenService;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -28,7 +28,7 @@ final class SubmitRecruitmentApplication
     public function __construct(
         private RecruitmentApplicationTokenService $tokens,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     /** @param array<string, mixed> $answers */
@@ -181,7 +181,7 @@ final class SubmitRecruitmentApplication
                 'question_count' => count($validatedAnswers),
                 'invitation_based' => $applicationInvite instanceof RecruitmentApplicationInvite,
             ]);
-            $this->outbox->record('recruitment.application.submitted', $alliance, $candidate, [
+            $this->outbox->record('recruitment.application.submitted', (string) $alliance->id, $candidate, [
                 'candidate_id' => $candidate->id,
                 'source' => $candidate->source,
             ]);

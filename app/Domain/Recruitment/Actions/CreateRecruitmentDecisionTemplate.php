@@ -9,9 +9,9 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Domain\Recruitment\Models\RecruitmentDecisionTemplate;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -21,7 +21,7 @@ final class CreateRecruitmentDecisionTemplate
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -63,7 +63,7 @@ final class CreateRecruitmentDecisionTemplate
             $this->audit->record('recruitment.decision_template.created', $actor, $template, $alliance, [
                 'decision_stage' => $decisionStage->value,
             ]);
-            $this->outbox->record('recruitment.decision_template.created', $alliance, $template, [
+            $this->outbox->record('recruitment.decision_template.created', (string) $alliance->id, $template, [
                 'decision_stage' => $decisionStage->value,
             ]);
 

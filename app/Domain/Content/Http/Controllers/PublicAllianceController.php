@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Alliances\Http\Controllers;
+namespace App\Domain\Content\Http\Controllers;
 
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;

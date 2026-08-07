@@ -79,7 +79,7 @@ final readonly class ResendInvitation
                 'attempts' => 0,
             ]);
 
-            return new IssuedInvitation($invitation->refresh(), $token);
+            return new IssuedInvitation((string) $invitation->id, $token);
         });
     }
 }

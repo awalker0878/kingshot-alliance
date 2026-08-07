@@ -60,7 +60,6 @@ final class RecruitmentCandidateController extends Controller
             'stageHistory',
             'communications',
             'onboarding.item',
-            'membershipInvitation',
         ]);
 
         $memberships = AllianceMembership::query()

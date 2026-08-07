@@ -11,8 +11,8 @@ use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Enums\MediaLifecycleStatus;
 use App\Domain\Content\Models\AllianceBrandingMedia;
 use App\Domain\Content\Models\MediaAsset;
-use App\Domain\Content\Services\ContentOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -22,7 +22,7 @@ final readonly class ArchiveMediaAsset
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private ContentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(Alliance $alliance, User $actor, string $mediaId): MediaAsset
@@ -52,7 +52,7 @@ final readonly class ArchiveMediaAsset
             $this->audit->record('content.media_archived', $actor, $asset, $alliance, [
                 'sha256' => $asset->sha256,
             ]);
-            $this->outbox->record('content.media_archived', $alliance, $asset, [
+            $this->outbox->record('content.media_archived', (string) $alliance->id, $asset, [
                 'media_id' => $asset->id,
                 'sha256' => $asset->sha256,
             ]);

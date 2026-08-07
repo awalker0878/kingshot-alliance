@@ -13,10 +13,10 @@ use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;
 use App\Domain\Content\Models\ContentCategory;
 use App\Domain\Content\Models\ContentItem;
-use App\Domain\Content\Services\ContentOutbox;
 use App\Domain\Content\Services\ContentRevisionWriter;
 use App\Domain\Content\Services\ContentSanitizer;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -28,7 +28,7 @@ final readonly class SaveContentItem
         private ContentSanitizer $sanitizer,
         private ContentRevisionWriter $revisions,
         private AuditRecorder $audit,
-        private ContentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     /**
@@ -95,7 +95,7 @@ final readonly class SaveContentItem
                 'visibility' => $item->visibility->value,
                 'type' => $item->type->value,
             ]);
-            $this->outbox->record($event, $alliance, $item, [
+            $this->outbox->record($event, (string) $alliance->id, $item, [
                 'content_item_id' => $item->id,
                 'revision_number' => $revision->revision_number,
                 'visibility' => $item->visibility->value,

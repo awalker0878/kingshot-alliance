@@ -9,9 +9,9 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentTag;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -22,7 +22,7 @@ final class TagRecruitmentCandidate
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(User $actor, Alliance $alliance, RecruitmentCandidate $candidate, string $name): RecruitmentTag
@@ -69,7 +69,7 @@ final class TagRecruitmentCandidate
                     'tag_id' => $tag->id,
                     'tag' => $tag->name,
                 ]);
-                $this->outbox->record('recruitment.candidate.tagged', $alliance, $candidate, [
+                $this->outbox->record('recruitment.candidate.tagged', (string) $alliance->id, $candidate, [
                     'candidate_id' => $candidate->id,
                     'tag_id' => $tag->id,
                 ]);

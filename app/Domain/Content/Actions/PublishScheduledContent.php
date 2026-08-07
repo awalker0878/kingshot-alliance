@@ -8,14 +8,14 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Models\ContentItem;
-use App\Domain\Content\Services\ContentOutbox;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 
 final readonly class PublishScheduledContent
 {
     public function __construct(
         private AuditRecorder $audit,
-        private ContentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(int $limit = 100): int
@@ -56,7 +56,7 @@ final readonly class PublishScheduledContent
                 $this->audit->record('content.published_scheduled', null, $item, $alliance, [
                     'revision_number' => $item->current_revision_number,
                 ]);
-                $this->outbox->record('content.published_scheduled', $alliance, $item, [
+                $this->outbox->record('content.published_scheduled', (string) $alliance->id, $item, [
                     'content_item_id' => $item->id,
                     'revision_number' => $item->current_revision_number,
                 ]);

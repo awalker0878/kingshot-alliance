@@ -13,9 +13,9 @@ use App\Domain\Content\Enums\MediaScanStatus;
 use App\Domain\Content\Models\AllianceBrandingMedia;
 use App\Domain\Content\Models\AllianceProfile;
 use App\Domain\Content\Models\MediaAsset;
-use App\Domain\Content\Services\ContentOutbox;
 use App\Domain\Content\Services\ContentSanitizer;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -26,7 +26,7 @@ final readonly class UpdateAlliancePublicProfile
         private AllianceAuthorization $authorization,
         private ContentSanitizer $sanitizer,
         private AuditRecorder $audit,
-        private ContentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     /**
@@ -81,7 +81,7 @@ final readonly class UpdateAlliancePublicProfile
                 ],
             );
 
-            $this->outbox->record('alliance.public_profile_updated', $locked, $locked, [
+            $this->outbox->record('alliance.public_profile_updated', (string) $locked->id, $locked, [
                 'language' => $locked->language,
                 'timezone' => $locked->timezone,
             ]);

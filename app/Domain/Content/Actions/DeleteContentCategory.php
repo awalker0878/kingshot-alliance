@@ -9,8 +9,8 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Models\ContentCategory;
-use App\Domain\Content\Services\ContentOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -20,7 +20,7 @@ final readonly class DeleteContentCategory
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private ContentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(Alliance $alliance, User $actor, string $categoryId): void
@@ -45,7 +45,7 @@ final readonly class DeleteContentCategory
             $this->audit->record('content.category_deleted', $actor, $category, $alliance, [
                 'slug' => $category->slug,
             ]);
-            $this->outbox->record('content.category_deleted', $alliance, $category, [
+            $this->outbox->record('content.category_deleted', (string) $alliance->id, $category, [
                 'category_id' => $category->id,
                 'slug' => $category->slug,
             ]);

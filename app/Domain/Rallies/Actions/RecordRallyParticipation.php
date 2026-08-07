@@ -8,8 +8,8 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Rallies\Enums\RallyAssignmentStatus;
 use App\Domain\Rallies\Models\RallyAssignment;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -21,7 +21,7 @@ final class RecordRallyParticipation
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private EventOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -57,7 +57,7 @@ final class RecordRallyParticipation
             $this->audit->record('rally.participation.recorded', $actor, $locked, $alliance, [
                 'status' => $status->value,
             ]);
-            $this->outbox->record('rally.participation.recorded', $alliance, $locked, [
+            $this->outbox->record('rally.participation.recorded', (string) $alliance->id, $locked, [
                 'status' => $status->value,
                 'membership_id' => $locked->membership_id,
             ]);

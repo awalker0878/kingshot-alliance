@@ -9,9 +9,9 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentCommunicationStatus;
 use App\Domain\Recruitment\Models\RecruitmentCommunication;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 
@@ -20,7 +20,7 @@ final class MarkRecruitmentCommunicationSent
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -56,7 +56,7 @@ final class MarkRecruitmentCommunicationSent
             $this->audit->record('recruitment.communication.sent', $actor, $locked, $alliance, [
                 'candidate_id' => $locked->candidate_id,
             ]);
-            $this->outbox->record('recruitment.communication.sent', $alliance, $locked, [
+            $this->outbox->record('recruitment.communication.sent', (string) $alliance->id, $locked, [
                 'candidate_id' => $locked->candidate_id,
             ]);
 

@@ -12,9 +12,9 @@ use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Enums\MediaLifecycleStatus;
 use App\Domain\Content\Enums\MediaScanStatus;
 use App\Domain\Content\Models\MediaAsset;
-use App\Domain\Content\Services\ContentOutbox;
 use App\Domain\Content\Services\MediaScanner;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +29,7 @@ final readonly class UploadMediaAsset
         private AllianceAuthorization $authorization,
         private MediaScanner $scanner,
         private AuditRecorder $audit,
-        private ContentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(Alliance $alliance, User $actor, UploadedFile $file): MediaAsset
@@ -122,7 +122,7 @@ final readonly class UploadMediaAsset
                     'size_bytes' => $size,
                     'sha256' => $sha256,
                 ]);
-                $this->outbox->record('content.media_uploaded', $alliance, $asset, [
+                $this->outbox->record('content.media_uploaded', (string) $alliance->id, $asset, [
                     'media_id' => $asset->id,
                     'mime_type' => $mimeType,
                     'size_bytes' => $size,

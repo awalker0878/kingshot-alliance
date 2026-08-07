@@ -9,11 +9,11 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentCommunicationStatus;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentCommunication;
 use App\Domain\Recruitment\Models\RecruitmentDecisionTemplate;
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -23,7 +23,7 @@ final class PrepareRecruitmentDecisionCommunication
     public function __construct(
         private AllianceAuthorization $authorization,
         private AuditRecorder $audit,
-        private RecruitmentOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -95,7 +95,7 @@ final class PrepareRecruitmentDecisionCommunication
                 'candidate_id' => $candidate->id,
                 'template_id' => $template->id,
             ]);
-            $this->outbox->record('recruitment.communication.prepared', $alliance, $communication, [
+            $this->outbox->record('recruitment.communication.prepared', (string) $alliance->id, $communication, [
                 'candidate_id' => $candidate->id,
                 'template_id' => $template->id,
             ]);

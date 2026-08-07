@@ -14,9 +14,9 @@ use App\Domain\Events\Enums\RecurrenceFrequency;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventTemplate;
-use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Events\Services\RecurrenceCalculator;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +28,7 @@ final class CreateEvent
         private AllianceAuthorization $authorization,
         private RecurrenceCalculator $recurrence,
         private AuditRecorder $audit,
-        private EventOutbox $outbox,
+        private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
@@ -153,7 +153,7 @@ final class CreateEvent
                 ],
             );
 
-            $this->outbox->record('event.created', $alliance, $event, [
+            $this->outbox->record('event.created', (string) $alliance->id, $event, [
                 'template_id' => $template?->id,
                 'recurrence' => $frequency->value,
                 'occurrence_count' => count($occurrenceStarts),
