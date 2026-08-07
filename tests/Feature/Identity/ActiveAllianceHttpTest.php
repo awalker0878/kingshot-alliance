@@ -6,10 +6,14 @@ namespace Tests\Feature\Identity;
 
 use App\Application\Identity\CreateAlliance;
 use App\Domain\Identity\Enums\MembershipStatus;
+use App\Domain\Shared\Tenancy\TenantContextSnapshot;
 use App\Models\AllianceMembership;
 use App\Models\AuditEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -72,6 +76,35 @@ final class ActiveAllianceHttpTest extends TestCase
             ->component('Alliance/Overview')
             ->where('alliance.id', $second->id)
             ->where('alliance.name', 'Second'));
+    }
+
+    public function test_tenant_middleware_exposes_serializable_context_for_downstream_jobs_and_storage(): void
+    {
+        Route::middleware(['web', 'auth', 'alliance.context'])
+            ->get('/_test/tenant-context', static function (Request $request): JsonResponse {
+                $snapshot = $request->attributes->get('tenant_context');
+
+                if (! $snapshot instanceof TenantContextSnapshot) {
+                    abort(500, 'Tenant snapshot missing.');
+                }
+
+                return response()->json($snapshot->toArray());
+            });
+
+        $owner = User::factory()->create();
+        $alliance = $this->app->make(CreateAlliance::class)
+            ->handle($owner, 'Snapshot Alliance', 'snapshot-alliance');
+        $sessionKey = (string) config('identity.active_alliance_session_key');
+
+        $response = $this->actingAs($owner)
+            ->withSession([$sessionKey => $alliance->id])
+            ->get('/_test/tenant-context');
+
+        $response->assertOk();
+        $response->assertJsonPath('alliance_id', $alliance->id);
+        $response->assertJsonPath('actor_user_id', $owner->id);
+        self::assertIsString($response->json('request_id'));
+        self::assertIsString($response->json('trace_id'));
     }
 
     public function test_user_cannot_activate_an_alliance_without_membership(): void
