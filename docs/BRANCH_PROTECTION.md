@@ -13,8 +13,7 @@ Apply these settings to `main` after the first successful Phase 0 workflow run c
   - `Container, staging, and recovery`
   - `Dependency review`
   - `CodeQL (javascript-typescript)`
-  - `CodeQL (php)`
-- Do not require the temporary `Generate lock files` workflow; delete that workflow after both lockfiles are committed.
+- Do not require one-time bootstrap or formatter workflows used only to establish the Phase 0 baseline; remove those workflows before acceptance.
 - Block force pushes and branch deletion.
 - Require signed commits when all contributors can support them.
 - Restrict direct pushes to emergency administrators.
