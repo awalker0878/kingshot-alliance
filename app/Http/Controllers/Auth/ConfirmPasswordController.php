@@ -14,9 +14,9 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-final readonly class ConfirmPasswordController extends Controller
+final class ConfirmPasswordController extends Controller
 {
-    public function __construct(private AuditRecorder $audit) {}
+    public function __construct(private readonly AuditRecorder $audit) {}
 
     public function create(): Response
     {
