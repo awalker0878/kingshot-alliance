@@ -15,15 +15,13 @@ defineProps<{
 
   <main class="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-16 lg:px-8">
     <section class="w-full">
-      <p class="mb-4 text-sm font-semibold tracking-[0.25em] text-cyan-300 uppercase">
-        Phase 0
-      </p>
+      <p class="mb-4 text-sm font-semibold tracking-[0.25em] text-cyan-300 uppercase">Phase 0</p>
       <h1 class="max-w-4xl text-4xl font-bold tracking-tight sm:text-6xl">
         A secure foundation for alliance coordination.
       </h1>
       <p class="mt-6 max-w-3xl text-lg leading-8 text-slate-300">
-        Kingshot Alliance is being built as a tenant-safe Laravel modular monolith with
-        observable operations, repeatable delivery, and accessible interfaces.
+        Kingshot Alliance is being built as a tenant-safe Laravel modular monolith with observable
+        operations, repeatable delivery, and accessible interfaces.
       </p>
 
       <dl class="mt-12 grid gap-4 sm:grid-cols-2">

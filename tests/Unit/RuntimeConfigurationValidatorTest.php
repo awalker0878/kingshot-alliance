@@ -17,7 +17,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'operations.release_sha' => 'local',
         ]);
 
-        $errors = (new RuntimeConfigurationValidator())->errors('staging');
+        $errors = (new RuntimeConfigurationValidator)->errors('staging');
 
         self::assertContains(
             'Hosted releases must declare a non-placeholder application version.',
@@ -46,7 +46,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'operations.allow_trust_all_proxies' => false,
         ]);
 
-        $errors = (new RuntimeConfigurationValidator())->errors('staging');
+        $errors = (new RuntimeConfigurationValidator)->errors('staging');
 
         self::assertContains('Hosted releases must use a valid 32-byte AES-256 application key.', $errors);
         self::assertContains('Hosted releases must use PostgreSQL as the default database connection.', $errors);
@@ -76,7 +76,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
 
         self::assertContains(
             'Hosted S3 storage requires a configured bucket.',
-            (new RuntimeConfigurationValidator())->errors('staging'),
+            (new RuntimeConfigurationValidator)->errors('staging'),
         );
     }
 
@@ -87,7 +87,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
 
         self::assertContains(
             'Hosted Horizon supervisors must run between 1 and 64 worker processes.',
-            (new RuntimeConfigurationValidator())->errors('staging'),
+            (new RuntimeConfigurationValidator)->errors('staging'),
         );
     }
 
@@ -100,7 +100,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'operations.allow_insecure_loopback_staging' => true,
         ]);
 
-        $errors = (new RuntimeConfigurationValidator())->errors('staging');
+        $errors = (new RuntimeConfigurationValidator)->errors('staging');
 
         self::assertContains(
             'Staging APP_URL must use HTTPS unless insecure loopback staging is explicitly approved.',
@@ -121,7 +121,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'operations.allow_insecure_loopback_staging' => false,
         ]);
 
-        $errors = (new RuntimeConfigurationValidator())->errors('staging');
+        $errors = (new RuntimeConfigurationValidator)->errors('staging');
 
         self::assertContains(
             'Staging APP_URL must use HTTPS unless insecure loopback staging is explicitly approved.',
@@ -142,7 +142,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'operations.allow_insecure_loopback_staging' => true,
         ]);
 
-        self::assertSame([], (new RuntimeConfigurationValidator())->errors('staging'));
+        self::assertSame([], (new RuntimeConfigurationValidator)->errors('staging'));
     }
 
     public function test_trust_all_proxy_wildcard_must_be_the_only_entry(): void
@@ -155,7 +155,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
 
         self::assertContains(
             'The trust-all proxy wildcard must be the only TRUSTED_PROXIES entry.',
-            (new RuntimeConfigurationValidator())->errors('staging'),
+            (new RuntimeConfigurationValidator)->errors('staging'),
         );
     }
 
@@ -167,7 +167,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'operations.allow_trust_all_proxies' => true,
         ]);
 
-        self::assertSame([], (new RuntimeConfigurationValidator())->errors('staging'));
+        self::assertSame([], (new RuntimeConfigurationValidator)->errors('staging'));
     }
 
     public function test_production_rejects_insecure_runtime_configuration(): void
@@ -180,7 +180,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'database.connections.pgsql.sslmode' => 'prefer',
         ]);
 
-        $errors = (new RuntimeConfigurationValidator())->errors('production');
+        $errors = (new RuntimeConfigurationValidator)->errors('production');
 
         self::assertContains('Production debugging must be disabled.', $errors);
         self::assertContains('Production APP_URL must use HTTPS.', $errors);
@@ -198,7 +198,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'database.connections.pgsql.sslmode' => 'verify-full',
         ]);
 
-        self::assertSame([], (new RuntimeConfigurationValidator())->errors('production'));
+        self::assertSame([], (new RuntimeConfigurationValidator)->errors('production'));
     }
 
     private function configureRequiredValues(): void
