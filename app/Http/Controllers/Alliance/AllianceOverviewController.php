@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Alliance;
 
 use App\Application\Content\ContentPresenter;
 use App\Application\Content\ContentQuery;
+use App\Application\Events\AllianceEventQuery;
 use App\Application\Identity\AllianceAuthorization;
 use App\Application\Identity\AllianceContext;
 use App\Domain\Content\Enums\ContentType;
@@ -13,6 +14,7 @@ use App\Domain\Identity\Authorization\PermissionKey;
 use App\Domain\Identity\Enums\InvitationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AllianceMembership;
+use App\Models\Event;
 use App\Models\Invitation;
 use App\Models\Role;
 use App\Models\User;
@@ -29,6 +31,7 @@ final class AllianceOverviewController extends Controller
         AllianceAuthorization $authorization,
         ContentQuery $contentQuery,
         ContentPresenter $contentPresenter,
+        AllianceEventQuery $eventQuery,
     ): Response {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
@@ -39,6 +42,7 @@ final class AllianceOverviewController extends Controller
         $canManageMembers = $authorization->allows($user, $alliance, PermissionKey::MembershipManage);
         $canManageRoles = $authorization->allows($user, $alliance, PermissionKey::RoleManage);
         $canManageContent = $authorization->allows($user, $alliance, PermissionKey::ContentManage);
+        $canManageEvents = $authorization->allows($user, $alliance, PermissionKey::EventManage);
 
         /** @var list<array{key: string, name: string}> $roles */
         $roles = [];
@@ -148,6 +152,24 @@ final class AllianceOverviewController extends Controller
             ->values()
             ->all();
 
+        /** @var list<array{id: string, title: string, startsAt: string, allianceTimezone: string}> $upcomingActivities */
+        $upcomingActivities = [];
+
+        foreach ($eventQuery->calendar($alliance, pastDays: 0, futureDays: 30)->take(5) as $occurrence) {
+            $event = $occurrence->event;
+
+            if (! $event instanceof Event) {
+                throw new LogicException('An event occurrence must reference an event.');
+            }
+
+            $upcomingActivities[] = [
+                'id' => (string) $occurrence->id,
+                'title' => (string) $event->title,
+                'startsAt' => $occurrence->starts_at->toIso8601String(),
+                'allianceTimezone' => (string) $event->timezone,
+            ];
+        }
+
         return Inertia::render('Alliance/Overview', [
             'alliance' => [
                 'id' => $alliance->id,
@@ -164,9 +186,9 @@ final class AllianceOverviewController extends Controller
             ],
             'contentHub' => [
                 'canManage' => $canManageContent,
+                'canManageEvents' => $canManageEvents,
                 'notices' => $notices,
-                'upcomingActivities' => [],
-                'upcomingActivitiesPhase' => 3,
+                'upcomingActivities' => $upcomingActivities,
             ],
             'invitationManagement' => [
                 'allowed' => $canManageInvitations,
