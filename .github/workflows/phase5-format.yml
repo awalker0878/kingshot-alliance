@@ -36,6 +36,8 @@ jobs:
 
           manage = Path('resources/js/pages/Alliance/Contributions/Manage.vue')
           text = manage.read_text()
+          unused = '''function dateTime(value: string | null): string {\n  if (!value) return '—';\n  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));\n}\n'''
+          text = text.replace(unused, '')
           text = re.sub(r'<button(?![^>]*\btype=)', '<button type="button"', text)
           text = text.replace('type="button" class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950" :disabled="categoryForm.processing">Create category', 'type="submit" class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950" :disabled="categoryForm.processing">Create category')
           text = text.replace('type="button" class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950" :disabled="recordForm.processing">Record pending contribution', 'type="submit" class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950" :disabled="recordForm.processing">Record pending contribution')
