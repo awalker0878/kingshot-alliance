@@ -9,20 +9,32 @@ use App\Domain\Identity\Authorization\PermissionKey;
 use App\Models\Alliance;
 use App\Models\Permission;
 use App\Models\Role;
+use Illuminate\Support\Str;
 
 final class AllianceRoleProvisioner
 {
     /** @return array<string, Role> */
     public function provision(Alliance $alliance): array
     {
-        $permissions = [];
+        $permissionRows = array_map(
+            static fn (PermissionKey $permission): array => [
+                'id' => (string) Str::ulid(),
+                'key' => $permission->value,
+                'description' => $permission->description(),
+            ],
+            PermissionKey::cases(),
+        );
 
-        foreach (PermissionKey::cases() as $permissionKey) {
-            $permissions[$permissionKey->value] = Permission::query()->updateOrCreate(
-                ['key' => $permissionKey->value],
-                ['description' => $permissionKey->description()],
-            );
-        }
+        Permission::query()->upsert(
+            $permissionRows,
+            ['key'],
+            ['description'],
+        );
+
+        $permissions = Permission::query()
+            ->whereIn('key', array_column($permissionRows, 'key'))
+            ->get()
+            ->keyBy('key');
 
         $roles = [];
 
@@ -35,7 +47,7 @@ final class AllianceRoleProvisioner
             ]);
 
             $role->permissions()->sync(array_map(
-                static fn (PermissionKey $permission): string => $permissions[$permission->value]->id,
+                static fn (PermissionKey $permission): string => (string) $permissions->getOrFail($permission->value)->id,
                 $roleTemplate->permissions(),
             ));
 
