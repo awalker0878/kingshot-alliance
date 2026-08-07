@@ -91,10 +91,16 @@ function canJoin(): boolean {
   if (props.event.registration && props.event.registration.status !== 'cancelled') return false;
 
   const now = Date.now();
-  if (props.event.registrationOpensAt && now < new Date(props.event.registrationOpensAt).getTime()) {
+  if (
+    props.event.registrationOpensAt &&
+    now < new Date(props.event.registrationOpensAt).getTime()
+  ) {
     return false;
   }
-  if (props.event.registrationClosesAt && now > new Date(props.event.registrationClosesAt).getTime()) {
+  if (
+    props.event.registrationClosesAt &&
+    now > new Date(props.event.registrationClosesAt).getTime()
+  ) {
     return false;
   }
 
@@ -135,7 +141,10 @@ function saveFormation(): void {
 
 function registrationLabel(): string {
   if (!props.event.registration) return 'Not registered';
-  if (props.event.registration.status === 'waitlisted' && props.event.registration.waitlistPosition) {
+  if (
+    props.event.registration.status === 'waitlisted' &&
+    props.event.registration.waitlistPosition
+  ) {
     return `Waitlisted · position ${props.event.registration.waitlistPosition}`;
   }
 
@@ -163,9 +172,13 @@ function registrationLabel(): string {
     <section class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/70 p-6 sm:p-8">
       <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
         <div>
-          <p class="text-sm font-semibold tracking-[0.18em] text-cyan-300 uppercase">Alliance event</p>
+          <p class="text-sm font-semibold tracking-[0.18em] text-cyan-300 uppercase">
+            Alliance event
+          </p>
           <h1 class="mt-2 text-3xl font-bold sm:text-4xl">{{ event.title }}</h1>
-          <p class="mt-3 text-sm font-semibold capitalize text-slate-300">{{ registrationLabel() }}</p>
+          <p class="mt-3 text-sm font-semibold text-slate-300 capitalize">
+            {{ registrationLabel() }}
+          </p>
         </div>
         <div class="flex flex-wrap gap-2">
           <button
@@ -194,7 +207,9 @@ function registrationLabel(): string {
         </div>
         <div class="rounded-xl border border-slate-800 p-4">
           <dt class="text-sm text-slate-400">Alliance time · {{ event.allianceTimezone }}</dt>
-          <dd class="mt-1 font-semibold">{{ formatInZone(event.startsAt, event.allianceTimezone) }}</dd>
+          <dd class="mt-1 font-semibold">
+            {{ formatInZone(event.startsAt, event.allianceTimezone) }}
+          </dd>
         </div>
         <div class="rounded-xl border border-slate-800 p-4">
           <dt class="text-sm text-slate-400">Participation</dt>
@@ -210,12 +225,16 @@ function registrationLabel(): string {
 
       <div v-if="event.instructions" class="mt-7 border-t border-slate-800 pt-6">
         <h2 class="text-lg font-semibold">Instructions</h2>
-        <p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">{{ event.instructions }}</p>
+        <p class="mt-2 text-sm leading-6 whitespace-pre-wrap text-slate-300">
+          {{ event.instructions }}
+        </p>
       </div>
     </section>
 
     <section class="mt-8" aria-labelledby="recommended-formations-heading">
-      <h2 id="recommended-formations-heading" class="text-2xl font-semibold">Recommended formations</h2>
+      <h2 id="recommended-formations-heading" class="text-2xl font-semibold">
+        Recommended formations
+      </h2>
       <div v-if="recommendedFormations.length" class="mt-4 grid gap-4 lg:grid-cols-2">
         <article
           v-for="formation in recommendedFormations"
@@ -246,14 +265,17 @@ function registrationLabel(): string {
               Source: {{ formation.guidance.source }}
             </p>
             <p v-if="formation.guidance.effectiveFrom" class="mt-1 text-xs text-slate-500">
-              Effective {{ formation.guidance.effectiveFrom }}<span v-if="formation.guidance.effectiveUntil">
+              Effective {{ formation.guidance.effectiveFrom
+              }}<span v-if="formation.guidance.effectiveUntil">
                 through {{ formation.guidance.effectiveUntil }}</span
               >
             </p>
           </div>
         </article>
       </div>
-      <p v-else class="mt-3 text-sm text-slate-500">No event-specific formation guidance has been published.</p>
+      <p v-else class="mt-3 text-sm text-slate-500">
+        No event-specific formation guidance has been published.
+      </p>
     </section>
 
     <section class="mt-8" aria-labelledby="rally-groups-heading">
@@ -280,28 +302,38 @@ function registrationLabel(): string {
             >
               <span class="font-semibold">{{ assignment.memberName }}</span>
               <span class="text-slate-300 capitalize">
-                {{ assignment.role }}<span v-if="assignment.slotNumber"> #{{ assignment.slotNumber }}</span>
-                · {{ assignment.status.replace('_', ' ') }}
+                {{ assignment.role
+                }}<span v-if="assignment.slotNumber"> #{{ assignment.slotNumber }}</span> ·
+                {{ assignment.status.replace('_', ' ') }}
               </span>
             </li>
           </ul>
           <p v-else class="mt-3 text-sm text-slate-500">No members assigned yet.</p>
         </article>
       </div>
-      <p v-else class="mt-3 text-sm text-slate-500">No rally groups have been configured for this event.</p>
+      <p v-else class="mt-3 text-sm text-slate-500">
+        No rally groups have been configured for this event.
+      </p>
     </section>
 
     <section class="mt-8 grid gap-6 lg:grid-cols-2" aria-label="Saved formations">
       <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <h2 class="text-xl font-semibold">Your saved formations</h2>
         <div v-if="savedFormations.length" class="mt-4 space-y-3">
-          <article v-for="formation in savedFormations" :key="formation.id" class="rounded-xl border border-slate-800 p-4">
+          <article
+            v-for="formation in savedFormations"
+            :key="formation.id"
+            class="rounded-xl border border-slate-800 p-4"
+          >
             <div class="flex items-center justify-between gap-2">
               <h3 class="font-semibold">{{ formation.name }}</h3>
-              <span v-if="formation.isDefault" class="text-xs font-semibold text-cyan-300">Default</span>
+              <span v-if="formation.isDefault" class="text-xs font-semibold text-cyan-300"
+                >Default</span
+              >
             </div>
             <p class="mt-2 text-sm text-slate-300">
-              {{ formation.infantryPercent }} / {{ formation.cavalryPercent }} / {{ formation.archerPercent }}
+              {{ formation.infantryPercent }} / {{ formation.cavalryPercent }} /
+              {{ formation.archerPercent }}
             </p>
             <p v-if="formation.heroes.length" class="mt-1 text-sm text-slate-400">
               {{ formation.heroes.join(', ') }}
@@ -311,7 +343,10 @@ function registrationLabel(): string {
         <p v-else class="mt-3 text-sm text-slate-500">You have not saved a formation yet.</p>
       </div>
 
-      <form class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6" @submit.prevent="saveFormation">
+      <form
+        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
+        @submit.prevent="saveFormation"
+      >
         <h2 class="text-xl font-semibold">Save a formation</h2>
         <div class="mt-4 space-y-4">
           <div>
@@ -381,7 +416,11 @@ function registrationLabel(): string {
             <input v-model="formationForm.is_default" type="checkbox" />
             Make this my default formation
           </label>
-          <p v-if="Object.keys(formationForm.errors).length" class="text-sm text-rose-300" role="alert">
+          <p
+            v-if="Object.keys(formationForm.errors).length"
+            class="text-sm text-rose-300"
+            role="alert"
+          >
             Check the formation values. Troop percentages must total 100%.
           </p>
           <button

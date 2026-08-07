@@ -39,8 +39,10 @@ function canJoin(event: EventItem): boolean {
   if (event.registration && event.registration.status !== 'cancelled') return false;
 
   const now = Date.now();
-  if (event.registrationOpensAt && now < new Date(event.registrationOpensAt).getTime()) return false;
-  if (event.registrationClosesAt && now > new Date(event.registrationClosesAt).getTime()) return false;
+  if (event.registrationOpensAt && now < new Date(event.registrationOpensAt).getTime())
+    return false;
+  if (event.registrationClosesAt && now > new Date(event.registrationClosesAt).getTime())
+    return false;
 
   return new Date(event.startsAt).getTime() > now;
 }
@@ -123,7 +125,7 @@ function registrationLabel(event: EventItem): string {
                   </Link>
                 </h3>
                 <span
-                  class="rounded-full bg-slate-800 px-2.5 py-1 text-xs font-semibold capitalize text-slate-300"
+                  class="rounded-full bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-300 capitalize"
                 >
                   {{ registrationLabel(event) }}
                 </span>
@@ -132,10 +134,14 @@ function registrationLabel(event: EventItem): string {
               <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
                 <div class="rounded-xl border border-slate-800 p-3">
                   <dt class="font-medium text-slate-400">Your time · {{ userTimezone }}</dt>
-                  <dd class="mt-1 font-semibold">{{ formatInZone(event.startsAt, userTimezone) }}</dd>
+                  <dd class="mt-1 font-semibold">
+                    {{ formatInZone(event.startsAt, userTimezone) }}
+                  </dd>
                 </div>
                 <div class="rounded-xl border border-slate-800 p-3">
-                  <dt class="font-medium text-slate-400">Alliance time · {{ event.allianceTimezone }}</dt>
+                  <dt class="font-medium text-slate-400">
+                    Alliance time · {{ event.allianceTimezone }}
+                  </dt>
                   <dd class="mt-1 font-semibold">
                     {{ formatInZone(event.startsAt, event.allianceTimezone) }}
                   </dd>
@@ -177,7 +183,9 @@ function registrationLabel(event: EventItem): string {
 
       <div v-else class="rounded-2xl border border-dashed border-slate-700 p-10 text-center">
         <h2 class="text-xl font-semibold">No scheduled events</h2>
-        <p class="mt-2 text-sm text-slate-400">New alliance events will appear here when published.</p>
+        <p class="mt-2 text-sm text-slate-400">
+          New alliance events will appear here when published.
+        </p>
       </div>
     </section>
   </main>
