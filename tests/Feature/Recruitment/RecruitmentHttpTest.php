@@ -198,6 +198,86 @@ final class RecruitmentHttpTest extends TestCase
         ])->assertNotFound();
     }
 
+    public function test_recruiter_can_edit_only_active_alliance_questions(): void
+    {
+        $owner = User::factory()->create();
+        $createAlliance = $this->app->make(CreateAlliance::class);
+        $first = $createAlliance->handle($owner, 'Editable Recruiting', 'editable-recruiting');
+        $second = $createAlliance->handle($owner, 'Foreign Recruiting', 'foreign-recruiting');
+        $createQuestion = $this->app->make(CreateRecruitmentQuestion::class);
+        $firstQuestion = $createQuestion->handle(
+            $owner,
+            $first,
+            'Original question',
+            RecruitmentQuestionType::ShortText,
+            false,
+        );
+        $secondQuestion = $createQuestion->handle(
+            $owner,
+            $second,
+            'Foreign question',
+            RecruitmentQuestionType::ShortText,
+            false,
+        );
+        $sessionKey = (string) config('identity.active_alliance_session_key');
+
+        $this->actingAs($owner)->withSession([$sessionKey => $first->id]);
+
+        $this->post('/alliance/recruitment/questions', [
+            'question_id' => $firstQuestion->id,
+            'prompt' => 'Updated question',
+            'help_text' => 'Choose one option.',
+            'type' => RecruitmentQuestionType::Select->value,
+            'options' => ['Alpha', 'Bravo'],
+            'required' => true,
+            'position' => 4,
+            'active' => true,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('recruitment_questions', [
+            'id' => $firstQuestion->id,
+            'alliance_id' => $first->id,
+            'prompt' => 'Updated question',
+            'question_type' => RecruitmentQuestionType::Select->value,
+            'is_required' => true,
+            'position' => 4,
+            'is_active' => true,
+            'updated_by_user_id' => $owner->id,
+        ]);
+
+        $this->post('/alliance/recruitment/questions', [
+            'question_id' => $secondQuestion->id,
+            'prompt' => 'Attempted foreign edit',
+            'help_text' => null,
+            'type' => RecruitmentQuestionType::ShortText->value,
+            'options' => [],
+            'required' => false,
+            'position' => 0,
+            'active' => true,
+        ])->assertNotFound();
+
+        $this->assertDatabaseHas('recruitment_questions', [
+            'id' => $secondQuestion->id,
+            'alliance_id' => $second->id,
+            'prompt' => 'Foreign question',
+        ]);
+    }
+
+    public function test_alliance_home_exposes_recruitment_navigation_for_authorized_owner(): void
+    {
+        $owner = User::factory()->create();
+        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Recruitment Navigation', 'recruitment-navigation');
+        $sessionKey = (string) config('identity.active_alliance_session_key');
+
+        $this->actingAs($owner)
+            ->withSession([$sessionKey => $alliance->id])
+            ->get('/alliance')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Alliance/Overview')
+                ->where('contentHub.canManageRecruitment', true));
+    }
+
     public function test_public_alliance_page_advertises_only_open_public_recruitment(): void
     {
         $owner = User::factory()->create();
