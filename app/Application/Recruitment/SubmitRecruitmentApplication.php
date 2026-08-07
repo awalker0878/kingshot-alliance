@@ -19,6 +19,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
 final class SubmitRecruitmentApplication
 {
@@ -154,7 +155,7 @@ final class SubmitRecruitmentApplication
                     'candidate_id' => $candidate->id,
                     'question_id' => $question->id,
                     'prompt_snapshot' => $question->prompt,
-                    'question_type_snapshot' => $question->question_type,
+                    'question_type_snapshot' => $question->type(),
                     'answer' => $validated['answer'],
                 ]);
             }
@@ -228,9 +229,10 @@ final class SubmitRecruitmentApplication
             return null;
         }
 
-        $options = is_array($question->options) ? $question->options : [];
+        $type = $question->type();
+        $options = $question->optionValues();
 
-        return match ($question->question_type) {
+        return match ($type) {
             RecruitmentQuestionType::ShortText, RecruitmentQuestionType::LongText => is_string($answer)
                 ? null
                 : 'This answer must be text.',
@@ -264,9 +266,14 @@ final class SubmitRecruitmentApplication
     /** @return array<string, mixed> */
     private function normalizeAnswer(RecruitmentQuestion $question, mixed $answer): array
     {
-        return match ($question->question_type) {
-            RecruitmentQuestionType::MultiSelect => ['values' => array_values($answer)],
-            default => ['value' => $answer],
-        };
+        if ($question->type() === RecruitmentQuestionType::MultiSelect) {
+            if (! is_array($answer)) {
+                throw new LogicException('A validated multi-select recruitment answer must be an array.');
+            }
+
+            return ['values' => array_values($answer)];
+        }
+
+        return ['value' => $answer];
     }
 }
