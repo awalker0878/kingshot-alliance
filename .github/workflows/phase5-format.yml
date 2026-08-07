@@ -1,0 +1,77 @@
+name: Phase 5 Format
+
+on:
+  push:
+    branches:
+      - agent/phase-5-contributions-reporting
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: agent/phase-5-contributions-reporting
+
+      - name: Apply Phase 5 navigation and button semantics
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          overview = Path('resources/js/pages/Alliance/Overview.vue')
+          text = overview.read_text()
+          marker = '''        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/events">Events</Link>\n'''
+          addition = marker + '''        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/contributions">Contributions</Link>\n'''
+          if '/alliance/contributions' not in text:
+              if marker not in text:
+                  raise SystemExit('Alliance overview navigation marker not found')
+              overview.write_text(text.replace(marker, addition, 1))
+
+          manage = Path('resources/js/pages/Alliance/Contributions/Manage.vue')
+          text = manage.read_text()
+          text = re.sub(r'<button(?![^>]*\btype=)', '<button type="button"', text)
+          text = text.replace('type="button" class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950" :disabled="categoryForm.processing">Create category', 'type="submit" class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950" :disabled="categoryForm.processing">Create category')
+          text = text.replace('type="button" class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950" :disabled="recordForm.processing">Record pending contribution', 'type="submit" class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950" :disabled="recordForm.processing">Record pending contribution')
+          text = text.replace('type="button" class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950">Create schedule', 'type="submit" class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950">Create schedule')
+          manage.write_text(text)
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Format frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npx prettier --write resources/js/pages/Alliance/Contributions resources/js/pages/Alliance/Overview.vue
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Format PHP
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          vendor/bin/pint --parallel
+
+      - name: Commit formatter output
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Format Phase 5 implementation"
+          git push
