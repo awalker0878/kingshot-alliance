@@ -34,7 +34,6 @@ final readonly class UpdateAlliancePublicProfile
      *   language: string,
      *   timezone: string,
      *   description?: string|null,
-     *   recruitment_status: string,
      *   primary_color?: string|null,
      *   logo_media_id?: string|null,
      *   banner_media_id?: string|null
@@ -60,7 +59,6 @@ final readonly class UpdateAlliancePublicProfile
                 ['alliance_id' => $locked->id],
                 [
                     'description' => $this->sanitizer->body((string) ($attributes['description'] ?? '')) ?: null,
-                    'recruitment_status' => $attributes['recruitment_status'],
                     'primary_color' => isset($attributes['primary_color']) && $attributes['primary_color'] !== ''
                         ? strtoupper((string) $attributes['primary_color'])
                         : null,
@@ -78,14 +76,12 @@ final readonly class UpdateAlliancePublicProfile
                 metadata: [
                     'language' => $locked->language,
                     'timezone' => $locked->timezone,
-                    'recruitment_status' => $attributes['recruitment_status'],
                 ],
             );
 
             $this->outbox->record('alliance.public_profile_updated', $locked, $locked, [
                 'language' => $locked->language,
                 'timezone' => $locked->timezone,
-                'recruitment_status' => $attributes['recruitment_status'],
             ]);
 
             return $locked->refresh();
