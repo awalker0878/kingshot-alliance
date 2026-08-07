@@ -7,7 +7,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string|null $alliance_id
+ * @property string $event_type
+ * @property string $aggregate_type
+ * @property string $aggregate_id
+ * @property string $idempotency_key
+ * @property array<string, mixed> $payload
+ * @property Carbon $occurred_at
+ * @property Carbon $available_at
+ * @property Carbon|null $published_at
+ * @property int $attempts
+ * @property string|null $last_error
+ */
 final class OutboxMessage extends Model
 {
     use HasUlids;
@@ -27,6 +41,7 @@ final class OutboxMessage extends Model
         'available_at',
         'published_at',
         'attempts',
+        'last_error',
     ];
 
     protected function casts(): array
