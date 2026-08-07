@@ -42,7 +42,7 @@ jobs:
               'App\\Domain\\Events\\Models\\EventReminderDelivery': 'App\\Domain\\Notifications\\Models\\EventReminderDelivery',
               'App\\Domain\\Events\\Models\\EventReminderRule': 'App\\Domain\\Notifications\\Models\\EventReminderRule',
           }
-          suffixes = {'.php', '.md', '.json', '.xml', '.neon', '.yml', '.yaml'}
+          suffixes = {'.php', '.md', '.json', '.xml', '.neon'}
           for path in Path('.').rglob('*'):
               if not path.is_file() or path.suffix not in suffixes or '.git' in path.parts or 'vendor' in path.parts:
                   continue
