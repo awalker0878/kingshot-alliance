@@ -1,15 +1,14 @@
 # Phase 0 Exit Report
 
 **Phase:** Engineering Foundation  
-**Status:** Accepted  
-**Accepted:** 2026-08-07 UTC  
+**Status:** Implementation candidate — final dependency review and branch protection pending  
 **Branch:** `agent/phase-0-engineering-foundation`
 
 ## Decision
 
-Phase 0 is **Accepted** against the approved implementation-plan exit criteria. Phase 1 may begin after this pull request is merged to `main`.
+Phase 0 is **not yet Accepted**. The engineering implementation, locked builds, automated quality checks, staging deployment, recovery demonstration, and image scanning have passed on the validated implementation head. Before acceptance, the current head must pass the restored GitHub dependency-diff review and the documented `main` branch-protection settings must be applied and recorded.
 
-Phase 0 establishes the engineering and operational foundation only. It intentionally excludes Phase 1 identity and alliance-domain capabilities.
+Phase 1 must not begin until this report is changed to **Accepted** and PR #2 is merged to `main`.
 
 ## Delivered
 
@@ -24,17 +23,15 @@ Phase 0 establishes the engineering and operational foundation only. It intentio
 - Public landing and health responses restricted to non-sensitive application identity, aggregate health, and request correlation.
 - Sanctum authentication routes, Pulse routes/recording, and Horizon dashboard/API access disabled until Phase 1 authorization exists.
 - Bounded Horizon worker configuration for local, staging, and production.
-- GitHub Actions for PHP, frontend, CodeQL, dependency auditing, container/staging/recovery validation, and image scanning.
+- CI for PHP, frontend, CodeQL, dependency-diff review, package-manager audits, container/staging/recovery validation, and image scanning.
 - All external GitHub Actions pinned to reviewed commit SHAs with a regression guard against mutable references.
 - Digest-only deployment and rollback controls with exact runtime image/version/release verification.
 - Atomically published, checksummed, owner-only backups and fail-closed destructive restore controls.
 - Source-control and image-build exclusions for secrets, credentials, backups, deployment environments, runtime data, and development-only files.
 - GPL-3.0 repository licensing preserved and aligned with Composer and OCI metadata.
-- ADRs, security baseline, contribution controls, branch-protection recommendations, release controls, issue templates, and operational runbooks.
+- ADRs, security baseline, contribution controls, branch-protection requirements, release controls, issue templates, and operational runbooks.
 
-## Accepted validation baseline
-
-**Validated source head:** `b9632edaed606cfae9f6ec18790f02a99ee658c3`
+## Validation evidence
 
 ### Locked dependencies
 
@@ -43,33 +40,33 @@ Phase 0 establishes the engineering and operational foundation only. It intentio
 - [x] Temporary lock-generation workflow removed in repository-owner commit `ea095942d967953bf3a355fec654f0fd34c74d41`.
 - [x] Composer and npm installs use their committed lockfiles in CI and supported build paths.
 
-### Required automated gates
+### Automated implementation baseline
 
-- [x] **Dependency Review** — run `31141660750` completed successfully.
-  - Composer manifest validation.
-  - Locked Composer security audit.
-  - Locked npm install and high-severity npm audit.
-- [x] **CodeQL** — run `31141660742` completed successfully for the supported JavaScript/TypeScript language set.
-- [x] **CI** — run `31141660754` completed successfully.
-  - PHP quality and tests: Composer audit, migrations, Pint, Larastan, and parallel PHPUnit.
-  - Frontend quality and build: npm audit, ESLint, Prettier, Vue/TypeScript checking, and Vite production build.
-  - Container/staging/recovery: build-context checks, production image build, runtime smoke checks, staging Compose validation, migrations, application startup, health checks, runtime-role identity checks, backup, destructive restore, post-restore health/identity verification, and Trivy vulnerability scan.
+Validated implementation head: `b9632edaed606cfae9f6ec18790f02a99ee658c3`.
+
+- [x] CI run `31141660754` completed successfully.
+  - PHP: Composer audit, PostgreSQL migrations, Pint, Larastan/PHPStan, and parallel PHPUnit.
+  - Frontend: locked npm install/audit, ESLint, Prettier, Vue/TypeScript checking, and Vite production build.
+  - Container/staging/recovery: build-context guards, production image build, OCI metadata, staging Compose, migrations, liveness/readiness, exact runtime-role image identity, private backup, destructive restore, post-restore health/image identity, and Trivy HIGH/CRITICAL scan.
+- [x] CodeQL completed successfully on the same implementation baseline.
+- [x] Package-manager dependency audits completed successfully on the same implementation baseline.
+- [x] PHP 8.5 OPcache behavior is handled as built-in runtime support rather than a removed `opcache.so` build artifact.
+- [ ] The restored GitHub dependency-diff action must pass on the current head. It is pinned to `actions/dependency-review-action` v5.0.0 commit `a1d282b36b6f3519aa1f3fc636f609c47dddb294` and blocks newly introduced HIGH-or-higher vulnerable dependencies.
 
 ### Clean-machine and staging evidence
 
-- [x] A fresh GitHub-hosted runner checked out the repository and installed/build/tested from the committed Composer and npm locks.
-- [x] The production image was built from the accepted source revision and tagged for the validated commit.
-- [x] OCI source, version, revision, and GPL-3.0 license metadata were verified.
-- [x] The same built image identity was verified across the staging app, web, worker, and scheduler roles.
+- [x] Fresh GitHub-hosted runners checked out the repository and installed, built, and tested from committed Composer/npm locks.
+- [x] The production image was built from the validated source revision with OCI source/version/revision/license metadata.
+- [x] The same local immutable image ID was verified across staging app, web, worker, and scheduler roles.
 - [x] Staging dependencies, migrations, application roles, liveness, and readiness checks completed successfully.
-- [x] The production deployment tooling remains stricter than the CI demonstration by requiring registry digest references for external deployments and rollbacks.
+- [x] Production deployment tooling remains stricter than the ephemeral CI demonstration by requiring registry digest references for external deployments and rollbacks.
 
 ### Recovery evidence
 
-- [x] A staging database backup was created with private file permissions.
-- [x] Backup checksum, manifest binding, source release provenance, and image evidence were verified.
-- [x] A destructive restore was completed against staging data.
-- [x] Application roles were recreated/restarted and passed post-restore readiness and exact image-identity checks.
+- [x] Staging backup archive and manifest were created with mode `600`.
+- [x] Backup checksum, exact manifest binding, source release provenance, and image reference were verified.
+- [x] Destructive database restore completed successfully.
+- [x] Application roles were recreated and passed post-restore readiness and exact image-identity checks.
 
 ### Security and phase-boundary evidence
 
@@ -83,41 +80,37 @@ Phase 0 establishes the engineering and operational foundation only. It intentio
 
 ## Exit criteria
 
-| Approved Phase 0 criterion | Status | Evidence |
+| Phase 0 criterion | Status | Evidence / remaining action |
 |---|---|---|
-| A new developer can build and run the application from documented steps | **Passed** | Clean hosted runner installed from committed locks; application, migrations, frontend, and production image built successfully; local Docker workflow is documented. |
-| CI is required and passes on a representative pull request | **Passed** | Dependency Review `31141660750`, CodeQL `31141660742`, CI `31141660754`. |
-| Staging can be deployed repeatably from a tagged build | **Passed** | CI built one tagged image from the accepted revision, verified OCI metadata and exact image identity, and deployed the same image across all staging runtime roles. |
-| Backup and restore have been demonstrated against staging data | **Passed** | CI backup, provenance/integrity verification, destructive restore, and post-restore health/image checks all passed. |
-| No product domain depends on unapproved framework shortcuts or hidden global state | **Passed** | Architecture review, CI guards, route/package boundary tests, minimized runtime, and explicit Phase 1 boundary. |
+| New developer can build and run the application | **Passed** | Fresh hosted runners installed and built from committed locks; local Docker workflow is documented. |
+| Required automated CI passes | **Pending final head** | PHP/frontend/container/recovery/CodeQL are proven green; restored GitHub dependency-diff action must pass on the current head. |
+| Staging deploys repeatably from one immutable image | **Passed** | OCI metadata and exact image identity were verified across all staging runtime roles. |
+| Backup and restore work against staging data | **Passed** | Private backup, checksum/manifest/provenance validation, destructive restore, and post-restore identity checks passed. |
+| No unapproved shortcut or hidden global state | **Passed** | Architecture review, CI guards, package/route boundary tests, minimized runtime, and explicit Phase 1 boundary. |
+| `main` branch protection is applied | **Pending** | Apply and record the settings in `docs/BRANCH_PROTECTION.md`, including required checks and PR/review controls. |
 
 ## Gate-review findings
 
-The Phase 0 gate corrected more than sixty implementation, security, reproducibility, recovery, privacy, licensing, container, and CI defects before acceptance. The commit history and PR discussion are the audit trail for individual fixes. Major categories include:
+The Phase 0 gate has corrected **64** implementation, security, reproducibility, recovery, privacy, licensing, container, and CI defects before acceptance. Finding 64 restored the actual GitHub dependency-diff action after review found that the `Dependency review` check performed package-manager audits only.
 
-- dependency and toolchain compatibility;
-- reproducible locked builds;
-- PHP 8.5 runtime-extension behavior and container construction;
-- immutable deployment and release provenance;
-- backup/restore integrity and crash-state recovery;
-- container least privilege and build-context protection;
-- hosted configuration fail-closed behavior;
-- proxy, transport, session, and application-key security;
-- operational dashboard/API authorization boundaries;
-- privacy-safe request, health, trace, and infrastructure logging;
-- GitHub Actions supply-chain pinning and stable required-check names;
-- repository-independent dependency auditing;
-- supported CodeQL language configuration;
-- Phase 0/Phase 1 schema and route boundaries;
-- preservation of the repository's GPL-3.0 licensing;
-- local-development network exposure controls.
+Major categories include dependency/toolchain compatibility, locked builds, PHP 8.5 runtime behavior, immutable release provenance, backup/restore integrity, container least privilege, hosted fail-closed configuration, session/proxy/transport controls, operational dashboard authorization, privacy-safe telemetry, workflow supply-chain pinning, dependency-diff review, Phase 0/Phase 1 boundaries, GPL licensing, and local network exposure controls.
 
-## Governance follow-up
+## Governance gate
 
-The approved Phase 0 deliverable is a documented branch-protection recommendation, not proof that repository settings were changed. `docs/BRANCH_PROTECTION.md` contains the now-validated stable check names. Applying those repository settings remains a recommended governance action before production use; it is not an additional gate beyond the approved Phase 0 exit criteria.
+`docs/BRANCH_PROTECTION.md` requires the applied `main` settings and successful stable check contexts to be recorded before acceptance. The connected GitHub integration available to this work can inspect branches, commits, checks, and repository permissions but does not expose branch-protection/ruleset mutation. Therefore this gate must remain explicitly pending until the repository setting is applied through GitHub administration and then verified.
+
+Required stable checks documented for `main`:
+
+- `PHP quality and tests`
+- `Frontend quality and build`
+- `Container, staging, and recovery`
+- `Dependency review`
+- `CodeQL (javascript-typescript)`
+
+The protection policy also requires a pull request, at least one approval, stale-approval dismissal, conversation resolution, up-to-date branches, blocked force pushes/deletion, restricted direct pushes, and linear history or squash merges.
 
 ## Acceptance
 
-**Phase 0 — Engineering Foundation: ACCEPTED.**
+**Phase 0 — Engineering Foundation: NOT YET ACCEPTED.**
 
-After this report commit passes the same required pull-request checks and PR #2 is merged to `main`, work may proceed to **Phase 1 — Identity and Multi-Tenancy**.
+Accept only after the current head passes the restored dependency-diff review, the documented `main` protection policy is applied and recorded, this report is changed to **Accepted**, and PR #2 is merged to `main`.
