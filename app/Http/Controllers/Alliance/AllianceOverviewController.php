@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Alliance;
 
+use App\Application\Content\ContentPresenter;
+use App\Application\Content\ContentQuery;
 use App\Application\Identity\AllianceAuthorization;
 use App\Application\Identity\AllianceContext;
+use App\Domain\Content\Enums\ContentType;
 use App\Domain\Identity\Authorization\PermissionKey;
 use App\Domain\Identity\Enums\InvitationStatus;
 use App\Http\Controllers\Controller;
@@ -24,6 +27,8 @@ final class AllianceOverviewController extends Controller
         Request $request,
         AllianceContext $context,
         AllianceAuthorization $authorization,
+        ContentQuery $contentQuery,
+        ContentPresenter $contentPresenter,
     ): Response {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
@@ -33,6 +38,7 @@ final class AllianceOverviewController extends Controller
         $canManageInvitations = $authorization->allows($user, $alliance, PermissionKey::InvitationManage);
         $canManageMembers = $authorization->allows($user, $alliance, PermissionKey::MembershipManage);
         $canManageRoles = $authorization->allows($user, $alliance, PermissionKey::RoleManage);
+        $canManageContent = $authorization->allows($user, $alliance, PermissionKey::ContentManage);
 
         /** @var list<array{key: string, name: string}> $roles */
         $roles = [];
@@ -135,6 +141,13 @@ final class AllianceOverviewController extends Controller
             }
         }
 
+        $notices = $contentQuery
+            ->memberList($alliance, null, ContentType::Announcement->value)
+            ->take(5)
+            ->map(fn ($item): array => $contentPresenter->item($item))
+            ->values()
+            ->all();
+
         return Inertia::render('Alliance/Overview', [
             'alliance' => [
                 'id' => $alliance->id,
@@ -143,10 +156,17 @@ final class AllianceOverviewController extends Controller
                 'kingdom' => $alliance->kingdom,
                 'language' => $alliance->language,
                 'timezone' => $alliance->timezone,
+                'publicUrl' => route('public.alliances.show', $alliance->slug),
             ],
             'membership' => [
                 'id' => $membership->id,
                 'roles' => $roles,
+            ],
+            'contentHub' => [
+                'canManage' => $canManageContent,
+                'notices' => $notices,
+                'upcomingActivities' => [],
+                'upcomingActivitiesPhase' => 3,
             ],
             'invitationManagement' => [
                 'allowed' => $canManageInvitations,

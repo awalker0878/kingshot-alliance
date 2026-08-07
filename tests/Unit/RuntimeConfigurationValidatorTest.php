@@ -41,6 +41,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'session.encrypt' => false,
             'session.same_site' => 'none',
             'filesystems.default' => 'public',
+            'content.media_disk' => 'public',
             'pulse.enabled' => true,
             'operations.trusted_proxies' => '*',
             'operations.allow_trust_all_proxies' => false,
@@ -56,6 +57,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
         self::assertContains('Hosted session payloads must be encrypted.', $errors);
         self::assertContains('Hosted session cookies must use lax or strict SameSite protection.', $errors);
         self::assertContains('Hosted releases must use the private local or S3 filesystem disk.', $errors);
+        self::assertContains('Hosted content media must use the private local or S3 filesystem disk.', $errors);
         self::assertContains(
             'Pulse recording must remain disabled until its schema and access policy are introduced.',
             $errors,
@@ -76,6 +78,20 @@ final class RuntimeConfigurationValidatorTest extends TestCase
 
         self::assertContains(
             'Hosted S3 storage requires a configured bucket.',
+            (new RuntimeConfigurationValidator)->errors('staging'),
+        );
+    }
+
+    public function test_hosted_s3_content_media_requires_a_bucket(): void
+    {
+        $this->configureRequiredValues();
+        config([
+            'content.media_disk' => 's3',
+            'filesystems.disks.s3.bucket' => '',
+        ]);
+
+        self::assertContains(
+            'Hosted S3 content media requires a configured bucket.',
             (new RuntimeConfigurationValidator)->errors('staging'),
         );
     }
@@ -140,6 +156,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'app.url' => 'http://127.0.0.1:18080',
             'session.secure' => false,
             'operations.allow_insecure_loopback_staging' => true,
+            'content.media_disk' => 'local',
         ]);
 
         self::assertSame([], (new RuntimeConfigurationValidator)->errors('staging'));
@@ -188,6 +205,17 @@ final class RuntimeConfigurationValidatorTest extends TestCase
         self::assertContains('Production PostgreSQL must require an encrypted connection.', $errors);
     }
 
+    public function test_production_rejects_local_content_media_storage(): void
+    {
+        $this->configureRequiredValues();
+        config(['content.media_disk' => 'local']);
+
+        self::assertContains(
+            'Production content media must use durable S3-backed storage.',
+            (new RuntimeConfigurationValidator)->errors('production'),
+        );
+    }
+
     public function test_production_accepts_secure_runtime_configuration(): void
     {
         $this->configureRequiredValues();
@@ -220,6 +248,7 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'session.secure' => true,
             'filesystems.default' => 'local',
             'filesystems.disks.s3.bucket' => 'kingshot',
+            'content.media_disk' => 's3',
             'pulse.enabled' => false,
             'horizon.environments.staging.supervisor-1.maxProcesses' => 3,
             'horizon.environments.production.supervisor-1.maxProcesses' => 10,

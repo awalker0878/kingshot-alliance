@@ -10,10 +10,24 @@ const props = defineProps<{
     kingdom: string | null;
     language: string;
     timezone: string;
+    publicUrl: string;
   };
   membership: {
     id: string;
     roles: Array<{ key: string; name: string }>;
+  };
+  contentHub: {
+    canManage: boolean;
+    notices: Array<{
+      id: string;
+      title: string;
+      slug: string;
+      summary: string | null;
+      visibility: string;
+      publishedAt: string | null;
+    }>;
+    upcomingActivities: unknown[];
+    upcomingActivitiesPhase: number;
   };
   invitationManagement: {
     allowed: boolean;
@@ -136,6 +150,22 @@ function leaveAlliance(): void {
           </dd>
         </div>
       </dl>
+      <div class="mt-6 flex flex-wrap gap-4 text-sm font-semibold">
+        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/content">Content hub</Link>
+        <Link
+          v-if="contentHub.canManage"
+          class="text-cyan-300 hover:text-cyan-200"
+          href="/alliance/content/manage"
+          >Manage content</Link
+        >
+        <a
+          class="text-cyan-300 hover:text-cyan-200"
+          :href="alliance.publicUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Public page</a
+        >
+      </div>
       <button
         class="mt-6 text-sm font-semibold text-rose-300 hover:text-rose-200"
         type="button"
@@ -143,6 +173,45 @@ function leaveAlliance(): void {
       >
         Leave alliance
       </button>
+    </section>
+
+    <section class="mt-8 grid gap-6 lg:grid-cols-2" aria-label="Alliance information hub">
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-xl font-semibold">Current notices</h2>
+          <Link
+            class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+            href="/alliance/content"
+            >View all</Link
+          >
+        </div>
+        <div v-if="contentHub.notices.length" class="mt-4 space-y-4">
+          <article
+            v-for="notice in contentHub.notices"
+            :key="notice.id"
+            class="rounded-xl border border-slate-800 p-4"
+          >
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase">
+              <span>{{ notice.visibility === 'members' ? 'Members only' : 'Public' }}</span>
+            </div>
+            <h3 class="mt-1 font-semibold">
+              <Link class="hover:text-cyan-200" :href="`/alliance/content/${notice.slug}`">{{
+                notice.title
+              }}</Link>
+            </h3>
+            <p v-if="notice.summary" class="mt-2 text-sm text-slate-400">{{ notice.summary }}</p>
+          </article>
+        </div>
+        <p v-else class="mt-4 text-sm text-slate-500">No published notices yet.</p>
+      </div>
+
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+        <h2 class="text-xl font-semibold">Upcoming activities</h2>
+        <p class="mt-3 text-sm text-slate-400">
+          Event scheduling is owned by Phase {{ contentHub.upcomingActivitiesPhase }}. Phase 2 keeps
+          this dashboard slot ready without creating placeholder event records.
+        </p>
+      </div>
     </section>
 
     <section

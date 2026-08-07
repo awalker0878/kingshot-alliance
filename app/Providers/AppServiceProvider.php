@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Application\Content\BasicMediaScanner;
+use App\Application\Content\MediaScanner;
 use App\Application\Identity\AllianceContext;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -19,6 +21,7 @@ final class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(AllianceContext::class);
+        $this->app->bind(MediaScanner::class, BasicMediaScanner::class);
 
         Horizon::auth(static fn (): bool => false);
 

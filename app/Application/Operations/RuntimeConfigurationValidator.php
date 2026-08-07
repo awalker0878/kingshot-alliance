@@ -76,6 +76,13 @@ final class RuntimeConfigurationValidator
             $errors[] = 'Hosted S3 storage requires a configured bucket.';
         }
 
+        $mediaDisk = (string) config('content.media_disk');
+        if (! in_array($mediaDisk, ['local', 's3'], true)) {
+            $errors[] = 'Hosted content media must use the private local or S3 filesystem disk.';
+        } elseif ($mediaDisk === 's3' && blank(config('filesystems.disks.s3.bucket'))) {
+            $errors[] = 'Hosted S3 content media requires a configured bucket.';
+        }
+
         if (config('pulse.enabled') !== false) {
             $errors[] = 'Pulse recording must remain disabled until its schema and access policy are introduced.';
         }
@@ -127,6 +134,10 @@ final class RuntimeConfigurationValidator
 
         if (config('session.secure') !== true) {
             $errors[] = 'Production session cookies must be secure.';
+        }
+
+        if ($mediaDisk !== 's3') {
+            $errors[] = 'Production content media must use durable S3-backed storage.';
         }
 
         $sslMode = strtolower((string) config('database.connections.pgsql.sslmode'));
