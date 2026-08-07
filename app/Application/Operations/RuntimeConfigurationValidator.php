@@ -129,6 +129,13 @@ final class RuntimeConfigurationValidator
             $errors[] = 'Production session cookies must be secure.';
         }
 
+        $mediaDisk = (string) config('content.media_disk');
+        if ($mediaDisk !== 's3') {
+            $errors[] = 'Production content media must use durable S3-backed storage.';
+        } elseif (blank(config('filesystems.disks.s3.bucket'))) {
+            $errors[] = 'Production content media storage requires a configured S3 bucket.';
+        }
+
         $sslMode = strtolower((string) config('database.connections.pgsql.sslmode'));
         if (! in_array($sslMode, ['require', 'verify-ca', 'verify-full'], true)) {
             $errors[] = 'Production PostgreSQL must require an encrypted connection.';
