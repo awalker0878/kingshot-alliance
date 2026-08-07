@@ -12,23 +12,12 @@ Note: Using configuration file /home/runner/work/kingshot-alliance/kingshot-alli
    0/251 [░░░░░░░░░░░░░░░░░░░░░░░░░░░░]   0%
  251/251 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 100%
 
-::error file=app/Domain/Integrations/Actions/DeliverWebhook.php,line=68,col=0::Parameter #2 $data of method Illuminate\Http\Client\PendingRequest<false>::post() expects array<int<0, max>|string, mixed>|Illuminate\Contracts\Support\Arrayable<string, mixed>|JsonSerializable, array<string, mixed>|null given.
 ::error file=app/Domain/Integrations/Http/Controllers/IntegrationManagementController.php,line=44,col=0::Using nullsafe property access "?->api_access_enabled" on left side of ?? is unnecessary. Use -> instead.
 ::error file=app/Domain/Integrations/Http/Controllers/IntegrationManagementController.php,line=45,col=0::Using nullsafe property access "?->webhooks_enabled" on left side of ?? is unnecessary. Use -> instead.
 ::error file=app/Domain/Platform/Actions/ManageAllianceLifecycle.php,line=43,col=0::Using nullsafe property access "?->retention_days" on left side of ?? is unnecessary. Use -> instead.
 ::error file=app/Domain/Platform/Services/AllianceDataExportService.php,line=97,col=0::Method App\Domain\Platform\Services\AllianceDataExportService::sanitizeRow() return type has no value type specified in iterable type array.
 ::error file=app/Domain/Platform/Services/AllianceFeatureService.php,line=41,col=0::Method App\Domain\Platform\Services\AllianceFeatureService::all() should return list<array{key: string, enabled: bool, configuration: array<string, mixed>|null}> but returns array<int, array{key: string, enabled: bool, configuration: null}>.
 ::error file=routes/console.php,line=42,col=0::Cannot cast array|bool|float|int|string|null to string.
- ------ ----------------------------------------------------------------------- 
-  Line   app/Domain/Integrations/Actions/DeliverWebhook.php                     
- ------ ----------------------------------------------------------------------- 
-  68     Parameter #2 $data of method Illuminate\Http\Client\PendingRequest<fa  
-         lse>::post() expects array<int<0, max>|string, mixed>|Illuminate\Cont  
-         racts\Support\Arrayable<string, mixed>|JsonSerializable, array<string  
-         , mixed>|null given.                                                   
-         🪪  argument.type                                                      
- ------ ----------------------------------------------------------------------- 
-
  ------ ----------------------------------------------------------------------- 
   Line   app/Domain/Integrations/Http/Controllers/IntegrationManagementControl  
          ler.php                                                                
@@ -80,7 +69,7 @@ Note: Using configuration file /home/runner/work/kingshot-alliance/kingshot-alli
          🪪  cast.string                                          
  ------ --------------------------------------------------------- 
 
- [ERROR] Found 7 errors                                                         
+ [ERROR] Found 6 errors                                                         
 
 Script phpstan analyse --memory-limit=1G handling the types:check event returned with error code 1
 Script @types:check was called via check
