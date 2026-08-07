@@ -1,0 +1,82 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers;
+
+use App\Application\Content\ContentPresenter;
+use App\Application\Content\ContentQuery;
+use App\Domain\Content\Enums\ContentStatus;
+use App\Domain\Content\Enums\ContentVisibility;
+use App\Domain\Identity\Enums\AllianceStatus;
+use App\Models\Alliance;
+use App\Models\AllianceBrandingMedia;
+use App\Models\AllianceProfile;
+use App\Models\ContentCategory;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+final class PublicAllianceController extends Controller
+{
+    public function __invoke(Request $request, ContentQuery $content, ContentPresenter $presenter, string $slug): Response
+    {
+        $alliance = Alliance::query()
+            ->where('slug', $slug)
+            ->where('status', AllianceStatus::Active->value)
+            ->firstOrFail();
+
+        $profile = AllianceProfile::query()->where('alliance_id', $alliance->id)->first();
+        $items = $content->publicList(
+            $alliance,
+            $request->string('q')->toString(),
+            $request->string('type')->toString(),
+            $request->string('category')->toString(),
+            $request->string('locale')->toString(),
+        );
+
+        $brandingSlots = AllianceBrandingMedia::query()
+            ->where('alliance_id', $alliance->id)
+            ->pluck('media_id', 'slot');
+
+        $categories = ContentCategory::query()
+            ->where('alliance_id', $alliance->id)
+            ->whereHas('items', static fn ($query) => $query
+                ->where('status', ContentStatus::Published->value)
+                ->where('visibility', ContentVisibility::Public->value)
+                ->whereNotNull('published_at')
+                ->where('published_at', '<=', now())
+                ->whereNull('archived_at'))
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug']);
+
+        return Inertia::render('Public/Alliance', [
+            'alliance' => [
+                'name' => $alliance->name,
+                'slug' => $alliance->slug,
+                'kingdom' => $alliance->kingdom,
+                'language' => $alliance->language,
+                'timezone' => $alliance->timezone,
+                'description' => $profile?->description,
+                'recruitmentStatus' => $profile?->recruitment_status->value ?? 'closed',
+                'primaryColor' => $profile?->primary_color,
+                'logoUrl' => $brandingSlots->has('logo') ? route('public.alliances.branding', [$alliance->slug, 'logo']) : null,
+                'bannerUrl' => $brandingSlots->has('banner') ? route('public.alliances.branding', [$alliance->slug, 'banner']) : null,
+            ],
+            'filters' => [
+                'q' => $request->string('q')->toString(),
+                'type' => $request->string('type')->toString(),
+                'category' => $request->string('category')->toString(),
+                'locale' => $request->string('locale')->toString(),
+            ],
+            'categories' => $categories->map(static fn (ContentCategory $category): array => [
+                'name' => $category->name,
+                'slug' => $category->slug,
+            ])->values()->all(),
+            'content' => $items->map(fn ($item): array => $presenter->item($item))->values()->all(),
+            'upcomingActivities' => [],
+            'upcomingActivitiesPhase' => 3,
+        ]);
+    }
+}
