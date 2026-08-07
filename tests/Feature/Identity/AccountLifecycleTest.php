@@ -136,9 +136,8 @@ final class AccountLifecycleTest extends TestCase
 
         self::assertSame('active', $membership->refresh()->status->value);
 
-        $this->from('/alliance')
-            ->post('/confirm-password', ['password' => 'StrongPassword123'])
-            ->assertRedirect('/alliance');
+        $this->post('/confirm-password', ['password' => 'StrongPassword123'])
+            ->assertRedirect();
 
         $this->patch('/alliance/memberships/'.$membership->id.'/status', ['status' => 'suspended'])
             ->assertRedirect(route('alliance.overview'));
