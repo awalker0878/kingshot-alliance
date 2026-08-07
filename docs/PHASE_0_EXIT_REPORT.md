@@ -1,14 +1,19 @@
 # Phase 0 Exit Report
 
 **Phase:** Engineering Foundation  
-**Status:** Implementation candidate — final dependency review and branch protection pending  
+**Status:** Implementation candidate — repository security settings pending  
 **Branch:** `agent/phase-0-engineering-foundation`
 
 ## Decision
 
-Phase 0 is **not yet Accepted**. The engineering implementation, locked builds, automated quality checks, staging deployment, recovery demonstration, and image scanning have passed on the validated implementation head. Before acceptance, the current head must pass the restored GitHub dependency-diff review and the documented `main` branch-protection settings must be applied and recorded.
+Phase 0 is **not yet Accepted**. The engineering implementation, locked builds, automated quality checks, staging deployment, recovery demonstration, and image scanning have passed on the validated implementation head.
 
-Phase 1 must not begin until this report is changed to **Accepted** and PR #2 is merged to `main`.
+Two GitHub repository-security gates remain before acceptance:
+
+1. Enable **Dependency graph**, then require the restored GitHub dependency-diff action to pass.
+2. Apply and record the documented `main` branch-protection settings.
+
+Phase 1 must not begin until those gates are complete, this report is changed to **Accepted**, and PR #2 is merged to `main`.
 
 ## Delivered
 
@@ -23,7 +28,7 @@ Phase 1 must not begin until this report is changed to **Accepted** and PR #2 is
 - Public landing and health responses restricted to non-sensitive application identity, aggregate health, and request correlation.
 - Sanctum authentication routes, Pulse routes/recording, and Horizon dashboard/API access disabled until Phase 1 authorization exists.
 - Bounded Horizon worker configuration for local, staging, and production.
-- CI for PHP, frontend, CodeQL, dependency-diff review, package-manager audits, container/staging/recovery validation, and image scanning.
+- CI for PHP, frontend, CodeQL, GitHub dependency-diff review, package-manager audits, container/staging/recovery validation, and image scanning.
 - All external GitHub Actions pinned to reviewed commit SHAs with a regression guard against mutable references.
 - Digest-only deployment and rollback controls with exact runtime image/version/release verification.
 - Atomically published, checksummed, owner-only backups and fail-closed destructive restore controls.
@@ -49,9 +54,9 @@ Validated implementation head: `b9632edaed606cfae9f6ec18790f02a99ee658c3`.
   - Frontend: locked npm install/audit, ESLint, Prettier, Vue/TypeScript checking, and Vite production build.
   - Container/staging/recovery: build-context guards, production image build, OCI metadata, staging Compose, migrations, liveness/readiness, exact runtime-role image identity, private backup, destructive restore, post-restore health/image identity, and Trivy HIGH/CRITICAL scan.
 - [x] CodeQL completed successfully on the same implementation baseline.
-- [x] Package-manager dependency audits completed successfully on the same implementation baseline.
+- [x] Composer and npm security audits completed successfully on the same implementation baseline.
 - [x] PHP 8.5 OPcache behavior is handled as built-in runtime support rather than a removed `opcache.so` build artifact.
-- [ ] The restored GitHub dependency-diff action must pass on the current head. It is pinned to `actions/dependency-review-action` v5.0.0 commit `a1d282b36b6f3519aa1f3fc636f609c47dddb294` and blocks newly introduced HIGH-or-higher vulnerable dependencies.
+- [ ] GitHub dependency-diff review: the v5.0.0 action is pinned at `a1d282b36b6f3519aa1f3fc636f609c47dddb294` with `fail-on-severity: high`, but run `31142144279` proved the repository's **Dependency graph is disabled**. Enable Dependency graph, then rerun this check to green.
 
 ### Clean-machine and staging evidence
 
@@ -83,23 +88,29 @@ Validated implementation head: `b9632edaed606cfae9f6ec18790f02a99ee658c3`.
 | Phase 0 criterion | Status | Evidence / remaining action |
 |---|---|---|
 | New developer can build and run the application | **Passed** | Fresh hosted runners installed and built from committed locks; local Docker workflow is documented. |
-| Required automated CI passes | **Pending final head** | PHP/frontend/container/recovery/CodeQL are proven green; restored GitHub dependency-diff action must pass on the current head. |
+| Required automated CI passes | **Pending repository setting** | PHP/frontend/container/recovery/CodeQL are proven green. Enable Dependency graph, then pass the GitHub dependency-diff action. |
 | Staging deploys repeatably from one immutable image | **Passed** | OCI metadata and exact image identity were verified across all staging runtime roles. |
 | Backup and restore work against staging data | **Passed** | Private backup, checksum/manifest/provenance validation, destructive restore, and post-restore identity checks passed. |
 | No unapproved shortcut or hidden global state | **Passed** | Architecture review, CI guards, package/route boundary tests, minimized runtime, and explicit Phase 1 boundary. |
-| `main` branch protection is applied | **Pending** | Apply and record the settings in `docs/BRANCH_PROTECTION.md`, including required checks and PR/review controls. |
+| `main` branch protection is applied | **Pending repository setting** | Apply and record the settings in `docs/BRANCH_PROTECTION.md`, including required checks and PR/review controls. |
 
 ## Gate-review findings
 
-The Phase 0 gate has corrected **64** implementation, security, reproducibility, recovery, privacy, licensing, container, and CI defects before acceptance. Finding 64 restored the actual GitHub dependency-diff action after review found that the `Dependency review` check performed package-manager audits only.
+The Phase 0 gate has corrected **64** implementation, security, reproducibility, recovery, privacy, licensing, container, and CI defects before acceptance. Finding 64 identified that the check named `Dependency review` performed package-manager audits only; the real GitHub dependency-diff action was restored and then correctly exposed the disabled repository Dependency graph setting.
 
 Major categories include dependency/toolchain compatibility, locked builds, PHP 8.5 runtime behavior, immutable release provenance, backup/restore integrity, container least privilege, hosted fail-closed configuration, session/proxy/transport controls, operational dashboard authorization, privacy-safe telemetry, workflow supply-chain pinning, dependency-diff review, Phase 0/Phase 1 boundaries, GPL licensing, and local network exposure controls.
 
-## Governance gate
+## Repository security gates
 
-`docs/BRANCH_PROTECTION.md` requires the applied `main` settings and successful stable check contexts to be recorded before acceptance. The connected GitHub integration available to this work can inspect branches, commits, checks, and repository permissions but does not expose branch-protection/ruleset mutation. Therefore this gate must remain explicitly pending until the repository setting is applied through GitHub administration and then verified.
+### Dependency graph
 
-Required stable checks documented for `main`:
+Enable GitHub **Dependency graph** for `awalker0878/kingshot-alliance`. Run `31142144279` failed at the dependency-review action with: `Dependency review is not supported on this repository. Please ensure that Dependency graph is enabled.` Once enabled, rerun the `Dependency review` check and require it to pass.
+
+### `main` branch protection
+
+`docs/BRANCH_PROTECTION.md` requires the applied `main` settings and successful stable check contexts to be recorded before acceptance. The connected GitHub integration available to this work can inspect branches, commits, checks, and repository permissions but does not expose Dependency-graph, branch-protection, or ruleset mutation. These repository settings therefore remain explicit administrative gates.
+
+Required stable checks:
 
 - `PHP quality and tests`
 - `Frontend quality and build`
@@ -113,4 +124,4 @@ The protection policy also requires a pull request, at least one approval, stale
 
 **Phase 0 — Engineering Foundation: NOT YET ACCEPTED.**
 
-Accept only after the current head passes the restored dependency-diff review, the documented `main` protection policy is applied and recorded, this report is changed to **Accepted**, and PR #2 is merged to `main`.
+Accept only after Dependency graph is enabled and the dependency-diff review is green, the documented `main` protection policy is applied and recorded, this report is changed to **Accepted**, and PR #2 is merged to `main`.
