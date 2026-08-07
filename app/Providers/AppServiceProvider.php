@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Laravel\Horizon\Horizon;
 use Laravel\Pulse\Pulse;
 
@@ -46,6 +47,18 @@ final class AppServiceProvider extends ServiceProvider
         RateLimiter::for(
             'api',
             static fn (Request $request): Limit => Limit::perMinute(60)->by((string) $request->ip())
+        );
+
+        RateLimiter::for(
+            'login',
+            static fn (Request $request): Limit => Limit::perMinute(5)->by(
+                Str::lower(trim((string) $request->input('email'))).'|'.(string) $request->ip(),
+            ),
+        );
+
+        RateLimiter::for(
+            'registration',
+            static fn (Request $request): Limit => Limit::perMinute(3)->by((string) $request->ip()),
         );
     }
 }
