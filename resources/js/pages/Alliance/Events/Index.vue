@@ -1,36 +1,41 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 
-const props = defineProps<{
+type EventItem = {
+  id: string;
+  eventId: string;
+  title: string;
+  startsAt: string;
+  endsAt: string;
+  allianceTimezone: string;
+  capacity: number | null;
+  status: string;
+  registrationOpensAt: string | null;
+  registrationClosesAt: string | null;
+  registration: { status: string; waitlistPosition: number | null } | null;
+};
+
+defineProps<{
   alliance: { id: string; name: string; timezone: string };
   userTimezone: string;
   canManage: boolean;
-  events: Array<{
-    id: string;
-    eventId: string;
-    title: string;
-    startsAt: string;
-    endsAt: string;
-    allianceTimezone: string;
-    capacity: number | null;
-    status: string;
-    registrationOpensAt: string | null;
-    registrationClosesAt: string | null;
-    registration: { status: string; waitlistPosition: number | null } | null;
-  }>;
+  events: EventItem[];
   exports: { csvUrl: string; icalUrl: string };
 }>();
 
 function formatInZone(value: string, timeZone: string): string {
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
     timeZone,
     timeZoneName: 'short',
   }).format(new Date(value));
 }
 
-function canJoin(event: (typeof props.events)[number]): boolean {
+function canJoin(event: EventItem): boolean {
   if (event.registration && event.registration.status !== 'cancelled') return false;
 
   const now = Date.now();
@@ -40,7 +45,7 @@ function canJoin(event: (typeof props.events)[number]): boolean {
   return new Date(event.startsAt).getTime() > now;
 }
 
-function canCancel(event: (typeof props.events)[number]): boolean {
+function canCancel(event: EventItem): boolean {
   return ['registered', 'waitlisted'].includes(event.registration?.status ?? '');
 }
 
@@ -52,7 +57,7 @@ function cancel(id: string): void {
   router.delete(`/alliance/events/${id}/registration`, { preserveScroll: true });
 }
 
-function registrationLabel(event: (typeof props.events)[number]): string {
+function registrationLabel(event: EventItem): string {
   if (!event.registration) return 'Not registered';
   if (event.registration.status === 'waitlisted' && event.registration.waitlistPosition) {
     return `Waitlisted · position ${event.registration.waitlistPosition}`;
