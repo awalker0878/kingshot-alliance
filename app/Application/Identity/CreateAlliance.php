@@ -52,7 +52,9 @@ final readonly class CreateAlliance
                 throw new RuntimeException('The default owner role was not provisioned.');
             }
 
-            $membership->roles()->attach($ownerRole->id);
+            $membership->roles()->attach($ownerRole->id, [
+                'alliance_id' => $alliance->id,
+            ]);
 
             AuditEvent::query()->create([
                 'alliance_id' => $alliance->id,
