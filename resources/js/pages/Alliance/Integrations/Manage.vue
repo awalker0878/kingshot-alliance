@@ -2,7 +2,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-const props = defineProps<{
+defineProps<{
   alliance: { id: string; name: string };
   settings: { apiAccessEnabled: boolean; webhooksEnabled: boolean };
   limits: {
