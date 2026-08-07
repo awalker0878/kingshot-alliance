@@ -58,7 +58,9 @@ final class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for(
             'registration',
-            static fn (Request $request): Limit => Limit::perMinute(3)->by((string) $request->ip()),
+            static fn (Request $request): Limit => Limit::perMinute(3)->by(
+                Str::lower(trim((string) $request->input('email'))).'|'.(string) $request->ip(),
+            ),
         );
     }
 }
