@@ -6,6 +6,7 @@ use App\Http\Controllers\Health\ReadinessController;
 use App\Http\Middleware\AssignRequestContext;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RecordRequestMetrics;
+use App\Http\Middleware\ResolveAllianceContext;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -35,6 +36,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 at: $trustedProxies === ['*'] ? '*' : $trustedProxies,
             );
         }
+
+        $middleware->alias([
+            'alliance.context' => ResolveAllianceContext::class,
+        ]);
 
         $middleware->append([
             AssignRequestContext::class,
