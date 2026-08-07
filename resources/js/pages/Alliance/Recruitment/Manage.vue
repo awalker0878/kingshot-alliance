@@ -445,7 +445,11 @@ function percentage(value: number): string {
           >
             <div class="grid gap-3">
               <div>
-                <label class="text-xs font-medium text-slate-400" :for="`edit-question-${question.id}`">Prompt</label>
+                <label
+                  class="text-xs font-medium text-slate-400"
+                  :for="`edit-question-${question.id}`"
+                  >Prompt</label
+                >
                 <input
                   :id="`edit-question-${question.id}`"
                   v-model="questionEdit(question.id).prompt"
@@ -456,7 +460,11 @@ function percentage(value: number): string {
               </div>
               <div class="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label class="text-xs font-medium text-slate-400" :for="`edit-type-${question.id}`">Type</label>
+                  <label
+                    class="text-xs font-medium text-slate-400"
+                    :for="`edit-type-${question.id}`"
+                    >Type</label
+                  >
                   <select
                     :id="`edit-type-${question.id}`"
                     v-model="questionEdit(question.id).type"
@@ -468,7 +476,11 @@ function percentage(value: number): string {
                   </select>
                 </div>
                 <div>
-                  <label class="text-xs font-medium text-slate-400" :for="`edit-position-${question.id}`">Position</label>
+                  <label
+                    class="text-xs font-medium text-slate-400"
+                    :for="`edit-position-${question.id}`"
+                    >Position</label
+                  >
                   <input
                     :id="`edit-position-${question.id}`"
                     v-model.number="questionEdit(question.id).position"
@@ -481,7 +493,9 @@ function percentage(value: number): string {
                 </div>
               </div>
               <div>
-                <label class="text-xs font-medium text-slate-400" :for="`edit-help-${question.id}`">Help text</label>
+                <label class="text-xs font-medium text-slate-400" :for="`edit-help-${question.id}`"
+                  >Help text</label
+                >
                 <input
                   :id="`edit-help-${question.id}`"
                   v-model="questionEdit(question.id).helpText"
@@ -490,7 +504,11 @@ function percentage(value: number): string {
                 />
               </div>
               <div v-if="['select', 'multi_select'].includes(questionEdit(question.id).type)">
-                <label class="text-xs font-medium text-slate-400" :for="`edit-options-${question.id}`">Options, one per line</label>
+                <label
+                  class="text-xs font-medium text-slate-400"
+                  :for="`edit-options-${question.id}`"
+                  >Options, one per line</label
+                >
                 <textarea
                   :id="`edit-options-${question.id}`"
                   v-model="questionEdit(question.id).optionsText"
@@ -498,8 +516,14 @@ function percentage(value: number): string {
                 />
               </div>
               <div class="flex flex-wrap items-center gap-5 text-sm">
-                <label class="flex items-center gap-2"><input v-model="questionEdit(question.id).required" type="checkbox" /> Required</label>
-                <label class="flex items-center gap-2"><input v-model="questionEdit(question.id).active" type="checkbox" /> Active</label>
+                <label class="flex items-center gap-2"
+                  ><input v-model="questionEdit(question.id).required" type="checkbox" />
+                  Required</label
+                >
+                <label class="flex items-center gap-2"
+                  ><input v-model="questionEdit(question.id).active" type="checkbox" />
+                  Active</label
+                >
                 <button
                   class="rounded-lg border border-slate-700 px-3 py-2 font-semibold"
                   type="button"
