@@ -35,6 +35,6 @@ A schema rollback is destructive to Phase 2 content and media metadata. It must 
 
 ## CI evidence
 
-The backend CI job performs the normal forward migration, runs the full application checks, then rolls back the latest migration batch step and reapplies it. This proves the Phase 2 `down()` and `up()` paths execute successfully on PostgreSQL 18 without treating schema rollback as the normal application rollback strategy.
+`ContentMigrationRollbackTest` runs under `RefreshDatabase` in an isolated test worker. It asserts all six Phase 2 tables exist, invokes the migration's `down()` method, asserts that all six tables are removed, then invokes `up()` and verifies that all six are recreated. CI runs this against PostgreSQL 18 as part of the normal PHP suite.
 
 The inherited staging/recovery job separately proves database backup, destructive restore, runtime health, and immutable-image continuity.
