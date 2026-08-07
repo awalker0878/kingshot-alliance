@@ -6,7 +6,7 @@ namespace App\Application\Shared;
 
 use App\Domain\Shared\Events\OutboxPublished;
 use App\Models\OutboxMessage;
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -70,13 +70,20 @@ final class PublishOutboxBatch
     private function claimNext(): ?OutboxMessage
     {
         return DB::transaction(function (): ?OutboxMessage {
-            $message = OutboxMessage::query()
+            /** @var Builder<OutboxMessage> $query */
+            $query = OutboxMessage::query()
                 ->whereNull('published_at')
                 ->where('available_at', '<=', now())
                 ->orderBy('occurred_at')
-                ->orderBy('id')
-                ->lock('for update skip locked')
-                ->first();
+                ->orderBy('id');
+
+            if (DB::getDriverName() === 'pgsql') {
+                $query->lock('for update skip locked');
+            } else {
+                $query->lockForUpdate();
+            }
+
+            $message = $query->first();
 
             if (! $message instanceof OutboxMessage) {
                 return null;
