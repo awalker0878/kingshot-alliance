@@ -34,6 +34,15 @@ final class RecruitmentAnswer extends Model
         ];
     }
 
+    public function questionType(): RecruitmentQuestionType
+    {
+        $value = $this->getAttribute('question_type_snapshot');
+
+        return $value instanceof RecruitmentQuestionType
+            ? $value
+            : RecruitmentQuestionType::from((string) $value);
+    }
+
     /** @return BelongsTo<RecruitmentCandidate, $this> */
     public function candidate(): BelongsTo
     {
