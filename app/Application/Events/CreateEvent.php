@@ -33,7 +33,7 @@ final class CreateEvent
         User $actor,
         Alliance $alliance,
         string $title,
-        CarbonImmutable $firstLocalStart,
+        ?CarbonImmutable $firstLocalStart,
         int $durationMinutes,
         ?int $capacity = null,
         ?int $registrationOpensMinutesBefore = null,
@@ -47,6 +47,10 @@ final class CreateEvent
     ): Event {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::EventManage)) {
             throw new AuthorizationException('You are not allowed to manage alliance events.');
+        }
+
+        if (! $firstLocalStart instanceof CarbonImmutable) {
+            throw new InvalidArgumentException('Event start date is required.');
         }
 
         if ($template !== null && $template->alliance_id !== $alliance->id) {
