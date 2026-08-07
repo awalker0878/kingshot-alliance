@@ -33,8 +33,8 @@
 - Alliance activation resolves the target through the user's active memberships rather than trusting global route-model binding.
 - Alliance-scoped authorization checks both user membership and tenant-scoped role permissions.
 - `membership_roles` carries composite tenant foreign keys so PostgreSQL rejects assigning a role from one alliance to a membership in another alliance even if application code is defective.
-- Membership administration enforces role hierarchy and last-owner safety. Leaving or removing a member strips role assignments so later reactivation cannot restore stale privilege.
-- Invitation bearer tokens are high-entropy values stored only as hashes, bound to the intended email address, expire, are one-time use, and rotate on resend. Acceptance/resend/revoke use transactional row locks.
+- Membership administration enforces role hierarchy and last-owner safety. Role assignment is allowed only to active memberships; leaving or removing a member strips role assignments so later reactivation cannot restore hidden privilege.
+- Invitation bearer tokens are high-entropy values stored only as hashes, bound to the intended email address, expire, are one-time use, and rotate on resend. New invitation issuance is serialized per alliance, supersedes earlier pending tokens for the same email, and records explicit audit/outbox revocation evidence. Acceptance/resend/revoke use transactional row locks.
 - Invitation, membership, role, and leave operations require a verified account plus recent password confirmation in addition to tenant authorization.
 - MFA uses RFC 6238 TOTP. Secrets are stored through encrypted model casts and excluded from serialization.
 - MFA recovery codes are stored only as SHA-256 hashes, shown only when created/regenerated, and consumed once.
@@ -53,7 +53,7 @@ Operational dashboards follow the same boundary. Pulse registers no dashboard ro
 - Tenant storage/export helpers reject unsafe path segments rather than allowing traversal outside the tenant prefix.
 - Request middleware attaches the snapshot only after validating active membership and removes it in a `finally` block after the request.
 - Meaningful persisted changes write an outbox row within the same database transaction as the domain mutation.
-- Outbox publication is at-least-once. Every message has a globally unique idempotency key that is passed to consumers for deduplication.
+- Outbox publication is at-least-once. Every persisted event has a unique per-event idempotency key that remains stable across publisher retries and is passed to consumers for deduplication; duplicate no-op role assignment emits no additional event.
 - PostgreSQL publishers claim work with `FOR UPDATE SKIP LOCKED`, lease through `available_at`, track attempts, record bounded `last_error` diagnostics, and retry with bounded backoff.
 - The outbox publisher runs from the scheduler with overlap and single-server protection; a compatible lock path is retained for the SQLite local/test database.
 
