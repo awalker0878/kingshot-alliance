@@ -25,6 +25,22 @@ jobs:
           tools: composer:v2
       - name: Apply boundary cleanup
         run: python3 .github/scripts/clean_domain_boundaries.py
+      - name: Complete explicit boundary repairs
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          profile = Path('app/Domain/Content/Actions/UpdateAlliancePublicProfile.php')
+          text = profile.read_text().replace(
+              "$this->outbox->record('alliance.public_profile_updated', $locked, $locked, [",
+              "$this->outbox->record('alliance.public_profile_updated', (string) $locked->id, $locked, [",
+          )
+          profile.write_text(text)
+
+          controller = Path('app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php')
+          text = controller.read_text().replace("            'membershipInvitation',\n", '')
+          controller.write_text(text)
+          PY
       - name: Install PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
       - name: Format PHP
