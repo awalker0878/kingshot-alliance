@@ -27,7 +27,9 @@ function submit(): void {
     <section class="w-full rounded-2xl border border-slate-800 bg-slate-900/70 p-8">
       <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">Phase 1</p>
       <h1 class="mt-3 text-3xl font-bold">Create your account</h1>
-      <p class="mt-2 text-sm text-slate-400">One global identity can belong to multiple alliances.</p>
+      <p class="mt-2 text-sm text-slate-400">
+        One global identity can belong to multiple alliances.
+      </p>
 
       <p
         v-if="props.registrationMode !== 'open'"
@@ -72,7 +74,9 @@ function submit(): void {
             required
             type="text"
           />
-          <p v-if="form.errors.timezone" class="mt-1 text-sm text-rose-300">{{ form.errors.timezone }}</p>
+          <p v-if="form.errors.timezone" class="mt-1 text-sm text-rose-300">
+            {{ form.errors.timezone }}
+          </p>
         </div>
 
         <div>
@@ -86,12 +90,18 @@ function submit(): void {
             required
             type="password"
           />
-          <p class="mt-1 text-xs text-slate-500">At least 12 characters with mixed case and a number.</p>
-          <p v-if="form.errors.password" class="mt-1 text-sm text-rose-300">{{ form.errors.password }}</p>
+          <p class="mt-1 text-xs text-slate-500">
+            At least 12 characters with mixed case and a number.
+          </p>
+          <p v-if="form.errors.password" class="mt-1 text-sm text-rose-300">
+            {{ form.errors.password }}
+          </p>
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="password_confirmation">Confirm password</label>
+          <label class="block text-sm font-medium" for="password_confirmation"
+            >Confirm password</label
+          >
           <input
             id="password_confirmation"
             v-model="form.password_confirmation"

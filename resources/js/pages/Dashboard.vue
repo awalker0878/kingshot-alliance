@@ -75,7 +75,11 @@ function logout(): void {
           <span v-if="!user.emailVerified"> · email verification pending</span>
         </p>
       </div>
-      <button class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold" type="button" @click="logout">
+      <button
+        class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold"
+        type="button"
+        @click="logout"
+      >
         Sign out
       </button>
     </header>
@@ -84,7 +88,9 @@ function logout(): void {
       <div class="flex items-center justify-between gap-4">
         <div>
           <h2 class="text-xl font-semibold">Your alliances</h2>
-          <p class="mt-1 text-sm text-slate-400">Choose the tenant context used for alliance-scoped routes.</p>
+          <p class="mt-1 text-sm text-slate-400">
+            Choose the tenant context used for alliance-scoped routes.
+          </p>
         </div>
         <Link
           v-if="activeAllianceId"
@@ -126,7 +132,10 @@ function logout(): void {
           </button>
         </article>
       </div>
-      <p v-else class="mt-5 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-400">
+      <p
+        v-else
+        class="mt-5 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-400"
+      >
         You do not have an active alliance membership yet. Create an alliance below.
       </p>
     </section>
@@ -146,7 +155,9 @@ function logout(): void {
             type="text"
             @blur="slugifyName"
           />
-          <p v-if="allianceForm.errors.name" class="mt-1 text-sm text-rose-300">{{ allianceForm.errors.name }}</p>
+          <p v-if="allianceForm.errors.name" class="mt-1 text-sm text-rose-300">
+            {{ allianceForm.errors.name }}
+          </p>
         </div>
 
         <div>
@@ -159,7 +170,9 @@ function logout(): void {
             required
             type="text"
           />
-          <p v-if="allianceForm.errors.slug" class="mt-1 text-sm text-rose-300">{{ allianceForm.errors.slug }}</p>
+          <p v-if="allianceForm.errors.slug" class="mt-1 text-sm text-rose-300">
+            {{ allianceForm.errors.slug }}
+          </p>
         </div>
 
         <div>
@@ -181,7 +194,9 @@ function logout(): void {
             required
             type="text"
           />
-          <p v-if="allianceForm.errors.timezone" class="mt-1 text-sm text-rose-300">{{ allianceForm.errors.timezone }}</p>
+          <p v-if="allianceForm.errors.timezone" class="mt-1 text-sm text-rose-300">
+            {{ allianceForm.errors.timezone }}
+          </p>
         </div>
 
         <div class="md:col-span-2">

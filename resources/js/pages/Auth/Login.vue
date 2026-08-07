@@ -19,7 +19,9 @@ function submit(): void {
 
   <main class="mx-auto flex min-h-screen max-w-xl items-center px-6 py-16">
     <section class="w-full rounded-2xl border border-slate-800 bg-slate-900/70 p-8">
-      <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">Kingshot Alliance</p>
+      <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
+        Kingshot Alliance
+      </p>
       <h1 class="mt-3 text-3xl font-bold">Sign in</h1>
       <p class="mt-2 text-sm text-slate-400">Access your alliances through one global account.</p>
 
@@ -47,11 +49,17 @@ function submit(): void {
             required
             type="password"
           />
-          <p v-if="form.errors.password" class="mt-1 text-sm text-rose-300">{{ form.errors.password }}</p>
+          <p v-if="form.errors.password" class="mt-1 text-sm text-rose-300">
+            {{ form.errors.password }}
+          </p>
         </div>
 
         <label class="flex items-center gap-2 text-sm text-slate-300">
-          <input v-model="form.remember" class="rounded border-slate-600 bg-slate-950" type="checkbox" />
+          <input
+            v-model="form.remember"
+            class="rounded border-slate-600 bg-slate-950"
+            type="checkbox"
+          />
           Remember me
         </label>
 
@@ -66,7 +74,9 @@ function submit(): void {
 
       <p class="mt-6 text-sm text-slate-400">
         Need an account?
-        <Link class="font-semibold text-cyan-300 hover:text-cyan-200" href="/register">Register</Link>
+        <Link class="font-semibold text-cyan-300 hover:text-cyan-200" href="/register"
+          >Register</Link
+        >
       </p>
     </section>
   </main>

@@ -43,7 +43,9 @@ defineProps<{
         </div>
         <div class="rounded-xl border border-slate-800 p-4">
           <dt class="text-sm text-slate-400">Your roles</dt>
-          <dd class="mt-1 font-semibold">{{ membership.roles.map((role) => role.name).join(', ') || 'None' }}</dd>
+          <dd class="mt-1 font-semibold">
+            {{ membership.roles.map((role) => role.name).join(', ') || 'None' }}
+          </dd>
         </div>
       </dl>
     </section>
