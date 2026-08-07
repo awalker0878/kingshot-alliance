@@ -49,9 +49,7 @@ final class ContentQuery
         ?string $category = null,
         ?string $locale = null,
     ): Collection {
-        $query = $this->publishedBase($alliance)
-            ->whereIn('visibility', [ContentVisibility::Public->value, ContentVisibility::Members->value]);
-
+        $query = $this->memberPublishedBase($alliance);
         $this->applyFilters($query, $search, $type, $category, $locale);
 
         return $query
@@ -59,6 +57,13 @@ final class ContentQuery
             ->orderByDesc('published_at')
             ->limit(max(1, (int) config('content.member_search_limit', 100)))
             ->get();
+    }
+
+    public function memberBySlug(Alliance $alliance, string $slug): ?ContentItem
+    {
+        return $this->memberPublishedBase($alliance)
+            ->where('slug', $slug)
+            ->first();
     }
 
     /** @return Collection<int, ContentItem> */
@@ -83,6 +88,13 @@ final class ContentQuery
             ->where('published_at', '<=', now())
             ->whereNull('archived_at')
             ->with('category:id,alliance_id,name,slug');
+    }
+
+    /** @return Builder<ContentItem> */
+    private function memberPublishedBase(Alliance $alliance): Builder
+    {
+        return $this->publishedBase($alliance)
+            ->whereIn('visibility', [ContentVisibility::Public->value, ContentVisibility::Members->value]);
     }
 
     /** @param Builder<ContentItem> $query */
