@@ -38,70 +38,74 @@ jobs:
           from pathlib import Path
 
           path = Path('resources/js/pages/Alliance/Overview.vue')
-          text = path.read_text()
+          lines = path.read_text().splitlines()
 
-          old_type = '''  contentHub: {
-            canManage: boolean;
-            notices: Array<{
-              id: string;
-              title: string;
-              slug: string;
-              summary: string | null;
-              visibility: string;
-              publishedAt: string | null;
-            }>;
-            upcomingActivities: unknown[];
-            upcomingActivitiesPhase: number;
-          };'''
-          new_type = '''  contentHub: {
-            canManage: boolean;
-            canManageEvents: boolean;
-            notices: Array<{
-              id: string;
-              title: string;
-              slug: string;
-              summary: string | null;
-              visibility: string;
-              publishedAt: string | null;
-            }>;
-            upcomingActivities: Array<{
-              id: string;
-              title: string;
-              startsAt: string;
-              allianceTimezone: string;
-            }>;
-          };'''
+          if any('canManageEvents: boolean;' in line for line in lines):
+              raise SystemExit('Overview already contains Phase 3 event props.')
 
-          old_links = '''        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/content">Content hub</Link>
-        <Link
-          v-if="contentHub.canManage"
-          class="text-cyan-300 hover:text-cyan-200"
-          href="/alliance/content/manage"
-          >Manage content</Link
-        >'''
-          new_links = '''        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/content">Content hub</Link>
-        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/events">Events</Link>
-        <Link
-          v-if="contentHub.canManage"
-          class="text-cyan-300 hover:text-cyan-200"
-          href="/alliance/content/manage"
-          >Manage content</Link
-        >
-        <Link
-          v-if="contentHub.canManageEvents"
-          class="text-cyan-300 hover:text-cyan-200"
-          href="/alliance/events/manage"
-          >Coordinate events</Link
-        >'''
+          can_manage = [i for i, line in enumerate(lines) if line.strip() == 'canManage: boolean;']
+          activities = [i for i, line in enumerate(lines) if line.strip() == 'upcomingActivities: unknown[];']
+          phase = [i for i, line in enumerate(lines) if line.strip() == 'upcomingActivitiesPhase: number;']
+          content_link = [i for i, line in enumerate(lines) if 'href="/alliance/content">Content hub</Link>' in line]
+          public_href = [i for i, line in enumerate(lines) if ':href="alliance.publicUrl"' in line]
+          activity_heading = [i for i, line in enumerate(lines) if '>Upcoming activities</h2>' in line]
 
-          old_placeholder = '''      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <h2 class="text-xl font-semibold">Upcoming activities</h2>
-        <p class="mt-3 text-sm text-slate-400">
-          Event scheduling is owned by Phase {{ contentHub.upcomingActivitiesPhase }}. Phase 2 keeps
-          this dashboard slot ready without creating placeholder event records.
-        </p>
-      </div>'''
-          new_placeholder = '''      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+          checks = {
+              'contentHub canManage': can_manage,
+              'upcoming activities type': activities,
+              'Phase 2 marker': phase,
+              'content navigation link': content_link,
+              'public page link': public_href,
+              'upcoming activities heading': activity_heading,
+          }
+          for label, matches in checks.items():
+              if len(matches) != 1:
+                  raise SystemExit(f'Expected one {label}; found {len(matches)}')
+
+          lines.insert(can_manage[0] + 1, '    canManageEvents: boolean;')
+
+          activity_index = next(i for i, line in enumerate(lines) if line.strip() == 'upcomingActivities: unknown[];')
+          lines[activity_index:activity_index + 2] = [
+              '    upcomingActivities: Array<{',
+              '      id: string;',
+              '      title: string;',
+              '      startsAt: string;',
+              '      allianceTimezone: string;',
+              '    }>;',
+          ]
+
+          content_index = next(i for i, line in enumerate(lines) if 'href="/alliance/content">Content hub</Link>' in line)
+          lines.insert(content_index + 1, '        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/events">Events</Link>')
+
+          public_href_index = next(i for i, line in enumerate(lines) if ':href="alliance.publicUrl"' in line)
+          public_anchor_start = public_href_index
+          while public_anchor_start >= 0 and lines[public_anchor_start].strip() != '<a':
+              public_anchor_start -= 1
+          if public_anchor_start < 0:
+              raise SystemExit('Could not locate public page anchor start.')
+          manage_event_lines = [
+              '        <Link',
+              '          v-if="contentHub.canManageEvents"',
+              '          class="text-cyan-300 hover:text-cyan-200"',
+              '          href="/alliance/events/manage"',
+              '          >Coordinate events</Link',
+              '        >',
+          ]
+          lines[public_anchor_start:public_anchor_start] = manage_event_lines
+
+          heading_index = next(i for i, line in enumerate(lines) if '>Upcoming activities</h2>' in line)
+          block_start = heading_index - 1
+          if 'rounded-2xl border border-slate-800 bg-slate-900/70 p-6' not in lines[block_start]:
+              raise SystemExit('Unexpected upcoming activities block start.')
+          block_end = None
+          for i in range(heading_index + 1, len(lines)):
+              if lines[i] == '      </div>':
+                  block_end = i
+                  break
+          if block_end is None:
+              raise SystemExit('Could not locate upcoming activities block end.')
+
+          new_block = '''      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-xl font-semibold">Upcoming activities</h2>
           <Link class="text-sm font-semibold text-cyan-300 hover:text-cyan-200" href="/alliance/events">
@@ -135,18 +139,10 @@ jobs:
           </article>
         </div>
         <p v-else class="mt-4 text-sm text-slate-500">No scheduled events in the next 30 days.</p>
-      </div>'''
+      </div>'''.splitlines()
+          lines[block_start:block_end + 1] = new_block
 
-          for old, new, label in [
-              (old_type, new_type, 'contentHub type'),
-              (old_links, new_links, 'navigation links'),
-              (old_placeholder, new_placeholder, 'upcoming activities placeholder'),
-          ]:
-              if text.count(old) != 1:
-                  raise SystemExit(f'Expected exactly one {label} block; found {text.count(old)}')
-              text = text.replace(old, new)
-
-          path.write_text(text)
+          path.write_text('\n'.join(lines) + '\n')
           PY
       - name: Format overview page
         run: npx prettier --write resources/js/pages/Alliance/Overview.vue
