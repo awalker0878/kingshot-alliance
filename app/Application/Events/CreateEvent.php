@@ -61,6 +61,11 @@ final class CreateEvent
 
         $localStart = $firstLocalStart->setTimezone($alliance->timezone);
         $localUntil = $recurrenceUntilLocal?->setTimezone($alliance->timezone);
+
+        if ($localUntil !== null && $localUntil->lessThan($localStart)) {
+            throw new InvalidArgumentException('Recurrence end must not be earlier than the first occurrence.');
+        }
+
         $occurrenceStarts = $this->recurrence->calculate(
             $localStart,
             $frequency,
@@ -73,6 +78,7 @@ final class CreateEvent
             $alliance,
             $title,
             $instructions,
+            $localStart,
             $durationMinutes,
             $capacity,
             $registrationOpensMinutesBefore,
@@ -88,6 +94,7 @@ final class CreateEvent
                 'title' => trim($title),
                 'instructions' => $instructions === null ? null : trim($instructions),
                 'timezone' => $alliance->timezone,
+                'starts_at' => $localStart->utc(),
                 'duration_minutes' => $durationMinutes,
                 'capacity' => $capacity,
                 'registration_opens_minutes_before' => $registrationOpensMinutesBefore,
