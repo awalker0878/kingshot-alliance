@@ -40,6 +40,27 @@ final class RecruitmentStageHistory extends Model
         ];
     }
 
+    public function fromStage(): ?RecruitmentStage
+    {
+        $value = $this->getAttribute('from_stage');
+        if ($value === null) {
+            return null;
+        }
+
+        return $value instanceof RecruitmentStage
+            ? $value
+            : RecruitmentStage::from((string) $value);
+    }
+
+    public function toStage(): RecruitmentStage
+    {
+        $value = $this->getAttribute('to_stage');
+
+        return $value instanceof RecruitmentStage
+            ? $value
+            : RecruitmentStage::from((string) $value);
+    }
+
     /** @return BelongsTo<RecruitmentCandidate, $this> */
     public function candidate(): BelongsTo
     {
