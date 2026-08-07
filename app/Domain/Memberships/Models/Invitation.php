@@ -6,7 +6,6 @@ namespace App\Domain\Memberships\Models;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Identity\Models\User;
-
 use App\Domain\Memberships\Enums\InvitationStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;

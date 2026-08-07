@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Identity;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Memberships\Actions\CreateInvitation;
-use App\Domain\Memberships\Queries\FindPendingInvitation;
-use App\Domain\Memberships\Enums\InvitationStatus;
 use App\Domain\Audit\Models\AuditEvent;
-use App\Domain\Platform\Models\OutboxMessage;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Actions\CreateInvitation;
+use App\Domain\Memberships\Enums\InvitationStatus;
+use App\Domain\Memberships\Queries\FindPendingInvitation;
+use App\Domain\Platform\Models\OutboxMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

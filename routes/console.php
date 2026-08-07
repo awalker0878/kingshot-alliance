@@ -5,9 +5,9 @@ declare(strict_types=1);
 use App\Domain\Content\Actions\PublishScheduledContent;
 use App\Domain\Notifications\Actions\QueueDueEventReminders;
 use App\Domain\Notifications\Actions\SyncUpcomingEventReminders;
+use App\Domain\Platform\Actions\PublishOutboxBatch;
 use App\Domain\Platform\Services\RuntimeConfigurationValidator;
 use App\Domain\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
-use App\Domain\Platform\Actions\PublishOutboxBatch;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 

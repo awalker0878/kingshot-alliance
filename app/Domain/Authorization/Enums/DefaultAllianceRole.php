@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Authorization\Enums;
 
-use App\Domain\Events\Models\Event;
-
 enum DefaultAllianceRole: string
 {
     case Owner = 'owner';

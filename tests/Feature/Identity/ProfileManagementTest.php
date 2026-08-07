@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Identity;
 
-use App\Domain\Platform\Models\OutboxMessage;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Models\OutboxMessage;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;

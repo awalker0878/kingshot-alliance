@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Content\Enums;
 
-use App\Domain\Events\Models\Event;
-
 enum ContentType: string
 {
     case Announcement = 'announcement';

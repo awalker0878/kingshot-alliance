@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Providers;
 
+use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Content\Services\BasicMediaScanner;
 use App\Domain\Content\Services\MediaScanner;
 use App\Domain\Notifications\Actions\MarkEventReminderPublished;
-use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Recruitment\Actions\MarkRecruitmentCandidateJoined;
 use App\Domain\Platform\Events\OutboxPublished;
+use App\Domain\Recruitment\Actions\MarkRecruitmentCandidateJoined;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;

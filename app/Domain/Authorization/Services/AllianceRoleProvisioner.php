@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Authorization\Services;
 
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Authorization\Models\Permission;
 use App\Domain\Authorization\Models\Role;
 use Illuminate\Support\Str;

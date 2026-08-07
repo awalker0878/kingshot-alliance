@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Recruitment\Queries;
 
-use App\Domain\Memberships\Models\Invitation;
-
-use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Recruitment\Models\RecruitmentSetting;
 
 final class PublicRecruitmentQuery

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Notifications\Actions;
 
 use App\Domain\Events\Enums\EventRegistrationStatus;
-use App\Domain\Notifications\Enums\EventReminderDeliveryStatus;
 use App\Domain\Events\Models\EventRegistration;
-use App\Domain\Events\Models\EventReminderDelivery;
+use App\Domain\Notifications\Enums\EventReminderDeliveryStatus;
+use App\Domain\Notifications\Models\EventReminderDelivery;
 use App\Domain\Platform\Models\OutboxMessage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;

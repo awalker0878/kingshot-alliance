@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Notifications\Models;
 
 use App\Domain\Events\Models\Event;
-
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

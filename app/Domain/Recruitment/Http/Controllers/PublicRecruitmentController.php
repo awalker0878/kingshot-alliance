@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace App\Domain\Recruitment\Http\Controllers;
 
-use App\Domain\Memberships\Models\Invitation;
-use App\Domain\Platform\Http\Controllers\Controller;
-
-use App\Domain\Recruitment\Services\RecruitmentApplicationTokenService;
-use App\Domain\Recruitment\Actions\SubmitRecruitmentApplication;
 use App\Domain\Alliances\Enums\AllianceStatus;
-use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Http\Controllers\Controller;
+use App\Domain\Recruitment\Actions\SubmitRecruitmentApplication;
+use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Recruitment\Models\RecruitmentApplicationInvite;
 use App\Domain\Recruitment\Models\RecruitmentQuestion;
 use App\Domain\Recruitment\Models\RecruitmentSetting;
-use App\Domain\Identity\Models\User;
+use App\Domain\Recruitment\Services\RecruitmentApplicationTokenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

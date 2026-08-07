@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Events\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Enums\RecurrenceFrequency;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

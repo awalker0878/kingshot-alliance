@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Content;
 
-use App\Domain\Alliances\Models\Alliance;
-
+use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Content\Actions\PublishContentItem;
 use App\Domain\Content\Actions\SaveContentItem;
-use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;
 use App\Domain\Identity\Models\User;

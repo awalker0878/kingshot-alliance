@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Actions;
 
-use App\Domain\Events\Services\EventOutbox;
-
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventOccurrenceStatus;
 use App\Domain\Events\Enums\EventRegistrationStatus;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Models\AllianceMembership;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
+use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 

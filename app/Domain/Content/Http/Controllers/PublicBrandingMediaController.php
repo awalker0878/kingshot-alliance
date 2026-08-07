@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Content\Http\Controllers;
 
-use App\Domain\Platform\Http\Controllers\Controller;
-
-use App\Domain\Content\Enums\MediaLifecycleStatus;
-use App\Domain\Content\Enums\MediaScanStatus;
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Models\AllianceBrandingMedia;
+use App\Domain\Content\Enums\MediaLifecycleStatus;
+use App\Domain\Content\Enums\MediaScanStatus;
+use App\Domain\Content\Models\AllianceBrandingMedia;
 use App\Domain\Content\Models\MediaAsset;
+use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

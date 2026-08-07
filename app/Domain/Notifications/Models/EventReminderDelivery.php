@@ -6,7 +6,6 @@ namespace App\Domain\Notifications\Models;
 
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Memberships\Models\AllianceMembership;
-
 use App\Domain\Notifications\Enums\EventReminderDeliveryStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;

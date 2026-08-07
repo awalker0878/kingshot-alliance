@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Memberships\Actions;
 
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Memberships\Services\MembershipAdministrationGuard;
-
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Models\AllianceMembership;
-use App\Domain\Platform\Models\OutboxMessage;
+use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Memberships\Services\MembershipAdministrationGuard;
+use App\Domain\Platform\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;

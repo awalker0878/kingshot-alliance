@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
-use App\Domain\Events\Enums\EventOccurrenceStatus;
 use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Events\Enums\EventOccurrenceStatus;
 use App\Domain\Events\Models\EventOccurrence;
 use Illuminate\Database\Eloquent\Collection;
 

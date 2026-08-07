@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Alliances\Http\Controllers;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Platform\Http\Controllers\Controller;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

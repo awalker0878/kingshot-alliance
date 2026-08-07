@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Identity\Http\Controllers;
 
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Platform\Http\Controllers\Controller;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
 

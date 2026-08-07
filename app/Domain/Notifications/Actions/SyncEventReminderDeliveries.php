@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Notifications\Actions;
 
 use App\Domain\Events\Enums\EventRegistrationStatus;
-use App\Domain\Notifications\Enums\EventReminderDeliveryStatus;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
-use App\Domain\Events\Models\EventReminderDelivery;
-use App\Domain\Events\Models\EventReminderRule;
+use App\Domain\Notifications\Enums\EventReminderDeliveryStatus;
+use App\Domain\Notifications\Models\EventReminderDelivery;
+use App\Domain\Notifications\Models\EventReminderRule;
 use Illuminate\Support\Facades\DB;
 
 final class SyncEventReminderDeliveries

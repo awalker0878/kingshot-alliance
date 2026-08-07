@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Identity\Http\Controllers;
 
+use App\Domain\Identity\Models\User;
 use App\Domain\Identity\Services\TwoFactorManager;
 use App\Domain\Platform\Http\Controllers\Controller;
-use App\Domain\Identity\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Recruitment;
 
-use App\Domain\Alliances\Models\Alliance;
-
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 

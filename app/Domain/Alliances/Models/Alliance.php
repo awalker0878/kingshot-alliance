@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Alliances\Models;
 
+use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Content\Models\AllianceBrandingMedia;
 use App\Domain\Content\Models\AllianceProfile;
@@ -12,8 +13,6 @@ use App\Domain\Content\Models\ContentItem;
 use App\Domain\Content\Models\MediaAsset;
 use App\Domain\Identity\Models\User;
 use App\Domain\Memberships\Models\AllianceMembership;
-
-use App\Domain\Alliances\Enums\AllianceStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

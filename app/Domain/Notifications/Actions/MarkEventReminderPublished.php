@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Notifications\Actions;
 
 use App\Domain\Notifications\Enums\EventReminderDeliveryStatus;
+use App\Domain\Notifications\Models\EventReminderDelivery;
 use App\Domain\Platform\Events\OutboxPublished;
-use App\Domain\Events\Models\EventReminderDelivery;
 
 final class MarkEventReminderPublished
 {

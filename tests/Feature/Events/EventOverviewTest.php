@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Events;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Events\Models\Event;
-
-use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Identity\Models\User;
 use Carbon\CarbonImmutable;

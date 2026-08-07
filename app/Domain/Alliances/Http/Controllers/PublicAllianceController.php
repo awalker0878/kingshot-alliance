@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace App\Domain\Alliances\Http\Controllers;
 
-use App\Domain\Platform\Http\Controllers\Controller;
-
-use App\Domain\Content\Services\ContentPresenter;
-use App\Domain\Content\Queries\ContentQuery;
-use App\Domain\Recruitment\Queries\PublicRecruitmentQuery;
-use App\Domain\Content\Enums\ContentStatus;
-use App\Domain\Content\Enums\ContentVisibility;
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Models\AllianceBrandingMedia;
-use App\Domain\Alliances\Models\AllianceProfile;
+use App\Domain\Content\Enums\ContentStatus;
+use App\Domain\Content\Enums\ContentVisibility;
+use App\Domain\Content\Models\AllianceBrandingMedia;
+use App\Domain\Content\Models\AllianceProfile;
 use App\Domain\Content\Models\ContentCategory;
 use App\Domain\Content\Models\ContentItem;
+use App\Domain\Content\Queries\ContentQuery;
+use App\Domain\Content\Services\ContentPresenter;
+use App\Domain\Platform\Http\Controllers\Controller;
+use App\Domain\Recruitment\Queries\PublicRecruitmentQuery;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Rallies\Models;
 
 use App\Domain\Memberships\Models\AllianceMembership;
-
 use App\Domain\Rallies\Enums\RallyAssignmentRole;
 use App\Domain\Rallies\Enums\RallyAssignmentStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

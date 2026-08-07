@@ -4,16 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Events;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Models\Permission;
-use App\Domain\Events\Models\Event;
-
-use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Alliances\Models\AllianceMembership;
+use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;

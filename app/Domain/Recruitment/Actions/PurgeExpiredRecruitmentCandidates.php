@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Recruitment\Actions;
 
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
-
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
-use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
+use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Support\Facades\DB;
 
 final class PurgeExpiredRecruitmentCandidates

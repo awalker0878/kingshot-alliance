@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Events;
 
-use App\Domain\Events\Models\Event;
-
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Events\Actions\CancelEventRegistration;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Actions\RegisterForEvent;
-use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Enums\RecurrenceFrequency;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Models\AllianceMembership;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

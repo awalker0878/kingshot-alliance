@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Content\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-
 use App\Domain\Content\Enums\MediaLifecycleStatus;
 use App\Domain\Content\Enums\MediaScanStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

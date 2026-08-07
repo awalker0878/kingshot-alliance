@@ -4,28 +4,26 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Http\Controllers;
 
-use App\Domain\Alliances\Models\Alliance;
-
-use App\Domain\Events\Queries\AllianceEventQuery;
+use App\Domain\Alliances\Services\AllianceContext;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Events\Actions\CancelEventRegistration;
 use App\Domain\Events\Actions\RegisterForEvent;
-use App\Domain\Rallies\Actions\SaveMemberFormation;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Events\Enums\EventRegistrationStatus;
-use App\Domain\Rallies\ValueObjects\FormationComposition;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Platform\Http\Controllers\Controller;
-use App\Domain\Alliances\Models\AllianceMembership;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
-use App\Domain\Events\Models\EventRecommendedFormation;
 use App\Domain\Events\Models\EventRegistration;
+use App\Domain\Events\Queries\AllianceEventQuery;
+use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Platform\Http\Controllers\Controller;
+use App\Domain\Rallies\Actions\SaveMemberFormation;
+use App\Domain\Rallies\Models\EventRecommendedFormation;
 use App\Domain\Rallies\Models\MemberFormation;
 use App\Domain\Rallies\Models\RallyAssignment;
 use App\Domain\Rallies\Models\RallyGroup;
 use App\Domain\Rallies\Models\RallyGuidanceRule;
-use App\Domain\Identity\Models\User;
+use App\Domain\Rallies\ValueObjects\FormationComposition;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;

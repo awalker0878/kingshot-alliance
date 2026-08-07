@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Content\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-
 use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Content\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

@@ -4,23 +4,21 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Events;
 
-use App\Domain\Alliances\Models\Alliance;
-
-use App\Domain\Rallies\Actions\AssignRallyMember;
+use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Actions\CreateEventRecommendedFormation;
+use App\Domain\Events\Models\EventOccurrence;
+use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Rallies\Actions\AssignRallyMember;
 use App\Domain\Rallies\Actions\CreateRallyGroup;
 use App\Domain\Rallies\Actions\CreateRallyGuidanceRule;
 use App\Domain\Rallies\Actions\SaveMemberFormation;
-use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Rallies\Enums\RallyAssignmentRole;
 use App\Domain\Rallies\Enums\RallyAssignmentStatus;
-use App\Domain\Rallies\ValueObjects\FormationComposition;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Alliances\Models\AllianceMembership;
-use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Rallies\Models\RallyAssignment;
-use App\Domain\Identity\Models\User;
+use App\Domain\Rallies\ValueObjects\FormationComposition;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Domain\Alliances\Models\Alliance;
-
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 

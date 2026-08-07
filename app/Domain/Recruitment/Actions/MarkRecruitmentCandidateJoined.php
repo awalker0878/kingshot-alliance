@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Recruitment\Actions;
 
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
-
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Recruitment\Enums\RecruitmentStage;
-use App\Domain\Platform\Events\OutboxPublished;
 use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Events\OutboxPublished;
+use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentStageHistory;
-use App\Domain\Identity\Models\User;
+use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Support\Facades\DB;
 
 final class MarkRecruitmentCandidateJoined

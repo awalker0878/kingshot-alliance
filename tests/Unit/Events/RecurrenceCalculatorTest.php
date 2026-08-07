@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Events;
 
-use App\Domain\Events\Services\RecurrenceCalculator;
 use App\Domain\Events\Enums\RecurrenceFrequency;
+use App\Domain\Events\Services\RecurrenceCalculator;
 use Carbon\CarbonImmutable;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;

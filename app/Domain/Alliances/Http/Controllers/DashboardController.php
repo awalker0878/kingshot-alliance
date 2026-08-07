@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Alliances\Http\Controllers;
 
-use App\Domain\Platform\Http\Controllers\Controller;
-
-use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Models\AllianceMembership;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;

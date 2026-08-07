@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Recruitment\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-
 use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;

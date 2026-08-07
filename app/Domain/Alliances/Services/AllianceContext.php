@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Alliances\Services;
 
-use App\Domain\Authorization\Services\AllianceAuthorization;
-
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Models\AllianceMembership;
+use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Models\AllianceMembership;
 use LogicException;
 
 final class AllianceContext

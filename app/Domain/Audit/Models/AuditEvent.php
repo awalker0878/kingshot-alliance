@@ -6,7 +6,6 @@ namespace App\Domain\Audit\Models;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Identity\Models\User;
-
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

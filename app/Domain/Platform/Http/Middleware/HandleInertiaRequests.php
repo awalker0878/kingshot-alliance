@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Http\Middleware;
 
-use App\Domain\Notifications\Enums\EventReminderDeliveryStatus;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Alliances\Models\AllianceMembership;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
-use App\Domain\Events\Models\EventReminderDelivery;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Notifications\Enums\EventReminderDeliveryStatus;
+use App\Domain\Notifications\Models\EventReminderDelivery;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use LogicException;

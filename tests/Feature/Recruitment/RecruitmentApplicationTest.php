@@ -4,24 +4,21 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Recruitment;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Memberships\Models\Invitation;
-
 use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Authorization\Enums\DefaultAllianceRole;
+use App\Domain\Authorization\Models\Role;
+use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Recruitment\Actions\ChangeRecruitmentStage;
 use App\Domain\Recruitment\Actions\ConfigureRecruitmentSettings;
 use App\Domain\Recruitment\Actions\CreateRecruitmentQuestion;
 use App\Domain\Recruitment\Actions\IssueRecruitmentApplicationInvite;
 use App\Domain\Recruitment\Actions\SubmitRecruitmentApplication;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Recruitment\Enums\RecruitmentQuestionType;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
-use App\Domain\Alliances\Models\AllianceMembership;
 use App\Domain\Recruitment\Models\RecruitmentStageHistory;
-use App\Domain\Authorization\Models\Role;
-use App\Domain\Identity\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

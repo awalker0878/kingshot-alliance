@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace App\Domain\Content\Actions;
 
-use App\Domain\Content\Services\ContentOutbox;
-use App\Domain\Content\Services\ContentSanitizer;
-
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Enums\MediaLifecycleStatus;
 use App\Domain\Content\Enums\MediaScanStatus;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Models\AllianceBrandingMedia;
-use App\Domain\Alliances\Models\AllianceProfile;
+use App\Domain\Content\Models\AllianceBrandingMedia;
+use App\Domain\Content\Models\AllianceProfile;
 use App\Domain\Content\Models\MediaAsset;
+use App\Domain\Content\Services\ContentOutbox;
+use App\Domain\Content\Services\ContentSanitizer;
 use App\Domain\Identity\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;

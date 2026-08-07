@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Recruitment\Actions;
 
-use App\Domain\Recruitment\Services\RecruitmentOutbox;
-
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Identity\Models\User;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentTag;
-use App\Domain\Identity\Models\User;
+use App\Domain\Recruitment\Services\RecruitmentOutbox;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Alliances\Http\Middleware;
 
-use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Alliances\ValueObjects\TenantContextSnapshot;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Models\AllianceMembership;
+use App\Domain\Alliances\Services\AllianceContext;
+use App\Domain\Alliances\ValueObjects\TenantContextSnapshot;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
 use Closure;
 use Illuminate\Http\Request;
 use LogicException;

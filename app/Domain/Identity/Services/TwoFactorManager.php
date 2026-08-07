@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Identity\Services;
 
 use App\Domain\Audit\Services\AuditRecorder;
-
-use App\Domain\Platform\Models\OutboxMessage;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

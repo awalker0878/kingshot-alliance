@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Recruitment\Queries;
 
-use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentStageHistory;
 use Illuminate\Support\Carbon;

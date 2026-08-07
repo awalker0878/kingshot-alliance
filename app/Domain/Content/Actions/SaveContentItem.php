@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace App\Domain\Content\Actions;
 
-use App\Domain\Content\Services\ContentOutbox;
-use App\Domain\Content\Services\ContentRevisionWriter;
-use App\Domain\Content\Services\ContentSanitizer;
-
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Content\Models\ContentCategory;
 use App\Domain\Content\Models\ContentItem;
+use App\Domain\Content\Services\ContentOutbox;
+use App\Domain\Content\Services\ContentRevisionWriter;
+use App\Domain\Content\Services\ContentSanitizer;
 use App\Domain\Identity\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;

@@ -4,20 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Recruitment;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Memberships\Models\Invitation;
-
 use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Recruitment\Actions\AddRecruitmentNote;
 use App\Domain\Recruitment\Actions\ConfigureRecruitmentSettings;
 use App\Domain\Recruitment\Actions\CreateRecruitmentQuestion;
 use App\Domain\Recruitment\Actions\IssueRecruitmentApplicationInvite;
 use App\Domain\Recruitment\Actions\SubmitRecruitmentApplication;
-use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Recruitment\Enums\RecruitmentQuestionType;
-use App\Domain\Alliances\Models\AllianceMembership;
-use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;

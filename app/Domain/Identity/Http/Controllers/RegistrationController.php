@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Identity\Http\Controllers;
 
-use App\Domain\Memberships\Actions\AcceptInvitation;
-use App\Domain\Memberships\Queries\FindPendingInvitation;
-use App\Domain\Identity\Actions\RegisterUser;
-use App\Domain\Platform\Http\Controllers\Controller;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Memberships\Models\Invitation;
+use App\Domain\Identity\Actions\RegisterUser;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Actions\AcceptInvitation;
+use App\Domain\Memberships\Models\Invitation;
+use App\Domain\Memberships\Queries\FindPendingInvitation;
+use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

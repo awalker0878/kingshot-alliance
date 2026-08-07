@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Content\Queries;
 
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Enums\ContentVisibility;
-use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Content\Models\ContentItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;

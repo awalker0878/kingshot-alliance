@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Actions;
 
-use App\Domain\Events\Services\EventOutbox;
-
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Rallies\ValueObjects\FormationComposition;
-use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Models\AllianceMembership;
-use App\Domain\Rallies\Models\MemberFormation;
+use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Rallies\Models\MemberFormation;
+use App\Domain\Rallies\ValueObjects\FormationComposition;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 

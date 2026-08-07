@@ -6,12 +6,12 @@ namespace App\Domain\Memberships\Http\Controllers;
 
 use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Authorization\Actions\AssignMembershipRole;
-use App\Domain\Memberships\Actions\LeaveAlliance;
 use App\Domain\Authorization\Actions\RemoveMembershipRole;
+use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Actions\LeaveAlliance;
 use App\Domain\Memberships\Actions\UpdateMembershipStatus;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Platform\Http\Controllers\Controller;
-use App\Domain\Identity\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

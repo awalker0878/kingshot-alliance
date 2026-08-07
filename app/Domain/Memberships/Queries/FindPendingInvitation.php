@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Memberships\Queries;
 
-use App\Domain\Memberships\Services\InvitationTokenService;
-
 use App\Domain\Memberships\Enums\InvitationStatus;
 use App\Domain\Memberships\Models\Invitation;
+use App\Domain\Memberships\Services\InvitationTokenService;
 
 final readonly class FindPendingInvitation
 {

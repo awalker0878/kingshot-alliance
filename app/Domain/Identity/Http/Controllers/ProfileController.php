@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Identity\Http\Controllers;
 
-use App\Domain\Platform\Http\Controllers\Controller;
-
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Platform\Models\OutboxMessage;
 use App\Domain\Identity\Models\User;
+use App\Domain\Platform\Http\Controllers\Controller;
+use App\Domain\Platform\Models\OutboxMessage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

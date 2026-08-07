@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Memberships\Services;
 
-use App\Domain\Authorization\Services\AllianceAuthorization;
-
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Models\AllianceMembership;
+use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 

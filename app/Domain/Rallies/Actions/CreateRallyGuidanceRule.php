@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Actions;
 
-use App\Domain\Events\Services\EventOutbox;
-
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Rallies\ValueObjects\FormationComposition;
-use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Rallies\Models\RallyGuidanceRule;
+use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Events\Services\EventOutbox;
 use App\Domain\Identity\Models\User;
+use App\Domain\Rallies\Models\RallyGuidanceRule;
+use App\Domain\Rallies\ValueObjects\FormationComposition;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;

@@ -7,7 +7,6 @@ namespace App\Domain\Recruitment\Models;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Memberships\Models\Invitation;
-
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
