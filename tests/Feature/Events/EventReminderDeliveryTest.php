@@ -75,7 +75,11 @@ final class EventReminderDeliveryTest extends TestCase
             ->sole();
         self::assertNull($reminderOutbox->published_at);
 
-        $this->app->make(PublishOutboxBatch::class)->handle();
+        OutboxMessage::query()->whereKeyNot($reminderOutbox->id)->delete();
+
+        $publisher = $this->app->make(PublishOutboxBatch::class);
+        self::assertSame(1, $publisher->handle());
+        self::assertSame(0, $publisher->handle());
 
         $delivery->refresh();
         $reminderOutbox->refresh();
