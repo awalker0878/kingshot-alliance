@@ -5,7 +5,9 @@ declare(strict_types=1);
 use App\Http\Controllers\Alliance\ActivateAllianceController;
 use App\Http\Controllers\Alliance\AllianceOverviewController;
 use App\Http\Controllers\Alliance\CreateAllianceController;
+use App\Http\Controllers\Alliance\InvitationController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +18,10 @@ Route::get('/', static fn () => Inertia::render('Home', [
         'name' => config('app.name'),
     ],
 ]))->name('home');
+
+Route::get('/invitations/{token}', [InvitationAcceptanceController::class, 'show'])
+    ->where('token', '[A-Fa-f0-9]{64}')
+    ->name('invitations.show');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegistrationController::class, 'create'])->name('register');
@@ -35,9 +41,20 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/alliances/{alliance}/active', ActivateAllianceController::class)
         ->whereUlid('alliance')
         ->name('alliances.activate');
+    Route::post('/invitations/{token}/accept', [InvitationAcceptanceController::class, 'accept'])
+        ->where('token', '[A-Fa-f0-9]{64}')
+        ->name('invitations.accept');
     Route::delete('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::middleware('alliance.context')->group(function (): void {
         Route::get('/alliance', AllianceOverviewController::class)->name('alliance.overview');
+        Route::post('/alliance/invitations', [InvitationController::class, 'store'])
+            ->name('alliance.invitations.store');
+        Route::post('/alliance/invitations/{invitation}/resend', [InvitationController::class, 'resend'])
+            ->whereUlid('invitation')
+            ->name('alliance.invitations.resend');
+        Route::delete('/alliance/invitations/{invitation}', [InvitationController::class, 'destroy'])
+            ->whereUlid('invitation')
+            ->name('alliance.invitations.destroy');
     });
 });
