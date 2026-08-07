@@ -189,12 +189,6 @@ function createSchedule(): void {
 function pct(value: number | null): string {
   return value === null ? '—' : `${Math.round(value * 100)}%`;
 }
-function dateTime(value: string | null): string {
-  if (!value) return '—';
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(
-    new Date(value),
-  );
-}
 </script>
 
 <template>
