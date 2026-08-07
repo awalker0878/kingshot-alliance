@@ -28,6 +28,7 @@ use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Recruitment\Enums\RecruitmentCommunicationStatus;
 use App\Domain\Recruitment\Enums\RecruitmentOnboardingStatus;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
+use App\Models\Alliance;
 use App\Models\AllianceMembership;
 use App\Models\RecruitmentCandidateOnboarding;
 use App\Models\RecruitmentStageHistory;
@@ -221,7 +222,7 @@ final class RecruitmentCoordinationTest extends TestCase
 
     private function configurePublicRecruitment(User $owner, string $allianceId): void
     {
-        $alliance = \App\Models\Alliance::query()->findOrFail($allianceId);
+        $alliance = Alliance::query()->findOrFail($allianceId);
         $this->app->make(ConfigureRecruitmentSettings::class)->handle(
             $owner,
             $alliance,
