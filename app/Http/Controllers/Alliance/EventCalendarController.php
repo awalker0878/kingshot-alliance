@@ -28,7 +28,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use LogicException;
@@ -415,8 +414,8 @@ final class EventCalendarController extends Controller
     private function icalEscape(string $value): string
     {
         return str_replace(
-            ["\\", ";", ",", "\r\n", "\r", "\n"],
-            ["\\\\", '\\;', '\\,', '\\n', '\\n', '\\n'],
+            ['\\', ';', ',', "\r\n", "\r", "\n"],
+            ['\\\\', '\\;', '\\,', '\\n', '\\n', '\\n'],
             $value,
         );
     }
