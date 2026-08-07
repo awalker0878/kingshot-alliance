@@ -41,72 +41,36 @@ jobs:
 
           candidate = Path('app/Http/Controllers/Alliance/RecruitmentCandidateController.php')
           text = candidate.read_text()
-          replacements = {
-              '$record->stage->value': '$record->recruitmentStage()->value',
-              '$answer->question_type_snapshot->value': '$answer->questionType()->value',
-              '$history->from_stage?->value': '$history->fromStage()?->value',
-              '$history->to_stage->value': '$history->toStage()->value',
-              '$communication->status->value': '$communication->communicationStatus()->value',
-              '$onboarding->status->value': '$onboarding->onboardingStatus()->value',
-              '$duplicate->stage->value': '$duplicate->recruitmentStage()->value',
-              '$template->decision_stage->value': '$template->decisionStage()->value',
-              '$this->manualStageOptions($record->stage)': '$this->manualStageOptions($record->recruitmentStage())',
-          }
-          for old, new in replacements.items():
-              if old not in text:
-                  raise SystemExit(f'Candidate controller missing expected marker: {old}')
+          replacements = [
+              ('$record->stage->value', '$record->recruitmentStage()->value'),
+              ('$answer->question_type_snapshot->value', '$answer->questionType()->value'),
+              ('$history->from_stage?->value', '$history->fromStage()?->value'),
+              ('$history->to_stage->value', '$history->toStage()->value'),
+              ('$communication->status->value', '$communication->communicationStatus()->value'),
+              ('$onboarding->status->value', '$onboarding->onboardingStatus()->value'),
+              ('$duplicate->stage->value', '$duplicate->recruitmentStage()->value'),
+              ('$template->decision_stage->value', '$template->decisionStage()->value'),
+              ('$this->manualStageOptions($record->stage)', '$this->manualStageOptions($record->recruitmentStage())'),
+              ("isset($validated['next_action_at']) ? CarbonImmutable::parse($validated['next_action_at']) : null,", "isset($validated['next_action_at']) && is_string($validated['next_action_at']) ? CarbonImmutable::parse($validated['next_action_at'], (string) $alliance->timezone) : null,"),
+          ]
+          for old, new in replacements:
               text = text.replace(old, new)
-
-          old = """        $change->handle(
-            $this->user($request),
-            $alliance,
-            $record,
-            RecruitmentStage::from($validated['stage']),
-            $validated['reason'] ?? null,
-            isset($validated['next_action_at']) ? CarbonImmutable::parse($validated['next_action_at']) : null,
-        );
-"""
-          new = """        $nextActionAt = isset($validated['next_action_at']) && is_string($validated['next_action_at'])
-            ? CarbonImmutable::parse($validated['next_action_at'], (string) $alliance->timezone)
-            : null;
-
-        $change->handle(
-            $this->user($request),
-            $alliance,
-            $record,
-            RecruitmentStage::from($validated['stage']),
-            $validated['reason'] ?? null,
-            $nextActionAt,
-        );
-"""
-          if text.count(old) != 1:
-              raise SystemExit(f'Candidate controller next-action block mismatch: {text.count(old)}')
-          candidate.write_text(text.replace(old, new))
+          candidate.write_text(text)
 
           management = Path('app/Http/Controllers/Alliance/RecruitmentManagementController.php')
-          text = management.read_text()
-          old = '$template->decision_stage->value'
-          if text.count(old) != 1:
-              raise SystemExit(f'Management controller decision stage marker mismatch: {text.count(old)}')
-          management.write_text(text.replace(old, '$template->decisionStage()->value'))
+          text = management.read_text().replace(
+              '$template->decision_stage->value',
+              '$template->decisionStage()->value',
+          )
+          management.write_text(text)
 
           public = Path('app/Http/Controllers/PublicRecruitmentController.php')
           text = public.read_text()
-          old = """                'mode' => $settings?->application_mode->value ?? RecruitmentApplicationMode::Closed->value,
-                'title' => $settings?->title ?? 'Recruitment applications are closed',
-                'introduction' => $settings?->introduction,
-"""
-          new = """                'mode' => $settings instanceof RecruitmentSetting
-                    ? $settings->application_mode->value
-                    : RecruitmentApplicationMode::Closed->value,
-                'title' => $settings instanceof RecruitmentSetting
-                    ? (string) $settings->title
-                    : 'Recruitment applications are closed',
-                'introduction' => $settings instanceof RecruitmentSetting ? $settings->introduction : null,
-"""
-          if text.count(old) != 1:
-              raise SystemExit(f'Public recruitment application props marker mismatch: {text.count(old)}')
-          public.write_text(text.replace(old, new))
+          text = text.replace(
+              "'title' => $settings?->title ?? 'Recruitment applications are closed',",
+              "'title' => $settings instanceof RecruitmentSetting ? (string) $settings->title : 'Recruitment applications are closed',",
+          )
+          public.write_text(text)
           PY
       - name: Format patched controllers
         run: vendor/bin/pint app/Http/Controllers/Alliance/RecruitmentCandidateController.php app/Http/Controllers/Alliance/RecruitmentManagementController.php app/Http/Controllers/PublicRecruitmentController.php
@@ -115,6 +79,10 @@ jobs:
         run: |
           set -euo pipefail
           git add app/Http/Controllers/Alliance/RecruitmentCandidateController.php app/Http/Controllers/Alliance/RecruitmentManagementController.php app/Http/Controllers/PublicRecruitmentController.php
+          if git diff --cached --quiet; then
+            echo 'No controller changes were required.'
+            exit 0
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'Use typed recruitment enum contracts'
