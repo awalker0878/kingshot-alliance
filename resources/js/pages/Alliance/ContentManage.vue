@@ -42,7 +42,6 @@ const props = defineProps<{
     language: string;
     timezone: string;
     description: string | null;
-    recruitmentStatus: string;
     primaryColor: string | null;
     logoMediaId: string | null;
     bannerMediaId: string | null;
@@ -50,7 +49,6 @@ const props = defineProps<{
   };
   contentTypes: Array<{ value: string; label: string }>;
   visibilityOptions: Array<{ value: string; label: string }>;
-  recruitmentOptions: Array<{ value: string; label: string }>;
   categories: Category[];
   content: ContentItem[];
   media: Media[];
@@ -62,7 +60,6 @@ const profileForm = useForm({
   language: props.alliance.language,
   timezone: props.alliance.timezone,
   description: props.alliance.description ?? '',
-  recruitment_status: props.alliance.recruitmentStatus,
   primary_color: props.alliance.primaryColor ?? '',
   logo_media_id: props.alliance.logoMediaId ?? '',
   banner_media_id: props.alliance.bannerMediaId ?? '',
@@ -230,7 +227,8 @@ function formatBytes(bytes: number): string {
         >
         <h1 class="mt-3 text-3xl font-bold">Manage public presence</h1>
         <p class="mt-2 text-slate-400">
-          Profile, content revisions, publication, categories, and branding media.
+          Profile, content revisions, publication, categories, and branding media. Recruitment
+          availability is managed in the Recruitment workspace.
         </p>
       </div>
       <a
@@ -287,18 +285,6 @@ function formatBytes(bytes: number): string {
             required
             placeholder="America/Toronto"
           />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="profile-recruitment">Recruitment status</label>
-          <select
-            id="profile-recruitment"
-            v-model="profileForm.recruitment_status"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          >
-            <option v-for="option in recruitmentOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
         </div>
         <div>
           <label class="text-sm font-medium" for="profile-color">Brand accent</label>

@@ -65,7 +65,7 @@ The three troop percentages must total exactly 100%.
 
 ## Coordinator workflow
 
-Members with the `events.manage` permission can open **Coordinate events** from the alliance home or Events page.
+Members with the `events.manage` permission can open **Coordinate events** from the alliance home or Events page. Coordinator mutations require recent password confirmation; read-only coordination views remain available without forcing reconfirmation.
 
 ### Create an event
 
@@ -126,7 +126,7 @@ The coordinator dashboard lists registrations and rally assignments for each occ
 - event attendance (`attended` or `no-show`);
 - rally participation (`participated` or `no-show`).
 
-These changes use the same tenant-scoped authorization/audit boundary as other privileged Phase 3 mutations.
+These changes require recent password confirmation and use the same tenant-scoped authorization/audit boundary as other privileged Phase 3 mutations.
 
 ## CSV export
 
@@ -176,6 +176,6 @@ Confirm infantry + cavalry + archer percentages total exactly 100.
 
 ## Security boundary
 
-All member/coordinator event pages, exports, reminder inbox records, formations, registrations, guidance, rally groups, and assignments are alliance-scoped. Submitted object IDs are re-resolved under the active alliance before privileged mutations.
+All member/coordinator event pages, exports, reminder inbox records, formations, registrations, guidance, rally groups, and assignments are alliance-scoped. Submitted object IDs are re-resolved under the active alliance before privileged mutations. Privileged coordinator mutations also require recent password confirmation.
 
-See `docs/PHASE_3_THREAT_MODEL.md` for the Phase 3 security review.
+See `docs/PHASE_3_THREAT_MODEL.md` for the Phase 3 security review and `docs/PHASES_1_4_ALIGNMENT_AUDIT.md` for the integrated Phase 1–4 security boundary.

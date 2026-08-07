@@ -166,6 +166,32 @@ final class EventHttpTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_event_management_mutations_require_recent_password_confirmation(): void
+    {
+        $owner = User::factory()->create();
+        $alliance = $this->app->make(CreateAlliance::class)
+            ->handle($owner, 'Confirmed Events', 'confirmed-events', timezone: 'UTC');
+        $sessionKey = (string) config('identity.active_alliance_session_key');
+        $firstStart = CarbonImmutable::now('UTC')->addDay()->startOfHour();
+
+        $this->actingAs($owner)
+            ->withSession([$sessionKey => $alliance->id])
+            ->post('/alliance/events', [
+                'title' => 'Blocked Until Confirmed',
+                'first_local_start' => $firstStart->format('Y-m-d\\TH:i'),
+                'duration_minutes' => 30,
+                'registration_closes_minutes_before' => 0,
+                'recurrence_frequency' => 'none',
+                'recurrence_interval' => 1,
+            ])
+            ->assertRedirect(route('password.confirm'));
+
+        $this->assertDatabaseMissing('events', [
+            'alliance_id' => $alliance->id,
+            'title' => 'Blocked Until Confirmed',
+        ]);
+    }
+
     public function test_owner_can_create_a_recurring_event_through_http(): void
     {
         $owner = User::factory()->create();
@@ -176,7 +202,10 @@ final class EventHttpTest extends TestCase
         $until = $firstStart->addWeeks(2);
 
         $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([
+                $sessionKey => $alliance->id,
+                'auth.password_confirmed_at' => time(),
+            ])
             ->post('/alliance/events', [
                 'title' => 'Weekly Bear',
                 'first_local_start' => $firstStart->format('Y-m-d\\TH:i'),

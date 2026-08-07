@@ -6,7 +6,7 @@ Phase 4 provides an alliance-scoped recruitment workflow from applicant intake t
 
 ## Recruiter workflow
 
-Authorized recruiters open **Recruitment** from the active alliance home page. The workspace is visible only when the active membership has recruitment-management permission.
+Authorized recruiters open **Recruitment** from the active alliance home page. The workspace is visible only when the active membership has recruitment-management permission. Recruiter mutations require recent password confirmation; read-only pipeline views remain available without forcing reconfirmation.
 
 ### Configure intake
 
@@ -35,13 +35,15 @@ The private pipeline supports these stages:
 - withdrawn
 - joined
 
-Recruiters can open a candidate to review application details, assign reviewers, add private notes/tags, set workflow state and next actions, prepare controlled decision communication, and use duplicate/merge support where appropriate. Every privileged transition is attributable through the audit/outbox foundation.
+Recruiters can open a candidate to review application details, assign reviewers, add private notes/tags, set workflow state and next actions, prepare controlled decision communication, and use duplicate/merge support where appropriate. Every privileged transition requires recent password confirmation and is attributable through the audit/outbox foundation.
 
 ## Public application boundary
 
 Public applicants see only the active alliance application configuration and active questions needed for submission. They cannot read the private candidate pipeline, recruiter notes, internal metrics, or other applicants' answers.
 
 Invitation-only links expire and are single use. An email-restricted invitation must be submitted for its intended email address.
+
+Recruitment settings are the authoritative source for the public alliance page's displayed recruitment state: closed, open for public applications, or invitation-only. The Content domain does not keep a second recruitment-status field.
 
 ## Duplicate handling
 
@@ -74,6 +76,7 @@ If a candidate must be retained longer for a legitimate operational reason, chan
 ## Security rules
 
 - Always verify the correct active alliance before acting on a candidate.
+- Reconfirm your password when prompted before privileged recruiter mutations.
 - Do not copy recruiter notes or candidate personal data into public alliance content.
 - Do not share invitation-only application links in public channels.
 - Do not use direct database edits for stage changes, merges, or retention cleanup.
@@ -81,6 +84,6 @@ If a candidate must be retained longer for a legitimate operational reason, chan
 
 ## Troubleshooting
 
-If a recruiter cannot see the Recruitment link, confirm the active alliance and that the membership has recruitment-management permission. If a candidate from another alliance appears inaccessible, that is expected tenant isolation rather than an error. If an invitation-only link returns not found, it may be invalid, expired, already used, or associated with a different application condition; issue a new controlled link rather than attempting to recover the old token.
+If a recruiter cannot see the Recruitment link, confirm the active alliance and that the membership has recruitment-management permission. If a candidate from another alliance appears inaccessible, that is expected tenant isolation rather than an error. If a privileged action redirects to password confirmation, confirm the password and retry the action. If an invitation-only link returns not found, it may be invalid, expired, already used, or associated with a different application condition; issue a new controlled link rather than attempting to recover the old token.
 
-Operational details are documented in `PHASE_4_OPERATIONS.md`; security and privacy controls are documented in `PHASE_4_THREAT_MODEL.md`.
+Operational details are documented in `PHASE_4_OPERATIONS.md`; security and privacy controls are documented in `PHASE_4_THREAT_MODEL.md`; the combined Phase 1–4 ownership and security boundary is documented in `PHASES_1_4_ALIGNMENT_AUDIT.md`.

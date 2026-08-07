@@ -19,7 +19,6 @@ use App\Application\Identity\AllianceAuthorization;
 use App\Application\Identity\AllianceContext;
 use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;
-use App\Domain\Content\Enums\RecruitmentStatus;
 use App\Domain\Identity\Authorization\PermissionKey;
 use App\Http\Controllers\Controller;
 use App\Models\AllianceBrandingMedia;
@@ -130,7 +129,6 @@ final class ContentManagementController extends Controller
                 'language' => $alliance->language,
                 'timezone' => $alliance->timezone,
                 'description' => $profile?->description,
-                'recruitmentStatus' => $profile?->recruitment_status->value ?? RecruitmentStatus::Closed->value,
                 'primaryColor' => $profile?->primary_color,
                 'logoMediaId' => $branding->get('logo'),
                 'bannerMediaId' => $branding->get('banner'),
@@ -144,14 +142,6 @@ final class ContentManagementController extends Controller
                 'value' => $visibility->value,
                 'label' => ucfirst($visibility->value),
             ], ContentVisibility::cases()),
-            'recruitmentOptions' => array_map(static fn (RecruitmentStatus $status): array => [
-                'value' => $status->value,
-                'label' => match ($status) {
-                    RecruitmentStatus::Open => 'Open',
-                    RecruitmentStatus::Closed => 'Closed',
-                    RecruitmentStatus::InvitationOnly => 'Invitation only',
-                },
-            ], RecruitmentStatus::cases()),
             'categories' => $categoryData,
             'content' => $contentData,
             'media' => $mediaData,
@@ -171,7 +161,6 @@ final class ContentManagementController extends Controller
             'language' => ['required', 'string', 'max:16', 'regex:/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/'],
             'timezone' => ['required', 'timezone'],
             'description' => ['nullable', 'string', 'max:5000'],
-            'recruitment_status' => ['required', Rule::enum(RecruitmentStatus::class)],
             'primary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'logo_media_id' => ['nullable', 'string', 'ulid'],
             'banner_media_id' => ['nullable', 'string', 'ulid'],

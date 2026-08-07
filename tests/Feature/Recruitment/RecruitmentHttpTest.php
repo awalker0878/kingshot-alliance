@@ -175,7 +175,10 @@ final class RecruitmentHttpTest extends TestCase
         $secondCandidate = $submit->handle($second, 'Hidden Candidate', 'hidden@example.com', []);
         $sessionKey = (string) config('identity.active_alliance_session_key');
 
-        $this->actingAs($owner)->withSession([$sessionKey => $first->id]);
+        $this->actingAs($owner)->withSession([
+            $sessionKey => $first->id,
+            'auth.password_confirmed_at' => time(),
+        ]);
 
         $this->get('/alliance/recruitment')
             ->assertOk()
@@ -196,6 +199,32 @@ final class RecruitmentHttpTest extends TestCase
         $this->patch('/alliance/recruitment/'.$secondCandidate->id.'/stage', [
             'stage' => 'screening',
         ])->assertNotFound();
+    }
+
+    public function test_recruitment_mutations_require_recent_password_confirmation(): void
+    {
+        $owner = User::factory()->create();
+        $alliance = $this->app->make(CreateAlliance::class)
+            ->handle($owner, 'Confirmed Recruiting', 'confirmed-recruiting');
+        $sessionKey = (string) config('identity.active_alliance_session_key');
+
+        $this->actingAs($owner)
+            ->withSession([$sessionKey => $alliance->id])
+            ->post('/alliance/recruitment/questions', [
+                'prompt' => 'Blocked until confirmed',
+                'help_text' => null,
+                'type' => RecruitmentQuestionType::ShortText->value,
+                'options' => [],
+                'required' => false,
+                'position' => 0,
+                'active' => true,
+            ])
+            ->assertRedirect(route('password.confirm'));
+
+        $this->assertDatabaseMissing('recruitment_questions', [
+            'alliance_id' => $alliance->id,
+            'prompt' => 'Blocked until confirmed',
+        ]);
     }
 
     public function test_recruiter_can_edit_only_active_alliance_questions(): void
@@ -221,7 +250,10 @@ final class RecruitmentHttpTest extends TestCase
         );
         $sessionKey = (string) config('identity.active_alliance_session_key');
 
-        $this->actingAs($owner)->withSession([$sessionKey => $first->id]);
+        $this->actingAs($owner)->withSession([
+            $sessionKey => $first->id,
+            'auth.password_confirmed_at' => time(),
+        ]);
 
         $this->post('/alliance/recruitment/questions', [
             'question_id' => $firstQuestion->id,
@@ -278,7 +310,7 @@ final class RecruitmentHttpTest extends TestCase
                 ->where('contentHub.canManageRecruitment', true));
     }
 
-    public function test_public_alliance_page_advertises_only_open_public_recruitment(): void
+    public function test_public_alliance_page_uses_authoritative_recruitment_settings(): void
     {
         $owner = User::factory()->create();
         $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Recruiting Public Page', 'recruiting-public-page');
@@ -288,12 +320,21 @@ final class RecruitmentHttpTest extends TestCase
         $this->get('/alliances/recruiting-public-page')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
+                ->where('alliance.recruitmentStatus', 'open')
                 ->where('alliance.recruitmentApplicationUrl', route('public.alliances.recruitment.show', 'recruiting-public-page')));
 
         $configure->handle($owner, $alliance, RecruitmentApplicationMode::Invitation, 'Invite only', null, 90, true);
         $this->get('/alliances/recruiting-public-page')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
+                ->where('alliance.recruitmentStatus', 'invitation_only')
+                ->where('alliance.recruitmentApplicationUrl', null));
+
+        $configure->handle($owner, $alliance, RecruitmentApplicationMode::Invitation, 'Closed', null, 90, false);
+        $this->get('/alliances/recruiting-public-page')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('alliance.recruitmentStatus', 'closed')
                 ->where('alliance.recruitmentApplicationUrl', null));
     }
 }

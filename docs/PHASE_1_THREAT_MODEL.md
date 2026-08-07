@@ -1,7 +1,7 @@
 # Phase 1 Threat Model — Identity and Multi-Tenancy
 
 **Phase:** 1 — Identity and Multi-Tenancy  
-**Status:** Reviewed for phase exit  
+**Status:** Reviewed for phase exit; integrated through Phase 4  
 **Reviewed:** 2026-08-07  
 **Scope:** Authentication, account lifecycle, alliance tenancy, memberships, roles, invitations, MFA, audit, and outbox publication.
 
@@ -46,7 +46,7 @@
 | Password-reset or profile change leaves stale API/session access | Unauthorized persistence | Password changes/reset revoke personal access tokens; password change invalidates other sessions; `auth.session` enforces password-hash changes | Account/profile tests |
 | MFA setup overwrites an already-enabled factor | MFA downgrade | Enrollment refuses to replace confirmed MFA; MFA administration requires verified email and recent password confirmation | MFA downgrade regression test; route review |
 | TOTP/recovery bypass or replay | Authentication bypass | RFC 6238 TOTP verification; encrypted secret; hashed recovery codes; one-time recovery-code consumption; challenge throttling | RFC vector/unit tests and MFA HTTP tests |
-| Privileged alliance mutation from a stolen but old session | Membership/role takeover | Verified-email requirement plus recent password confirmation for invitation, membership, role, and leave operations | Account lifecycle/password-confirmation test; route review |
+| Privileged alliance mutation from a stolen but old session | Membership/role takeover | Verified-email requirement plus recent password confirmation for invitation, membership, role, and leave operations; later implemented Phase 2–4 privileged mutation routes follow the same confirmation boundary | Account lifecycle/password-confirmation test; route review; integrated Phase 1–4 HTTP regressions |
 | Role escalation or peer/owner administration | Alliance takeover | Membership hierarchy guard; owner-only role management permission; last-owner safety; alliance-scoped role lookup | Membership administration tests |
 | Repeated legitimate role/leave transitions collide in outbox | Valid state transition rolls back because an earlier event reused the same idempotency key | Duplicate role assignment is a no-op; each real role assignment and leave event receives a distinct per-event key while publisher retries retain that row's stable key | Membership repeat-transition regressions and `OutboxPublisherTest` |
 | Outbox loss after database commit | Missing downstream side effects | Outbox record is written in the same database transaction as meaningful persisted changes | Domain service tests and outbox publisher tests |
@@ -75,18 +75,18 @@
 
 ## Authorization model decision
 
-Phase 1 delivers fixed, system-defined alliance role templates and their permission grants. It exposes audited membership role assignment/removal, not arbitrary editing of permission definitions or role templates. `alliance.manage` and later-domain permissions are provisioned now so later phases can authorize their operations without changing the identity model.
+Phase 1 delivers fixed, system-defined alliance role templates and their permission grants. It exposes audited membership role assignment/removal, not arbitrary editing of permission definitions or role templates. The Identity domain remains the authoritative permission vocabulary, but permissions are added only when their owning product phase is implemented. At the integrated Phase 4 boundary, permissions for Content, Events, and Recruitment are present; the unimplemented Phase 5 `contributions.manage` permission is intentionally absent.
 
 If custom role or permission-template editing is introduced later, it must add explicit owner-level authorization, transactional permission-diff persistence, before/after audit metadata, transactional outbox events, self-lockout protection, and cross-alliance privilege-escalation tests.
 
 ## Residual risks and deferred work
 
-- Phase 1 provides the tenant-context primitive for queued jobs, notifications, exports, storage, and cache; domain-specific asynchronous workloads arrive in later phases and must consume this primitive rather than invent their own tenant keying.
-- Platform-administrator MFA enforcement is deferred to Phase 6 because no platform-admin surface exists in Phase 1.
-- A dedicated external identity provider / WebAuthn implementation is not in Phase 1 scope; current MFA is TOTP plus recovery codes.
-- Alliance profile/settings editing is introduced with later alliance-content/public-presence work; Phase 1 creates and authorizes the `alliance.manage` permission but exposes no unaudited settings mutation surface.
-- Formal browser-based accessibility and penetration testing should be repeated before production launch; Phase 1 exit uses automated application/security gates plus targeted static security/accessibility review.
+- Phase 1 provides the tenant-context primitive for queued jobs, notifications, exports, storage, and cache; later implemented domains consume this primitive rather than inventing their own tenant keying.
+- Platform-administrator MFA enforcement is deferred to Phase 6 because no platform-admin surface exists through Phase 4.
+- A dedicated external identity provider / WebAuthn implementation is not in the Phase 1–4 scope; current MFA is TOTP plus recovery codes.
+- Alliance profile/settings editing is implemented by the Content domain, while Recruitment owns its own application availability state; both preserve Phase 1 tenancy and authorization boundaries.
+- Formal browser-based accessibility and penetration testing should be repeated before production launch; phase exits use automated application/security gates plus targeted static security/accessibility review.
 
 ## Exit assessment
 
-No unresolved critical or high-risk Phase 1 threat remains in the implemented scope. Any later domain that introduces new alliance-owned rows, queues, notifications, exports, storage, mutable role-permission templates, or platform administration must preserve the explicit tenant boundary and extend this threat model.
+No unresolved critical or high-risk Phase 1 threat remains in the implemented Phase 1–4 scope. Any later domain that introduces new alliance-owned rows, queues, notifications, exports, storage, mutable role-permission templates, or platform administration must preserve the explicit tenant boundary and extend this threat model. The combined ownership and alignment decisions are recorded in `docs/PHASES_1_4_ALIGNMENT_AUDIT.md`.
