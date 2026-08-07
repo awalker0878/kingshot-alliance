@@ -31,7 +31,8 @@ final readonly class DeliverWebhook
             return;
         }
 
-        if (! is_array($delivery->payload)) {
+        $payload = $delivery->payload;
+        if (! is_array($payload)) {
             $delivery->forceFill([
                 'status' => WebhookDeliveryStatus::Failed,
                 'last_error' => 'Webhook payload is unavailable.',
@@ -40,9 +41,10 @@ final readonly class DeliverWebhook
             return;
         }
 
+        /** @var array<string, mixed> $payload */
         $this->endpointPolicy->assertAllowed((string) $subscription->url);
         $timestamp = (string) now()->getTimestamp();
-        $body = json_encode($delivery->payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        $body = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
         $signature = hash_hmac('sha256', $timestamp.'.'.$body, (string) $subscription->signing_secret);
         $attempts = $delivery->attempts + 1;
 
@@ -65,7 +67,7 @@ final readonly class DeliverWebhook
                     'X-Kingshot-Timestamp' => $timestamp,
                     'X-Kingshot-Signature' => 'sha256='.$signature,
                 ])
-                ->post((string) $subscription->url, $delivery->payload);
+                ->post((string) $subscription->url, $payload);
 
             $excerpt = mb_substr($response->body(), 0, 1000);
             if ($response->successful()) {
