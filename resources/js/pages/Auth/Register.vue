@@ -3,14 +3,18 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps<{
   registrationMode: string;
+  invitationToken: string | null;
+  invitedEmail: string | null;
+  invitedAllianceName: string | null;
 }>();
 
 const form = useForm({
   name: '',
-  email: '',
+  email: props.invitedEmail ?? '',
   password: '',
   password_confirmation: '',
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+  invitation_token: props.invitationToken ?? '',
 });
 
 function submit(): void {
@@ -32,13 +36,25 @@ function submit(): void {
       </p>
 
       <p
-        v-if="props.registrationMode !== 'open'"
-        class="mt-6 rounded-lg border border-amber-700/60 bg-amber-950/30 p-4 text-sm text-amber-200"
+        v-if="props.invitationToken"
+        class="mt-6 rounded-lg border border-cyan-700/60 bg-cyan-950/30 p-4 text-sm text-cyan-100"
       >
-        Registration is currently invitation-only.
+        You were invited to {{ props.invitedAllianceName }} as {{ props.invitedEmail }}. Creating
+        your account will also accept this invitation.
       </p>
 
-      <form v-else class="mt-8 space-y-5" @submit.prevent="submit">
+      <p
+        v-else-if="props.registrationMode !== 'open'"
+        class="mt-6 rounded-lg border border-amber-700/60 bg-amber-950/30 p-4 text-sm text-amber-200"
+      >
+        Registration is currently invitation-only. Open the invitation link sent by your alliance.
+      </p>
+
+      <form
+        v-if="props.registrationMode === 'open' || props.invitationToken"
+        class="mt-8 space-y-5"
+        @submit.prevent="submit"
+      >
         <div>
           <label class="block text-sm font-medium" for="name">Name</label>
           <input
@@ -58,10 +74,12 @@ function submit(): void {
             id="email"
             v-model="form.email"
             autocomplete="email"
-            class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 disabled:opacity-70"
+            :disabled="Boolean(props.invitationToken)"
             required
             type="email"
           />
+          <input v-if="props.invitationToken" :value="form.email" name="email" type="hidden" />
           <p v-if="form.errors.email" class="mt-1 text-sm text-rose-300">{{ form.errors.email }}</p>
         </div>
 
