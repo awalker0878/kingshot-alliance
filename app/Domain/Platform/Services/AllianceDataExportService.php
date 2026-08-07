@@ -94,7 +94,7 @@ final readonly class AllianceDataExportService
     }
 
     /**
-     * @param array<string, mixed> $row
+     * @param  array<string, mixed>  $row
      * @return array<string, mixed>
      */
     private function sanitizeRow(array $row): array
