@@ -45,8 +45,28 @@ function submit(): void {
   });
 }
 
+function formError(key: string): string | undefined {
+  return (form.errors as Record<string, string | undefined>)[key];
+}
+
 function answerError(questionId: string): string | undefined {
-  return form.errors[`answers.${questionId}` as keyof typeof form.errors];
+  return formError(`answers.${questionId}`);
+}
+
+function stringAnswer(questionId: string): string {
+  const value = form.answers[questionId];
+  return typeof value === 'string' ? value : '';
+}
+
+function setStringAnswer(questionId: string, event: Event): void {
+  const target = event.target;
+  if (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement
+  ) {
+    form.answers[questionId] = target.value;
+  }
 }
 </script>
 
@@ -221,16 +241,18 @@ function answerError(questionId: string): string | undefined {
                 <textarea
                   v-if="question.type === 'long_text'"
                   :id="`question-${question.id}`"
-                  v-model="form.answers[question.id]"
+                  :value="stringAnswer(question.id)"
                   class="mt-2 min-h-32 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
                   :required="question.required"
+                  @input="setStringAnswer(question.id, $event)"
                 />
                 <select
                   v-else-if="question.type === 'select'"
                   :id="`question-${question.id}`"
-                  v-model="form.answers[question.id]"
+                  :value="stringAnswer(question.id)"
                   class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
                   :required="question.required"
+                  @change="setStringAnswer(question.id, $event)"
                 >
                   <option value="">Choose an option</option>
                   <option v-for="option in question.options" :key="option" :value="option">
@@ -240,9 +262,10 @@ function answerError(questionId: string): string | undefined {
                 <input
                   v-else
                   :id="`question-${question.id}`"
-                  v-model="form.answers[question.id]"
+                  :value="stringAnswer(question.id)"
                   class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
                   :required="question.required"
+                  @input="setStringAnswer(question.id, $event)"
                 />
                 <p v-if="answerError(question.id)" class="mt-1 text-sm text-rose-300" role="alert">
                   {{ answerError(question.id) }}
@@ -251,11 +274,11 @@ function answerError(questionId: string): string | undefined {
             </div>
           </section>
 
-          <p v-if="form.errors.application" class="text-sm text-rose-300" role="alert">
-            {{ form.errors.application }}
+          <p v-if="formError('application')" class="text-sm text-rose-300" role="alert">
+            {{ formError('application') }}
           </p>
-          <p v-if="form.errors.application_token" class="text-sm text-rose-300" role="alert">
-            {{ form.errors.application_token }}
+          <p v-if="formError('application_token')" class="text-sm text-rose-300" role="alert">
+            {{ formError('application_token') }}
           </p>
 
           <button
