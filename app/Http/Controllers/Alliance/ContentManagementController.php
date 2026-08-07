@@ -37,6 +37,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use LogicException;
 
 final class ContentManagementController extends Controller
 {
@@ -71,6 +72,55 @@ final class ContentManagementController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        /** @var list<array{id: string, name: string, slug: string, sortOrder: int}> $categoryData */
+        $categoryData = [];
+        foreach ($categories as $category) {
+            $categoryData[] = [
+                'id' => (string) $category->id,
+                'name' => (string) $category->name,
+                'slug' => (string) $category->slug,
+                'sortOrder' => (int) $category->sort_order,
+            ];
+        }
+
+        /** @var list<array<string, mixed>> $contentData */
+        $contentData = [];
+        foreach ($items as $item) {
+            $data = $presenter->item($item, true);
+            /** @var list<array{id: string, revisionNumber: int, title: string, createdAt: string|null}> $revisionData */
+            $revisionData = [];
+
+            foreach ($item->revisions as $revision) {
+                if (! $revision instanceof ContentRevision) {
+                    throw new LogicException('A content revision relation returned an unexpected model.');
+                }
+
+                $revisionData[] = [
+                    'id' => (string) $revision->id,
+                    'revisionNumber' => (int) $revision->revision_number,
+                    'title' => (string) $revision->title,
+                    'createdAt' => $revision->created_at?->toIso8601String(),
+                ];
+            }
+
+            $data['revisions'] = $revisionData;
+            $contentData[] = $data;
+        }
+
+        /** @var list<array{id: string, name: string, mimeType: string, sizeBytes: int, scanStatus: string, lifecycleStatus: string, createdAt: string|null}> $mediaData */
+        $mediaData = [];
+        foreach ($media as $asset) {
+            $mediaData[] = [
+                'id' => (string) $asset->id,
+                'name' => (string) $asset->original_name,
+                'mimeType' => (string) $asset->mime_type,
+                'sizeBytes' => (int) $asset->size_bytes,
+                'scanStatus' => $asset->scan_status->value,
+                'lifecycleStatus' => $asset->lifecycle_status->value,
+                'createdAt' => $asset->created_at?->toIso8601String(),
+            ];
+        }
+
         return Inertia::render('Alliance/ContentManage', [
             'alliance' => [
                 'id' => $alliance->id,
@@ -102,32 +152,9 @@ final class ContentManagementController extends Controller
                     RecruitmentStatus::InvitationOnly => 'Invitation only',
                 },
             ], RecruitmentStatus::cases()),
-            'categories' => $categories->map(static fn (ContentCategory $category): array => [
-                'id' => (string) $category->id,
-                'name' => (string) $category->name,
-                'slug' => (string) $category->slug,
-                'sortOrder' => (int) $category->sort_order,
-            ])->values()->all(),
-            'content' => $items->map(function (ContentItem $item) use ($presenter): array {
-                $data = $presenter->item($item, true);
-                $data['revisions'] = $item->revisions->map(static fn (ContentRevision $revision): array => [
-                    'id' => (string) $revision->id,
-                    'revisionNumber' => (int) $revision->revision_number,
-                    'title' => (string) $revision->title,
-                    'createdAt' => $revision->created_at?->toIso8601String(),
-                ])->values()->all();
-
-                return $data;
-            })->values()->all(),
-            'media' => $media->map(static fn (MediaAsset $asset): array => [
-                'id' => (string) $asset->id,
-                'name' => (string) $asset->original_name,
-                'mimeType' => (string) $asset->mime_type,
-                'sizeBytes' => (int) $asset->size_bytes,
-                'scanStatus' => $asset->scan_status->value,
-                'lifecycleStatus' => $asset->lifecycle_status->value,
-                'createdAt' => $asset->created_at?->toIso8601String(),
-            ])->values()->all(),
+            'categories' => $categoryData,
+            'content' => $contentData,
+            'media' => $mediaData,
         ]);
     }
 
@@ -343,7 +370,19 @@ final class ContentManagementController extends Controller
         return $user;
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array{
+     *   category_id: string|null,
+     *   type: ContentType,
+     *   visibility: ContentVisibility,
+     *   title: string,
+     *   slug: string,
+     *   summary: string|null,
+     *   body: string,
+     *   locale: string,
+     *   sort_order: int
+     * }
+     */
     private function validateContent(Request $request, string $allianceId, ?ContentItem $existing = null): array
     {
         $slugRule = Rule::unique('content_items', 'slug')->where('alliance_id', $allianceId);
@@ -352,7 +391,7 @@ final class ContentManagementController extends Controller
             $slugRule->ignore($existing->id);
         }
 
-        return $request->validate([
+        $validated = $request->validate([
             'category_id' => ['nullable', 'string', 'ulid'],
             'type' => ['required', Rule::enum(ContentType::class)],
             'visibility' => ['required', Rule::enum(ContentVisibility::class)],
@@ -363,5 +402,17 @@ final class ContentManagementController extends Controller
             'locale' => ['required', 'string', 'max:16', 'regex:/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
         ]);
+
+        return [
+            'category_id' => isset($validated['category_id']) ? (string) $validated['category_id'] : null,
+            'type' => ContentType::from((string) $validated['type']),
+            'visibility' => ContentVisibility::from((string) $validated['visibility']),
+            'title' => (string) $validated['title'],
+            'slug' => (string) $validated['slug'],
+            'summary' => isset($validated['summary']) ? (string) $validated['summary'] : null,
+            'body' => (string) $validated['body'],
+            'locale' => (string) $validated['locale'],
+            'sort_order' => (int) ($validated['sort_order'] ?? 0),
+        ];
     }
 }
