@@ -9,13 +9,13 @@ This review covers the Phase 2 public alliance profile, public/member content re
 - Draft, scheduled, archived, and member-only content.
 - Historical revisions and author attribution.
 - Alliance branding and uploaded media objects.
-- Alliance public-profile settings and recruitment state.
+- Alliance public-profile settings. After Phase 4 integration, recruitment availability is owned by the Recruitment domain and only composed into the public page.
 - Tenant identifiers and storage paths.
 - Audit/outbox evidence for content and media mutations.
 
 ## Trust boundaries
 
-1. Anonymous visitors may read only active-alliance public-profile fields, clean attached branding images, and published public content.
+1. Anonymous visitors may read only active-alliance public-profile fields, clean attached branding images, authoritative Recruitment-domain availability state, and published public content.
 2. Authenticated active members may additionally read published member-visible content for their active alliance.
 3. Users with `content.manage` may author and administer content only inside their validated active alliance; mutations require recent password confirmation.
 4. The scheduler may promote due scheduled content but must retain alliance scope and use row locking.
@@ -94,6 +94,8 @@ This review covers the Phase 2 public alliance profile, public/member content re
 ## Verification evidence
 
 Phase 2 feature tests cover public direct-slug isolation, member-only visibility, edit-to-draft behavior, revision restore, scheduled publication, cross-alliance category/media rejection, management authorization/password confirmation, tenant-prefixed media storage, malware-screen rejection, public-branding restrictions, and media lifecycle rules.
+
+The integrated Phase 1–4 regression suite additionally verifies that public recruitment state is derived from Phase 4 `RecruitmentSetting` rather than duplicated in the content-profile schema. See `docs/PHASES_1_4_ALIGNMENT_AUDIT.md`.
 
 CodeQL, dependency audits, PHPStan, frontend checks, PostgreSQL migration tests, immutable staging deployment, destructive recovery, and Trivy remain mandatory on the final acceptance head.
 
