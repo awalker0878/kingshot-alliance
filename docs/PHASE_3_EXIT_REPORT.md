@@ -38,9 +38,17 @@ Deliver the platform's primary operational value: tenant-safe event scheduling, 
 - migration forward/rollback behavior
 - scheduler, queue, outbox, alert, backup/recovery, and operational impacts documented
 
+## Implementation checkpoint
+
+- Event definition/occurrence persistence, recurrence calculation, registration, cancellation, waitlist promotion, templates, attendance, reminder rules/deliveries, effective-dated rally guidance, saved formations, event recommendations, rally groups, assignments, standby, and participation application services are implemented on the Phase 3 branch.
+- The first event/registration checkpoint passed PostgreSQL migrations, Pint, PHPStan, PHPUnit, and frontend checks before reminder/rally expansion.
+- PostgreSQL migrations continued to pass after the reminder/rally schema expansion.
+- Reminder/rally application code is covered by focused feature tests, but final semantic validation remains pending on the current formatted head.
+- Phase 3 HTTP/UI calendar, detail, coordinator dashboard, export/iCalendar, accessibility, and final operational/staging evidence remain incomplete.
+
 ## Acceptance evidence
 
-Pending implementation and final-head validation.
+Pending final-head validation. Current checkpoints are implementation evidence only and do not constitute Phase 3 acceptance.
 
 ## Exit criteria
 
