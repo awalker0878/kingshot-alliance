@@ -61,10 +61,8 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
-        ->middleware('password.confirm')
         ->name('profile.password.update');
     Route::delete('/profile/sessions/other', [ProfileController::class, 'destroyOtherSessions'])
-        ->middleware('password.confirm')
         ->name('profile.sessions.destroy-other');
 
     Route::get('/verify-email', EmailVerificationPromptController::class)
