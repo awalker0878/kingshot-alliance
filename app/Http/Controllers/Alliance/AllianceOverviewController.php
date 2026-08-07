@@ -43,6 +43,7 @@ final class AllianceOverviewController extends Controller
         $canManageRoles = $authorization->allows($user, $alliance, PermissionKey::RoleManage);
         $canManageContent = $authorization->allows($user, $alliance, PermissionKey::ContentManage);
         $canManageEvents = $authorization->allows($user, $alliance, PermissionKey::EventManage);
+        $canManageRecruitment = $authorization->allows($user, $alliance, PermissionKey::RecruitmentManage);
 
         /** @var list<array{key: string, name: string}> $roles */
         $roles = [];
@@ -187,6 +188,7 @@ final class AllianceOverviewController extends Controller
             'contentHub' => [
                 'canManage' => $canManageContent,
                 'canManageEvents' => $canManageEvents,
+                'canManageRecruitment' => $canManageRecruitment,
                 'notices' => $notices,
                 'upcomingActivities' => $upcomingActivities,
             ],

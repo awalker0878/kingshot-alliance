@@ -6,12 +6,13 @@ use App\Application\Content\PublishScheduledContent;
 use App\Application\Events\QueueDueEventReminders;
 use App\Application\Events\SyncUpcomingEventReminders;
 use App\Application\Operations\RuntimeConfigurationValidator;
+use App\Application\Recruitment\PurgeExpiredRecruitmentCandidates;
 use App\Application\Shared\PublishOutboxBatch;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('about:phase', function (): void {
-    $this->info('Kingshot Alliance — Phase 3 events and rallies');
+    $this->info('Kingshot Alliance — Phase 4 recruitment');
 })->purpose('Display the current implementation phase');
 
 Artisan::command('app:config-check', function (RuntimeConfigurationValidator $validator): int {
@@ -54,6 +55,14 @@ Artisan::command('events:queue-reminders {--limit=100}', function (QueueDueEvent
     return 0;
 })->purpose('Queue due event reminders through the transactional outbox');
 
+Artisan::command('recruitment:purge-expired {--limit=100}', function (PurgeExpiredRecruitmentCandidates $purge): int {
+    $limit = max(1, min(1000, (int) $this->option('limit')));
+    $anonymized = $purge->handle($limit);
+    $this->info(sprintf('Anonymized %d expired recruitment candidate record(s).', $anonymized));
+
+    return 0;
+})->purpose('Anonymize unsuccessful recruitment candidates whose retention period has expired');
+
 Artisan::command('outbox:publish {--limit=100}', function (PublishOutboxBatch $publisher): int {
     $limit = max(1, min(500, (int) $this->option('limit')));
     $published = $publisher->handle($limit);
@@ -78,5 +87,9 @@ Schedule::command('outbox:publish --limit=100')
     ->everyMinute()
     ->onOneServer()
     ->withoutOverlapping(10);
+Schedule::command('recruitment:purge-expired --limit=250')
+    ->dailyAt('03:15')
+    ->onOneServer()
+    ->withoutOverlapping(30);
 Schedule::command('queue:prune-batches --hours=48')->daily();
 Schedule::command('queue:prune-failed --hours=168')->daily();

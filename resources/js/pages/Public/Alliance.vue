@@ -28,6 +28,7 @@ const props = defineProps<{
     primaryColor: string | null;
     logoUrl: string | null;
     bannerUrl: string | null;
+    recruitmentApplicationUrl: string | null;
   };
   filters: { q: string; type: string; category: string; locale: string };
   categories: Array<{ name: string; slug: string }>;
@@ -101,6 +102,13 @@ function formatPublished(value: string | null): string {
           <span class="rounded-full border border-slate-700 px-3 py-1.5">
             Recruitment: {{ alliance.recruitmentStatus.replace('_', ' ') }}
           </span>
+          <Link
+            v-if="alliance.recruitmentApplicationUrl"
+            class="rounded-full bg-cyan-300 px-3 py-1.5 font-semibold text-slate-950"
+            :href="alliance.recruitmentApplicationUrl"
+          >
+            Apply to join
+          </Link>
           <Link
             class="rounded-full border border-cyan-800 px-3 py-1.5 font-semibold text-cyan-300 hover:border-cyan-600 hover:text-cyan-200"
             href="/login"

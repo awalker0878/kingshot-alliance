@@ -11,6 +11,8 @@ use App\Http\Controllers\Alliance\EventManagementController;
 use App\Http\Controllers\Alliance\InvitationController;
 use App\Http\Controllers\Alliance\MemberContentController;
 use App\Http\Controllers\Alliance\MembershipController;
+use App\Http\Controllers\Alliance\RecruitmentCandidateController;
+use App\Http\Controllers\Alliance\RecruitmentManagementController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmPasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
@@ -27,6 +29,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicAllianceController;
 use App\Http\Controllers\PublicBrandingMediaController;
 use App\Http\Controllers\PublicContentController;
+use App\Http\Controllers\PublicRecruitmentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -47,6 +50,13 @@ Route::get('/alliances/{slug}/branding/{slot}', PublicBrandingMediaController::c
     ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
     ->whereIn('slot', ['logo', 'banner'])
     ->name('public.alliances.branding');
+Route::get('/alliances/{slug}/apply', [PublicRecruitmentController::class, 'show'])
+    ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->name('public.alliances.recruitment.show');
+Route::post('/alliances/{slug}/apply', [PublicRecruitmentController::class, 'store'])
+    ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->middleware('throttle:recruitment-application')
+    ->name('public.alliances.recruitment.store');
 
 Route::get('/invitations/{token}', [InvitationAcceptanceController::class, 'show'])
     ->where('token', '[A-Fa-f0-9]{64}')
@@ -128,6 +138,53 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
 
         Route::middleware('alliance.context')->group(function (): void {
             Route::get('/alliance', AllianceOverviewController::class)->name('alliance.overview');
+
+            Route::get('/alliance/recruitment', [RecruitmentManagementController::class, 'index'])
+                ->name('alliance.recruitment.index');
+            Route::patch('/alliance/recruitment/settings', [RecruitmentManagementController::class, 'updateSettings'])
+                ->name('alliance.recruitment.settings.update');
+            Route::post('/alliance/recruitment/questions', [RecruitmentManagementController::class, 'storeQuestion'])
+                ->name('alliance.recruitment.questions.store');
+            Route::post('/alliance/recruitment/application-invites', [RecruitmentManagementController::class, 'issueApplicationInvite'])
+                ->name('alliance.recruitment.application-invites.store');
+            Route::post('/alliance/recruitment/decision-templates', [RecruitmentManagementController::class, 'storeDecisionTemplate'])
+                ->name('alliance.recruitment.decision-templates.store');
+            Route::post('/alliance/recruitment/onboarding-items', [RecruitmentManagementController::class, 'storeOnboardingItem'])
+                ->name('alliance.recruitment.onboarding-items.store');
+            Route::patch('/alliance/recruitment/{candidate}/stage', [RecruitmentCandidateController::class, 'updateStage'])
+                ->whereUlid('candidate')
+                ->name('alliance.recruitment.candidates.stage.update');
+            Route::put('/alliance/recruitment/{candidate}/reviewers/{membership}', [RecruitmentCandidateController::class, 'assignReviewer'])
+                ->whereUlid('candidate')
+                ->whereUlid('membership')
+                ->name('alliance.recruitment.candidates.reviewers.store');
+            Route::post('/alliance/recruitment/{candidate}/notes', [RecruitmentCandidateController::class, 'addNote'])
+                ->whereUlid('candidate')
+                ->name('alliance.recruitment.candidates.notes.store');
+            Route::put('/alliance/recruitment/{candidate}/tags', [RecruitmentCandidateController::class, 'tag'])
+                ->whereUlid('candidate')
+                ->name('alliance.recruitment.candidates.tags.store');
+            Route::post('/alliance/recruitment/{candidate}/merge/{target}', [RecruitmentCandidateController::class, 'merge'])
+                ->whereUlid('candidate')
+                ->whereUlid('target')
+                ->name('alliance.recruitment.candidates.merge');
+            Route::post('/alliance/recruitment/{candidate}/communications/{template}', [RecruitmentCandidateController::class, 'prepareCommunication'])
+                ->whereUlid('candidate')
+                ->whereUlid('template')
+                ->name('alliance.recruitment.candidates.communications.store');
+            Route::patch('/alliance/recruitment/communications/{communication}/sent', [RecruitmentCandidateController::class, 'markCommunicationSent'])
+                ->whereUlid('communication')
+                ->name('alliance.recruitment.communications.sent');
+            Route::post('/alliance/recruitment/{candidate}/convert', [RecruitmentCandidateController::class, 'convert'])
+                ->whereUlid('candidate')
+                ->name('alliance.recruitment.candidates.convert');
+            Route::patch('/alliance/recruitment/onboarding/{onboarding}', [RecruitmentCandidateController::class, 'updateOnboarding'])
+                ->whereUlid('onboarding')
+                ->name('alliance.recruitment.onboarding.update');
+            Route::get('/alliance/recruitment/{candidate}', [RecruitmentCandidateController::class, 'show'])
+                ->whereUlid('candidate')
+                ->name('alliance.recruitment.candidates.show');
+
             Route::get('/alliance/content', [MemberContentController::class, 'index'])
                 ->name('alliance.content.index');
             Route::get('/alliance/content/manage', [ContentManagementController::class, 'index'])
