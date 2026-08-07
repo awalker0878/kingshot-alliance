@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Application\Identity\AcceptInvitation;
 use App\Application\Identity\AuditRecorder;
+use App\Application\Identity\FindPendingInvitation;
 use App\Http\Controllers\Controller;
+use App\Models\Invitation;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,17 +20,24 @@ use Inertia\Response;
 
 final class AuthenticatedSessionController extends Controller
 {
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('Auth/Login');
+        return Inertia::render('Auth/Login', [
+            'invitationToken' => trim((string) $request->query('invitation', '')) ?: null,
+        ]);
     }
 
-    public function store(Request $request, AuditRecorder $audit): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        AuditRecorder $audit,
+        FindPendingInvitation $invitations,
+        AcceptInvitation $acceptInvitation,
+    ): RedirectResponse {
         $validated = $request->validate([
             'email' => ['required', 'string', 'email', 'max:254'],
             'password' => ['required', 'string'],
             'remember' => ['sometimes', 'boolean'],
+            'invitation_token' => ['nullable', 'string', 'max:256'],
         ]);
 
         $authenticated = Auth::attempt([
@@ -44,13 +54,33 @@ final class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
+        abort_unless($user instanceof User, 500);
 
-        if ($user instanceof User) {
-            $audit->record(
-                event: 'auth.login',
-                actor: $user,
-                subject: $user,
-            );
+        $audit->record(
+            event: 'auth.login',
+            actor: $user,
+            subject: $user,
+        );
+
+        $token = trim((string) ($validated['invitation_token'] ?? ''));
+
+        if ($token !== '') {
+            $invitation = $invitations->byToken($token);
+
+            if ($invitation instanceof Invitation && hash_equals(
+                Str::lower((string) $invitation->email),
+                Str::lower((string) $user->email),
+            )) {
+                $alliance = $acceptInvitation->handle($user, $token);
+                $request->session()->put(
+                    (string) config('identity.active_alliance_session_key'),
+                    $alliance->id,
+                );
+
+                return redirect()->route('alliance.overview');
+            }
+
+            return redirect()->route('invitations.show', ['token' => $token]);
         }
 
         return redirect()->intended(route('dashboard'));
