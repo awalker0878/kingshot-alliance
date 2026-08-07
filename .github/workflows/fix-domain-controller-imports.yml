@@ -1,0 +1,42 @@
+name: Fix Domain Controller Imports
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'agent/app-architecture-alignment' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: agent/app-architecture-alignment
+          fetch-depth: 0
+      - name: Correct action ownership imports
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('app/Domain/Events/Http/Controllers/EventManagementController.php')
+          text = path.read_text()
+          text = text.replace(
+              'use App\\Domain\\Events\\Actions\\CreateEventRecommendedFormation;',
+              'use App\\Domain\\Rallies\\Actions\\CreateEventRecommendedFormation;',
+          )
+          text = text.replace(
+              'use App\\Domain\\Events\\Actions\\CreateEventReminderRule;',
+              'use App\\Domain\\Notifications\\Actions\\CreateEventReminderRule;',
+          )
+          path.write_text(text)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/Domain/Events/Http/Controllers/EventManagementController.php
+          git commit -m "Fix event controller domain imports"
+          git push origin HEAD:agent/app-architecture-alignment
