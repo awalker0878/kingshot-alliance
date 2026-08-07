@@ -12,6 +12,7 @@ use App\Application\Recruitment\CreateRecruitmentOnboardingItem;
 use App\Application\Recruitment\CreateRecruitmentQuestion;
 use App\Application\Recruitment\IssueRecruitmentApplicationInvite;
 use App\Application\Recruitment\RecruitmentMetricsQuery;
+use App\Application\Recruitment\UpdateRecruitmentQuestion;
 use App\Domain\Identity\Authorization\PermissionKey;
 use App\Domain\Identity\Enums\MembershipStatus;
 use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
@@ -206,8 +207,10 @@ final class RecruitmentManagementController extends Controller
         Request $request,
         AllianceContext $context,
         CreateRecruitmentQuestion $create,
+        UpdateRecruitmentQuestion $update,
     ): RedirectResponse {
         $validated = $request->validate([
+            'question_id' => ['nullable', 'ulid'],
             'prompt' => ['required', 'string', 'max:240'],
             'help_text' => ['nullable', 'string', 'max:2000'],
             'type' => ['required', Rule::enum(RecruitmentQuestionType::class)],
@@ -218,15 +221,42 @@ final class RecruitmentManagementController extends Controller
             'active' => ['required', 'boolean'],
         ]);
 
+        $actor = $this->user($request);
+        $alliance = $context->alliance();
+        $type = RecruitmentQuestionType::from($validated['type']);
+        $options = $validated['options'] ?? [];
+
+        if (isset($validated['question_id'])) {
+            $question = RecruitmentQuestion::query()
+                ->where('alliance_id', $alliance->id)
+                ->whereKey($validated['question_id'])
+                ->firstOrFail();
+
+            $update->handle(
+                $actor,
+                $alliance,
+                $question,
+                $validated['prompt'],
+                $type,
+                (bool) $validated['required'],
+                (int) $validated['position'],
+                $validated['help_text'] ?? null,
+                $options,
+                (bool) $validated['active'],
+            );
+
+            return back();
+        }
+
         $create->handle(
-            $this->user($request),
-            $context->alliance(),
+            $actor,
+            $alliance,
             $validated['prompt'],
-            RecruitmentQuestionType::from($validated['type']),
+            $type,
             (bool) $validated['required'],
             (int) $validated['position'],
             $validated['help_text'] ?? null,
-            $validated['options'] ?? [],
+            $options,
             (bool) $validated['active'],
         );
 
