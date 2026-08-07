@@ -28,7 +28,7 @@ final class CreateEventFromTemplate
             throw new AuthorizationException('The event template is not available in the active alliance.');
         }
 
-        $event = $this->createEvent->handle(
+        return $this->createEvent->handle(
             actor: $actor,
             alliance: $alliance,
             title: $title === null || trim($title) === '' ? (string) $template->name : $title,
@@ -44,10 +44,7 @@ final class CreateEventFromTemplate
             recurrenceUntilLocal: $recurrenceUntilLocal,
             instructions: $template->instructions,
             publish: $publish,
+            template: $template,
         );
-
-        $event->forceFill(['template_id' => $template->id])->save();
-
-        return $event;
     }
 }
