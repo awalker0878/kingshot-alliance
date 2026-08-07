@@ -12,22 +12,36 @@ Note: Using configuration file /home/runner/work/kingshot-alliance/kingshot-alli
    0/251 [░░░░░░░░░░░░░░░░░░░░░░░░░░░░]   0%
  251/251 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 100%
 
-::error file=app/Domain/Platform/Services/AllianceFeatureService.php,line=41,col=0::Method App\Domain\Platform\Services\AllianceFeatureService::all() should return list<array{key: string, enabled: bool, configuration: array<string, mixed>|null}> but returns array<int, array{key: string, enabled: bool, configuration: array<string, mixed>|null}>.
- ------ ----------------------------------------------------------------------- 
-  Line   app/Domain/Platform/Services/AllianceFeatureService.php                
- ------ ----------------------------------------------------------------------- 
-  41     Method App\Domain\Platform\Services\AllianceFeatureService::all()      
-         should return list<array{key: string, enabled: bool, configuration:    
-         array<string, mixed>|null}> but returns array<int, array{key: string,  
-          enabled: bool, configuration: array<string, mixed>|null}>.            
-         🪪  return.type                                                        
-         💡  array<int, array{key: string, enabled: bool, configuration: array<  
-         string, mixed>|null}> might not be a list.                             
- ------ ----------------------------------------------------------------------- 
+
+ [OK] No errors                                                                 
 
 
- [ERROR] Found 1 error                                                          
+  [37;44m INFO [39;49m Configuration cache cleared successfully.  
 
-Script phpstan analyse --memory-limit=1G handling the types:check event returned with error code 1
-Script @types:check was called via check
+ParaTest v7.20.0 upon PHPUnit 12.5.33 by Sebastian Bergmann and contributors.
+
+Processes:     4
+Runtime:       PHP 8.5.9
+Configuration: /home/runner/work/kingshot-alliance/kingshot-alliance/phpunit.xml
+
+...............................................................  63 / 183 ( 34%)
+..................................[41;37mF[0m............................ 126 / 183 ( 68%)
+.........................................................       183 / 183 (100%)
+
+Time: 00:09.953, Memory: 38.50 MB
+
+There was 1 failure:
+
+1) Tests\Feature\Platform\PlatformAdministrationTest::test_platform_administrator_requires_mfa_and_recent_password_confirmation
+Expected response status code [201, 301, 302, 303, 307, 308] but received 200.
+Failed asserting that false is true.
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/vendor/laravel/framework/src/Illuminate/Testing/TestResponseAssert.php:45
+/home/runner/work/kingshot-alliance/kingshot-alliance/vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:208
+/home/runner/work/kingshot-alliance/kingshot-alliance/tests/Feature/Platform/PlatformAdministrationTest.php:46
+
+[37;41mFAILURES![0m
+[37;41mTests: 183[0m[37;41m, Assertions: 1544[0m[37;41m, Failures: 1[0m[37;41m.[0m
+Script @php artisan test --parallel handling the test:parallel event returned with error code 1
+Script @test:parallel was called via check
 exit_status=1
