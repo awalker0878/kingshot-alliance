@@ -1,0 +1,56 @@
+name: Phase 5 Null Guard
+
+on:
+  push:
+    branches:
+      - agent/phase-5-contributions-reporting
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: agent/phase-5-contributions-reporting
+
+      - name: Add required-category invariant guard
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('app/Domain/Contributions/Queries/ContributionReportingQuery.php')
+          text = path.read_text()
+          needle = """                $category = $record->category;\n                $membership = $record->membership;\n"""
+          replacement = """                $category = $record->category;\n                if (! $category instanceof ContributionCategory) {\n                    throw new LogicException('Contribution record must reference a category.');\n                }\n\n                $membership = $record->membership;\n"""
+          if needle not in text:
+              raise SystemExit('reportRows category marker not found')
+          path.write_text(text.replace(needle, replacement, 1))
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Format PHP
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          vendor/bin/pint --parallel
+
+      - name: Commit fix
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/Domain/Contributions/Queries/ContributionReportingQuery.php
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Guard required contribution category relation"
+          git push
