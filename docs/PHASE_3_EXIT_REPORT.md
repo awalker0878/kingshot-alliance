@@ -1,24 +1,25 @@
 # Phase 3 Exit Report
 
 **Phase:** Events and Rallies  
-**Status:** Not accepted  
+**Status:** Technical acceptance complete; product-owner acceptance pending  
 **Branch:** `agent/phase-3-events-and-rallies`
 
 ## Objective
 
 Deliver the platform's primary operational value: tenant-safe event scheduling, registration, reminders, attendance, formations, and rally coordination without relying on external spreadsheets or chat-only workflows.
 
-## Planned scope
+## Delivered scope
 
 - One-time and recurring events with UTC persistence, alliance time-zone authoring, user-local presentation, duration, registration windows, capacity, instructions, and lifecycle status.
-- Event templates for repeatable alliance activities.
-- Registration, waitlist, cancellation, attendance, no-show, and participation history.
-- Configurable reminder rules using the existing transactional outbox/queue foundation with observable retry/idempotency behavior.
+- Event templates for repeatable alliance activities, including transactionally persisted template provenance.
+- Registration, capacity-safe waitlist, cancellation, automatic waitlist promotion, attendance, no-show, and participation history.
+- Configurable in-app reminder rules using the existing transactional outbox/queue foundation with deterministic idempotency, retry/backoff visibility, cancellation suppression, and a member-visible reminder inbox.
 - Rally configuration with lead requirements, joiner guidance, troop-ratio recommendations, hero guidance, notes, and effective-dated rationale/source fields.
 - Saved member formations and event-specific recommended formations.
-- Rally groups, lead slots, joiner assignments, standby status, and participation records.
-- Coordinator readiness/attendance dashboard plus member calendar/list/detail flows.
-- Calendar export and iCalendar feed foundation with explicit alliance isolation.
+- Rally groups, numbered lead/joiner slots, capacity-aware assignments, standby status, and participation records.
+- Coordinator scheduling/readiness/attendance dashboard plus member event list/detail flows.
+- Authenticated, active-alliance-scoped CSV export and iCalendar feed foundation.
+- Alliance-home upcoming-event summary and event-management navigation.
 
 ## Scope boundaries
 
@@ -26,43 +27,82 @@ Deliver the platform's primary operational value: tenant-safe event scheduling, 
 - Recruitment remains Phase 4-owned.
 - Contribution scoring/reporting remains Phase 5-owned.
 - No automated Kingshot game-data collection is introduced without an approved interface.
+- Phase 3 iCalendar support is an authenticated feed/download foundation; it does not introduce a long-lived public subscription token.
 
-## Required verification
+## Verification evidence
 
-- recurrence correctness across daylight-saving transitions
-- concurrent registration/waitlist capacity enforcement
-- duplicate-reminder prevention and retry safety
-- tenant isolation across calendar/list/detail/feed/export/queue/cache routes
-- event/rally mutation authorization and auditability
-- mobile/keyboard-accessible registration and formation guidance
-- migration forward/rollback behavior
-- scheduler, queue, outbox, alert, backup/recovery, and operational impacts documented
+### Functional and concurrency
 
-## Implementation checkpoint
+- `RecurrenceCalculatorTest` verifies weekly wall-clock recurrence across daylight-saving transitions, one-time recurrence, recurrence-until bounds, and invalid interval rejection.
+- `EventRegistrationTest` verifies capacity enforcement, waitlisting, duplicate-registration idempotency, cancellation, oldest-waitlist promotion, and cross-alliance denial using PostgreSQL row locking/constraints.
+- `EventReminderDeliveryTest` verifies deterministic reminder materialization, duplicate-safe queue/publish behavior, cancellation suppression, sent delivery state, and active-alliance reminder-inbox isolation.
+- `RallyCoordinationTest` verifies effective-dated/source-backed guidance, valid 100% troop composition, member-owned saved formations, active-alliance enforcement, rally capacity, and standby overflow.
+- `EventHttpTest` verifies active-alliance list/detail behavior, registration/cancellation through HTTP, coordinator permission denial, recurring event creation, and CSV/iCalendar non-leakage.
+- `EventOverviewTest` verifies that the alliance overview exposes only the active alliance's upcoming event and correct event-management authorization.
 
-- Event definition/occurrence persistence, recurrence calculation, registration, cancellation, waitlist promotion, templates, attendance, reminder rules/deliveries, effective-dated rally guidance, saved formations, event recommendations, rally groups, assignments, standby, and participation application services are implemented on the Phase 3 branch.
-- The first event/registration checkpoint passed PostgreSQL migrations, Pint, PHPStan, PHPUnit, and frontend checks before reminder/rally expansion.
-- PostgreSQL migrations continued to pass after the reminder/rally schema expansion.
-- Reminder/rally application code is covered by focused feature tests, but final semantic validation remains pending on the current formatted head.
-- Phase 3 HTTP/UI calendar, detail, coordinator dashboard, export/iCalendar, accessibility, and final operational/staging evidence remain incomplete.
+### Accessibility
 
-## Acceptance evidence
+- `EventAccessibilityGuardTest` applies the accepted Phase 2 source-level accessibility guard standard to all new Phase 3 event pages: main landmark required, raw `v-html` prohibited, positive `tabindex` prohibited, and native buttons must declare a type.
+- Member event flows use native links/buttons/form controls, explicit labels, keyboard-native interactions, textual status, responsive single-column-first layouts, and explicit user/alliance time-zone labels.
+- Reminder content is presented in an `aria-live="polite"` member section.
+- Deployment-specific browser/branding contrast, device reflow, and assistive-technology smoke testing remain release-readiness activities as documented in `docs/PHASE_3_ACCESSIBILITY.md`.
 
-Pending final-head validation. Current checkpoints are implementation evidence only and do not constitute Phase 3 acceptance.
+### Migration and recovery
+
+- `EventMigrationRollbackTest` invokes the Phase 3 migration `down()` and `up()` against the test database and verifies all eleven Phase 3 tables are removed and restored cleanly.
+- The staging pipeline successfully built the immutable production image, deployed an ephemeral staging environment, validated it, completed the database backup/restore drill, recovered service readiness, and completed the production-image vulnerability scan.
+
+### Security and tenancy
+
+- `docs/PHASE_3_THREAT_MODEL.md` covers cross-alliance object reference, privilege escalation, capacity races, duplicate/stale reminders, guidance provenance, export leakage, stored-content injection, recurrence exhaustion, rally assignment collision, and privacy considerations.
+- All submitted coordinator object identifiers are re-resolved under the active alliance before privileged mutation.
+- Phase 3 exports are authenticated, active-alliance-scoped, and returned with `Cache-Control: private, no-store`.
+- Reminder inbox data is filtered by both active `alliance_id` and active `membership_id`.
+- CodeQL and Dependency Review passed on the technical acceptance candidate with no unresolved critical/high application-security gate failure.
+
+### Operations and documentation
+
+- `docs/PHASE_3_OPERATIONS.md` documents scheduler commands, reminder lifecycle, retry/backoff fields, registration concurrency, UTC/local-time behavior, exports, audit/outbox correlation, health/metrics/alert implications, backup/recovery, rollback, and incident triage.
+- `docs/EVENTS_AND_RALLIES.md` documents member and coordinator workflows, reminders, formations, rally coordination, exports, time-zone behavior, troubleshooting, and the tenant/security boundary.
+- Phase 3 uses the existing audit recorder and transactional outbox for privileged business transitions and asynchronous delivery observability.
+
+## Protected-workflow evidence
+
+Technical acceptance candidate: `d0d5eee6fc8cf66c8b22e6b05822be040ea940a3`.
+
+- CI run `31187008604`: **passed**
+  - frontend lint/format/typecheck/production build: passed
+  - PostgreSQL migrations: passed
+  - Pint/PHPStan/full PHPUnit suite: passed
+  - production image build: passed
+  - ephemeral staging deployment/validation: passed
+  - backup/restore recovery drill: passed
+  - production-image vulnerability scan: passed
+- CodeQL run `31187007951`: **passed**
+- Dependency Review run `31187008543`: **passed**
+- Pull-request review check at the technical gate found no unresolved review comments/threads.
+- Temporary implementation-only formatting workflows were removed from the branch before technical acceptance.
+
+The exit-report commit is documentation-only. The final PR head must remain green under the same protected workflows before merge.
 
 ## Exit criteria
 
-- [ ] Leadership can create a recurring event, publish instructions, collect registrations, assign rally roles, send reminders, and record attendance.
-- [ ] Members can understand event time and formation guidance without relying on external spreadsheets.
-- [ ] Reminder delivery is observable and safe to retry.
-- [ ] Authorization and tenant-isolation tests cover Phase 3 routes, queries, feeds, exports, jobs, and rally assignments.
-- [ ] Security review identifies no unresolved critical or high application-security finding.
-- [ ] Accessibility implementation and regression evidence meet the agreed Phase 3 standard.
-- [ ] Phase 3 migration forward/rollback behavior is tested and documented.
-- [ ] Logging, traces/audit, scheduler/queue/outbox, health, metrics, and alert implications are documented.
-- [ ] User and technical documentation are updated.
-- [ ] Staging deployment, backup/recovery, and vulnerability scanning pass on the accepted final head.
+- [x] Leadership can create a recurring event, publish instructions, collect registrations, assign rally roles, send member-visible in-app reminders, and record attendance/participation.
+- [x] Members can understand event time and formation guidance without relying on external spreadsheets.
+- [x] Reminder delivery is observable and safe to retry.
+- [x] Authorization and tenant-isolation tests cover Phase 3 routes, queries, reminder inbox, feeds, exports, and rally assignments.
+- [x] Security review and protected security workflows identify no unresolved critical/high application-security gate failure.
+- [x] Accessibility implementation and automated regression evidence meet the agreed Phase 3 standard.
+- [x] Phase 3 migration forward/rollback behavior is tested and documented.
+- [x] Logging/audit, scheduler/queue/outbox, health, metrics, alerts, backup/recovery, and incident implications are documented.
+- [x] User and technical documentation are updated.
+- [x] Staging deployment, backup/recovery, and vulnerability scanning pass on the technical acceptance candidate.
+- [ ] Product owner explicitly accepts the Phase 3 outcome after reviewing the delivered event/rally workflow.
 
 ## Acceptance decision
 
-**Phase 3 — Events and Rallies: NOT ACCEPTED.**
+**Phase 3 technical gate: ACCEPTED.**
+
+**Phase 3 product acceptance: PENDING explicit product-owner sign-off.**
+
+PR #13 must remain unmerged until that final product-owner acceptance is recorded and the documentation-only final head remains green under the protected workflows.
