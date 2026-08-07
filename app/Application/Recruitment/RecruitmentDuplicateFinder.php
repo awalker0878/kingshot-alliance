@@ -25,7 +25,7 @@ final class RecruitmentDuplicateFinder
 
         return RecruitmentCandidate::query()
             ->where('alliance_id', $alliance->id)
-            ->whereKeyNot($candidate->id)
+            ->where('id', '!=', $candidate->id)
             ->whereNull('merged_into_id')
             ->where(function ($query) use ($email, $contactHandle): void {
                 $query->whereRaw('LOWER(email) = ?', [$email]);
