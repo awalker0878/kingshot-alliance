@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+set -eu
+
+image="${1:-}"
+
+if [ -z "$image" ]; then
+  echo "Usage: bin/rollback registry/image@sha256:<64-hex-digest>" >&2
+  exit 64
+fi
+
+case "$image" in
+  *@sha256:*) ;;
+  *)
+    echo "Rollback requires the previously approved immutable image digest." >&2
+    exit 65
+    ;;
+esac
+
+echo "Rolling back application services to: $image"
+echo "Database migrations will not be reversed automatically."
+
+SKIP_MIGRATIONS=YES ./bin/deploy "$image"

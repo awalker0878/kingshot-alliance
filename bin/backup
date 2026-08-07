@@ -1,0 +1,101 @@
+#!/usr/bin/env sh
+set -eu
+umask 077
+
+timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+destination="${BACKUP_DIR:-./backups}"
+compose_file="${COMPOSE_FILE:-docker-compose.yml}"
+env_file="${ENV_FILE:-}"
+mkdir -p "$destination"
+
+compose() {
+  if [ -n "$env_file" ]; then
+    docker compose --env-file "$env_file" -f "$compose_file" "$@"
+  else
+    docker compose -f "$compose_file" "$@"
+  fi
+}
+
+command -v docker >/dev/null 2>&1 || {
+  echo "Docker is required." >&2
+  exit 69
+}
+command -v gzip >/dev/null 2>&1 || {
+  echo "gzip is required." >&2
+  exit 69
+}
+command -v sha256sum >/dev/null 2>&1 || {
+  echo "sha256sum is required." >&2
+  exit 69
+}
+command -v mktemp >/dev/null 2>&1 || {
+  echo "mktemp is required." >&2
+  exit 69
+}
+
+database_file="$destination/database-$timestamp.sql.gz"
+manifest_file="$destination/manifest-$timestamp.txt"
+plain_file="$(mktemp "$destination/.database-$timestamp.sql.XXXXXX")"
+database_temp="$(mktemp "$destination/.database-$timestamp.sql.gz.XXXXXX")"
+manifest_temp="$(mktemp "$destination/.manifest-$timestamp.txt.XXXXXX")"
+published=false
+
+cleanup() {
+  rm -f "$plain_file" "$database_temp" "$manifest_temp"
+
+  if [ "$published" != true ]; then
+    rm -f "$database_file" "$manifest_file"
+  fi
+}
+
+trap cleanup EXIT
+trap 'exit 1' HUP INT TERM
+
+if [ -e "$database_file" ] || [ -e "$manifest_file" ]; then
+  echo "Backup destination already exists for timestamp: $timestamp" >&2
+  exit 73
+fi
+
+if ! compose ps --status running --services | grep -qx postgres; then
+  echo "The PostgreSQL service is not running." >&2
+  exit 69
+fi
+
+app_container="$(compose ps --all --quiet app 2>/dev/null || true)"
+release_sha="unknown"
+image_ref="unknown"
+
+if [ -n "$app_container" ]; then
+  container_environment="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$app_container" 2>/dev/null || true)"
+  release_sha="$(printf '%s\n' "$container_environment" | sed -n 's/^RELEASE_SHA=//p' | tail -n 1)"
+  image_ref="$(docker inspect --format '{{.Config.Image}}' "$app_container" 2>/dev/null || true)"
+  [ -n "$release_sha" ] || release_sha="unknown"
+  [ -n "$image_ref" ] || image_ref="unknown"
+elif [ -n "${APP_IMAGE:-}" ]; then
+  image_ref="$APP_IMAGE"
+fi
+
+compose exec -T postgres sh -lc \
+  'pg_dump --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --format=plain --no-owner --no-privileges' \
+  > "$plain_file"
+
+gzip -9 < "$plain_file" > "$database_temp"
+gzip -t "$database_temp"
+checksum="$(sha256sum "$database_temp" | awk '{print $1}')"
+
+{
+  echo "created_at=$timestamp"
+  echo "database_file=$(basename "$database_file")"
+  echo "database_sha256=$checksum"
+  echo "release_sha=$release_sha"
+  echo "image_ref=$image_ref"
+} > "$manifest_temp"
+
+# Publish the archive first and the manifest last. The manifest is the commit
+# marker that the backup pair is complete and eligible for restore.
+mv "$database_temp" "$database_file"
+mv "$manifest_temp" "$manifest_file"
+published=true
+
+printf 'Backup created: %s\n' "$database_file"
+printf 'Manifest created: %s\n' "$manifest_file"

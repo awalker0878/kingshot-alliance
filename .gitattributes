@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.php diff=php
+*.vue diff=html
+/.github export-ignore
+/docs export-ignore
+/tests export-ignore

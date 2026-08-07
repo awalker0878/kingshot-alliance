@@ -1,0 +1,30 @@
+name: Feature request
+description: Propose a measurable product capability
+title: "[Feature] "
+labels:
+  - feature
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the alliance workflow or user need.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: State the result and how success will be measured.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and exclusions
+      description: Include permissions, privacy, tenancy, time zones, game-rule volatility, and out-of-scope items.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Provide observable pass/fail conditions.

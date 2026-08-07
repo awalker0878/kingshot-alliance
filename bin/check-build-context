@@ -1,0 +1,69 @@
+#!/usr/bin/env sh
+set -eu
+
+assert_ignore() {
+  file="$1"
+  pattern="$2"
+
+  if ! grep -Fqx "$pattern" "$file"; then
+    printf 'Required exclusion [%s] is missing from %s.\n' "$pattern" "$file" >&2
+    exit 1
+  fi
+}
+
+assert_local_port_binding() {
+  mapping="$1"
+
+  if ! grep -Fq -- "- \"$mapping\"" docker-compose.yml; then
+    printf 'Required loopback-only local port binding is missing: %s\n' "$mapping" >&2
+    exit 1
+  fi
+}
+
+assert_workflow_actions_are_pinned() {
+  find .github/workflows -type f \( -name '*.yml' -o -name '*.yaml' \) -print |
+    while IFS= read -r workflow; do
+      while IFS= read -r line; do
+        reference="$(printf '%s\n' "$line" | awk '
+          $1 == "-" && $2 == "uses:" { print $3 }
+          $1 == "uses:" { print $2 }
+        ')"
+
+        [ -n "$reference" ] || continue
+
+        case "$reference" in
+          ./*) continue ;;
+        esac
+
+        if ! printf '%s\n' "$reference" | grep -Eq '^[^@[:space:]]+@[a-f0-9]{40}$'; then
+          printf 'Workflow action is not pinned to a full commit SHA in %s: %s\n' \
+            "$workflow" "$reference" >&2
+          exit 1
+        fi
+      done < "$workflow"
+    done
+}
+
+assert_ignore .gitignore '/auth.json'
+assert_ignore .gitignore '/backups/'
+assert_ignore .gitignore '/deploy/staging.env'
+assert_ignore .gitignore '/storage/app/*'
+assert_ignore .gitignore '/storage/*.key'
+assert_ignore .dockerignore 'auth.json'
+assert_ignore .dockerignore 'backups'
+assert_ignore .dockerignore 'deploy'
+assert_ignore .dockerignore 'storage/app/*'
+assert_ignore .dockerignore 'storage/*.key'
+
+if grep -Eq '^COPY[[:space:]]+\.[[:space:]]+\.$' Dockerfile; then
+  echo 'The immutable runtime image must not use a broad COPY . . instruction.' >&2
+  exit 1
+fi
+
+assert_local_port_binding '127.0.0.1:8080:8080'
+assert_local_port_binding '127.0.0.1:5173:5173'
+assert_local_port_binding '127.0.0.1:5432:5432'
+assert_local_port_binding '127.0.0.1:6379:6379'
+assert_workflow_actions_are_pinned
+
+printf 'Sensitive exclusions, loopback-only local ports, targeted Docker copies, and immutable workflow actions are present.\n'

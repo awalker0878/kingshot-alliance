@@ -1,0 +1,223 @@
+#!/usr/bin/env sh
+set -eu
+
+image="${1:-}"
+
+if [ -z "$image" ]; then
+  echo "Usage: bin/deploy registry/image@sha256:<64-hex-digest>" >&2
+  exit 64
+fi
+
+case "$image" in
+  *@sha256:*) ;;
+  *)
+    echo "Deployment requires an immutable image digest, not a mutable tag: $image" >&2
+    exit 65
+    ;;
+esac
+
+digest="${image##*@sha256:}"
+if ! printf '%s' "$digest" | grep -Eq '^[a-f0-9]{64}$'; then
+  echo "Invalid sha256 image digest: $image" >&2
+  exit 65
+fi
+
+compose_file="${COMPOSE_FILE:-docker-compose.staging.yml}"
+env_file="${ENV_FILE:-deploy/staging.env}"
+port="${STAGING_HTTP_PORT:-8080}"
+url="${STAGING_URL:-http://127.0.0.1:$port}"
+
+if [ ! -f "$compose_file" ]; then
+  echo "Compose file not found: $compose_file" >&2
+  exit 66
+fi
+
+if [ ! -f "$env_file" ]; then
+  echo "Environment file not found: $env_file" >&2
+  echo "Create it from deploy/staging.env.example and supply real secrets." >&2
+  exit 66
+fi
+
+env_mode="$(stat -c '%a' "$env_file" 2>/dev/null || stat -f '%Lp' "$env_file" 2>/dev/null || true)"
+case "$env_mode" in
+  400|600) ;;
+  *)
+    echo "Environment file must be owner-readable only (mode 400 or 600): $env_file" >&2
+    exit 77
+    ;;
+esac
+
+command -v docker >/dev/null 2>&1 || {
+  echo "Docker is required." >&2
+  exit 69
+}
+command -v curl >/dev/null 2>&1 || {
+  echo "curl is required for deployment health checks." >&2
+  exit 69
+}
+
+export APP_IMAGE="$image"
+export STAGING_ENV_FILE="$env_file"
+export STAGING_HTTP_PORT="$port"
+
+compose() {
+  docker compose --env-file "$env_file" -f "$compose_file" "$@"
+}
+
+load_expected_image_metadata() {
+  expected_image_id="$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || true)"
+  expected_release_sha="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image" 2>/dev/null || true)"
+  expected_version="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.version"}}' "$image" 2>/dev/null || true)"
+  expected_license="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.licenses"}}' "$image" 2>/dev/null || true)"
+
+  if [ -z "$expected_image_id" ]; then
+    echo "Unable to resolve the pulled image ID: $image" >&2
+    return 1
+  fi
+
+  if ! printf '%s' "$expected_release_sha" | grep -Eq '^[a-f0-9]{40}$'; then
+    echo "Image OCI revision must be a 40-character lowercase Git SHA: $expected_release_sha" >&2
+    return 1
+  fi
+
+  if [ -z "$expected_version" ] || [ "$expected_version" = "dev" ]; then
+    echo "Image OCI version must be non-empty and non-placeholder." >&2
+    return 1
+  fi
+
+  if [ "$expected_license" != "GPL-3.0-only" ]; then
+    echo "Unexpected image license metadata: $expected_license" >&2
+    return 1
+  fi
+}
+
+configured_runtime_metadata_matches_image() {
+  configured_metadata="$(compose run --rm --no-deps -T --entrypoint sh app -lc \
+    'printf "%s\n%s\n" "${RELEASE_SHA:-}" "${APP_VERSION:-}"')"
+  configured_release_sha="$(printf '%s\n' "$configured_metadata" | sed -n '1p')"
+  configured_version="$(printf '%s\n' "$configured_metadata" | sed -n '2p')"
+
+  [ "$configured_release_sha" = "$expected_release_sha" ] \
+    && [ "$configured_version" = "$expected_version" ]
+}
+
+wait_for_postgres() {
+  attempt=1
+  max_attempts="${DATABASE_READY_ATTEMPTS:-30}"
+
+  while [ "$attempt" -le "$max_attempts" ]; do
+    if compose exec -T postgres sh -lc \
+      'pg_isready --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"' >/dev/null 2>&1; then
+      return 0
+    fi
+
+    sleep 2
+    attempt=$((attempt + 1))
+  done
+
+  echo "PostgreSQL did not become ready after $max_attempts attempts." >&2
+  return 1
+}
+
+database_schema_state() {
+  compose exec -T postgres sh -lc \
+    'psql --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --tuples-only --no-align --set ON_ERROR_STOP=on --command="select case when exists (select 1 from pg_catalog.pg_tables where schemaname = '\''public'\'') then '\''populated'\'' else '\''empty'\'' end"'
+}
+
+runtime_services_are_running() {
+  running_services="$(compose ps --status running --services)"
+
+  for service in app web worker scheduler; do
+    if ! printf '%s\n' "$running_services" | grep -qx "$service"; then
+      return 1
+    fi
+  done
+
+  return 0
+}
+
+runtime_services_match_image_metadata() {
+  for service in app web worker scheduler; do
+    container_id="$(compose ps -q "$service")"
+    [ -n "$container_id" ] || return 1
+
+    actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id" 2>/dev/null || true)"
+    [ "$actual_image_id" = "$expected_image_id" ] || return 1
+
+    container_environment="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$container_id" 2>/dev/null || true)"
+    actual_release_sha="$(printf '%s\n' "$container_environment" | sed -n 's/^RELEASE_SHA=//p' | tail -n 1)"
+    actual_version="$(printf '%s\n' "$container_environment" | sed -n 's/^APP_VERSION=//p' | tail -n 1)"
+
+    [ "$actual_release_sha" = "$expected_release_sha" ] || return 1
+    [ "$actual_version" = "$expected_version" ] || return 1
+  done
+
+  return 0
+}
+
+compose config --quiet
+compose pull app web worker scheduler release
+load_expected_image_metadata
+
+if ! configured_runtime_metadata_matches_image; then
+  echo "Runtime APP_VERSION or RELEASE_SHA overrides do not match the immutable image metadata." >&2
+  exit 65
+fi
+
+compose up -d postgres redis
+wait_for_postgres
+schema_state="$(database_schema_state)"
+
+case "$schema_state" in
+  populated)
+    if [ "${SKIP_BACKUP:-NO}" != "YES" ]; then
+      COMPOSE_FILE="$compose_file" \
+      ENV_FILE="$env_file" \
+      STAGING_ENV_FILE="$env_file" \
+      ./bin/backup
+    fi
+    ;;
+  empty) ;;
+  *)
+    echo "Unable to determine whether the PostgreSQL schema requires a backup: $schema_state" >&2
+    exit 69
+    ;;
+esac
+
+if [ "${SKIP_MIGRATIONS:-NO}" != "YES" ]; then
+  compose --profile release run --rm release
+fi
+
+compose up -d --remove-orphans app web worker scheduler
+
+attempt=1
+max_attempts="${HEALTHCHECK_ATTEMPTS:-30}"
+while [ "$attempt" -le "$max_attempts" ]; do
+  if runtime_services_are_running \
+    && runtime_services_match_image_metadata \
+    && curl --fail --silent --show-error "$url/up" >/dev/null \
+    && curl --fail --silent --show-error "$url/health/ready" >/dev/null; then
+    echo "Deployment healthy: $image"
+    echo "Release: $expected_version ($expected_release_sha)"
+    echo "Endpoint: $url"
+    exit 0
+  fi
+
+  sleep 2
+  attempt=$((attempt + 1))
+done
+
+echo "Deployment failed health, image, or release-metadata verification after $max_attempts attempts." >&2
+compose ps >&2
+printf 'Expected image ID: %s\n' "$expected_image_id" >&2
+printf 'Expected release: %s (%s)\n' "$expected_version" "$expected_release_sha" >&2
+for service in app web worker scheduler; do
+  container_id="$(compose ps -q "$service" 2>/dev/null || true)"
+  if [ -n "$container_id" ]; then
+    actual_image_ref="$(docker inspect --format '{{.Config.Image}}' "$container_id" 2>/dev/null || printf 'unknown')"
+    actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id" 2>/dev/null || printf 'unknown')"
+    printf '%s image: %s (%s)\n' "$service" "$actual_image_ref" "$actual_image_id" >&2
+  fi
+done
+compose logs --tail=100 app web worker scheduler >&2 || true
+exit 70

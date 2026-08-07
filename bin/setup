@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+set -eu
+
+[ -f .env ] || cp .env.example .env
+
+test -f composer.lock
+test -f package-lock.json
+
+docker compose build
+docker compose run --rm app composer install --no-interaction --no-progress --prefer-dist
+docker compose run --rm app php artisan key:generate --ansi
+docker compose run --rm app php artisan migrate --ansi
+docker compose run --rm node npm ci --no-audit --no-fund
+docker compose up -d
+
+printf '\nKingshot Alliance is available at http://localhost:8080\n'
