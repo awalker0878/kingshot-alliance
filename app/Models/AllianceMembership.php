@@ -9,7 +9,15 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property MembershipStatus $status
+ * @property Carbon|null $joined_at
+ * @property Carbon|null $left_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 final class AllianceMembership extends Model
 {
     use HasUlids;
