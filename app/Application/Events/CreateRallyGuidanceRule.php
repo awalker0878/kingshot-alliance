@@ -30,7 +30,7 @@ final class CreateRallyGuidanceRule
         Alliance $alliance,
         string $name,
         FormationComposition $composition,
-        CarbonImmutable $effectiveFrom,
+        ?CarbonImmutable $effectiveFrom,
         ?CarbonImmutable $effectiveUntil = null,
         array $heroRecommendations = [],
         ?string $leadRequirements = null,
@@ -41,6 +41,10 @@ final class CreateRallyGuidanceRule
     ): RallyGuidanceRule {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::EventManage)) {
             throw new AuthorizationException('You are not allowed to manage rally guidance.');
+        }
+
+        if (! $effectiveFrom instanceof CarbonImmutable) {
+            throw new InvalidArgumentException('Guidance effective date is required.');
         }
 
         if ($effectiveUntil !== null && $effectiveUntil->lessThan($effectiveFrom)) {
