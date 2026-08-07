@@ -40,10 +40,11 @@ final class AuthenticatedSessionController extends Controller
             'invitation_token' => ['nullable', 'string', 'max:256'],
         ]);
 
+        $remember = (bool) ($validated['remember'] ?? false);
         $authenticated = Auth::attempt([
             'email' => Str::lower(trim($validated['email'])),
             'password' => $validated['password'],
-        ], (bool) ($validated['remember'] ?? false));
+        ], $remember);
 
         if (! $authenticated) {
             throw ValidationException::withMessages([
@@ -56,13 +57,27 @@ final class AuthenticatedSessionController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 500);
 
+        $token = trim((string) ($validated['invitation_token'] ?? ''));
+
+        if ($user->two_factor_confirmed_at !== null && (string) $user->two_factor_secret !== '') {
+            $request->session()->put([
+                'identity.two_factor_challenge_user_id' => $user->id,
+                'identity.two_factor_remember' => $remember,
+                'identity.two_factor_invitation_token' => $token,
+            ]);
+
+            Auth::guard('web')->logout();
+            $request->session()->regenerate();
+
+            return redirect()->route('two-factor.login');
+        }
+
         $audit->record(
             event: 'auth.login',
             actor: $user,
             subject: $user,
+            metadata: ['mfa_method' => null],
         );
-
-        $token = trim((string) ($validated['invitation_token'] ?? ''));
 
         if ($token !== '') {
             $invitation = $invitations->byToken($token);
