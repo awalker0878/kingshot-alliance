@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 final class Alliance extends Model
 {
@@ -51,5 +52,35 @@ final class Alliance extends Model
     public function roles(): HasMany
     {
         return $this->hasMany(Role::class);
+    }
+
+    /** @return HasOne<AllianceProfile, $this> */
+    public function publicProfile(): HasOne
+    {
+        return $this->hasOne(AllianceProfile::class);
+    }
+
+    /** @return HasMany<ContentCategory, $this> */
+    public function contentCategories(): HasMany
+    {
+        return $this->hasMany(ContentCategory::class);
+    }
+
+    /** @return HasMany<ContentItem, $this> */
+    public function contentItems(): HasMany
+    {
+        return $this->hasMany(ContentItem::class);
+    }
+
+    /** @return HasMany<MediaAsset, $this> */
+    public function mediaAssets(): HasMany
+    {
+        return $this->hasMany(MediaAsset::class);
+    }
+
+    /** @return HasMany<AllianceBrandingMedia, $this> */
+    public function brandingMedia(): HasMany
+    {
+        return $this->hasMany(AllianceBrandingMedia::class);
     }
 }
