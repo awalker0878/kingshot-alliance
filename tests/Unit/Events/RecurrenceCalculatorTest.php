@@ -14,7 +14,7 @@ final class RecurrenceCalculatorTest extends TestCase
 {
     public function test_weekly_recurrence_preserves_local_wall_clock_time_across_dst(): void
     {
-        $calculator = new RecurrenceCalculator();
+        $calculator = new RecurrenceCalculator;
         $first = CarbonImmutable::create(2026, 3, 1, 20, 0, 0, 'America/Toronto');
 
         $occurrences = $calculator->calculate(
@@ -34,7 +34,7 @@ final class RecurrenceCalculatorTest extends TestCase
 
     public function test_one_time_recurrence_returns_only_the_anchor(): void
     {
-        $calculator = new RecurrenceCalculator();
+        $calculator = new RecurrenceCalculator;
         $first = CarbonImmutable::parse('2026-08-07 12:30', 'Asia/Baghdad');
 
         $occurrences = $calculator->calculate($first, RecurrenceFrequency::None, limit: 20);
@@ -45,7 +45,7 @@ final class RecurrenceCalculatorTest extends TestCase
 
     public function test_recurrence_stops_at_the_configured_local_until_boundary(): void
     {
-        $calculator = new RecurrenceCalculator();
+        $calculator = new RecurrenceCalculator;
         $first = CarbonImmutable::parse('2026-08-01 18:00', 'America/Toronto');
         $until = CarbonImmutable::parse('2026-08-03 18:00', 'America/Toronto');
 
@@ -65,7 +65,7 @@ final class RecurrenceCalculatorTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        (new RecurrenceCalculator())->calculate(
+        (new RecurrenceCalculator)->calculate(
             CarbonImmutable::now('UTC'),
             RecurrenceFrequency::Weekly,
             interval: 0,
