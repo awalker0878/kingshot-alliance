@@ -40,6 +40,7 @@ final class OutboxMessage extends Model
         ];
     }
 
+    /** @return BelongsTo<Alliance, $this> */
     public function alliance(): BelongsTo
     {
         return $this->belongsTo(Alliance::class);
