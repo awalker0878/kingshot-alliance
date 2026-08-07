@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Identity;
 
 use App\Domain\Identity\Authorization\PermissionKey;
+use App\Domain\Identity\Enums\MembershipStatus;
 use App\Models\Alliance;
 use App\Models\AllianceMembership;
 use App\Models\OutboxMessage;
@@ -12,6 +13,8 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 final readonly class AssignMembershipRole
 {
@@ -37,13 +40,23 @@ final readonly class AssignMembershipRole
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            if ($membership->status !== MembershipStatus::Active) {
+                throw ValidationException::withMessages([
+                    'membership' => 'Only active memberships can receive role assignments.',
+                ]);
+            }
+
             $role = Role::query()
                 ->where('id', $roleId)
                 ->where('alliance_id', $alliance->id)
                 ->firstOrFail();
 
-            $membership->roles()->syncWithoutDetaching([
-                $role->id => ['alliance_id' => $alliance->id],
+            if ($membership->roles()->where('roles.id', $role->id)->exists()) {
+                return $membership->refresh();
+            }
+
+            $membership->roles()->attach($role->id, [
+                'alliance_id' => $alliance->id,
             ]);
 
             $this->audit->record(
@@ -63,7 +76,7 @@ final readonly class AssignMembershipRole
                 'event_type' => 'membership.role_assigned',
                 'aggregate_type' => AllianceMembership::class,
                 'aggregate_id' => $membership->id,
-                'idempotency_key' => 'membership.role_assigned:'.$membership->id.':'.$role->id,
+                'idempotency_key' => 'membership.role_assigned:'.$membership->id.':'.$role->id.':'.Str::ulid(),
                 'payload' => [
                     'alliance_id' => $alliance->id,
                     'membership_id' => $membership->id,
