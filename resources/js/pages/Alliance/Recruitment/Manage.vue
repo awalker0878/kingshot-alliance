@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { reactive, ref } from 'vue';
 
 type Candidate = {
   id: string;
@@ -22,6 +22,16 @@ type Metrics = {
   acceptedRate: number;
   joinedRate: number;
   averageStageAgeDays: Record<string, number>;
+};
+
+type QuestionEdit = {
+  prompt: string;
+  helpText: string;
+  type: string;
+  optionsText: string;
+  required: boolean;
+  position: number;
+  active: boolean;
 };
 
 const props = defineProps<{
@@ -85,6 +95,18 @@ const questionForm = useForm({
   active: true,
 });
 const questionOptions = ref('');
+const questionEdits = reactive<Record<string, QuestionEdit>>({});
+for (const question of props.questions) {
+  questionEdits[question.id] = {
+    prompt: question.prompt,
+    helpText: question.helpText ?? '',
+    type: question.type,
+    optionsText: question.options.join('\n'),
+    required: question.required,
+    position: question.position,
+    active: question.active,
+  };
+}
 const candidatePlaceholder = '{{candidate_name}}';
 const alliancePlaceholder = '{{alliance_name}}';
 const inviteForm = useForm({ email: '', ttl_hours: 72 });
@@ -102,6 +124,12 @@ const onboardingForm = useForm({
   required: true,
   active: true,
 });
+
+function questionEdit(id: string): QuestionEdit {
+  const edit = questionEdits[id];
+  if (!edit) throw new Error(`Missing question edit state for ${id}`);
+  return edit;
+}
 
 function saveSettings(): void {
   settingsForm.patch('/alliance/recruitment/settings', { preserveScroll: true });
@@ -122,6 +150,27 @@ function createQuestion(): void {
       questionOptions.value = '';
     },
   });
+}
+
+function saveQuestion(id: string): void {
+  const edit = questionEdit(id);
+  router.post(
+    '/alliance/recruitment/questions',
+    {
+      question_id: id,
+      prompt: edit.prompt,
+      help_text: edit.helpText,
+      type: edit.type,
+      options: edit.optionsText
+        .split('\n')
+        .map((value) => value.trim())
+        .filter((value) => value !== ''),
+      required: edit.required,
+      position: edit.position,
+      active: edit.active,
+    },
+    { preserveScroll: true },
+  );
 }
 
 function issueInvite(): void {
@@ -394,16 +443,72 @@ function percentage(value: number): string {
             :key="question.id"
             class="rounded-xl border border-slate-800 p-4"
           >
-            <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-              <span class="capitalize">{{ question.type.replace('_', ' ') }}</span>
-              <span>· position {{ question.position }}</span>
-              <span>· {{ question.required ? 'required' : 'optional' }}</span>
-              <span>· {{ question.active ? 'active' : 'inactive' }}</span>
+            <div class="grid gap-3">
+              <div>
+                <label class="text-xs font-medium text-slate-400" :for="`edit-question-${question.id}`">Prompt</label>
+                <input
+                  :id="`edit-question-${question.id}`"
+                  v-model="questionEdit(question.id).prompt"
+                  class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                  maxlength="240"
+                  required
+                />
+              </div>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label class="text-xs font-medium text-slate-400" :for="`edit-type-${question.id}`">Type</label>
+                  <select
+                    :id="`edit-type-${question.id}`"
+                    v-model="questionEdit(question.id).type"
+                    class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                  >
+                    <option v-for="type in questionTypes" :key="type" :value="type">
+                      {{ type.replace('_', ' ') }}
+                    </option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-xs font-medium text-slate-400" :for="`edit-position-${question.id}`">Position</label>
+                  <input
+                    :id="`edit-position-${question.id}`"
+                    v-model.number="questionEdit(question.id).position"
+                    class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                    type="number"
+                    min="0"
+                    max="65535"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-medium text-slate-400" :for="`edit-help-${question.id}`">Help text</label>
+                <input
+                  :id="`edit-help-${question.id}`"
+                  v-model="questionEdit(question.id).helpText"
+                  class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                  maxlength="2000"
+                />
+              </div>
+              <div v-if="['select', 'multi_select'].includes(questionEdit(question.id).type)">
+                <label class="text-xs font-medium text-slate-400" :for="`edit-options-${question.id}`">Options, one per line</label>
+                <textarea
+                  :id="`edit-options-${question.id}`"
+                  v-model="questionEdit(question.id).optionsText"
+                  class="mt-1 min-h-24 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                />
+              </div>
+              <div class="flex flex-wrap items-center gap-5 text-sm">
+                <label class="flex items-center gap-2"><input v-model="questionEdit(question.id).required" type="checkbox" /> Required</label>
+                <label class="flex items-center gap-2"><input v-model="questionEdit(question.id).active" type="checkbox" /> Active</label>
+                <button
+                  class="rounded-lg border border-slate-700 px-3 py-2 font-semibold"
+                  type="button"
+                  @click="saveQuestion(question.id)"
+                >
+                  Save question
+                </button>
+              </div>
             </div>
-            <h3 class="mt-1 font-semibold">{{ question.prompt }}</h3>
-            <p v-if="question.helpText" class="mt-1 text-sm text-slate-400">
-              {{ question.helpText }}
-            </p>
           </article>
         </div>
         <form
