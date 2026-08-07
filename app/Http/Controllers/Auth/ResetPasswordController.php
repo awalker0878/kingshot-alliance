@@ -17,9 +17,9 @@ use Illuminate\Validation\Rules\Password as PasswordRule;
 use Inertia\Inertia;
 use Inertia\Response;
 
-final readonly class ResetPasswordController extends Controller
+final class ResetPasswordController extends Controller
 {
-    public function __construct(private AuditRecorder $audit) {}
+    public function __construct(private readonly AuditRecorder $audit) {}
 
     public function create(Request $request, string $token): Response
     {
