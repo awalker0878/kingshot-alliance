@@ -1,7 +1,7 @@
 # Phase 3 Exit Report
 
 **Phase:** Events and Rallies  
-**Status:** Technical acceptance complete; product-owner acceptance pending  
+**Status:** Accepted  
 **Branch:** `agent/phase-3-events-and-rallies`
 
 ## Objective
@@ -58,7 +58,7 @@ Deliver the platform's primary operational value: tenant-safe event scheduling, 
 - All submitted coordinator object identifiers are re-resolved under the active alliance before privileged mutation.
 - Phase 3 exports are authenticated, active-alliance-scoped, and returned with `Cache-Control: private, no-store`.
 - Reminder inbox data is filtered by both active `alliance_id` and active `membership_id`.
-- CodeQL and Dependency Review passed on the technical acceptance candidate with no unresolved critical/high application-security gate failure.
+- CodeQL and Dependency Review passed with no unresolved critical/high application-security gate failure.
 
 ### Operations and documentation
 
@@ -68,9 +68,9 @@ Deliver the platform's primary operational value: tenant-safe event scheduling, 
 
 ## Protected-workflow evidence
 
-Technical acceptance candidate: `d0d5eee6fc8cf66c8b22e6b05822be040ea940a3`.
+Final technical report head before product acceptance: `ad1cbf3228f86dd915dbc82466d441f7aca0c475`.
 
-- CI run `31187008604`: **passed**
+- CI run `31187575503`: **passed**
   - frontend lint/format/typecheck/production build: passed
   - PostgreSQL migrations: passed
   - Pint/PHPStan/full PHPUnit suite: passed
@@ -78,12 +78,12 @@ Technical acceptance candidate: `d0d5eee6fc8cf66c8b22e6b05822be040ea940a3`.
   - ephemeral staging deployment/validation: passed
   - backup/restore recovery drill: passed
   - production-image vulnerability scan: passed
-- CodeQL run `31187007951`: **passed**
-- Dependency Review run `31187008543`: **passed**
-- Pull-request review check at the technical gate found no unresolved review comments/threads.
-- Temporary implementation-only formatting workflows were removed from the branch before technical acceptance.
+- CodeQL run `31187578967`: **passed**
+- Dependency Review run `31187575970`: **passed**
+- Pull-request review check found no unresolved review comments/threads.
+- Temporary implementation-only formatting workflows were removed before acceptance.
 
-The exit-report commit is documentation-only. The final PR head must remain green under the same protected workflows before merge.
+The product-acceptance commit is documentation-only and must also remain green under the protected workflows before merge.
 
 ## Exit criteria
 
@@ -96,13 +96,11 @@ The exit-report commit is documentation-only. The final PR head must remain gree
 - [x] Phase 3 migration forward/rollback behavior is tested and documented.
 - [x] Logging/audit, scheduler/queue/outbox, health, metrics, alerts, backup/recovery, and incident implications are documented.
 - [x] User and technical documentation are updated.
-- [x] Staging deployment, backup/recovery, and vulnerability scanning pass on the technical acceptance candidate.
-- [ ] Product owner explicitly accepts the Phase 3 outcome after reviewing the delivered event/rally workflow.
+- [x] Staging deployment, backup/recovery, and vulnerability scanning pass.
+- [x] Product owner accepted the Phase 3 outcome and authorized continuation on 2026-08-07.
 
 ## Acceptance decision
 
-**Phase 3 technical gate: ACCEPTED.**
+**Phase 3 — Events and Rallies: ACCEPTED.**
 
-**Phase 3 product acceptance: PENDING explicit product-owner sign-off.**
-
-PR #13 must remain unmerged until that final product-owner acceptance is recorded and the documentation-only final head remains green under the protected workflows.
+The product owner authorized continuation through the Phase 3 gate on 2026-08-07. PR #13 may be marked ready and merged once this acceptance-record commit remains green under the protected workflows.
