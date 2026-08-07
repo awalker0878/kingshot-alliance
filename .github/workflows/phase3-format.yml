@@ -1,0 +1,50 @@
+name: Phase 3 format
+
+on:
+  push:
+    branches:
+      - agent/phase-3-events-and-rallies
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase3-format-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: agent/phase-3-events-and-rallies
+          fetch-depth: 0
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_sqlite, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Run Pint
+        run: vendor/bin/pint
+      - name: Commit formatter output
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- '*.php'
+          if git diff --cached --quiet; then
+            echo 'No PHP formatting changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Format Phase 3 PHP sources'
+          git push origin HEAD:agent/phase-3-events-and-rallies
