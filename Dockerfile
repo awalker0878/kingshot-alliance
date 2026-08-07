@@ -26,8 +26,6 @@ RUN apk add --no-cache \
         oniguruma-dev \
         postgresql-dev \
     && docker-php-ext-install -j"$(nproc)" \
-        lexbor \
-        dom \
         intl \
         mbstring \
         opcache \
