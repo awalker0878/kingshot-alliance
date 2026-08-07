@@ -10,9 +10,9 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
 
-final readonly class VerifyEmailController extends Controller
+final class VerifyEmailController extends Controller
 {
-    public function __construct(private AuditRecorder $audit) {}
+    public function __construct(private readonly AuditRecorder $audit) {}
 
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {
