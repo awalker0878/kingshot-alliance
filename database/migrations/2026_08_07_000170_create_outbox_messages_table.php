@@ -22,6 +22,7 @@ return new class extends Migration
             $table->timestamp('available_at')->index();
             $table->timestamp('published_at')->nullable()->index();
             $table->unsignedInteger('attempts')->default(0);
+            $table->text('last_error')->nullable();
             $table->timestamps();
 
             $table->index(['alliance_id', 'event_type']);
