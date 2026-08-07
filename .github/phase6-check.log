@@ -1,0 +1,33 @@
+
+  ............................................................................
+  ............................................................................
+  ............................................................................
+  ............................................................................
+  ........................................
+
+  ──────────────────────────────────────────────────────────────────── Laravel  
+    PASS   ......................................................... 344 files  
+
+Note: Using configuration file /home/runner/work/kingshot-alliance/kingshot-alliance/phpstan.neon.
+   0/251 [░░░░░░░░░░░░░░░░░░░░░░░░░░░░]   0%
+ 251/251 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 100%
+
+::error file=app/Domain/Platform/Services/AllianceFeatureService.php,line=41,col=0::Method App\Domain\Platform\Services\AllianceFeatureService::all() should return list<array{key: string, enabled: bool, configuration: array<string, mixed>|null}> but returns array<int, array{key: string, enabled: bool, configuration: array<string, mixed>|null}>.
+ ------ ----------------------------------------------------------------------- 
+  Line   app/Domain/Platform/Services/AllianceFeatureService.php                
+ ------ ----------------------------------------------------------------------- 
+  41     Method App\Domain\Platform\Services\AllianceFeatureService::all()      
+         should return list<array{key: string, enabled: bool, configuration:    
+         array<string, mixed>|null}> but returns array<int, array{key: string,  
+          enabled: bool, configuration: array<string, mixed>|null}>.            
+         🪪  return.type                                                        
+         💡  array<int, array{key: string, enabled: bool, configuration: array<  
+         string, mixed>|null}> might not be a list.                             
+ ------ ----------------------------------------------------------------------- 
+
+
+ [ERROR] Found 1 error                                                          
+
+Script phpstan analyse --memory-limit=1G handling the types:check event returned with error code 1
+Script @types:check was called via check
+exit_status=1
