@@ -61,7 +61,6 @@ final class EventReminderDeliveryTest extends TestCase
         self::assertSame(0, $sync->handle($occurrence));
         self::assertSame(1, EventReminderDelivery::query()->count());
 
-        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-07 14:00:00', 'UTC')->addHours(0));
         $delivery = EventReminderDelivery::query()->sole();
         self::assertSame(EventReminderDeliveryStatus::Pending, $delivery->status);
 
@@ -70,15 +69,19 @@ final class EventReminderDeliveryTest extends TestCase
 
         $delivery->refresh();
         self::assertSame(EventReminderDeliveryStatus::Queued, $delivery->status);
-        self::assertSame(1, OutboxMessage::query()
-            ->where('event_type', 'event.reminder.requested')
-            ->count());
 
-        self::assertSame(1, $this->app->make(PublishOutboxBatch::class)->handle());
+        $reminderOutbox = OutboxMessage::query()
+            ->where('event_type', 'event.reminder.requested')
+            ->sole();
+        self::assertNull($reminderOutbox->published_at);
+
+        $this->app->make(PublishOutboxBatch::class)->handle();
 
         $delivery->refresh();
+        $reminderOutbox->refresh();
         self::assertSame(EventReminderDeliveryStatus::Sent, $delivery->status);
         self::assertNotNull($delivery->sent_at);
+        self::assertNotNull($reminderOutbox->published_at);
 
         self::assertSame(0, $this->app->make(QueueDueEventReminders::class)->handle());
         self::assertSame(1, OutboxMessage::query()
