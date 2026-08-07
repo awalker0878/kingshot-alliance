@@ -27,7 +27,7 @@ final class AuthenticationTest extends TestCase
             'timezone' => 'America/Toronto',
         ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('verification.notice'));
         $this->assertAuthenticated();
 
         $user = User::query()->sole();
@@ -35,6 +35,7 @@ final class AuthenticationTest extends TestCase
         self::assertSame('owner@example.com', $user->email);
         self::assertSame('America/Toronto', $user->timezone);
         self::assertTrue(Hash::check('StrongPassword123', $user->password));
+        self::assertFalse($user->hasVerifiedEmail());
 
         $this->assertDatabaseHas('audit_events', [
             'actor_user_id' => $user->id,
