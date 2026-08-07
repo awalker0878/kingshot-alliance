@@ -1,6 +1,6 @@
 Phase 4 PHP diagnostic
 pint_status=0
-phpstan_status=1
+phpstan_status=0
 test_status=0
 
 ===== PINT (tail) =====
@@ -16,47 +16,8 @@ test_status=0
 
 ===== PHPSTAN (tail) =====
 Note: Using configuration file /home/runner/work/kingshot-alliance/kingshot-alliance/phpstan.neon.
-::error file=app/Http/Controllers/Alliance/RecruitmentCandidateController.php,line=84,col=0::Cannot access property $value on string.
-::error file=app/Http/Controllers/Alliance/RecruitmentCandidateController.php,line=132,col=0::Cannot access property $value on string.
-::error file=app/Http/Controllers/Alliance/RecruitmentCandidateController.php,line=133,col=0::Cannot access property $value on string.
-::error file=app/Http/Controllers/Alliance/RecruitmentCandidateController.php,line=149,col=0::Cannot access property $value on string.
-::error file=app/Http/Controllers/Alliance/RecruitmentCandidateController.php,line=170,col=0::Cannot access property $value on string.
-::error file=app/Http/Controllers/Alliance/RecruitmentCandidateController.php,line=205,col=0::Cannot access property $value on string.
-::error file=app/Http/Controllers/Alliance/RecruitmentManagementController.php,line=125,col=0::Cannot access property $value on string.
-::error file=app/Http/Controllers/PublicRecruitmentController.php,line=80,col=0::Using nullsafe property access "?->title" on left side of ?? is unnecessary. Use -> instead.
- ------ ------------------------------------------------------------------ 
-  Line   app/Http/Controllers/Alliance/RecruitmentCandidateController.php  
- ------ ------------------------------------------------------------------ 
-  84     Cannot access property $value on string.                          
-         🪪  property.nonObject                                            
-  132    Cannot access property $value on string.                          
-         🪪  property.nonObject                                            
-  133    Cannot access property $value on string.                          
-         🪪  property.nonObject                                            
-  149    Cannot access property $value on string.                          
-         🪪  property.nonObject                                            
-  170    Cannot access property $value on string.                          
-         🪪  property.nonObject                                            
-  205    Cannot access property $value on string.                          
-         🪪  property.nonObject                                            
- ------ ------------------------------------------------------------------ 
 
- ------ ------------------------------------------------------------------- 
-  Line   app/Http/Controllers/Alliance/RecruitmentManagementController.php  
- ------ ------------------------------------------------------------------- 
-  125    Cannot access property $value on string.                           
-         🪪  property.nonObject                                             
- ------ ------------------------------------------------------------------- 
-
- ------ ----------------------------------------------------------------- 
-  Line   app/Http/Controllers/PublicRecruitmentController.php             
- ------ ----------------------------------------------------------------- 
-  80     Using nullsafe property access "?->title" on left side of ?? is  
-         unnecessary. Use -> instead.                                     
-         🪪  nullsafe.neverNull                                           
- ------ ----------------------------------------------------------------- 
-
- [ERROR] Found 8 errors                                                         
+ [OK] No errors                                                                 
 
 
 ===== TESTS (tail) =====
@@ -70,6 +31,6 @@ Configuration: /home/runner/work/kingshot-alliance/kingshot-alliance/phpunit.xml
 ............................................................... 126 / 128 ( 98%)
 ..                                                              128 / 128 (100%)
 
-Time: 00:06.852, Memory: 36.50 MB
+Time: 00:07.035, Memory: 36.50 MB
 
 [30;42mOK (128 tests, 813 assertions)[0m
