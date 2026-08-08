@@ -12,6 +12,8 @@ use App\Domain\Kingdoms\Actions\MarkRosterEntryLeft;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Kingdoms\Models\PlayerSnapshot;
+use App\Domain\Kingdoms\Queries\PlayerSnapshotQuery;
 use App\Domain\Kingdoms\Queries\RosterQuery;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -30,6 +32,7 @@ final class RosterController extends Controller
         AllianceContext $context,
         AllianceAuthorization $authorization,
         RosterQuery $roster,
+        PlayerSnapshotQuery $snapshots,
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
@@ -45,6 +48,8 @@ final class RosterController extends Controller
             'role' => ['nullable', 'string', 'max:64'],
             'observation' => ['nullable', Rule::in(['current', 'stale', 'missing'])],
         ]);
+        $entries = $roster->forAlliance($alliance, $filters);
+        $latestSnapshots = $snapshots->latestForEntries($alliance, $entries);
 
         return Inertia::render('Alliance/Roster', [
             'alliance' => [
@@ -53,7 +58,7 @@ final class RosterController extends Controller
                 'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
             ],
             'canManage' => $authorization->allows($user, $alliance, PermissionKey::KingdomManage),
-            'entries' => $this->entries($roster->forAlliance($alliance, $filters), false),
+            'entries' => $this->entries($entries, false, $latestSnapshots),
             'filters' => [
                 'q' => (string) ($filters['q'] ?? ''),
                 'state' => (string) ($filters['state'] ?? ''),
@@ -62,7 +67,7 @@ final class RosterController extends Controller
                 'observation' => (string) ($filters['observation'] ?? ''),
             ],
             'roleOptions' => $roster->rolesForAlliance($alliance),
-            'staleAfterDays' => RosterQuery::STALE_AFTER_DAYS,
+            'staleAfterDays' => PlayerSnapshotQuery::STALE_AFTER_DAYS,
         ]);
     }
 
@@ -71,6 +76,7 @@ final class RosterController extends Controller
         AllianceContext $context,
         AllianceAuthorization $authorization,
         RosterQuery $roster,
+        PlayerSnapshotQuery $snapshots,
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
@@ -80,6 +86,7 @@ final class RosterController extends Controller
         }
 
         $entries = $roster->forAlliance($alliance);
+        $latestSnapshots = $snapshots->latestForEntries($alliance, $entries);
         $membershipLinks = [];
 
         foreach ($entries as $entry) {
@@ -108,7 +115,7 @@ final class RosterController extends Controller
                 'name' => (string) $alliance->name,
                 'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
             ],
-            'entries' => $this->entries($entries, true),
+            'entries' => $this->entries($entries, true, $latestSnapshots),
             'memberships' => $memberships->all(),
             'states' => [RosterState::Active->value, RosterState::Tracked->value],
             'gaps' => [
@@ -200,9 +207,10 @@ final class RosterController extends Controller
 
     /**
      * @param  iterable<int, AllianceRosterEntry>  $entries
+     * @param  array<string, PlayerSnapshot>  $latestSnapshots
      * @return list<array<string, mixed>>
      */
-    private function entries(iterable $entries, bool $includePrivate): array
+    private function entries(iterable $entries, bool $includePrivate, array $latestSnapshots): array
     {
         $rows = [];
 
@@ -221,6 +229,7 @@ final class RosterController extends Controller
                     ];
             }
 
+            $latestSnapshot = $latestSnapshots[(string) $entry->id] ?? null;
             $row = [
                 'id' => (string) $entry->id,
                 'gamePlayerId' => $entry->player->game_player_id,
@@ -232,6 +241,14 @@ final class RosterController extends Controller
                 'lastObservedAt' => $entry->last_observed_at?->toIso8601String(),
                 'source' => (string) $entry->source,
                 'membership' => $membership,
+                'latestSnapshot' => $latestSnapshot === null ? null : [
+                    'observedName' => (string) $latestSnapshot->observed_name,
+                    'power' => (string) $latestSnapshot->power,
+                    'progressionLevel' => $latestSnapshot->progression_level,
+                    'observedAllianceTag' => $latestSnapshot->observed_alliance_tag,
+                    'capturedAt' => $latestSnapshot->captured_at->toIso8601String(),
+                    'source' => (string) $latestSnapshot->source,
+                ],
             ];
 
             if ($includePrivate) {
