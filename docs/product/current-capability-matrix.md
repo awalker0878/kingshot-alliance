@@ -4,9 +4,9 @@
 
 **Status:** Current
 
-This matrix summarizes the capabilities implemented in the current Phase 0–6-complete runtime. It is a navigation aid, not a replacement for the implementation plan, accepted ADRs, living domain guides, or code/tests.
+This matrix summarizes the capabilities implemented in the current Phase 0–6-complete runtime and separately identifies approved roadmap scope that is not yet implemented. It is a navigation aid, not a replacement for the baseline implementation plan, approved product-increment scopes, accepted ADRs, living domain guides, or code/tests.
 
-Code and tests remain authoritative for exact runtime behavior. The [implementation plan](implementation-plan.md) remains authoritative for approved program scope. A real production cutover remains **not yet approved**; see [production launch approval](production-launch-approval.md).
+Code and tests remain authoritative for exact runtime behavior. The [implementation plan](implementation-plan.md) remains authoritative for the completed Phase 0–6 baseline; approved post-program scope is recorded in named increment documents such as [`KINGDOMS-001`](kingdoms-roster-intelligence-increment.md). A real production cutover remains **not yet approved**; see [production launch approval](production-launch-approval.md).
 
 ## Implemented product capabilities
 
@@ -37,11 +37,23 @@ Code and tests remain authoritative for exact runtime behavior. The [implementat
 | Liveness/readiness and request/trace correlation | Implemented | Platform | [Observability](../operations/observability.md) |
 | Immutable-image deployment, staging validation, backup/restore tooling, and rollback procedures | Implemented repository controls | Operations | [Operations index](../operations/README.md) |
 
+## Approved roadmap scope — not yet implemented
+
+Approved scope is not current runtime capability. These rows exist so readers can distinguish an authorized next increment from an unapproved idea.
+
+| Scope | Status | Planned outcome | Authoritative scope |
+| --- | --- | --- | --- |
+| `KINGDOMS-001` — Kingdoms roster intelligence | **Approved — implementation not started** | First-class Kingdom model, separate game-player identity, alliance roster entries, historical snapshots, manual/CSV workflows, roster dashboard/intelligence, `kingdoms.manage`, audit/outbox and tenant-isolation controls | [Kingdoms roster intelligence product increment](kingdoms-roster-intelligence-increment.md) |
+
+Candidate transfer planning, kingdom-alliance intelligence, automated game-data ingestion and opt-in cross-alliance intelligence are listed as follow-on roadmap candidates inside `KINGDOMS-001`; they are **not approved implementation scope** until each receives its own increment record.
+
 ## Explicit current boundaries
 
 | Area | Current state | Meaning |
 | --- | --- | --- |
-| `Kingdoms` runtime capability | **Reserved / not implemented** | `Kingdoms` is a canonical domain root but remains documentation-only until explicit product scope is approved. |
+| `Kingdoms` runtime capability | **Approved roadmap scope / not implemented** | `KINGDOMS-001` is approved, but `app/Domain/Kingdoms` still has no runtime PHP and the current alliance model still uses the existing kingdom field until the increment is implemented and accepted. |
+| Automated Kingshot game-data ingestion | **Not approved / not implemented** | `KINGDOMS-001` is manual/import first. Scraping, OCR, bots, and undocumented/unapproved APIs are explicitly outside its scope. |
+| Transfer planning and kingdom diplomacy | **Roadmap candidates / not approved** | These may follow the roster foundation but require separate product increment approval. |
 | Payment processing / billing | **Not implemented** | Plans and entitlements exist, but there is no payment-processing workflow. |
 | Support impersonation | **Not implemented** | Platform administrators do not receive an impersonation capability. |
 | Generic email/SMS/push notification provider | **Not implemented as a Notifications-domain transport** | Current Notifications behavior coordinates in-app reminder/report requests through persisted state and the transactional outbox. |
@@ -52,8 +64,8 @@ Code and tests remain authoritative for exact runtime behavior. The [implementat
 
 ## How to use this matrix
 
-Use this document to answer “is this capability part of the current product?” and then follow the linked living contract for behavior and ownership.
+Use the implemented-capability table to answer “is this available in the current product?” Use the approved-roadmap table to answer “is this authorized next scope?” and then follow the scope document for boundaries and acceptance criteria.
 
 For architectural reasoning, use the [architecture decisions and current architecture view](../adr/README.md). For operational behavior, use the [operations index](../operations/README.md). For security requirements and current launch-security evidence, use the [security index](../security/README.md).
 
-Historical phase exit reports remain acceptance evidence for how capabilities were delivered. They are not a changelog and should not be rewritten to describe the current combined product.
+Historical phase exit reports remain acceptance evidence for how baseline capabilities were delivered. They are not a changelog and should not be rewritten to describe the current combined product or future increments.
