@@ -88,6 +88,18 @@ The current scheduler runs these notification-owned coordination commands every 
 
 Command-level limits are bounded in code even when a larger value is supplied. Operators should use the documented defaults unless deliberately draining a backlog.
 
+## Process and queue ownership
+
+The current reminder/report workflows are **scheduler + database + transactional-outbox** workflows. They do not dispatch a hidden notification-specific Laravel job for the delivery transition described above.
+
+- The scheduler invokes the Notifications actions that materialize or queue due work.
+- PostgreSQL stores reminder delivery state and the Contributions-owned report schedule/run state.
+- Platform owns `OutboxMessage` persistence and the shared `outbox:publish` publisher.
+- The published event is the durable asynchronous boundary used by current reminder/report coordination.
+- The `integrations` Laravel queue belongs to outbound webhook transport and is not the Notifications delivery mechanism.
+
+If a future email/SMS/push provider introduces notification jobs or a dedicated queue, that queue ownership and delivery semantics must be added to this guide when the runtime capability is implemented.
+
 ## Idempotency and retry semantics
 
 Notification coordination assumes at-least-once scheduler and outbox execution.
