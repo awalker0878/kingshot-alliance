@@ -1,6 +1,6 @@
 # Phase 6 Exit Report — Platform Scale and Administration
 
-**Status:** Candidate — final protected validation pending  
+**Status:** Accepted  
 **Phase:** 6 — Platform scale and administration
 
 ## Outcome
@@ -56,7 +56,9 @@ Support impersonation is intentionally not implemented because the implementatio
 - Phase 6 migration rollback/reapply;
 - integration cross-tenant identifier denial;
 - architecture guard advancing Integrations while keeping Kingdoms runtime-free;
-- Phase 6 accessibility guard and bounded capacity/retry tests.
+- Phase 6 accessibility guard and bounded capacity/retry tests;
+- hosted runtime validation for the Phase 6 Horizon `core`, `integrations`, and `maintenance` supervisor partitions;
+- immutable staging startup that resolves the protected `/platform` route in addition to health/readiness endpoints.
 
 ## Documentation
 
@@ -72,4 +74,6 @@ Support impersonation is intentionally not implemented because the implementatio
 
 ## Final gate
 
-This report remains **Candidate** until the exact final PR head passes PostgreSQL migration, PHP formatting/static analysis, the full backend/frontend tests, tenant-isolation and migration tests, Dependency Review, CodeQL, immutable-image build, ephemeral staging deployment, backup/restore demonstration, and image scanning. After those gates are green and review/hygiene checks are clean, this report may be updated to **Accepted** immediately before merge.
+Phase 6 is accepted for merge. The protected validation run on code head `d1969889ffa044cd7690f263ba9ef70c63a425cb` passed PostgreSQL migration, PHP formatting/static analysis, the complete backend/frontend suites, Dependency Review, CodeQL, immutable production-image build, ephemeral staging deployment including `/platform` controller resolution, backup/restore, and image scanning. Review hygiene was also clean: no review submissions, inline review threads, or PR comments remained, and temporary diagnostic artifacts were removed.
+
+The merge head must retain the same protected green state after this documentation finalization commit; any regression reopens the Phase 6 gate.
