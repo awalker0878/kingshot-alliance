@@ -2,7 +2,7 @@
 
 [← Product and program documentation](README.md)
 
-**Status:** Approved roadmap scope — implementation not started  
+**Status:** Approved roadmap scope — implementation in progress  
 **Scope ID:** `KINGDOMS-001`  
 **Owning domain:** `Kingdoms`  
 **Delivery model:** Post-program product increment; this is **not Phase 7**  
