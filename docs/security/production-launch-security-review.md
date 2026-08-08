@@ -24,4 +24,4 @@ This review covers the post-Phase-6 production-hardening changes only. It does n
 
 ## Decision
 
-No new critical/high application-security risk is introduced by the hardening changes. Production remains a no-go until the external controls recorded in `docs/product/PRODUCTION_LAUNCH_APPROVAL.md` are evidenced and approved by accountable operators.
+No new critical/high application-security risk is introduced by the hardening changes. Production remains a no-go until the external controls recorded in `docs/product/production-launch-approval.md` are evidenced and approved by accountable operators.
