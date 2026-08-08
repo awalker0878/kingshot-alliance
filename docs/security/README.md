@@ -10,6 +10,7 @@ This directory owns security requirements, threat models, and launch-security ev
 - [Kingdoms foundation security review](kingdoms-foundation-security-review.md) — validated `KINGDOMS-001` Slice A review for global Kingdom references, alliance association, migration, authorization, audit/outbox, and tenant-boundary risks.
 - [Kingdoms roster security review](kingdoms-roster-security-review.md) — validated-candidate Slice B review for neutral game-player identity, alliance roster tenancy, membership linkage, private manager data, authorization, search/filter isolation, and audit/outbox controls.
 - [Kingdoms snapshot security review](kingdoms-snapshot-security-review.md) — validated-candidate Slice C1 review for append-only snapshot tenancy, replay/idempotency, actor privacy, capture-time integrity, integer precision, latest projection, and history controls.
+- [Kingdoms intelligence security review](kingdoms-intelligence-security-review.md) — Slice C2 implementation-candidate review for tenant-scoped aggregation, missing/stale-data interpretation, bounded trend windows, exact arithmetic, comparison privacy, and anti-ranking controls.
 - [Production launch security review](production-launch-security-review.md) — repository-controlled launch-security review and the external controls that remain operational responsibilities.
 - [Production launch approval](../product/production-launch-approval.md) — authoritative real-production go/no-go record.
 
