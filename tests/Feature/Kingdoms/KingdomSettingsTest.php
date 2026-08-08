@@ -13,6 +13,7 @@ use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -163,7 +164,7 @@ final class KingdomSettingsTest extends TestCase
 
     private function auditCount(string $allianceId): int
     {
-        return (int) \DB::table('audit_events')
+        return (int) DB::table('audit_events')
             ->where('alliance_id', $allianceId)
             ->where('event', 'alliance.kingdom_updated')
             ->count();
@@ -171,7 +172,7 @@ final class KingdomSettingsTest extends TestCase
 
     private function outboxCount(string $allianceId): int
     {
-        return (int) \DB::table('outbox_messages')
+        return (int) DB::table('outbox_messages')
             ->where('alliance_id', $allianceId)
             ->where('event_type', 'alliance.kingdom_updated')
             ->count();
