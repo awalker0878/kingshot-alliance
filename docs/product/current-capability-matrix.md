@@ -40,11 +40,11 @@ Code and tests remain authoritative for exact runtime behavior. The [implementat
 
 ## Approved roadmap scope — implementation incomplete
 
-Approved scope is not automatically current runtime capability. These rows distinguish authorized remaining work from unapproved ideas.
+Approved scope is not automatically current validated runtime capability. Candidate rows distinguish code under review from capabilities that have passed their protected implementation gate.
 
 | Scope | Status | Remaining outcome | Authoritative scope |
 | --- | --- | --- | --- |
-| `KINGDOMS-001` — Kingdoms roster intelligence | **In progress — Slice A foundation implemented; later slices remain** | Separate game-player identity, alliance roster entries, historical snapshots, manual/CSV workflows, roster dashboard/intelligence, `kingdoms.manage`, and their audit/outbox/tenant-isolation controls | [Kingdoms roster intelligence product increment](kingdoms-roster-intelligence-increment.md), [implementation plan](kingdoms-roster-intelligence-implementation-plan.md) |
+| `KINGDOMS-001` — Kingdoms roster intelligence | **In progress — Slice A validated; Slice B roster implementation candidate** | Validate and accept game-player identity, alliance roster/member-link workflows, `kingdoms.manage`, filtering/linkage visibility and their audit/outbox/tenant-isolation controls; then implement historical snapshots, intelligence and CSV workflows in later slices | [Kingdoms roster intelligence product increment](kingdoms-roster-intelligence-increment.md), [implementation plan](kingdoms-roster-intelligence-implementation-plan.md), [Slice B roster contract](../domains/kingdoms-roster.md) |
 
 Candidate transfer planning, kingdom-alliance intelligence, automated game-data ingestion and opt-in cross-alliance intelligence are listed as follow-on roadmap candidates inside `KINGDOMS-001`; they are **not approved implementation scope** until each receives its own increment record.
 
@@ -52,7 +52,9 @@ Candidate transfer planning, kingdom-alliance intelligence, automated game-data 
 
 | Area | Current state | Meaning |
 | --- | --- | --- |
-| `Kingdoms` runtime capability | **Partially implemented — Kingdom foundation only** | First-class global Kingdom records and authorized Alliance→Kingdom association are implemented. `KingdomPlayer`, roster entries, snapshots, intelligence, CSV workflows and `kingdoms.manage` are not implemented yet. |
+| `Kingdoms` validated capability | **Partially implemented — Kingdom foundation validated** | First-class global Kingdom records and authorized Alliance→Kingdom association have passed their Slice A implementation gate. |
+| Slice B roster capability | **Implementation candidate / not yet promoted** | The Slice B branch adds neutral game-player identity, alliance-owned roster entries, optional membership links, `kingdoms.manage`, manual roster management, filtering/linkage-gap views, data minimization, audit/outbox and tenant-isolation tests. It does not become validated current capability until its protected gate succeeds. |
+| Later `KINGDOMS-001` capability | **Not implemented** | Player power/history snapshots, snapshot-derived stale state, roster intelligence/trends and CSV workflows remain `K1-P3`–`K1-P5`. |
 | Legacy free-form alliance kingdom storage | **Removed** | Alliance persistence uses `kingdom_id`; existing presentation/API `kingdom` values are derived from the canonical relation rather than a compatibility column. |
 | Automated Kingshot game-data ingestion | **Not approved / not implemented** | `KINGDOMS-001` is manual/import first. Scraping, OCR, bots, and undocumented/unapproved APIs are explicitly outside its scope. |
 | Transfer planning and kingdom diplomacy | **Roadmap candidates / not approved** | These may follow the roster foundation but require separate product increment approval. |
@@ -66,7 +68,7 @@ Candidate transfer planning, kingdom-alliance intelligence, automated game-data 
 
 ## How to use this matrix
 
-Use the implemented-capability table to answer “is this available in the current product?” Use the roadmap table to answer “what approved increment work remains?” and then follow the increment scope/implementation plan for boundaries and acceptance criteria.
+Use the implemented-capability table to answer “is this available in the validated product?” Use the roadmap/candidate table to answer “what approved increment work remains or is currently under review?” and then follow the increment scope/implementation plan for boundaries and acceptance criteria.
 
 For architectural reasoning, use the [architecture decisions and current architecture view](../adr/README.md). For operational behavior, use the [operations index](../operations/README.md). For security requirements and current launch-security evidence, use the [security index](../security/README.md).
 
