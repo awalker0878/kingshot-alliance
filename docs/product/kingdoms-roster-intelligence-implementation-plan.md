@@ -2,7 +2,7 @@
 
 [← Kingdoms roster intelligence product increment](kingdoms-roster-intelligence-increment.md)
 
-**Status:** In progress — Slice A / `K1-P1` validated; Slice B / `K1-P2` validated implementation candidate  
+**Status:** In progress — Slice A / `K1-P1` validated; Slice B / `K1-P2` validated implementation candidate; Slice C1 / `K1-P3` implementation candidate  
 **Scope ID:** `KINGDOMS-001`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Approved `KINGDOMS-001` scope and accepted Phase 0–6 engineering controls  
@@ -35,12 +35,12 @@ The implementation must continue to follow the repository's established principl
 | `K1-P0` | Complete | Design and migration contract locked | Slice A preparation |
 | `K1-P1` | Validated | First-class Kingdom foundation | Slice A |
 | `K1-P2` | Validated candidate | Game-player and alliance roster foundation | Slice B |
-| `K1-P3` | Planned | Historical player snapshots | Slice C |
-| `K1-P4` | Planned | Roster intelligence and trend views | Slice C |
+| `K1-P3` | Candidate | Historical player snapshots | Slice C1 |
+| `K1-P4` | Planned | Roster intelligence and trend views | Slice C2 |
 | `K1-P5` | Planned | Controlled CSV migration workflow | Slice D |
 | `K1-P6` | Planned | Increment hardening and acceptance | Whole increment |
 
-Each phase must leave the repository internally consistent. `KINGDOMS-001` is not Accepted until `K1-P6` closes the complete increment. `K1-P1` is validated. `K1-P2` has completed its protected validation gate and remains a review candidate until the Slice B PR is accepted into the dependency stack.
+Each phase must leave the repository internally consistent. `KINGDOMS-001` is not Accepted until `K1-P6` closes the complete increment. `K1-P1` is validated. `K1-P2` has completed its protected validation gate and remains a review candidate until the Slice B PR is accepted into the dependency stack. `K1-P3` is an implementation candidate until Slice C1 protected validation and review succeed.
 
 ## 3. K1-P0 — Design and migration contract
 
