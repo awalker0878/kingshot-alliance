@@ -1,0 +1,63 @@
+#!/usr/bin/env sh
+set -eu
+
+compose_file="${COMPOSE_FILE:-docker-compose.staging.yml}"
+env_file="${ENV_FILE:-deploy/production.env}"
+url="${APP_PUBLIC_URL:-}"
+
+if [ ! -f "$compose_file" ]; then
+  echo "Compose file not found: $compose_file" >&2
+  exit 66
+fi
+
+if [ ! -f "$env_file" ]; then
+  echo "Environment file not found: $env_file" >&2
+  exit 66
+fi
+
+env_mode="$(stat -c '%a' "$env_file" 2>/dev/null || stat -f '%Lp' "$env_file" 2>/dev/null || true)"
+case "$env_mode" in
+  400|600) ;;
+  *)
+    echo "Environment file must be owner-readable only (mode 400 or 600): $env_file" >&2
+    exit 77
+    ;;
+esac
+
+command -v docker >/dev/null 2>&1 || {
+  echo "Docker is required." >&2
+  exit 69
+}
+
+compose() {
+  docker compose --env-file "$env_file" -f "$compose_file" "$@"
+}
+
+running_services="$(compose ps --status running --services)"
+for service in app web worker scheduler; do
+  if ! printf '%s\n' "$running_services" | grep -qx "$service"; then
+    echo "Required production service is not running: $service" >&2
+    exit 70
+  fi
+done
+
+compose exec -T app php artisan app:config-check
+compose exec -T app php artisan app:launch-check
+
+if [ -n "$url" ]; then
+  command -v curl >/dev/null 2>&1 || {
+    echo "curl is required when APP_PUBLIC_URL is set." >&2
+    exit 69
+  }
+
+  curl --fail --silent --show-error "$url/up" >/dev/null
+  curl --fail --silent --show-error "$url/health/ready" >/dev/null
+
+  platform_status="$(curl --silent --output /dev/null --write-out '%{http_code}' "$url/platform" || true)"
+  if [ "$platform_status" != "302" ]; then
+    echo "Expected unauthenticated /platform to redirect with HTTP 302; received $platform_status." >&2
+    exit 70
+  fi
+fi
+
+echo "Production launch checks passed."
