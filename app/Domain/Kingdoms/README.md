@@ -34,10 +34,19 @@ Slice C1 / `K1-P3` adds the validated snapshot-history candidate:
 - roster current/stale/missing semantics driven by snapshot capture time rather than mutable roster metadata; and
 - member-visible history plus password-confirmed `kingdoms.manage` snapshot recording.
 
-Slice C1 has passed its protected implementation gate and remains a review candidate until accepted into the dependency stack.
+Slice C2 / `K1-P4` adds the roster-intelligence implementation candidate:
 
-The living contracts are documented in [`docs/domains/kingdoms.md`](../../../docs/domains/kingdoms.md), [`docs/domains/kingdoms-roster.md`](../../../docs/domains/kingdoms-roster.md), and [`docs/domains/kingdoms-snapshots.md`](../../../docs/domains/kingdoms-snapshots.md).
+- active/tracked roster totals, exact recorded-power average and median;
+- current/stale/missing snapshot-quality counts;
+- seven-day joins/departures and membership-linkage coverage;
+- exact aggregate 7-day and 30-day power change using bounded historical baselines with no interpolation;
+- member-visible aggregate intelligence under `alliance.view`; and
+- manager-only, alphabetical individual comparison detail under `kingdoms.manage` with no ranking or scoring.
 
-## Not implemented by Slice C1
+Slice B and Slice C1 have passed their protected implementation gates and remain review candidates until accepted into the dependency stack. Slice C2 remains an implementation candidate until its protected gate succeeds.
 
-Roster intelligence/trend calculations (`K1-P4`), CSV import/export (`K1-P5`), transfer planning, diplomacy/NAP intelligence and automated game-data ingestion remain later `KINGDOMS-001` phases or follow-on candidates. Do not add those as dormant schema or represent them as current accepted capability before their owning slice is implemented and passes its gate.
+The living contracts are documented in [`docs/domains/kingdoms.md`](../../../docs/domains/kingdoms.md), [`docs/domains/kingdoms-roster.md`](../../../docs/domains/kingdoms-roster.md), [`docs/domains/kingdoms-snapshots.md`](../../../docs/domains/kingdoms-snapshots.md), and [`docs/domains/kingdoms-intelligence.md`](../../../docs/domains/kingdoms-intelligence.md).
+
+## Not implemented by Slice C2
+
+CSV import/export (`K1-P5`), transfer planning, diplomacy/NAP intelligence, public roster/intelligence API or webhook exposure, cross-alliance rankings, automated scoring/recommendations and automated game-data ingestion remain later `KINGDOMS-001` phases or follow-on candidates. Do not add those as dormant schema or represent them as current accepted capability before their owning slice is approved and implemented.
