@@ -2,13 +2,15 @@
 
 [← Security documentation](README.md)
 
-**Status:** `KINGDOMS-001` Slice C1 / `K1-P3` implementation candidate  
+**Status:** `KINGDOMS-001` Slice C1 / `K1-P3` validated implementation candidate  
 **Scope:** append-only alliance player snapshots, latest/history projection, freshness semantics, manual recording and provenance  
 **Dependency:** validated Slice B roster candidate
 
 ## Security objective
 
 Slice C1 introduces historical game observations without weakening alliance tenancy, roster authorization, privacy boundaries, or auditability. A shared Kingdom or neutral KingdomPlayer must never become a path to another Alliance's snapshot history.
+
+The protected Slice C1 implementation gate has passed. This review remains candidate acceptance evidence until the slice is accepted into the dependency stack; repository validation does not change the existing real-production approval boundary.
 
 ## Assets and trust boundaries
 
@@ -165,9 +167,9 @@ The following remain outside Slice C1 and therefore are not trusted input paths 
 
 Future implementation must add its own authentication, provenance, replay, validation and privacy controls rather than reusing `source` as proof of trust.
 
-## Verification evidence required for Slice C1
+## Verification evidence for Slice C1
 
-Protected validation should cover:
+Protected validation covers:
 
 - migration success on PostgreSQL;
 - `kingdoms.manage` plus recent-password enforcement;
