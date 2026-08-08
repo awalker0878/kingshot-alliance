@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
+use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
 use App\Domain\Kingdoms\Http\Controllers\RosterController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,9 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/roster/manage', [RosterController::class, 'manage'])
         ->name('alliance.roster.manage');
 
+    Route::get('/alliance/roster/{entry}/history', [PlayerSnapshotController::class, 'show'])
+        ->name('alliance.roster.history');
+
     Route::middleware('password.confirm')->group(function (): void {
         Route::post('/alliance/roster', [RosterController::class, 'store'])
             ->name('alliance.roster.store');
@@ -27,5 +31,7 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             ->name('alliance.roster.update');
         Route::post('/alliance/roster/{entry}/leave', [RosterController::class, 'leave'])
             ->name('alliance.roster.leave');
+        Route::post('/alliance/roster/{entry}/snapshots', [PlayerSnapshotController::class, 'store'])
+            ->name('alliance.roster.snapshots.store');
     });
 });
