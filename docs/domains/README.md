@@ -11,7 +11,13 @@ This directory documents business/domain behavior and ownership. Runtime code re
 - [Recruitment](RECRUITMENT.md) — application modes, candidate pipeline, review, decisions, conversion, metrics, and retention.
 - [Contributions and reporting](CONTRIBUTIONS_AND_REPORTING.md) — contribution records, calculation semantics, corrections, reporting, exports, and data quality.
 - [Platform scale and administration](PLATFORM_SCALE_AND_ADMINISTRATION.md) — platform administration, tenant lifecycle, entitlements, API/webhook controls, retention, and operational scale.
-- [Repository/domain structure audit](STRUCTURE_AUDIT.md) — evidence for the canonical domain-first physical layout and boundary cleanup.
+
+## Architecture evidence
+
+- [Repository/domain structure audit](STRUCTURE_AUDIT.md) — evidence for the canonical domain-first physical layout.
+- [Domain boundary audit](DOMAIN_BOUNDARY_AUDIT.md) — evidence for semantic ownership and intentional cross-domain contracts.
+
+These audits explain how the current structure was validated; the [implementation plan](../product/IMPLEMENTATION_PLAN.md) and accepted ADRs remain the normative architecture sources.
 
 ## Canonical runtime domains
 
