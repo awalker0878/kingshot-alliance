@@ -86,9 +86,25 @@ final class RepositoryStructureTest extends TestCase
         self::assertSame([], $broken, "Broken local Markdown links:\n".implode("\n", $broken));
     }
 
-    public function test_documentation_contains_no_legacy_uppercase_markdown_filenames(): void
+    public function test_documentation_contains_no_legacy_markdown_filenames(): void
     {
-        $legacy = [];
+        $legacyNames = [];
+
+        foreach ($this->documentationFiles() as $path) {
+            $basename = basename($path);
+
+            if ($basename === 'README.md') {
+                continue;
+            }
+
+            $stem = substr($basename, 0, -3);
+            $legacyNames[] = strtoupper(str_replace('-', '_', $stem)).'.md';
+        }
+
+        $legacyNames = array_values(array_unique($legacyNames));
+        sort($legacyNames);
+
+        $legacyReferences = [];
         $files = [
             $this->root().'/README.md',
             $this->root().'/CONTRIBUTING.md',
@@ -99,18 +115,16 @@ final class RepositoryStructureTest extends TestCase
             $contents = file_get_contents($path);
             self::assertIsString($contents);
 
-            preg_match_all('/\b[A-Z0-9]+(?:_[A-Z0-9]+)+\.md\b/', $contents, $matches);
-
-            foreach ($matches[0] ?? [] as $target) {
-                if (is_string($target)) {
-                    $legacy[] = sprintf('%s -> %s', $this->relativePath($path), $target);
+            foreach ($legacyNames as $target) {
+                if (str_contains($contents, $target)) {
+                    $legacyReferences[] = sprintf('%s -> %s', $this->relativePath($path), $target);
                 }
             }
         }
 
-        sort($legacy);
+        sort($legacyReferences);
 
-        self::assertSame([], $legacy, "Legacy uppercase Markdown filename references:\n".implode("\n", $legacy));
+        self::assertSame([], $legacyReferences, "Legacy Markdown filename references:\n".implode("\n", $legacyReferences));
     }
 
     public function test_path_like_markdown_references_in_code_spans_resolve(): void
