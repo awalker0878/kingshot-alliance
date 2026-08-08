@@ -7,15 +7,14 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::create('kingdoms', function (Blueprint $table): void {
-            $table->unsignedInteger('number')->unique();
             $table->ulid('id')->primary();
+            $table->integer('number')->unique();
             $table->string('status', 24)->default('active')->index();
             $table->timestamps();
         });
@@ -23,7 +22,6 @@ return new class extends Migration
         Schema::table('alliances', function (Blueprint $table): void {
             $table->foreignUlid('kingdom_id')
                 ->nullable()
-                ->after('slug')
                 ->constrained('kingdoms')
                 ->restrictOnDelete();
         });
@@ -76,7 +74,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('alliances', function (Blueprint $table): void {
-            $table->string('kingdom', 64)->nullable()->after('slug');
+            $table->string('kingdom', 64)->nullable();
         });
 
         $alliances = DB::table('alliances')
@@ -113,7 +111,7 @@ return new class extends Migration
         }
 
         if (! preg_match('/^(?:(?:kingdom|k)\s*#?\s*)?([0-9]+)$/i', $raw, $matches)) {
-            throw new RuntimeException(
+            throw new \RuntimeException(
                 "Alliance {$allianceId} has a legacy kingdom value that cannot be normalized safely.",
             );
         }
@@ -122,7 +120,7 @@ return new class extends Migration
         $digits = $digits === '' ? '0' : $digits;
 
         if (strlen($digits) > 10) {
-            throw new RuntimeException(
+            throw new \RuntimeException(
                 "Alliance {$allianceId} has a legacy kingdom number outside the supported range.",
             );
         }
@@ -130,7 +128,7 @@ return new class extends Migration
         $number = (int) $digits;
 
         if ($number < 1 || $number > 2_147_483_647) {
-            throw new RuntimeException(
+            throw new \RuntimeException(
                 "Alliance {$allianceId} has a legacy kingdom number outside the supported range.",
             );
         }
