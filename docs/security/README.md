@@ -7,6 +7,7 @@ This directory owns security requirements, threat models, and launch-security ev
 ## Start here
 
 - [Security baseline](security-baseline.md) — cross-cutting requirements for authentication, authorization, tenancy, data handling, transport, secrets, dependencies, audit, and operational security.
+- [Kingdoms foundation security review](kingdoms-foundation-security-review.md) — current `KINGDOMS-001` Slice A review for global Kingdom references, alliance association, migration, authorization, audit/outbox, and tenant-boundary risks.
 - [Production launch security review](production-launch-security-review.md) — repository-controlled launch-security review and the external controls that remain operational responsibilities.
 - [Production launch approval](../product/production-launch-approval.md) — authoritative real-production go/no-go record.
 
@@ -19,7 +20,7 @@ This directory owns security requirements, threat models, and launch-security ev
 - [Phase 5 threat model](phase-5-threat-model.md) — contribution records, calculations, corrections, exports, and reporting.
 - [Phase 6 threat model](phase-6-threat-model.md) — platform administration, tenant lifecycle, API/webhook access, retention, and scale.
 
-Threat models are historical evidence for the phase in which the risk was introduced. The security baseline and current launch-security/approval records govern present production readiness.
+Threat models are historical evidence for the phase in which the risk was introduced. Current post-program feature work should use a current security review when the historical phase models are no longer the right evidence surface. The security baseline and current launch-security/approval records continue to govern production readiness.
 
 ## Security documentation rules
 
@@ -32,6 +33,6 @@ Threat models are historical evidence for the phase in which the risk was introd
 
 ## Updating security evidence
 
-For a material change, update the owning threat model or create a new current security review when the old phase model is no longer the right evidence surface. Also update related ADRs, operations guidance, tests, and product acceptance records in the same PR where appropriate.
+For a material change, update the owning threat model or create/update a current security review when the old phase model is no longer the right evidence surface. Also update related ADRs, operations guidance, tests, and product acceptance records in the same PR where appropriate.
 
-A new threat model should identify assets, trust boundaries, attackers/abuse cases, controls, residual risks, verification, and any external evidence that must be owned outside the repository.
+A new threat model/security review should identify assets, trust boundaries, attackers/abuse cases, controls, residual risks, verification, and any external evidence that must be owned outside the repository.
