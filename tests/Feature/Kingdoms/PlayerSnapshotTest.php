@@ -76,7 +76,10 @@ final class PlayerSnapshotTest extends TestCase
             ->handle($owner, 'Confirm Snapshot', 'confirm-snapshot', 3202);
         $entry = $this->createRosterEntry($owner, $alliance, 'Confirm Player');
 
-        $this->withSession($this->activeSession($alliance->id))
+        $this->withSession([
+            ...$this->activeSession($alliance->id),
+            'auth.password_confirmed_at' => 0,
+        ])
             ->post('/alliance/roster/'.$entry->id.'/snapshots', $this->snapshotPayload('100'))
             ->assertRedirect(route('password.confirm'));
 
