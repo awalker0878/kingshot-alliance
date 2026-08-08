@@ -14,8 +14,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('kingdoms', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
             $table->unsignedInteger('number')->unique();
+            $table->ulid('id')->primary();
             $table->string('status', 24)->default('active')->index();
             $table->timestamps();
         });
@@ -129,7 +129,7 @@ return new class extends Migration
 
         $number = (int) $digits;
 
-        if ($number < 1 || $number > 4_294_967_295) {
+        if ($number < 1 || $number > 2_147_483_647) {
             throw new RuntimeException(
                 "Alliance {$allianceId} has a legacy kingdom number outside the supported range.",
             );
