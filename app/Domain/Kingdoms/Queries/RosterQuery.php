@@ -80,15 +80,20 @@ final class RosterQuery
     /** @return list<string> */
     public function rolesForAlliance(Alliance $alliance): array
     {
-        return AllianceRosterEntry::query()
+        $roles = [];
+
+        foreach (AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
             ->whereNotNull('game_role')
             ->where('game_role', '<>', '')
             ->distinct()
             ->orderBy('game_role')
-            ->pluck('game_role')
-            ->filter(static fn (mixed $role): bool => is_string($role) && $role !== '')
-            ->values()
-            ->all();
+            ->pluck('game_role') as $role) {
+            if (is_string($role) && $role !== '') {
+                $roles[] = $role;
+            }
+        }
+
+        return $roles;
     }
 }
