@@ -7,7 +7,8 @@ This directory owns security requirements, threat models, and launch-security ev
 ## Start here
 
 - [Security baseline](security-baseline.md) — cross-cutting requirements for authentication, authorization, tenancy, data handling, transport, secrets, dependencies, audit, and operational security.
-- [Kingdoms foundation security review](kingdoms-foundation-security-review.md) — current `KINGDOMS-001` Slice A review for global Kingdom references, alliance association, migration, authorization, audit/outbox, and tenant-boundary risks.
+- [Kingdoms foundation security review](kingdoms-foundation-security-review.md) — validated `KINGDOMS-001` Slice A review for global Kingdom references, alliance association, migration, authorization, audit/outbox, and tenant-boundary risks.
+- [Kingdoms roster security review](kingdoms-roster-security-review.md) — Slice B implementation-candidate review for neutral game-player identity, alliance roster tenancy, membership linkage, private manager data, authorization, search/filter isolation, and audit/outbox controls.
 - [Production launch security review](production-launch-security-review.md) — repository-controlled launch-security review and the external controls that remain operational responsibilities.
 - [Production launch approval](../product/production-launch-approval.md) — authoritative real-production go/no-go record.
 
