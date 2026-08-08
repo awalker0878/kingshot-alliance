@@ -2,11 +2,11 @@
 
 [← Documentation home](../README.md)
 
-Kingshot Alliance is an enterprise modular monolith organized by explicit business domains. The canonical physical repository structure is defined by the [implementation plan](../product/implementation-plan.md) and ADR 0008.
+Kingshot Alliance is an enterprise modular monolith organized by explicit business domains. The canonical physical repository structure is defined by the [implementation plan](../product/implementation-plan.md) and ADR 0008; approved post-program scope is recorded through named product increments under `../product/`.
 
 ## Current architecture view
 
-This section is a living system map for the current Phase 0–6-complete runtime. It summarizes accepted decisions and current implementation boundaries; the numbered ADRs remain the durable record of why those decisions were made.
+This section is a living system map for the current Phase 0–6-complete runtime. It summarizes accepted decisions and current implementation boundaries; the numbered ADRs remain the durable record of why those decisions were made. Approved roadmap scope is called out separately and must not be confused with runtime capability.
 
 ```text
 Browser / API client
@@ -69,7 +69,7 @@ Runtime PHP is domain-first under `app/Domain/<Domain>`. The canonical roots are
 
 `Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, and `Recruitment`.
 
-`Kingdoms` is intentionally reserved and documentation-only; it is not an implemented runtime capability. The current domain contracts and boundaries are indexed under [domain documentation](../domains/README.md).
+`Kingdoms` remains documentation-only in the current runtime, but its first implementation is now approved as [`KINGDOMS-001` — Kingdoms roster intelligence](../product/kingdoms-roster-intelligence-increment.md). That scope introduces a global Kingdom reference, separate game-player identity, alliance-scoped roster observations/snapshots, manual/CSV workflows, and roster intelligence. None of those capabilities should be represented as implemented until the increment is built and accepted. Current domain contracts and boundaries are indexed under [domain documentation](../domains/README.md).
 
 Identity is global. Alliance-scoped business behavior activates an explicit alliance context and requires an active membership before tenant data is accessed. Platform administration is intentionally cross-tenant and does not reuse alliance roles as its authorization model. These boundaries follow ADR 0002 and the living [identity/tenancy/membership](../domains/identity-tenancy-and-membership.md) and [platform administration](../domains/platform-scale-and-administration.md) contracts.
 
@@ -91,6 +91,8 @@ See [ADR 0004](0004-queues-and-transactional-outbox.md), [Notifications](../doma
 
 Tenant isolation is enforced as an architectural property, not merely a naming convention. Tenant-bound cache/storage keys and cross-domain queries must preserve alliance identity explicitly.
 
+The approved `KINGDOMS-001` scope preserves this rule by separating global neutral Kingdom/player references from alliance-scoped roster entries, notes, snapshots, imports, exports, and derived metrics.
+
 ### Trust and integration boundaries
 
 External API access uses alliance-bound read-only credentials and fixed scopes. Outbound webhooks are signed and retried, but deployment infrastructure must still enforce egress/SSRF controls; application URL validation alone is not a production network boundary.
@@ -111,7 +113,7 @@ See [ADR 0006](0006-observability-and-correlation.md) and [Observability](../ope
 
 Repository automation proves code/test quality, immutable image construction, staging boot, migrations, health checks, backup/restore tooling, and image scanning. It does not prove real production ingress/TLS, egress enforcement, alert ownership, capacity, operator identity, support coverage, managed dependency configuration, or recovery of production-managed keys/media.
 
-Repository production hardening is accepted; a real production cutover remains **not yet approved**. The authoritative decision remains [production launch approval](../product/production-launch-approval.md).
+Repository production hardening is accepted; a real production cutover remains **not yet approved**. Approval of `KINGDOMS-001` does not change that production decision. The authoritative decision remains [production launch approval](../product/production-launch-approval.md).
 
 ## Decision records
 
@@ -130,7 +132,7 @@ Use [the ADR template](adr-template.md) for new material decisions.
 
 Use an ADR for a material architecture decision whose rationale and consequences should survive individual PRs. Prefer updating operational/domain documentation for implementation detail that does not change architecture.
 
-A new ADR should clearly identify its status and relationship to earlier decisions. If a decision replaces an older ADR, mark the older record superseded rather than silently rewriting the historical rationale. The implementation plan remains authoritative for approved product scope and the canonical repository groups; an ADR may refine that architecture but must not silently expand program scope.
+A new ADR should clearly identify its status and relationship to earlier decisions. If a decision replaces an older ADR, mark the older record superseded rather than silently rewriting the historical rationale. The implementation plan remains authoritative for the completed Phase 0–6 baseline and canonical repository groups; approved product-increment scopes may extend product scope after that baseline. An ADR may refine the architecture but must not silently expand product scope.
 
 ## Canonical source structure
 
@@ -171,4 +173,4 @@ Runtime PHP is owned by a canonical `app/Domain/<Domain>` module. Internal organ
 
 Domains should communicate through intentional public actions, queries, services, value objects, or events. A cross-domain dependency must be part of the other domain's supported contract rather than an accidental dependency on its persistence internals.
 
-Architecture documentation must not introduce additional top-level `app/`, `docs/`, or `tests/` groupings that conflict with the implementation plan and repository-structure tests.
+Architecture documentation must not introduce additional top-level `app/`, `docs/`, or `tests/` groupings that conflict with the baseline implementation plan, approved increment scope, and repository-structure tests.
