@@ -14,10 +14,10 @@ This directory documents business/domain behavior and ownership. Runtime code re
 - [Notifications](notifications.md) — event-reminder delivery state, scheduled-report coordination, idempotency, scheduler flow, and recovery.
 - [Integrations](integrations.md) — API credential/authentication contract, read-only API endpoints, webhook signing/delivery contract, and integration boundaries.
 - [Kingdoms](kingdoms.md) — first-class global Kingdom references, alliance Kingdom association, migration behavior, authorization, audit/outbox, and the validated Slice A foundation.
-- [Kingdoms roster](kingdoms-roster.md) — Slice B game-player identity, alliance-owned roster, membership linkage, roster authorization, filtering, data minimization, and tenant-isolation candidate contract.
+- [Kingdoms roster](kingdoms-roster.md) — Slice B game-player identity, alliance-owned roster, membership linkage, roster authorization, filtering, data minimization, and tenant-isolation validated-candidate contract.
 - [Platform scale and administration](platform-scale-and-administration.md) — platform administration, tenant lifecycle, entitlements, API/webhook controls, retention, and operational scale.
 
-The Kingdom foundation from `KINGDOMS-001` Slice A / `K1-P1` is validated. Slice B / `K1-P2` is an implementation candidate until its protected gate succeeds. Historical player snapshots, intelligence and CSV workflows remain later approved phases and must not be inferred from the roster foundation.
+The Kingdom foundation from `KINGDOMS-001` Slice A / `K1-P1` is validated. Slice B / `K1-P2` has passed its protected validation gate and remains a review candidate until accepted into the dependency stack. Historical player snapshots, intelligence and CSV workflows remain later approved phases and must not be inferred from the roster foundation.
 
 ## Architecture evidence
 
@@ -32,7 +32,7 @@ The implementation plan defines these canonical ownership roots:
 
 `Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, and `Recruitment`.
 
-All canonical roots own runtime PHP. `Kingdoms` owns the validated first-class Kingdom foundation and the Slice B roster candidate on this branch; later `KINGDOMS-001` capabilities remain approved scope rather than current validated behavior until their own implementation phases pass their gates.
+All canonical roots own runtime PHP. `Kingdoms` owns the validated first-class Kingdom foundation and the validated Slice B roster candidate on this branch; later `KINGDOMS-001` capabilities remain approved scope rather than current accepted behavior until their own implementation phases pass their gates and are accepted into the dependency stack.
 
 A domain does not require a separate Markdown file merely because it has runtime code. Add a domain guide when it clarifies a meaningful workflow, public contract, lifecycle, or cross-domain boundary that would otherwise be duplicated across implementation files.
 
