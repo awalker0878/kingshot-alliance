@@ -40,11 +40,11 @@ Code and tests remain authoritative for exact runtime behavior. The [implementat
 
 ## Approved roadmap scope — implementation incomplete
 
-Approved scope is not automatically current validated runtime capability. Candidate rows distinguish code under review from capabilities that have passed their protected implementation gate.
+Approved scope is not automatically current validated runtime capability. Candidate rows distinguish code under review from capabilities already accepted into the dependency stack.
 
 | Scope | Status | Remaining outcome | Authoritative scope |
 | --- | --- | --- | --- |
-| `KINGDOMS-001` — Kingdoms roster intelligence | **In progress — Slice A validated; Slice B roster implementation candidate** | Validate and accept game-player identity, alliance roster/member-link workflows, `kingdoms.manage`, filtering/linkage visibility and their audit/outbox/tenant-isolation controls; then implement historical snapshots, intelligence and CSV workflows in later slices | [Kingdoms roster intelligence product increment](kingdoms-roster-intelligence-increment.md), [implementation plan](kingdoms-roster-intelligence-implementation-plan.md), [Slice B roster contract](../domains/kingdoms-roster.md) |
+| `KINGDOMS-001` — Kingdoms roster intelligence | **In progress — Slice A validated; Slice B roster validated implementation candidate** | Review/accept the validated Slice B game-player identity, roster/member-link workflows, `kingdoms.manage`, filtering/linkage visibility and their audit/outbox/tenant-isolation controls; then implement historical snapshots, intelligence and CSV workflows in later slices | [Kingdoms roster intelligence product increment](kingdoms-roster-intelligence-increment.md), [implementation plan](kingdoms-roster-intelligence-implementation-plan.md), [Slice B roster contract](../domains/kingdoms-roster.md) |
 
 Candidate transfer planning, kingdom-alliance intelligence, automated game-data ingestion and opt-in cross-alliance intelligence are listed as follow-on roadmap candidates inside `KINGDOMS-001`; they are **not approved implementation scope** until each receives its own increment record.
 
@@ -53,7 +53,7 @@ Candidate transfer planning, kingdom-alliance intelligence, automated game-data 
 | Area | Current state | Meaning |
 | --- | --- | --- |
 | `Kingdoms` validated capability | **Partially implemented — Kingdom foundation validated** | First-class global Kingdom records and authorized Alliance→Kingdom association have passed their Slice A implementation gate. |
-| Slice B roster capability | **Implementation candidate / not yet promoted** | The Slice B branch adds neutral game-player identity, alliance-owned roster entries, optional membership links, `kingdoms.manage`, manual roster management, filtering/linkage-gap views, data minimization, audit/outbox and tenant-isolation tests. It does not become validated current capability until its protected gate succeeds. |
+| Slice B roster capability | **Validated implementation candidate / not merged** | The Slice B branch adds neutral game-player identity, alliance-owned roster entries, optional membership links, `kingdoms.manage`, manual roster management, filtering/linkage-gap views, data minimization, audit/outbox and tenant-isolation tests. Its protected validation gate is green; it remains a review candidate until accepted into the dependency stack. |
 | Later `KINGDOMS-001` capability | **Not implemented** | Player power/history snapshots, snapshot-derived stale state, roster intelligence/trends and CSV workflows remain `K1-P3`–`K1-P5`. |
 | Legacy free-form alliance kingdom storage | **Removed** | Alliance persistence uses `kingdom_id`; existing presentation/API `kingdom` values are derived from the canonical relation rather than a compatibility column. |
 | Automated Kingshot game-data ingestion | **Not approved / not implemented** | `KINGDOMS-001` is manual/import first. Scraping, OCR, bots, and undocumented/unapproved APIs are explicitly outside its scope. |
