@@ -38,6 +38,14 @@ final class RosterController extends Controller
             throw new AuthorizationException;
         }
 
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:160'],
+            'state' => ['nullable', Rule::in(array_column(RosterState::cases(), 'value'))],
+            'linkage' => ['nullable', Rule::in(['linked', 'unlinked'])],
+            'role' => ['nullable', 'string', 'max:64'],
+            'observation' => ['nullable', Rule::in(['current', 'stale', 'missing'])],
+        ]);
+
         return Inertia::render('Alliance/Roster', [
             'alliance' => [
                 'id' => (string) $alliance->id,
@@ -45,7 +53,16 @@ final class RosterController extends Controller
                 'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
             ],
             'canManage' => $authorization->allows($user, $alliance, PermissionKey::KingdomManage),
-            'entries' => $this->entries($roster->forAlliance($alliance), false),
+            'entries' => $this->entries($roster->forAlliance($alliance, $filters), false),
+            'filters' => [
+                'q' => (string) ($filters['q'] ?? ''),
+                'state' => (string) ($filters['state'] ?? ''),
+                'linkage' => (string) ($filters['linkage'] ?? ''),
+                'role' => (string) ($filters['role'] ?? ''),
+                'observation' => (string) ($filters['observation'] ?? ''),
+            ],
+            'roleOptions' => $roster->rolesForAlliance($alliance),
+            'staleAfterDays' => RosterQuery::STALE_AFTER_DAYS,
         ]);
     }
 
@@ -62,6 +79,15 @@ final class RosterController extends Controller
             throw new AuthorizationException;
         }
 
+        $entries = $roster->forAlliance($alliance);
+        $membershipLinks = [];
+
+        foreach ($entries as $entry) {
+            if ($entry->membership_id !== null) {
+                $membershipLinks[(string) $entry->membership_id] = (string) $entry->id;
+            }
+        }
+
         $memberships = AllianceMembership::query()
             ->where('alliance_id', $alliance->id)
             ->where('status', MembershipStatus::Active->value)
@@ -72,9 +98,9 @@ final class RosterController extends Controller
                 'id' => (string) $membership->id,
                 'name' => (string) $membership->user?->name,
                 'email' => (string) $membership->user?->email,
+                'linkedRosterEntryId' => $membershipLinks[(string) $membership->id] ?? null,
             ])
-            ->values()
-            ->all();
+            ->values();
 
         return Inertia::render('Alliance/RosterManage', [
             'alliance' => [
@@ -82,9 +108,16 @@ final class RosterController extends Controller
                 'name' => (string) $alliance->name,
                 'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
             ],
-            'entries' => $this->entries($roster->forAlliance($alliance), true),
-            'memberships' => $memberships,
+            'entries' => $this->entries($entries, true),
+            'memberships' => $memberships->all(),
             'states' => [RosterState::Active->value, RosterState::Tracked->value],
+            'gaps' => [
+                'membershipsWithoutRoster' => $memberships
+                    ->filter(static fn (array $membership): bool => $membership['linkedRosterEntryId'] === null)
+                    ->values()
+                    ->all(),
+                'rosterWithoutMembership' => $entries->whereNull('membership_id')->count(),
+            ],
         ]);
     }
 
@@ -153,9 +186,22 @@ final class RosterController extends Controller
         $rows = [];
 
         foreach ($entries as $entry) {
+            $membership = null;
+
+            if ($entry->membership !== null) {
+                $membership = $includePrivate
+                    ? [
+                        'id' => (string) $entry->membership->id,
+                        'name' => (string) $entry->membership->user?->name,
+                        'email' => (string) $entry->membership->user?->email,
+                    ]
+                    : [
+                        'name' => (string) $entry->membership->user?->name,
+                    ];
+            }
+
             $row = [
                 'id' => (string) $entry->id,
-                'playerId' => (string) $entry->kingdom_player_id,
                 'gamePlayerId' => $entry->player->game_player_id,
                 'name' => (string) $entry->observed_name,
                 'gameRole' => $entry->game_role,
@@ -164,11 +210,7 @@ final class RosterController extends Controller
                 'leftAt' => $entry->left_at?->toIso8601String(),
                 'lastObservedAt' => $entry->last_observed_at?->toIso8601String(),
                 'source' => (string) $entry->source,
-                'membership' => $entry->membership === null ? null : [
-                    'id' => (string) $entry->membership->id,
-                    'name' => (string) $entry->membership->user?->name,
-                    'email' => (string) $entry->membership->user?->email,
-                ],
+                'membership' => $membership,
             ];
 
             if ($includePrivate) {
