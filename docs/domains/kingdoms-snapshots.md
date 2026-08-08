@@ -2,11 +2,11 @@
 
 [← Kingdoms roster](kingdoms-roster.md)
 
-**Status:** `KINGDOMS-001` Slice C1 / `K1-P3` implementation candidate  
+**Status:** `KINGDOMS-001` Slice C1 / `K1-P3` validated implementation candidate  
 **Dependency:** validated Slice B roster candidate  
 **Approved scope:** [Kingdoms roster intelligence increment](../product/kingdoms-roster-intelligence-increment.md)
 
-This guide defines the current Slice C1 contract for time-series game observations. Snapshot history is append-oriented and alliance-scoped. It does not implement the aggregate intelligence/trend calculations owned by `K1-P4`.
+This guide defines the validated Slice C1 implementation contract for time-series game observations. Its protected implementation gate has passed; the slice remains a review candidate until accepted into the dependency stack. Snapshot history is append-oriented and alliance-scoped. It does not implement the aggregate intelligence/trend calculations owned by `K1-P4`.
 
 ## Ownership and identity
 
