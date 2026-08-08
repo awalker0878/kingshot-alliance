@@ -49,12 +49,13 @@ Roster read requires `alliance.view`. Management views and mutations require `ki
 | --- | --- |
 | Submitted roster-entry ID targets another alliance | Mutation actions re-resolve the entry with the active `alliance_id`; foreign IDs fail closed. |
 | Submitted membership ID links another alliance's account | Membership resolution requires the active alliance and active membership state. |
-| One membership is attached to multiple roster identities | Database uniqueness plus action validation permit only one roster link per alliance membership. |
+| One membership is attached to multiple roster identities | Database uniqueness plus action validation permit only one roster link per alliance membership. Updates exclude the current roster entry so retaining its own valid link is allowed. |
 | One game player is duplicated on the same alliance roster | Database uniqueness plus action validation permit one alliance roster entry per KingdomPlayer. |
 | Same display name causes accidental merge | Resolver never deduplicates by player name. |
 | Stable game ID from another Kingdom causes collision | Stable identifier reuse is scoped by `kingdom_id`. |
-| Shared game identity leaks another alliance's private observations | Mutable names, role/state, membership links and manager notes live on `AllianceRosterEntry`, not the global KingdomPlayer. |
-| Ordinary member sees private manager notes | Member-facing roster representation must omit manager notes; management representation is gated by `kingdoms.manage`. |
+| Shared game identity leaks another alliance's private observations | Mutable names, role/state, membership links and manager notes live on `AllianceRosterEntry`, not the global KingdomPlayer. Read queries begin from active `alliance_id`. |
+| Search/filter query discloses another alliance in the same Kingdom | Every roster search/filter predicate is applied to a query already constrained by the active Alliance. Kingdom/player identity is never an authorization key. |
+| Ordinary member sees private membership/contact or manager data | Member-facing roster serialization emits linked member display name only; membership IDs/email and manager notes are excluded. Management serialization is gated by `kingdoms.manage`. |
 | Privileged roster mutation is unattributable | Create/update/leave actions emit alliance-scoped audit records and matching transactional-outbox messages. |
 | Repeated leave request duplicates business events | Mark-left is a no-op when already left. |
 | Membership is deleted/left | The optional FK is nulled on physical membership deletion; game-player/roster identity remains. Membership lifecycle must not erase roster history. |
@@ -63,9 +64,15 @@ Roster read requires `alliance.view`. Management views and mutations require `ki
 
 ## Member-data minimization
 
-Ordinary roster readers need the linked member's display identity, not private manager fields. Member-facing payloads should not expose manager notes or unnecessary account/contact attributes such as membership email addresses.
+Ordinary roster readers need the linked member's display identity, not account linkage metadata. The member-facing payload includes only the linked member display name and omits membership ID, membership email and private manager notes.
 
-Manager pages may use member email to disambiguate membership linking because they already operate behind `kingdoms.manage`; that field must not become part of the ordinary roster contract.
+Manager pages may use member ID/email to disambiguate membership linking because they already operate behind `kingdoms.manage`; those values remain management-only.
+
+## Manual observation freshness
+
+Slice B may classify a manual roster row as current, stale or missing using `last_observed_at`. The candidate threshold is 30 days for the roster-maintenance surface.
+
+This is not a power/snapshot freshness signal and must not be presented as one. Historical observations and their stale/missing semantics require the `K1-P3` security/data review.
 
 ## Events and outbox
 
