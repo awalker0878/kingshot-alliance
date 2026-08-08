@@ -24,7 +24,7 @@ Slice B / `K1-P2` adds the validated roster candidate:
 - tenant-scoped search/filter behavior and linkage-gap reporting; and
 - private manager notes/contact details excluded from ordinary member roster payloads.
 
-Slice C1 / `K1-P3` adds the snapshot-history implementation candidate:
+Slice C1 / `K1-P3` adds the validated snapshot-history candidate:
 
 - append-only alliance-scoped `PlayerSnapshot` observations tied to roster and neutral game-player identity;
 - signed 64-bit integer power, optional progression/level and observed alliance/tag values;
@@ -33,6 +33,8 @@ Slice C1 / `K1-P3` adds the snapshot-history implementation candidate:
 - latest-observation and history queries scoped by active Alliance;
 - roster current/stale/missing semantics driven by snapshot capture time rather than mutable roster metadata; and
 - member-visible history plus password-confirmed `kingdoms.manage` snapshot recording.
+
+Slice C1 has passed its protected implementation gate and remains a review candidate until accepted into the dependency stack.
 
 The living contracts are documented in [`docs/domains/kingdoms.md`](../../../docs/domains/kingdoms.md), [`docs/domains/kingdoms-roster.md`](../../../docs/domains/kingdoms-roster.md), and [`docs/domains/kingdoms-snapshots.md`](../../../docs/domains/kingdoms-snapshots.md).
 
