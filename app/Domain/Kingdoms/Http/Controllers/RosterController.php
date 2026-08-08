@@ -178,7 +178,7 @@ final class RosterController extends Controller
     }
 
     /**
-     * @param iterable<int, AllianceRosterEntry> $entries
+     * @param  iterable<int, AllianceRosterEntry>  $entries
      * @return list<array<string, mixed>>
      */
     private function entries(iterable $entries, bool $includePrivate): array
