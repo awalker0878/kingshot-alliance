@@ -40,7 +40,7 @@ return new class extends Migration
                 continue;
             }
 
-            if (!isset($kingdomIds[$number])) {
+            if (! isset($kingdomIds[$number])) {
                 $existing = DB::table('kingdoms')->where('number', $number)->value('id');
 
                 if (is_string($existing) && $existing !== '') {
@@ -110,7 +110,7 @@ return new class extends Migration
             return null;
         }
 
-        if (!preg_match('/^(?:(?:kingdom|k)\s*#?\s*)?([0-9]+)$/i', $raw, $matches)) {
+        if (! preg_match('/^(?:(?:kingdom|k)\s*#?\s*)?([0-9]+)$/i', $raw, $matches)) {
             throw new \RuntimeException(
                 "Alliance {$allianceId} has a legacy kingdom value that cannot be normalized safely.",
             );
