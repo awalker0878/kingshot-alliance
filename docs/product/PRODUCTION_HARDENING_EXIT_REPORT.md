@@ -1,6 +1,6 @@
 # Production Hardening Exit Report
 
-**Status:** Candidate — protected validation pending  
+**Status:** Accepted  
 **Stage:** Post-Phase-6 production hardening
 
 ## Scope
@@ -30,6 +30,23 @@ Automated tests cover:
 - fail-closed launch status when platform-administrator redundancy is missing;
 - successful repository-controlled launch readiness when production configuration, MFA-backed administrators, queues, outbox, and integrations are healthy.
 
-## Final gate
+## Acceptance evidence
 
-This report remains **Candidate** until the exact PR head passes formatting, PHPStan, the complete backend/frontend test suites, PostgreSQL migration, dependency review, CodeQL, immutable-image build, ephemeral staging deployment, backup/restore, and image scanning. Once those gates are green and review/hygiene checks are clean, this report may be updated to **Accepted** before merge.
+Protected validation passed on implementation head `8ff6b63253f768705c51566ea035ce680d0fe034`:
+
+- PostgreSQL migration;
+- PHP formatting and PHPStan;
+- complete backend suite: 185 tests / 1,555 assertions;
+- complete frontend checks;
+- Dependency Review;
+- CodeQL;
+- immutable production-image build;
+- ephemeral staging deployment;
+- backup/restore demonstration;
+- image vulnerability scan.
+
+Review/hygiene inspection found no unresolved review threads and no temporary workflow or diagnostic artifacts in the PR diff.
+
+## Acceptance decision
+
+Repository-controlled production hardening is **Accepted**. This acceptance does **not** approve a real production cutover. `docs/product/PRODUCTION_LAUNCH_APPROVAL.md` remains the authoritative go/no-go record for external production controls and must remain unapproved until those controls are evidenced by accountable operators.
