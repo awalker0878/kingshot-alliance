@@ -8,6 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 
 final class PlayerSnapshotQuery
 {
@@ -19,11 +20,7 @@ final class PlayerSnapshotQuery
      */
     public function latestForEntries(Alliance $alliance, iterable $entries): array
     {
-        $entryIds = [];
-
-        foreach ($entries as $entry) {
-            $entryIds[] = (string) $entry->id;
-        }
+        $entryIds = $this->entryIds($entries);
 
         if ($entryIds === []) {
             return [];
@@ -41,10 +38,45 @@ final class PlayerSnapshotQuery
             ->with('actor:id,name')
             ->get();
 
+        return $this->byEntry($latest);
+    }
+
+    /**
+     * For an N-day comparison, select the closest observation at or before now-N days,
+     * but not older than now-2N days. This avoids claiming a short interval as an
+     * N-day trend and rejects arbitrarily old baselines when history is sparse.
+     *
+     * @param  iterable<int, AllianceRosterEntry>  $entries
+     * @return array<string, PlayerSnapshot>
+     */
+    public function baselinesForEntries(
+        Alliance $alliance,
+        iterable $entries,
+        int $days,
+        Carbon $asOf,
+    ): array {
+        $entryIds = $this->entryIds($entries);
+
+        if ($entryIds === []) {
+            return [];
+        }
+
+        $target = $asOf->copy()->subDays($days);
+        $oldest = $asOf->copy()->subDays($days * 2);
+        $candidates = PlayerSnapshot::query()
+            ->where('alliance_id', $alliance->id)
+            ->whereIn('roster_entry_id', $entryIds)
+            ->where('captured_at', '<=', $target)
+            ->where('captured_at', '>=', $oldest)
+            ->orderBy('roster_entry_id')
+            ->orderByDesc('captured_at')
+            ->orderByDesc('id')
+            ->get();
         $byEntry = [];
 
-        foreach ($latest as $snapshot) {
-            $byEntry[(string) $snapshot->roster_entry_id] = $snapshot;
+        foreach ($candidates as $snapshot) {
+            $entryId = (string) $snapshot->roster_entry_id;
+            $byEntry[$entryId] ??= $snapshot;
         }
 
         return $byEntry;
@@ -75,5 +107,35 @@ final class PlayerSnapshotQuery
             ->with('actor:id,name')
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * @param  iterable<int, AllianceRosterEntry>  $entries
+     * @return list<string>
+     */
+    private function entryIds(iterable $entries): array
+    {
+        $ids = [];
+
+        foreach ($entries as $entry) {
+            $ids[] = (string) $entry->id;
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @param  iterable<int, PlayerSnapshot>  $snapshots
+     * @return array<string, PlayerSnapshot>
+     */
+    private function byEntry(iterable $snapshots): array
+    {
+        $byEntry = [];
+
+        foreach ($snapshots as $snapshot) {
+            $byEntry[(string) $snapshot->roster_entry_id] = $snapshot;
+        }
+
+        return $byEntry;
     }
 }
