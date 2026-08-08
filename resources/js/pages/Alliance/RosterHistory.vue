@@ -78,7 +78,10 @@ function recordSnapshot(): void {
   <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 text-slate-100 lg:px-8">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <Link class="text-sm font-semibold text-cyan-300 hover:text-cyan-200" href="/alliance/roster">
+        <Link
+          class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+          href="/alliance/roster"
+        >
           ← Alliance roster
         </Link>
         <p class="mt-5 text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
@@ -206,7 +209,9 @@ function recordSnapshot(): void {
     <section class="mt-8 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60">
       <div class="border-b border-slate-800 px-5 py-4">
         <h2 class="text-xl font-semibold">Snapshot history</h2>
-        <p class="mt-1 text-sm text-slate-400">Newest capture first. Up to the latest 250 observations are shown.</p>
+        <p class="mt-1 text-sm text-slate-400">
+          Newest capture first. Up to the latest 250 observations are shown.
+        </p>
       </div>
       <div v-if="snapshots.length" class="overflow-x-auto">
         <table class="min-w-full text-left text-sm">
@@ -238,7 +243,9 @@ function recordSnapshot(): void {
           </tbody>
         </table>
       </div>
-      <p v-else class="p-8 text-sm text-slate-400">No snapshots have been recorded for this player.</p>
+      <p v-else class="p-8 text-sm text-slate-400">
+        No snapshots have been recorded for this player.
+      </p>
     </section>
   </main>
 </template>
