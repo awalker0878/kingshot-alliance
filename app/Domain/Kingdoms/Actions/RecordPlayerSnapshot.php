@@ -16,6 +16,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 final readonly class RecordPlayerSnapshot
 {
@@ -41,12 +42,18 @@ final readonly class RecordPlayerSnapshot
         User $actor,
         string $entryId,
         array $attributes,
+        string $source = 'manual',
+        ?string $importId = null,
     ): PlayerSnapshot {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
 
-        return DB::transaction(function () use ($alliance, $actor, $entryId, $attributes): PlayerSnapshot {
+        if (! in_array($source, ['manual', 'csv'], true)) {
+            throw new InvalidArgumentException('Unsupported snapshot source.');
+        }
+
+        return DB::transaction(function () use ($alliance, $actor, $entryId, $attributes, $source, $importId): PlayerSnapshot {
             $entry = AllianceRosterEntry::query()
                 ->where('alliance_id', $alliance->id)
                 ->lockForUpdate()
@@ -63,7 +70,6 @@ final readonly class RecordPlayerSnapshot
             $power = $this->power($attributes['power']);
             $progressionLevel = $this->nullableLine($attributes['progression_level'] ?? null);
             $observedAllianceTag = $this->nullableLine($attributes['observed_alliance_tag'] ?? null);
-            $source = 'manual';
             $idempotencyKey = hash('sha256', json_encode([
                 'alliance_id' => (string) $alliance->id,
                 'roster_entry_id' => (string) $entry->id,
@@ -85,6 +91,7 @@ final readonly class RecordPlayerSnapshot
                     'roster_entry_id' => $entry->id,
                     'kingdom_player_id' => $entry->kingdom_player_id,
                     'actor_user_id' => $actor->id,
+                    'roster_import_id' => $importId,
                     'observed_name' => $observedName,
                     'power' => $power,
                     'progression_level' => $progressionLevel,
@@ -101,6 +108,7 @@ final readonly class RecordPlayerSnapshot
                     'kingdom_player_id' => (string) $entry->kingdom_player_id,
                     'captured_at' => $capturedAt->toIso8601String(),
                     'source' => $source,
+                    'import_id' => $importId,
                 ];
 
                 $event = 'kingdoms.player_snapshot_recorded';
