@@ -2,11 +2,13 @@
 
 Enterprise-ready, multi-alliance coordination platform for the Kingshot community.
 
-## Current phase
+## Current status
 
-**Phase 0 — Engineering Foundation**
+**Phases 0–6 complete · repository production hardening accepted · production cutover pending**
 
-The repository currently contains the Laravel 13 application foundation, Vue and TypeScript frontend, PostgreSQL and Redis runtime, Docker development environment, quality gates, security controls, observability baseline, architecture decisions, and operational runbooks. Product-domain implementation begins only after the Phase 0 exit gate is satisfied.
+The implementation plan is complete through Phase 6. The repository includes identity and multi-tenancy, public/content management, events and rallies, recruitment, contributions/reporting, platform administration and integrations, plus repository-controlled production hardening.
+
+A real production cutover is **not yet approved**. Infrastructure and operational evidence must still satisfy the production launch approval record before deployment is treated as approved.
 
 ## Technology baseline
 
@@ -16,7 +18,7 @@ The repository currently contains the Laravel 13 application foundation, Vue and
 - Redis 8 with Laravel Horizon
 - Laravel Pulse, Pennant, and Sanctum foundations
 - Docker Compose for local development
-- GitHub Actions for quality, security, test, and image validation
+- GitHub Actions for quality, security, test, image, staging, and recovery validation
 
 ## Local setup
 
@@ -46,12 +48,14 @@ Every response receives a request ID and W3C `traceparent` correlation header.
 
 ## Documentation
 
-- [Program implementation plan](docs/product/IMPLEMENTATION_PLAN.md)
+- [Documentation home](docs/README.md)
+- [Program implementation plan](docs/product/implementation-plan.md)
 - [Local development](docs/operations/runbooks/local-development.md)
 - [Architecture decisions](docs/adr/README.md)
-- [Definition of done](docs/product/DEFINITION_OF_DONE.md)
-- [Security baseline](docs/security/SECURITY_BASELINE.md)
-- [Release checklist](docs/operations/RELEASE_CHECKLIST.md)
-- [Phase 0 exit report](docs/product/PHASE_0_EXIT_REPORT.md)
+- [Definition of done](docs/product/definition-of-done.md)
+- [Security baseline](docs/security/security-baseline.md)
+- [Release checklist](docs/operations/release-checklist.md)
+- [Production launch approval](docs/product/production-launch-approval.md)
+- [Phase 0 exit report](docs/product/phase-0-exit-report.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security reporting](SECURITY.md)
