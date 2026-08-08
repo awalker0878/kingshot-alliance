@@ -9,6 +9,15 @@ type Membership = {
   linkedRosterEntryId: string | null;
 };
 
+type LatestSnapshot = {
+  observedName: string;
+  power: string;
+  progressionLevel: string | null;
+  observedAllianceTag: string | null;
+  capturedAt: string;
+  source: string;
+};
+
 type Entry = {
   id: string;
   gamePlayerId: string | null;
@@ -20,6 +29,7 @@ type Entry = {
   lastObservedAt: string | null;
   membership: { id: string; name: string; email: string } | null;
   managerNotes: string | null;
+  latestSnapshot: LatestSnapshot | null;
 };
 
 const props = defineProps<{
@@ -95,6 +105,10 @@ function membershipUnavailable(membership: Membership, entryId?: string): boolea
     membership.linkedRosterEntryId !== null && membership.linkedRosterEntryId !== (entryId ?? null)
   );
 }
+
+function formatInteger(value: string): string {
+  return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
 </script>
 
 <template>
@@ -115,7 +129,8 @@ function membershipUnavailable(membership: Membership, entryId?: string): boolea
         <h1 class="mt-2 text-3xl font-bold">Manage roster</h1>
         <p class="mt-2 text-sm text-slate-400">
           Manual roster identity and membership linkage. Player names are never used as identity
-          keys, and manager notes remain private to roster managers.
+          keys, manager notes remain private to roster managers, and game observations are recorded
+          separately as append-only snapshots.
         </p>
       </div>
     </div>
@@ -245,15 +260,33 @@ function membershipUnavailable(membership: Membership, entryId?: string): boolea
             <p class="mt-1 text-sm text-slate-400">
               Game ID: {{ entry.gamePlayerId ?? 'unknown' }} · State: {{ entry.state }}
             </p>
+            <p class="mt-1 text-sm text-slate-400">
+              Latest power:
+              {{ entry.latestSnapshot ? formatInteger(entry.latestSnapshot.power) : 'missing' }} ·
+              Snapshot:
+              {{
+                entry.latestSnapshot
+                  ? new Date(entry.latestSnapshot.capturedAt).toLocaleString()
+                  : 'none recorded'
+              }}
+            </p>
           </div>
-          <button
-            v-if="entry.state !== 'left'"
-            class="font-semibold text-rose-300 hover:text-rose-200"
-            type="button"
-            @click="markLeft(entry)"
-          >
-            Mark left
-          </button>
+          <div class="flex flex-wrap items-center gap-4">
+            <Link
+              class="font-semibold text-cyan-300 hover:text-cyan-200"
+              :href="`/alliance/roster/${entry.id}/history`"
+            >
+              History / record snapshot
+            </Link>
+            <button
+              v-if="entry.state !== 'left'"
+              class="font-semibold text-rose-300 hover:text-rose-200"
+              type="button"
+              @click="markLeft(entry)"
+            >
+              Mark left
+            </button>
+          </div>
         </div>
 
         <div class="mt-5 grid gap-4 md:grid-cols-2">
