@@ -2,15 +2,18 @@
 
 [← Documentation home](../README.md)
 
-This directory owns program scope, phase acceptance, accessibility evidence, alignment audits, and current production-readiness/approval state.
+This directory owns program scope, current capability/status navigation, phase acceptance, accessibility evidence, alignment audits, and production-readiness/approval state.
 
 ## Authoritative current records
 
 - [Implementation plan](implementation-plan.md) — approved program baseline, phase boundaries, cross-cutting requirements, canonical repository structure, and program definition of done.
+- [Current capability matrix](current-capability-matrix.md) — present-tense navigation across implemented capabilities, ownership, living contracts, and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations used with the implementation plan.
 - [Production hardening exit report](production-hardening-exit-report.md) — **Accepted** repository-controlled post-Phase-6 hardening evidence.
 - [Production launch approval](production-launch-approval.md) — **Not yet approved** for a real production cutover until the required deployment and external-control evidence is recorded.
 - [Phase 6 launch readiness](phase-6-launch-readiness.md) — Phase 6 launch-control expectations that feed the post-phase hardening/approval process.
+
+Use the capability matrix to answer what exists now, then follow the linked living domain/operations contract for details. Use the implementation plan to answer what scope was approved and the production launch approval record to answer whether real production cutover is authorized.
 
 ## Phase acceptance history
 
@@ -24,7 +27,7 @@ The implementation plan ends at Phase 6. Accepted delivery evidence is retained 
 - [Phase 5 exit report](phase-5-exit-report.md)
 - [Phase 6 exit report](phase-6-exit-report.md)
 
-These are historical acceptance records. They should preserve the evidence and context of their phase even when later phases have subsequently shipped. Do not infer the current roadmap from old “next phase” wording.
+These are historical acceptance records. They should preserve the evidence and context of their phase even when later phases have subsequently shipped. Do not infer the current roadmap from old “next phase” wording, and do not repurpose phase exit reports as release notes or a user-facing changelog.
 
 ## Supporting product evidence
 
@@ -37,7 +40,7 @@ These are historical acceptance records. They should preserve the evidence and c
 - [Phase 5 accessibility](phase-5-accessibility.md)
 - [Phase 6 accessibility](phase-6-accessibility.md)
 
-Use the current implementation plan and current acceptance/launch records for present-tense status; use the supporting phase documents to understand why a historical gate was accepted.
+Use the current implementation plan, capability matrix, and current acceptance/launch records for present-tense status; use the supporting phase documents to understand why a historical gate was accepted.
 
 ## Status vocabulary
 
