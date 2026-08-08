@@ -50,7 +50,7 @@ final readonly class SaveRosterEntry
         }
 
         return DB::transaction(function () use ($alliance, $actor, $attributes, $entryId): AllianceRosterEntry {
-            $membership = $this->membership($alliance, $attributes['membership_id'] ?? null);
+            $membership = $this->membership($alliance, $attributes['membership_id'] ?? null, $entryId);
             $name = trim($attributes['name']);
             $state = $attributes['state'] ?? RosterState::Active;
 
@@ -107,8 +107,11 @@ final readonly class SaveRosterEntry
         });
     }
 
-    private function membership(Alliance $alliance, ?string $membershipId): ?AllianceMembership
-    {
+    private function membership(
+        Alliance $alliance,
+        ?string $membershipId,
+        ?string $exceptRosterEntryId,
+    ): ?AllianceMembership {
         if ($membershipId === null || trim($membershipId) === '') {
             return null;
         }
@@ -127,6 +130,10 @@ final readonly class SaveRosterEntry
         $linkedElsewhere = AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
             ->where('membership_id', $membership->id)
+            ->when(
+                $exceptRosterEntryId !== null,
+                static fn ($query) => $query->whereKeyNot($exceptRosterEntryId),
+            )
             ->exists();
 
         if ($linkedElsewhere) {
