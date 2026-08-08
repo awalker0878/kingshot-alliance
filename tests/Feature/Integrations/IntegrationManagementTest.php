@@ -27,7 +27,7 @@ final class IntegrationManagementTest extends TestCase
     public function test_scoped_api_credential_is_one_way_stored_and_tenant_bound(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'API Tenant', 'api-tenant');
+        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'API Tenant', 'api-tenant', 2200);
         $issued = $this->app->make(CreateApiCredential::class)->handle(
             $alliance,
             $owner,
@@ -42,7 +42,8 @@ final class IntegrationManagementTest extends TestCase
         $this->withHeader('Authorization', 'Bearer '.$issued->token)
             ->getJson('/api/v1/alliance')
             ->assertOk()
-            ->assertJsonPath('data.id', (string) $alliance->id);
+            ->assertJsonPath('data.id', (string) $alliance->id)
+            ->assertJsonPath('data.kingdom', '2200');
 
         $this->withHeader('Authorization', 'Bearer '.$issued->token)
             ->getJson('/api/v1/events')
