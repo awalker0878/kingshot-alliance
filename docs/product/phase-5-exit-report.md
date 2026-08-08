@@ -74,11 +74,11 @@ Final protected validation on the accepted implementation head passed:
 
 ## Documentation
 
-- `docs/domains/CONTRIBUTIONS_AND_REPORTING.md`
-- `docs/operations/PHASE_5_OPERATIONS.md`
-- `docs/operations/PHASE_5_MIGRATION_ROLLBACK.md`
-- `docs/security/PHASE_5_THREAT_MODEL.md`
-- `docs/product/PHASE_5_ACCESSIBILITY.md`
+- [Contributions and reporting](../domains/contributions-and-reporting.md)
+- [Phase 5 operations](../operations/phase-5-operations.md)
+- [Phase 5 migration and rollback](../operations/phase-5-migration-rollback.md)
+- [Phase 5 threat model](../security/phase-5-threat-model.md)
+- [Phase 5 accessibility review](phase-5-accessibility.md)
 
 ## Final gate
 
