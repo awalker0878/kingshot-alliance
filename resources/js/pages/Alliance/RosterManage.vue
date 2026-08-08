@@ -2,7 +2,13 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 
-type Membership = { id: string; name: string; email: string };
+type Membership = {
+  id: string;
+  name: string;
+  email: string;
+  linkedRosterEntryId: string | null;
+};
+
 type Entry = {
   id: string;
   gamePlayerId: string | null;
@@ -12,7 +18,7 @@ type Entry = {
   joinedAt: string | null;
   leftAt: string | null;
   lastObservedAt: string | null;
-  membership: Membership | null;
+  membership: { id: string; name: string; email: string } | null;
   managerNotes: string | null;
 };
 
@@ -21,6 +27,10 @@ const props = defineProps<{
   entries: Entry[];
   memberships: Membership[];
   states: string[];
+  gaps: {
+    membershipsWithoutRoster: Membership[];
+    rosterWithoutMembership: number;
+  };
 }>();
 
 const createForm = useForm({
@@ -77,6 +87,12 @@ function markLeft(entry: Entry): void {
 
   router.post(`/alliance/roster/${entry.id}/leave`, {}, { preserveScroll: true });
 }
+
+function membershipUnavailable(membership: Membership, entryId?: string): boolean {
+  return (
+    membership.linkedRosterEntryId !== null && membership.linkedRosterEntryId !== (entryId ?? null)
+  );
+}
 </script>
 
 <template>
@@ -85,7 +101,10 @@ function markLeft(entry: Entry): void {
   <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 text-slate-100 lg:px-8">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <Link class="text-sm font-semibold text-cyan-300 hover:text-cyan-200" href="/alliance/roster">
+        <Link
+          class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+          href="/alliance/roster"
+        >
           ← Roster
         </Link>
         <p class="mt-5 text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
@@ -98,6 +117,22 @@ function markLeft(entry: Entry): void {
         </p>
       </div>
     </div>
+
+    <section class="mt-8 grid gap-4 md:grid-cols-2" aria-label="Roster linkage gaps">
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+        <p class="text-sm text-slate-400">Roster profiles without application membership</p>
+        <p class="mt-2 text-3xl font-bold">{{ gaps.rosterWithoutMembership }}</p>
+      </div>
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+        <p class="text-sm text-slate-400">Application memberships without roster profile</p>
+        <p class="mt-2 text-3xl font-bold">{{ gaps.membershipsWithoutRoster.length }}</p>
+        <ul v-if="gaps.membershipsWithoutRoster.length" class="mt-3 space-y-1 text-sm text-slate-400">
+          <li v-for="membership in gaps.membershipsWithoutRoster" :key="membership.id">
+            {{ membership.name }} · {{ membership.email }}
+          </li>
+        </ul>
+      </div>
+    </section>
 
     <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
       <h2 class="text-xl font-semibold">Add player</h2>
@@ -129,8 +164,14 @@ function markLeft(entry: Entry): void {
             class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
           >
             <option value="">Unlinked</option>
-            <option v-for="membership in memberships" :key="membership.id" :value="membership.id">
+            <option
+              v-for="membership in memberships"
+              :key="membership.id"
+              :disabled="membershipUnavailable(membership)"
+              :value="membership.id"
+            >
               {{ membership.name }} · {{ membership.email }}
+              {{ membership.linkedRosterEntryId ? ' · already linked' : '' }}
             </option>
           </select>
         </div>
@@ -228,8 +269,14 @@ function markLeft(entry: Entry): void {
               class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
             >
               <option value="">Unlinked</option>
-              <option v-for="membership in memberships" :key="membership.id" :value="membership.id">
+              <option
+                v-for="membership in memberships"
+                :key="membership.id"
+                :disabled="membershipUnavailable(membership, entry.id)"
+                :value="membership.id"
+              >
                 {{ membership.name }} · {{ membership.email }}
+                {{ membershipUnavailable(membership, entry.id) ? ' · already linked' : '' }}
               </option>
             </select>
           </div>
