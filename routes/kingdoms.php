@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
 use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
 use App\Domain\Kingdoms\Http\Controllers\RosterController;
+use App\Domain\Kingdoms\Http\Controllers\RosterIntelligenceController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {
@@ -20,6 +21,9 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
 
     Route::get('/alliance/roster/manage', [RosterController::class, 'manage'])
         ->name('alliance.roster.manage');
+
+    Route::get('/alliance/roster/intelligence', [RosterIntelligenceController::class, 'index'])
+        ->name('alliance.roster.intelligence');
 
     Route::get('/alliance/roster/{entry}/history', [PlayerSnapshotController::class, 'show'])
         ->name('alliance.roster.history');
