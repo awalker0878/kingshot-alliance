@@ -71,7 +71,7 @@
 - MFA secrets use encrypted model casts and are excluded from serialization.
 - MFA recovery codes are stored as SHA-256 hashes inside the encrypted recovery-code value and displayed only at creation/regeneration.
 - Invitation bearer tokens contain 256 bits of random entropy and are never stored in plaintext; only SHA-256 token hashes are persisted.
-- Hosted transport/session requirements remain governed by `docs/security/SECURITY_BASELINE.md`.
+- Hosted transport/session requirements remain governed by the [security baseline](security-baseline.md).
 
 ## Authorization model decision
 
@@ -89,4 +89,4 @@ If custom role or permission-template editing is introduced later, it must add e
 
 ## Exit assessment
 
-No unresolved critical or high-risk Phase 1 threat remains in the implemented Phase 1–4 scope. Any later domain that introduces new alliance-owned rows, queues, notifications, exports, storage, mutable role-permission templates, or platform administration must preserve the explicit tenant boundary and extend this threat model. The combined ownership and alignment decisions are recorded in `docs/product/PHASES_1_4_ALIGNMENT_AUDIT.md`.
+No unresolved critical or high-risk Phase 1 threat remains in the implemented Phase 1–4 scope. Any later domain that introduces new alliance-owned rows, queues, notifications, exports, storage, mutable role-permission templates, or platform administration must preserve the explicit tenant boundary and extend this threat model. The combined ownership and alignment decisions are recorded in the [Phases 1–4 alignment audit](../product/phases-1-4-alignment-audit.md).
