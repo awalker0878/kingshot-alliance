@@ -6,7 +6,7 @@
 **Implemented foundation dependency:** [Kingdoms](kingdoms.md)  
 **Approved scope:** [Kingdoms roster intelligence increment](../product/kingdoms-roster-intelligence-increment.md)
 
-This document is the review contract for the Slice B roster implementation. Until Slice B passes its protected gate, the [current capability matrix](../product/current-capability-matrix.md) remains authoritative for what is available in the validated runtime.
+This document is the living review contract for the Slice B roster implementation. Slice A remains the validated dependency; Slice B is not promoted to validated current capability until its protected gate succeeds.
 
 ## Identity model
 
@@ -70,7 +70,14 @@ A submitted membership must:
 - currently be active; and
 - not already be linked to another roster entry in that Alliance.
 
+An update may retain the roster entry's own existing membership link; uniqueness checks exclude the entry being edited while still rejecting a link already owned by another roster entry.
+
 Removing, leaving, or physically deleting a membership must not erase the game-player/roster identity. The physical FK is nullable and roster history survives; membership lifecycle behavior remains owned by `Memberships`.
+
+The manager workspace surfaces both linkage gaps:
+
+- active application memberships with no roster profile; and
+- roster profiles with no application membership.
 
 ## Authorization
 
@@ -126,15 +133,33 @@ Marking a player left:
 
 There is no destructive roster-delete workflow in Slice B.
 
+## Roster search and filters
+
+The member roster supports tenant-scoped filters for:
+
+- player name or stable game-player identifier search;
+- roster state;
+- linked versus unlinked application membership;
+- game role/rank; and
+- current, stale, or missing manual observation state.
+
+Slice B defines a **manual roster freshness** rule only: `stale` means `last_observed_at` is present and older than 30 days; `missing` means no manual observation timestamp exists. This is not a player-power snapshot freshness rule. Snapshot history and snapshot-specific stale/missing semantics belong to `K1-P3`.
+
+All filter predicates are applied after the active Alliance constraint. A search term that matches another alliance in the same Kingdom must still return no cross-tenant roster data.
+
 ## Member versus manager visibility
 
 Ordinary alliance members may view the roster under `alliance.view`.
 
-Member-facing data is limited to roster-operational fields such as observed name, stable game ID when recorded, game role, state, linked member display identity, and last-observed time.
+Member-facing data is limited to roster-operational fields such as observed name, stable game ID when recorded, game role, state, linked member display name, and last-observed time.
 
-Private manager notes and unnecessary account/contact fields are management-only and must not be part of the ordinary member payload.
+The ordinary member payload does **not** contain membership IDs, membership email addresses, or private manager notes.
 
-The manager workspace can use membership email to disambiguate account links because it is protected by `kingdoms.manage`.
+The manager workspace may use membership ID/email to disambiguate account links because it is protected by `kingdoms.manage`; those fields must not become part of the ordinary roster contract.
+
+## Navigation
+
+When an alliance is active, the dashboard exposes a Roster link for active members. Managers can proceed from the member roster to the protected management workspace.
 
 ## Audit and durable events
 
@@ -151,6 +176,7 @@ Slice B does not create a Kingdom-specific scheduler or Horizon queue. The exist
 - All roster-entry reads/mutations are scoped by the active Alliance.
 - Submitted roster-entry IDs are re-resolved under `alliance_id`.
 - Submitted membership IDs are re-resolved under the active Alliance.
+- Roster search/filter queries start from the active `alliance_id` and never treat Kingdom identity as authorization.
 - A shared KingdomPlayer does not expose another Alliance's roster state, notes, membership link, or future observations.
 - Kingdom number/player ID is never a tenant authorization key.
 
@@ -159,7 +185,7 @@ Slice B does not create a Kingdom-specific scheduler or Horizon queue. The exist
 Slice B does not implement:
 
 - player power/level snapshots or historical observations (`K1-P3`);
-- stale-data calculations beyond the current manual last-observed field;
+- snapshot-derived stale-data calculations;
 - aggregate power, median, 7/30-day trends or roster intelligence (`K1-P4`);
 - CSV import/export (`K1-P5`);
 - public roster API/webhook exposure;
