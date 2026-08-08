@@ -8,7 +8,9 @@ This directory contains operational procedures, release controls, recovery guida
 
 - [Production launch runbook](production-launch-runbook.md) — pre-cutover evidence, launch sequence, validation, and stop conditions.
 - [Release checklist](release-checklist.md) — required evidence from build through production closeout.
+- [Branch protection](branch-protection.md) — recommended repository protection and required-check governance.
 - [Phase 6 disaster-recovery exercise](phase-6-disaster-recovery-exercise.md) — recovery rehearsal requirements for the platform-scale phase.
+- [Phase 6 database maintenance](phase-6-database-maintenance.md) — database housekeeping and operational maintenance guidance introduced with platform scale.
 
 The authoritative real-production decision is maintained in [`../product/production-launch-approval.md`](../product/production-launch-approval.md). Operational documents can describe how to prove a control, but must not mark a production control approved on their own.
 
