@@ -127,16 +127,15 @@ final readonly class SaveRosterEntry
             ]);
         }
 
-        $linkedElsewhere = AllianceRosterEntry::query()
+        $linkedQuery = AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
-            ->where('membership_id', $membership->id)
-            ->when(
-                $exceptRosterEntryId !== null,
-                static fn ($query) => $query->whereKeyNot($exceptRosterEntryId),
-            )
-            ->exists();
+            ->where('membership_id', $membership->id);
 
-        if ($linkedElsewhere) {
+        if ($exceptRosterEntryId !== null) {
+            $linkedQuery->where('id', '<>', $exceptRosterEntryId);
+        }
+
+        if ($linkedQuery->exists()) {
             throw ValidationException::withMessages([
                 'membership_id' => 'That membership is already linked to a roster entry.',
             ]);
