@@ -20,11 +20,13 @@ This directory documents business/domain behavior and ownership. Runtime code re
 
 These audits explain how the current structure was validated; the [implementation plan](../product/implementation-plan.md) and accepted ADRs remain the normative architecture sources.
 
-## Canonical runtime domains
+## Canonical domain roots
 
-The implementation plan currently defines these runtime ownership roots:
+The implementation plan defines these canonical ownership roots:
 
 `Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, and `Recruitment`.
+
+All canonical roots except `Kingdoms` currently own runtime PHP. `Kingdoms` is intentionally reserved and documentation-only until game/kingdom reference capability is explicitly approved; its presence in `app/Domain/Kingdoms` does not imply an implemented runtime feature.
 
 A domain does not require a separate Markdown file merely because it has runtime code. Add a domain guide when it clarifies a meaningful workflow, public contract, lifecycle, or cross-domain boundary that would otherwise be duplicated across implementation files.
 
