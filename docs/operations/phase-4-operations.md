@@ -88,4 +88,4 @@ Use the existing outbox runbook. Recruitment business transactions remain commit
 
 ## Deployment and rollback
 
-Phase 4 follows the existing immutable-image staging process. Before acceptance, CI must pass frontend/PHP checks, PostgreSQL migrations, staging deployment, backup/restore, and image vulnerability scanning. See `PHASE_4_MIGRATION_ROLLBACK.md` before any destructive schema rollback.
+Phase 4 follows the existing immutable-image staging process. Before acceptance, CI must pass frontend/PHP checks, PostgreSQL migrations, staging deployment, backup/restore, and image vulnerability scanning. See [Phase 4 migration and rollback](phase-4-migration-rollback.md) before any destructive schema rollback.
