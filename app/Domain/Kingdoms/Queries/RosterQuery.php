@@ -11,8 +11,6 @@ use Illuminate\Database\Eloquent\Collection;
 
 final class RosterQuery
 {
-    public const STALE_AFTER_DAYS = 30;
-
     /**
      * @param array{
      *   q?: string|null,
@@ -61,14 +59,20 @@ final class RosterQuery
         }
 
         $observation = $filters['observation'] ?? null;
+        $freshCutoff = now()->subDays(PlayerSnapshotQuery::STALE_AFTER_DAYS);
+
         if ($observation === 'missing') {
-            $query->whereNull('last_observed_at');
+            $query->whereDoesntHave('snapshots');
         } elseif ($observation === 'stale') {
             $query
-                ->whereNotNull('last_observed_at')
-                ->where('last_observed_at', '<', now()->subDays(self::STALE_AFTER_DAYS));
+                ->whereHas('snapshots')
+                ->whereDoesntHave('snapshots', static function (Builder $snapshot) use ($freshCutoff): void {
+                    $snapshot->where('captured_at', '>=', $freshCutoff);
+                });
         } elseif ($observation === 'current') {
-            $query->where('last_observed_at', '>=', now()->subDays(self::STALE_AFTER_DAYS));
+            $query->whereHas('snapshots', static function (Builder $snapshot) use ($freshCutoff): void {
+                $snapshot->where('captured_at', '>=', $freshCutoff);
+            });
         }
 
         return $query
