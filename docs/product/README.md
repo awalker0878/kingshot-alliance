@@ -7,9 +7,9 @@ This directory owns the completed Phase 0–6 baseline, approved post-program pr
 ## Authoritative current records
 
 - [Implementation plan](implementation-plan.md) — approved Phase 0–6 program baseline, phase boundaries, cross-cutting requirements, canonical repository structure, and program definition of done.
-- [Kingdoms roster intelligence increment](kingdoms-roster-intelligence-increment.md) — **Approved roadmap scope / not yet implemented** for first-class kingdoms, game-player identity, alliance rosters, snapshots, imports/exports, and roster intelligence.
+- [Kingdoms roster intelligence increment](kingdoms-roster-intelligence-increment.md) — **Approved / implementation in progress** for first-class kingdoms, game-player identity, alliance rosters, snapshots, imports/exports, and roster intelligence.
 - [KINGDOMS-001 implementation plan](kingdoms-roster-intelligence-implementation-plan.md) — gated implementation sequence `K1-P0` through `K1-P6` for delivering the approved Kingdoms increment without extending the historical program phase numbering.
-- [Current capability matrix](current-capability-matrix.md) — present-tense navigation across implemented capabilities, approved-but-not-yet-implemented scope, ownership, living contracts, and explicit non-capabilities/boundaries.
+- [Current capability matrix](current-capability-matrix.md) — present-tense navigation across implemented capabilities, approved remaining scope, ownership, living contracts, and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations used with the baseline plan and approved product increments.
 - [Production hardening exit report](production-hardening-exit-report.md) — **Accepted** repository-controlled post-Phase-6 hardening evidence.
 - [Production launch approval](production-launch-approval.md) — **Not yet approved** for a real production cutover until the required deployment and external-control evidence is recorded.
@@ -23,9 +23,9 @@ The Phase 0–6 program remains closed. New product work is approved as a named 
 
 | Scope ID | Increment | Status | Outcome |
 | --- | --- | --- | --- |
-| `KINGDOMS-001` | [Kingdoms roster intelligence](kingdoms-roster-intelligence-increment.md) | **Approved — implementation not started** | First-class kingdom/game-player model, alliance roster management, historical snapshots, CSV migration workflow, and roster intelligence. |
+| `KINGDOMS-001` | [Kingdoms roster intelligence](kingdoms-roster-intelligence-increment.md) | **In progress — Slice A Kingdom foundation implemented; later slices remain** | First-class kingdom/game-player model, alliance roster management, historical snapshots, CSV migration workflow, and roster intelligence. |
 
-Implementation sequence: [KINGDOMS-001 implementation plan](kingdoms-roster-intelligence-implementation-plan.md).
+Implementation sequence: [KINGDOMS-001 implementation plan](kingdoms-roster-intelligence-implementation-plan.md). Current runtime detail: [Kingdoms domain guide](../domains/kingdoms.md).
 
 An approved increment scope is an explicit post-program plan addendum. It may extend product scope without reopening or renumbering the completed Phase 0–6 program. Candidate follow-on increments listed inside an approved scope are not themselves approved until they receive their own scope record.
 
@@ -67,7 +67,7 @@ Use status terms consistently:
 - **Approved** — an accountable owner explicitly approved a scope or external/production decision; approval does not imply implementation is complete.
 - **Not yet approved / Pending** — required evidence or accountable approval is still outstanding.
 
-Do not use **Accepted** and **Approved** interchangeably. `KINGDOMS-001` is Approved roadmap scope but not implemented or Accepted. Repository production hardening is Accepted while real production launch remains Not yet approved.
+Do not use **Accepted** and **Approved** interchangeably. `KINGDOMS-001` is Approved scope and In progress, but the complete increment is not Accepted. Repository production hardening is Accepted while real production launch remains Not yet approved.
 
 ## Updating program state
 
@@ -76,7 +76,7 @@ When a post-program increment is proposed or delivered:
 1. Create or update a named product increment scope with a stable ID, ownership, boundaries, dependencies, security/operational requirements, acceptance criteria, and explicit deferrals.
 2. Create a gated implementation plan when the increment is large enough to require multiple independently reviewable delivery stages.
 3. Do not create a new numbered program phase unless the baseline implementation plan itself is deliberately reopened and re-approved.
-4. Update the capability matrix and indexes so approved-but-not-yet-implemented work is clearly distinguished from current runtime capability.
+4. Update the capability matrix and indexes so implemented slices, approved remaining work, and unapproved candidates are clearly distinguished.
 5. When implementation closes, create an increment-specific exit/acceptance record with the exact validated head and protected-check evidence.
 6. Preserve historical phase reports rather than rewriting old evidence to sound current.
 7. Record deferred work explicitly without partially implementing or documenting it as present capability.
