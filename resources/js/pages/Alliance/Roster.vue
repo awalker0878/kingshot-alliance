@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { reactive } from 'vue';
 
 type Entry = {
   id: string;
@@ -11,14 +12,48 @@ type Entry = {
   leftAt: string | null;
   lastObservedAt: string | null;
   source: string;
-  membership: { id: string; name: string; email: string } | null;
+  membership: { name: string } | null;
 };
 
-defineProps<{
+type Filters = {
+  q: string;
+  state: string;
+  linkage: string;
+  role: string;
+  observation: string;
+};
+
+const props = defineProps<{
   alliance: { id: string; name: string; kingdom: string | null };
   canManage: boolean;
   entries: Entry[];
+  filters: Filters;
+  roleOptions: string[];
+  staleAfterDays: number;
 }>();
+
+const filters = reactive<Filters>({ ...props.filters });
+
+function applyFilters(): void {
+  router.get(
+    '/alliance/roster',
+    Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== '')),
+    {
+      preserveScroll: true,
+      preserveState: true,
+      replace: true,
+    },
+  );
+}
+
+function clearFilters(): void {
+  filters.q = '';
+  filters.state = '';
+  filters.linkage = '';
+  filters.role = '';
+  filters.observation = '';
+  applyFilters();
+}
 </script>
 
 <template>
@@ -48,6 +83,88 @@ defineProps<{
       </Link>
     </div>
 
+    <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+      <form class="grid gap-4 lg:grid-cols-5" aria-label="Roster filters" @submit.prevent="applyFilters">
+        <div class="lg:col-span-2">
+          <label class="text-sm font-medium" for="roster-search">Search player or game ID</label>
+          <input
+            id="roster-search"
+            v-model="filters.q"
+            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            maxlength="160"
+          />
+        </div>
+        <div>
+          <label class="text-sm font-medium" for="roster-state-filter">State</label>
+          <select
+            id="roster-state-filter"
+            v-model="filters.state"
+            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+          >
+            <option value="">All states</option>
+            <option value="active">Active</option>
+            <option value="tracked">Tracked</option>
+            <option value="left">Left</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-medium" for="roster-linkage-filter">Membership link</label>
+          <select
+            id="roster-linkage-filter"
+            v-model="filters.linkage"
+            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+          >
+            <option value="">All</option>
+            <option value="linked">Linked</option>
+            <option value="unlinked">Unlinked</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-medium" for="roster-role-filter">Game role / rank</label>
+          <select
+            id="roster-role-filter"
+            v-model="filters.role"
+            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+          >
+            <option value="">All roles</option>
+            <option v-for="role in roleOptions" :key="role" :value="role">{{ role }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-medium" for="roster-observation-filter">Observation</label>
+          <select
+            id="roster-observation-filter"
+            v-model="filters.observation"
+            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+          >
+            <option value="">Any freshness</option>
+            <option value="current">Current</option>
+            <option value="stale">Stale</option>
+            <option value="missing">Missing</option>
+          </select>
+        </div>
+        <div class="flex items-end gap-3 lg:col-span-4">
+          <button
+            class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950"
+            type="submit"
+          >
+            Apply filters
+          </button>
+          <button
+            class="rounded-lg border border-slate-700 px-4 py-2 font-semibold text-slate-300"
+            type="button"
+            @click="clearFilters"
+          >
+            Clear
+          </button>
+        </div>
+      </form>
+      <p class="mt-4 text-xs text-slate-500">
+        In this slice, “stale” means the manually maintained roster record has not been observed for
+        {{ staleAfterDays }} days. Snapshot freshness is introduced separately.
+      </p>
+    </section>
+
     <section class="mt-8 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60">
       <div v-if="entries.length" class="overflow-x-auto">
         <table class="min-w-full text-left text-sm">
@@ -75,7 +192,7 @@ defineProps<{
           </tbody>
         </table>
       </div>
-      <p v-else class="p-8 text-sm text-slate-400">No players are tracked yet.</p>
+      <p v-else class="p-8 text-sm text-slate-400">No roster entries match these filters.</p>
     </section>
   </main>
 </template>
