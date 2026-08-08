@@ -13,9 +13,10 @@ This directory documents business/domain behavior and ownership. Runtime code re
 - [Contributions and reporting](contributions-and-reporting.md) — contribution records, calculation semantics, corrections, reporting, exports, and data quality.
 - [Notifications](notifications.md) — event-reminder delivery state, scheduled-report coordination, idempotency, scheduler flow, and recovery.
 - [Integrations](integrations.md) — API credential/authentication contract, read-only API endpoints, webhook signing/delivery contract, and integration boundaries.
+- [Kingdoms](kingdoms.md) — first-class global Kingdom references, alliance Kingdom association, migration behavior, authorization, audit/outbox, and the current Slice A boundary.
 - [Platform scale and administration](platform-scale-and-administration.md) — platform administration, tenant lifecycle, entitlements, API/webhook controls, retention, and operational scale.
 
-`Kingdoms` does not yet have a living runtime guide because it has no runtime implementation. Its first implementation is now approved as [`KINGDOMS-001` — Kingdoms roster intelligence](../product/kingdoms-roster-intelligence-increment.md). When that increment is implemented, create the living Kingdoms domain guide in this directory and update this index in the same change.
+The Kingdoms guide currently documents only `KINGDOMS-001` Slice A / `K1-P1`. Game-player identity, alliance rosters, snapshots, intelligence and CSV workflows remain later approved phases and must not be inferred from the presence of the Kingdom foundation.
 
 ## Architecture evidence
 
@@ -30,7 +31,7 @@ The implementation plan defines these canonical ownership roots:
 
 `Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, and `Recruitment`.
 
-All canonical roots except `Kingdoms` currently own runtime PHP. `Kingdoms` now has an **approved product increment** for first-class kingdom/game-player references, alliance roster intelligence, snapshots, and manual/CSV workflows, but remains documentation-only until `KINGDOMS-001` is implemented and accepted. Approved scope must not be described as current runtime capability.
+All canonical roots now own runtime PHP. `Kingdoms` currently owns only the first-class Kingdom foundation delivered by `KINGDOMS-001` Slice A; later `KINGDOMS-001` capabilities remain approved scope rather than current runtime behavior until their own implementation phases are completed.
 
 A domain does not require a separate Markdown file merely because it has runtime code. Add a domain guide when it clarifies a meaningful workflow, public contract, lifecycle, or cross-domain boundary that would otherwise be duplicated across implementation files.
 
