@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
+ * @property string|null $kingdom_id
+ * @property-read Kingdom|null $kingdom
  * @property AllianceStatus $status
  * @property Carbon|null $suspended_at
  * @property Carbon|null $closed_at
