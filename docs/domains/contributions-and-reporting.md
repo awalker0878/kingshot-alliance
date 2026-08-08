@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Phase 5 provides explainable contribution and participation reporting for an alliance. It deliberately separates recorded facts, calculated metrics, and subjective assessments so totals remain understandable and auditable.
+Contributions and Reporting provides explainable contribution and participation reporting for an alliance. It deliberately separates recorded facts, calculated metrics, and subjective assessments so totals remain understandable and auditable.
 
 ## Domain model
 
@@ -38,7 +38,7 @@ Corrections create a replacement record linked through `correction_of_record_id`
 
 ### Event-derived participation
 
-The supported Phase 5 calculated rule is `event_attendance`. Reconciliation reads Phase 3 `event_registrations` whose status is `attended`, materializes one approved contribution record per category/registration, and records the configured calculation version. Reconciliation is idempotent. If attendance changes, the derived record is reversed; if attendance returns to `attended`, the same record is restored.
+The supported calculated rule is `event_attendance`. Reconciliation reads Events-domain registrations whose status is `attended`, materializes one approved contribution record per category/registration, and records the configured calculation version. Reconciliation is idempotent. If attendance changes, the derived record is reversed; if attendance returns to `attended`, the same record is restored.
 
 Event attendance remains authoritative in the Events domain. Contributions does not duplicate or independently edit attendance truth.
 
@@ -80,12 +80,19 @@ Interactive exports support CSV and Excel-readable SpreadsheetML. Export rows pr
 
 ## Scheduled reports
 
-Schedules are alliance scoped and identify a recipient membership, cadence, timezone, next due time, and report version. The Notifications domain queues due report requests through the transactional outbox with a deterministic idempotency key. This provides retry safety without introducing Phase 6 integration/webhook infrastructure.
+Schedules are alliance scoped and identify a recipient membership, cadence, timezone, next due time, and report version. The Notifications domain queues due report requests through the transactional outbox with a deterministic idempotency key. This provides retry safety while keeping notification timing/delivery coordination outside the Contributions persistence boundary.
+
+See [Notifications](notifications.md) for due-time, scheduler, idempotency, and recovery behavior.
 
 ## Authorization and tenancy
 
 All member surfaces require authenticated, verified, active-alliance context. Management, exports, corrections, approvals, reversals, reconciliation, quality operations, and schedules require `contributions.manage`; privileged HTTP operations also require recent password confirmation. Mutable identifiers are re-resolved under the active `alliance_id` and fail closed for another tenant.
 
-## Phase boundary
+## Current cross-domain boundaries
 
-Phase 5 does not add platform administration, billing, generic webhooks, external API credentials, support impersonation, or Phase 6 lifecycle tooling.
+- Events is authoritative for attendance facts used by `event_attendance` reconciliation.
+- Notifications coordinates due scheduled-report requests; Contributions owns report schedules, versions, runs, and report semantics.
+- Integrations may expose approved contribution records through the scoped read-only API; Contributions remains authoritative for the underlying records and calculations.
+- Platform administration, tenant lifecycle, plan entitlements, and generic webhook delivery remain outside the Contributions domain.
+
+See [Identity, tenancy, and membership](identity-tenancy-and-membership.md), [Integrations](integrations.md), and the [security baseline](../security/security-baseline.md) for the surrounding contracts.
