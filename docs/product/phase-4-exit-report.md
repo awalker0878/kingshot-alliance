@@ -42,7 +42,7 @@ Replace informal recruitment tracking with a tenant-safe, auditable pipeline tha
 
 ### Privacy and retention
 
-- `docs/security/PHASE_4_THREAT_MODEL.md` documents candidate/reviewer-note privacy, public/private boundaries, invitation tokens, stage/decision authorization, merge integrity, retention, stored-content injection, and metrics isolation.
+- The [Phase 4 threat model](../security/phase-4-threat-model.md) documents candidate/reviewer-note privacy, public/private boundaries, invitation tokens, stage/decision authorization, merge integrity, retention, stored-content injection, and metrics isolation.
 - Declined/withdrawn candidates receive `retention_due_at` based on alliance configuration.
 - `recruitment:purge-expired` anonymizes due candidates transactionally, removes application answers/private notes/communications/reviewer-tag/onboarding rows, strips identifying fields, and emits audit/outbox evidence.
 - The retention command runs daily with single-server and overlap protection.
@@ -52,19 +52,19 @@ Replace informal recruitment tracking with a tenant-safe, auditable pipeline tha
 - `RecruitmentAccessibilityGuardTest` applies the established source-level guard to Phase 4 recruitment pages.
 - Public/recruiter flows use native form controls, labels, links/buttons, DOM-order keyboard navigation, textual status, responsive layouts, and no raw `v-html` rendering.
 - Existing-question editing includes explicit labels/IDs for prompt, type, position, help text, and options plus native required/active checkboxes.
-- `docs/product/PHASE_4_ACCESSIBILITY.md` documents automated coverage and staging/device smoke expectations.
+- The [Phase 4 accessibility review](phase-4-accessibility.md) documents automated coverage and staging/device smoke expectations.
 
 ### Migration and recovery
 
 - Phase 4 recruitment schema is introduced by `2026_08_07_030000_create_recruitment_tables.php` and `2026_08_07_031000_add_recruitment_anonymization.php`.
 - `RecruitmentMigrationRollbackTest` verifies the Phase 4 rollback/forward path.
-- `docs/operations/PHASE_4_MIGRATION_ROLLBACK.md` documents forward deployment, destructive rollback cautions, retention-specific constraints, and recovery strategy.
+- [Phase 4 migration and rollback](../operations/phase-4-migration-rollback.md) documents forward deployment, destructive rollback cautions, retention-specific constraints, and recovery strategy.
 - The accepted technical-head CI built the immutable production image, deployed ephemeral staging, completed the backup/restore drill, and passed the production-image vulnerability scan.
 
 ### Operations and documentation
 
-- `docs/operations/PHASE_4_OPERATIONS.md` documents public/private runtime surfaces, scheduled retention, outbox behavior, health/alert implications, backup/recovery, deployment/rollback, and incident triage.
-- `docs/domains/RECRUITMENT.md` documents recruiter workflows, public application boundaries, question management, pipeline stages, duplicate handling, decisions/onboarding, metrics, retention, security rules, and troubleshooting.
+- [Phase 4 operations](../operations/phase-4-operations.md) documents public/private runtime surfaces, scheduled retention, outbox behavior, health/alert implications, backup/recovery, deployment/rollback, and incident triage.
+- The [Recruitment guide](../domains/recruitment.md) documents recruiter workflows, public application boundaries, question management, pipeline stages, duplicate handling, decisions/onboarding, metrics, retention, security rules, and troubleshooting.
 - Temporary implementation/formatting workflows were removed before acceptance.
 
 ## Protected-workflow evidence
