@@ -37,7 +37,7 @@
 - [ ] Health checks and key workflows verified
 - [ ] Error rate, latency, queue depth, outbox backlog, failed jobs, webhook failures, database health, and storage capacity observed
 - [ ] Database + private-media + application-key recovery evidence is current
-- [ ] `docs/product/PRODUCTION_LAUNCH_APPROVAL.md` contains no pending production control
+- [ ] `docs/product/production-launch-approval.md` contains no pending production control
 - [ ] Release announcement published
 
 ## Close
