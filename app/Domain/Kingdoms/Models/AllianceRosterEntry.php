@@ -10,6 +10,7 @@ use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -75,5 +76,11 @@ final class AllianceRosterEntry extends Model
     public function membership(): BelongsTo
     {
         return $this->belongsTo(AllianceMembership::class, 'membership_id');
+    }
+
+    /** @return HasMany<PlayerSnapshot, $this> */
+    public function snapshots(): HasMany
+    {
+        return $this->hasMany(PlayerSnapshot::class, 'roster_entry_id');
     }
 }
