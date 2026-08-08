@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignUlid('alliance_id')->constrained('alliances')->cascadeOnDelete();
             $table->foreignUlid('roster_entry_id')->constrained('alliance_roster_entries')->cascadeOnDelete();
             $table->foreignUlid('kingdom_player_id')->constrained('kingdom_players')->restrictOnDelete();
-            $table->foreignUlid('actor_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignId('actor_user_id')->constrained('users')->restrictOnDelete();
             $table->string('observed_name', 160);
             $table->bigInteger('power');
             $table->string('progression_level', 64)->nullable();
