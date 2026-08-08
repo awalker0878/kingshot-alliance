@@ -1,9 +1,10 @@
 # Kingshot Alliance Program Implementation Plan
 
-**Status:** Proposed baseline  
+**Status:** Approved baseline — Phases 0–6 complete  
 **Repository:** `awalker0878/kingshot-alliance`  
 **Delivery model:** Phase-gated, production-ready increments  
-**Target platform:** Enterprise modular monolith built with Laravel
+**Target platform:** Enterprise modular monolith built with Laravel  
+**Current state:** Repository-controlled production hardening is accepted; real production cutover remains not yet approved. See [production launch approval](production-launch-approval.md).
 
 ## 1. Purpose
 
