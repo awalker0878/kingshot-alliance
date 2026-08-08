@@ -37,4 +37,4 @@ Demonstrate that the service can recover PostgreSQL data, private media, encrypt
 
 ## Rollback demonstration
 
-The CI staging/recovery job remains the automated release gate for image deployment and backup/restore. Phase 6 additionally has migration rollback/reapply coverage. A production-readiness exercise should record an immutable-image rollback to the previous release and, when the schema rollback is safe/required, execute it only from a verified backup following `PHASE_6_MIGRATION_ROLLBACK.md`.
+The CI staging/recovery job remains the automated release gate for image deployment and backup/restore. Phase 6 additionally has migration rollback/reapply coverage. A production-readiness exercise should record an immutable-image rollback to the previous release and, when the schema rollback is safe/required, execute it only from a verified backup following [Phase 6 migration and rollback](phase-6-migration-rollback.md).
