@@ -149,7 +149,9 @@ function formatInteger(value: string): string {
           </select>
         </div>
         <div>
-          <label class="text-sm font-medium" for="roster-observation-filter">Snapshot freshness</label>
+          <label class="text-sm font-medium" for="roster-observation-filter"
+            >Snapshot freshness</label
+          >
           <select
             id="roster-observation-filter"
             v-model="filters.observation"
