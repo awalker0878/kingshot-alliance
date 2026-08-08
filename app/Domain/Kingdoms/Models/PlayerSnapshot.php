@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string $roster_entry_id
  * @property string $kingdom_player_id
  * @property int $actor_user_id
+ * @property string|null $roster_import_id
  * @property string $observed_name
  * @property int $power
  * @property string|null $progression_level
@@ -27,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @property-read AllianceRosterEntry $rosterEntry
  * @property-read KingdomPlayer $player
  * @property-read User $actor
+ * @property-read RosterImport|null $rosterImport
  */
 final class PlayerSnapshot extends Model
 {
@@ -41,6 +43,7 @@ final class PlayerSnapshot extends Model
         'roster_entry_id',
         'kingdom_player_id',
         'actor_user_id',
+        'roster_import_id',
         'observed_name',
         'power',
         'progression_level',
@@ -80,5 +83,11 @@ final class PlayerSnapshot extends Model
     public function actor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'actor_user_id');
+    }
+
+    /** @return BelongsTo<RosterImport, $this> */
+    public function rosterImport(): BelongsTo
+    {
+        return $this->belongsTo(RosterImport::class, 'roster_import_id');
     }
 }
