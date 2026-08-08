@@ -27,7 +27,7 @@ final class CreateAllianceController extends Controller
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 Rule::unique('alliances', 'slug'),
             ],
-            'kingdom' => ['nullable', 'integer', 'min:1', 'max:4294967295'],
+            'kingdom' => ['nullable', 'integer', 'min:1', 'max:2147483647'],
             'language' => ['required', 'string', 'max:16'],
             'timezone' => ['required', 'string', 'timezone'],
         ]);
