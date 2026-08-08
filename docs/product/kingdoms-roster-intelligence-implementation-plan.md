@@ -2,7 +2,7 @@
 
 [← Kingdoms roster intelligence product increment](kingdoms-roster-intelligence-increment.md)
 
-**Status:** Planned implementation sequence  
+**Status:** In progress — Slice A / `K1-P1` implementation candidate  
 **Scope ID:** `KINGDOMS-001`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Approved `KINGDOMS-001` scope and accepted Phase 0–6 engineering controls  
@@ -30,17 +30,17 @@ The implementation must continue to follow the repository's established principl
 
 ## 2. Phase summary
 
-| Phase | Outcome | Primary slice |
-| --- | --- | --- |
-| `K1-P0` | Design and migration contract locked | Slice A preparation |
-| `K1-P1` | First-class Kingdom foundation | Slice A |
-| `K1-P2` | Game-player and alliance roster foundation | Slice B |
-| `K1-P3` | Historical player snapshots | Slice C |
-| `K1-P4` | Roster intelligence and trend views | Slice C |
-| `K1-P5` | Controlled CSV migration workflow | Slice D |
-| `K1-P6` | Increment hardening and acceptance | Whole increment |
+| Phase | Status | Outcome | Primary slice |
+| --- | --- | --- | --- |
+| `K1-P0` | Complete for Slice A | Design and migration contract locked | Slice A preparation |
+| `K1-P1` | Candidate | First-class Kingdom foundation | Slice A |
+| `K1-P2` | Planned | Game-player and alliance roster foundation | Slice B |
+| `K1-P3` | Planned | Historical player snapshots | Slice C |
+| `K1-P4` | Planned | Roster intelligence and trend views | Slice C |
+| `K1-P5` | Planned | Controlled CSV migration workflow | Slice D |
+| `K1-P6` | Planned | Increment hardening and acceptance | Whole increment |
 
-Each phase must leave the repository internally consistent. `KINGDOMS-001` is not Accepted until `K1-P6` closes the complete increment.
+Each phase must leave the repository internally consistent. `KINGDOMS-001` is not Accepted until `K1-P6` closes the complete increment. `K1-P1` remains Candidate until its protected validation and review gate succeeds.
 
 ## 3. K1-P0 — Design and migration contract
 
@@ -83,7 +83,7 @@ Replace the free-form alliance kingdom field with a real Kingdom aggregate and a
 - Backfill `alliances.kingdom_id` from those canonical records.
 - Remove the legacy `alliances.kingdom` column in the same completed migration series; runtime code must not support both representations indefinitely.
 - Add the `Alliance::kingdom()` relationship and remove legacy string fillable/runtime access.
-- Update alliance factories/fixtures to produce valid Kingdom relationships.
+- Update alliance fixtures/tests to produce valid Kingdom relationships.
 
 ### Domain actions
 
@@ -93,7 +93,7 @@ Replace the free-form alliance kingdom field with a real Kingdom aggregate and a
 - Record an audit event with previous/new kingdom references.
 - Record a transactional-outbox event when the alliance kingdom association materially changes.
 
-`kingdoms.manage` is introduced in `K1-P2` for roster mutations. Slice A should not prematurely use it for a roster surface that does not yet exist.
+`kingdoms.manage` is introduced in `K1-P2` for roster mutations. Slice A must not prematurely use it for a roster surface that does not yet exist.
 
 ### Existing workflow changes
 
@@ -111,7 +111,7 @@ Replace the free-form alliance kingdom field with a real Kingdom aggregate and a
 ### Tests
 
 - migration/backfill tests for unique and shared kingdom values;
-- malformed/null legacy-value handling tests;
+- malformed/null legacy-value handling validation;
 - alliance creation tests with canonical kingdom resolution;
 - alliance kingdom-change authorization/password-confirmation tests;
 - audit/outbox assertions;
@@ -319,7 +319,7 @@ All acceptance criteria in `kingdoms-roster-intelligence-increment.md` must pass
 
 Recommended implementation PR sequence:
 
-1. **Slice A / `K1-P1` — Kingdom foundation** (include any final `K1-P0` design decisions required to implement it).
+1. **Slice A / `K1-P1` — Kingdom foundation** (includes the final `K1-P0` design decisions required to implement it).
 2. **Slice B / `K1-P2` — Roster foundation**.
 3. **Slice C1 / `K1-P3` — Snapshot history**.
 4. **Slice C2 / `K1-P4` — Intelligence dashboard**.
