@@ -7,6 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 return new class extends Migration
 {
@@ -40,7 +41,7 @@ return new class extends Migration
                 continue;
             }
 
-            if (! isset($kingdomIds[$number])) {
+            if (!isset($kingdomIds[$number])) {
                 $existing = DB::table('kingdoms')->where('number', $number)->value('id');
 
                 if (is_string($existing) && $existing !== '') {
@@ -110,8 +111,8 @@ return new class extends Migration
             return null;
         }
 
-        if (! preg_match('/^(?:(?:kingdom|k)\s*#?\s*)?([0-9]+)$/i', $raw, $matches)) {
-            throw new \RuntimeException(
+        if (!preg_match('/^(?:(?:kingdom|k)\s*#?\s*)?([0-9]+)$/i', $raw, $matches)) {
+            throw new RuntimeException(
                 "Alliance {$allianceId} has a legacy kingdom value that cannot be normalized safely.",
             );
         }
@@ -120,7 +121,7 @@ return new class extends Migration
         $digits = $digits === '' ? '0' : $digits;
 
         if (strlen($digits) > 10) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Alliance {$allianceId} has a legacy kingdom number outside the supported range.",
             );
         }
@@ -128,7 +129,7 @@ return new class extends Migration
         $number = (int) $digits;
 
         if ($number < 1 || $number > 2_147_483_647) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Alliance {$allianceId} has a legacy kingdom number outside the supported range.",
             );
         }
