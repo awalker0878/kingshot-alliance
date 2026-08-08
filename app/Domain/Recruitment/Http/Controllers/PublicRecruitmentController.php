@@ -73,7 +73,7 @@ final class PublicRecruitmentController extends Controller
             'alliance' => [
                 'name' => (string) $alliance->name,
                 'slug' => (string) $alliance->slug,
-                'kingdom' => $alliance->kingdom,
+                'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
             ],
             'application' => [
                 'open' => $isOpen,
@@ -130,6 +130,7 @@ final class PublicRecruitmentController extends Controller
     private function alliance(string $slug): Alliance
     {
         return Alliance::query()
+            ->with('kingdom')
             ->where('slug', $slug)
             ->where('status', AllianceStatus::Active->value)
             ->firstOrFail();
