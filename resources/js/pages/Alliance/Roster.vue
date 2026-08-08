@@ -2,6 +2,15 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 
+type LatestSnapshot = {
+  observedName: string;
+  power: string;
+  progressionLevel: string | null;
+  observedAllianceTag: string | null;
+  capturedAt: string;
+  source: string;
+};
+
 type Entry = {
   id: string;
   gamePlayerId: string | null;
@@ -13,6 +22,7 @@ type Entry = {
   lastObservedAt: string | null;
   source: string;
   membership: { name: string } | null;
+  latestSnapshot: LatestSnapshot | null;
 };
 
 type Filters = {
@@ -54,12 +64,16 @@ function clearFilters(): void {
   filters.observation = '';
   applyFilters();
 }
+
+function formatInteger(value: string): string {
+  return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
 </script>
 
 <template>
   <Head :title="`Roster · ${alliance.name}`" />
 
-  <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 text-slate-100 lg:px-8">
+  <main class="mx-auto min-h-screen max-w-7xl px-6 py-12 text-slate-100 lg:px-8">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <Link class="text-sm font-semibold text-cyan-300 hover:text-cyan-200" href="/alliance">
@@ -70,8 +84,8 @@ function clearFilters(): void {
         </p>
         <h1 class="mt-2 text-3xl font-bold">Alliance roster</h1>
         <p class="mt-2 text-sm text-slate-400">
-          Current manually maintained game-player roster. Historical power snapshots arrive in the
-          next KINGDOMS-001 slice.
+          Current roster state with the latest recorded game snapshot projected from append-only
+          history.
         </p>
       </div>
       <Link
@@ -135,7 +149,7 @@ function clearFilters(): void {
           </select>
         </div>
         <div>
-          <label class="text-sm font-medium" for="roster-observation-filter">Observation</label>
+          <label class="text-sm font-medium" for="roster-observation-filter">Snapshot freshness</label>
           <select
             id="roster-observation-filter"
             v-model="filters.observation"
@@ -164,8 +178,8 @@ function clearFilters(): void {
         </div>
       </form>
       <p class="mt-4 text-xs text-slate-500">
-        In this slice, “stale” means the manually maintained roster record has not been observed for
-        {{ staleAfterDays }} days. Snapshot freshness is introduced separately.
+        Current means at least one snapshot was captured within {{ staleAfterDays }} days. Stale
+        means history exists but the newest snapshot is older. Missing means no snapshot exists.
       </p>
     </section>
 
@@ -178,20 +192,43 @@ function clearFilters(): void {
               <th class="px-5 py-3">Game ID</th>
               <th class="px-5 py-3">Role</th>
               <th class="px-5 py-3">State</th>
+              <th class="px-5 py-3">Power</th>
+              <th class="px-5 py-3">Progression</th>
+              <th class="px-5 py-3">Alliance / tag</th>
+              <th class="px-5 py-3">Snapshot captured</th>
               <th class="px-5 py-3">Linked member</th>
-              <th class="px-5 py-3">Last observed</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800">
             <tr v-for="entry in entries" :key="entry.id">
-              <td class="px-5 py-4 font-semibold">{{ entry.name }}</td>
+              <td class="px-5 py-4 font-semibold">
+                <Link
+                  class="text-cyan-300 hover:text-cyan-200"
+                  :href="`/alliance/roster/${entry.id}/history`"
+                >
+                  {{ entry.latestSnapshot?.observedName ?? entry.name }}
+                </Link>
+              </td>
               <td class="px-5 py-4 text-slate-400">{{ entry.gamePlayerId ?? '—' }}</td>
               <td class="px-5 py-4 text-slate-400">{{ entry.gameRole ?? '—' }}</td>
               <td class="px-5 py-4 capitalize">{{ entry.state }}</td>
-              <td class="px-5 py-4 text-slate-400">{{ entry.membership?.name ?? 'Unlinked' }}</td>
-              <td class="px-5 py-4 text-slate-400">
-                {{ entry.lastObservedAt ? new Date(entry.lastObservedAt).toLocaleString() : '—' }}
+              <td class="px-5 py-4">
+                {{ entry.latestSnapshot ? formatInteger(entry.latestSnapshot.power) : '—' }}
               </td>
+              <td class="px-5 py-4 text-slate-400">
+                {{ entry.latestSnapshot?.progressionLevel ?? '—' }}
+              </td>
+              <td class="px-5 py-4 text-slate-400">
+                {{ entry.latestSnapshot?.observedAllianceTag ?? '—' }}
+              </td>
+              <td class="px-5 py-4 text-slate-400">
+                {{
+                  entry.latestSnapshot
+                    ? new Date(entry.latestSnapshot.capturedAt).toLocaleString()
+                    : 'Missing'
+                }}
+              </td>
+              <td class="px-5 py-4 text-slate-400">{{ entry.membership?.name ?? 'Unlinked' }}</td>
             </tr>
           </tbody>
         </table>
