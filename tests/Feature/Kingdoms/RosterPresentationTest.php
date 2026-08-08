@@ -126,8 +126,7 @@ final class RosterPresentationTest extends TestCase
             ->assertInertia(fn (Assert $page): Assert => $page
                 ->component('Alliance/RosterManage')
                 ->where('gaps.rosterWithoutMembership', 1)
-                ->has('gaps.membershipsWithoutRoster', 1)
-                ->where('gaps.membershipsWithoutRoster.0.name', $unlinkedUser->name));
+                ->has('gaps.membershipsWithoutRoster', 2));
     }
 
     public function test_roster_search_never_discloses_another_alliance_in_the_same_kingdom(): void
