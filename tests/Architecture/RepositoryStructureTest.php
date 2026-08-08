@@ -16,6 +16,20 @@ final class RepositoryStructureTest extends TestCase
         );
     }
 
+    public function test_documentation_groups_have_navigation_indexes(): void
+    {
+        foreach ([
+            'docs/README.md',
+            'docs/adr/README.md',
+            'docs/domains/README.md',
+            'docs/operations/README.md',
+            'docs/product/README.md',
+            'docs/security/README.md',
+        ] as $path) {
+            self::assertFileExists($this->root().'/'.$path, sprintf('Missing documentation index: %s', $path));
+        }
+    }
+
     public function test_test_suite_uses_only_the_implementation_plan_groups(): void
     {
         self::assertSame(

@@ -1,0 +1,37 @@
+# Security documentation
+
+[← Documentation home](../README.md)
+
+This directory owns security requirements, threat models, and launch-security evidence. Security documentation supplements—not replaces—policy enforcement in code, tests, infrastructure, and operational controls.
+
+## Start here
+
+- [Security baseline](SECURITY_BASELINE.md) — cross-cutting requirements for authentication, authorization, tenancy, data handling, transport, secrets, dependencies, audit, and operational security.
+- [Production launch security review](PRODUCTION_LAUNCH_SECURITY_REVIEW.md) — repository-controlled launch-security review and the external controls that remain operational responsibilities.
+- [Production launch approval](../product/PRODUCTION_LAUNCH_APPROVAL.md) — authoritative real-production go/no-go record.
+
+## Phase threat models
+
+- [Phase 1 threat model](PHASE_1_THREAT_MODEL.md) — identity, tenancy, membership, authorization, audit, and outbox foundations.
+- [Phase 2 threat model](PHASE_2_THREAT_MODEL.md) — public content, authored content, media, and visibility boundaries.
+- [Phase 3 threat model](PHASE_3_THREAT_MODEL.md) — events, recurrence, registrations, reminders, and rally workflows.
+- [Phase 4 threat model](PHASE_4_THREAT_MODEL.md) — recruitment intake, reviewer workflows, decisions, conversion, and retention.
+- [Phase 5 threat model](PHASE_5_THREAT_MODEL.md) — contribution records, calculations, corrections, exports, and reporting.
+- [Phase 6 threat model](PHASE_6_THREAT_MODEL.md) — platform administration, tenant lifecycle, API/webhook access, retention, and scale.
+
+Threat models are historical evidence for the phase in which the risk was introduced. The security baseline and current launch-security/approval records govern present production readiness.
+
+## Security documentation rules
+
+- Every protected operation requires policy-based authorization appropriate to its scope.
+- Tenant isolation is a security property, not merely a query convention; changes that affect tenant boundaries require isolation tests.
+- Privileged operations should document identity assurance, MFA/password-confirmation requirements, audit behavior, and recovery implications.
+- External integrations must document authentication/signing, rate limits, replay/idempotency behavior, retry safety, and egress/SSRF controls.
+- Security controls that depend on infrastructure must remain Pending until real infrastructure evidence exists. Application validation cannot truthfully prove firewall, ingress, DNS, secret-management, alerting, or recovery configuration by itself.
+- Never commit secrets, recovery codes, private keys, credentials, sensitive production payloads, or exploit proof that would materially increase operational risk.
+
+## Updating security evidence
+
+For a material change, update the owning threat model or create a new current security review when the old phase model is no longer the right evidence surface. Also update related ADRs, operations guidance, tests, and product acceptance records in the same PR where appropriate.
+
+A new threat model should identify assets, trust boundaries, attackers/abuse cases, controls, residual risks, verification, and any external evidence that must be owned outside the repository.
