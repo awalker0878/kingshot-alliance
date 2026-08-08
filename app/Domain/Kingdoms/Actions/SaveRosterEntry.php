@@ -18,6 +18,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 final readonly class SaveRosterEntry
 {
@@ -44,12 +45,18 @@ final readonly class SaveRosterEntry
         User $actor,
         array $attributes,
         ?string $entryId = null,
+        string $source = 'manual',
+        ?string $importId = null,
     ): AllianceRosterEntry {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
 
-        return DB::transaction(function () use ($alliance, $actor, $attributes, $entryId): AllianceRosterEntry {
+        if (! in_array($source, ['manual', 'csv'], true)) {
+            throw new InvalidArgumentException('Unsupported roster source.');
+        }
+
+        return DB::transaction(function () use ($alliance, $actor, $attributes, $entryId, $source, $importId): AllianceRosterEntry {
             $membership = $this->membership($alliance, $attributes['membership_id'] ?? null, $entryId);
             $name = trim($attributes['name']);
             $state = $attributes['state'] ?? RosterState::Active;
@@ -90,7 +97,7 @@ final readonly class SaveRosterEntry
                 'left_at' => $state === RosterState::Left ? ($entry->left_at ?? now()) : null,
                 'manager_notes' => $this->nullableText($attributes['manager_notes'] ?? null),
                 'last_observed_at' => now(),
-                'source' => 'manual',
+                'source' => $source,
             ])->save();
 
             $metadata = [
@@ -98,6 +105,8 @@ final readonly class SaveRosterEntry
                 'kingdom_player_id' => (string) $entry->kingdom_player_id,
                 'membership_id' => $entry->membership_id,
                 'state' => $entry->state->value,
+                'source' => $source,
+                'import_id' => $importId,
             ];
 
             $this->audit->record($event, $actor, $entry, $alliance, $metadata);
