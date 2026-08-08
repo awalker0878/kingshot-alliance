@@ -6,7 +6,7 @@ The approved product scope is [`KINGDOMS-001` — Kingdoms roster intelligence](
 
 ## Current runtime ownership
 
-Slice A / `K1-P1` introduces the first runtime foundation in this domain:
+Slice A / `K1-P1` established the first runtime foundation in this domain:
 
 - first-class global `Kingdom` reference records keyed by canonical kingdom number;
 - Kingdom lifecycle state (`active` / `archived`);
@@ -14,8 +14,18 @@ Slice A / `K1-P1` introduces the first runtime foundation in this domain:
 - an alliance-to-Kingdom relationship replacing the legacy free-form alliance kingdom string; and
 - an authorized, password-confirmed, audited alliance Kingdom-association workflow with transactional-outbox publication.
 
-The living contract is documented in [`docs/domains/kingdoms.md`](../../../docs/domains/kingdoms.md).
+Slice B / `K1-P2` adds the roster implementation candidate:
 
-## Not implemented by Slice A
+- global neutral `KingdomPlayer` identity scoped to a Kingdom;
+- alliance-owned `AllianceRosterEntry` observations and optional same-alliance membership linkage;
+- `kingdoms.manage` for Owner, Leader and Officer built-in roles;
+- member roster reads under `alliance.view`;
+- password-confirmed roster create/update/mark-left mutations with audit/outbox evidence;
+- tenant-scoped search/filter behavior and linkage-gap reporting; and
+- private manager notes/contact details excluded from ordinary member roster payloads.
 
-Game-player identity, alliance roster entries, player snapshots, roster intelligence, CSV import/export and the planned `kingdoms.manage` permission remain later `KINGDOMS-001` phases. Do not add those as dormant schema or represent them as current capability before their owning slice is implemented and validated.
+The living contracts are documented in [`docs/domains/kingdoms.md`](../../../docs/domains/kingdoms.md) and [`docs/domains/kingdoms-roster.md`](../../../docs/domains/kingdoms-roster.md).
+
+## Not implemented by Slice B
+
+Player power/history snapshots, roster intelligence/trends, CSV import/export, transfer planning, diplomacy/NAP intelligence and automated game-data ingestion remain later `KINGDOMS-001` phases or follow-on candidates. Do not add those as dormant schema or represent them as current validated capability before their owning slice is implemented and passes its gate.
