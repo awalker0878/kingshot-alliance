@@ -74,4 +74,4 @@ For duplicate scheduled-report concerns, inspect `contribution_report_runs.idemp
 
 ## Deployment and rollback
 
-Phase 5 follows the existing immutable-image staging, migration, backup/restore, and vulnerability-scan gates. See `PHASE_5_MIGRATION_ROLLBACK.md` before schema rollback.
+Phase 5 follows the existing immutable-image staging, migration, backup/restore, and vulnerability-scan gates. See [Phase 5 migration and rollback](phase-5-migration-rollback.md) before schema rollback.

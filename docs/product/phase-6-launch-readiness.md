@@ -18,7 +18,7 @@ Before a real production launch:
 - test a controlled tenant suspension/restoration and account-deletion legal-hold block;
 - test API credential creation/revocation and signed webhook verification;
 - review plan limits against expected initial tenant sizes;
-- rehearse `PHASE_6_DISASTER_RECOVERY_EXERCISE.md` and record evidence.
+- rehearse the [Phase 6 disaster-recovery exercise](../operations/phase-6-disaster-recovery-exercise.md) and record evidence.
 
 ## Accepted design decisions
 

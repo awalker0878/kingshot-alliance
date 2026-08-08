@@ -164,7 +164,7 @@ Check, in order:
 6. the delivery progressed from `pending` → `queued` → `sent`;
 7. the associated outbox message has `published_at` and no unresolved `last_error`.
 
-See `docs/operations/PHASE_3_OPERATIONS.md` for the operational runbook.
+See [Phase 3 operations](../operations/phase-3-operations.md) for the operational runbook.
 
 ### An event is full
 
@@ -178,4 +178,4 @@ Confirm infantry + cavalry + archer percentages total exactly 100.
 
 All member/coordinator event pages, exports, reminder inbox records, formations, registrations, guidance, rally groups, and assignments are alliance-scoped. Submitted object IDs are re-resolved under the active alliance before privileged mutations. Privileged coordinator mutations also require recent password confirmation.
 
-See `docs/security/PHASE_3_THREAT_MODEL.md` for the Phase 3 security review and `docs/product/PHASES_1_4_ALIGNMENT_AUDIT.md` for the integrated Phase 1–4 security boundary.
+See the [Phase 3 threat model](../security/phase-3-threat-model.md) for the Phase 3 security review and the [Phases 1–4 alignment audit](../product/phases-1-4-alignment-audit.md) for the integrated Phase 1–4 security boundary.
