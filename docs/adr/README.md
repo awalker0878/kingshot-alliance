@@ -6,7 +6,7 @@ Kingshot Alliance is an enterprise modular monolith organized by explicit busine
 
 ## Current architecture view
 
-This section is a living system map for the current Phase 0–6-complete runtime. It summarizes accepted decisions and current implementation boundaries; the numbered ADRs remain the durable record of why those decisions were made. Approved roadmap scope is called out separately and must not be confused with runtime capability.
+This section is a living system map for the current Phase 0–6-complete runtime plus implemented post-program increments. It summarizes accepted decisions and current implementation boundaries; the numbered ADRs remain the durable record of why those decisions were made. Approved roadmap scope is called out separately and must not be confused with runtime capability.
 
 ```text
 Browser / API client
@@ -33,6 +33,7 @@ Business domains             Platform/foundation domains
 - Events / Rallies
 - Recruitment
 - Contributions
+- Kingdoms
         |                          |
         +------------+-------------+
                      |
@@ -69,7 +70,9 @@ Runtime PHP is domain-first under `app/Domain/<Domain>`. The canonical roots are
 
 `Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, and `Recruitment`.
 
-`Kingdoms` remains documentation-only in the current runtime, but its first implementation is now approved as [`KINGDOMS-001` — Kingdoms roster intelligence](../product/kingdoms-roster-intelligence-increment.md). That scope introduces a global Kingdom reference, separate game-player identity, alliance-scoped roster observations/snapshots, manual/CSV workflows, and roster intelligence. None of those capabilities should be represented as implemented until the increment is built and accepted. Current domain contracts and boundaries are indexed under [domain documentation](../domains/README.md).
+`Kingdoms` now owns the implemented `KINGDOMS-001` Slice A foundation: global first-class Kingdom reference records, canonical Kingdom resolution, and the business workflow for changing an alliance's Kingdom association. `Alliances` owns the Alliance aggregate and its foreign-key relationship to that reference. `Content` no longer owns Kingdom mutation.
+
+The remaining approved `KINGDOMS-001` capabilities—game-player identity, alliance roster entries, snapshots, roster intelligence and CSV workflows—are not current runtime capability until their implementation phases are completed. See the living [Kingdoms guide](../domains/kingdoms.md) and [KINGDOMS-001 implementation plan](../product/kingdoms-roster-intelligence-implementation-plan.md).
 
 Identity is global. Alliance-scoped business behavior activates an explicit alliance context and requires an active membership before tenant data is accessed. Platform administration is intentionally cross-tenant and does not reuse alliance roles as its authorization model. These boundaries follow ADR 0002 and the living [identity/tenancy/membership](../domains/identity-tenancy-and-membership.md) and [platform administration](../domains/platform-scale-and-administration.md) contracts.
 
@@ -79,11 +82,13 @@ Normal HTTP requests execute synchronously inside the modular monolith and persi
 
 The transactional outbox is the durable asynchronous boundary for domain events that must survive the originating transaction. The scheduler publishes eligible outbox messages, and listeners coordinate downstream effects such as reminder state, recruitment conversion state, and webhook creation. Webhook HTTP delivery itself runs through Horizon's `integrations` queue so external retries cannot consume all core application worker capacity.
 
-See [ADR 0004](0004-queues-and-transactional-outbox.md), [Notifications](../domains/notifications.md), [Integrations](../domains/integrations.md), and [Background processing](../operations/background-processing.md).
+The Kingdom association mutation follows the same rule: the relationship change, audit record and `alliance.kingdom_updated` outbox message are recorded inside the transaction; no new Kingdoms-specific queue or scheduler is introduced by Slice A.
+
+See [ADR 0004](0004-queues-and-transactional-outbox.md), [Notifications](../domains/notifications.md), [Integrations](../domains/integrations.md), [Kingdoms](../domains/kingdoms.md), and [Background processing](../operations/background-processing.md).
 
 ### Data and storage boundaries
 
-- **PostgreSQL** owns relational application state and tenant-scoped business records.
+- **PostgreSQL** owns relational application state and tenant-scoped business records, plus global neutral reference records such as the current Kingdom catalog.
 - **Redis** owns hosted cache, encrypted session state, queue transport, and Horizon coordination.
 - **Private object/file storage** owns content media and generated operational artifacts where applicable; production content media requires S3-backed storage.
 - **Audit records** persist security/business audit events with request/trace correlation when created in an HTTP context.
@@ -91,15 +96,17 @@ See [ADR 0004](0004-queues-and-transactional-outbox.md), [Notifications](../doma
 
 Tenant isolation is enforced as an architectural property, not merely a naming convention. Tenant-bound cache/storage keys and cross-domain queries must preserve alliance identity explicitly.
 
-The approved `KINGDOMS-001` scope preserves this rule by separating global neutral Kingdom/player references from alliance-scoped roster entries, notes, snapshots, imports, exports, and derived metrics.
+A global Kingdom reference does not create a cross-alliance tenant boundary. Multiple alliances may reference the same Kingdom while their authorization and alliance-owned data remain isolated. The approved later `KINGDOMS-001` model preserves this rule by keeping roster entries, notes, snapshots, imports, exports, and derived metrics alliance-scoped even when neutral Kingdom/player references are global.
 
 ### Trust and integration boundaries
 
 External API access uses alliance-bound read-only credentials and fixed scopes. Outbound webhooks are signed and retried, but deployment infrastructure must still enforce egress/SSRF controls; application URL validation alone is not a production network boundary.
 
-Privileged web access uses verified identity, MFA where required, recent password confirmation for sensitive actions, and policy/permission checks. Platform administration has its own grant model and stronger cross-tenant access requirements.
+The existing read-only alliance API retains its `kingdom` response field, now derived from the first-class Kingdom relationship. This is API representation compatibility and does not preserve the removed free-form persistence model.
 
-See the [security baseline](../security/security-baseline.md), [Integrations](../domains/integrations.md), and [production launch security review](../security/production-launch-security-review.md).
+Privileged web access uses verified identity, MFA where required, recent password confirmation for sensitive actions, and policy/permission checks. Platform administration has its own grant model and stronger cross-tenant access requirements. Slice A Kingdom-association changes reuse `alliance.manage`; the planned `kingdoms.manage` permission is deferred until Slice B introduces roster mutations.
+
+See the [security baseline](../security/security-baseline.md), [Integrations](../domains/integrations.md), [Kingdoms](../domains/kingdoms.md), and [production launch security review](../security/production-launch-security-review.md).
 
 ### Observability and health
 
@@ -113,7 +120,7 @@ See [ADR 0006](0006-observability-and-correlation.md) and [Observability](../ope
 
 Repository automation proves code/test quality, immutable image construction, staging boot, migrations, health checks, backup/restore tooling, and image scanning. It does not prove real production ingress/TLS, egress enforcement, alert ownership, capacity, operator identity, support coverage, managed dependency configuration, or recovery of production-managed keys/media.
 
-Repository production hardening is accepted; a real production cutover remains **not yet approved**. Approval of `KINGDOMS-001` does not change that production decision. The authoritative decision remains [production launch approval](../product/production-launch-approval.md).
+Repository production hardening is accepted; a real production cutover remains **not yet approved**. Implementation of a `KINGDOMS-001` slice does not change that production decision. The authoritative decision remains [production launch approval](../product/production-launch-approval.md).
 
 ## Decision records
 
