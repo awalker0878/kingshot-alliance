@@ -2,17 +2,17 @@
 
 [← Documentation home](../README.md)
 
-This directory contains operational procedures, release controls, recovery guidance, migration/rollback notes, and historical phase-specific operating evidence.
+This directory contains the living operating model, production/release controls, recovery runbooks, and historical phase-specific evidence.
 
-## Production and release
+## Start here — living operations
 
-- [Production launch runbook](production-launch-runbook.md) — pre-cutover evidence, launch sequence, validation, and stop conditions.
-- [Release checklist](release-checklist.md) — required evidence from build through production closeout.
-- [Branch protection](branch-protection.md) — recommended repository protection and required-check governance.
-- [Phase 6 disaster-recovery exercise](phase-6-disaster-recovery-exercise.md) — recovery rehearsal requirements for the platform-scale phase.
-- [Phase 6 database maintenance](phase-6-database-maintenance.md) — database housekeeping and operational maintenance guidance introduced with platform scale.
+Operators should use these documents for the current Phase 0–6-complete runtime rather than reconstructing today's behavior from historical phase records:
 
-The authoritative real-production decision is maintained in [`../product/production-launch-approval.md`](../product/production-launch-approval.md). Operational documents can describe how to prove a control, but must not mark a production control approved on their own.
+- [Background processing](background-processing.md) — scheduler commands, Horizon queues, outbox processing, idempotency, failure signals, and safe catch-up/recovery.
+- [Runtime configuration reference](configuration-reference.md) — application, PostgreSQL, Redis/session/queue, storage, mail, security/proxy, Horizon, launch-threshold, and deployment-host settings.
+- [Observability](observability.md) — liveness/readiness, request/trace correlation, JSON logs, audit correlation, Horizon, outbox/webhook signals, release identity, alert categories, and evidence boundaries.
+
+These are living operational contracts. Update them in the same PR when runtime behavior, configuration, scheduler cadence, queue ownership, health checks, or observability semantics change.
 
 ## Core runbooks
 
@@ -24,9 +24,25 @@ The authoritative real-production decision is maintained in [`../product/product
 
 Runbooks belong under `operations/runbooks/`; do not create a parallel top-level `docs/runbooks/` directory.
 
-## Phase operating evidence
+A practical operator path is:
 
-Phase-specific documents remain useful as historical evidence for the behavior introduced in that phase.
+1. use the [configuration reference](configuration-reference.md) to establish a valid runtime;
+2. deploy using the [deployment runbook](runbooks/deployment.md);
+3. verify application/dependency signals using [observability](observability.md);
+4. verify scheduler, outbox, and queues using [background processing](background-processing.md); and
+5. use the rollback, backup/restore, or incident-response runbook when a stop/recovery condition is reached.
+
+## Production and release
+
+- [Production launch runbook](production-launch-runbook.md) — pre-cutover evidence, launch sequence, validation, and stop conditions.
+- [Release checklist](release-checklist.md) — required evidence from build through production closeout.
+- [Branch protection](branch-protection.md) — recommended repository protection and required-check governance.
+
+The authoritative real-production decision is maintained in [`../product/production-launch-approval.md`](../product/production-launch-approval.md). Operational documents can describe how to prove a control, but must not mark a production control approved on their own.
+
+## Historical phase operating evidence
+
+Phase-specific documents remain useful as evidence of what was introduced/tested during the implementation program. They are not the primary source for the current combined operating model.
 
 Operations guides:
 
@@ -35,6 +51,8 @@ Operations guides:
 - [Phase 4 operations](phase-4-operations.md)
 - [Phase 5 operations](phase-5-operations.md)
 - [Phase 6 operations](phase-6-operations.md)
+- [Phase 6 disaster-recovery exercise](phase-6-disaster-recovery-exercise.md)
+- [Phase 6 database maintenance](phase-6-database-maintenance.md)
 
 Migration/rollback records:
 
@@ -50,13 +68,14 @@ Read “next phase”, “before Phase N”, and similar language in historical 
 
 ## Operational documentation rules
 
-- A runbook must be executable by an operator who did not write the feature.
-- Include prerequisites, safety/stop conditions, commands or actions, validation, rollback/recovery, and evidence to retain.
+- A living operations guide or runbook must be executable by an operator who did not write the feature.
+- Include prerequisites, safety/stop conditions, commands or actions, validation, rollback/recovery, and evidence to retain where applicable.
 - Prefer immutable identifiers such as release SHA, image digest, backup identifier, or change/incident record ID.
 - Never commit production credentials, secret values, private recovery material, or sensitive incident payloads.
 - Distinguish a tested procedure from a completed real-world control. CI recovery demonstrations do not prove production recovery unless the production evidence record says so.
-- When runtime behavior changes, update the corresponding runbook and release/rollback implications in the same PR.
+- When runtime behavior changes, update the corresponding living guide/runbook and release/rollback implications in the same PR.
+- Phase-specific records should remain historical evidence; do not keep extending them to describe current cross-phase behavior when a living guide owns that contract.
 
 ## Launch evidence boundary
 
-Repository automation can prove code quality, migrations, image construction, staging boot, backup/restore tooling, and image scanning. It cannot prove real HTTPS/ingress configuration, network egress enforcement, capacity, alert ownership, production dependencies, operator identities, or actual recovery of production-managed keys/media. Those remain external go/no-go evidence.
+Repository automation can prove code quality, migrations, image construction, staging boot, backup/restore tooling, image scanning, health endpoints, configuration validation, scheduler definitions, and queue configuration. It cannot prove real HTTPS/ingress configuration, network egress enforcement, capacity, production log retention, alert ownership, production dependencies, operator identities, on-call coverage, or actual recovery of production-managed keys/media. Those remain external go/no-go evidence.
