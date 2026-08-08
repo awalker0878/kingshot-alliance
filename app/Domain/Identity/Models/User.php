@@ -20,6 +20,8 @@ use Laravel\Sanctum\HasApiTokens;
  * @property list<string>|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
  * @property Carbon|null $email_verified_at
+ * @property Carbon|null $deletion_requested_at
+ * @property Carbon|null $anonymized_at
  */
 final class User extends Authenticatable implements MustVerifyEmailContract
 {
@@ -58,6 +60,8 @@ final class User extends Authenticatable implements MustVerifyEmailContract
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
             'two_factor_confirmed_at' => 'datetime',
+            'deletion_requested_at' => 'datetime',
+            'anonymized_at' => 'datetime',
         ];
     }
 

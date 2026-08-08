@@ -7,8 +7,11 @@ namespace App\Domain\Platform\Providers;
 use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Content\Services\BasicMediaScanner;
 use App\Domain\Content\Services\MediaScanner;
+use App\Domain\Identity\Models\User;
+use App\Domain\Integrations\Actions\QueueWebhookDeliveries;
 use App\Domain\Notifications\Actions\MarkEventReminderPublished;
 use App\Domain\Platform\Events\OutboxPublished;
+use App\Domain\Platform\Models\PlatformAdministrator;
 use App\Domain\Recruitment\Actions\MarkRecruitmentCandidateJoined;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -27,7 +30,15 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->scoped(AllianceContext::class);
         $this->app->bind(MediaScanner::class, BasicMediaScanner::class);
 
-        Horizon::auth(static fn (): bool => false);
+        Horizon::auth(static function (): bool {
+            $request = app()->bound('request') ? request() : null;
+            $user = $request instanceof Request ? $request->user() : null;
+
+            return $user instanceof User
+                && $user->hasVerifiedEmail()
+                && $user->two_factor_confirmed_at !== null
+                && PlatformAdministrator::activeFor($user);
+        });
 
         $this->callAfterResolving(
             Pulse::class,
@@ -44,6 +55,7 @@ final class AppServiceProvider extends ServiceProvider
         Event::listen(OutboxPublished::class, function (OutboxPublished $event): void {
             $this->app->make(MarkEventReminderPublished::class)->handle($event);
             $this->app->make(MarkRecruitmentCandidateJoined::class)->handle($event);
+            $this->app->make(QueueWebhookDeliveries::class)->handle($event);
         });
 
         $environment = $this->app->environment();
@@ -58,7 +70,9 @@ final class AppServiceProvider extends ServiceProvider
     {
         RateLimiter::for(
             'api',
-            static fn (Request $request): Limit => Limit::perMinute(60)->by((string) $request->ip())
+            static fn (Request $request): Limit => Limit::perMinute(60)->by(
+                (string) $request->attributes->get('api_credential_id', $request->ip()),
+            ),
         );
 
         RateLimiter::for(

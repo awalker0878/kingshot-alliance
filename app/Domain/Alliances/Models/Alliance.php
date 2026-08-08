@@ -12,7 +12,16 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property AllianceStatus $status
+ * @property Carbon|null $suspended_at
+ * @property Carbon|null $closed_at
+ * @property Carbon|null $deleted_at
+ * @property Carbon|null $restored_at
+ * @property Carbon|null $retention_until
+ */
 final class Alliance extends Model
 {
     use HasUlids;
@@ -28,6 +37,12 @@ final class Alliance extends Model
         'language',
         'timezone',
         'status',
+        'suspended_at',
+        'closed_at',
+        'deleted_at',
+        'restored_at',
+        'retention_until',
+        'lifecycle_reason',
         'created_by_user_id',
     ];
 
@@ -35,6 +50,11 @@ final class Alliance extends Model
     {
         return [
             'status' => AllianceStatus::class,
+            'suspended_at' => 'datetime',
+            'closed_at' => 'datetime',
+            'deleted_at' => 'datetime',
+            'restored_at' => 'datetime',
+            'retention_until' => 'datetime',
         ];
     }
 

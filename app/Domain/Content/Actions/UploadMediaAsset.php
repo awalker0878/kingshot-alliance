@@ -15,6 +15,7 @@ use App\Domain\Content\Models\MediaAsset;
 use App\Domain\Content\Services\MediaScanner;
 use App\Domain\Identity\Models\User;
 use App\Domain\Platform\Services\OutboxRecorder;
+use App\Domain\Platform\Services\PlanEntitlementService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,7 @@ final readonly class UploadMediaAsset
         private MediaScanner $scanner,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
+        private PlanEntitlementService $entitlements,
     ) {}
 
     public function handle(Alliance $alliance, User $actor, UploadedFile $file): MediaAsset
@@ -60,6 +62,7 @@ final readonly class UploadMediaAsset
             ]);
         }
 
+        $this->entitlements->assertStorageCapacity($alliance, $size);
         $scan = $this->scanner->scan($file);
 
         if (! $scan->clean) {

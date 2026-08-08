@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Domain\Alliances\Http\Middleware\ResolveAllianceContext;
+use App\Domain\Integrations\Http\Middleware\AuthenticateApiCredential;
 use App\Domain\Platform\Http\Controllers\ReadinessController;
 use App\Domain\Platform\Http\Middleware\AssignRequestContext;
 use App\Domain\Platform\Http\Middleware\HandleInertiaRequests;
 use App\Domain\Platform\Http\Middleware\RecordRequestMetrics;
+use App\Domain\Platform\Http\Middleware\RequirePlatformAdministrator;
 use App\Domain\Platform\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,12 +20,16 @@ use Symfony\Component\HttpFoundation\Response;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: static function (): void {
             Route::get('/health/ready', ReadinessController::class)
                 ->name('health.ready');
+            Route::middleware('web')->group(base_path('routes/account.php'));
             Route::middleware('web')->group(base_path('routes/contributions.php'));
+            Route::middleware('web')->group(base_path('routes/integrations.php'));
+            Route::middleware('web')->group(base_path('routes/platform.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -40,6 +46,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'alliance.context' => ResolveAllianceContext::class,
+            'platform.admin' => RequirePlatformAdministrator::class,
+            'api.credential' => AuthenticateApiCredential::class,
         ]);
 
         $middleware->append([

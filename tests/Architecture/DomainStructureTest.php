@@ -62,19 +62,24 @@ final class DomainStructureTest extends TestCase
         }
     }
 
-    public function test_future_phase_domains_contain_no_runtime_php(): void
+    public function test_unimplemented_kingdoms_domain_contains_no_runtime_php(): void
     {
-        foreach (['Integrations', 'Kingdoms'] as $domain) {
-            $iterator = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($this->root().'/app/Domain/'.$domain),
-            );
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->root().'/app/Domain/Kingdoms'),
+        );
 
-            foreach ($iterator as $file) {
-                if ($file instanceof SplFileInfo && $file->isFile()) {
-                    self::assertNotSame('php', $file->getExtension(), $domain.' must remain documentation-only until its approved phase.');
-                }
+        foreach ($iterator as $file) {
+            if ($file instanceof SplFileInfo && $file->isFile()) {
+                self::assertNotSame('php', $file->getExtension(), 'Kingdoms must remain documentation-only until an approved phase.');
             }
         }
+    }
+
+    public function test_phase_six_integrations_domain_contains_runtime_php(): void
+    {
+        self::assertFileExists($this->root().'/app/Domain/Integrations/Models/ApiCredential.php');
+        self::assertFileExists($this->root().'/app/Domain/Integrations/Models/WebhookSubscription.php');
+        self::assertFileExists($this->root().'/app/Domain/Integrations/Jobs/DeliverWebhookJob.php');
     }
 
     private function root(): string

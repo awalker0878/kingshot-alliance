@@ -13,6 +13,7 @@ use App\Domain\Identity\Models\User;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\OutboxMessage;
+use App\Domain\Platform\Services\AlliancePlatformDefaultsProvisioner;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -21,6 +22,7 @@ final readonly class CreateAlliance
     public function __construct(
         private AllianceRoleProvisioner $roles,
         private AuditRecorder $audit,
+        private AlliancePlatformDefaultsProvisioner $platformDefaults,
     ) {}
 
     public function handle(
@@ -59,6 +61,7 @@ final readonly class CreateAlliance
             $membership->roles()->attach($ownerRole->id, [
                 'alliance_id' => $alliance->id,
             ]);
+            $this->platformDefaults->provision($alliance, $owner);
 
             $this->audit->record(
                 event: 'alliance.created',

@@ -16,6 +16,7 @@ use App\Domain\Memberships\Models\Invitation;
 use App\Domain\Memberships\Services\InvitationTokenService;
 use App\Domain\Memberships\ValueObjects\IssuedInvitation;
 use App\Domain\Platform\Models\OutboxMessage;
+use App\Domain\Platform\Services\PlanEntitlementService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -27,6 +28,7 @@ final readonly class CreateInvitation
         private AllianceAuthorization $authorization,
         private InvitationTokenService $tokens,
         private AuditRecorder $audit,
+        private PlanEntitlementService $entitlements,
     ) {}
 
     public function handle(Alliance $alliance, User $actor, string $email): IssuedInvitation
@@ -95,6 +97,8 @@ final readonly class CreateInvitation
                     'attempts' => 0,
                 ]);
             }
+
+            $this->entitlements->assertMemberCapacity($alliance);
 
             $token = $this->tokens->issue();
             $ttlHours = max(1, (int) config('identity.invitation_ttl_hours', 72));

@@ -87,10 +87,7 @@ final class RuntimeConfigurationValidator
             $errors[] = 'Pulse recording must remain disabled until its schema and access policy are introduced.';
         }
 
-        $horizonMaxProcesses = config("horizon.environments.{$environment}.supervisor-1.maxProcesses");
-        if (! is_int($horizonMaxProcesses) || $horizonMaxProcesses < 1 || $horizonMaxProcesses > 64) {
-            $errors[] = 'Hosted Horizon supervisors must run between 1 and 64 worker processes.';
-        }
+        $errors = [...$errors, ...$this->horizonErrors($environment)];
 
         $trustedProxies = array_values(array_filter(array_map(
             static fn (string $proxy): string => trim($proxy),
@@ -143,6 +140,35 @@ final class RuntimeConfigurationValidator
         $sslMode = strtolower((string) config('database.connections.pgsql.sslmode'));
         if (! in_array($sslMode, ['require', 'verify-ca', 'verify-full'], true)) {
             $errors[] = 'Production PostgreSQL must require an encrypted connection.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function horizonErrors(string $environment): array
+    {
+        $supervisors = config("horizon.environments.{$environment}");
+
+        if (! is_array($supervisors) || $supervisors === []) {
+            return ["Hosted Horizon environment [{$environment}] must define at least one supervisor."];
+        }
+
+        $errors = [];
+
+        foreach ($supervisors as $name => $supervisor) {
+            if (! is_string($name) || ! is_array($supervisor)) {
+                $errors[] = "Hosted Horizon environment [{$environment}] contains an invalid supervisor definition.";
+
+                continue;
+            }
+
+            $maxProcesses = $supervisor['maxProcesses'] ?? null;
+            if (! is_int($maxProcesses) || $maxProcesses < 1 || $maxProcesses > 64) {
+                $errors[] = "Hosted Horizon supervisor [{$name}] must run between 1 and 64 worker processes.";
+            }
         }
 
         return $errors;

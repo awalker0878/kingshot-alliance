@@ -20,6 +20,7 @@ const props = defineProps<{
     canManage: boolean;
     canManageEvents: boolean;
     canManageRecruitment: boolean;
+    canManageIntegrations: boolean;
     notices: Array<{
       id: string;
       title: string;
@@ -173,6 +174,12 @@ function formatActivityTime(startsAt: string, timeZone: string): string {
         <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/events">Events</Link>
         <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/contributions"
           >Contributions</Link
+        >
+        <Link
+          v-if="contentHub.canManageIntegrations"
+          class="text-cyan-300 hover:text-cyan-200"
+          href="/alliance/integrations"
+          >Integrations</Link
         >
         <Link
           v-if="contentHub.canManageRecruitment"
