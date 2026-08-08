@@ -22,10 +22,14 @@ final class KingdomMigrationBackfillTest extends TestCase
         $createAlliance = $this->app->make(CreateAlliance::class);
         $first = $createAlliance->handle($owner, 'Legacy First', 'legacy-first', 2400);
         $second = $createAlliance->handle($owner, 'Legacy Second', 'legacy-second', 2400);
-        $migration = require database_path('migrations/2026_08_08_140500_create_kingdoms_and_link_alliances.php');
-        self::assertInstanceOf(Migration::class, $migration);
+        $kingdomMigration = require database_path('migrations/2026_08_08_140500_create_kingdoms_and_link_alliances.php');
+        $rosterMigration = require database_path('migrations/2026_08_08_141000_create_kingdom_roster_tables.php');
+        self::assertInstanceOf(Migration::class, $kingdomMigration);
+        self::assertInstanceOf(Migration::class, $rosterMigration);
 
-        $migration->down();
+        // Exercise the Slice A migration in the same dependency order a real rollback uses.
+        $rosterMigration->down();
+        $kingdomMigration->down();
 
         self::assertTrue(Schema::hasColumn('alliances', 'kingdom'));
         self::assertFalse(Schema::hasColumn('alliances', 'kingdom_id'));
@@ -33,10 +37,13 @@ final class KingdomMigrationBackfillTest extends TestCase
         DB::table('alliances')->where('id', $first->id)->update(['kingdom' => 'K #002400']);
         DB::table('alliances')->where('id', $second->id)->update(['kingdom' => 'Kingdom 2400']);
 
-        $migration->up();
+        $kingdomMigration->up();
+        $rosterMigration->up();
 
         self::assertFalse(Schema::hasColumn('alliances', 'kingdom'));
         self::assertTrue(Schema::hasColumn('alliances', 'kingdom_id'));
+        self::assertTrue(Schema::hasTable('kingdom_players'));
+        self::assertTrue(Schema::hasTable('alliance_roster_entries'));
         self::assertSame(1, DB::table('kingdoms')->where('number', 2400)->count());
 
         $kingdomId = DB::table('kingdoms')->where('number', 2400)->value('id');
