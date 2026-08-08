@@ -37,7 +37,6 @@ return new class extends Migration
         Schema::table('player_snapshots', function (Blueprint $table): void {
             $table->foreignUlid('roster_import_id')
                 ->nullable()
-                ->after('actor_user_id')
                 ->constrained('kingdom_roster_imports')
                 ->nullOnDelete();
             $table->index(['alliance_id', 'roster_import_id']);
