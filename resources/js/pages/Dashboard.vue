@@ -135,6 +135,13 @@ function logout(): void {
               Switch to this alliance
             </button>
             <Link
+              v-if="activeAllianceId === membership.alliance.id"
+              class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 hover:border-slate-500"
+              href="/alliance/roster"
+            >
+              Roster
+            </Link>
+            <Link
               v-if="activeAllianceId === membership.alliance.id && membership.canManageAlliance"
               class="rounded-lg border border-cyan-800 px-3 py-2 text-sm font-semibold text-cyan-300 hover:border-cyan-600"
               href="/alliance/settings/kingdom"
