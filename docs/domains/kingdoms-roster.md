@@ -2,11 +2,11 @@
 
 [← Kingdoms domain](kingdoms.md)
 
-**Status:** `KINGDOMS-001` Slice B / `K1-P2` implementation candidate  
+**Status:** `KINGDOMS-001` Slice B / `K1-P2` validated implementation candidate  
 **Implemented foundation dependency:** [Kingdoms](kingdoms.md)  
 **Approved scope:** [Kingdoms roster intelligence increment](../product/kingdoms-roster-intelligence-increment.md)
 
-This document is the living review contract for the Slice B roster implementation. Slice A remains the validated dependency; Slice B is not promoted to validated current capability until its protected gate succeeds.
+This document is the living review contract for the Slice B roster implementation. Slice A remains the validated dependency. Slice B has passed its protected validation gate on the PR branch and remains a review candidate until accepted into the dependency stack.
 
 ## Identity model
 
