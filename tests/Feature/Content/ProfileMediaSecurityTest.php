@@ -28,7 +28,7 @@ final class ProfileMediaSecurityTest extends TestCase
         config()->set('content.media_disk', 'local');
         $owner = User::factory()->create();
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Brand Alliance', 'brand-alliance');
+            ->handle($owner, 'Brand Alliance', 'brand-alliance', 1001);
         $asset = $this->app->make(UploadMediaAsset::class)
             ->handle($alliance, $owner, UploadedFile::fake()->image('logo.png', 120, 120));
 
@@ -37,7 +37,6 @@ final class ProfileMediaSecurityTest extends TestCase
 
         $this->app->make(UpdateAlliancePublicProfile::class)->handle($alliance, $owner, [
             'name' => 'Brand Alliance',
-            'kingdom' => '1001',
             'language' => 'pt-BR',
             'timezone' => 'America/Sao_Paulo',
             'description' => '<b>Public description</b>',
@@ -49,6 +48,7 @@ final class ProfileMediaSecurityTest extends TestCase
         $this->get('/alliances/brand-alliance')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
+                ->where('alliance.kingdom', '1001')
                 ->where('alliance.description', 'Public description')
                 ->where('alliance.recruitmentStatus', 'closed')
                 ->where('alliance.primaryColor', '#22D3EE')
@@ -68,7 +68,6 @@ final class ProfileMediaSecurityTest extends TestCase
 
         $this->app->make(UpdateAlliancePublicProfile::class)->handle($alliance, $owner, [
             'name' => 'Brand Alliance',
-            'kingdom' => '1001',
             'language' => 'pt-BR',
             'timezone' => 'America/Sao_Paulo',
             'description' => 'Public description',
@@ -96,7 +95,6 @@ final class ProfileMediaSecurityTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->app->make(UpdateAlliancePublicProfile::class)->handle($first, $firstOwner, [
             'name' => 'First Brand',
-            'kingdom' => null,
             'language' => 'en',
             'timezone' => 'UTC',
             'description' => null,
