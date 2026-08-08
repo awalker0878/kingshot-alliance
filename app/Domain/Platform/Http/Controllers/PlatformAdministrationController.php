@@ -110,7 +110,7 @@ final class PlatformAdministrationController extends Controller
             'owner_email' => ['required', 'email', 'exists:users,email'],
             'name' => ['required', 'string', 'max:120'],
             'slug' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:alliances,slug'],
-            'kingdom' => ['nullable', 'string', 'max:64'],
+            'kingdom' => ['nullable', 'integer', 'min:1', 'max:2147483647'],
             'language' => ['required', 'string', 'max:16'],
             'timezone' => ['required', 'string', 'timezone'],
         ]);
@@ -119,7 +119,7 @@ final class PlatformAdministrationController extends Controller
             $owner,
             (string) $validated['name'],
             (string) $validated['slug'],
-            isset($validated['kingdom']) ? (string) $validated['kingdom'] : null,
+            $validated['kingdom'] ?? null,
             (string) $validated['language'],
             (string) $validated['timezone'],
         );
