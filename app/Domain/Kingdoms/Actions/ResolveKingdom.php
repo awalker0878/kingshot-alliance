@@ -10,6 +10,8 @@ use Illuminate\Validation\ValidationException;
 
 final class ResolveKingdom
 {
+    private const MAX_NUMBER = 2_147_483_647;
+
     public function handle(int|string|null $number): ?Kingdom
     {
         if ($number === null || trim((string) $number) === '') {
@@ -24,11 +26,12 @@ final class ResolveKingdom
             ]);
         }
 
-        $normalized = (int) ltrim($raw, '0');
+        $digits = ltrim($raw, '0');
+        $normalized = (int) ($digits === '' ? '0' : $digits);
 
-        if ($normalized < 1 || $normalized > 4_294_967_295) {
+        if ($normalized < 1 || $normalized > self::MAX_NUMBER) {
             throw ValidationException::withMessages([
-                'kingdom' => 'Kingdom must be between 1 and 4294967295.',
+                'kingdom' => 'Kingdom must be between 1 and '.self::MAX_NUMBER.'.',
             ]);
         }
 
