@@ -69,9 +69,7 @@ function logout(): void {
   <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 lg:px-8">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
-          Kingshot Alliance
-        </p>
+        <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">Kingshot Alliance</p>
         <h1 class="mt-2 text-3xl font-bold">Welcome, {{ user.name }}</h1>
         <p class="mt-2 text-sm text-slate-400">
           {{ user.email }} · {{ user.timezone }}
@@ -135,9 +133,7 @@ function logout(): void {
               Switch to this alliance
             </button>
             <Link
-              v-if="
-                activeAllianceId === membership.alliance.id && membership.canManageAlliance
-              "
+              v-if="activeAllianceId === membership.alliance.id && membership.canManageAlliance"
               class="rounded-lg border border-cyan-800 px-3 py-2 text-sm font-semibold text-cyan-300 hover:border-cyan-600"
               href="/alliance/settings/kingdom"
             >
