@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Alliances\Http\Controllers;
 
 use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\Role;
+use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -17,7 +19,7 @@ use LogicException;
 
 final class DashboardController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, AllianceAuthorization $authorization): Response
     {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
@@ -39,7 +41,7 @@ final class DashboardController extends Controller
             $activeAllianceId = null;
         }
 
-        /** @var list<array{id: string, alliance: array{id: string, name: string, slug: string, timezone: string}, roles: list<array{key: string, name: string}>}> $membershipSummaries */
+        /** @var list<array{id: string, alliance: array{id: string, name: string, slug: string, timezone: string}, roles: list<array{key: string, name: string}>, canManageAlliance: bool}> $membershipSummaries */
         $membershipSummaries = [];
 
         foreach ($memberships as $membership) {
@@ -72,6 +74,7 @@ final class DashboardController extends Controller
                     'timezone' => (string) $alliance->timezone,
                 ],
                 'roles' => $roles,
+                'canManageAlliance' => $authorization->allows($user, $alliance, PermissionKey::AllianceManage),
             ];
         }
 
