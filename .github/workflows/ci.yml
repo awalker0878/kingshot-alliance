@@ -114,6 +114,11 @@ jobs:
       - name: Check dependency advisories
         run: npm audit --audit-level=high
 
+      - name: Show Slice C1 formatter diff
+        run: |
+          npx prettier --write resources/js/pages/Alliance/Roster.vue resources/js/pages/Alliance/RosterHistory.vue
+          git diff -- resources/js/pages/Alliance/Roster.vue resources/js/pages/Alliance/RosterHistory.vue
+
       - name: Run frontend checks
         run: npm run check
 
