@@ -397,4 +397,4 @@ At minimum, acceptance requires:
 
 When implementation is complete, create a dedicated `KINGDOMS-001` acceptance/exit record under `docs/product/` with the validated head SHA, protected-check evidence, security/accessibility evidence, migration result, deferred work, and acceptance decision.
 
-Do not create a `phase-7-exit-report.md`. Post-program increments retain their own stable scope IDs and acceptance records so the completed Phase 0–6 historical program remains intact.
+Do not create a Phase 7 exit report. Post-program increments retain their own stable scope IDs and acceptance records so the completed Phase 0–6 historical program remains intact.
