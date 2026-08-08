@@ -45,7 +45,7 @@ Deliver the platform's primary operational value: tenant-safe event scheduling, 
 - `EventAccessibilityGuardTest` applies the accepted Phase 2 source-level accessibility guard standard to all new Phase 3 event pages: main landmark required, raw `v-html` prohibited, positive `tabindex` prohibited, and native buttons must declare a type.
 - Member event flows use native links/buttons/form controls, explicit labels, keyboard-native interactions, textual status, responsive single-column-first layouts, and explicit user/alliance time-zone labels.
 - Reminder content is presented in an `aria-live="polite"` member section.
-- Deployment-specific browser/branding contrast, device reflow, and assistive-technology smoke testing remain release-readiness activities as documented in `docs/product/PHASE_3_ACCESSIBILITY.md`.
+- Deployment-specific browser/branding contrast, device reflow, and assistive-technology smoke testing remain release-readiness activities as documented in the [Phase 3 accessibility review](phase-3-accessibility.md).
 
 ### Migration and recovery
 
@@ -54,7 +54,7 @@ Deliver the platform's primary operational value: tenant-safe event scheduling, 
 
 ### Security and tenancy
 
-- `docs/security/PHASE_3_THREAT_MODEL.md` covers cross-alliance object reference, privilege escalation, capacity races, duplicate/stale reminders, guidance provenance, export leakage, stored-content injection, recurrence exhaustion, rally assignment collision, and privacy considerations.
+- The [Phase 3 threat model](../security/phase-3-threat-model.md) covers cross-alliance object reference, privilege escalation, capacity races, duplicate/stale reminders, guidance provenance, export leakage, stored-content injection, recurrence exhaustion, rally assignment collision, and privacy considerations.
 - All submitted coordinator object identifiers are re-resolved under the active alliance before privileged mutation.
 - Phase 3 exports are authenticated, active-alliance-scoped, and returned with `Cache-Control: private, no-store`.
 - Reminder inbox data is filtered by both active `alliance_id` and active `membership_id`.
@@ -62,8 +62,8 @@ Deliver the platform's primary operational value: tenant-safe event scheduling, 
 
 ### Operations and documentation
 
-- `docs/operations/PHASE_3_OPERATIONS.md` documents scheduler commands, reminder lifecycle, retry/backoff fields, registration concurrency, UTC/local-time behavior, exports, audit/outbox correlation, health/metrics/alert implications, backup/recovery, rollback, and incident triage.
-- `docs/domains/EVENTS_AND_RALLIES.md` documents member and coordinator workflows, reminders, formations, rally coordination, exports, time-zone behavior, troubleshooting, and the tenant/security boundary.
+- [Phase 3 operations](../operations/phase-3-operations.md) documents scheduler commands, reminder lifecycle, retry/backoff fields, registration concurrency, UTC/local-time behavior, exports, audit/outbox correlation, health/metrics/alert implications, backup/recovery, rollback, and incident triage.
+- The [Events and Rallies guide](../domains/events-and-rallies.md) documents member and coordinator workflows, reminders, formations, rally coordination, exports, time-zone behavior, troubleshooting, and the tenant/security boundary.
 - Phase 3 uses the existing audit recorder and transactional outbox for privileged business transitions and asynchronous delivery observability.
 
 ## Protected-workflow evidence
