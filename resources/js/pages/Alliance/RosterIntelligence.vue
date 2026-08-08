@@ -140,7 +140,8 @@ function comparisonText(comparison: TrendComparison | null): string {
         <p class="text-sm text-slate-400">Total recorded power</p>
         <p class="mt-2 text-3xl font-bold">{{ formatDecimal(metrics.totalPower) }}</p>
         <p class="mt-2 text-xs text-slate-500">
-          {{ metrics.recordedPowerPlayers }} of {{ metrics.trackedPlayers }} tracked players recorded
+          {{ metrics.recordedPowerPlayers }} of {{ metrics.trackedPlayers }} tracked players
+          recorded
         </p>
       </div>
       <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
@@ -190,7 +191,9 @@ function comparisonText(comparison: TrendComparison | null): string {
             <dd class="mt-1 text-2xl font-bold">{{ metrics.recentRoster.departures }}</dd>
           </div>
         </dl>
-        <p class="mt-4 text-xs text-slate-500">Window: last {{ metrics.recentRoster.days }} days.</p>
+        <p class="mt-4 text-xs text-slate-500">
+          Window: last {{ metrics.recentRoster.days }} days.
+        </p>
       </div>
 
       <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
@@ -230,15 +233,15 @@ function comparisonText(comparison: TrendComparison | null): string {
       <h2 class="text-lg font-semibold">How trend windows work</h2>
       <p class="mt-2 text-sm text-slate-400">
         For an N-day comparison, the baseline is the closest recorded snapshot at or before the
-        N-day target, but no older than 2N days. Snapshots newer than the target are not substituted,
-        old history outside that range is excluded, and the system does not interpolate missing
-        observations. The comparable-player count shows how much history actually supports each
-        aggregate change.
+        N-day target, but no older than 2N days. Snapshots newer than the target are not
+        substituted, old history outside that range is excluded, and the system does not interpolate
+        missing observations. The comparable-player count shows how much history actually supports
+        each aggregate change.
       </p>
       <p class="mt-2 text-sm text-slate-400">
-        Current totals use each active/tracked player's latest recorded snapshot. Stale snapshots are
-        included in recorded-power aggregates but are identified separately; players with no snapshot
-        are excluded rather than counted as zero.
+        Current totals use each active/tracked player's latest recorded snapshot. Stale snapshots
+        are included in recorded-power aggregates but are identified separately; players with no
+        snapshot are excluded rather than counted as zero.
       </p>
     </section>
 
@@ -275,7 +278,7 @@ function comparisonText(comparison: TrendComparison | null): string {
                   {{ comparison.name }}
                 </Link>
               </td>
-              <td class="px-5 py-4 capitalize text-slate-400">{{ comparison.snapshotState }}</td>
+              <td class="px-5 py-4 text-slate-400 capitalize">{{ comparison.snapshotState }}</td>
               <td class="px-5 py-4 text-slate-400">
                 {{ comparison.membershipLinked ? 'Linked' : 'Unlinked' }}
               </td>
@@ -298,8 +301,8 @@ function comparisonText(comparison: TrendComparison | null): string {
     </section>
 
     <p class="mt-6 text-xs text-slate-500">
-      Calculated at {{ formatDate(metrics.asOf) }}. Power growth is a roster observation metric and is
-      not a Contribution score.
+      Calculated at {{ formatDate(metrics.asOf) }}. Power growth is a roster observation metric and
+      is not a Contribution score.
     </p>
   </main>
 </template>
