@@ -56,7 +56,7 @@ type Metrics = {
   comparisons: PlayerComparison[];
 };
 
-const props = defineProps<{
+defineProps<{
   alliance: { id: string; name: string; kingdom: string | null };
   canManage: boolean;
   metrics: Metrics;
