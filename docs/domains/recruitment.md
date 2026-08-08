@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Phase 4 provides an alliance-scoped recruitment workflow from applicant intake through review, decision, invitation, onboarding, and retention. Recruiters should be able to operate the pipeline without a separate spreadsheet.
+Recruitment provides an alliance-scoped workflow from applicant intake through review, decision, invitation, onboarding, and retention. Recruiters should be able to operate the pipeline without a separate spreadsheet.
 
 ## Recruiter workflow
 
@@ -80,10 +80,10 @@ If a candidate must be retained longer for a legitimate operational reason, chan
 - Do not copy recruiter notes or candidate personal data into public alliance content.
 - Do not share invitation-only application links in public channels.
 - Do not use direct database edits for stage changes, merges, or retention cleanup.
-- Treat recruitment exports or integrations added later as candidate-data disclosures requiring explicit authorization and audit.
+- Any future recruitment export or external integration surface is a candidate-data disclosure boundary and requires explicit authorization, audit, retention, and privacy review before implementation.
 
 ## Troubleshooting
 
 If a recruiter cannot see the Recruitment link, confirm the active alliance and that the membership has recruitment-management permission. If a candidate from another alliance appears inaccessible, that is expected tenant isolation rather than an error. If a privileged action redirects to password confirmation, confirm the password and retry the action. If an invitation-only link returns not found, it may be invalid, expired, already used, or associated with a different application condition; issue a new controlled link rather than attempting to recover the old token.
 
-Operational details are documented in [Phase 4 operations](../operations/phase-4-operations.md); security and privacy controls are documented in the [Phase 4 threat model](../security/phase-4-threat-model.md); the combined Phase 1–4 ownership and security boundary is documented in the [Phases 1–4 alignment audit](../product/phases-1-4-alignment-audit.md).
+See the [operations index](../operations/README.md) for current runbooks and historical operational evidence, [Identity, tenancy, and membership](identity-tenancy-and-membership.md) for authorization/tenant context, and the [security baseline](../security/security-baseline.md) for the current security and privacy contract.
