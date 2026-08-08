@@ -1,15 +1,35 @@
 # Production Launch Approval
 
 **Decision:** Not yet approved for a real production cutover  
-**Repository state:** Candidate pending protected validation
+**Repository hardening:** Accepted and merged  
+**Production evidence:** Pending
 
-## Repository evidence required
+## Repository hardening evidence
 
-Before this record can be changed to `Approved`, record:
+The post-Phase-6 repository-controlled hardening stage was accepted on validated PR head `c81c40b619750407cebffd6c8ff77597e049a242` and squash-merged to `main` as `dfc608c7fdc665a82eb74238fe2fc123755f37c7`.
+
+That validated head passed:
+
+- PostgreSQL migration;
+- Pint and PHPStan;
+- the complete backend suite (185 tests / 1,555 assertions);
+- frontend checks;
+- Dependency Review;
+- CodeQL;
+- immutable production-image build;
+- ephemeral staging deployment;
+- backup/restore demonstration;
+- image vulnerability scanning.
+
+This evidence establishes repository hardening only. It is not evidence that a real production environment is configured, healthy, or approved.
+
+## Production release evidence required
+
+Before this record can be changed to `Approved`, record evidence from the actual production release candidate and deployed production environment:
 
 - release commit SHA;
 - immutable image digest and OCI revision/version labels;
-- protected CI result;
+- protected CI result for the release commit;
 - CodeQL result;
 - Dependency Review result;
 - image-scan result;
@@ -35,6 +55,6 @@ The deployment owner must record non-secret evidence identifiers for each item b
 
 ## Approval rule
 
-Production launch is a **no-go** while any row remains Pending, while protected checks are not green on the exact release commit, or while `app:launch-check` fails against the deployed production database and configuration.
+Production launch is a **no-go** while any row remains Pending, while protected checks are not green on the exact production release commit, or while `app:launch-check` fails against the deployed production database and configuration.
 
 This document intentionally does not auto-approve production from CI. The implementation plan requires accountable owners to accept launch risks, and infrastructure controls cannot be truthfully inferred from repository state.
