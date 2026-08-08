@@ -13,6 +13,7 @@ use App\Domain\Platform\Actions\ManagePlatformAdministrator;
 use App\Domain\Platform\Actions\ProcessAccountDeletionRequests;
 use App\Domain\Platform\Actions\PublishOutboxBatch;
 use App\Domain\Platform\Services\PlatformUsageService;
+use App\Domain\Platform\Services\ProductionLaunchReadiness;
 use App\Domain\Platform\Services\RuntimeConfigurationValidator;
 use App\Domain\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
 use Illuminate\Support\Facades\Artisan;
@@ -37,6 +38,24 @@ Artisan::command('app:config-check', function (RuntimeConfigurationValidator $va
 
     return 0;
 })->purpose('Validate required staging and production configuration');
+
+Artisan::command('app:launch-check {--json}', function (ProductionLaunchReadiness $readiness): int {
+    $checks = $readiness->checks();
+
+    if ((bool) $this->option('json')) {
+        $this->line(json_encode([
+            'passed' => ! collect($checks)->contains(static fn (array $check): bool => ! $check['passed']),
+            'checks' => $checks,
+        ], JSON_THROW_ON_ERROR));
+    } else {
+        foreach ($checks as $check) {
+            $prefix = $check['passed'] ? '[PASS]' : '[FAIL]';
+            $this->line(sprintf('%s %s: %s', $prefix, $check['key'], $check['detail']));
+        }
+    }
+
+    return $readiness->passed() ? 0 : 1;
+})->purpose('Validate repository-controlled production launch prerequisites and operational health');
 
 Artisan::command('platform:admin:grant {email}', function (ManagePlatformAdministrator $manage): int {
     $emailArgument = $this->argument('email');
