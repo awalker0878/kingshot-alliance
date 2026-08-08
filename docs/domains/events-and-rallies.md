@@ -1,6 +1,6 @@
 # Events and Rallies
 
-Phase 3 adds alliance-scoped scheduling, registration, reminders, formation guidance, rally coordination, attendance, and exports.
+This guide documents the current alliance-scoped scheduling, registration, reminders, formation guidance, rally coordination, attendance, and export behavior.
 
 ## Member workflow
 
@@ -93,6 +93,8 @@ Template provenance is persisted in the same transaction as the event and its ge
 
 Choose an event and set the number of minutes before start. The scheduler materializes one deterministic delivery per occurrence/rule/member and queues due reminders through the transactional outbox.
 
+See [Notifications](notifications.md) for reminder state, idempotency, scheduler, and recovery behavior.
+
 ### Rally guidance
 
 Guidance is configuration data, not hard-coded game logic. A guidance record can contain:
@@ -126,7 +128,7 @@ The coordinator dashboard lists registrations and rally assignments for each occ
 - event attendance (`attended` or `no-show`);
 - rally participation (`participated` or `no-show`).
 
-These changes require recent password confirmation and use the same tenant-scoped authorization/audit boundary as other privileged Phase 3 mutations.
+These changes require recent password confirmation and use the same tenant-scoped authorization/audit boundary as other privileged event mutations.
 
 ## CSV export
 
@@ -138,7 +140,7 @@ The response is private and non-cacheable by shared caches. Another alliance's e
 
 The Events page also provides an authenticated `.ics` response containing the active alliance's upcoming occurrences. Event timestamps are emitted in UTC and event text is escaped for iCalendar output.
 
-Phase 3 provides the authenticated feed/download foundation; it does not issue a long-lived public calendar subscription token. A future public/tokenized feed requires a separate revocation and security design.
+The current authenticated feed/download does not issue a long-lived public calendar subscription token. A future public/tokenized feed requires a separate revocation and security design.
 
 ## Time-zone model
 
@@ -164,7 +166,7 @@ Check, in order:
 6. the delivery progressed from `pending` → `queued` → `sent`;
 7. the associated outbox message has `published_at` and no unresolved `last_error`.
 
-See [Phase 3 operations](../operations/phase-3-operations.md) for the operational runbook.
+See [Notifications](notifications.md) for the live reminder-delivery contract and the [operations index](../operations/README.md) for runbooks and historical operational evidence.
 
 ### An event is full
 
@@ -178,4 +180,4 @@ Confirm infantry + cavalry + archer percentages total exactly 100.
 
 All member/coordinator event pages, exports, reminder inbox records, formations, registrations, guidance, rally groups, and assignments are alliance-scoped. Submitted object IDs are re-resolved under the active alliance before privileged mutations. Privileged coordinator mutations also require recent password confirmation.
 
-See the [Phase 3 threat model](../security/phase-3-threat-model.md) for the Phase 3 security review and the [Phases 1–4 alignment audit](../product/phases-1-4-alignment-audit.md) for the integrated Phase 1–4 security boundary.
+See [Identity, tenancy, and membership](identity-tenancy-and-membership.md), the [security baseline](../security/security-baseline.md), and the [domain boundary audit](domain-boundary-audit.md) for the current tenancy and security contracts.
