@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
 use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
 use App\Domain\Kingdoms\Http\Controllers\RosterController;
+use App\Domain\Kingdoms\Http\Controllers\RosterCsvController;
 use App\Domain\Kingdoms\Http\Controllers\RosterIntelligenceController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,13 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/roster/intelligence', [RosterIntelligenceController::class, 'index'])
         ->name('alliance.roster.intelligence');
 
+    Route::get('/alliance/roster/import', [RosterCsvController::class, 'index'])
+        ->name('alliance.roster.import.index');
+    Route::get('/alliance/roster/import/{import}', [RosterCsvController::class, 'show'])
+        ->name('alliance.roster.import.show');
+    Route::get('/alliance/roster/export.csv', [RosterCsvController::class, 'export'])
+        ->name('alliance.roster.export');
+
     Route::get('/alliance/roster/{entry}/history', [PlayerSnapshotController::class, 'show'])
         ->name('alliance.roster.history');
 
@@ -37,5 +45,9 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             ->name('alliance.roster.leave');
         Route::post('/alliance/roster/{entry}/snapshots', [PlayerSnapshotController::class, 'store'])
             ->name('alliance.roster.snapshots.store');
+        Route::post('/alliance/roster/import/preview', [RosterCsvController::class, 'preview'])
+            ->name('alliance.roster.import.preview');
+        Route::post('/alliance/roster/import/{import}/commit', [RosterCsvController::class, 'commit'])
+            ->name('alliance.roster.import.commit');
     });
 });
