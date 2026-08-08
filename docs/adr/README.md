@@ -4,6 +4,115 @@
 
 Kingshot Alliance is an enterprise modular monolith organized by explicit business domains. The canonical physical repository structure is defined by the [implementation plan](../product/implementation-plan.md) and ADR 0008.
 
+## Current architecture view
+
+This section is a living system map for the current Phase 0–6-complete runtime. It summarizes accepted decisions and current implementation boundaries; the numbered ADRs remain the durable record of why those decisions were made.
+
+```text
+Browser / API client
+        |
+        v
+  Nginx web entry point
+        |
+        v
+  Laravel application
+  - request/trace correlation
+  - authentication / MFA / password confirmation
+  - active-alliance tenant context
+  - policy / permission checks
+        |
+        +--------------------------+
+        |                          |
+        v                          v
+Business domains             Platform/foundation domains
+- Alliances                  - Audit
+- Memberships                - Platform
+- Authorization              - Integrations
+- Identity                   - Notifications
+- Content
+- Events / Rallies
+- Recruitment
+- Contributions
+        |                          |
+        +------------+-------------+
+                     |
+        +------------+-------------+----------------+
+        |                          |                 |
+        v                          v                 v
+   PostgreSQL                   Redis          Private media
+   system of record       cache/session/queue   local or S3
+        |
+        v
+ transactional outbox
+        |
+        v
+ scheduler / event listeners -----> Horizon integrations queue -----> signed webhooks
+```
+
+### Runtime topology
+
+The deployable application uses one immutable image for the web/application, Horizon worker, scheduler, and one-shot migration roles. The standard staging topology runs:
+
+- Nginx as the HTTP entry point;
+- PHP-FPM for the Laravel application;
+- PostgreSQL as the hosted relational system of record;
+- Redis for hosted cache, encrypted sessions, and queues;
+- Horizon for queue workers;
+- `schedule:work` for recurring/background coordination; and
+- private local or S3-compatible storage, with production content media requiring durable S3-backed storage.
+
+See [Runtime configuration reference](../operations/configuration-reference.md), [Background processing](../operations/background-processing.md), and the [deployment runbook](../operations/runbooks/deployment.md) for the executable operating contract.
+
+### Domain ownership
+
+Runtime PHP is domain-first under `app/Domain/<Domain>`. The canonical roots are:
+
+`Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, and `Recruitment`.
+
+`Kingdoms` is intentionally reserved and documentation-only; it is not an implemented runtime capability. The current domain contracts and boundaries are indexed under [domain documentation](../domains/README.md).
+
+Identity is global. Alliance-scoped business behavior activates an explicit alliance context and requires an active membership before tenant data is accessed. Platform administration is intentionally cross-tenant and does not reuse alliance roles as its authorization model. These boundaries follow ADR 0002 and the living [identity/tenancy/membership](../domains/identity-tenancy-and-membership.md) and [platform administration](../domains/platform-scale-and-administration.md) contracts.
+
+### Synchronous and asynchronous boundaries
+
+Normal HTTP requests execute synchronously inside the modular monolith and persist through domain-owned models/services. Cross-domain collaboration should use intentional actions, queries, services, value objects, or events rather than persistence reach-through.
+
+The transactional outbox is the durable asynchronous boundary for domain events that must survive the originating transaction. The scheduler publishes eligible outbox messages, and listeners coordinate downstream effects such as reminder state, recruitment conversion state, and webhook creation. Webhook HTTP delivery itself runs through Horizon's `integrations` queue so external retries cannot consume all core application worker capacity.
+
+See [ADR 0004](0004-queues-and-transactional-outbox.md), [Notifications](../domains/notifications.md), [Integrations](../domains/integrations.md), and [Background processing](../operations/background-processing.md).
+
+### Data and storage boundaries
+
+- **PostgreSQL** owns relational application state and tenant-scoped business records.
+- **Redis** owns hosted cache, encrypted session state, queue transport, and Horizon coordination.
+- **Private object/file storage** owns content media and generated operational artifacts where applicable; production content media requires S3-backed storage.
+- **Audit records** persist security/business audit events with request/trace correlation when created in an HTTP context.
+- **Transactional outbox records** persist durable asynchronous work before publication.
+
+Tenant isolation is enforced as an architectural property, not merely a naming convention. Tenant-bound cache/storage keys and cross-domain queries must preserve alliance identity explicitly.
+
+### Trust and integration boundaries
+
+External API access uses alliance-bound read-only credentials and fixed scopes. Outbound webhooks are signed and retried, but deployment infrastructure must still enforce egress/SSRF controls; application URL validation alone is not a production network boundary.
+
+Privileged web access uses verified identity, MFA where required, recent password confirmation for sensitive actions, and policy/permission checks. Platform administration has its own grant model and stronger cross-tenant access requirements.
+
+See the [security baseline](../security/security-baseline.md), [Integrations](../domains/integrations.md), and [production launch security review](../security/production-launch-security-review.md).
+
+### Observability and health
+
+The current runtime provides JSON stderr logging, UUID request IDs, W3C trace correlation, request completion/failure logs, audit correlation, `/up` liveness, `/health/ready` database/cache readiness, Horizon queue visibility, and repository-controlled launch-health counters.
+
+The repository does **not** currently configure an OpenTelemetry exporter or inject release/tenant metadata into every log record. Laravel Pulse is present as a foundation but hosted configuration requires Pulse recording to remain disabled until its schema and access policy are introduced.
+
+See [ADR 0006](0006-observability-and-correlation.md) and [Observability](../operations/observability.md).
+
+### Deployment and production boundary
+
+Repository automation proves code/test quality, immutable image construction, staging boot, migrations, health checks, backup/restore tooling, and image scanning. It does not prove real production ingress/TLS, egress enforcement, alert ownership, capacity, operator identity, support coverage, managed dependency configuration, or recovery of production-managed keys/media.
+
+Repository production hardening is accepted; a real production cutover remains **not yet approved**. The authoritative decision remains [production launch approval](../product/production-launch-approval.md).
+
 ## Decision records
 
 - [ADR 0001 — Modular monolith](0001-modular-monolith.md)
