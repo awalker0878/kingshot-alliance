@@ -29,7 +29,9 @@ function saveKingdom(): void {
     </Link>
 
     <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-8">
-      <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">Alliance settings</p>
+      <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
+        Alliance settings
+      </p>
       <h1 class="mt-3 text-3xl font-bold">Kingdom</h1>
       <p class="mt-3 text-sm text-slate-400">
         {{ alliance.name }} references a first-class Kingshot kingdom. Changing this association is
