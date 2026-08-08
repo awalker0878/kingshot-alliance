@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
  * @property string $alliance_id
  * @property string $roster_entry_id
  * @property string $kingdom_player_id
- * @property string $actor_user_id
+ * @property int $actor_user_id
  * @property string $observed_name
  * @property int $power
  * @property string|null $progression_level
