@@ -6,11 +6,13 @@ This directory documents business/domain behavior and ownership. Runtime code re
 
 ## Current guides
 
+- [Identity, tenancy, and membership](identity-tenancy-and-membership.md) — global identity, active-alliance context, membership lifecycle, invitations, roles, permissions, and RBAC.
 - [Content management](content-management.md) — alliance public presence, authored content, visibility, revisions, media, and management behavior.
 - [Events and rallies](events-and-rallies.md) — events, recurrence, registration, attendance, reminders, rally guidance, formations, and participation.
 - [Recruitment](recruitment.md) — application modes, candidate pipeline, review, decisions, conversion, metrics, and retention.
 - [Contributions and reporting](contributions-and-reporting.md) — contribution records, calculation semantics, corrections, reporting, exports, and data quality.
-- [Integrations](integrations.md) — API credentials, webhook subscriptions/delivery, queue isolation, and integration boundaries.
+- [Notifications](notifications.md) — event-reminder delivery state, scheduled-report coordination, idempotency, scheduler flow, and recovery.
+- [Integrations](integrations.md) — API credential/authentication contract, read-only API endpoints, webhook signing/delivery contract, and integration boundaries.
 - [Platform scale and administration](platform-scale-and-administration.md) — platform administration, tenant lifecycle, entitlements, API/webhook controls, retention, and operational scale.
 
 ## Architecture evidence
