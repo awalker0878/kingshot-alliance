@@ -1,117 +1,155 @@
-# Security Baseline
+# Security baseline
 
-## Application
+[← Security documentation](README.md)
 
-- HTTPS and secure session cookies are mandatory for externally reachable hosted environments. The ephemeral CI staging demonstration may use loopback HTTP and insecure cookies only when `APP_URL` resolves to `localhost`, `127.0.0.1`, or `::1` and `ALLOW_INSECURE_LOOPBACK_STAGING=true` is explicitly set.
-- Hosted startup requires a valid 32-byte AES-256 application key, a non-placeholder version, and a 40-character lowercase Git release SHA.
-- Hosted startup requires PostgreSQL plus Redis-backed cache, queues, and sessions; session payload encryption and `lax` or `strict` SameSite protection cannot be disabled.
-- Production startup additionally fails when debugging is enabled, `APP_URL` is not HTTPS, secure session cookies are disabled, or PostgreSQL permits plaintext fallback.
-- Production responses include HTTP Strict Transport Security; health responses are explicitly non-cacheable and stateless.
-- Public health responses expose only aggregate status and request correlation, never dependency-level results or immutable release metadata.
-- Sessions are encrypted, HTTP-only, and same-site restricted.
+This document describes the **current** repository security baseline after Phases 0–6 and repository-controlled production hardening. Phase-specific threat models remain historical evidence for when controls were introduced; this file is the consolidated present-tense baseline.
+
+The authoritative real-production go/no-go decision is maintained in [`../product/PRODUCTION_LAUNCH_APPROVAL.md`](../product/PRODUCTION_LAUNCH_APPROVAL.md). Passing repository checks does not prove infrastructure controls that must be evidenced in the production environment.
+
+## Application and transport
+
+- Externally reachable hosted environments use HTTPS. Production startup fails closed when `APP_URL` is not HTTPS, debugging is enabled, secure session cookies are disabled, or required hosted database protections are missing.
+- The ephemeral CI staging demonstration may use loopback HTTP only when the loopback exception is explicitly enabled.
+- Hosted runtime requires a valid application key, non-placeholder application version, immutable release SHA, PostgreSQL, and Redis-backed cache/queues/sessions.
+- Session payloads are encrypted; browser sessions use HTTP-only, SameSite protection and secure cookies in production.
 - State-changing browser requests use CSRF protection.
-- Responses include clickjacking, content-sniffing, referrer, permissions, and opener controls, including rendered error responses.
-- Content Security Policy is enabled after deployment-specific asset origins are approved.
-- Trusted proxy addresses are configured explicitly through `TRUSTED_PROXIES`; `TRUSTED_PROXIES=*` must be the only proxy entry, also requires `ALLOW_TRUST_ALL_PROXIES=true`, and is permitted only behind a controlled internal ingress.
-- Nginx routes dynamic requests only through Laravel's `/index.php` front controller, rejects other PHP paths, suppresses server-version disclosure, and excludes URI paths, query strings, referrers, and forwarded-address chains from access logs.
-- Application request metrics record named routes or the constant `unmatched`, never unclassified request paths.
-- API and authentication routes use named rate limits.
-- Privileged changes require authorization, confirmation, and audit.
-- Error responses do not expose stack traces in staging or production.
+- Responses include clickjacking, content-sniffing, referrer, permissions, opener, and production HSTS controls. Security headers also apply to rendered error responses.
+- Trusted proxies are configured explicitly. Trust-all proxy mode requires a separate explicit opt-in and is acceptable only behind a controlled ingress boundary.
+- Dynamic web requests route through the Laravel front controller; arbitrary PHP execution paths are rejected.
+- Public health responses are stateless, non-cacheable, and expose aggregate status/correlation only rather than dependency details or release metadata.
+- Authentication, API, recruitment-intake, and other abuse-sensitive routes use named rate limits.
 
-## Identity and access
+## Identity and authentication
 
-- One global user identity may belong to multiple alliances; identity rows are not duplicated per tenant.
-- Registration canonicalizes email addresses before uniqueness validation and supports open or invitation-only mode.
-- Registration requires email verification before alliance mutation routes become available.
-- Login regenerates the session identifier, uses a generic invalid-credential response, and is throttled by normalized email plus source IP.
-- Logout invalidates the session and rotates the CSRF token.
-- Password-reset requests do not reveal whether an account exists. Password reset and password change revoke personal access tokens; password changes also invalidate other authenticated sessions through Laravel's session-authentication mechanism.
-- Profile email changes clear verification and require the new address to be verified.
-- Authenticated routes use `auth.session` so password-hash changes invalidate stale sessions.
-- Active alliance context is explicit session state and is revalidated against an active membership on every tenant-scoped request. Missing context fails closed; stale or suspended membership clears the saved context.
-- Alliance activation resolves the target through the user's active memberships rather than trusting global route-model binding.
-- Alliance-scoped authorization checks both user membership and tenant-scoped role permissions.
-- `membership_roles` carries composite tenant foreign keys so PostgreSQL rejects assigning a role from one alliance to a membership in another alliance even if application code is defective.
-- Membership administration enforces role hierarchy and last-owner safety. Role assignment is allowed only to active memberships; leaving or removing a member strips role assignments so later reactivation cannot restore hidden privilege.
-- Invitation bearer tokens are high-entropy values stored only as hashes, bound to the intended email address, expire, are one-time use, and rotate on resend. New invitation issuance is serialized per alliance, supersedes earlier pending tokens for the same email, and records explicit audit/outbox revocation evidence. Acceptance/resend/revoke use transactional row locks.
-- Invitation, membership, role, and leave operations require a verified account plus recent password confirmation in addition to tenant authorization.
-- MFA uses RFC 6238 TOTP. Secrets are stored through encrypted model casts and excluded from serialization.
-- MFA recovery codes are stored only as SHA-256 hashes, shown only when created/regenerated, and consumed once.
-- Confirmed MFA interrupts password login before an authenticated session is established. Successful challenge regenerates the session identifier; challenge attempts are separately rate limited.
-- Starting MFA enrollment cannot overwrite an already-confirmed factor. Enrollment, confirmation, recovery-code regeneration, and disable operations require a verified account and recent password confirmation.
-- Authentication, recovery, MFA, alliance, invitation, membership, and role transitions write attributable audit records where the operation is security relevant.
-- The Phase 1 threat assessment is maintained in `docs/security/PHASE_1_THREAT_MODEL.md`.
+- User identity is global; a user may belong to multiple alliances without duplicating identity rows per tenant.
+- Email addresses are normalized before uniqueness-sensitive authentication/registration operations.
+- Privileged alliance operations require verified identity and recent password confirmation where defined by the owning route/policy boundary.
+- Password reset does not disclose whether an account exists. Password reset/change invalidates affected long-lived credentials and stale authenticated sessions as implemented by the identity domain.
+- MFA uses TOTP. Secrets use encrypted model casts and are excluded from serialization.
+- MFA recovery codes are stored as hashes, displayed only when created/regenerated, and consumed once.
+- MFA challenge attempts are separately rate limited and successful challenges regenerate the authenticated session boundary.
+- Security-relevant identity transitions are attributable through the audit domain.
 
-Operational dashboards follow the same boundary. Pulse registers no dashboard route and recording remains disabled until its schema and access policy are introduced. Horizon workers remain available, but the dashboard and mutation APIs remain explicitly denied because Phase 1 introduces alliance identity rather than a platform-operator administration model.
+## Platform administration
 
-## Tenancy and asynchronous boundaries
+- Platform administration is a separate cross-tenant grant; it is not an alliance role and alliance ownership does not confer platform access.
+- Platform web administration requires an active platform-administrator grant, verified email, confirmed MFA, and recent password confirmation on privileged platform routes.
+- Production launch readiness requires at least two active operational platform administrators and rejects active grants whose user lacks verified email or confirmed MFA.
+- A platform administrator cannot revoke their own grant through the managed revocation path.
+- Horizon worker visibility is restricted by `Horizon::auth` to active platform administrators with verified email and confirmed MFA.
+- Pulse dashboard routes are not exposed; application code explicitly ignores Pulse routes. Any production telemetry export/recording must retain the same privacy, authorization, and cardinality constraints as the structured observability model.
+- Support impersonation is not approved and is not implemented.
 
-- Tenant-owned application queries use an explicit alliance identifier rather than hidden global tenant state.
-- Tenant-scoped requests carry an immutable `TenantContextSnapshot` containing the alliance and membership identifiers required to propagate context safely.
-- The snapshot is serializable for queued work and provides the canonical tenant prefix for cache keys, storage paths, export paths, and structured log context.
-- Tenant storage/export helpers reject unsafe path segments rather than allowing traversal outside the tenant prefix.
-- Request middleware attaches the snapshot only after validating active membership and removes it in a `finally` block after the request.
-- Meaningful persisted changes write an outbox row within the same database transaction as the domain mutation.
-- Outbox publication is at-least-once. Every persisted event has a unique per-event idempotency key that remains stable across publisher retries and is passed to consumers for deduplication; duplicate no-op role assignment emits no additional event.
-- PostgreSQL publishers claim work with `FOR UPDATE SKIP LOCKED`, lease through `available_at`, track attempts, record bounded `last_error` diagnostics, and retry with bounded backoff.
-- The outbox publisher runs from the scheduler with overlap and single-server protection; a compatible lock path is retained for the SQLite local/test database.
+## Alliance tenancy and authorization
 
-## Secrets
+- Active alliance context is explicit and is revalidated against an active membership before tenant-scoped access.
+- Tenant-owned queries receive an explicit alliance identifier rather than depending on hidden global tenant state.
+- Tenant context propagates through an immutable snapshot used for requests and for tenant-prefixed asynchronous/cache/storage/export/log boundaries where applicable.
+- Tenant storage/export helpers reject unsafe path segments.
+- Alliance-scoped authorization checks both membership and the applicable tenant-scoped permission/policy.
+- Composite tenant foreign keys protect critical same-alliance relationships at the database layer, including role assignment.
+- Membership administration enforces hierarchy and last-owner safety; deactivation/removal does not preserve hidden role privilege for later reactivation.
+- Cross-domain code must use intentional public contracts rather than reaching into another domain's persistence internals, reducing accidental authorization and isolation bypasses.
 
-- Secrets are injected at runtime and never committed.
-- Production secrets use a managed secret store.
-- Deployment environment files must be owner-readable only with mode `400` or `600`.
-- Rotation ownership and expiry are documented.
-- Logs, exception context, CI output, and support exports must redact secrets.
-- Git and Docker exclusions prevent deployment environments, Composer credentials, backups, runtime keys, and `storage/app` data from entering commits or image build contexts.
-- `bin/check` fails when mandatory secret and data exclusions are removed.
+## Invitations and membership lifecycle
 
-## Data
+- Invitation bearer tokens are high entropy, stored as hashes, bound to the intended email, expire, are one-time use, and rotate on resend/replacement.
+- Replacement/acceptance/revocation behavior uses transactions/locking where required to avoid concurrent duplicate lifecycle transitions.
+- Membership and invitation changes produce attributable audit/outbox evidence for meaningful state transitions.
 
-- PostgreSQL connections require encryption in hosted production environments.
-- Hosted default storage is restricted to the private local disk or a configured S3 disk; the public disk cannot become the default through environment overrides.
-- A populated PostgreSQL schema is backed up before migrations even when the previous application container is stopped or unhealthy; only a verified empty schema skips the first-deployment backup.
-- Backups are access controlled, compressed only after a successful database dump, recorded in a SHA-256 manifest, verified before restore, and tested through destructive recovery exercises.
-- Backup archives, manifests, and restore working files use collision-resistant temporary paths and owner-only permissions.
-- The verified archive is published first and its manifest last; the manifest is the completion marker for a restorable pair. Interruption or failure removes incomplete output.
-- Backup provenance is derived from the existing application container, including a stopped container, and never substitutes the incoming deployment target as the source release.
-- Restore validates exactly one archive name and checksum entry, confirms the manifest names the selected archive, verifies gzip and SHA-256 integrity, and confirms PostgreSQL readiness before stopping application services.
-- Restore operations fail closed when their matching manifest is absent or invalid unless an explicit unverified-restore override is approved.
-- Generated backups are excluded from source control and Docker image build contexts.
-- Object storage defaults to private visibility and fails on write errors.
-- Sensitive exports are authorized, tenant-prefixed, time limited, and audited when export domains are introduced.
-- Retention and deletion rules are defined with each domain.
-- Phase 1 migration and rollback behavior is documented in `docs/operations/PHASE_1_MIGRATION_ROLLBACK.md`; normal application rollback does not automatically reverse database migrations.
+## Content and media
 
-## Dependencies and supply chain
+- Anonymous access is limited to public content/profile fields for active alliances; members-only content requires an authenticated active-alliance context.
+- Content-management mutations require the owning permission/policy and the privileged confirmation boundary defined by the content routes.
+- Historical revisions are immutable evidence; restoring/editing a historical version returns content to a controlled draft path rather than silently republishing it.
+- Authored text is rendered safely; raw HTML execution is not a supported content feature.
+- Private media uses tenant-scoped storage, bounded size/type validation, checksum/lifecycle tracking, and the configured media-scanner hook.
+- Hosted durable private media is treated separately from PostgreSQL backup. A database backup must never be represented as proof that media binaries were recovered.
 
-- Composer and npm audits run in CI.
-- Dependency Review blocks high-severity additions.
-- Dependabot monitors Composer, npm, Docker, and GitHub Actions.
-- CodeQL analyzes PHP and TypeScript.
-- Every external GitHub Action is pinned to a reviewed 40-character commit SHA, with its release version retained as a comment. CI fails if a mutable action tag or branch is introduced.
-- Production images are scanned for high and critical vulnerabilities.
-- Release images are immutable and identified by digest, local image ID, source SHA, and OCI metadata.
-- Deployment rejects missing or placeholder OCI version/revision metadata, verifies GPL-3.0-only license metadata, and fails if runtime `APP_VERSION` or `RELEASE_SHA` overrides differ from the immutable image.
-- Deployment and staging checks prove that app, web, worker, and scheduler roles run the expected immutable image ID and release metadata.
-- Build contexts exclude development credentials, local data, test output, documentation, and deployment configuration.
-- Runtime stages use targeted copies and do not contain Composer, Git, Bash, frontend source, test tooling, deployment files, or unrelated repository content.
-- CI fails if a broad `COPY . .` instruction is reintroduced.
-- Lockfile generation stages untracked files before comparison, verifies the preserved Composer artifact when available, and regenerates from reviewed constraints only when that artifact is unavailable.
+## Events, reminders, and rallies
 
-## Operations
+- Event and rally management remains alliance-scoped and policy protected; privileged coordinator mutations use the common confirmation boundary.
+- Event recurrence persists canonical time data and is tested across time-zone/DST behavior.
+- Registration capacity/waitlist transitions are serialized where necessary to avoid over-allocation and duplicate promotion.
+- Reminder delivery uses persisted delivery/outbox state and idempotent/retry-safe processing to prevent duplicate notification behavior.
+- Rally guidance is effective-dated/configurable data with source/rationale rather than hidden hard-coded game advice.
 
-- Request IDs and W3C trace IDs correlate logs and are returned on successful and rendered error responses.
-- Valid upstream trace IDs and sampling flags are preserved while a new local parent/span ID represents the current request.
-- Invalid trace context, including all-zero trace or parent identifiers, is discarded and replaced.
-- Phase 1 audit records retain request/trace correlation where an HTTP request is present, plus actor, tenant, subject, and event metadata appropriate to the action.
-- Health endpoints separate liveness from dependency readiness, do not start browser sessions, and return no dependency-level or release-identifying data to public callers.
-- Local development publishes the application, Vite, PostgreSQL, and Redis only on `127.0.0.1`; CI fails if those default Compose bindings are broadened to all host interfaces.
-- `bootstrap/cache` remains image-owned and is not persisted or shared between releases; each digest uses the package manifest built into that image.
-- Staging application roles run as non-root, use read-only filesystems, set `no-new-privileges`, and drop all Linux capabilities.
-- The web role mounts runtime storage read-only; write access remains limited to application roles that require it.
-- Horizon has explicit local, staging, and production supervisor settings. Hosted supervisor counts must remain between 1 and 64 processes.
-- Backup manifests record the running release SHA and image reference, and CI validates both before destructive restore.
-- Production debugging is disabled.
-- Incident response follows `docs/operations/runbooks/incident-response.md`.
+## Recruitment
+
+- Recruitment mode has one authoritative source in the recruitment domain; public content composes that state rather than maintaining a duplicate writable status.
+- Application intake is rate limited and bounded by the configured recruitment mode.
+- Candidate, notes, reviewer, tag, decision, and conversion workflows are alliance scoped.
+- Accepted-candidate conversion uses the membership invitation contract rather than direct access to membership persistence internals.
+- Unsuccessful-candidate retention/anonymization is enforced through the documented retention process.
+
+## Contributions, reporting, and exports
+
+- Contribution reporting distinguishes recorded facts, calculated metrics, and subjective assessments.
+- Calculation versions/effective periods are preserved so historical totals remain explainable after rule changes.
+- Corrections/reversals preserve history rather than mutating past records into an untraceable final value.
+- Member self-service and leader management views remain tenant/policy scoped.
+- Exports are authorized, tenant specific, attributable, and bounded; report metadata/version/checksum are retained where implemented.
+- Comparative/leaderboard views remain controlled features rather than an assumption that all alliances must expose competitive ranking.
+
+## API credentials and webhooks
+
+- Phase 6 API credentials are scoped/revocable and do not silently broaden into unrestricted platform access.
+- Webhook subscriptions are tenant scoped, signed, rate/bounds controlled, retryable, and retain delivery diagnostics without exposing secrets.
+- Integration work is isolated onto the integrations queue partition so retry storms cannot consume all core queue capacity.
+- Endpoint/application validation reduces SSRF exposure but does **not** prove protection against DNS rebinding or infrastructure routing changes. Production egress policy must block metadata, private, and management networks and must be evidenced outside the repository.
+
+## Transactional outbox and queues
+
+- Meaningful persisted domain changes write outbox state in the same database transaction where required.
+- Publication is at-least-once; consumers rely on stable idempotency/deduplication semantics.
+- PostgreSQL publishers claim eligible rows with locking/lease behavior, bounded retry/backoff, attempts, and bounded error diagnostics.
+- Scheduled publishers/maintenance jobs use overlap and single-server controls where duplicate concurrent execution would be unsafe.
+- Hosted Horizon separates core (`default`, `notifications`), integrations, and maintenance queue capacity.
+
+## Secrets and sensitive configuration
+
+- Secrets are injected at runtime and are never committed to source control.
+- Production secret values belong in an approved managed secret store; documentation records requirements/ownership without secret material.
+- Deployment environment files are owner-readable only and are excluded from commits and image build contexts.
+- Logs, exception context, CI output, support tooling, and exports must not expose passwords, tokens, signing secrets, MFA material, application keys, or private credentials.
+- Repository/build exclusions protect deployment environments, backup output, runtime keys, credentials, and private application storage from accidental inclusion.
+
+## Data protection, retention, and deletion
+
+- Production PostgreSQL transport is encrypted and plaintext fallback is rejected by hosted configuration validation.
+- Object/private storage defaults to private visibility and fails loudly on write errors.
+- Data purpose, retention, correction, export, and deletion behavior is defined by the owning domain.
+- Account deletion anonymizes retained business/audit history where referential integrity or legal/operational evidence requires preservation.
+- Legal holds block deletion workflows that would destroy held records.
+- Alliance deletion is logical/recoverable through its retention window rather than immediate destructive removal.
+
+## Backup, restore, and recovery
+
+- A populated PostgreSQL schema is backed up before migrations unless an explicitly approved release procedure says otherwise.
+- Backup archives are checksummed and validated before restore; incomplete output is not treated as a completed backup.
+- Backup provenance identifies the source release rather than substituting the incoming deployment target.
+- Restore validates archive/manifest integrity and database readiness before destructive service transitions.
+- Generated backup material is excluded from source control and production image build contexts.
+- CI demonstrates database backup/restore tooling, but real production approval additionally requires evidence for **database + private media + application-key recovery together**.
+
+## Supply chain and release integrity
+
+- Composer/npm audits, Dependency Review, CodeQL, and production-image vulnerability scanning run in protected validation.
+- External GitHub Actions are pinned to reviewed immutable commit SHAs rather than mutable tags/branches.
+- Release images are immutable and carry source revision/version/license metadata; deployment verifies expected image identity and release metadata.
+- Runtime images use targeted copies and exclude development/test/deployment material that is not required at runtime.
+- Deployment is digest oriented; mutable image tags are not sufficient production identity.
+
+## Observability and incident response
+
+- Request IDs and W3C trace identifiers correlate web/error/async diagnostics without exposing secrets.
+- Structured logs include the appropriate domain action, tenant/actor context and outcome while avoiding sensitive values.
+- Metrics use bounded labels (for example named routes rather than raw uncontrolled paths).
+- Readiness/liveness are separate; operational alerts must map to actionable runbooks and accountable owners.
+- Incident response follows [`../operations/runbooks/incident-response.md`](../operations/runbooks/incident-response.md).
+
+## Production evidence boundary
+
+Repository controls can establish code, migration, test, static-analysis, dependency/code/container scanning, immutable-image, staging, and recovery-tooling evidence. They cannot establish that a real deployment has correct HTTPS/ingress, trusted proxies, webhook egress, capacity, alert routing, DNS/mail/object-storage/secret ownership, platform-admin identities, support coverage, or complete production recovery.
+
+Those items remain **Pending** until the accountable deployment owner records non-secret evidence in the production approval process. See [`PRODUCTION_LAUNCH_SECURITY_REVIEW.md`](PRODUCTION_LAUNCH_SECURITY_REVIEW.md) and [`../product/PRODUCTION_LAUNCH_APPROVAL.md`](../product/PRODUCTION_LAUNCH_APPROVAL.md).
