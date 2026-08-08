@@ -104,9 +104,18 @@ final class RosterPresentationTest extends TestCase
             'state' => 'tracked',
         ])->assertRedirect();
 
-        AllianceRosterEntry::query()
+        $staleEntry = AllianceRosterEntry::query()
+            ->where('alliance_id', $alliance->id)
             ->where('observed_name', 'Stale Unlinked')
-            ->update(['last_observed_at' => now()->subDays(31)]);
+            ->sole();
+
+        $this->withSession($session)
+            ->post('/alliance/roster/'.$staleEntry->id.'/snapshots', [
+                'observed_name' => 'Stale Unlinked',
+                'power' => '1000',
+                'captured_at' => now()->subDays(31)->toIso8601String(),
+            ])
+            ->assertRedirect();
 
         $this->withSession($this->activeSession($alliance->id))
             ->get('/alliance/roster?state=tracked&linkage=unlinked&role=R3&observation=stale')
