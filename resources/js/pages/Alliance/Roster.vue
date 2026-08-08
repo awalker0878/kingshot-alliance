@@ -84,7 +84,11 @@ function clearFilters(): void {
     </div>
 
     <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-      <form class="grid gap-4 lg:grid-cols-5" aria-label="Roster filters" @submit.prevent="applyFilters">
+      <form
+        class="grid gap-4 lg:grid-cols-5"
+        aria-label="Roster filters"
+        @submit.prevent="applyFilters"
+      >
         <div class="lg:col-span-2">
           <label class="text-sm font-medium" for="roster-search">Search player or game ID</label>
           <input
