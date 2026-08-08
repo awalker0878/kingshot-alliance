@@ -15,7 +15,7 @@ The implementation plan ends at Phase 6 and explicitly calls for production hard
 - Transactional-outbox backlog, failed queue jobs, and recent webhook-delivery failures are checked against explicit launch thresholds.
 - `.env.example` documents the launch thresholds so changes are visible and reviewable.
 - `bin/launch-check` verifies the running application stack and optionally probes public liveness/readiness and the `/platform` authentication boundary.
-- `docs/operations/PRODUCTION_LAUNCH_RUNBOOK.md` separates repository-verifiable controls from infrastructure/process evidence that must be supplied by the deployment owner.
+- `docs/operations/production-launch-runbook.md` separates repository-verifiable controls from infrastructure/process evidence that must be supplied by the deployment owner.
 
 ## Explicit non-go controls outside the repository
 
@@ -49,4 +49,4 @@ Review/hygiene inspection found no unresolved review threads and no temporary wo
 
 ## Acceptance decision
 
-Repository-controlled production hardening is **Accepted**. This acceptance does **not** approve a real production cutover. `docs/product/PRODUCTION_LAUNCH_APPROVAL.md` remains the authoritative go/no-go record for external production controls and must remain unapproved until those controls are evidenced by accountable operators.
+Repository-controlled production hardening is **Accepted**. This acceptance does **not** approve a real production cutover. `docs/product/production-launch-approval.md` remains the authoritative go/no-go record for external production controls and must remain unapproved until those controls are evidenced by accountable operators.
