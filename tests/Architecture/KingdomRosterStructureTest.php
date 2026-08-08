@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 final class KingdomRosterStructureTest extends TestCase
 {
-    public function test_slice_b_runtime_is_owned_by_the_kingdoms_domain(): void
+    public function test_slice_b_and_c1_runtime_is_owned_by_the_kingdoms_domain(): void
     {
         $root = dirname(__DIR__, 2);
 
@@ -16,23 +16,29 @@ final class KingdomRosterStructureTest extends TestCase
             'Enums/RosterState.php',
             'Models/KingdomPlayer.php',
             'Models/AllianceRosterEntry.php',
+            'Models/PlayerSnapshot.php',
             'Actions/ResolveKingdomPlayer.php',
             'Actions/SaveRosterEntry.php',
             'Actions/MarkRosterEntryLeft.php',
+            'Actions/RecordPlayerSnapshot.php',
             'Queries/RosterQuery.php',
+            'Queries/PlayerSnapshotQuery.php',
             'Http/Controllers/RosterController.php',
+            'Http/Controllers/PlayerSnapshotController.php',
         ] as $path) {
             self::assertFileExists($root.'/app/Domain/Kingdoms/'.$path);
         }
+
+        self::assertFileExists($root.'/resources/js/pages/Alliance/RosterHistory.vue');
     }
 
-    public function test_later_slice_runtime_is_not_introduced_early(): void
+    public function test_slice_c2_and_d_runtime_is_not_introduced_early(): void
     {
         $root = dirname(__DIR__, 2);
 
         self::assertDirectoryDoesNotExist($root.'/app/Domain/Kingdoms/Imports');
         self::assertDirectoryDoesNotExist($root.'/app/Domain/Kingdoms/Exports');
-        self::assertFileDoesNotExist($root.'/app/Domain/Kingdoms/Models/PlayerSnapshot.php');
         self::assertFileDoesNotExist($root.'/app/Domain/Kingdoms/Services/RosterIntelligence.php');
+        self::assertFileDoesNotExist($root.'/resources/js/pages/Alliance/RosterIntelligence.vue');
     }
 }
