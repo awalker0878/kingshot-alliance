@@ -16,4 +16,12 @@ return [
         'database.connections.pgsql.username',
         'database.connections.pgsql.password',
     ],
+    'launch' => [
+        'minimum_platform_administrators' => (int) env('LAUNCH_MINIMUM_PLATFORM_ADMINISTRATORS', 2),
+        'outbox_grace_minutes' => (int) env('LAUNCH_OUTBOX_GRACE_MINUTES', 15),
+        'maximum_overdue_outbox' => (int) env('LAUNCH_MAXIMUM_OVERDUE_OUTBOX', 0),
+        'maximum_failed_jobs' => (int) env('LAUNCH_MAXIMUM_FAILED_JOBS', 0),
+        'webhook_failure_window_minutes' => (int) env('LAUNCH_WEBHOOK_FAILURE_WINDOW_MINUTES', 60),
+        'maximum_recent_webhook_failures' => (int) env('LAUNCH_MAXIMUM_RECENT_WEBHOOK_FAILURES', 25),
+    ],
 ];
