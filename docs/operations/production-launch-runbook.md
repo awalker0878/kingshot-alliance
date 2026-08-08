@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This runbook is the post-Phase-6 production-hardening gate described by `docs/product/IMPLEMENTATION_PLAN.md`. It does not create a new product phase. It converts launch-readiness requirements into repeatable operator checks and records which controls remain infrastructure or organizational responsibilities.
+This runbook is the post-Phase-6 production-hardening gate described by `docs/product/implementation-plan.md`. It does not create a new product phase. It converts launch-readiness requirements into repeatable operator checks and records which controls remain infrastructure or organizational responsibilities.
 
 ## Preconditions
 
