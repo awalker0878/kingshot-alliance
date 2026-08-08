@@ -49,7 +49,7 @@ final class ContentManagementController extends Controller
     ): Response {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
-        $alliance = $context->alliance();
+        $alliance = $context->alliance()->load('kingdom');
 
         if (! $authorization->allows($user, $alliance, PermissionKey::ContentManage)) {
             throw new AuthorizationException;
@@ -125,7 +125,7 @@ final class ContentManagementController extends Controller
                 'id' => $alliance->id,
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,
-                'kingdom' => $alliance->kingdom,
+                'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
                 'language' => $alliance->language,
                 'timezone' => $alliance->timezone,
                 'description' => $profile?->description,
@@ -157,7 +157,6 @@ final class ContentManagementController extends Controller
         $alliance = $context->alliance();
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'kingdom' => ['nullable', 'string', 'max:64'],
             'language' => ['required', 'string', 'max:16', 'regex:/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/'],
             'timezone' => ['required', 'timezone'],
             'description' => ['nullable', 'string', 'max:5000'],
