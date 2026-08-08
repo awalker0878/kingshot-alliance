@@ -2,12 +2,12 @@
 
 ## Delivery model
 
-Work is organized by the phase gates in `docs/product/IMPLEMENTATION_PLAN.md`. Implement only the active phase. Do not add compatibility shims, unused domain placeholders, speculative tables, or partial features from later phases.
+Approved product scope and repository structure are defined in `docs/product/implementation-plan.md`. The documented Phase 0–6 program is complete; new product capability beyond it requires an explicit plan revision rather than an implied Phase 7. Do not add compatibility shims, unused domain placeholders, speculative tables, or unapproved future capability.
 
 ## Development workflow
 
 1. Create a branch from the latest `main`.
-2. Link the change to a phase and an issue.
+2. Link the change to approved scope and an issue when applicable.
 3. Implement the smallest complete vertical slice.
 4. Run `make check`.
 5. Update tests, documentation, ADRs, and runbooks.
@@ -21,7 +21,7 @@ Work is organized by the phase gates in `docs/product/IMPLEMENTATION_PLAN.md`. I
 - Put business decisions in explicit actions, services, policies, and query objects.
 - Use dependency injection rather than hidden global state.
 - Store timestamps in UTC and convert at the presentation boundary.
-- Carry alliance context explicitly after tenancy is introduced.
+- Carry alliance context explicitly for tenant-scoped behavior.
 - Queue side effects only after the owning transaction commits.
 - Make jobs and integration handlers idempotent.
 - Never log secrets, credentials, message bodies containing sensitive data, or raw authentication tokens.
