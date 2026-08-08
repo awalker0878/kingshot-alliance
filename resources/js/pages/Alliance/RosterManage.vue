@@ -81,7 +81,9 @@ function saveEntry(entry: Entry): void {
 }
 
 function markLeft(entry: Entry): void {
-  if (!window.confirm(`Mark ${entry.name} as left? Historical identity and linkage are retained.`)) {
+  if (
+    !window.confirm(`Mark ${entry.name} as left? Historical identity and linkage are retained.`)
+  ) {
     return;
   }
 
@@ -126,7 +128,10 @@ function membershipUnavailable(membership: Membership, entryId?: string): boolea
       <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
         <p class="text-sm text-slate-400">Application memberships without roster profile</p>
         <p class="mt-2 text-3xl font-bold">{{ gaps.membershipsWithoutRoster.length }}</p>
-        <ul v-if="gaps.membershipsWithoutRoster.length" class="mt-3 space-y-1 text-sm text-slate-400">
+        <ul
+          v-if="gaps.membershipsWithoutRoster.length"
+          class="mt-3 space-y-1 text-sm text-slate-400"
+        >
           <li v-for="membership in gaps.membershipsWithoutRoster" :key="membership.id">
             {{ membership.name }} · {{ membership.email }}
           </li>
@@ -309,7 +314,9 @@ function membershipUnavailable(membership: Membership, entryId?: string): boolea
             />
           </div>
           <div class="md:col-span-2">
-            <label class="text-sm font-medium" :for="`notes-${entry.id}`">Private manager notes</label>
+            <label class="text-sm font-medium" :for="`notes-${entry.id}`"
+              >Private manager notes</label
+            >
             <textarea
               :id="`notes-${entry.id}`"
               v-model="drafts[entry.id].manager_notes"
