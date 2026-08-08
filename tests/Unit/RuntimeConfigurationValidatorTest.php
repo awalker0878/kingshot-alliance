@@ -99,10 +99,10 @@ final class RuntimeConfigurationValidatorTest extends TestCase
     public function test_hosted_horizon_worker_count_is_bounded(): void
     {
         $this->configureRequiredValues();
-        config(['horizon.environments.staging.supervisor-1.maxProcesses' => 0]);
+        config(['horizon.environments.staging.core.maxProcesses' => 0]);
 
         self::assertContains(
-            'Hosted Horizon supervisors must run between 1 and 64 worker processes.',
+            'Hosted Horizon supervisor [core] must run between 1 and 64 worker processes.',
             (new RuntimeConfigurationValidator)->errors('staging'),
         );
     }
@@ -250,8 +250,16 @@ final class RuntimeConfigurationValidatorTest extends TestCase
             'filesystems.disks.s3.bucket' => 'kingshot',
             'content.media_disk' => 's3',
             'pulse.enabled' => false,
-            'horizon.environments.staging.supervisor-1.maxProcesses' => 3,
-            'horizon.environments.production.supervisor-1.maxProcesses' => 10,
+            'horizon.environments.staging' => [
+                'core' => ['maxProcesses' => 3],
+                'integrations' => ['maxProcesses' => 2],
+                'maintenance' => ['maxProcesses' => 1],
+            ],
+            'horizon.environments.production' => [
+                'core' => ['maxProcesses' => 8],
+                'integrations' => ['maxProcesses' => 4],
+                'maintenance' => ['maxProcesses' => 2],
+            ],
             'operations.version' => 'v0.1.0',
             'operations.release_sha' => str_repeat('a', 40),
             'operations.trusted_proxies' => '',
