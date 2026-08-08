@@ -2,7 +2,7 @@
 
 [← Kingdoms roster intelligence product increment](kingdoms-roster-intelligence-increment.md)
 
-**Status:** In progress — Slice A / `K1-P1` implementation candidate  
+**Status:** In progress — Slice A / `K1-P1` validated; Slice B / `K1-P2` validated implementation candidate  
 **Scope ID:** `KINGDOMS-001`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Approved `KINGDOMS-001` scope and accepted Phase 0–6 engineering controls  
@@ -32,15 +32,15 @@ The implementation must continue to follow the repository's established principl
 
 | Phase | Status | Outcome | Primary slice |
 | --- | --- | --- | --- |
-| `K1-P0` | Complete for Slice A | Design and migration contract locked | Slice A preparation |
-| `K1-P1` | Candidate | First-class Kingdom foundation | Slice A |
-| `K1-P2` | Planned | Game-player and alliance roster foundation | Slice B |
+| `K1-P0` | Complete | Design and migration contract locked | Slice A preparation |
+| `K1-P1` | Validated | First-class Kingdom foundation | Slice A |
+| `K1-P2` | Validated candidate | Game-player and alliance roster foundation | Slice B |
 | `K1-P3` | Planned | Historical player snapshots | Slice C |
 | `K1-P4` | Planned | Roster intelligence and trend views | Slice C |
 | `K1-P5` | Planned | Controlled CSV migration workflow | Slice D |
 | `K1-P6` | Planned | Increment hardening and acceptance | Whole increment |
 
-Each phase must leave the repository internally consistent. `KINGDOMS-001` is not Accepted until `K1-P6` closes the complete increment. `K1-P1` remains Candidate until its protected validation and review gate succeeds.
+Each phase must leave the repository internally consistent. `KINGDOMS-001` is not Accepted until `K1-P6` closes the complete increment. `K1-P1` is validated. `K1-P2` has completed its protected validation gate and remains a review candidate until the Slice B PR is accepted into the dependency stack.
 
 ## 3. K1-P0 — Design and migration contract
 
