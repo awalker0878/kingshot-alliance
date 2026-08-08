@@ -88,13 +88,21 @@ function formatInteger(value: string): string {
           history.
         </p>
       </div>
-      <Link
-        v-if="canManage"
-        class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950"
-        href="/alliance/roster/manage"
-      >
-        Manage roster
-      </Link>
+      <div class="flex flex-wrap gap-3">
+        <Link
+          class="rounded-lg border border-cyan-800 px-4 py-2 font-semibold text-cyan-300 hover:border-cyan-600"
+          href="/alliance/roster/intelligence"
+        >
+          Roster intelligence
+        </Link>
+        <Link
+          v-if="canManage"
+          class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950"
+          href="/alliance/roster/manage"
+        >
+          Manage roster
+        </Link>
+      </div>
     </div>
 
     <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
