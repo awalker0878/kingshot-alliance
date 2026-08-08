@@ -62,15 +62,15 @@ Support impersonation is intentionally not implemented because the implementatio
 
 ## Documentation
 
-- `docs/domains/PLATFORM_SCALE_AND_ADMINISTRATION.md`
-- `docs/domains/INTEGRATIONS.md`
-- `docs/operations/PHASE_6_OPERATIONS.md`
-- `docs/operations/PHASE_6_DATABASE_MAINTENANCE.md`
-- `docs/operations/PHASE_6_MIGRATION_ROLLBACK.md`
-- `docs/operations/PHASE_6_DISASTER_RECOVERY_EXERCISE.md`
-- `docs/security/PHASE_6_THREAT_MODEL.md`
-- `docs/product/PHASE_6_ACCESSIBILITY.md`
-- `docs/product/PHASE_6_LAUNCH_READINESS.md`
+- `docs/domains/platform-scale-and-administration.md`
+- `docs/domains/integrations.md`
+- `docs/operations/phase-6-operations.md`
+- `docs/operations/phase-6-database-maintenance.md`
+- `docs/operations/phase-6-migration-rollback.md`
+- `docs/operations/phase-6-disaster-recovery-exercise.md`
+- `docs/security/phase-6-threat-model.md`
+- `docs/product/phase-6-accessibility.md`
+- `docs/product/phase-6-launch-readiness.md`
 
 ## Final gate
 
