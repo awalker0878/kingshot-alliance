@@ -105,4 +105,15 @@ final readonly class ProductionLaunchReadiness
             ],
         ];
     }
+
+    public function passed(): bool
+    {
+        foreach ($this->checks() as $check) {
+            if (! $check['passed']) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
