@@ -155,7 +155,17 @@ final class RosterController extends Controller
         return back()->with('status', 'roster-entry-left');
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array{
+     *   name: string,
+     *   game_player_id?: string|null,
+     *   membership_id?: string|null,
+     *   game_role?: string|null,
+     *   state: RosterState,
+     *   joined_at?: string|null,
+     *   manager_notes?: string|null
+     * }
+     */
     private function validated(Request $request, bool $creating): array
     {
         $rules = [
@@ -171,8 +181,19 @@ final class RosterController extends Controller
             $rules['game_player_id'] = ['nullable', 'string', 'max:100'];
         }
 
+        /**
+         * @var array{
+         *   name: string,
+         *   game_player_id?: string|null,
+         *   membership_id?: string|null,
+         *   game_role?: string|null,
+         *   state: string,
+         *   joined_at?: string|null,
+         *   manager_notes?: string|null
+         * } $validated
+         */
         $validated = $request->validate($rules);
-        $validated['state'] = RosterState::from((string) $validated['state']);
+        $validated['state'] = RosterState::from($validated['state']);
 
         return $validated;
     }
