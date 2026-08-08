@@ -38,7 +38,6 @@ const props = defineProps<{
     id: string;
     name: string;
     slug: string;
-    kingdom: string | null;
     language: string;
     timezone: string;
     description: string | null;
@@ -56,7 +55,6 @@ const props = defineProps<{
 
 const profileForm = useForm({
   name: props.alliance.name,
-  kingdom: props.alliance.kingdom ?? '',
   language: props.alliance.language,
   timezone: props.alliance.timezone,
   description: props.alliance.description ?? '',
@@ -228,7 +226,7 @@ function formatBytes(bytes: number): string {
         <h1 class="mt-3 text-3xl font-bold">Manage public presence</h1>
         <p class="mt-2 text-slate-400">
           Profile, content revisions, publication, categories, and branding media. Recruitment
-          availability is managed in the Recruitment workspace.
+          availability and Kingdom association are managed in their owning workspaces.
         </p>
       </div>
       <a
@@ -255,15 +253,6 @@ function formatBytes(bytes: number): string {
             class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
             required
             maxlength="120"
-          />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="profile-kingdom">Kingdom</label>
-          <input
-            id="profile-kingdom"
-            v-model="profileForm.kingdom"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            maxlength="64"
           />
         </div>
         <div>
