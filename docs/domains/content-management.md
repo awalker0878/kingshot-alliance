@@ -28,7 +28,7 @@ Upload branding media first, then select the uploaded image for the logo or bann
 
 Only clean, active images belonging to the current alliance can be used as public branding.
 
-Recruitment availability is not a content-profile setting. Phase 4 recruitment settings are authoritative for whether applications are closed, public, or invitation-only. Authorized recruiters manage that state in the **Recruitment** workspace, and the public alliance page reads it directly.
+Recruitment availability is not a content-profile setting. Recruitment settings are authoritative for whether applications are closed, public, or invitation-only. Authorized recruiters manage that state in the **Recruitment** workspace, and the public alliance page reads it directly.
 
 ## Categories
 
@@ -38,7 +38,7 @@ Create a category with a display name, URL-safe slug, and optional sort order. A
 
 ## Create content
 
-Phase 2 supports:
+Supported content types are:
 
 - announcements
 - guides
