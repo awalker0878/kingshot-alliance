@@ -50,7 +50,7 @@ final class KingdomSettingsController extends Controller
         abort_unless($user instanceof User, 401);
 
         $validated = $request->validate([
-            'kingdom' => ['nullable', 'integer', 'min:1', 'max:4294967295'],
+            'kingdom' => ['nullable', 'integer', 'min:1', 'max:2147483647'],
         ]);
 
         $updateKingdom->handle(
