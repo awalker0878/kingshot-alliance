@@ -107,7 +107,10 @@ function comparisonText(comparison: TrendComparison | null): string {
   <main class="mx-auto min-h-screen max-w-7xl px-6 py-12 text-slate-100 lg:px-8">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <Link class="text-sm font-semibold text-cyan-300 hover:text-cyan-200" href="/alliance/roster">
+        <Link
+          class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+          href="/alliance/roster"
+        >
           ← Alliance roster
         </Link>
         <p class="mt-5 text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
@@ -204,7 +207,9 @@ function comparisonText(comparison: TrendComparison | null): string {
 
     <section class="mt-6 grid gap-4 lg:grid-cols-2" aria-label="Power trends">
       <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-        <p class="text-sm text-slate-400">Aggregate {{ metrics.sevenDayTrend.days }}-day power change</p>
+        <p class="text-sm text-slate-400">
+          Aggregate {{ metrics.sevenDayTrend.days }}-day power change
+        </p>
         <p class="mt-2 text-3xl font-bold">{{ formatSigned(metrics.sevenDayTrend.change) }}</p>
         <p class="mt-2 text-sm text-slate-400">
           {{ metrics.sevenDayTrend.comparablePlayers }} comparable players.
