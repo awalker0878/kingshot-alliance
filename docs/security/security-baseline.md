@@ -4,7 +4,7 @@
 
 This document describes the **current** repository security baseline after Phases 0–6 and repository-controlled production hardening. Phase-specific threat models remain historical evidence for when controls were introduced; this file is the consolidated present-tense baseline.
 
-The authoritative real-production go/no-go decision is maintained in [`../product/PRODUCTION_LAUNCH_APPROVAL.md`](../product/PRODUCTION_LAUNCH_APPROVAL.md). Passing repository checks does not prove infrastructure controls that must be evidenced in the production environment.
+The authoritative real-production go/no-go decision is maintained in [`../product/production-launch-approval.md`](../product/production-launch-approval.md). Passing repository checks does not prove infrastructure controls that must be evidenced in the production environment.
 
 ## Application and transport
 
@@ -152,4 +152,4 @@ The authoritative real-production go/no-go decision is maintained in [`../produc
 
 Repository controls can establish code, migration, test, static-analysis, dependency/code/container scanning, immutable-image, staging, and recovery-tooling evidence. They cannot establish that a real deployment has correct HTTPS/ingress, trusted proxies, webhook egress, capacity, alert routing, DNS/mail/object-storage/secret ownership, platform-admin identities, support coverage, or complete production recovery.
 
-Those items remain **Pending** until the accountable deployment owner records non-secret evidence in the production approval process. See [`PRODUCTION_LAUNCH_SECURITY_REVIEW.md`](PRODUCTION_LAUNCH_SECURITY_REVIEW.md) and [`../product/PRODUCTION_LAUNCH_APPROVAL.md`](../product/PRODUCTION_LAUNCH_APPROVAL.md).
+Those items remain **Pending** until the accountable deployment owner records non-secret evidence in the production approval process. See [`production-launch-security-review.md`](production-launch-security-review.md) and [`../product/production-launch-approval.md`](../product/production-launch-approval.md).

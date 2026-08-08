@@ -2,7 +2,7 @@
 
 [← Documentation home](../README.md)
 
-Kingshot Alliance is an enterprise modular monolith organized by explicit business domains. The canonical physical repository structure is defined by the [implementation plan](../product/IMPLEMENTATION_PLAN.md) and ADR 0008.
+Kingshot Alliance is an enterprise modular monolith organized by explicit business domains. The canonical physical repository structure is defined by the [implementation plan](../product/implementation-plan.md) and ADR 0008.
 
 ## Decision records
 

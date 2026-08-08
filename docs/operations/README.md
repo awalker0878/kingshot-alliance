@@ -6,11 +6,13 @@ This directory contains operational procedures, release controls, recovery guida
 
 ## Production and release
 
-- [Production launch runbook](PRODUCTION_LAUNCH_RUNBOOK.md) — pre-cutover evidence, launch sequence, validation, and stop conditions.
-- [Release checklist](RELEASE_CHECKLIST.md) — required evidence from build through production closeout.
-- [Phase 6 disaster-recovery exercise](PHASE_6_DISASTER_RECOVERY_EXERCISE.md) — recovery rehearsal requirements for the platform-scale phase.
+- [Production launch runbook](production-launch-runbook.md) — pre-cutover evidence, launch sequence, validation, and stop conditions.
+- [Release checklist](release-checklist.md) — required evidence from build through production closeout.
+- [Branch protection](branch-protection.md) — recommended repository protection and required-check governance.
+- [Phase 6 disaster-recovery exercise](phase-6-disaster-recovery-exercise.md) — recovery rehearsal requirements for the platform-scale phase.
+- [Phase 6 database maintenance](phase-6-database-maintenance.md) — database housekeeping and operational maintenance guidance introduced with platform scale.
 
-The authoritative real-production decision is maintained in [`../product/PRODUCTION_LAUNCH_APPROVAL.md`](../product/PRODUCTION_LAUNCH_APPROVAL.md). Operational documents can describe how to prove a control, but must not mark a production control approved on their own.
+The authoritative real-production decision is maintained in [`../product/production-launch-approval.md`](../product/production-launch-approval.md). Operational documents can describe how to prove a control, but must not mark a production control approved on their own.
 
 ## Core runbooks
 
@@ -24,12 +26,27 @@ Runbooks belong under `operations/runbooks/`; do not create a parallel top-level
 
 ## Phase operating evidence
 
-Phase-specific documents remain useful as historical evidence for the behavior introduced in that phase:
+Phase-specific documents remain useful as historical evidence for the behavior introduced in that phase.
 
-- `PHASE_1_OPERATIONS.md` through `PHASE_6_OPERATIONS.md`
-- `PHASE_1_MIGRATION_ROLLBACK.md` through `PHASE_6_MIGRATION_ROLLBACK.md`
+Operations guides:
 
-Read “next phase”, “before Phase N”, and similar language in those files as historical phase-gate context. The current program state is summarized in [`../README.md`](../README.md) and the accepted/current product records under [`../product/`](../product/README.md).
+- [Phase 2 operations](phase-2-operations.md)
+- [Phase 3 operations](phase-3-operations.md)
+- [Phase 4 operations](phase-4-operations.md)
+- [Phase 5 operations](phase-5-operations.md)
+- [Phase 6 operations](phase-6-operations.md)
+
+Migration/rollback records:
+
+- [Phase 1 migration and rollback](phase-1-migration-rollback.md)
+- [Phase 2 migration and rollback](phase-2-migration-rollback.md)
+- [Phase 4 migration and rollback](phase-4-migration-rollback.md)
+- [Phase 5 migration and rollback](phase-5-migration-rollback.md)
+- [Phase 6 migration and rollback](phase-6-migration-rollback.md)
+
+There is no separate Phase 1 operations guide or Phase 3 migration/rollback document in the repository. The index lists the files that actually exist rather than implying continuous ranges.
+
+Read “next phase”, “before Phase N”, and similar language in historical files as phase-gate context. The current program state is summarized in [`../README.md`](../README.md) and the accepted/current product records under [`../product/`](../product/README.md).
 
 ## Operational documentation rules
 

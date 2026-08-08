@@ -6,18 +6,19 @@ This directory documents business/domain behavior and ownership. Runtime code re
 
 ## Current guides
 
-- [Content management](CONTENT_MANAGEMENT.md) — alliance public presence, authored content, visibility, revisions, media, and management behavior.
-- [Events and rallies](EVENTS_AND_RALLIES.md) — events, recurrence, registration, attendance, reminders, rally guidance, formations, and participation.
-- [Recruitment](RECRUITMENT.md) — application modes, candidate pipeline, review, decisions, conversion, metrics, and retention.
-- [Contributions and reporting](CONTRIBUTIONS_AND_REPORTING.md) — contribution records, calculation semantics, corrections, reporting, exports, and data quality.
-- [Platform scale and administration](PLATFORM_SCALE_AND_ADMINISTRATION.md) — platform administration, tenant lifecycle, entitlements, API/webhook controls, retention, and operational scale.
+- [Content management](content-management.md) — alliance public presence, authored content, visibility, revisions, media, and management behavior.
+- [Events and rallies](events-and-rallies.md) — events, recurrence, registration, attendance, reminders, rally guidance, formations, and participation.
+- [Recruitment](recruitment.md) — application modes, candidate pipeline, review, decisions, conversion, metrics, and retention.
+- [Contributions and reporting](contributions-and-reporting.md) — contribution records, calculation semantics, corrections, reporting, exports, and data quality.
+- [Integrations](integrations.md) — API credentials, webhook subscriptions/delivery, queue isolation, and integration boundaries.
+- [Platform scale and administration](platform-scale-and-administration.md) — platform administration, tenant lifecycle, entitlements, API/webhook controls, retention, and operational scale.
 
 ## Architecture evidence
 
-- [Repository/domain structure audit](STRUCTURE_AUDIT.md) — evidence for the canonical domain-first physical layout.
-- [Domain boundary audit](DOMAIN_BOUNDARY_AUDIT.md) — evidence for semantic ownership and intentional cross-domain contracts.
+- [Repository/domain structure audit](repository-structure-audit.md) — evidence for the canonical domain-first physical layout.
+- [Domain boundary audit](domain-boundary-audit.md) — evidence for semantic ownership and intentional cross-domain contracts.
 
-These audits explain how the current structure was validated; the [implementation plan](../product/IMPLEMENTATION_PLAN.md) and accepted ADRs remain the normative architecture sources.
+These audits explain how the current structure was validated; the [implementation plan](../product/implementation-plan.md) and accepted ADRs remain the normative architecture sources.
 
 ## Canonical runtime domains
 

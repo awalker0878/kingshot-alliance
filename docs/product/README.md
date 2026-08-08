@@ -6,33 +6,36 @@ This directory owns program scope, phase acceptance, accessibility evidence, ali
 
 ## Authoritative current records
 
-- [Implementation plan](IMPLEMENTATION_PLAN.md) — approved program baseline, phase boundaries, cross-cutting requirements, canonical repository structure, and program definition of done.
-- [Definition of done](DEFINITION_OF_DONE.md) — repository-level completion expectations used with the implementation plan.
-- [Production hardening exit report](PRODUCTION_HARDENING_EXIT_REPORT.md) — **Accepted** repository-controlled post-Phase-6 hardening evidence.
-- [Production launch approval](PRODUCTION_LAUNCH_APPROVAL.md) — **Not yet approved** for a real production cutover until the required deployment and external-control evidence is recorded.
-- [Phase 6 launch readiness](PHASE_6_LAUNCH_READINESS.md) — Phase 6 launch-control expectations that feed the post-phase hardening/approval process.
+- [Implementation plan](implementation-plan.md) — approved program baseline, phase boundaries, cross-cutting requirements, canonical repository structure, and program definition of done.
+- [Definition of done](definition-of-done.md) — repository-level completion expectations used with the implementation plan.
+- [Production hardening exit report](production-hardening-exit-report.md) — **Accepted** repository-controlled post-Phase-6 hardening evidence.
+- [Production launch approval](production-launch-approval.md) — **Not yet approved** for a real production cutover until the required deployment and external-control evidence is recorded.
+- [Phase 6 launch readiness](phase-6-launch-readiness.md) — Phase 6 launch-control expectations that feed the post-phase hardening/approval process.
 
 ## Phase acceptance history
 
 The implementation plan ends at Phase 6. Accepted delivery evidence is retained in:
 
-- [Phase 0 exit report](PHASE_0_EXIT_REPORT.md)
-- [Phase 1 exit report](PHASE_1_EXIT_REPORT.md)
-- [Phase 2 exit report](PHASE_2_EXIT_REPORT.md)
-- [Phase 3 exit report](PHASE_3_EXIT_REPORT.md)
-- [Phase 4 exit report](PHASE_4_EXIT_REPORT.md)
-- [Phase 5 exit report](PHASE_5_EXIT_REPORT.md)
-- [Phase 6 exit report](PHASE_6_EXIT_REPORT.md)
+- [Phase 0 exit report](phase-0-exit-report.md)
+- [Phase 1 exit report](phase-1-exit-report.md)
+- [Phase 2 exit report](phase-2-exit-report.md)
+- [Phase 3 exit report](phase-3-exit-report.md)
+- [Phase 4 exit report](phase-4-exit-report.md)
+- [Phase 5 exit report](phase-5-exit-report.md)
+- [Phase 6 exit report](phase-6-exit-report.md)
 
 These are historical acceptance records. They should preserve the evidence and context of their phase even when later phases have subsequently shipped. Do not infer the current roadmap from old “next phase” wording.
 
 ## Supporting product evidence
 
-This directory also contains phase scope records, accessibility reviews, and cross-phase alignment audits such as:
-
-- [Phase 3 scope](PHASE_3_SCOPE.md)
-- [Phases 1–4 alignment audit](PHASES_1_4_ALIGNMENT_AUDIT.md)
-- phase accessibility reviews/evidence, including the Phase 1 review and Phase 2–6 accessibility records
+- [Phase 3 scope](phase-3-scope.md)
+- [Phases 1–4 alignment audit](phases-1-4-alignment-audit.md)
+- [Phase 1 accessibility review](phase-1-accessibility-review.md)
+- [Phase 2 accessibility](phase-2-accessibility.md)
+- [Phase 3 accessibility](phase-3-accessibility.md)
+- [Phase 4 accessibility](phase-4-accessibility.md)
+- [Phase 5 accessibility](phase-5-accessibility.md)
+- [Phase 6 accessibility](phase-6-accessibility.md)
 
 Use the current implementation plan and current acceptance/launch records for present-tense status; use the supporting phase documents to understand why a historical gate was accepted.
 

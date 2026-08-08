@@ -6,18 +6,18 @@ This directory owns security requirements, threat models, and launch-security ev
 
 ## Start here
 
-- [Security baseline](SECURITY_BASELINE.md) — cross-cutting requirements for authentication, authorization, tenancy, data handling, transport, secrets, dependencies, audit, and operational security.
-- [Production launch security review](PRODUCTION_LAUNCH_SECURITY_REVIEW.md) — repository-controlled launch-security review and the external controls that remain operational responsibilities.
-- [Production launch approval](../product/PRODUCTION_LAUNCH_APPROVAL.md) — authoritative real-production go/no-go record.
+- [Security baseline](security-baseline.md) — cross-cutting requirements for authentication, authorization, tenancy, data handling, transport, secrets, dependencies, audit, and operational security.
+- [Production launch security review](production-launch-security-review.md) — repository-controlled launch-security review and the external controls that remain operational responsibilities.
+- [Production launch approval](../product/production-launch-approval.md) — authoritative real-production go/no-go record.
 
 ## Phase threat models
 
-- [Phase 1 threat model](PHASE_1_THREAT_MODEL.md) — identity, tenancy, membership, authorization, audit, and outbox foundations.
-- [Phase 2 threat model](PHASE_2_THREAT_MODEL.md) — public content, authored content, media, and visibility boundaries.
-- [Phase 3 threat model](PHASE_3_THREAT_MODEL.md) — events, recurrence, registrations, reminders, and rally workflows.
-- [Phase 4 threat model](PHASE_4_THREAT_MODEL.md) — recruitment intake, reviewer workflows, decisions, conversion, and retention.
-- [Phase 5 threat model](PHASE_5_THREAT_MODEL.md) — contribution records, calculations, corrections, exports, and reporting.
-- [Phase 6 threat model](PHASE_6_THREAT_MODEL.md) — platform administration, tenant lifecycle, API/webhook access, retention, and scale.
+- [Phase 1 threat model](phase-1-threat-model.md) — identity, tenancy, membership, authorization, audit, and outbox foundations.
+- [Phase 2 threat model](phase-2-threat-model.md) — public content, authored content, media, and visibility boundaries.
+- [Phase 3 threat model](phase-3-threat-model.md) — events, recurrence, registrations, reminders, and rally workflows.
+- [Phase 4 threat model](phase-4-threat-model.md) — recruitment intake, reviewer workflows, decisions, conversion, and retention.
+- [Phase 5 threat model](phase-5-threat-model.md) — contribution records, calculations, corrections, exports, and reporting.
+- [Phase 6 threat model](phase-6-threat-model.md) — platform administration, tenant lifecycle, API/webhook access, retention, and scale.
 
 Threat models are historical evidence for the phase in which the risk was introduced. The security baseline and current launch-security/approval records govern present production readiness.
 
