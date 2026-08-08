@@ -2,20 +2,23 @@
 
 [← Domain documentation](README.md)
 
-**Current implementation:** `KINGDOMS-001` Slice A / `K1-P1` — first-class Kingdom foundation.  
+**Validated implementation:** `KINGDOMS-001` Slice A / `K1-P1` — first-class Kingdom foundation.  
+**Current candidate:** Slice B / `K1-P2` — [Kingdoms roster](kingdoms-roster.md)  
 **Approved increment:** [Kingdoms roster intelligence](../product/kingdoms-roster-intelligence-increment.md)  
 **Implementation sequence:** [KINGDOMS-001 implementation plan](../product/kingdoms-roster-intelligence-implementation-plan.md)
 
-This guide documents the current Kingdom reference and alliance-association contract. It does not describe the later roster/player/snapshot capabilities as implemented.
+This guide documents the validated Kingdom reference and alliance-association contract and points to the separate Slice B roster candidate. Later snapshots, intelligence and CSV capabilities remain unimplemented.
 
 ## Ownership
 
-`Kingdoms` owns Kingshot game-world reference concepts. In the current Slice A runtime it owns:
+`Kingdoms` owns Kingshot game-world reference concepts. The validated Slice A runtime owns:
 
 - the global `Kingdom` entity;
 - canonical kingdom-number normalization/resolution for new runtime input;
 - Kingdom lifecycle state; and
 - the business action that changes an alliance's Kingdom association.
+
+Slice B adds a candidate roster boundary under the same domain: neutral `KingdomPlayer` identity plus alliance-owned roster observations. Its detailed contract is maintained in [Kingdoms roster](kingdoms-roster.md) so the global reference foundation is not conflated with tenant-owned roster behavior.
 
 `Alliances` continues to own the alliance aggregate. An Alliance stores the foreign-key relationship to a Kingdom, but Kingdom identity and Kingdom-specific business rules belong to `Kingdoms`.
 
@@ -79,7 +82,7 @@ The mutation:
 5. records `alliance.kingdom_updated` in the audit log with previous/new Kingdom identifiers and numbers; and
 6. writes a matching alliance-scoped transactional-outbox event.
 
-Slice A deliberately reuses `alliance.manage` because this is an alliance-setting mutation. The planned `kingdoms.manage` permission belongs to Slice B roster management and is not introduced early.
+Kingdom association remains an alliance-setting mutation protected by `alliance.manage`. Slice B's `kingdoms.manage` permission protects roster management; it does not replace `alliance.manage` for changing the Alliance→Kingdom association.
 
 ## Legacy migration/backfill
 
@@ -110,22 +113,21 @@ Current surfaces that historically showed `kingdom` continue to show the canonic
 
 The `/api/v1/alliance` response retains the existing `kingdom` field so Slice A does not introduce an unnecessary API breaking change. This is representation compatibility only; persistence uses the first-class relationship.
 
+Slice B does not add a public roster API or webhook contract.
+
 ## Tenant and security boundary
 
-A Kingdom record is global neutral reference data. It must never be used as a replacement tenant key.
+A Kingdom record and a `KingdomPlayer` reference are global neutral data. Neither may be used as a replacement tenant key.
 
-Alliance-scoped authorization continues to use the active Alliance context. Knowing or sharing a Kingdom ID/number does not authorize access to another alliance.
+Alliance-scoped authorization continues to use the active Alliance context. Knowing or sharing a Kingdom ID, Kingdom number, or neutral player ID does not authorize access to another alliance.
 
-Future roster notes, membership links, snapshots, imports, exports and metrics remain explicitly alliance-scoped under the approved `KINGDOMS-001` design.
+Slice B keeps roster notes, application-membership links, role/state and manual observations on alliance-owned roster entries. See [Kingdoms roster](kingdoms-roster.md) and the [Slice B security review](../security/kingdoms-roster-security-review.md).
 
 ## Current deferrals
 
-Slice A does **not** implement:
+Slice B still does **not** implement:
 
-- `KingdomPlayer`;
-- alliance roster entries;
-- `kingdoms.manage`;
-- player snapshots/history;
+- player power/level snapshots or historical observation records;
 - roster intelligence/trends;
 - CSV roster import/export;
 - transfer planning;
@@ -148,6 +150,10 @@ Confirm the submitted value is a positive numeric Kingdom number and the corresp
 
 Confirm they have an active membership in the active Alliance and the effective permission union includes `alliance.manage`. Mutation also requires recent password confirmation.
 
-### Two alliances share a Kingdom
+### A user cannot manage the roster
 
-That is expected. They share only the global Kingdom reference; tenant-owned data remains isolated by Alliance.
+Confirm the active membership grants `kingdoms.manage`. The built-in Owner, Leader and Officer roles receive it; other built-in roles do not. Mutations also require recent password confirmation.
+
+### Two alliances share a Kingdom or neutral player
+
+That is expected. They share only neutral reference identity; alliance-owned roster state, notes, links and observations remain isolated by Alliance.
