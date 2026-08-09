@@ -93,16 +93,30 @@ final readonly class RosterCsvExporter
     /** @return array<string, string> */
     private function row(AllianceRosterEntry $entry, ?PlayerSnapshot $snapshot): array
     {
+        if ($snapshot === null) {
+            $name = (string) $entry->observed_name;
+            $power = '';
+            $progressionLevel = '';
+            $allianceTag = '';
+            $capturedAt = '';
+        } else {
+            $name = (string) $snapshot->observed_name;
+            $power = (string) $snapshot->power;
+            $progressionLevel = $snapshot->progression_level ?? '';
+            $allianceTag = $snapshot->observed_alliance_tag ?? '';
+            $capturedAt = $snapshot->captured_at->toIso8601String();
+        }
+
         return [
             'game_player_id' => $entry->player->game_player_id ?? '',
-            'name' => $snapshot?->observed_name ?? (string) $entry->observed_name,
-            'power' => $snapshot === null ? '' : (string) $snapshot->power,
-            'progression_level' => $snapshot?->progression_level ?? '',
-            'alliance_tag' => $snapshot?->observed_alliance_tag ?? '',
+            'name' => $name,
+            'power' => $power,
+            'progression_level' => $progressionLevel,
+            'alliance_tag' => $allianceTag,
             'game_role' => $entry->game_role ?? '',
             'state' => $entry->state->value,
             'joined_at' => $entry->joined_at?->toDateString() ?? '',
-            'captured_at' => $snapshot?->captured_at->toIso8601String() ?? '',
+            'captured_at' => $capturedAt,
         ];
     }
 
