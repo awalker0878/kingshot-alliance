@@ -16,29 +16,25 @@ return new class extends Migration
             $table->foreignUlid('alliance_id')->constrained('alliances')->cascadeOnDelete();
             $table->foreignUlid('transfer_plan_id')->constrained('transfer_plans')->cascadeOnDelete();
             $table->string('name', 160);
-            $table->timestampTz('archived_at')->nullable();
+            $table->string('direction', 24)->index();
+            $table->foreignUlid('destination_kingdom_id')->nullable()->constrained('kingdoms')->restrictOnDelete();
+            $table->string('state', 24)->default('active')->index();
+            $table->foreignUlid('coordinator_membership_id')
+                ->nullable()
+                ->constrained('alliance_memberships')
+                ->nullOnDelete();
+            $table->text('manager_notes')->nullable();
             $table->timestamps();
 
-            $table->index(['alliance_id', 'transfer_plan_id', 'archived_at']);
+            $table->index(['alliance_id', 'transfer_plan_id', 'state']);
+            $table->index(['transfer_plan_id', 'direction', 'destination_kingdom_id']);
         });
 
         DB::statement(
             'CREATE UNIQUE INDEX transfer_groups_one_active_name_per_plan '.
             'ON transfer_groups (transfer_plan_id, lower(name)) '.
-            'WHERE archived_at IS NULL'
+            "WHERE state = 'active'"
         );
-
-        Schema::create('transfer_group_coordinators', function (Blueprint $table): void {
-            $table->foreignUlid('alliance_id')->constrained('alliances')->cascadeOnDelete();
-            $table->foreignUlid('transfer_plan_id')->constrained('transfer_plans')->cascadeOnDelete();
-            $table->foreignUlid('transfer_group_id')->constrained('transfer_groups')->cascadeOnDelete();
-            $table->foreignUlid('membership_id')->constrained('alliance_memberships')->cascadeOnDelete();
-            $table->timestamps();
-
-            $table->unique(['transfer_group_id', 'membership_id']);
-            $table->index(['alliance_id', 'transfer_plan_id']);
-            $table->index(['membership_id', 'transfer_plan_id']);
-        });
 
         Schema::table('transfer_participants', function (Blueprint $table): void {
             $table->foreignUlid('transfer_group_id')
@@ -57,7 +53,6 @@ return new class extends Migration
             $table->dropColumn('transfer_group_id');
         });
 
-        Schema::dropIfExists('transfer_group_coordinators');
         Schema::dropIfExists('transfer_groups');
     }
 };
