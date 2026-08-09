@@ -11,14 +11,38 @@ type Plan = {
   createdAt: string | null;
 };
 
+type Participant = {
+  id: string;
+  direction: 'staying' | 'outgoing' | 'incoming';
+  name: string;
+  gamePlayerId: string | null;
+  sourceKingdom: string | null;
+  destinationKingdom: string | null;
+  membership: { name: string } | null;
+};
+
 defineProps<{
   alliance: { id: string; name: string; kingdom: string | null };
   canManage: boolean;
   plan: Plan | null;
+  participants: Participant[];
 }>();
 
 function stateLabel(state: string): string {
   return state.charAt(0).toUpperCase() + state.slice(1);
+}
+
+function directionLabel(direction: Participant['direction']): string {
+  return direction.charAt(0).toUpperCase() + direction.slice(1);
+}
+
+function destinationLabel(participant: Participant): string {
+  if (participant.direction === 'staying') return 'Staying';
+  if (participant.direction === 'outgoing' && participant.destinationKingdom === null) {
+    return 'Undecided';
+  }
+
+  return participant.destinationKingdom ?? '—';
 }
 </script>
 
@@ -48,7 +72,7 @@ function stateLabel(state: string): string {
           class="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950"
           href="/alliance/transfers/manage"
         >
-          Manage transfer cycles
+          Manage transfers
         </Link>
       </div>
     </header>
@@ -81,6 +105,48 @@ function stateLabel(state: string): string {
 
       <p v-else class="mt-4 text-sm text-slate-400">
         There is no current transfer cycle for this alliance.
+      </p>
+    </section>
+
+    <section v-if="plan" class="mt-10">
+      <h2 class="text-xl font-semibold">Planned participants</h2>
+      <p class="mt-2 text-sm text-slate-400">
+        Incoming, outgoing, and staying intent is manually maintained by alliance leadership.
+      </p>
+
+      <div
+        v-if="participants.length"
+        class="mt-5 overflow-x-auto rounded-2xl border border-slate-800"
+      >
+        <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
+          <thead class="bg-slate-900/80 text-xs tracking-wide text-slate-400 uppercase">
+            <tr>
+              <th class="px-4 py-3" scope="col">Player</th>
+              <th class="px-4 py-3" scope="col">Direction</th>
+              <th class="px-4 py-3" scope="col">Source</th>
+              <th class="px-4 py-3" scope="col">Destination</th>
+              <th class="px-4 py-3" scope="col">Membership</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 bg-slate-950/40">
+            <tr v-for="participant in participants" :key="participant.id">
+              <td class="px-4 py-4">
+                <span class="font-semibold">{{ participant.name }}</span>
+                <span v-if="participant.gamePlayerId" class="block text-xs text-slate-500">
+                  ID {{ participant.gamePlayerId }}
+                </span>
+              </td>
+              <td class="px-4 py-4">{{ directionLabel(participant.direction) }}</td>
+              <td class="px-4 py-4">{{ participant.sourceKingdom ?? 'Unknown' }}</td>
+              <td class="px-4 py-4">{{ destinationLabel(participant) }}</td>
+              <td class="px-4 py-4">{{ participant.membership?.name ?? 'Not linked' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p v-else class="mt-5 text-sm text-slate-400">
+        No participants have been added to this transfer cycle yet.
       </p>
     </section>
   </main>

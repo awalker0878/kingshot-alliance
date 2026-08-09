@@ -7,6 +7,7 @@ use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
 use App\Domain\Kingdoms\Http\Controllers\RosterController;
 use App\Domain\Kingdoms\Http\Controllers\RosterCsvController;
 use App\Domain\Kingdoms\Http\Controllers\RosterIntelligenceController;
+use App\Domain\Kingdoms\Http\Controllers\TransferParticipantController;
 use App\Domain\Kingdoms\Http\Controllers\TransferPlanController;
 use Illuminate\Support\Facades\Route;
 
@@ -66,5 +67,16 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             ->name('alliance.transfers.close');
         Route::post('/alliance/transfers/{plan}/cancel', [TransferPlanController::class, 'cancel'])
             ->name('alliance.transfers.cancel');
+
+        Route::post('/alliance/transfers/{plan}/participants', [TransferParticipantController::class, 'store'])
+            ->name('alliance.transfers.participants.store');
+        Route::patch(
+            '/alliance/transfers/{plan}/participants/{participant}',
+            [TransferParticipantController::class, 'update'],
+        )->name('alliance.transfers.participants.update');
+        Route::post(
+            '/alliance/transfers/{plan}/participants/{participant}/withdraw',
+            [TransferParticipantController::class, 'withdraw'],
+        )->name('alliance.transfers.participants.withdraw');
     });
 });
