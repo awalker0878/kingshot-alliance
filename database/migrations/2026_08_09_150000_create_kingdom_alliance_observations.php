@@ -29,15 +29,18 @@ return new class extends Migration
             $table->text('invalidation_reason')->nullable();
             $table->timestamps();
 
-            $table->unique(['alliance_id', 'idempotency_key']);
-            $table->index(['alliance_id', 'tracked_kingdom_alliance_id', 'captured_at']);
-            $table->index(['alliance_id', 'tracked_kingdom_alliance_id', 'invalidated_at', 'captured_at']);
-            $table->index(['kingdom_alliance_id', 'invalidated_at', 'captured_at']);
-            $table->index(['alliance_id', 'corrects_observation_id']);
+            $table->unique(['alliance_id', 'idempotency_key'], 'ka_obs_alliance_idempotency_unique');
+            $table->index(['alliance_id', 'tracked_kingdom_alliance_id', 'captured_at'], 'ka_obs_tracking_capture_idx');
+            $table->index(
+                ['alliance_id', 'tracked_kingdom_alliance_id', 'invalidated_at', 'captured_at'],
+                'ka_obs_tracking_acceptance_capture_idx',
+            );
+            $table->index(['kingdom_alliance_id', 'invalidated_at', 'captured_at'], 'ka_obs_reference_acceptance_capture_idx');
+            $table->index(['alliance_id', 'corrects_observation_id'], 'ka_obs_correction_target_idx');
         });
 
         Schema::table('kingdom_alliance_observations', function (Blueprint $table): void {
-            $table->foreign('corrects_observation_id')
+            $table->foreign('corrects_observation_id', 'ka_obs_correction_target_fk')
                 ->references('id')
                 ->on('kingdom_alliance_observations')
                 ->restrictOnDelete();
