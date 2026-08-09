@@ -30,6 +30,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         $transferParticipantMigration = require database_path('migrations/2026_08_09_100000_create_transfer_participants.php');
         $transferGroupMigration = require database_path('migrations/2026_08_09_110000_create_transfer_groups.php');
         $transferReadinessMigration = require database_path('migrations/2026_08_09_120000_create_transfer_readiness_and_blockers.php');
+        $transferCompletionMigration = require database_path('migrations/2026_08_09_130000_create_transfer_completions.php');
         self::assertInstanceOf(Migration::class, $kingdomMigration);
         self::assertInstanceOf(Migration::class, $rosterMigration);
         self::assertInstanceOf(Migration::class, $snapshotMigration);
@@ -38,9 +39,11 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertInstanceOf(Migration::class, $transferParticipantMigration);
         self::assertInstanceOf(Migration::class, $transferGroupMigration);
         self::assertInstanceOf(Migration::class, $transferReadinessMigration);
+        self::assertInstanceOf(Migration::class, $transferCompletionMigration);
 
         // Exercise the full Kingdoms dependency order from newest tenant workflow to
         // the first-class Kingdom reference it ultimately depends on.
+        $transferCompletionMigration->down();
         $transferReadinessMigration->down();
         $transferGroupMigration->down();
         $transferParticipantMigration->down();
@@ -64,6 +67,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         $transferParticipantMigration->up();
         $transferGroupMigration->up();
         $transferReadinessMigration->up();
+        $transferCompletionMigration->up();
 
         self::assertFalse(Schema::hasColumn('alliances', 'kingdom'));
         self::assertTrue(Schema::hasColumn('alliances', 'kingdom_id'));
@@ -76,6 +80,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertTrue(Schema::hasTable('transfer_groups'));
         self::assertTrue(Schema::hasTable('transfer_readiness_transitions'));
         self::assertTrue(Schema::hasTable('transfer_blockers'));
+        self::assertTrue(Schema::hasTable('transfer_completions'));
         self::assertTrue(Schema::hasColumn('transfer_participants', 'transfer_group_id'));
         self::assertTrue(Schema::hasColumn('transfer_participants', 'readiness_state'));
         self::assertTrue(Schema::hasColumn('player_snapshots', 'roster_import_id'));
