@@ -4,19 +4,65 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Http\Controllers;
 
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Alliances\Services\AllianceContext;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\CreateTransferBlocker;
 use App\Domain\Kingdoms\Actions\ResolveTransferBlocker;
 use App\Domain\Kingdoms\Actions\TransitionTransferReadiness;
+use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Enums\TransferReadinessState;
+use App\Domain\Kingdoms\Models\TransferBlocker;
+use App\Domain\Kingdoms\Models\TransferParticipant;
+use App\Domain\Kingdoms\Models\TransferPlan;
+use App\Domain\Kingdoms\Models\TransferReadinessTransition;
+use App\Domain\Kingdoms\Queries\TransferParticipantQuery;
+use App\Domain\Kingdoms\Queries\TransferPlanQuery;
 use App\Domain\Platform\Http\Controllers\Controller;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
 
 final class TransferReadinessController extends Controller
 {
+    public function index(
+        Request $request,
+        AllianceContext $context,
+        AllianceAuthorization $authorization,
+        TransferPlanQuery $plans,
+        TransferParticipantQuery $participants,
+    ): Response {
+        $user = $this->user($request);
+        $alliance = $context->alliance()->load('kingdom');
+
+        if (! $authorization->allows($user, $alliance, PermissionKey::KingdomManage)) {
+            throw new AuthorizationException;
+        }
+
+        $plan = $plans->currentForAlliance($alliance);
+
+        return Inertia::render('Alliance/TransferReadinessManage', [
+            'alliance' => $this->alliance($alliance),
+            'plan' => $plan === null ? null : [
+                'id' => (string) $plan->id,
+                'label' => (string) $plan->label,
+                'homeKingdom' => (string) $plan->homeKingdom->number,
+                'state' => $plan->state->value,
+                'mutable' => in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true),
+            ],
+            'participants' => $plan === null
+                ? []
+                : $participants->forPlan($alliance, $plan, true)
+                    ->map(fn (TransferParticipant $participant): array => $this->participant($participant))
+                    ->all(),
+        ]);
+    }
+
     public function transition(
         Request $request,
         AllianceContext $context,
@@ -82,6 +128,62 @@ final class TransferReadinessController extends Controller
         );
 
         return back()->with('status', 'transfer-blocker-resolved');
+    }
+
+    /** @return array{id: string, name: string, kingdom: string|null} */
+    private function alliance(Alliance $alliance): array
+    {
+        return [
+            'id' => (string) $alliance->id,
+            'name' => (string) $alliance->name,
+            'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function participant(TransferParticipant $participant): array
+    {
+        return [
+            'id' => (string) $participant->id,
+            'name' => (string) $participant->observed_name,
+            'direction' => $participant->direction->value,
+            'readiness' => $participant->readiness_state->value,
+            'groupName' => $participant->group?->name,
+            'destinationKingdom' => $participant->destinationKingdom === null
+                ? null
+                : (string) $participant->destinationKingdom->number,
+            'withdrawnAt' => $participant->withdrawn_at?->toIso8601String(),
+            'blockers' => $participant->blockers
+                ->sortByDesc(static fn (TransferBlocker $blocker): string => $blocker->created_at?->toIso8601String() ?? '')
+                ->values()
+                ->map(static fn (TransferBlocker $blocker): array => [
+                    'id' => (string) $blocker->id,
+                    'state' => $blocker->state->value,
+                    'summary' => (string) $blocker->summary,
+                    'details' => $blocker->details,
+                    'createdAt' => $blocker->created_at?->toIso8601String(),
+                    'resolvedAt' => $blocker->resolved_at?->toIso8601String(),
+                    'createdBy' => $blocker->createdBy === null
+                        ? null
+                        : ['name' => (string) $blocker->createdBy->name],
+                    'resolvedBy' => $blocker->resolvedBy === null
+                        ? null
+                        : ['name' => (string) $blocker->resolvedBy->name],
+                ])
+                ->all(),
+            'readinessHistory' => $participant->readinessTransitions
+                ->sortByDesc(static fn (TransferReadinessTransition $transition): string => $transition->created_at->toIso8601String())
+                ->values()
+                ->map(static fn (TransferReadinessTransition $transition): array => [
+                    'from' => $transition->from_state?->value,
+                    'to' => $transition->to_state->value,
+                    'changedAt' => $transition->created_at->toIso8601String(),
+                    'actor' => $transition->actor === null
+                        ? null
+                        : ['name' => (string) $transition->actor->name],
+                ])
+                ->all(),
+        ];
     }
 
     private function user(Request $request): User
