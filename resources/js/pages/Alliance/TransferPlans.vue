@@ -13,7 +13,9 @@ type Plan = {
 
 type Group = {
   name: string;
-  coordinators: { name: string }[];
+  direction: 'incoming' | 'outgoing';
+  destinationKingdom: string | null;
+  coordinator: { name: string } | null;
 };
 
 type Participant = {
@@ -39,7 +41,7 @@ function stateLabel(state: string): string {
   return state.charAt(0).toUpperCase() + state.slice(1);
 }
 
-function directionLabel(direction: Participant['direction']): string {
+function directionLabel(direction: Participant['direction'] | Group['direction']): string {
   return direction.charAt(0).toUpperCase() + direction.slice(1);
 }
 
@@ -52,8 +54,10 @@ function destinationLabel(participant: Participant): string {
   return participant.destinationKingdom ?? '—';
 }
 
-function coordinatorLabel(group: Group): string {
-  return group.coordinators.map((coordinator) => coordinator.name).join(', ') || 'Unassigned';
+function groupDestinationLabel(group: Group): string {
+  if (group.direction === 'outgoing' && group.destinationKingdom === null) return 'Undecided';
+
+  return group.destinationKingdom ?? '—';
 }
 </script>
 
@@ -122,19 +126,22 @@ function coordinatorLabel(group: Group): string {
     <section v-if="plan" class="mt-10">
       <h2 class="text-xl font-semibold">Transfer groups</h2>
       <p class="mt-2 text-sm text-slate-400">
-        Groups organize transfer work. Coordinator assignment is responsibility only and does not
-        grant management permissions.
+        Groups coordinate players moving in the same direction. Coordinator assignment is workflow
+        responsibility only and does not grant management permissions.
       </p>
 
       <div v-if="groups.length" class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <article
           v-for="group in groups"
-          :key="group.name"
+          :key="`${group.direction}-${group.name}`"
           class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
         >
           <h3 class="font-semibold">{{ group.name }}</h3>
           <p class="mt-2 text-sm text-slate-400">
-            Coordinators: {{ coordinatorLabel(group) }}
+            {{ directionLabel(group.direction) }} · Kingdom {{ groupDestinationLabel(group) }}
+          </p>
+          <p class="mt-1 text-sm text-slate-400">
+            Coordinator: {{ group.coordinator?.name ?? 'Unassigned' }}
           </p>
         </article>
       </div>
@@ -178,7 +185,7 @@ function coordinatorLabel(group: Group): string {
                 <template v-if="participant.group">
                   <span class="font-semibold">{{ participant.group.name }}</span>
                   <span class="block text-xs text-slate-500">
-                    {{ coordinatorLabel(participant.group) }}
+                    Coordinator: {{ participant.group.coordinator?.name ?? 'Unassigned' }}
                   </span>
                 </template>
                 <span v-else>Unassigned</span>
