@@ -13,14 +13,14 @@ This directory documents business/domain behavior and ownership. Runtime code re
 - [Contributions and reporting](contributions-and-reporting.md) — contribution records, calculation semantics, corrections, reporting, exports, and data quality.
 - [Notifications](notifications.md) — event-reminder delivery state, scheduled-report coordination, idempotency, scheduler flow, and recovery.
 - [Integrations](integrations.md) — API credential/authentication contract, read-only API endpoints, webhook signing/delivery contract, and integration boundaries.
-- [Kingdoms](kingdoms.md) — first-class global Kingdom references, alliance Kingdom association, migration behavior, authorization, audit/outbox, and the validated Slice A foundation.
-- [Kingdoms roster](kingdoms-roster.md) — Slice B game-player identity, alliance-owned roster, membership linkage, roster authorization, filtering, data minimization, and tenant-isolation validated-candidate contract.
-- [Kingdoms player snapshots](kingdoms-snapshots.md) — Slice C1 append-only observations, idempotency, latest projection, snapshot freshness, history visibility, provenance, and tenant-isolation validated-candidate contract.
-- [Kingdoms roster intelligence](kingdoms-intelligence.md) — Slice C2 exact power aggregates, data-quality indicators, bounded 7/30-day trends, linkage/movement summaries, manager-only comparisons, and interpretation boundaries.
-- [Kingdoms controlled CSV migration](kingdoms-csv-migration.md) — Slice D strict CSV schema, dry-run classification, identity resolution, atomic/idempotent confirmation, provenance, export safety, and tenant boundaries.
+- [Kingdoms](kingdoms.md) — complete `KINGDOMS-001` ownership map across global Kingdom/game-player references and alliance-owned roster observations.
+- [Kingdoms roster](kingdoms-roster.md) — game-player identity, alliance-owned roster, membership linkage, authorization, filtering, data minimization, and tenant isolation.
+- [Kingdoms player snapshots](kingdoms-snapshots.md) — append-only observations, idempotency, latest projection, snapshot freshness, history visibility and provenance.
+- [Kingdoms roster intelligence](kingdoms-intelligence.md) — exact power aggregates, data-quality indicators, bounded 7/30-day trends, linkage/movement summaries and manager-only comparisons.
+- [Kingdoms controlled CSV migration](kingdoms-csv-migration.md) — strict CSV schema, dry-run classification, identity resolution, atomic/idempotent confirmation, provenance and export safety.
 - [Platform scale and administration](platform-scale-and-administration.md) — platform administration, tenant lifecycle, entitlements, API/webhook controls, retention, and operational scale.
 
-The Kingdom foundation from `KINGDOMS-001` Slice A / `K1-P1` is validated. Slice B / `K1-P2`, Slice C1 / `K1-P3`, Slice C2 / `K1-P4`, and Slice D / `K1-P5` have passed their protected implementation gates and remain review candidates until accepted into the dependency stack. `K1-P6` remains the whole-increment hardening and acceptance phase.
+The complete `KINGDOMS-001` implementation from `K1-P1` through `K1-P5` is present on the current stack and `K1-P6` is validating it as one end-to-end increment. The increment remains **In progress** until the final protected acceptance gate and exit record close.
 
 ## Architecture evidence
 
@@ -35,7 +35,7 @@ The implementation plan defines these canonical ownership roots:
 
 `Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, and `Recruitment`.
 
-All canonical roots own runtime PHP. `Kingdoms` owns the validated first-class Kingdom foundation plus the validated roster, snapshot, intelligence, and CSV migration candidates on this branch. `K1-P6` acceptance and unapproved follow-on capabilities remain outside current accepted runtime state until their own gates are complete.
+All canonical roots own runtime PHP. `Kingdoms` owns first-class Kingdom and neutral player references plus alliance-scoped roster, snapshots, controlled CSV migration and derived intelligence. Global Kingdom/player references never replace the Alliance tenant boundary.
 
 A domain does not require a separate Markdown file merely because it has runtime code. Add a domain guide when it clarifies a meaningful workflow, public contract, lifecycle, or cross-domain boundary that would otherwise be duplicated across implementation files.
 
