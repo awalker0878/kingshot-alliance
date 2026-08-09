@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps<{
   alliance: {
@@ -12,6 +13,10 @@ const props = defineProps<{
 const form = useForm({
   kingdom: props.alliance.kingdom ?? '',
 });
+
+const kingdomDescription = computed(() =>
+  form.errors.kingdom ? 'kingdom-number-help kingdom-number-error' : 'kingdom-number-help',
+);
 
 function saveKingdom(): void {
   form.patch('/alliance/settings/kingdom', {
@@ -43,15 +48,22 @@ function saveKingdom(): void {
         <input
           id="kingdom-number"
           v-model="form.kingdom"
+          :aria-describedby="kingdomDescription"
+          :aria-invalid="form.errors.kingdom ? 'true' : undefined"
           class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
           inputmode="numeric"
           pattern="[1-9][0-9]*"
           type="text"
         />
-        <p class="mt-2 text-xs text-slate-500">
+        <p id="kingdom-number-help" class="mt-2 text-xs text-slate-500">
           Leave blank only when the alliance does not currently have a known kingdom association.
         </p>
-        <p v-if="form.errors.kingdom" class="mt-2 text-sm text-rose-300">
+        <p
+          v-if="form.errors.kingdom"
+          id="kingdom-number-error"
+          class="mt-2 text-sm text-rose-300"
+          role="alert"
+        >
           {{ form.errors.kingdom }}
         </p>
 

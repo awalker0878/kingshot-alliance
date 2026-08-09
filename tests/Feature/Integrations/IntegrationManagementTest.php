@@ -114,4 +114,42 @@ final class IntegrationManagementTest extends TestCase
         });
         self::assertSame('delivered', $delivery->refresh()->status->value);
     }
+
+    public function test_uncontracted_kingdoms_events_never_enter_webhook_fanout_even_for_wildcard_subscriptions(): void
+    {
+        Queue::fake();
+        $owner = User::factory()->create();
+        $alliance = $this->app->make(CreateAlliance::class)->handle(
+            $owner,
+            'Internal Kingdoms Events',
+            'internal-kingdoms-events',
+            2201,
+        );
+        $this->app->make(CreateWebhookSubscription::class)->handle(
+            $alliance,
+            $owner,
+            'Wildcard webhook',
+            'https://example.com/hooks',
+            ['*'],
+        );
+        $queue = $this->app->make(QueueWebhookDeliveries::class);
+
+        foreach (['alliance.kingdom_updated', 'kingdoms.roster_entry_created', 'kingdoms.player_snapshot_recorded'] as $index => $eventType) {
+            $event = new OutboxPublished(
+                messageId: sprintf('01K00000000000000000000%03d', $index),
+                allianceId: (string) $alliance->id,
+                eventType: $eventType,
+                aggregateType: 'kingdoms-test',
+                aggregateId: sprintf('01K00000000000000000001%03d', $index),
+                idempotencyKey: $eventType.':test',
+                payload: ['private_reference' => 'must-not-leave-tenant'],
+                occurredAt: now()->toIso8601String(),
+            );
+
+            self::assertSame(0, $queue->handle($event));
+        }
+
+        $this->assertDatabaseCount('webhook_deliveries', 0);
+        Queue::assertNothingPushed();
+    }
 }

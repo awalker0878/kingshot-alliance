@@ -101,6 +101,10 @@ function formatBytes(bytes: number): string {
 function formatInteger(value: string): string {
   return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
+
+function resolutionLabel(row: PreviewRow): string {
+  return `Resolution for CSV row ${row.row}, ${row.data.name}`;
+}
 </script>
 
 <template>
@@ -153,6 +157,8 @@ function formatInteger(value: string): string {
           <input
             id="roster-csv"
             accept=".csv,text/csv"
+            :aria-describedby="uploadForm.errors.file ? 'roster-csv-error' : undefined"
+            :aria-invalid="uploadForm.errors.file ? 'true' : undefined"
             class="mt-2 block w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
             required
             type="file"
@@ -165,7 +171,12 @@ function formatInteger(value: string): string {
           >
             Validate and preview
           </button>
-          <p v-if="uploadForm.errors.file" class="mt-3 text-sm text-rose-300">
+          <p
+            v-if="uploadForm.errors.file"
+            id="roster-csv-error"
+            class="mt-3 text-sm text-rose-300"
+            role="alert"
+          >
             {{ uploadForm.errors.file }}
           </p>
         </form>
@@ -227,6 +238,8 @@ function formatInteger(value: string): string {
         <div
           v-if="importRecord.status === 'committed' && importRecord.committedSummary"
           class="mt-5 rounded-xl border border-emerald-900/70 bg-emerald-950/30 p-4 text-sm text-emerald-200"
+          role="status"
+          aria-live="polite"
         >
           Committed {{ importRecord.committedSummary.rows_committed }} rows:
           {{ importRecord.committedSummary.roster_entries_created }} roster creates,
@@ -259,12 +272,13 @@ function formatInteger(value: string): string {
                 <td class="px-4 py-4 text-slate-400 capitalize">{{ row.data.state }}</td>
                 <td class="px-4 py-4 capitalize">{{ row.outcome }}</td>
                 <td class="min-w-72 px-4 py-4">
-                  <ul v-if="row.errors.length" class="space-y-1 text-rose-300">
+                  <ul v-if="row.errors.length" class="space-y-1 text-rose-300" role="alert">
                     <li v-for="error in row.errors" :key="error">{{ error }}</li>
                   </ul>
                   <select
                     v-else-if="row.outcome === 'ambiguous'"
                     v-model="resolutionDrafts[String(row.row)]"
+                    :aria-label="resolutionLabel(row)"
                     class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
                     :disabled="importRecord.status === 'committed'"
                   >

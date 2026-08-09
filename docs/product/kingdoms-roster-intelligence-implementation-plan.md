@@ -2,7 +2,7 @@
 
 [← Kingdoms roster intelligence product increment](kingdoms-roster-intelligence-increment.md)
 
-**Status:** In progress — Slice A / `K1-P1` validated; Slice B / `K1-P2`, Slice C1 / `K1-P3`, Slice C2 / `K1-P4`, and Slice D / `K1-P5` validated implementation candidates  
+**Status:** Accepted — `K1-P0` through `K1-P6` complete  
 **Scope ID:** `KINGDOMS-001`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Approved `KINGDOMS-001` scope and accepted Phase 0–6 engineering controls  
@@ -34,13 +34,13 @@ The implementation must continue to follow the repository's established principl
 | --- | --- | --- | --- |
 | `K1-P0` | Complete | Design and migration contract locked | Slice A preparation |
 | `K1-P1` | Validated | First-class Kingdom foundation | Slice A |
-| `K1-P2` | Validated candidate | Game-player and alliance roster foundation | Slice B |
-| `K1-P3` | Validated candidate | Historical player snapshots | Slice C1 |
-| `K1-P4` | Validated candidate | Roster intelligence and trend views | Slice C2 |
-| `K1-P5` | Validated candidate | Controlled CSV migration workflow | Slice D |
-| `K1-P6` | Planned | Increment hardening and acceptance | Whole increment |
+| `K1-P2` | Validated | Game-player and alliance roster foundation | Slice B |
+| `K1-P3` | Validated | Historical player snapshots | Slice C1 |
+| `K1-P4` | Validated | Roster intelligence and trend views | Slice C2 |
+| `K1-P5` | Validated | Controlled CSV migration workflow | Slice D |
+| `K1-P6` | Accepted | Increment hardening and acceptance | Whole increment |
 
-Each phase must leave the repository internally consistent. `KINGDOMS-001` is not Accepted until `K1-P6` closes the complete increment. `K1-P1` is validated. `K1-P2`, `K1-P3`, `K1-P4`, and `K1-P5` have completed their protected implementation gates and remain review candidates until their PRs are accepted into the dependency stack. `K1-P6` remains Planned.
+Each implementation phase left the repository internally consistent. `K1-P1` through `K1-P5` passed their protected slice gates; `K1-P6` then validated the complete dependency stack end to end. `KINGDOMS-001` is Accepted with exact evidence recorded in the [exit report](kingdoms-roster-intelligence-exit-report.md).
 
 ## 3. K1-P0 — Design and migration contract
 
@@ -311,19 +311,21 @@ Validate the complete `KINGDOMS-001` contract end to end and produce acceptance 
 - capability matrix/current architecture update from Planned to Implemented only after acceptance; and
 - dedicated `KINGDOMS-001` exit record with validated SHA and protected-check evidence.
 
-### Acceptance gate
+### Acceptance result
 
-All acceptance criteria in `kingdoms-roster-intelligence-increment.md` must pass. Candidate follow-ons (`KINGDOMS-002` through `KINGDOMS-005`) remain unimplemented and must not appear as current runtime capability.
+Accepted. The whole-increment implementation head `7f743507b70865692290f517cd2de494ec54abae` passed Dependency Review, CodeQL, frontend quality/build, PostgreSQL migrations, Pint, PHPStan, 238 tests / 2,556 assertions, the 150-player / 450-snapshot query regression, immutable-image staging, backup/restore and image scanning. The final evidence and the cross-slice webhook hardening finding are recorded in the [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md).
+
+Candidate follow-ons remain unimplemented and must not appear as current runtime capability.
 
 ## 10. Pull-request sequencing
 
-Recommended implementation PR sequence:
+Completed implementation sequence:
 
-1. **Slice A / `K1-P1` — Kingdom foundation** (includes the final `K1-P0` design decisions required to implement it).
+1. **Slice A / `K1-P1` — Kingdom foundation** (including final `K1-P0` design decisions).
 2. **Slice B / `K1-P2` — Roster foundation**.
 3. **Slice C1 / `K1-P3` — Snapshot history**.
 4. **Slice C2 / `K1-P4` — Intelligence dashboard**.
 5. **Slice D / `K1-P5` — CSV migration workflow**.
 6. **`K1-P6` — Hardening, audits, documentation and acceptance record**.
 
-Every PR should be independently deployable/migratable and must not leave dormant future schema or compatibility code merely to make the next PR easier.
+Every slice remains independently deployable/migratable and the accepted increment contains no dormant follow-on schema or compatibility code merely to make a future increment easier.
