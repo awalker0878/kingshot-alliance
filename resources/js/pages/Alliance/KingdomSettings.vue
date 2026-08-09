@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps<{
   alliance: {
@@ -12,6 +13,10 @@ const props = defineProps<{
 const form = useForm({
   kingdom: props.alliance.kingdom ?? '',
 });
+
+const kingdomDescription = computed(() =>
+  form.errors.kingdom ? 'kingdom-number-help kingdom-number-error' : 'kingdom-number-help',
+);
 
 function saveKingdom(): void {
   form.patch('/alliance/settings/kingdom', {
@@ -43,7 +48,7 @@ function saveKingdom(): void {
         <input
           id="kingdom-number"
           v-model="form.kingdom"
-          :aria-describedby="form.errors.kingdom ? 'kingdom-number-help kingdom-number-error' : 'kingdom-number-help'"
+          :aria-describedby="kingdomDescription"
           :aria-invalid="form.errors.kingdom ? 'true' : undefined"
           class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
           inputmode="numeric"
