@@ -43,7 +43,7 @@ Slice C2 / `K1-P4` adds the validated roster-intelligence candidate:
 - member-visible aggregate intelligence under `alliance.view`; and
 - manager-only, alphabetical individual comparison detail under `kingdoms.manage` with no ranking or scoring.
 
-Slice D / `K1-P5` adds the controlled CSV migration implementation candidate:
+Slice D / `K1-P5` adds the validated controlled CSV migration candidate:
 
 - strict `kingdoms-roster.v1` UTF-8 CSV schema with 1 MiB / 500-row limits;
 - dry-run create/update/ambiguous/rejected row classification before roster persistence;
@@ -53,7 +53,7 @@ Slice D / `K1-P5` adds the controlled CSV migration implementation candidate:
 - CSV provenance carried through the existing roster/snapshot actions, audit trail and transactional outbox; and
 - member/management current-roster exports with private-field gating, private/no-store responses and spreadsheet-formula neutralization.
 
-Slices B, C1 and C2 have passed their protected implementation gates and remain review candidates until accepted into the dependency stack. Slice D remains an implementation candidate until its protected gate succeeds.
+Slices B, C1, C2 and D have passed their protected implementation gates and remain review candidates until accepted into the dependency stack.
 
 The living contracts are documented in [`docs/domains/kingdoms.md`](../../../docs/domains/kingdoms.md), [`docs/domains/kingdoms-roster.md`](../../../docs/domains/kingdoms-roster.md), [`docs/domains/kingdoms-snapshots.md`](../../../docs/domains/kingdoms-snapshots.md), [`docs/domains/kingdoms-intelligence.md`](../../../docs/domains/kingdoms-intelligence.md), and [`docs/domains/kingdoms-csv-migration.md`](../../../docs/domains/kingdoms-csv-migration.md).
 
