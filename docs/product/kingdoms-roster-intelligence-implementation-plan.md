@@ -2,7 +2,7 @@
 
 [← Kingdoms roster intelligence product increment](kingdoms-roster-intelligence-increment.md)
 
-**Status:** In progress — Slice A / `K1-P1` validated; Slice B / `K1-P2`, Slice C1 / `K1-P3`, and Slice C2 / `K1-P4` validated implementation candidates; Slice D / `K1-P5` implementation candidate  
+**Status:** In progress — Slice A / `K1-P1` validated; Slice B / `K1-P2`, Slice C1 / `K1-P3`, Slice C2 / `K1-P4`, and Slice D / `K1-P5` validated implementation candidates  
 **Scope ID:** `KINGDOMS-001`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Approved `KINGDOMS-001` scope and accepted Phase 0–6 engineering controls  
@@ -37,10 +37,10 @@ The implementation must continue to follow the repository's established principl
 | `K1-P2` | Validated candidate | Game-player and alliance roster foundation | Slice B |
 | `K1-P3` | Validated candidate | Historical player snapshots | Slice C1 |
 | `K1-P4` | Validated candidate | Roster intelligence and trend views | Slice C2 |
-| `K1-P5` | Implementation candidate | Controlled CSV migration workflow | Slice D |
+| `K1-P5` | Validated candidate | Controlled CSV migration workflow | Slice D |
 | `K1-P6` | Planned | Increment hardening and acceptance | Whole increment |
 
-Each phase must leave the repository internally consistent. `KINGDOMS-001` is not Accepted until `K1-P6` closes the complete increment. `K1-P1` is validated. `K1-P2`, `K1-P3`, and `K1-P4` have completed their protected implementation gates and remain review candidates until their PRs are accepted into the dependency stack. `K1-P5` is implemented on the Slice D branch but remains an implementation candidate until its own protected gate succeeds.
+Each phase must leave the repository internally consistent. `KINGDOMS-001` is not Accepted until `K1-P6` closes the complete increment. `K1-P1` is validated. `K1-P2`, `K1-P3`, `K1-P4`, and `K1-P5` have completed their protected implementation gates and remain review candidates until their PRs are accepted into the dependency stack. `K1-P6` remains Planned.
 
 ## 3. K1-P0 — Design and migration contract
 
