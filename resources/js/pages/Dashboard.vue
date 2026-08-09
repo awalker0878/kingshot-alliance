@@ -15,6 +15,7 @@ type MembershipSummary = {
     timezone: string;
   };
   roles: RoleSummary[];
+  canManageAlliance: boolean;
 };
 
 defineProps<{
@@ -68,7 +69,9 @@ function logout(): void {
   <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 lg:px-8">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">Phase 1</p>
+        <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
+          Kingshot Alliance
+        </p>
         <h1 class="mt-2 text-3xl font-bold">Welcome, {{ user.name }}</h1>
         <p class="mt-2 text-sm text-slate-400">
           {{ user.email }} · {{ user.timezone }}
@@ -122,14 +125,30 @@ function logout(): void {
           <p class="mt-4 text-xs text-slate-500">
             Roles: {{ membership.roles.map((role) => role.name).join(', ') || 'None' }}
           </p>
-          <button
-            v-if="activeAllianceId !== membership.alliance.id"
-            class="mt-4 rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold hover:border-slate-500"
-            type="button"
-            @click="activateAlliance(membership.alliance.id)"
-          >
-            Switch to this alliance
-          </button>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <button
+              v-if="activeAllianceId !== membership.alliance.id"
+              class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold hover:border-slate-500"
+              type="button"
+              @click="activateAlliance(membership.alliance.id)"
+            >
+              Switch to this alliance
+            </button>
+            <Link
+              v-if="activeAllianceId === membership.alliance.id"
+              class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 hover:border-slate-500"
+              href="/alliance/roster"
+            >
+              Roster
+            </Link>
+            <Link
+              v-if="activeAllianceId === membership.alliance.id && membership.canManageAlliance"
+              class="rounded-lg border border-cyan-800 px-3 py-2 text-sm font-semibold text-cyan-300 hover:border-cyan-600"
+              href="/alliance/settings/kingdom"
+            >
+              Kingdom settings
+            </Link>
+          </div>
         </article>
       </div>
       <p
@@ -176,13 +195,18 @@ function logout(): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="alliance-kingdom">Kingdom</label>
+          <label class="block text-sm font-medium" for="alliance-kingdom">Kingdom number</label>
           <input
             id="alliance-kingdom"
             v-model="allianceForm.kingdom"
             class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            inputmode="numeric"
+            pattern="[1-9][0-9]*"
             type="text"
           />
+          <p v-if="allianceForm.errors.kingdom" class="mt-1 text-sm text-rose-300">
+            {{ allianceForm.errors.kingdom }}
+          </p>
         </div>
 
         <div>

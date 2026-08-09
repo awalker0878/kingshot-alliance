@@ -21,7 +21,7 @@ final class AllianceApiController extends Controller
                 'id' => (string) $alliance->id,
                 'name' => (string) $alliance->name,
                 'slug' => (string) $alliance->slug,
-                'kingdom' => $alliance->kingdom,
+                'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
                 'language' => (string) $alliance->language,
                 'timezone' => (string) $alliance->timezone,
             ],
@@ -85,6 +85,6 @@ final class AllianceApiController extends Controller
         $allianceId = $request->attributes->get('alliance_id');
         abort_unless(is_string($allianceId) && $allianceId !== '', 500, 'API tenant context is missing.');
 
-        return Alliance::query()->findOrFail($allianceId);
+        return Alliance::query()->with('kingdom')->findOrFail($allianceId);
     }
 }

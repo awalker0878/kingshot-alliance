@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
+use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
+use App\Domain\Kingdoms\Http\Controllers\RosterController;
+use App\Domain\Kingdoms\Http\Controllers\RosterCsvController;
+use App\Domain\Kingdoms\Http\Controllers\RosterIntelligenceController;
+use Illuminate\Support\Facades\Route;
+
+Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {
+    Route::get('/alliance/settings/kingdom', [KingdomSettingsController::class, 'index'])
+        ->name('alliance.kingdom.edit');
+
+    Route::patch('/alliance/settings/kingdom', [KingdomSettingsController::class, 'update'])
+        ->middleware('password.confirm')
+        ->name('alliance.kingdom.update');
+
+    Route::get('/alliance/roster', [RosterController::class, 'index'])
+        ->name('alliance.roster.index');
+
+    Route::get('/alliance/roster/manage', [RosterController::class, 'manage'])
+        ->name('alliance.roster.manage');
+
+    Route::get('/alliance/roster/intelligence', [RosterIntelligenceController::class, 'index'])
+        ->name('alliance.roster.intelligence');
+
+    Route::get('/alliance/roster/import', [RosterCsvController::class, 'index'])
+        ->name('alliance.roster.import.index');
+    Route::get('/alliance/roster/import/{import}', [RosterCsvController::class, 'show'])
+        ->name('alliance.roster.import.show');
+    Route::get('/alliance/roster/export.csv', [RosterCsvController::class, 'export'])
+        ->name('alliance.roster.export');
+
+    Route::get('/alliance/roster/{entry}/history', [PlayerSnapshotController::class, 'show'])
+        ->name('alliance.roster.history');
+
+    Route::middleware('password.confirm')->group(function (): void {
+        Route::post('/alliance/roster', [RosterController::class, 'store'])
+            ->name('alliance.roster.store');
+        Route::patch('/alliance/roster/{entry}', [RosterController::class, 'update'])
+            ->name('alliance.roster.update');
+        Route::post('/alliance/roster/{entry}/leave', [RosterController::class, 'leave'])
+            ->name('alliance.roster.leave');
+        Route::post('/alliance/roster/{entry}/snapshots', [PlayerSnapshotController::class, 'store'])
+            ->name('alliance.roster.snapshots.store');
+        Route::post('/alliance/roster/import/preview', [RosterCsvController::class, 'preview'])
+            ->name('alliance.roster.import.preview');
+        Route::post('/alliance/roster/import/{import}/commit', [RosterCsvController::class, 'commit'])
+            ->name('alliance.roster.import.commit');
+    });
+});

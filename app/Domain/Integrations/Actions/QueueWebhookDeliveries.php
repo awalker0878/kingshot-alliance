@@ -14,7 +14,7 @@ final class QueueWebhookDeliveries
 {
     public function handle(OutboxPublished $event): int
     {
-        if ($event->allianceId === null) {
+        if ($event->allianceId === null || ! $this->isExternallyContracted($event->eventType)) {
             return 0;
         }
 
@@ -63,5 +63,11 @@ final class QueueWebhookDeliveries
         }
 
         return $queued;
+    }
+
+    private function isExternallyContracted(string $eventType): bool
+    {
+        return $eventType !== 'alliance.kingdom_updated'
+            && ! str_starts_with($eventType, 'kingdoms.');
     }
 }

@@ -27,7 +27,7 @@ final class IntegrationManagementTest extends TestCase
     public function test_scoped_api_credential_is_one_way_stored_and_tenant_bound(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'API Tenant', 'api-tenant');
+        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'API Tenant', 'api-tenant', 2200);
         $issued = $this->app->make(CreateApiCredential::class)->handle(
             $alliance,
             $owner,
@@ -42,7 +42,8 @@ final class IntegrationManagementTest extends TestCase
         $this->withHeader('Authorization', 'Bearer '.$issued->token)
             ->getJson('/api/v1/alliance')
             ->assertOk()
-            ->assertJsonPath('data.id', (string) $alliance->id);
+            ->assertJsonPath('data.id', (string) $alliance->id)
+            ->assertJsonPath('data.kingdom', '2200');
 
         $this->withHeader('Authorization', 'Bearer '.$issued->token)
             ->getJson('/api/v1/events')
@@ -112,5 +113,43 @@ final class IntegrationManagementTest extends TestCase
                 && hash_equals($expected, (string) $request->header('X-Kingshot-Signature')[0]);
         });
         self::assertSame('delivered', $delivery->refresh()->status->value);
+    }
+
+    public function test_uncontracted_kingdoms_events_never_enter_webhook_fanout_even_for_wildcard_subscriptions(): void
+    {
+        Queue::fake();
+        $owner = User::factory()->create();
+        $alliance = $this->app->make(CreateAlliance::class)->handle(
+            $owner,
+            'Internal Kingdoms Events',
+            'internal-kingdoms-events',
+            2201,
+        );
+        $this->app->make(CreateWebhookSubscription::class)->handle(
+            $alliance,
+            $owner,
+            'Wildcard webhook',
+            'https://example.com/hooks',
+            ['*'],
+        );
+        $queue = $this->app->make(QueueWebhookDeliveries::class);
+
+        foreach (['alliance.kingdom_updated', 'kingdoms.roster_entry_created', 'kingdoms.player_snapshot_recorded'] as $index => $eventType) {
+            $event = new OutboxPublished(
+                messageId: sprintf('01K00000000000000000000%03d', $index),
+                allianceId: (string) $alliance->id,
+                eventType: $eventType,
+                aggregateType: 'kingdoms-test',
+                aggregateId: sprintf('01K00000000000000000001%03d', $index),
+                idempotencyKey: $eventType.':test',
+                payload: ['private_reference' => 'must-not-leave-tenant'],
+                occurredAt: now()->toIso8601String(),
+            );
+
+            self::assertSame(0, $queue->handle($event));
+        }
+
+        $this->assertDatabaseCount('webhook_deliveries', 0);
+        Queue::assertNothingPushed();
     }
 }

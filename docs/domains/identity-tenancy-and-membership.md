@@ -14,6 +14,7 @@ The runtime sources of truth are the Identity, Alliances, Memberships, and Autho
 - **Alliances** owns the alliance aggregate, alliance creation, activation/switching, and request-scoped active-alliance context.
 - **Memberships** owns the relationship between a user and an alliance, invitation lifecycle, membership status, leave/removal behavior, and administration safety rules.
 - **Authorization** owns alliance roles, permission keys, role assignment/removal, and permission evaluation.
+- **Kingdoms** owns global Kingdom/game-player reference concepts and alliance-scoped roster behavior; it does not redefine alliance tenancy or membership identity.
 - **Audit** records attributable security and business changes.
 - **Platform** owns the transactional outbox used to publish durable domain-change events after persistence.
 
@@ -106,7 +107,7 @@ The current permission vocabulary is:
 
 | Permission | Capability |
 | --- | --- |
-| `alliance.view` | View alliance member areas. |
+| `alliance.view` | View alliance member areas, including the alliance roster. |
 | `alliance.manage` | Manage alliance settings and integration administration surfaces. |
 | `membership.manage` | Manage alliance membership status. |
 | `roles.manage` | Assign and remove alliance roles. |
@@ -115,6 +116,7 @@ The current permission vocabulary is:
 | `events.manage` | Manage events and rally configuration. |
 | `recruitment.manage` | Manage recruitment workflows. |
 | `contributions.manage` | Manage contribution records, reporting, exports, and report schedules. |
+| `kingdoms.manage` | Manage alliance Kingdom roster observations and application-membership links. |
 
 `app/Domain/Authorization/Enums/PermissionKey.php` is authoritative if this table ever drifts from runtime behavior.
 
@@ -122,19 +124,19 @@ The current permission vocabulary is:
 
 The built-in templates currently resolve as follows:
 
-| Role | View | Alliance | Membership | Roles | Invitations | Content | Events | Recruitment | Contributions |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Owner | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Leader | ✓ | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Officer | ✓ | — | ✓ | — | ✓ | — | ✓ | — | — |
-| Member | ✓ | — | — | — | — | — | — | — | — |
-| Recruiter | ✓ | — | — | — | ✓ | — | — | ✓ | — |
-| Event Coordinator | ✓ | — | — | — | — | — | ✓ | — | — |
-| Content Manager | ✓ | — | — | — | — | ✓ | — | — | — |
+| Role | View | Alliance | Membership | Roles | Invitations | Content | Events | Recruitment | Contributions | Kingdoms |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Owner | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Leader | ✓ | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Officer | ✓ | — | ✓ | — | ✓ | — | ✓ | — | — | ✓ |
+| Member | ✓ | — | — | — | — | — | — | — | — | — |
+| Recruiter | ✓ | — | — | — | ✓ | — | — | ✓ | — | — |
+| Event Coordinator | ✓ | — | — | — | — | — | ✓ | — | — | — |
+| Content Manager | ✓ | — | — | — | — | ✓ | — | — | — | — |
 
-The abbreviated columns map, in order, to `alliance.view`, `alliance.manage`, `membership.manage`, `roles.manage`, `invitations.manage`, `content.manage`, `events.manage`, `recruitment.manage`, and `contributions.manage`.
+The abbreviated columns map, in order, to `alliance.view`, `alliance.manage`, `membership.manage`, `roles.manage`, `invitations.manage`, `content.manage`, `events.manage`, `recruitment.manage`, `contributions.manage`, and `kingdoms.manage`.
 
-`app/Domain/Authorization/Enums/DefaultAllianceRole.php` is authoritative for this matrix. Notably, only the Owner template currently includes `roles.manage`; Leaders can manage memberships and invitations but cannot assign or remove roles through the supported authorization contract.
+`app/Domain/Authorization/Enums/DefaultAllianceRole.php` is authoritative for this matrix. Only Owner currently includes `roles.manage`. The Slice B roster contract grants `kingdoms.manage` to Owner, Leader, and Officer; specialist roles and Member do not receive it by default.
 
 ## Role assignment and removal
 
@@ -148,7 +150,7 @@ Owner-role removal remains subject to the last-active-owner safety rule.
 
 Email verification is required before alliance creation, alliance activation, invitation acceptance, and alliance-scoped authenticated workflows.
 
-Security-sensitive mutations are protected by recent password confirmation at the HTTP boundary. This includes membership/invitation/role administration and the privileged management actions in Content, Events, Recruitment, Contributions, Integrations, and platform administration where applicable.
+Security-sensitive mutations are protected by recent password confirmation at the HTTP boundary. This includes membership/invitation/role administration and the privileged management actions in Content, Events, Recruitment, Contributions, Integrations, Kingdom roster management, and platform administration where applicable.
 
 TOTP MFA and one-time recovery codes belong to the global Identity account. MFA management itself requires verified identity and recent password confirmation. Alliance authorization does not treat MFA as a substitute for tenant membership or permission checks.
 
@@ -156,11 +158,11 @@ Platform-administrator access is a separate cross-tenant privilege model and add
 
 ## Audit and outbox invariants
 
-Security-relevant identity, alliance, invitation, membership, and role transitions record attributable audit evidence. Persisted business transitions also write transactional outbox messages when downstream publication is required.
+Security-relevant identity, alliance, invitation, membership, role, and privileged roster transitions record attributable audit evidence. Persisted business transitions also write transactional outbox messages when downstream publication is required.
 
 The outbox is at-least-once. Consumers must use message idempotency rather than assuming publication occurs exactly once.
 
-Examples of durable alliance-security events include alliance creation, invitation creation/revocation/resend/acceptance, membership status/leave changes, and role assignment/removal.
+Examples of durable alliance-security events include alliance creation, invitation creation/revocation/resend/acceptance, membership status/leave changes, role assignment/removal, and privileged Kingdom roster create/update/leave changes.
 
 ## Tenant-isolation rules for feature domains
 
@@ -172,14 +174,14 @@ Every feature domain must preserve these invariants:
 4. Require the owning permission for privileged access.
 5. Carry tenant identity explicitly into jobs, cache keys, exports, storage paths, logs, and integration work.
 6. Fail closed when tenant context is missing, stale, suspended, or inconsistent.
-7. Keep global identity separate from alliance-owned persistence.
+7. Keep global identity/reference data separate from alliance-owned persistence and never treat a shared global record as tenant authorization.
 
-See the [security baseline](../security/security-baseline.md) for the consolidated security requirements and the [domain boundary audit](domain-boundary-audit.md) for current cross-domain ownership evidence.
+See the [security baseline](../security/security-baseline.md) for the consolidated security requirements and the [domain boundary audit](domain-boundary-audit.md) for current cross-domain ownership evidence. The [Kingdoms roster guide](kingdoms-roster.md) applies these same rules to neutral game-player identity and alliance-owned roster observations.
 
 ## Troubleshooting
 
 If an alliance page returns that an active alliance is required, select an alliance from the dashboard and retry. If the selected alliance is immediately rejected, verify that both the alliance and the user's membership are active.
 
-If a management action is forbidden, verify the active alliance, membership status, and the role-to-permission mapping above. Do not assume that a leadership-sounding role implies every administrative permission; for example, `roles.manage` is Owner-only in the current default templates.
+If a management action is forbidden, verify the active alliance, membership status, and the role-to-permission mapping above. Do not assume that a leadership-sounding role implies every administrative permission; for example, `roles.manage` is Owner-only while `kingdoms.manage` is granted to Owner, Leader, and Officer in the built-in templates.
 
 If an invitation fails, verify that it is pending, unexpired, and being accepted by the account whose normalized email matches the invitation. Issue or resend a controlled invitation instead of manually changing token or membership persistence.

@@ -11,6 +11,7 @@ use App\Domain\Authorization\Models\Permission;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\OutboxMessage;
@@ -44,6 +45,13 @@ final class CreateAllianceTest extends TestCase
         self::assertSame(7, Role::query()->where('alliance_id', $alliance->id)->count());
         self::assertSame(count(PermissionKey::cases()), Permission::query()->count());
         self::assertTrue($membership->roles()->where('roles.key', 'owner')->exists());
+        self::assertInstanceOf(Kingdom::class, $alliance->kingdom);
+        self::assertSame(1234, $alliance->kingdom->number);
+        self::assertSame(1, Kingdom::query()->count());
+        $this->assertDatabaseHas('alliances', [
+            'id' => $alliance->id,
+            'kingdom_id' => $alliance->kingdom->id,
+        ]);
 
         $authorization = $this->app->make(AllianceAuthorization::class);
 
@@ -84,5 +92,18 @@ final class CreateAllianceTest extends TestCase
             ->where('user_id', $owner->id)
             ->where('status', MembershipStatus::Active->value)
             ->count());
+    }
+
+    public function test_multiple_alliances_reuse_one_canonical_kingdom(): void
+    {
+        $owner = User::factory()->create();
+        $action = $this->app->make(CreateAlliance::class);
+
+        $first = $action->handle($owner, 'First Kingdom Alliance', 'first-kingdom-alliance', '0042');
+        $second = $action->handle($owner, 'Second Kingdom Alliance', 'second-kingdom-alliance', 42);
+
+        self::assertSame($first->kingdom_id, $second->kingdom_id);
+        self::assertSame(42, $first->kingdom?->number);
+        self::assertSame(1, Kingdom::query()->where('number', 42)->count());
     }
 }

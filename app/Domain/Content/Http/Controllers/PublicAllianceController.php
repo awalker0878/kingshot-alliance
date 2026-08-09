@@ -30,6 +30,7 @@ final class PublicAllianceController extends Controller
         string $slug,
     ): Response {
         $alliance = Alliance::query()
+            ->with('kingdom')
             ->where('slug', $slug)
             ->where('status', AllianceStatus::Active->value)
             ->firstOrFail();
@@ -81,7 +82,7 @@ final class PublicAllianceController extends Controller
             'alliance' => [
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,
-                'kingdom' => $alliance->kingdom,
+                'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
                 'language' => $alliance->language,
                 'timezone' => $alliance->timezone,
                 'description' => $profile?->description,

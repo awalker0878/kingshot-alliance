@@ -32,7 +32,6 @@ final readonly class UpdateAlliancePublicProfile
     /**
      * @param array{
      *   name: string,
-     *   kingdom?: string|null,
      *   language: string,
      *   timezone: string,
      *   description?: string|null,
@@ -52,7 +51,6 @@ final readonly class UpdateAlliancePublicProfile
 
             $locked->forceFill([
                 'name' => $this->sanitizer->line($attributes['name']) ?? $locked->name,
-                'kingdom' => $this->sanitizer->line($attributes['kingdom'] ?? null),
                 'language' => strtolower(trim($attributes['language'])),
                 'timezone' => trim($attributes['timezone']),
             ])->save();

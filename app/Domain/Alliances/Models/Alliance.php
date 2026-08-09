@@ -7,6 +7,7 @@ namespace App\Domain\Alliances\Models;
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
+ * @property string|null $kingdom_id
+ * @property-read Kingdom|null $kingdom
  * @property AllianceStatus $status
  * @property Carbon|null $suspended_at
  * @property Carbon|null $closed_at
@@ -33,7 +36,7 @@ final class Alliance extends Model
     protected $fillable = [
         'name',
         'slug',
-        'kingdom',
+        'kingdom_id',
         'language',
         'timezone',
         'status',
@@ -62,6 +65,12 @@ final class Alliance extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    /** @return BelongsTo<Kingdom, $this> */
+    public function kingdom(): BelongsTo
+    {
+        return $this->belongsTo(Kingdom::class);
     }
 
     /** @return HasMany<AllianceMembership, $this> */

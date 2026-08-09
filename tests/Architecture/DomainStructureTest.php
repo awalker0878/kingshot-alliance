@@ -62,17 +62,13 @@ final class DomainStructureTest extends TestCase
         }
     }
 
-    public function test_unimplemented_kingdoms_domain_contains_no_runtime_php(): void
+    public function test_kingdoms_domain_owns_the_first_class_kingdom_foundation(): void
     {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->root().'/app/Domain/Kingdoms'),
-        );
-
-        foreach ($iterator as $file) {
-            if ($file instanceof SplFileInfo && $file->isFile()) {
-                self::assertNotSame('php', $file->getExtension(), 'Kingdoms must remain documentation-only until an approved phase.');
-            }
-        }
+        self::assertFileExists($this->root().'/app/Domain/Kingdoms/Models/Kingdom.php');
+        self::assertFileExists($this->root().'/app/Domain/Kingdoms/Enums/KingdomStatus.php');
+        self::assertFileExists($this->root().'/app/Domain/Kingdoms/Actions/ResolveKingdom.php');
+        self::assertFileExists($this->root().'/app/Domain/Kingdoms/Actions/UpdateAllianceKingdom.php');
+        self::assertFileExists($this->root().'/app/Domain/Kingdoms/Http/Controllers/KingdomSettingsController.php');
     }
 
     public function test_phase_six_integrations_domain_contains_runtime_php(): void

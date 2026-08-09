@@ -36,7 +36,7 @@ final class AllianceOverviewController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
-        $alliance = $context->alliance();
+        $alliance = $context->alliance()->load('kingdom');
         $membership = $context->membership()->loadMissing('roles:id,alliance_id,key,name');
         $canManageInvitations = $authorization->allows($user, $alliance, PermissionKey::InvitationManage);
         $canManageMembers = $authorization->allows($user, $alliance, PermissionKey::MembershipManage);
@@ -177,7 +177,7 @@ final class AllianceOverviewController extends Controller
                 'id' => $alliance->id,
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,
-                'kingdom' => $alliance->kingdom,
+                'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
                 'language' => $alliance->language,
                 'timezone' => $alliance->timezone,
                 'publicUrl' => route('public.alliances.show', $alliance->slug),
