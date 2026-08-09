@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Services;
 
 use App\Domain\Kingdoms\Enums\RosterState;
+use DateTimeImmutable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
+use Throwable;
 
 final class RosterCsvParser
 {
@@ -57,30 +59,30 @@ final class RosterCsvParser
     public function parse(UploadedFile $file, Carbon $previewedAt): array
     {
         $filename = trim($file->getClientOriginalName());
-        if ($filename === '' || ! str_ends_with(strtolower($filename), '.csv')) {
+        if ($filename === '' || str_ends_with(strtolower($filename), '.csv') === false) {
             throw ValidationException::withMessages([
                 'file' => 'Upload a .csv file using the documented Kingdoms roster schema.',
             ]);
         }
 
         $size = $file->getSize();
-        if (! is_int($size) || $size <= 0 || $size > self::MAX_BYTES) {
+        if (is_int($size) === false || $size <= 0 || $size > self::MAX_BYTES) {
             throw ValidationException::withMessages([
                 'file' => 'The CSV file must be non-empty and no larger than 1 MiB.',
             ]);
         }
 
         $path = $file->getRealPath();
-        if (! is_string($path) || $path === '') {
+        if (is_string($path) === false || $path === '') {
             throw ValidationException::withMessages(['file' => 'The uploaded CSV file could not be read.']);
         }
 
         $content = file_get_contents($path);
-        if (! is_string($content) || $content === '') {
+        if (is_string($content) === false || $content === '') {
             throw ValidationException::withMessages(['file' => 'The uploaded CSV file is empty.']);
         }
 
-        if (str_contains($content, "\0") || ! mb_check_encoding($content, 'UTF-8')) {
+        if (str_contains($content, "\0") || mb_check_encoding($content, 'UTF-8') === false) {
             throw ValidationException::withMessages([
                 'file' => 'The CSV file must contain valid UTF-8 text and cannot contain NUL bytes.',
             ]);
@@ -95,7 +97,7 @@ final class RosterCsvParser
         rewind($handle);
 
         $headers = fgetcsv($handle, 0, ',', '"', '');
-        if (! is_array($headers)) {
+        if (is_array($headers) === false) {
             fclose($handle);
             throw ValidationException::withMessages(['file' => 'The CSV file is missing its header row.']);
         }
@@ -203,7 +205,7 @@ final class RosterCsvParser
 
         $values = array_pad(array_slice($values, 0, count(self::HEADERS)), count(self::HEADERS), '');
         $record = array_combine(self::HEADERS, array_map(static fn (mixed $value): string => trim((string) $value), $values));
-        if (! is_array($record)) {
+        if (is_array($record) === false) {
             throw new RuntimeException('Unable to normalize CSV row.');
         }
 
@@ -241,22 +243,22 @@ final class RosterCsvParser
             $errors[] = 'game_role cannot exceed 64 characters.';
         }
 
-        if (! in_array($state, array_column(RosterState::cases(), 'value'), true)) {
+        if (in_array($state, array_column(RosterState::cases(), 'value'), true) === false) {
             $errors[] = 'state must be active, tracked, or left.';
         }
 
-        if ($joinedAt !== null && ! $this->date($joinedAt)) {
+        if ($joinedAt !== null && $this->date($joinedAt) === false) {
             $errors[] = 'joined_at must use YYYY-MM-DD format.';
         }
 
         $normalizedCapture = $previewedAt->copy()->utc();
         if ($capturedAt !== null) {
-            if (! preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/', $capturedAt)) {
+            if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/', $capturedAt) !== 1) {
                 $errors[] = 'captured_at must be an ISO-8601 timestamp with timezone.';
             } else {
                 try {
                     $normalizedCapture = Carbon::parse($capturedAt)->utc();
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     $errors[] = 'captured_at is not a valid timestamp.';
                 }
             }
@@ -307,9 +309,9 @@ final class RosterCsvParser
 
     private function date(string $value): bool
     {
-        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
 
-        return $date instanceof \DateTimeImmutable && $date->format('Y-m-d') === $value;
+        return $date instanceof DateTimeImmutable && $date->format('Y-m-d') === $value;
     }
 
     private function nullable(string $value): ?string
