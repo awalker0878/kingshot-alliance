@@ -28,29 +28,29 @@ Slice B / `K2-P2` participant direction and destination is validated at `03f6b30
 
 Slice C1 / `K2-P3` transfer groups and coordinators is validated at `9d2f70056db901203d8811ba3d5d19d40727accf`, with evidence in [`kingdoms-transfer-planning-slice-c1-validation.md`](../../../docs/product/kingdoms-transfer-planning-slice-c1-validation.md).
 
-Slice C2 / `K2-P4` is the current candidate and adds:
+Slice C2 / `K2-P4` readiness and blockers is validated at `e3f411b2cb775639f68976601ee03e2a76cc6876`, with evidence in [`kingdoms-transfer-planning-slice-c2-validation.md`](../../../docs/product/kingdoms-transfer-planning-slice-c2-validation.md).
 
-- explicit readiness states: `not_started`, `preparing`, `ready`, `blocked`, `confirmed`, and `withdrawn`;
-- current readiness on each transfer participant;
-- append-only, actor-attributable readiness transition history;
-- alliance/plan/participant-scoped blockers with active/resolved lifecycle;
-- manager-private blocker summary/details plus creator/resolver provenance;
-- an active-blocker prerequisite before entering `blocked`;
-- rejection of `ready`/`confirmed` while active blockers remain;
-- explicit manager transition after blockers are resolved rather than automatic readiness advancement;
-- `confirmed` as planning state only, without roster completion/handoff;
-- withdrawal through the readiness state machine so terminal readiness and participant history stay aligned; and
-- a manager-only readiness board with status filtering, blocker maintenance, and transition history.
+Slice D / `K2-P5` is the current candidate and adds explicit real-world completion and roster handoff:
 
-Ordinary alliance members may see the current safe readiness state with participant planning information. Blocker IDs/text/details, actor history, manager notes, and privileged transition metadata remain management-only.
+- one alliance/plan/participant-scoped `TransferCompletion` per participant as the idempotency boundary;
+- completion only after the plan is `locked`, participant readiness is `confirmed`, and captured home-Kingdom context still matches the Alliance;
+- incoming completion through accepted `SaveRosterEntry` create/update behavior;
+- explicit existing-roster selection for incoming handoff, never display-name-only matching;
+- outgoing completion through accepted `MarkRosterEntryLeft` behavior;
+- staying completion as a recorded outcome with no roster lifecycle mutation;
+- preservation of neutral player identity and snapshot history, with no fabricated snapshot during completion;
+- attributable completion audit/internal-outbox evidence;
+- manager-only completion actor/roster-result provenance, with only safe completion time exposed to ordinary members;
+- a dedicated manager Completion workspace; and
+- a close invariant requiring every non-withdrawn participant to be explicitly completed before a locked plan can become closed.
 
-Readiness is manual workflow state. The domain does not infer eligibility/readiness from power, spending, inventory, external game state, transfer resources, or undocumented game mechanics.
+Readiness remains manual planning state. `confirmed` alone does not mutate the roster. Completion is a separate explicit manager action and there is no bulk-complete path.
 
 Coordinator assignment remains workflow responsibility only. It never grants `kingdoms.manage`, bypasses policy authorization, or changes the permissions attached to the coordinator's alliance membership.
 
 The living transfer contract is [`docs/domains/kingdoms-transfer-planning.md`](../../../docs/domains/kingdoms-transfer-planning.md).
 
-Global Kingdom/player identity is never an authorization boundary. Alliance-owned roster, observations, imports, metrics, transfer plans, participant intent, groups, coordinator assignments, readiness, blockers, notes, and destinations remain tenant-scoped even when two alliances share the same Kingdom/player references.
+Global Kingdom/player identity is never an authorization boundary. Alliance-owned roster, observations, imports, metrics, transfer plans, participant intent, groups, coordinator assignments, readiness, blockers, completion records, notes, and destinations remain tenant-scoped even when two alliances share the same Kingdom/player references.
 
 Internal Kingdoms durability events are not external webhook contracts. `alliance.kingdom_updated` and `kingdoms.*` events remain excluded from generic webhook fan-out until a separately approved integration contract exposes them.
 
@@ -69,9 +69,10 @@ Internal Kingdoms durability events are not external webhook contracts. `allianc
 - [`docs/security/kingdoms-transfer-participant-security-review.md`](../../../docs/security/kingdoms-transfer-participant-security-review.md)
 - [`docs/security/kingdoms-transfer-group-security-review.md`](../../../docs/security/kingdoms-transfer-group-security-review.md)
 - [`docs/security/kingdoms-transfer-readiness-security-review.md`](../../../docs/security/kingdoms-transfer-readiness-security-review.md)
+- [`docs/security/kingdoms-transfer-completion-security-review.md`](../../../docs/security/kingdoms-transfer-completion-security-review.md)
 
 ## Explicit boundaries
 
-Slice C2 does **not** implement transfer-resource/pass optimization, inferred eligibility/readiness, automated stay/leave decisions, completion/roster handoff, marketplace/public advertising, diplomacy/NAP intelligence, public Kingdoms API/webhook schemas, cross-alliance transfer visibility/rankings, automated scoring/recommendations, or automated game-data ingestion.
+Slice D does **not** implement transfer-resource/pass optimization, inferred eligibility/readiness, automated stay/leave decisions, bulk completion, automated in-game transfer execution, marketplace/public advertising, diplomacy/NAP intelligence, public Kingdoms API/webhook schemas, cross-alliance transfer visibility/rankings, automated scoring/recommendations, or automated game-data ingestion.
 
-`KINGDOMS-002` is not Accepted until its whole-increment gate passes. A real production cutover remains separately **not approved** until the production-launch record has the required external infrastructure/operator evidence.
+`KINGDOMS-002` remains **In progress** until whole-increment hardening and acceptance / `K2-P6` passes. A real production cutover remains separately **not approved** until the production-launch record has the required external infrastructure/operator evidence.
