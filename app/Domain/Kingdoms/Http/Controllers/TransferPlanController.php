@@ -214,7 +214,6 @@ final class TransferPlanController extends Controller
             'direction' => $participant->direction->value,
             'name' => (string) $participant->observed_name,
             'gamePlayerId' => $participant->game_player_id,
-            'rosterEntryId' => $participant->roster_entry_id,
             'sourceKingdom' => $participant->sourceKingdom === null
                 ? null
                 : (string) $participant->sourceKingdom->number,
@@ -228,6 +227,7 @@ final class TransferPlanController extends Controller
         ];
 
         if ($includePrivate) {
+            $row['rosterEntryId'] = $participant->roster_entry_id;
             $row['managerNotes'] = $participant->manager_notes;
             $row['membership'] = $participant->membership === null
                 ? null
