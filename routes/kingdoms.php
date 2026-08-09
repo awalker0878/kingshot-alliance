@@ -7,6 +7,7 @@ use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
 use App\Domain\Kingdoms\Http\Controllers\RosterController;
 use App\Domain\Kingdoms\Http\Controllers\RosterCsvController;
 use App\Domain\Kingdoms\Http\Controllers\RosterIntelligenceController;
+use App\Domain\Kingdoms\Http\Controllers\TransferCompletionController;
 use App\Domain\Kingdoms\Http\Controllers\TransferGroupController;
 use App\Domain\Kingdoms\Http\Controllers\TransferParticipantController;
 use App\Domain\Kingdoms\Http\Controllers\TransferPlanController;
@@ -46,6 +47,8 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         ->name('alliance.transfers.manage');
     Route::get('/alliance/transfers/readiness', [TransferReadinessController::class, 'index'])
         ->name('alliance.transfers.readiness');
+    Route::get('/alliance/transfers/completion', [TransferCompletionController::class, 'index'])
+        ->name('alliance.transfers.completion');
 
     Route::middleware('password.confirm')->group(function (): void {
         Route::post('/alliance/roster', [RosterController::class, 'store'])
@@ -105,5 +108,9 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             '/alliance/transfers/{plan}/participants/{participant}/withdraw',
             [TransferParticipantController::class, 'withdraw'],
         )->name('alliance.transfers.participants.withdraw');
+        Route::post(
+            '/alliance/transfers/{plan}/participants/{participant}/complete',
+            [TransferCompletionController::class, 'store'],
+        )->name('alliance.transfers.participants.complete');
     });
 });
