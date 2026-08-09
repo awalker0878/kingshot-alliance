@@ -9,6 +9,7 @@ use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -63,5 +64,11 @@ final class TrackedKingdomAlliance extends Model
     public function kingdom(): BelongsTo
     {
         return $this->belongsTo(Kingdom::class);
+    }
+
+    /** @return HasMany<KingdomAllianceObservation, $this> */
+    public function observations(): HasMany
+    {
+        return $this->hasMany(KingdomAllianceObservation::class, 'tracked_kingdom_alliance_id');
     }
 }
