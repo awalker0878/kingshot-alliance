@@ -2,11 +2,11 @@
 
 `Kingdoms` is the canonical owner for approved Kingshot game-world reference, roster-history, migration and roster-intelligence capabilities.
 
-The governing increment is [`KINGDOMS-001` — Kingdoms roster intelligence](../../../docs/product/kingdoms-roster-intelligence-increment.md), with delivery sequencing in the [KINGDOMS-001 implementation plan](../../../docs/product/kingdoms-roster-intelligence-implementation-plan.md).
+The governing increment is [`KINGDOMS-001` — Kingdoms roster intelligence](../../../docs/product/kingdoms-roster-intelligence-increment.md), with delivery sequencing in the [KINGDOMS-001 implementation plan](../../../docs/product/kingdoms-roster-intelligence-implementation-plan.md) and accepted evidence in the [KINGDOMS-001 exit report](../../../docs/product/kingdoms-roster-intelligence-exit-report.md).
 
 ## Current runtime ownership
 
-The complete `KINGDOMS-001` implementation is present on the current stack and is under `K1-P6` whole-increment acceptance validation.
+The complete `KINGDOMS-001` implementation is **Accepted**. `K1-P1` through `K1-P5` delivered the implementation slices and `K1-P6` closed whole-increment hardening and acceptance.
 
 The domain owns:
 
@@ -40,4 +40,4 @@ The living contracts are:
 
 Transfer planning, diplomacy/NAP intelligence, public Kingdoms roster/intelligence API or webhook schemas, cross-alliance rankings, automated scoring/recommendations and automated game-data ingestion remain unapproved follow-on scope.
 
-Do not represent `KINGDOMS-001` as Accepted until the final `K1-P6` protected gate and acceptance record close. Product/repository acceptance also does not approve a real production cutover.
+`KINGDOMS-001` acceptance is a repository/product decision. A real production cutover remains separately **not approved** until the production-launch record has the required external infrastructure/operator evidence.
