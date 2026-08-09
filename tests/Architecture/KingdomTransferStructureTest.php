@@ -57,6 +57,32 @@ final class KingdomTransferStructureTest extends TestCase
         }
     }
 
+    public function test_slice_c1_schema_contains_groups_and_coordinators_without_readiness_or_completion(): void
+    {
+        $migration = file_get_contents(dirname(__DIR__, 2).'/database/migrations/2026_08_09_110000_create_transfer_groups.php');
+        self::assertIsString($migration);
+
+        foreach ([
+            'transfer_groups',
+            'transfer_group_coordinators',
+            'transfer_group_id',
+            'membership_id',
+            'archived_at',
+        ] as $field) {
+            self::assertStringContainsString($field, $migration);
+        }
+
+        foreach ([
+            'readiness',
+            'blocker',
+            'completed_at',
+            'eligibility',
+            'transfer_pass',
+        ] as $futureField) {
+            self::assertStringNotContainsString($futureField, $migration);
+        }
+    }
+
     public function test_transfer_events_remain_inside_the_existing_kingdoms_webhook_boundary(): void
     {
         $queue = file_get_contents(dirname(__DIR__, 2).'/app/Domain/Integrations/Actions/QueueWebhookDeliveries.php');
@@ -71,8 +97,10 @@ final class KingdomTransferStructureTest extends TestCase
         foreach ([
             'Models/TransferPlan.php',
             'Models/TransferParticipant.php',
+            'Models/TransferGroup.php',
             'Queries/TransferPlanQuery.php',
             'Queries/TransferParticipantQuery.php',
+            'Queries/TransferGroupQuery.php',
             'Enums/TransferDirection.php',
             'Actions/CreateTransferPlan.php',
             'Actions/TransitionTransferPlan.php',
@@ -83,8 +111,12 @@ final class KingdomTransferStructureTest extends TestCase
             'Actions/SaveTransferParticipant.php',
             'Actions/WithdrawTransferParticipant.php',
             'Actions/ResolveTransferKingdomPlayer.php',
+            'Actions/SaveTransferGroup.php',
+            'Actions/ArchiveTransferGroup.php',
+            'Actions/AssignTransferParticipantGroup.php',
             'Http/Controllers/TransferPlanController.php',
             'Http/Controllers/TransferParticipantController.php',
+            'Http/Controllers/TransferGroupController.php',
         ] as $path) {
             self::assertFileExists($root.$path);
         }
