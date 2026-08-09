@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 type Plan = {
   id: string;
@@ -23,6 +24,7 @@ const createForm = useForm({
 });
 
 const transitionForm = useForm<Record<string, string>>({});
+const createPlanError = computed(() => (createForm.errors as Record<string, string>).plan);
 
 function createPlan(): void {
   createForm.post('/alliance/transfers', {
@@ -90,7 +92,7 @@ function canOpen(plan: Plan): boolean {
         </div>
         <button :disabled="createForm.processing" type="submit">Create draft</button>
       </form>
-      <p v-if="createForm.errors.plan" role="alert">{{ createForm.errors.plan }}</p>
+      <p v-if="createPlanError" role="alert">{{ createPlanError }}</p>
     </section>
 
     <section>
