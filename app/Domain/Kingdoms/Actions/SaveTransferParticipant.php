@@ -11,9 +11,11 @@ use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Enums\TransferDirection;
+use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Memberships\Enums\MembershipStatus;
@@ -100,6 +102,14 @@ final readonly class SaveTransferParticipant
                 $values = $this->incomingValues($currentAlliance, $plan, $attributes, $participant);
             }
 
+            $this->assertGroupCompatibility(
+                $currentAlliance,
+                $plan,
+                $participant,
+                $direction,
+                $values['destination_kingdom_id'],
+            );
+
             $event = $participant->exists
                 ? 'kingdoms.transfer_participant_updated'
                 : 'kingdoms.transfer_participant_created';
@@ -114,6 +124,7 @@ final readonly class SaveTransferParticipant
             $metadata = [
                 'transfer_plan_id' => (string) $plan->id,
                 'transfer_participant_id' => (string) $participant->id,
+                'transfer_group_id' => $participant->transfer_group_id,
                 'direction' => $participant->direction->value,
                 'roster_entry_id' => $participant->roster_entry_id,
                 'kingdom_player_id' => $participant->kingdom_player_id,
@@ -130,8 +141,49 @@ final readonly class SaveTransferParticipant
                 'membership.user',
                 'sourceKingdom',
                 'destinationKingdom',
+                'group.coordinator.user',
+                'group.destinationKingdom',
             ]);
         });
+    }
+
+    private function assertGroupCompatibility(
+        Alliance $alliance,
+        TransferPlan $plan,
+        TransferParticipant $participant,
+        TransferDirection $direction,
+        ?string $destinationKingdomId,
+    ): void {
+        if (! $participant->exists || $participant->transfer_group_id === null) {
+            return;
+        }
+
+        $group = TransferGroup::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('transfer_plan_id', $plan->id)
+            ->where('state', TransferGroupState::Active->value)
+            ->lockForUpdate()
+            ->find($participant->transfer_group_id);
+
+        if (! $group instanceof TransferGroup) {
+            throw ValidationException::withMessages([
+                'participant' => 'The assigned transfer group is no longer active. Unassign it before editing this participant.',
+            ]);
+        }
+
+        if ($direction === TransferDirection::Staying || $group->direction !== $direction) {
+            throw ValidationException::withMessages([
+                'direction' => 'The participant direction must remain compatible with the assigned transfer group.',
+            ]);
+        }
+
+        if ($direction === TransferDirection::Outgoing
+            && $group->destination_kingdom_id !== null
+            && $group->destination_kingdom_id !== $destinationKingdomId) {
+            throw ValidationException::withMessages([
+                'destination_kingdom' => 'The outgoing participant destination must remain compatible with the assigned transfer group.',
+            ]);
+        }
     }
 
     private function assertMutable(Alliance $alliance, TransferPlan $plan): void
