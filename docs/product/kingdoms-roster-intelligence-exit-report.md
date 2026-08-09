@@ -4,11 +4,11 @@
 
 **Scope ID:** `KINGDOMS-001`  
 **Stage:** `K1-P6` whole-increment hardening and acceptance  
-**Status:** Acceptance candidate pending final protected validation
+**Status:** Accepted
 
 ## Outcome
 
-`KINGDOMS-001` now exists as one integrated Kingdoms capability rather than a set of independent implementation slices:
+`KINGDOMS-001` is accepted as one integrated Kingdoms capability rather than a set of independent implementation slices:
 
 - first-class global Kingdom reference and Alliance relationship;
 - global neutral Kingshot player identity separated from application identity/membership;
@@ -19,7 +19,7 @@
 - strict dry-run/confirm CSV migration with identity ambiguity handling and provenance; and
 - formula-safe member/management roster exports.
 
-`K1-P6` adds no follow-on product capability. It validates the combined contract, closes cross-slice gaps and produces acceptance evidence.
+`K1-P6` adds no follow-on product capability. It validates the combined contract, closes cross-slice gaps and records acceptance evidence.
 
 ## Acceptance-criteria review
 
@@ -36,7 +36,7 @@
 | Privileged operations use confirmation/auth/audit/tenant isolation | Slice tests, same-Kingdom tenant tests and combined workflow. |
 | Durable events use transactional outbox | Roster/snapshot/import/Kingdom tests; whole-increment integration boundary review. |
 | Living domain/security/operations/architecture/capability documentation | `K1-P6` documentation set and indexes. |
-| Protected CI/migrations/staging/security/accessibility pass | Pending exact final protected-head evidence below. |
+| Protected CI/migrations/staging/security/accessibility pass | Protected validation on implementation SHA `7f743507b70865692290f517cd2de494ec54abae`. |
 | Unofficial ingestion/transfer/diplomacy/cross-alliance ranking remain absent | Architecture guard and explicit scope boundaries. |
 
 ## Domain-boundary review
@@ -69,7 +69,7 @@ Repository evidence does not claim a manual screen-reader/browser matrix that wa
 
 ## Migration and rollback review
 
-The full migration series is dependency-aware and the existing round-trip test now represents the complete increment:
+The full migration series is dependency-aware and the existing round-trip test represents the complete increment:
 
 1. import/provenance dependency is removed first;
 2. snapshot schema is removed;
@@ -102,24 +102,29 @@ The increment adds no dedicated scheduler, worker, crawler or external ingestion
 
 ## Repository hygiene
 
-The temporary `kingdoms-roster-intelligence-c2-validation.md` diagnostic marker is removed by `K1-P6`. The final PR diff must contain no temporary workflow, formatter or validation artifact.
+The temporary `kingdoms-roster-intelligence-c2-validation.md` diagnostic marker was removed by `K1-P6`. The accepted implementation diff contains no temporary workflow, formatter or validation artifact.
 
 ## Protected validation
 
-Pending final exact-head evidence:
+Validated implementation SHA: **`7f743507b70865692290f517cd2de494ec54abae`**
 
-- Dependency Review;
-- CodeQL;
-- frontend lint/format/Vue-TypeScript/production build;
-- PostgreSQL migrations;
-- Pint and PHPStan;
-- complete PHPUnit/ParaTest suite including combined acceptance, performance, tenant, migration and accessibility guards;
-- immutable production-image build;
-- ephemeral staging deployment;
-- backup/restore demonstration; and
-- image vulnerability scan.
+- Dependency Review run **`31288932532`** — success.
+- CodeQL run **`31288932537`** — success.
+- CI run **`31288932560`** — success.
+  - frontend lint, repository Prettier check, Vue/TypeScript checks and production build — success;
+  - PostgreSQL migrations through the complete Kingdoms schema — success;
+  - Pint — **391 files** passed;
+  - PHPStan — **279 files, 0 errors**;
+  - ParaTest/PHPUnit — **238 tests, 2,556 assertions** passed;
+  - combined Kingdoms end-to-end acceptance workflow — included and passed;
+  - 150-player / 450-snapshot bounded-query regression gate — included and passed;
+  - migration rollback/reapply and accessibility architecture guards — included and passed;
+  - immutable production-image build — success;
+  - ephemeral staging deployment — success;
+  - backup/restore demonstration — success; and
+  - image vulnerability scan — success.
 
-The exact validated implementation SHA, workflow run IDs and measured test/static-analysis counts will be recorded here only after the gate succeeds.
+The subsequent acceptance-status commits change documentation/status only and must also pass the protected gate before PR #34 is promoted for review.
 
 ## Deferred work
 
@@ -134,6 +139,6 @@ The following remain unapproved/unimplemented follow-on candidates and are not r
 
 ## Acceptance decision
 
-**Pending.** Promote this record and the current capability/status documents to Accepted only after the exact final `K1-P6` implementation head passes every protected gate above.
+**Accepted.** The `KINGDOMS-001` repository/product contract passed its defined whole-increment implementation gate at `7f743507b70865692290f517cd2de494ec54abae` and `K1-P6` closes the increment.
 
-Even after repository/product acceptance, a real production cutover remains governed separately by [production launch approval](production-launch-approval.md) and must not be inferred from this increment record.
+This acceptance does **not** approve a real production cutover. Production remains governed separately by [production launch approval](production-launch-approval.md), including external infrastructure/operator evidence that repository CI cannot prove.
