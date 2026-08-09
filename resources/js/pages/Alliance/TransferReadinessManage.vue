@@ -40,6 +40,7 @@ type Participant = {
   groupName: string | null;
   destinationKingdom: string | null;
   withdrawnAt: string | null;
+  completedAt: string | null;
   blockers: Blocker[];
   readinessHistory: ReadinessHistory[];
 };
@@ -181,12 +182,20 @@ function destinationLabel(participant: Participant): string {
           {{ alliance.name }} · Kingdom {{ alliance.kingdom ?? 'not set' }}
         </p>
       </div>
-      <Link
-        class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold hover:border-slate-500"
-        href="/alliance/transfers/manage"
-      >
-        Manage transfers
-      </Link>
+      <div class="flex flex-wrap gap-3">
+        <Link
+          class="rounded-lg border border-emerald-400 px-4 py-2 text-sm font-semibold text-emerald-200"
+          href="/alliance/transfers/completion"
+        >
+          Completion
+        </Link>
+        <Link
+          class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold hover:border-slate-500"
+          href="/alliance/transfers/manage"
+        >
+          Manage transfers
+        </Link>
+      </div>
     </header>
 
     <section v-if="plan" class="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
@@ -210,12 +219,12 @@ function destinationLabel(participant: Participant): string {
 
       <p class="mt-4 text-sm text-slate-300">
         Readiness is manually maintained. Resolving blockers never advances readiness automatically,
-        and Confirmed remains a planning state until an explicit roster handoff is implemented in a
-        later slice.
+        and Confirmed remains planning state. Actual roster handoff is recorded separately after the
+        cycle is Locked.
       </p>
       <p v-if="!plan.mutable" class="mt-3 text-sm font-semibold text-amber-200">
         This cycle is read-only. Readiness history remains visible, but transitions and blockers
-        cannot change.
+        cannot change. Use Completion for explicit real-world handoff when the cycle is Locked.
       </p>
     </section>
 
@@ -232,6 +241,9 @@ function destinationLabel(participant: Participant): string {
               {{ directionLabel(participant.direction) }} · Destination
               {{ destinationLabel(participant) }} · Group
               {{ participant.groupName ?? 'Unassigned' }}
+            </p>
+            <p v-if="participant.completedAt" class="mt-2 text-sm font-semibold text-emerald-200">
+              Actual completion recorded · {{ participant.completedAt }}
             </p>
           </div>
           <p class="rounded-full border border-slate-700 px-3 py-1 text-sm font-semibold">
