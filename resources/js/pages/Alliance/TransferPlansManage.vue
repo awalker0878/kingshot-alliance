@@ -12,15 +12,25 @@ type Plan = {
   createdAt: string | null;
 };
 
+type Group = {
+  id: string;
+  name: string;
+  coordinators: { name: string }[];
+  coordinatorMembershipIds: string[];
+  archivedAt: string | null;
+};
+
 type Participant = {
   id: string;
   direction: 'staying' | 'outgoing' | 'incoming';
   name: string;
   gamePlayerId: string | null;
   rosterEntryId: string | null;
+  transferGroupId: string | null;
   sourceKingdom: string | null;
   destinationKingdom: string | null;
   membership: { id: string; name: string; email: string } | null;
+  group: { name: string; coordinators: { name: string }[] } | null;
   managerNotes: string | null;
   withdrawnAt: string | null;
 };
@@ -42,6 +52,7 @@ const props = defineProps<{
   alliance: { id: string; name: string; kingdom: string | null };
   plans: Plan[];
   mutablePlan: Plan | null;
+  groups: Group[];
   participants: Participant[];
   rosterOptions: RosterOption[];
   memberships: MembershipOption[];
@@ -53,6 +64,10 @@ const createForm = useForm({
   ends_on: '',
 });
 const transitionForm = useForm<Record<string, string>>({});
+const groupForm = useForm({
+  name: '',
+  coordinator_membership_ids: [] as string[],
+});
 const participantForm = useForm({
   direction: 'staying',
   roster_entry_id: '',
@@ -64,8 +79,28 @@ const participantForm = useForm({
   manager_notes: '',
 });
 const createPlanError = computed(() => (createForm.errors as Record<string, string>).plan);
+const groupError = computed(() => (groupForm.errors as Record<string, string>).group);
 const participantError = computed(
   () => (participantForm.errors as Record<string, string>).participant,
+);
+const activeGroups = computed(() => props.groups.filter((group) => group.archivedAt === null));
+
+const groupDrafts = reactive(
+  Object.fromEntries(
+    props.groups.map((group) => [
+      group.id,
+      {
+        name: group.name,
+        coordinator_membership_ids: [...group.coordinatorMembershipIds],
+      },
+    ]),
+  ) as Record<string, { name: string; coordinator_membership_ids: string[] }>,
+);
+
+const groupAssignments = reactive(
+  Object.fromEntries(
+    props.participants.map((participant) => [participant.id, participant.transferGroupId ?? '']),
+  ) as Record<string, string>,
 );
 
 const drafts = reactive(
@@ -115,6 +150,34 @@ function transition(plan: Plan, action: 'open' | 'lock' | 'close' | 'cancel'): v
   });
 }
 
+function createGroup(): void {
+  if (props.mutablePlan === null) return;
+
+  groupForm.post(`/alliance/transfers/${props.mutablePlan.id}/groups`, {
+    preserveScroll: true,
+    onSuccess: () => groupForm.reset(),
+  });
+}
+
+function saveGroup(group: Group): void {
+  if (props.mutablePlan === null || group.archivedAt !== null) return;
+
+  router.patch(`/alliance/transfers/${props.mutablePlan.id}/groups/${group.id}`, groupDrafts[group.id], {
+    preserveScroll: true,
+  });
+}
+
+function archiveGroup(group: Group): void {
+  if (props.mutablePlan === null || group.archivedAt !== null) return;
+  if (!window.confirm(`Archive transfer group “${group.name}”?`)) return;
+
+  router.post(
+    `/alliance/transfers/${props.mutablePlan.id}/groups/${group.id}/archive`,
+    {},
+    { preserveScroll: true },
+  );
+}
+
 function createParticipant(): void {
   if (props.mutablePlan === null) return;
 
@@ -130,6 +193,16 @@ function saveParticipant(participant: Participant): void {
   router.patch(
     `/alliance/transfers/${props.mutablePlan.id}/participants/${participant.id}`,
     drafts[participant.id],
+    { preserveScroll: true },
+  );
+}
+
+function assignParticipantGroup(participant: Participant): void {
+  if (props.mutablePlan === null || participant.withdrawnAt !== null) return;
+
+  router.patch(
+    `/alliance/transfers/${props.mutablePlan.id}/participants/${participant.id}/group`,
+    { transfer_group_id: groupAssignments[participant.id] || null },
     { preserveScroll: true },
   );
 }
@@ -265,6 +338,101 @@ function isRosterBound(direction: string): boolean {
     </section>
 
     <section v-if="mutablePlan">
+      <h2>Transfer groups · {{ mutablePlan.label }}</h2>
+      <p>
+        Groups organize transfer work. Coordinators are active alliance memberships assigned to a
+        group for workflow responsibility only; coordinator assignment does not grant permissions.
+      </p>
+
+      <form @submit.prevent="createGroup">
+        <div>
+          <label for="group-name">Group name</label>
+          <input id="group-name" v-model="groupForm.name" maxlength="160" required type="text" />
+          <p v-if="groupForm.errors.name">{{ groupForm.errors.name }}</p>
+        </div>
+        <div>
+          <label for="group-coordinators">Coordinators</label>
+          <select
+            id="group-coordinators"
+            v-model="groupForm.coordinator_membership_ids"
+            multiple
+          >
+            <option v-for="membership in memberships" :key="membership.id" :value="membership.id">
+              {{ membership.name }} · {{ membership.email }}
+            </option>
+          </select>
+          <p v-if="groupForm.errors.coordinator_membership_ids">
+            {{ groupForm.errors.coordinator_membership_ids }}
+          </p>
+        </div>
+        <button :disabled="groupForm.processing" type="submit">Create group</button>
+        <p v-if="groupError" role="alert">{{ groupError }}</p>
+      </form>
+
+      <div v-if="groups.length" class="overflow-x-auto">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Group</th>
+              <th scope="col">Coordinators</th>
+              <th scope="col">State</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="group in groups" :key="group.id">
+              <td>
+                <label :for="`group-name-${group.id}`">Name</label>
+                <input
+                  :id="`group-name-${group.id}`"
+                  v-model="groupDrafts[group.id].name"
+                  :disabled="group.archivedAt !== null"
+                  maxlength="160"
+                  type="text"
+                />
+              </td>
+              <td>
+                <label :for="`group-coordinators-${group.id}`">Coordinators</label>
+                <select
+                  :id="`group-coordinators-${group.id}`"
+                  v-model="groupDrafts[group.id].coordinator_membership_ids"
+                  :disabled="group.archivedAt !== null"
+                  multiple
+                >
+                  <option
+                    v-for="membership in memberships"
+                    :key="membership.id"
+                    :value="membership.id"
+                  >
+                    {{ membership.name }}
+                  </option>
+                </select>
+              </td>
+              <td>{{ group.archivedAt === null ? 'Active' : 'Archived' }}</td>
+              <td>
+                <button
+                  v-if="group.archivedAt === null"
+                  type="button"
+                  @click="saveGroup(group)"
+                >
+                  Save
+                </button>
+                <button
+                  v-if="group.archivedAt === null"
+                  type="button"
+                  @click="archiveGroup(group)"
+                >
+                  Archive
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p v-else>No transfer groups have been created yet.</p>
+    </section>
+
+    <section v-if="mutablePlan">
       <h2>Participants · {{ mutablePlan.label }}</h2>
       <p>
         Draft and Open cycles may be edited. Incoming players may be planned before they have a site
@@ -365,6 +533,7 @@ function isRosterBound(direction: string): boolean {
               <th scope="col">Player</th>
               <th scope="col">Direction / destination</th>
               <th scope="col">Identity / linkage</th>
+              <th scope="col">Group</th>
               <th scope="col">Manager notes</th>
               <th scope="col">Actions</th>
             </tr>
@@ -452,6 +621,26 @@ function isRosterBound(direction: string): boolean {
                 </template>
               </td>
               <td>
+                <label :for="`group-${participant.id}`">Transfer group</label>
+                <select
+                  :id="`group-${participant.id}`"
+                  v-model="groupAssignments[participant.id]"
+                  :disabled="participant.withdrawnAt !== null"
+                >
+                  <option value="">Unassigned</option>
+                  <option v-for="group in activeGroups" :key="group.id" :value="group.id">
+                    {{ group.name }}
+                  </option>
+                </select>
+                <button
+                  v-if="participant.withdrawnAt === null"
+                  type="button"
+                  @click="assignParticipantGroup(participant)"
+                >
+                  Save group
+                </button>
+              </td>
+              <td>
                 <label :for="`notes-${participant.id}`">Manager notes</label>
                 <textarea
                   :id="`notes-${participant.id}`"
@@ -485,8 +674,8 @@ function isRosterBound(direction: string): boolean {
     </section>
 
     <section v-else>
-      <h2>Participants</h2>
-      <p>Create a Draft cycle or keep a cycle Open to edit participants.</p>
+      <h2>Participants and groups</h2>
+      <p>Create a Draft cycle or keep a cycle Open to edit transfer groups and participants.</p>
     </section>
   </main>
 </template>
