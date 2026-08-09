@@ -268,7 +268,11 @@ function formatInteger(value: string): string {
                 <td class="px-4 py-4 text-slate-400 capitalize">{{ row.data.state }}</td>
                 <td class="px-4 py-4 capitalize">{{ row.outcome }}</td>
                 <td class="min-w-72 px-4 py-4">
-                  <ul v-if="row.errors.length" class="space-y-1 text-rose-300" role="alert">
+                  <ul
+                    v-if="row.errors.length"
+                    class="space-y-1 text-rose-300"
+                    role="alert"
+                  >
                     <li v-for="error in row.errors" :key="error">{{ error }}</li>
                   </ul>
                   <template v-else-if="row.outcome === 'ambiguous'">
@@ -304,7 +308,11 @@ function formatInteger(value: string): string {
         </div>
 
         <div v-if="importRecord.status !== 'committed'" class="mt-5">
-          <p v-if="importRecord.rejectedCount" class="text-sm text-rose-300" role="alert">
+          <p
+            v-if="importRecord.rejectedCount"
+            class="text-sm text-rose-300"
+            role="alert"
+          >
             This batch cannot be committed while any row is rejected. Correct the CSV and upload it
             again.
           </p>
