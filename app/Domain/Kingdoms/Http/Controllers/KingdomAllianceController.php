@@ -126,7 +126,7 @@ final class KingdomAllianceController extends Controller
     }
 
     /**
-     * @param iterable<int, TrackedKingdomAlliance> $tracking
+     * @param  iterable<int, TrackedKingdomAlliance>  $tracking
      * @return list<array<string, mixed>>
      */
     private function trackingRows(iterable $tracking, Alliance $alliance, bool $includePrivate): array
