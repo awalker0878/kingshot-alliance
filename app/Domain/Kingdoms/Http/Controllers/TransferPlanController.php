@@ -16,9 +16,11 @@ use App\Domain\Kingdoms\Actions\LockTransferPlan;
 use App\Domain\Kingdoms\Actions\OpenTransferPlan;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Kingdoms\Queries\RosterQuery;
+use App\Domain\Kingdoms\Queries\TransferGroupQuery;
 use App\Domain\Kingdoms\Queries\TransferParticipantQuery;
 use App\Domain\Kingdoms\Queries\TransferPlanQuery;
 use App\Domain\Memberships\Enums\MembershipStatus;
@@ -38,6 +40,7 @@ final class TransferPlanController extends Controller
         AllianceAuthorization $authorization,
         TransferPlanQuery $plans,
         TransferParticipantQuery $participants,
+        TransferGroupQuery $groups,
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
@@ -52,6 +55,11 @@ final class TransferPlanController extends Controller
             'alliance' => $this->alliance($alliance),
             'canManage' => $authorization->allows($user, $alliance, PermissionKey::KingdomManage),
             'plan' => $current === null ? null : $this->plan($current),
+            'groups' => $current === null
+                ? []
+                : $groups->forPlan($alliance, $current)
+                    ->map(fn (TransferGroup $group): array => $this->group($group, false))
+                    ->all(),
             'participants' => $current === null
                 ? []
                 : $participants->forPlan($alliance, $current)
@@ -66,6 +74,7 @@ final class TransferPlanController extends Controller
         AllianceAuthorization $authorization,
         TransferPlanQuery $plans,
         TransferParticipantQuery $participants,
+        TransferGroupQuery $groups,
         RosterQuery $roster,
     ): Response {
         $user = $this->user($request);
@@ -111,6 +120,11 @@ final class TransferPlanController extends Controller
                 ->map(fn (TransferPlan $plan): array => $this->plan($plan))
                 ->all(),
             'mutablePlan' => $mutable === null ? null : $this->plan($mutable),
+            'groups' => $mutable === null
+                ? []
+                : $groups->forPlan($alliance, $mutable, true)
+                    ->map(fn (TransferGroup $group): array => $this->group($group, true))
+                    ->all(),
             'participants' => $mutable === null
                 ? []
                 : $participants->forPlan($alliance, $mutable, true)
@@ -223,11 +237,15 @@ final class TransferPlanController extends Controller
             'membership' => $participant->membership === null
                 ? null
                 : ['name' => (string) $participant->membership->user?->name],
+            'group' => $participant->group === null
+                ? null
+                : $this->group($participant->group, false),
             'withdrawnAt' => $participant->withdrawn_at?->toIso8601String(),
         ];
 
         if ($includePrivate) {
             $row['rosterEntryId'] = $participant->roster_entry_id;
+            $row['transferGroupId'] = $participant->transfer_group_id;
             $row['managerNotes'] = $participant->manager_notes;
             $row['membership'] = $participant->membership === null
                 ? null
@@ -236,6 +254,32 @@ final class TransferPlanController extends Controller
                     'name' => (string) $participant->membership->user?->name,
                     'email' => (string) $participant->membership->user?->email,
                 ];
+        }
+
+        return $row;
+    }
+
+    /** @return array<string, mixed> */
+    private function group(TransferGroup $group, bool $includePrivate): array
+    {
+        $row = [
+            'name' => (string) $group->name,
+            'coordinators' => $group->coordinators
+                ->map(static fn (AllianceMembership $membership): array => [
+                    'name' => (string) $membership->user?->name,
+                ])
+                ->values()
+                ->all(),
+        ];
+
+        if ($includePrivate) {
+            $row['id'] = (string) $group->id;
+            $row['archivedAt'] = $group->archived_at?->toIso8601String();
+            $row['coordinatorMembershipIds'] = $group->coordinators
+                ->map(static fn (AllianceMembership $membership): string => (string) $membership->id)
+                ->sort()
+                ->values()
+                ->all();
         }
 
         return $row;
