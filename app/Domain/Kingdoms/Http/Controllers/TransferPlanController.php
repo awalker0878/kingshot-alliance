@@ -14,8 +14,15 @@ use App\Domain\Kingdoms\Actions\CloseTransferPlan;
 use App\Domain\Kingdoms\Actions\CreateTransferPlan;
 use App\Domain\Kingdoms\Actions\LockTransferPlan;
 use App\Domain\Kingdoms\Actions\OpenTransferPlan;
+use App\Domain\Kingdoms\Enums\RosterState;
+use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
+use App\Domain\Kingdoms\Queries\RosterQuery;
+use App\Domain\Kingdoms\Queries\TransferParticipantQuery;
 use App\Domain\Kingdoms\Queries\TransferPlanQuery;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -30,6 +37,7 @@ final class TransferPlanController extends Controller
         AllianceContext $context,
         AllianceAuthorization $authorization,
         TransferPlanQuery $plans,
+        TransferParticipantQuery $participants,
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
@@ -44,6 +52,11 @@ final class TransferPlanController extends Controller
             'alliance' => $this->alliance($alliance),
             'canManage' => $authorization->allows($user, $alliance, PermissionKey::KingdomManage),
             'plan' => $current === null ? null : $this->plan($current),
+            'participants' => $current === null
+                ? []
+                : $participants->forPlan($alliance, $current)
+                    ->map(fn (TransferParticipant $participant): array => $this->participant($participant, false))
+                    ->all(),
         ]);
     }
 
@@ -52,6 +65,8 @@ final class TransferPlanController extends Controller
         AllianceContext $context,
         AllianceAuthorization $authorization,
         TransferPlanQuery $plans,
+        TransferParticipantQuery $participants,
+        RosterQuery $roster,
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
@@ -60,9 +75,49 @@ final class TransferPlanController extends Controller
             throw new AuthorizationException;
         }
 
+        $mutable = $plans->mutableForAlliance($alliance);
+        $rosterOptions = $roster->forAlliance($alliance)
+            ->filter(static fn (AllianceRosterEntry $entry): bool => in_array(
+                $entry->state,
+                [RosterState::Active, RosterState::Tracked],
+                true,
+            ))
+            ->map(static fn (AllianceRosterEntry $entry): array => [
+                'id' => (string) $entry->id,
+                'name' => (string) $entry->observed_name,
+                'gamePlayerId' => $entry->player->game_player_id,
+                'membershipId' => $entry->membership_id,
+            ])
+            ->values()
+            ->all();
+
+        $memberships = AllianceMembership::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('status', MembershipStatus::Active->value)
+            ->with('user:id,name,email')
+            ->orderBy('joined_at')
+            ->get()
+            ->map(static fn (AllianceMembership $membership): array => [
+                'id' => (string) $membership->id,
+                'name' => (string) $membership->user?->name,
+                'email' => (string) $membership->user?->email,
+            ])
+            ->values()
+            ->all();
+
         return Inertia::render('Alliance/TransferPlansManage', [
             'alliance' => $this->alliance($alliance),
-            'plans' => $plans->forAlliance($alliance)->map(fn (TransferPlan $plan): array => $this->plan($plan))->all(),
+            'plans' => $plans->forAlliance($alliance)
+                ->map(fn (TransferPlan $plan): array => $this->plan($plan))
+                ->all(),
+            'mutablePlan' => $mutable === null ? null : $this->plan($mutable),
+            'participants' => $mutable === null
+                ? []
+                : $participants->forPlan($alliance, $mutable, true)
+                    ->map(fn (TransferParticipant $participant): array => $this->participant($participant, true))
+                    ->all(),
+            'rosterOptions' => $rosterOptions,
+            'memberships' => $memberships,
         ]);
     }
 
@@ -149,6 +204,41 @@ final class TransferPlanController extends Controller
             'state' => $plan->state->value,
             'createdAt' => $plan->created_at?->toIso8601String(),
         ];
+    }
+
+    /** @return array<string, mixed> */
+    private function participant(TransferParticipant $participant, bool $includePrivate): array
+    {
+        $row = [
+            'id' => (string) $participant->id,
+            'direction' => $participant->direction->value,
+            'name' => (string) $participant->observed_name,
+            'gamePlayerId' => $participant->game_player_id,
+            'rosterEntryId' => $participant->roster_entry_id,
+            'sourceKingdom' => $participant->sourceKingdom === null
+                ? null
+                : (string) $participant->sourceKingdom->number,
+            'destinationKingdom' => $participant->destinationKingdom === null
+                ? null
+                : (string) $participant->destinationKingdom->number,
+            'membership' => $participant->membership === null
+                ? null
+                : ['name' => (string) $participant->membership->user?->name],
+            'withdrawnAt' => $participant->withdrawn_at?->toIso8601String(),
+        ];
+
+        if ($includePrivate) {
+            $row['managerNotes'] = $participant->manager_notes;
+            $row['membership'] = $participant->membership === null
+                ? null
+                : [
+                    'id' => (string) $participant->membership->id,
+                    'name' => (string) $participant->membership->user?->name,
+                    'email' => (string) $participant->membership->user?->email,
+                ];
+        }
+
+        return $row;
     }
 
     private function user(Request $request): User

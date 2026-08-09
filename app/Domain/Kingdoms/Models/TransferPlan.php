@@ -9,6 +9,7 @@ use App\Domain\Kingdoms\Enums\TransferPlanState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -57,5 +58,11 @@ final class TransferPlan extends Model
     public function homeKingdom(): BelongsTo
     {
         return $this->belongsTo(Kingdom::class, 'home_kingdom_id');
+    }
+
+    /** @return HasMany<TransferParticipant, $this> */
+    public function participants(): HasMany
+    {
+        return $this->hasMany(TransferParticipant::class, 'transfer_plan_id');
     }
 }

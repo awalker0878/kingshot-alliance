@@ -41,4 +41,23 @@ final class TransferPlanQuery
 
         return null;
     }
+
+    public function mutableForAlliance(Alliance $alliance): ?TransferPlan
+    {
+        foreach ([TransferPlanState::Open, TransferPlanState::Draft] as $state) {
+            $plan = TransferPlan::query()
+                ->where('alliance_id', $alliance->id)
+                ->where('state', $state->value)
+                ->with('homeKingdom')
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->first();
+
+            if ($plan instanceof TransferPlan) {
+                return $plan;
+            }
+        }
+
+        return null;
+    }
 }
