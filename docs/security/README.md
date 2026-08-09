@@ -7,16 +7,18 @@ This directory owns security requirements, threat models, and launch-security ev
 ## Start here
 
 - [Security baseline](security-baseline.md) — cross-cutting requirements for authentication, authorization, tenancy, data handling, transport, secrets, dependencies, audit, and operational security.
-- [KINGDOMS-001 whole-increment security review](kingdoms-roster-intelligence-security-review.md) — cross-slice acceptance review for global reference identity, tenant-owned roster/history/import/intelligence, identity ambiguity, CSV/export safety, authorization, internal outbox events and public integration boundaries.
-- [Kingdoms foundation security review](kingdoms-foundation-security-review.md) — Slice A evidence for global Kingdom references, alliance association, migration, authorization, audit/outbox, and tenant-boundary risks.
-- [Kingdoms roster security review](kingdoms-roster-security-review.md) — Slice B evidence for neutral game-player identity, alliance roster tenancy, membership linkage, private manager data, authorization, search/filter isolation, and audit/outbox controls.
-- [Kingdoms snapshot security review](kingdoms-snapshot-security-review.md) — Slice C1 evidence for append-only snapshot tenancy, replay/idempotency, actor privacy, capture-time integrity, integer precision, latest projection, and history controls.
-- [Kingdoms intelligence security review](kingdoms-intelligence-security-review.md) — Slice C2 evidence for tenant-scoped aggregation, missing/stale-data interpretation, bounded trend windows, exact arithmetic, comparison privacy, and anti-ranking controls.
-- [Kingdoms CSV migration security review](kingdoms-csv-security-review.md) — Slice D evidence for untrusted CSV parsing, identity ambiguity, preview/commit drift, batch atomicity/idempotency, formula injection, private export fields, provenance and tenant isolation.
-- [Production launch security review](production-launch-security-review.md) — repository-controlled launch-security review and the external controls that remain operational responsibilities.
+- [KINGDOMS-001 whole-increment security review](kingdoms-roster-intelligence-security-review.md) — accepted cross-slice review for global reference identity, tenant-owned roster/history/import/intelligence, identity ambiguity, CSV/export safety, authorization, internal outbox events and public integration boundaries.
+- [KINGDOMS-002 whole-increment security review](kingdoms-transfer-planning-security-review.md) — accepted cross-slice review for transfer tenancy, coordinator privilege confusion, incoming identity ambiguity, destinations/home-Kingdom drift, readiness/blocker privacy, explicit completion/idempotency, roster integrity, abuse boundaries and API/webhook non-exposure.
+- [Kingdoms foundation security review](kingdoms-foundation-security-review.md) — `KINGDOMS-001` Slice A evidence.
+- [Kingdoms roster security review](kingdoms-roster-security-review.md) — `KINGDOMS-001` Slice B evidence.
+- [Kingdoms snapshot security review](kingdoms-snapshot-security-review.md) — `KINGDOMS-001` Slice C1 evidence.
+- [Kingdoms intelligence security review](kingdoms-intelligence-security-review.md) — `KINGDOMS-001` Slice C2 evidence.
+- [Kingdoms CSV migration security review](kingdoms-csv-security-review.md) — `KINGDOMS-001` Slice D evidence.
+- [Kingdoms transfer completion security review](kingdoms-transfer-completion-security-review.md) — `KINGDOMS-002` Slice D completion/handoff evidence retained as historical slice evidence.
+- [Production launch security review](production-launch-security-review.md) — repository-controlled launch-security review and external controls that remain operational responsibilities.
 - [Production launch approval](../product/production-launch-approval.md) — authoritative real-production go/no-go record.
 
-The slice reviews record the risk introduced in each implementation slice. The whole-increment review is the `K1-P6` security evidence surface and must be read when accepting the combined Kingdoms workflow.
+Slice reviews record risk introduced in individual implementation slices. Whole-increment reviews are the authoritative combined acceptance evidence surfaces for `K1-P6` and `K2-P6`.
 
 ## Phase threat models
 
@@ -27,7 +29,7 @@ The slice reviews record the risk introduced in each implementation slice. The w
 - [Phase 5 threat model](phase-5-threat-model.md) — contribution records, calculations, corrections, exports, and reporting.
 - [Phase 6 threat model](phase-6-threat-model.md) — platform administration, tenant lifecycle, API/webhook access, retention, and scale.
 
-Threat models are historical evidence for the phase in which the risk was introduced. Current post-program feature work should use a current security review when the historical phase models are no longer the right evidence surface. The security baseline and current launch-security/approval records continue to govern production readiness.
+Threat models are historical evidence for the phase in which risk was introduced. Current post-program feature work should use current increment security reviews when historical phase models are no longer the right evidence surface. The security baseline and current launch-security/approval records continue to govern production readiness.
 
 ## Security documentation rules
 
@@ -36,7 +38,7 @@ Threat models are historical evidence for the phase in which the risk was introd
 - Privileged operations should document identity assurance, MFA/password-confirmation requirements, audit behavior, and recovery implications.
 - External integrations must document authentication/signing, rate limits, replay/idempotency behavior, retry safety, and egress/SSRF controls.
 - Internal outbox publication does not by itself approve an external webhook contract; externally eligible events must match the documented integration boundary.
-- Security controls that depend on infrastructure must remain Pending until real infrastructure evidence exists. Application validation cannot truthfully prove firewall, ingress, DNS, secret-management, alerting, or recovery configuration by itself.
+- Security controls that depend on infrastructure remain Pending until real infrastructure evidence exists. Application validation cannot prove firewall, ingress, DNS, secret-management, alerting, or recovery configuration by itself.
 - Never commit secrets, recovery codes, private keys, credentials, sensitive production payloads, or exploit proof that would materially increase operational risk.
 
 ## Updating security evidence
