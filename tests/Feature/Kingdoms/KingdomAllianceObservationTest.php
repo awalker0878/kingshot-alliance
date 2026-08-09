@@ -10,7 +10,6 @@ use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\KingdomAlliance;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Memberships\Enums\MembershipStatus;
@@ -27,7 +26,7 @@ final class KingdomAllianceObservationTest extends TestCase
     public function test_observations_append_and_latest_projection_uses_capture_time_with_missing_distinct_from_zero(): void
     {
         [$owner, $alliance, $session] = $this->ownerAlliance('Observation Alpha', 'observation-alpha', 6201);
-        $tracking = $this->track($owner, $session, 'Northern Watch', 'northern-watch-6201');
+        $tracking = $this->track($owner, $alliance, $session, 'Northern Watch', 'northern-watch-6201');
 
         $this->withSession($session)->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
             'observed_name' => 'Northern Watch Current',
@@ -72,7 +71,7 @@ final class KingdomAllianceObservationTest extends TestCase
     public function test_exact_retry_is_idempotent_and_emits_one_durable_event(): void
     {
         [$owner, $alliance, $session] = $this->ownerAlliance('Observation Retry', 'observation-retry', 6202);
-        $tracking = $this->track($owner, $session, 'Retry Alliance', 'retry-alliance-6202');
+        $tracking = $this->track($owner, $alliance, $session, 'Retry Alliance', 'retry-alliance-6202');
         $payload = [
             'observed_name' => 'Retry Alliance',
             'observed_tag' => 'RTY',
@@ -92,7 +91,7 @@ final class KingdomAllianceObservationTest extends TestCase
     public function test_correction_appends_replacement_invalidates_original_and_keeps_private_reason_out_of_events(): void
     {
         [$owner, $alliance, $session] = $this->ownerAlliance('Observation Correction', 'observation-correction', 6203);
-        $tracking = $this->track($owner, $session, 'Correction Alliance', 'correction-6203');
+        $tracking = $this->track($owner, $alliance, $session, 'Correction Alliance', 'correction-6203');
 
         $this->withSession($session)->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
             'observed_name' => 'Correction Alliance',
@@ -113,7 +112,7 @@ final class KingdomAllianceObservationTest extends TestCase
         ])->assertRedirect();
 
         $original->refresh();
-        $replacement = KingdomAllianceObservation::query()->whereKeyNot($original->id)->sole();
+        $replacement = KingdomAllianceObservation::query()->where('id', '!=', $original->id)->sole();
         self::assertNotNull($original->invalidated_at);
         self::assertSame($owner->id, $original->invalidated_by_user_id);
         self::assertSame($secret, $original->invalidation_reason);
@@ -139,7 +138,7 @@ final class KingdomAllianceObservationTest extends TestCase
     public function test_standalone_invalidation_is_idempotent_and_removes_row_from_member_projection(): void
     {
         [$owner, $alliance, $session] = $this->ownerAlliance('Observation Invalid', 'observation-invalid', 6204);
-        $tracking = $this->track($owner, $session, 'Invalidation Alliance', 'invalid-6204');
+        $tracking = $this->track($owner, $alliance, $session, 'Invalidation Alliance', 'invalid-6204');
 
         foreach ([40, 20] as $hours) {
             $this->withSession($session)->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
@@ -154,13 +153,26 @@ final class KingdomAllianceObservationTest extends TestCase
             "/alliance/kingdom-alliances/{$tracking->id}/observations/{$latest->id}/invalidate",
             ['reason' => 'Incorrect screenshot transcription'],
         )->assertRedirect();
-        $auditCount = $this->eventCount('audit_events', 'event', 'kingdoms.alliance_intelligence_observation_invalidated', $alliance->id);
+        $auditCount = $this->eventCount(
+            'audit_events',
+            'event',
+            'kingdoms.alliance_intelligence_observation_invalidated',
+            $alliance->id,
+        );
 
         $this->withSession($session)->post(
             "/alliance/kingdom-alliances/{$tracking->id}/observations/{$latest->id}/invalidate",
             ['reason' => 'Repeated request'],
         )->assertRedirect();
-        self::assertSame($auditCount, $this->eventCount('audit_events', 'event', 'kingdoms.alliance_intelligence_observation_invalidated', $alliance->id));
+        self::assertSame(
+            $auditCount,
+            $this->eventCount(
+                'audit_events',
+                'event',
+                'kingdoms.alliance_intelligence_observation_invalidated',
+                $alliance->id,
+            ),
+        );
 
         $member = $this->member($alliance);
         $this->actingAs($member)->withSession([(string) config('identity.active_alliance_session_key') => $alliance->id])
@@ -179,7 +191,7 @@ final class KingdomAllianceObservationTest extends TestCase
     {
         [$ownerA, $allianceA, $sessionA] = $this->ownerAlliance('Observation Tenant A', 'observation-tenant-a', 6205);
         [$ownerB, $allianceB, $sessionB] = $this->ownerAlliance('Observation Tenant B', 'observation-tenant-b', 6205);
-        $trackingB = $this->track($ownerB, $sessionB, 'Tenant B Observed', 'tenant-b-observed-6205');
+        $trackingB = $this->track($ownerB, $allianceB, $sessionB, 'Tenant B Observed', 'tenant-b-observed-6205');
 
         $this->withSession($sessionB)->post("/alliance/kingdom-alliances/{$trackingB->id}/observations", [
             'observed_name' => 'Tenant B Observed',
@@ -209,7 +221,7 @@ final class KingdomAllianceObservationTest extends TestCase
     public function test_kingdom_drift_preserves_history_read_but_blocks_observation_mutations(): void
     {
         [$owner, $alliance, $session] = $this->ownerAlliance('Observation Drift', 'observation-drift', 6206);
-        $tracking = $this->track($owner, $session, 'Drift Observed', 'drift-observed-6206');
+        $tracking = $this->track($owner, $alliance, $session, 'Drift Observed', 'drift-observed-6206');
         $this->withSession($session)->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
             'observed_name' => 'Drift Observed',
             'power' => '555',
@@ -245,7 +257,7 @@ final class KingdomAllianceObservationTest extends TestCase
     {
         [$owner, $alliance] = $this->ownerAlliance('Observation Password', 'observation-password', 6207);
         $session = $this->confirmedSession($alliance->id);
-        $tracking = $this->track($owner, $session, 'Protected Observation', 'protected-observation-6207');
+        $tracking = $this->track($owner, $alliance, $session, 'Protected Observation', 'protected-observation-6207');
 
         $this->actingAs($owner)->withSession([(string) config('identity.active_alliance_session_key') => $alliance->id])
             ->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
@@ -259,7 +271,7 @@ final class KingdomAllianceObservationTest extends TestCase
     public function test_power_bounds_and_future_capture_are_rejected(): void
     {
         [$owner, $alliance, $session] = $this->ownerAlliance('Observation Bounds', 'observation-bounds', 6208);
-        $tracking = $this->track($owner, $session, 'Bounded Observation', 'bounded-observation-6208');
+        $tracking = $this->track($owner, $alliance, $session, 'Bounded Observation', 'bounded-observation-6208');
 
         $this->withSession($session)->from("/alliance/kingdom-alliances/{$tracking->id}/history")
             ->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
@@ -287,15 +299,23 @@ final class KingdomAllianceObservationTest extends TestCase
     }
 
     /** @param array<string, mixed> $session */
-    private function track(User $owner, array $session, string $name, string $stableId): TrackedKingdomAlliance
-    {
+    private function track(
+        User $owner,
+        Alliance $alliance,
+        array $session,
+        string $name,
+        string $stableId,
+    ): TrackedKingdomAlliance {
         $this->actingAs($owner)->withSession($session)
             ->post('/alliance/kingdom-alliances', [
                 'current_name' => $name,
                 'game_alliance_id' => $stableId,
             ])->assertRedirect();
 
-        return TrackedKingdomAlliance::query()->where('alliance_id', $session[(string) config('identity.active_alliance_session_key')])->latest('created_at')->firstOrFail();
+        return TrackedKingdomAlliance::query()
+            ->where('alliance_id', $alliance->id)
+            ->latest('created_at')
+            ->firstOrFail();
     }
 
     private function member(Alliance $alliance): User
