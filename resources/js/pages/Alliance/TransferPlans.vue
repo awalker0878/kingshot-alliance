@@ -18,9 +18,12 @@ type Group = {
   coordinator: { name: string } | null;
 };
 
+type Readiness = 'not_started' | 'preparing' | 'ready' | 'blocked' | 'confirmed' | 'withdrawn';
+
 type Participant = {
   id: string;
   direction: 'staying' | 'outgoing' | 'incoming';
+  readiness: Readiness;
   name: string;
   gamePlayerId: string | null;
   sourceKingdom: string | null;
@@ -38,7 +41,10 @@ defineProps<{
 }>();
 
 function stateLabel(state: string): string {
-  return state.charAt(0).toUpperCase() + state.slice(1);
+  return state
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 function directionLabel(direction: Participant['direction'] | Group['direction']): string {
@@ -151,8 +157,8 @@ function groupDestinationLabel(group: Group): string {
     <section v-if="plan" class="mt-10">
       <h2 class="text-xl font-semibold">Planned participants</h2>
       <p class="mt-2 text-sm text-slate-400">
-        Incoming, outgoing, staying, group, and destination intent is manually maintained by
-        alliance leadership.
+        Direction, destination, group, and readiness are manually maintained by alliance leadership.
+        Readiness is a planning status, not inferred eligibility.
       </p>
 
       <div
@@ -164,6 +170,7 @@ function groupDestinationLabel(group: Group): string {
             <tr>
               <th class="px-4 py-3" scope="col">Player</th>
               <th class="px-4 py-3" scope="col">Direction</th>
+              <th class="px-4 py-3" scope="col">Readiness</th>
               <th class="px-4 py-3" scope="col">Source</th>
               <th class="px-4 py-3" scope="col">Destination</th>
               <th class="px-4 py-3" scope="col">Group</th>
@@ -179,6 +186,7 @@ function groupDestinationLabel(group: Group): string {
                 </span>
               </td>
               <td class="px-4 py-4">{{ directionLabel(participant.direction) }}</td>
+              <td class="px-4 py-4">{{ stateLabel(participant.readiness) }}</td>
               <td class="px-4 py-4">{{ participant.sourceKingdom ?? 'Unknown' }}</td>
               <td class="px-4 py-4">{{ destinationLabel(participant) }}</td>
               <td class="px-4 py-4">
