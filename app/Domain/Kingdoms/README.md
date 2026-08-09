@@ -26,26 +26,31 @@ Slice A / `K2-P1` transfer-cycle foundation is validated at `e939a09d107ee12bd19
 
 Slice B / `K2-P2` participant direction and destination is validated at `03f6b3009551f526b6c54f8d59749e640e636b4a`, with evidence in [`kingdoms-transfer-planning-slice-b-validation.md`](../../../docs/product/kingdoms-transfer-planning-slice-b-validation.md).
 
-Slice C1 / `K2-P3` is the current candidate and adds:
+Slice C1 / `K2-P3` transfer groups and coordinators is validated at `9d2f70056db901203d8811ba3d5d19d40727accf`, with evidence in [`kingdoms-transfer-planning-slice-c1-validation.md`](../../../docs/product/kingdoms-transfer-planning-slice-c1-validation.md).
 
-- alliance/plan-scoped `TransferGroup` records;
-- explicit incoming/outgoing group context;
-- incoming destination fixed to the captured plan home Kingdom;
-- optional destination-bound outgoing groups, including an explicit undecided state;
-- one optional active same-alliance coordinator membership per group;
-- manager-only group notes and active/archived lifecycle;
-- one optional group assignment per participant;
-- staying-participant assignment rejection;
-- direction/destination compatibility enforced on assignment, group edits, and participant edits;
-- transactional rejection rather than silent participant/group intent rewriting;
-- idempotent group archive after active participants are moved/unassigned; and
-- audit/internal-outbox evidence for group create/update/archive and participant group assignment changes.
+Slice C2 / `K2-P4` is the current candidate and adds:
 
-Coordinator assignment is workflow responsibility only. It never grants `kingdoms.manage`, bypasses policy authorization, or changes the permissions attached to the coordinator's alliance membership.
+- explicit readiness states: `not_started`, `preparing`, `ready`, `blocked`, `confirmed`, and `withdrawn`;
+- current readiness on each transfer participant;
+- append-only, actor-attributable readiness transition history;
+- alliance/plan/participant-scoped blockers with active/resolved lifecycle;
+- manager-private blocker summary/details plus creator/resolver provenance;
+- an active-blocker prerequisite before entering `blocked`;
+- rejection of `ready`/`confirmed` while active blockers remain;
+- explicit manager transition after blockers are resolved rather than automatic readiness advancement;
+- `confirmed` as planning state only, without roster completion/handoff;
+- withdrawal through the readiness state machine so terminal readiness and participant history stay aligned; and
+- a manager-only readiness board with status filtering, blocker maintenance, and transition history.
+
+Ordinary alliance members may see the current safe readiness state with participant planning information. Blocker IDs/text/details, actor history, manager notes, and privileged transition metadata remain management-only.
+
+Readiness is manual workflow state. The domain does not infer eligibility/readiness from power, spending, inventory, external game state, transfer resources, or undocumented game mechanics.
+
+Coordinator assignment remains workflow responsibility only. It never grants `kingdoms.manage`, bypasses policy authorization, or changes the permissions attached to the coordinator's alliance membership.
 
 The living transfer contract is [`docs/domains/kingdoms-transfer-planning.md`](../../../docs/domains/kingdoms-transfer-planning.md).
 
-Global Kingdom/player identity is never an authorization boundary. Alliance-owned roster, observations, imports, metrics, transfer plans, participant intent, groups, coordinator assignments, notes, and destinations remain tenant-scoped even when two alliances share the same Kingdom/player references.
+Global Kingdom/player identity is never an authorization boundary. Alliance-owned roster, observations, imports, metrics, transfer plans, participant intent, groups, coordinator assignments, readiness, blockers, notes, and destinations remain tenant-scoped even when two alliances share the same Kingdom/player references.
 
 Internal Kingdoms durability events are not external webhook contracts. `alliance.kingdom_updated` and `kingdoms.*` events remain excluded from generic webhook fan-out until a separately approved integration contract exposes them.
 
@@ -63,9 +68,10 @@ Internal Kingdoms durability events are not external webhook contracts. `allianc
 - [`docs/security/kingdoms-transfer-planning-foundation-security-review.md`](../../../docs/security/kingdoms-transfer-planning-foundation-security-review.md)
 - [`docs/security/kingdoms-transfer-participant-security-review.md`](../../../docs/security/kingdoms-transfer-participant-security-review.md)
 - [`docs/security/kingdoms-transfer-group-security-review.md`](../../../docs/security/kingdoms-transfer-group-security-review.md)
+- [`docs/security/kingdoms-transfer-readiness-security-review.md`](../../../docs/security/kingdoms-transfer-readiness-security-review.md)
 
 ## Explicit boundaries
 
-Slice C1 does **not** implement readiness/blockers, transfer-resource or eligibility logic, completion/roster handoff, marketplace/public advertising, diplomacy/NAP intelligence, public Kingdoms API/webhook schemas, cross-alliance transfer visibility/rankings, automated scoring/recommendations, or automated game-data ingestion.
+Slice C2 does **not** implement transfer-resource/pass optimization, inferred eligibility/readiness, automated stay/leave decisions, completion/roster handoff, marketplace/public advertising, diplomacy/NAP intelligence, public Kingdoms API/webhook schemas, cross-alliance transfer visibility/rankings, automated scoring/recommendations, or automated game-data ingestion.
 
 `KINGDOMS-002` is not Accepted until its whole-increment gate passes. A real production cutover remains separately **not approved** until the production-launch record has the required external infrastructure/operator evidence.
