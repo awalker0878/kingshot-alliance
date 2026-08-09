@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Kingdoms\Queries;
+
+use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
+use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use Illuminate\Database\Eloquent\Collection;
+
+final class KingdomAllianceObservationQuery
+{
+    public const FRESH_DAYS = 30;
+
+    public const HISTORY_LIMIT = 250;
+
+    public function tracking(Alliance $alliance, string $trackingId): TrackedKingdomAlliance
+    {
+        return TrackedKingdomAlliance::query()
+            ->where('alliance_id', $alliance->id)
+            ->with([
+                'kingdomAlliance:id,kingdom_id,game_alliance_id,current_name,current_tag,status',
+                'kingdom:id,number,status',
+            ])
+            ->findOrFail($trackingId);
+    }
+
+    public function latestAccepted(Alliance $alliance, string $trackingId): ?KingdomAllianceObservation
+    {
+        return KingdomAllianceObservation::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('tracked_kingdom_alliance_id', $trackingId)
+            ->whereNull('invalidated_at')
+            ->orderByDesc('captured_at')
+            ->orderByDesc('id')
+            ->first();
+    }
+
+    /** @return Collection<int, KingdomAllianceObservation> */
+    public function history(Alliance $alliance, string $trackingId, bool $includeInvalidated): Collection
+    {
+        return KingdomAllianceObservation::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('tracked_kingdom_alliance_id', $trackingId)
+            ->when(! $includeInvalidated, fn ($query) => $query->whereNull('invalidated_at'))
+            ->with(['actor:id,name', 'invalidatedBy:id,name'])
+            ->orderByDesc('captured_at')
+            ->orderByDesc('id')
+            ->limit(self::HISTORY_LIMIT)
+            ->get();
+    }
+
+    public function freshness(?KingdomAllianceObservation $latest): string
+    {
+        if (! $latest instanceof KingdomAllianceObservation) {
+            return 'missing';
+        }
+
+        return $latest->captured_at->gte(now()->subDays(self::FRESH_DAYS)) ? 'current' : 'stale';
+    }
+}
