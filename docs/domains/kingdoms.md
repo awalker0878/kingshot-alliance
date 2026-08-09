@@ -2,20 +2,20 @@
 
 [← Domain documentation](README.md)
 
-**Increment:** [`KINGDOMS-001` — Kingdoms roster intelligence](../product/kingdoms-roster-intelligence-increment.md)  
-**Current state:** Accepted  
-**Implementation sequence:** [KINGDOMS-001 implementation plan](../product/kingdoms-roster-intelligence-implementation-plan.md)  
-**Acceptance evidence:** [KINGDOMS-001 exit report](../product/kingdoms-roster-intelligence-exit-report.md)
+**Accepted increments:** [`KINGDOMS-001` — Kingdoms roster intelligence](../product/kingdoms-roster-intelligence-increment.md) and [`KINGDOMS-002` — Transfer planning](../product/kingdoms-transfer-planning-increment.md)  
+**Current state:** **Accepted**  
+**Acceptance evidence:** [KINGDOMS-001 exit report](../product/kingdoms-roster-intelligence-exit-report.md), [KINGDOMS-002 exit report](../product/kingdoms-transfer-planning-exit-report.md)
 
-`Kingdoms` owns Kingshot game-world reference identity plus alliance-owned roster observations, history, controlled spreadsheet migration and derived roster intelligence. This guide is the top-level domain contract; detailed workflow contracts remain in [Kingdoms roster](kingdoms-roster.md), [player snapshots](kingdoms-snapshots.md), [roster intelligence](kingdoms-intelligence.md), and [controlled CSV migration](kingdoms-csv-migration.md).
+`Kingdoms` owns Kingshot game-world reference identity plus alliance-owned roster observations/history/intelligence, controlled spreadsheet migration, and accepted transfer planning. Detailed workflow contracts remain in [Kingdoms roster](kingdoms-roster.md), [player snapshots](kingdoms-snapshots.md), [roster intelligence](kingdoms-intelligence.md), [controlled CSV migration](kingdoms-csv-migration.md), and [transfer planning](kingdoms-transfer-planning.md).
 
 ## Ownership model
 
-The increment deliberately separates three identities:
+The domain deliberately separates:
 
 1. **Application identity** — global `User`, owned by Identity.
-2. **Alliance membership** — the user↔alliance relationship, owned by Memberships.
+2. **Alliance membership** — user↔Alliance relationship, owned by Memberships.
 3. **Kingshot identity** — neutral `KingdomPlayer` reference within a `Kingdom`, owned by Kingdoms.
+4. **Alliance-owned game observations/workflows** — roster entries, snapshots, imports/intelligence and transfer planning, owned by Kingdoms under explicit Alliance tenancy.
 
 A roster entry may optionally link a Kingshot player to an active membership in the same Alliance. That link does not merge the records or make the application account the source of truth for game identity.
 
@@ -23,132 +23,98 @@ A roster entry may optionally link a Kingshot player to an active membership in 
 
 ### Kingdom
 
-A `Kingdom` is global reference data with:
-
-- ULID primary key;
-- unique positive canonical Kingdom number;
-- lifecycle state (`active` / `archived`); and
-- timestamps.
-
-An Alliance stores `kingdom_id`. The old free-form `alliances.kingdom` persistence column is removed after fail-closed migration/backfill. Existing presentation/API fields named `kingdom` are derived from the relationship rather than maintained as a compatibility column.
+A `Kingdom` is global reference data with a ULID primary key, unique positive canonical Kingdom number, lifecycle state and timestamps. An Alliance stores `kingdom_id`; the legacy free-form `alliances.kingdom` persistence column is removed.
 
 ### KingdomPlayer
 
-A `KingdomPlayer` is also global neutral reference data, scoped to one Kingdom. It may carry a stable game-player ID when known and a current neutral display name.
+A `KingdomPlayer` is global neutral reference data scoped to one Kingdom. It may carry a stable game-player ID and neutral current display name.
 
-Stable game-player ID inside the Kingdom is the only automatic identity-match key. Display names are not unique and are never sufficient for automatic merge.
+Stable game-player ID inside the Kingdom is the only automatic identity-match key. Display names are not unique and never auto-merge identity.
 
-Multiple alliances in one Kingdom may reference the same neutral player. That never grants access to another alliance's roster, notes, snapshots, imports or metrics.
+Multiple alliances may reference the same Kingdom/player. That never grants access to another alliance's roster, notes, snapshots, imports, metrics or transfer planning.
 
-## Alliance-owned roster
+## Alliance-owned roster and snapshots
 
-`AllianceRosterEntry` belongs to one Alliance and one `KingdomPlayer`. It owns the tenant-specific observation state:
+`AllianceRosterEntry` belongs to one Alliance and one `KingdomPlayer` and owns tenant-specific observed name, optional same-alliance membership link, game role/rank, lifecycle state, joined/left dates, private manager notes, observation time and source/provenance.
 
-- observed name;
-- optional same-alliance membership link;
-- game role/rank;
-- active/tracked/left state;
-- joined/left dates;
-- private manager notes;
-- last roster-observation time; and
-- source/provenance.
+`PlayerSnapshot` is append-only historical observed game state. Normal roster edits and transfer completion do not rewrite history. A snapshot exists only when an actual observation is supplied through the accepted snapshot contract.
 
-Ordinary members read the roster under `alliance.view`. Management requires `kingdoms.manage`, which is included in the built-in Owner, Leader and Officer templates. Privileged roster mutations require recent password confirmation.
+Ordinary roster/history/intelligence reads use `alliance.view`; management uses `kingdoms.manage`. Privileged mutations require recent password confirmation under accepted Kingdoms controls.
 
-Marking a player left preserves neutral identity, membership linkage and historical snapshots.
+## Roster intelligence and controlled CSV
 
-## Append-only player snapshots
+Roster intelligence derives tenant-scoped tracked-player counts, recorded-power aggregates, current/stale/missing quality, recent movement, linkage coverage and bounded 7/30-day trends. Manager detail is diagnostic/alphabetical, not ranking or punitive scoring.
 
-`PlayerSnapshot` is the historical source of truth for observed game state. A snapshot stores:
-
-- alliance/roster/player identity;
-- observed name;
-- signed-64-bit integer power;
-- optional progression/level;
-- optional observed alliance/tag;
-- capture time;
-- source;
-- actor; and
-- optional CSV-import provenance.
-
-Normal roster edits do not rewrite historical snapshots. Exact accepted-observation retries are deterministic and idempotent; a later capture time is a new observation.
-
-The latest roster projection is chosen by capture time with deterministic ID tie-breaking. Current/stale/missing quality is based on snapshot history, not a duplicated mutable power field.
-
-## Roster intelligence
-
-The intelligence view derives tenant-scoped operational summaries from active/tracked roster entries and recorded snapshots:
-
-- tracked-player count;
-- total, average and median recorded power;
-- current/stale/missing snapshot counts;
-- recent joins/departures;
-- membership-linkage coverage;
-- aggregate 7-day and 30-day power change; and
-- manager-only individual comparison detail.
-
-Missing data is not zero. Trend baselines use the closest observation at or before the N-day target, bounded so the baseline is no older than 2N days. There is no interpolation.
-
-Manager detail is alphabetical diagnostic information. It is not a ranking, punitive score or Contribution-domain metric.
-
-## Controlled CSV migration
-
-The accepted spreadsheet-exit path is a strict `kingdoms-roster.v1` UTF-8 CSV workflow:
-
-1. upload is bounded to 1 MiB and 500 data rows;
-2. the complete file is validated before roster persistence;
-3. rows are classified create/update/ambiguous/rejected;
-4. stable game ID is the only automatic identity match;
-5. every display-name match requires explicit manager resolution;
-6. accepted confirmation is password-confirmed and one database transaction;
-7. preview drift fails closed;
-8. Alliance + schema + SHA-256 checksum makes committed re-upload/reconfirmation idempotent; and
-9. CSV-created snapshots retain import provenance.
-
-Current-roster exports are tenant-scoped. Ordinary member export excludes management fields. Management export requires `kingdoms.manage`. Every string cell is neutralized against spreadsheet formula injection before CSV encoding, and responses are private/non-cacheable.
+The accepted `kingdoms-roster.v1` CSV path performs bounded full-file preview/validation, stable-ID-only automatic matching, explicit resolution of name ambiguity, password-confirmed transactional commit, drift detection, idempotent checksum confirmation, provenance-aware snapshots and formula-neutralized private exports.
 
 ## Alliance Kingdom settings
 
-Changing an Alliance's Kingdom remains an Alliance-setting mutation under `alliance.manage`, not `kingdoms.manage`.
+Changing an Alliance's Kingdom remains an Alliance-setting mutation under `alliance.manage`, not `kingdoms.manage`. Archived Kingdoms cannot be newly selected. The workflow uses active-Alliance context, recent password confirmation, transaction/locking, audit and durable internal outbox evidence.
 
-The workflow uses authenticated/verified active-Alliance context plus recent password confirmation, transaction/row locking, audit evidence and a durable internal outbox event. Archived Kingdoms cannot be newly selected.
+Active transfer plans capture their own home-Kingdom context. If the Alliance Kingdom later differs, transfer mutations fail closed rather than silently retargeting the plan.
+
+## Accepted transfer planning
+
+`KINGDOMS-002` adds alliance-owned:
+
+- transfer plans (`draft`, `open`, `locked`, `closed`, `cancelled`);
+- incoming/outgoing/staying participant intent;
+- source/destination planning under direction rules;
+- transfer groups and same-alliance coordinators;
+- manual readiness transitions and blocker history; and
+- explicit idempotent completion/roster handoff.
+
+Coordinator assignment is workflow responsibility only and never grants `kingdoms.manage`.
+
+`confirmed` readiness is planning-only. Actual completion is a separate privileged action permitted only in the locked-plan phase. Incoming/outgoing completion reuses accepted roster actions; staying is a roster no-op. Completion never fabricates snapshots and does not move neutral player identity merely because a destination was planned.
+
+See [Kingdoms transfer planning](kingdoms-transfer-planning.md) for the complete lifecycle/privacy/handoff contract.
 
 ## Tenant and privacy boundary
 
-The active Alliance is authoritative for all roster-owned behavior. Reads and mutations re-resolve submitted roster, membership, snapshot/import and resolution identifiers under the tenant boundary.
+The active Alliance is authoritative for all alliance-owned Kingdoms behavior. Reads/mutations re-resolve submitted roster, membership, snapshot/import, plan, participant, group, blocker and handoff identifiers beneath the tenant/plan boundary.
 
-Ordinary member payloads exclude private manager notes, management membership details, import-management metadata and snapshot actor identity. Managers receive only the additional information required by the approved workflow.
+Ordinary member payloads exclude private manager notes, restricted blocker detail, management membership identifiers, import-management metadata, snapshot actor identity and richer completion provenance. Managers receive only the additional information required by approved workflows.
 
-See the [whole-increment security review](../security/kingdoms-roster-intelligence-security-review.md) for cross-slice threat analysis.
+See the [KINGDOMS-001 security review](../security/kingdoms-roster-intelligence-security-review.md) and [KINGDOMS-002 security review](../security/kingdoms-transfer-planning-security-review.md).
 
 ## Audit, outbox and external integrations
 
-Privileged Kingdom/roster/snapshot/import mutations record audit evidence and durable transactional-outbox messages when state materially changes.
+Material privileged Kingdoms mutations record audit evidence and transactional-outbox messages.
 
-Those outbox messages are **internal** for `KINGDOMS-001`. The existing external API remains limited to its documented alliance/events/contributions read scopes, and `alliance.kingdom_updated` plus `kingdoms.*` events are excluded from generic webhook fan-out. A future external Kingdoms API or webhook schema requires an explicit integration-contract increment.
+Those event families remain internal. The public API remains limited to documented alliance/events/contributions read scopes. `alliance.kingdom_updated` and `kingdoms.*`, including `kingdoms.transfer_*`, are excluded from generic webhook fan-out even for wildcard subscriptions.
+
+A public Kingdoms/transfer API or webhook schema requires a separate explicitly approved integration increment.
 
 ## Migration and rollback
 
-The first-class Kingdom migration normalizes supported legacy numeric forms, reuses one canonical Kingdom for equivalent values and fails closed on malformed non-empty source data. It removes the old string column after backfill.
+The accepted migration chain retains dependency-safe rollback/reapply evidence for both increments. `KINGDOMS-002` adds transfer plans → participants → groups → readiness/blockers → completions above the accepted `KINGDOMS-001` baseline and rolls them back in reverse order.
 
-The full dependency rollback order is CSV import/provenance → snapshots → roster/permission dependencies → Kingdom foundation. The migration acceptance test reverses and reapplies the complete series from the accepted pre-increment representation.
+No compatibility shim or dormant future-schema field is retained solely to simplify later work.
 
 ## Operations
 
-The increment adds no dedicated scheduler, worker queue, crawler or external ingestion service. It uses synchronous request workflows, PostgreSQL, audit and the existing outbox publisher.
+Accepted Kingdoms behavior uses synchronous request workflows, PostgreSQL, audit and the existing outbox publisher; it adds no Kingdoms-specific scheduler, crawler, game-data ingestion worker or transfer executor.
 
-Operational diagnosis for import failures, snapshot history, intelligence windows/query behavior and rollback is documented in [Kingdoms roster intelligence operations](../operations/kingdoms-roster-intelligence.md).
+Operational guidance:
+
+- [Kingdoms roster intelligence operations](../operations/kingdoms-roster-intelligence.md)
+- [Kingdoms transfer planning operations](../operations/kingdoms-transfer-planning.md)
 
 ## Explicit deferrals
 
-`KINGDOMS-001` does not implement:
+The accepted Kingdoms runtime does **not** implement:
 
-- scraping, OCR, bots or undocumented Kingshot APIs;
+- scraping, OCR, bots or undocumented/unapproved Kingshot APIs;
 - automated game-data ingestion;
-- transfer planning;
-- diplomacy/NAP intelligence;
-- cross-alliance rankings/intelligence;
-- automated player scoring/recommendations; or
+- transfer marketplace/public advertising;
+- inferred transfer eligibility/readiness;
+- transfer pass/ticket/resource optimization;
+- player/destination rankings or automated stay/leave recommendations;
+- bulk or automatic in-game transfer execution;
+- diplomacy/NAP/ally/rival intelligence;
+- cross-alliance Kingdoms rankings/intelligence;
+- automated/AI punitive player scoring/recommendations; or
 - public Kingdoms API/webhook contracts.
 
-Those are follow-on product candidates only and require separate approval before runtime implementation.
+Those remain follow-on candidates requiring separate scope approval. `KINGDOMS-001` and `KINGDOMS-002` are Accepted repository/product capabilities; real production cutover remains separately not yet approved.

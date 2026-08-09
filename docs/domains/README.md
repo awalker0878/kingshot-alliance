@@ -2,7 +2,7 @@
 
 [← Documentation home](../README.md)
 
-This directory documents business/domain behavior and ownership. Runtime code remains domain-first under `app/Domain/<CanonicalDomain>`; these documents explain the contracts and workflows that are too broad to express clearly in code alone.
+This directory documents business/domain behavior and ownership. Runtime code remains domain-first under `app/Domain/<CanonicalDomain>`; these documents explain contracts/workflows too broad to express clearly in code alone.
 
 ## Current guides
 
@@ -13,14 +13,15 @@ This directory documents business/domain behavior and ownership. Runtime code re
 - [Contributions and reporting](contributions-and-reporting.md) — contribution records, calculation semantics, corrections, reporting, exports, and data quality.
 - [Notifications](notifications.md) — event-reminder delivery state, scheduled-report coordination, idempotency, scheduler flow, and recovery.
 - [Integrations](integrations.md) — API credential/authentication contract, read-only API endpoints, webhook signing/delivery contract, and integration boundaries.
-- [Kingdoms](kingdoms.md) — accepted `KINGDOMS-001` ownership map across global Kingdom/game-player references and alliance-owned roster observations.
+- [Kingdoms](kingdoms.md) — accepted `KINGDOMS-001` + `KINGDOMS-002` ownership map across global Kingdom/game-player references and alliance-owned roster/transfer workflows.
 - [Kingdoms roster](kingdoms-roster.md) — game-player identity, alliance-owned roster, membership linkage, authorization, filtering, data minimization, and tenant isolation.
 - [Kingdoms player snapshots](kingdoms-snapshots.md) — append-only observations, idempotency, latest projection, snapshot freshness, history visibility and provenance.
 - [Kingdoms roster intelligence](kingdoms-intelligence.md) — exact power aggregates, data-quality indicators, bounded 7/30-day trends, linkage/movement summaries and manager-only comparisons.
 - [Kingdoms controlled CSV migration](kingdoms-csv-migration.md) — strict CSV schema, dry-run classification, identity resolution, atomic/idempotent confirmation, provenance and export safety.
+- [Kingdoms transfer planning](kingdoms-transfer-planning.md) — transfer cycles, participant intent/destinations, groups/coordinators, manual readiness/blockers, explicit completion/roster handoff and privacy/tenant boundaries.
 - [Platform scale and administration](platform-scale-and-administration.md) — platform administration, tenant lifecycle, entitlements, API/webhook controls, retention, and operational scale.
 
-`KINGDOMS-001` is **Accepted** as one end-to-end increment. `K1-P1` through `K1-P5` delivered its implementation slices and `K1-P6` closed domain/security/accessibility/migration/query/operations/integration hardening and protected acceptance. See the [exit report](../product/kingdoms-roster-intelligence-exit-report.md).
+`KINGDOMS-001` and `KINGDOMS-002` are **Accepted** end-to-end increments. See the [KINGDOMS-001 exit report](../product/kingdoms-roster-intelligence-exit-report.md) and [KINGDOMS-002 exit report](../product/kingdoms-transfer-planning-exit-report.md).
 
 ## Architecture evidence
 
@@ -35,7 +36,7 @@ The implementation plan defines these canonical ownership roots:
 
 `Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, and `Recruitment`.
 
-All canonical roots own runtime PHP. `Kingdoms` owns first-class Kingdom and neutral player references plus alliance-scoped roster, snapshots, controlled CSV migration and derived intelligence. Global Kingdom/player references never replace the Alliance tenant boundary.
+All canonical roots own runtime PHP. `Kingdoms` owns first-class Kingdom and neutral player references plus alliance-scoped roster, snapshots, controlled CSV migration, derived intelligence and accepted transfer planning. Global Kingdom/player references never replace the Alliance tenant boundary.
 
 A domain does not require a separate Markdown file merely because it has runtime code. Add a domain guide when it clarifies a meaningful workflow, public contract, lifecycle, or cross-domain boundary that would otherwise be duplicated across implementation files.
 
@@ -49,4 +50,4 @@ A domain does not require a separate Markdown file merely because it has runtime
 
 ## Updating a domain guide
 
-When behavior changes materially, update the guide together with its tests and any affected security, operations, accessibility, capability, or acceptance evidence. Prefer describing stable business rules and invariants over controller-by-controller implementation detail.
+When behavior changes materially, update the guide together with its tests and any affected security, operations, accessibility, capability, or acceptance evidence. Prefer stable business rules and invariants over controller-by-controller detail.

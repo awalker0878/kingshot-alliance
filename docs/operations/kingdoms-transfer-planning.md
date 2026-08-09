@@ -1,11 +1,12 @@
 # Kingdoms transfer planning operations
 
 **Increment:** `KINGDOMS-002`  
-**Current delivery:** Slice D / explicit completion and roster handoff candidate
+**Current delivery:** **Accepted** — transfer planning through explicit completion/roster handoff plus `K2-P6` whole-increment hardening  
+**Acceptance evidence:** [KINGDOMS-002 exit report](../product/kingdoms-transfer-planning-exit-report.md)
 
 ## Runtime shape
 
-Transfer planning remains synchronous request/response behavior using PostgreSQL plus the existing audit and transactional-outbox infrastructure. Slice D adds no Kingdoms-specific scheduler, queue, crawler, bot, external game integration, eligibility engine, automated readiness worker, bulk completion worker, or in-game transfer executor.
+Transfer planning is synchronous request/response behavior using PostgreSQL plus the existing audit and transactional-outbox infrastructure. The accepted increment adds no Kingdoms-specific scheduler, queue, crawler, bot, external game integration, eligibility engine, automated readiness worker, bulk completion worker, or in-game transfer executor.
 
 Completion delegates roster mutations to the accepted `KINGDOMS-001` actions inside the transfer completion transaction.
 
@@ -19,9 +20,9 @@ Apply in dependency order:
 4. `2026_08_09_120000_create_transfer_readiness_and_blockers.php`
 5. `2026_08_09_130000_create_transfer_completions.php`
 
-The Slice D migration adds one completion table only. `transfer_participant_id` is unique so one participant cannot acquire duplicate completion/handoff records.
+`transfer_participant_id` is unique in completions so one participant cannot acquire duplicate handoff records.
 
-Rollback reverses that order: drop `transfer_completions` before readiness/blockers, groups, participants and plans. No accepted `KINGDOMS-001` table is repurposed as transfer state.
+Rollback reverses that order: drop `transfer_completions` before readiness/blockers, groups, participants and plans. The whole-increment migration test rolls the transfer chain back to the accepted `KINGDOMS-001` baseline and reapplies it. No accepted `KINGDOMS-001` table is repurposed as transfer state and no compatibility shim is retained.
 
 ## Lifecycle operations
 
@@ -52,7 +53,7 @@ For a failed completion, check in order:
 
 If no existing roster result is supplied, accepted `SaveRosterEntry` creation is used. This does not create a player snapshot.
 
-If an existing roster entry is selected, it must be active/tracked and same-alliance. When the transfer participant carries a stable game-player identifier, it must match the selected roster player's identifier. Existing roster private fields/lifecycle state are preserved; display name alone is never used to select or merge an existing roster identity.
+If an existing roster entry is selected, it must be active/tracked and same-alliance. When the transfer participant carries a stable game-player identifier, it must match the selected roster player's identifier. Existing roster private fields/lifecycle state/source are preserved; display name alone is never used to select or merge an existing roster identity.
 
 ### Outgoing
 
@@ -64,7 +65,7 @@ The same-alliance roster binding must still exist and remain active/tracked. Com
 
 ## Retry/idempotency diagnosis
 
-Completion locks Alliance → plan → participant and checks the participant's unique completion before delegated roster effects. Retrying a completed participant should return the existing completion and should not produce another roster lifecycle event or another completion audit/outbox event.
+Completion locks Alliance → plan → participant and checks the participant's unique completion before delegated roster effects. Retrying a completed participant returns the existing completion and does not produce another roster lifecycle event or another completion audit/outbox event.
 
 If a uniqueness violation or duplicate roster effect is observed, treat it as an integrity defect rather than retrying around it manually.
 
@@ -84,7 +85,7 @@ Destination planning never changes neutral player identity.
 
 ## Readiness/blocker diagnosis
 
-C2 rules remain unchanged before lock: readiness changes and blockers are Draft/Open only; entering blocked requires an active blocker; resolving the final blocker never auto-advances readiness; `ready`/`confirmed` cannot coexist with active blockers.
+Readiness changes and blockers are Draft/Open only; entering blocked requires an active blocker; resolving the final blocker never auto-advances readiness; `ready`/`confirmed` cannot coexist with active blockers.
 
 `confirmed` must never be interpreted as completion evidence. The authoritative real-world outcome is the `TransferCompletion` created through the completion action.
 
@@ -94,13 +95,15 @@ Blocker summary/details remain management-private and must not enter logs, audit
 
 Transfer participant queries eager-load safe completion summary with the existing bounded relation set. Manager completion/readiness views additionally eager-load completion actor and resulting roster/player data. Avoid participant-loop relationship queries.
 
+`K2-P6` acceptance includes a realistic-volume query-shape guard with **150 participants and 20 transfer groups**, including readiness-history, blocker and completion relations. The acceptance test enforces a bounded SELECT-query budget to catch N+1 regressions.
+
 ## Home-Kingdom recovery
 
 For home-Kingdom drift, do not rewrite the plan's captured home context or completion records. Cancel the stale plan when lifecycle permits and create a deliberate replacement under the Alliance's current Kingdom. Completion fails closed on drift.
 
 ## Audit/outbox evidence
 
-Material Slice D completion adds:
+Material completion adds:
 
 - `kingdoms.transfer_participant_completed` audit evidence; and
 - matching internal transactional-outbox evidence.
@@ -109,10 +112,26 @@ Incoming/outgoing delegated roster actions continue their existing accepted rost
 
 Completion event metadata may contain scoped transfer IDs, direction and resulting roster-entry ID. It must not contain private manager notes or blocker text.
 
-`kingdoms.*` remains excluded from external webhook delivery.
+`kingdoms.*`, including `kingdoms.transfer_*`, remains excluded from external webhook delivery even for wildcard subscriptions.
+
+## Accepted operational gate
+
+The exact `K2-P6` implementation SHA `64189559c66e15dc56ec31f9b340284c89c30e6c` passed the repository gate including:
+
+- dependency audit/review and CodeQL;
+- frontend quality/build;
+- PostgreSQL migrations;
+- Pint and PHPStan/Larastan;
+- 299 tests / 3414 assertions;
+- immutable production-image build;
+- ephemeral staging deployment;
+- backup/restore demonstration; and
+- image vulnerability scan.
+
+See the exit report for exact run IDs and the note about the transient Packagist advisory-endpoint 502 on the first unchanged CI attempt.
 
 ## Deferred operations
 
-Slice D performs no inferred eligibility/readiness, transfer-resource/pass optimization, bulk completion, automated stay/leave decisions, automated in-game transfer execution, player scoring/ranking, public/cross-alliance transfer workflow, or external game-data ingestion.
+The accepted increment performs no inferred eligibility/readiness, transfer-resource/pass optimization, bulk completion, automated stay/leave decisions, automated in-game transfer execution, player scoring/ranking, public/cross-alliance transfer workflow, or external game-data ingestion.
 
-`KINGDOMS-002` remains **In progress** pending whole-increment hardening and acceptance / `K2-P6`.
+`KINGDOMS-002` is **Accepted** repository/product capability. Real production cutover remains separately **not yet approved**.

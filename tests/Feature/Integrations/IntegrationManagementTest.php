@@ -134,7 +134,13 @@ final class IntegrationManagementTest extends TestCase
         );
         $queue = $this->app->make(QueueWebhookDeliveries::class);
 
-        foreach (['alliance.kingdom_updated', 'kingdoms.roster_entry_created', 'kingdoms.player_snapshot_recorded'] as $index => $eventType) {
+        foreach ([
+            'alliance.kingdom_updated',
+            'kingdoms.roster_entry_created',
+            'kingdoms.player_snapshot_recorded',
+            'kingdoms.transfer_plan_opened',
+            'kingdoms.transfer_participant_completed',
+        ] as $index => $eventType) {
             $event = new OutboxPublished(
                 messageId: sprintf('01K00000000000000000000%03d', $index),
                 allianceId: (string) $alliance->id,

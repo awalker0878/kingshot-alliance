@@ -149,11 +149,92 @@ final class KingdomTransferStructureTest extends TestCase
         }
     }
 
+    public function test_whole_increment_keeps_tenant_first_query_indexes(): void
+    {
+        $root = dirname(__DIR__, 2).'/database/migrations/';
+        $participants = file_get_contents($root.'2026_08_09_100000_create_transfer_participants.php');
+        $groups = file_get_contents($root.'2026_08_09_110000_create_transfer_groups.php');
+        $readiness = file_get_contents($root.'2026_08_09_120000_create_transfer_readiness_and_blockers.php');
+        $completions = file_get_contents($root.'2026_08_09_130000_create_transfer_completions.php');
+        self::assertIsString($participants);
+        self::assertIsString($groups);
+        self::assertIsString($readiness);
+        self::assertIsString($completions);
+
+        self::assertStringContainsString(
+            "index(['alliance_id', 'transfer_plan_id', 'direction', 'withdrawn_at'])",
+            $participants,
+        );
+        self::assertStringContainsString(
+            "index(['alliance_id', 'transfer_plan_id', 'state'])",
+            $groups,
+        );
+        self::assertStringContainsString(
+            "index(['transfer_plan_id', 'readiness_state', 'withdrawn_at'])",
+            $readiness,
+        );
+        self::assertStringContainsString(
+            "index(['transfer_plan_id', 'transfer_participant_id', 'state'])",
+            $readiness,
+        );
+        self::assertStringContainsString(
+            "index(['alliance_id', 'transfer_plan_id', 'completed_at'])",
+            $completions,
+        );
+        self::assertStringContainsString("unique('transfer_participant_id')", $completions);
+    }
+
     public function test_transfer_events_remain_inside_the_existing_kingdoms_webhook_boundary(): void
     {
         $queue = file_get_contents(dirname(__DIR__, 2).'/app/Domain/Integrations/Actions/QueueWebhookDeliveries.php');
         self::assertIsString($queue);
         self::assertStringContainsString("str_starts_with(\$eventType, 'kingdoms.')", $queue);
+    }
+
+    public function test_transfer_planning_has_no_public_api_route_or_scope(): void
+    {
+        $apiRoutes = file_get_contents(dirname(__DIR__, 2).'/routes/api.php');
+        self::assertIsString($apiRoutes);
+
+        foreach ([
+            '/transfers',
+            '/transfer',
+            '/kingdoms',
+            'transfer:read',
+            'kingdoms:read',
+        ] as $publicContract) {
+            self::assertStringNotContainsString($publicContract, $apiRoutes);
+        }
+    }
+
+    public function test_whole_transfer_runtime_contains_no_eligibility_scoring_or_automatic_execution_contract(): void
+    {
+        $root = dirname(__DIR__, 2);
+        $paths = [
+            '/routes/kingdoms.php',
+            '/database/migrations/2026_08_09_090000_create_transfer_plans.php',
+            '/database/migrations/2026_08_09_100000_create_transfer_participants.php',
+            '/database/migrations/2026_08_09_110000_create_transfer_groups.php',
+            '/database/migrations/2026_08_09_120000_create_transfer_readiness_and_blockers.php',
+            '/database/migrations/2026_08_09_130000_create_transfer_completions.php',
+        ];
+
+        foreach ($paths as $path) {
+            $source = file_get_contents($root.$path);
+            self::assertIsString($source);
+
+            foreach ([
+                'transfer_pass',
+                'ticket_count',
+                'resource_score',
+                'eligibility_score',
+                'player_score',
+                'automatic_transfer',
+                'bulk_complete',
+            ] as $unapprovedContract) {
+                self::assertStringNotContainsString($unapprovedContract, $source, $path);
+            }
+        }
     }
 
     public function test_transfer_runtime_stays_under_the_kingdoms_domain(): void

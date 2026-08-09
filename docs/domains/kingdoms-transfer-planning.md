@@ -3,12 +3,11 @@
 [← Kingdoms](kingdoms.md)
 
 **Increment:** `KINGDOMS-002`  
-**Current delivery:** Slice D / `K2-P5` candidate on validated Slice C2  
-**Slice B evidence:** [KINGDOMS-002 Slice B validation](../product/kingdoms-transfer-planning-slice-b-validation.md)  
-**Slice C1 evidence:** [KINGDOMS-002 Slice C1 validation](../product/kingdoms-transfer-planning-slice-c1-validation.md)  
-**Slice C2 evidence:** [KINGDOMS-002 Slice C2 validation](../product/kingdoms-transfer-planning-slice-c2-validation.md)
+**Current delivery:** **Accepted** — `K2-P0` through `K2-P6` complete  
+**Acceptance evidence:** [KINGDOMS-002 exit report](../product/kingdoms-transfer-planning-exit-report.md)  
+**Whole-increment security:** [KINGDOMS-002 security review](../security/kingdoms-transfer-planning-security-review.md)
 
-`KINGDOMS-002` is an alliance-owned planning workflow layered on the accepted `KINGDOMS-001` Kingdom/player/roster foundation. Slice D adds explicit real-world completion and roster handoff while continuing to exclude inferred eligibility, transfer resources, automated transfer execution and public/cross-alliance transfer workflows.
+`KINGDOMS-002` is an alliance-owned planning workflow layered on the accepted `KINGDOMS-001` Kingdom/player/roster foundation. The accepted runtime includes explicit real-world completion and roster handoff while continuing to exclude inferred eligibility, transfer resources, automated transfer execution and public/cross-alliance transfer workflows.
 
 ## Ownership and tenancy
 
@@ -20,7 +19,7 @@ Sharing the same Kingdom or neutral player reference never grants another Allian
 
 ## Transfer plan lifecycle
 
-The lifecycle remains:
+The lifecycle is:
 
 ```text
 draft → open → locked → closed
@@ -50,7 +49,7 @@ Coordinator assignment is workflow responsibility only. It never grants `kingdom
 
 ## Readiness and blockers
 
-Readiness states remain:
+Readiness states are:
 
 - `not_started`;
 - `preparing`;
@@ -61,7 +60,7 @@ Readiness states remain:
 
 Readiness is manual workflow state, not eligibility, transfer execution, player value or an automatic prediction. Entering `blocked` requires an active blocker. `ready` and `confirmed` cannot coexist with active blockers. Resolving the final blocker never chooses the next readiness state.
 
-`confirmed` remains planning state. It does **not** change the roster. Slice D requires `confirmed` before completion so leadership must explicitly confirm planning readiness before separately confirming the real-world outcome.
+`confirmed` remains planning state. It does **not** change the roster. The completion contract requires `confirmed` before handoff so leadership must explicitly confirm planning readiness before separately confirming the real-world outcome.
 
 Readiness transitions remain append-oriented and actor-attributable. Blocker text/details remain management-private and never enter ordinary member payloads or durable audit/outbox metadata.
 
@@ -73,7 +72,7 @@ A completion contains:
 
 - Alliance, transfer-plan and participant scope;
 - participant direction at handoff;
-- resulting same-alliance roster entry;
+- resulting same-alliance roster entry where applicable;
 - completing actor when still retained; and
 - completion timestamp.
 
@@ -95,7 +94,7 @@ Incoming completion requires an explicit manager action after the player actuall
 
 If no existing roster result is selected, completion delegates to accepted `SaveRosterEntry` creation using the plan participant's observed identity and stable game-player identifier when available. The accepted roster action resolves the roster player under the Alliance's current/home Kingdom identity contract.
 
-If a manager explicitly selects an existing active/tracked same-alliance roster entry, stable game-player identifiers must agree when the participant has one. Existing roster name, game role, lifecycle state, joined date, manager notes and membership linkage are preserved; a participant membership may be added only when the existing roster entry does not already link another membership.
+If a manager explicitly selects an existing active/tracked same-alliance roster entry, stable game-player identifiers must agree when the participant has one. Existing roster name, game role, lifecycle state, joined date, source, manager notes and membership linkage are preserved; a participant membership may be added only when the existing roster entry does not already link another membership.
 
 The application never chooses an existing roster entry by display name alone.
 
@@ -135,11 +134,11 @@ Manager completion presentation may show completion actor and resulting roster e
 
 ## Audit and outbox
 
-Slice D adds internal `kingdoms.transfer_participant_completed` audit/outbox evidence containing scoped IDs, direction and resulting roster-entry ID. Delegated accepted roster actions continue to emit their existing roster audit/outbox evidence when they materially mutate roster state.
+The accepted runtime emits internal `kingdoms.transfer_participant_completed` audit/outbox evidence containing scoped IDs, direction and resulting roster-entry ID. Delegated accepted roster actions continue to emit their existing roster audit/outbox evidence when they materially mutate roster state.
 
 Private transfer notes/blocker text are not copied into completion event payloads.
 
-`kingdoms.*` remains excluded from generic external webhook fan-out. Slice D introduces no public API or webhook contract.
+`kingdoms.*` remains excluded from generic external webhook fan-out. `KINGDOMS-002` introduces no public API or webhook contract.
 
 ## Diagnostics
 
@@ -160,9 +159,11 @@ Structured diagnostics may identify safe IDs/state/invariant context but must no
 
 Participant queries eager-load completion with their normal bounded relation set. Manager reads additionally eager-load completion actor and resulting roster/player relationships. Rendering participant rows must not introduce per-participant completion queries.
 
-## Explicit Slice D non-capabilities
+Whole-increment acceptance includes a realistic-volume query gate with 150 participants and 20 transfer groups, readiness history, blockers and completion projections, with bounded SELECT-query count.
 
-Slice D does not implement:
+## Explicit non-capabilities
+
+Accepted transfer planning does not implement:
 
 - transfer passes/tickets/resources or eligibility rules;
 - inferred/automatic readiness or eligibility;
@@ -176,4 +177,4 @@ Slice D does not implement:
 - AI/punitive player scoring; or
 - public Kingdoms API/webhook contracts.
 
-`KINGDOMS-002` remains **In progress** until whole-increment hardening and acceptance / `K2-P6` passes.
+`KINGDOMS-002` is **Accepted** repository/product capability. Real production cutover remains separately **not yet approved**.
