@@ -52,19 +52,21 @@ type ImportRecord = {
 const props = defineProps<{
   alliance: { id: string; name: string; kingdom: string | null };
   schema: { version: string; headers: string[]; maxBytes: number; maxRows: number };
-  import: ImportRecord | null;
+  importRecord: ImportRecord | null;
 }>();
 
 const uploadForm = useForm<{ file: File | null }>({ file: null });
-const resolutionDrafts = reactive<Record<string, string>>({ ...(props.import?.resolutions ?? {}) });
+const resolutionDrafts = reactive<Record<string, string>>({
+  ...(props.importRecord?.resolutions ?? {}),
+});
 const commitForm = useForm<{ resolutions: Record<string, string> }>({ resolutions: {} });
 
 const unresolvedAmbiguous = computed(() => {
-  if (!props.import) {
+  if (!props.importRecord) {
     return 0;
   }
 
-  return props.import.rows.filter(
+  return props.importRecord.rows.filter(
     (row) => row.outcome === 'ambiguous' && !resolutionDrafts[String(row.row)],
   ).length;
 });
@@ -82,12 +84,14 @@ function preview(): void {
 }
 
 function commitImport(): void {
-  if (!props.import) {
+  if (!props.importRecord) {
     return;
   }
 
   commitForm.resolutions = { ...resolutionDrafts };
-  commitForm.post(`/alliance/roster/import/${props.import.id}/commit`, { preserveScroll: true });
+  commitForm.post(`/alliance/roster/import/${props.importRecord.id}/commit`, {
+    preserveScroll: true,
+  });
 }
 
 function formatBytes(bytes: number): string {
@@ -169,63 +173,67 @@ function formatInteger(value: string): string {
 
       <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
         <h2 class="text-xl font-semibold">Required columns</h2>
-        <code class="mt-3 block overflow-x-auto rounded-lg bg-slate-950 p-3 text-xs text-slate-300">
+        <code
+          class="mt-3 block overflow-x-auto rounded-lg bg-slate-950 p-3 text-xs text-slate-300"
+        >
           {{ schema.headers.join(',') }}
         </code>
         <ul class="mt-4 space-y-2 text-sm text-slate-400">
           <li><strong class="text-slate-200">name, power, state</strong> are required.</li>
           <li>state is <code>active</code>, <code>tracked</code>, or <code>left</code>.</li>
           <li>joined_at uses <code>YYYY-MM-DD</code>.</li>
-          <li>captured_at is optional; when present it must be an ISO-8601 timestamp with timezone.</li>
+          <li>
+            captured_at is optional; when present it must be an ISO-8601 timestamp with timezone.
+          </li>
           <li>Blank captured_at values use the deterministic time stored in this preview.</li>
           <li>A repeated stable game ID inside one file is rejected.</li>
         </ul>
       </div>
     </section>
 
-    <template v-if="import">
+    <template v-if="importRecord">
       <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 class="text-xl font-semibold">Preview: {{ import.filename }}</h2>
-            <p class="mt-1 text-xs text-slate-500">SHA-256 {{ import.checksum }}</p>
+            <h2 class="text-xl font-semibold">Preview: {{ importRecord.filename }}</h2>
+            <p class="mt-1 text-xs text-slate-500">SHA-256 {{ importRecord.checksum }}</p>
           </div>
           <p class="rounded-full border border-slate-700 px-3 py-1 text-sm capitalize">
-            {{ import.status }}
+            {{ importRecord.status }}
           </p>
         </div>
 
         <dl class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <div class="rounded-xl bg-slate-950/60 p-4">
             <dt class="text-xs text-slate-500">Rows</dt>
-            <dd class="mt-1 text-2xl font-bold">{{ import.rowCount }}</dd>
+            <dd class="mt-1 text-2xl font-bold">{{ importRecord.rowCount }}</dd>
           </div>
           <div class="rounded-xl bg-slate-950/60 p-4">
             <dt class="text-xs text-slate-500">Creates</dt>
-            <dd class="mt-1 text-2xl font-bold">{{ import.createCount }}</dd>
+            <dd class="mt-1 text-2xl font-bold">{{ importRecord.createCount }}</dd>
           </div>
           <div class="rounded-xl bg-slate-950/60 p-4">
             <dt class="text-xs text-slate-500">Updates</dt>
-            <dd class="mt-1 text-2xl font-bold">{{ import.updateCount }}</dd>
+            <dd class="mt-1 text-2xl font-bold">{{ importRecord.updateCount }}</dd>
           </div>
           <div class="rounded-xl bg-slate-950/60 p-4">
             <dt class="text-xs text-slate-500">Ambiguous</dt>
-            <dd class="mt-1 text-2xl font-bold">{{ import.ambiguousCount }}</dd>
+            <dd class="mt-1 text-2xl font-bold">{{ importRecord.ambiguousCount }}</dd>
           </div>
           <div class="rounded-xl bg-slate-950/60 p-4">
             <dt class="text-xs text-slate-500">Rejected</dt>
-            <dd class="mt-1 text-2xl font-bold">{{ import.rejectedCount }}</dd>
+            <dd class="mt-1 text-2xl font-bold">{{ importRecord.rejectedCount }}</dd>
           </div>
         </dl>
 
         <div
-          v-if="import.status === 'committed' && import.committedSummary"
+          v-if="importRecord.status === 'committed' && importRecord.committedSummary"
           class="mt-5 rounded-xl border border-emerald-900/70 bg-emerald-950/30 p-4 text-sm text-emerald-200"
         >
-          Committed {{ import.committedSummary.rows_committed }} rows:
-          {{ import.committedSummary.roster_entries_created }} roster creates,
-          {{ import.committedSummary.roster_entries_updated }} roster updates, and
-          {{ import.committedSummary.snapshots_created }} new append-only snapshots.
+          Committed {{ importRecord.committedSummary.rows_committed }} rows:
+          {{ importRecord.committedSummary.roster_entries_created }} roster creates,
+          {{ importRecord.committedSummary.roster_entries_updated }} roster updates, and
+          {{ importRecord.committedSummary.snapshots_created }} new append-only snapshots.
         </div>
 
         <div class="mt-6 overflow-x-auto rounded-xl border border-slate-800">
@@ -241,7 +249,7 @@ function formatInteger(value: string): string {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800">
-              <tr v-for="row in import.rows" :key="row.row">
+              <tr v-for="row in importRecord.rows" :key="row.row">
                 <td class="px-4 py-4 text-slate-400">{{ row.row }}</td>
                 <td class="px-4 py-4">
                   <span class="font-semibold">{{ row.data.name }}</span>
@@ -260,7 +268,7 @@ function formatInteger(value: string): string {
                     v-else-if="row.outcome === 'ambiguous'"
                     v-model="resolutionDrafts[String(row.row)]"
                     class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                    :disabled="import.status === 'committed'"
+                    :disabled="importRecord.status === 'committed'"
                   >
                     <option value="">Choose a resolution</option>
                     <option value="create">Create a new game-player identity</option>
@@ -283,8 +291,8 @@ function formatInteger(value: string): string {
           </table>
         </div>
 
-        <div v-if="import.status !== 'committed'" class="mt-5">
-          <p v-if="import.rejectedCount" class="text-sm text-rose-300">
+        <div v-if="importRecord.status !== 'committed'" class="mt-5">
+          <p v-if="importRecord.rejectedCount" class="text-sm text-rose-300">
             This batch cannot be committed while any row is rejected. Correct the CSV and upload it
             again.
           </p>
@@ -294,7 +302,7 @@ function formatInteger(value: string): string {
           <button
             class="mt-3 rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
             :disabled="
-              commitForm.processing || import.rejectedCount > 0 || unresolvedAmbiguous > 0
+              commitForm.processing || importRecord.rejectedCount > 0 || unresolvedAmbiguous > 0
             "
             type="button"
             @click="commitImport"
