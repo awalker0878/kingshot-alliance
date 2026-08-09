@@ -24,6 +24,7 @@ final class TransferParticipantQuery
                 'destinationKingdom:id,number',
                 'group.coordinator.user:id,name,email',
                 'group.destinationKingdom:id,number',
+                'completion:id,transfer_participant_id,roster_entry_id,completed_at',
             ]);
 
         if ($includeWithdrawn === false) {
@@ -33,6 +34,8 @@ final class TransferParticipantQuery
                 'blockers.createdBy:id,name',
                 'blockers.resolvedBy:id,name',
                 'readinessTransitions.actor:id,name',
+                'completion.completedBy:id,name',
+                'completion.rosterEntry.player:id,kingdom_id,game_player_id,current_name',
             ]);
         }
 
