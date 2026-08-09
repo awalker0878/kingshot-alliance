@@ -3,7 +3,7 @@
 [← Security documentation](README.md)
 
 **Scope:** `KINGDOMS-001` whole-increment hardening / `K1-P6`  
-**Status:** Acceptance candidate pending final protected validation
+**Status:** Accepted repository security evidence
 
 This review closes the security boundary across the complete Kingdoms roster-intelligence increment. It supplements the slice reviews for the [Kingdom foundation](kingdoms-foundation-security-review.md), [roster](kingdoms-roster-security-review.md), [snapshots](kingdoms-snapshot-security-review.md), [intelligence](kingdoms-intelligence-security-review.md), and [CSV migration](kingdoms-csv-security-review.md).
 
@@ -84,7 +84,7 @@ Manager comparison detail is alphabetical and diagnostic. The implementation doe
 
 `KINGDOMS-001` does **not** approve a public roster/snapshot/intelligence API or an external Kingdoms webhook schema.
 
-The read-only `/api/v1` contract remains limited to alliance, events and contributions. `K1-P6` also closes an inherited generic-webhook fan-out hazard: `alliance.kingdom_updated` and all `kingdoms.*` outbox events are explicitly excluded from external webhook delivery, including wildcard subscriptions. The events remain durable internal outbox evidence and can be exposed later only through an explicitly approved integration-contract change.
+The read-only `/api/v1` contract remains limited to alliance, events and contributions. `K1-P6` closes an inherited generic-webhook fan-out hazard: `alliance.kingdom_updated` and all `kingdoms.*` outbox events are explicitly excluded from external webhook delivery, including wildcard subscriptions. The events remain durable internal outbox evidence and can be exposed later only through an explicitly approved integration-contract change.
 
 This distinction is important because the generic webhook subsystem otherwise treats published tenant outbox events as eligible for wildcard subscriptions. Acceptance tests guard both the API route surface and the webhook exclusion.
 
@@ -110,19 +110,6 @@ Those capabilities require separate product/security review before implementatio
 
 ## Acceptance verification
 
-The final `K1-P6` protected head must prove:
+The `K1-P6` protected implementation head `7f743507b70865692290f517cd2de494ec54abae` passed the whole-workflow, authorization/tenant, identity/idempotency, CSV/export, internal-webhook, rollback, realistic-volume query, accessibility, Dependency Review, CodeQL, staging/recovery and image-scan gates recorded in the [KINGDOMS-001 exit report](../product/kingdoms-roster-intelligence-exit-report.md).
 
-- whole-workflow success from first-class Kingdom through roster, snapshots, CSV and intelligence;
-- member/manager authorization and password-confirmation boundaries;
-- same-Kingdom cross-tenant isolation;
-- object-ID fail-closed behavior;
-- identity ambiguity and idempotency controls;
-- CSV validation/formula safety/private-field gating;
-- internal-only Kingdoms webhook behavior;
-- migration rollback/reapply;
-- realistic-volume batched intelligence queries;
-- accessibility source guards and frontend lint/type/build;
-- dependency review, CodeQL and image scan; and
-- no temporary diagnostics or unapproved follow-on runtime.
-
-This review becomes Accepted evidence only with the final protected-check record in the `KINGDOMS-001` exit report. Product acceptance remains separate from real production-cutover approval.
+This is accepted repository/product security evidence. It does not approve a real production cutover or substitute for external production infrastructure/operator controls.
