@@ -3,7 +3,7 @@
 [← Product and program documentation](README.md)
 
 **Scope:** `KINGDOMS-001` whole-increment hardening / `K1-P6`  
-**Status:** Acceptance candidate pending final protected validation
+**Status:** Accepted repository accessibility evidence
 
 This review covers the complete first-party Kingdoms workflow: Alliance→Kingdom settings, member roster, roster management, player snapshot history/recording, roster intelligence and controlled CSV migration.
 
@@ -60,10 +60,10 @@ The increment adds no autoplay, flashing content, timed animation, audio/video o
 - import status/error live-region semantics; and
 - semantic, horizontally scrollable tables.
 
-The protected frontend gate additionally runs formatting, lint, Vue/TypeScript checks and the production build for the exact acceptance head.
+The protected implementation gate at `7f743507b70865692290f517cd2de494ec54abae` passed frontend formatting, lint, Vue/TypeScript checks and the production build together with the complete repository test suite. Exact evidence is recorded in the [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md).
 
 ## Manual release QA boundary
 
-Repository acceptance can verify source semantics and the protected frontend build, but it does not truthfully prove every browser/assistive-technology combination. Release QA should still smoke-test keyboard-only navigation, 200% zoom/reflow, screen-reader landmark/heading/form navigation and validation announcements on the Kingdom settings, roster-management, snapshot and CSV surfaces.
+Repository acceptance verifies source semantics and the protected frontend build, but it does not truthfully prove every browser/assistive-technology combination. Release QA should still smoke-test keyboard-only navigation, 200% zoom/reflow, screen-reader landmark/heading/form navigation and validation announcements on the Kingdom settings, roster-management, snapshot and CSV surfaces.
 
 That recommended manual smoke test is not represented as completed evidence unless an accountable operator records it separately. It does not change the repository/product acceptance distinction from real production-cutover approval.
