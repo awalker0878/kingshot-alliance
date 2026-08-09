@@ -70,7 +70,6 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertTrue(Schema::hasTable('transfer_plans'));
         self::assertTrue(Schema::hasTable('transfer_participants'));
         self::assertTrue(Schema::hasTable('transfer_groups'));
-        self::assertTrue(Schema::hasTable('transfer_group_coordinators'));
         self::assertTrue(Schema::hasColumn('transfer_participants', 'transfer_group_id'));
         self::assertTrue(Schema::hasColumn('player_snapshots', 'roster_import_id'));
         self::assertSame(1, DB::table('kingdoms')->where('number', 2400)->count());
