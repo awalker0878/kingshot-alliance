@@ -40,4 +40,10 @@ final class Kingdom extends Model
     {
         return $this->hasMany(Alliance::class);
     }
+
+    /** @return HasMany<KingdomAlliance, $this> */
+    public function kingdomAlliances(): HasMany
+    {
+        return $this->hasMany(KingdomAlliance::class);
+    }
 }
