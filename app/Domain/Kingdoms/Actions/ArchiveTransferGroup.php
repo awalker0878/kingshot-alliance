@@ -59,15 +59,15 @@ final readonly class ArchiveTransferGroup
                 return $group->load(['coordinator.user:id,name,email', 'destinationKingdom:id,number']);
             }
 
-            $hasActiveParticipants = TransferParticipant::query()
+            $activeParticipant = TransferParticipant::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->where('transfer_plan_id', $plan->id)
                 ->where('transfer_group_id', $group->id)
                 ->whereNull('withdrawn_at')
                 ->lockForUpdate()
-                ->exists();
+                ->first();
 
-            if ($hasActiveParticipants) {
+            if ($activeParticipant instanceof TransferParticipant) {
                 throw ValidationException::withMessages([
                     'group' => 'Unassign or move active participants before archiving this transfer group.',
                 ]);
