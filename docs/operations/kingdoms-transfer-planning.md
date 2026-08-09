@@ -1,39 +1,70 @@
 # Kingdoms transfer planning operations
 
 **Increment:** `KINGDOMS-002`  
-**Current delivery:** Slice A / transfer-cycle foundation candidate
+**Current delivery:** Slice B / participant direction and destination candidate
 
 ## Runtime shape
 
-Slice A is synchronous request/response behavior using PostgreSQL plus the existing audit and transactional-outbox infrastructure. It adds no Kingdoms-specific scheduler, queue, crawler, bot, or external game integration.
+Transfer planning remains synchronous request/response behavior using PostgreSQL plus the existing audit and transactional-outbox infrastructure. Slice B adds no Kingdoms-specific scheduler, queue, crawler, bot, or external game integration.
 
-## Migration
+## Migrations
 
-`2026_08_09_090000_create_transfer_plans.php` creates the alliance-owned transfer-plan table and the partial unique index that permits at most one `open` cycle per Alliance.
+Apply in dependency order:
 
-Development/test rollback drops `transfer_plans`. No `KINGDOMS-001` roster/player/snapshot persistence is modified by Slice A.
+1. `2026_08_09_090000_create_transfer_plans.php`
+2. `2026_08_09_100000_create_transfer_participants.php`
+
+Rollback must reverse that order:
+
+1. drop `transfer_participants`;
+2. drop `transfer_plans`;
+3. only then roll back older Kingdoms tables if required.
+
+The participant table owns tenant workflow state and references accepted roster/player/membership/Kingdom records. No accepted `KINGDOMS-001` table is repurposed as transfer state.
 
 ## Operational diagnosis
 
-When plan creation fails, verify:
+For participant mutation failures, check:
 
-1. the request has an active Alliance context;
-2. the Alliance has an active first-class Kingdom;
-3. the actor has `kingdoms.manage`; and
-4. recent password confirmation is present for the mutation route.
+1. active Alliance context is correct;
+2. actor has `kingdoms.manage`;
+3. recent password confirmation is present;
+4. plan belongs to the active Alliance;
+5. plan is `draft` or `open`;
+6. `alliances.kingdom_id` still matches `transfer_plans.home_kingdom_id`;
+7. roster-bound players belong to this Alliance and are active/tracked;
+8. optional membership links belong to this Alliance and are active; and
+9. source/destination Kingdom values satisfy direction rules.
 
-When opening fails, additionally check whether another plan is already `open`.
+An outgoing participant with no destination is valid and should appear as undecided, not as a data failure.
 
-When open/lock/close reports Kingdom drift, compare `alliances.kingdom_id` with `transfer_plans.home_kingdom_id`. Slice A does not reconcile those references automatically. Managers may cancel the stale plan and deliberately create a new cycle under the current Kingdom.
+An incoming participant with no roster, membership, source Kingdom, or stable game ID is also valid. Do not create a neutral game identity from display name alone.
+
+## Identity diagnosis
+
+If an incoming stable ID is supplied with a source Kingdom, the neutral identity is resolved under that source Kingdom. A stable ID without a source Kingdom remains plan-scoped.
+
+If an update attempts to change a known roster identity, known source, known stable game ID, or resolved neutral player, the workflow fails closed and requires withdraw + recreate.
+
+Destination changes never move a `KingdomPlayer` between Kingdom records.
 
 ## Audit/outbox evidence
 
-Material state changes should produce matching `audit_events` and `outbox_messages` entries using the `kingdoms.transfer_plan_*` event family. Idempotent retry of an already-completed transition should not increase either count.
+Material changes should produce matching `audit_events` and `outbox_messages` entries using:
 
-`kingdoms.*` remains excluded from external webhook delivery. Seeing a transfer event in the internal outbox does not mean it is an external integration contract.
+- `kingdoms.transfer_participant_created`;
+- `kingdoms.transfer_participant_updated`;
+- `kingdoms.transfer_participant_withdrawn`; and
+- the existing `kingdoms.transfer_plan_*` lifecycle events.
 
-## Rollback and recovery
+Private manager notes must not appear in event metadata.
 
-Before rollback, confirm no downstream Slice B+ migration depends on `transfer_plans`. Slice A rollback is safe only before dependent transfer-planning slices are applied.
+`kingdoms.*` remains excluded from external webhook delivery.
 
-A home-Kingdom drifted plan should normally be cancelled rather than altered in place; immutable captured home context is intentional evidence of which Kingdom the plan was created for.
+## Recovery
+
+Withdrawal is the reversible workflow exit for an incorrect participant row. It preserves history and permits a corrected replacement row.
+
+For home-Kingdom drift, do not rewrite the plan's captured home context. Cancel the stale plan and create a deliberate replacement under the Alliance's current Kingdom.
+
+No Slice B operation automatically changes roster state or performs transfer completion; roster handoff remains deferred to Slice D.

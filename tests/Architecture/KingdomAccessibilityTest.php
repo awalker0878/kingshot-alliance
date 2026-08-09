@@ -55,7 +55,7 @@ final class KingdomAccessibilityTest extends TestCase
         self::assertStringContainsString('role="alert"', $import);
     }
 
-    public function test_roster_history_intelligence_import_and_transfer_tables_keep_narrow_viewport_overflow(): void
+    public function test_roster_and_transfer_tables_keep_narrow_viewport_overflow(): void
     {
         $root = dirname(__DIR__, 2).'/resources/js/pages/Alliance/';
 
@@ -64,6 +64,7 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterHistory.vue',
             'RosterIntelligence.vue',
             'RosterImport.vue',
+            'TransferPlans.vue',
             'TransferPlansManage.vue',
         ] as $page) {
             $source = file_get_contents($root.$page);
