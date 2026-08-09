@@ -152,6 +152,7 @@ final class TransferReadinessController extends Controller
                 ? null
                 : (string) $participant->destinationKingdom->number,
             'withdrawnAt' => $participant->withdrawn_at?->toIso8601String(),
+            'completedAt' => $participant->completion?->completed_at->toIso8601String(),
             'blockers' => $participant->blockers
                 ->sortByDesc(static fn (TransferBlocker $blocker): string => $blocker->created_at?->toIso8601String() ?? '')
                 ->values()
