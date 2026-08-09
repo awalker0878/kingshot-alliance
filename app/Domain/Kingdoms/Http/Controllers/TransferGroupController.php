@@ -9,9 +9,11 @@ use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\ArchiveTransferGroup;
 use App\Domain\Kingdoms\Actions\AssignTransferParticipantGroup;
 use App\Domain\Kingdoms\Actions\SaveTransferGroup;
+use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 final class TransferGroupController extends Controller
 {
@@ -93,15 +95,36 @@ final class TransferGroupController extends Controller
         return back()->with('status', 'transfer-participant-group-updated');
     }
 
-    /** @return array{name: string, coordinator_membership_ids: array<int, string>} */
+    /**
+     * @return array{
+     *   name: string,
+     *   direction: TransferDirection,
+     *   destination_kingdom?: int|null,
+     *   coordinator_membership_id?: string|null,
+     *   manager_notes?: string|null
+     * }
+     */
     private function validatedGroup(Request $request): array
     {
-        /** @var array{name: string, coordinator_membership_ids: array<int, string>} $validated */
+        /** @var array{
+         *   name: string,
+         *   direction: string,
+         *   destination_kingdom?: int|null,
+         *   coordinator_membership_id?: string|null,
+         *   manager_notes?: string|null
+         * } $validated
+         */
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:160'],
-            'coordinator_membership_ids' => ['required', 'array', 'max:50'],
-            'coordinator_membership_ids.*' => ['required', 'string', 'ulid'],
+            'direction' => ['required', Rule::in([
+                TransferDirection::Incoming->value,
+                TransferDirection::Outgoing->value,
+            ])],
+            'destination_kingdom' => ['nullable', 'integer', 'min:1'],
+            'coordinator_membership_id' => ['nullable', 'string', 'ulid'],
+            'manager_notes' => ['nullable', 'string', 'max:5000'],
         ]);
+        $validated['direction'] = TransferDirection::from($validated['direction']);
 
         return $validated;
     }
