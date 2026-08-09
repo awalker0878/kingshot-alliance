@@ -74,16 +74,21 @@ function formatDate(value: string): string {
 function recordObservation(): void {
   if (!props.tracking.id) return;
 
-  recordForm.post(`/alliance/kingdom-alliances/${props.tracking.id}/observations`, {
-    preserveScroll: true,
-    onSuccess: () => {
-      recordForm.power = '';
-      recordForm.member_count = '';
-      recordForm.captured_at = localDateTimeNow();
-      recordForm.corrects_observation_id = '';
-      recordForm.correction_reason = '';
-    },
-  });
+  recordForm
+    .transform((data) => ({
+      ...data,
+      captured_at: new Date(data.captured_at).toISOString(),
+    }))
+    .post(`/alliance/kingdom-alliances/${props.tracking.id}/observations`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        recordForm.power = '';
+        recordForm.member_count = '';
+        recordForm.captured_at = localDateTimeNow();
+        recordForm.corrects_observation_id = '';
+        recordForm.correction_reason = '';
+      },
+    });
 }
 
 function beginCorrection(observation: Observation): void {
@@ -158,7 +163,9 @@ function invalidateObservation(): void {
       <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
         <p class="text-xs font-semibold tracking-wide text-slate-400 uppercase">Freshness</p>
         <p class="mt-2 text-xl font-semibold">{{ freshness }}</p>
-        <p class="mt-1 text-xs text-slate-500">Current means captured within {{ freshDays }} days.</p>
+        <p class="mt-1 text-xs text-slate-500">
+          Current means captured within {{ freshDays }} days.
+        </p>
       </div>
       <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
         <p class="text-xs font-semibold tracking-wide text-slate-400 uppercase">Latest power</p>
@@ -174,10 +181,7 @@ function invalidateObservation(): void {
       </div>
     </section>
 
-    <section
-      v-if="canManage"
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
-    >
+    <section v-if="canManage" class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 class="text-xl font-semibold">
