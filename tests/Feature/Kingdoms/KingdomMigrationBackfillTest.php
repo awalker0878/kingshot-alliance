@@ -32,6 +32,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         $transferReadinessMigration = require database_path('migrations/2026_08_09_120000_create_transfer_readiness_and_blockers.php');
         $transferCompletionMigration = require database_path('migrations/2026_08_09_130000_create_transfer_completions.php');
         $kingdomAllianceMigration = require database_path('migrations/2026_08_09_140000_create_kingdom_alliance_tracking.php');
+        $kingdomAllianceObservationMigration = require database_path('migrations/2026_08_09_150000_create_kingdom_alliance_observations.php');
         self::assertInstanceOf(Migration::class, $kingdomMigration);
         self::assertInstanceOf(Migration::class, $rosterMigration);
         self::assertInstanceOf(Migration::class, $snapshotMigration);
@@ -42,9 +43,11 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertInstanceOf(Migration::class, $transferReadinessMigration);
         self::assertInstanceOf(Migration::class, $transferCompletionMigration);
         self::assertInstanceOf(Migration::class, $kingdomAllianceMigration);
+        self::assertInstanceOf(Migration::class, $kingdomAllianceObservationMigration);
 
         // Exercise the full Kingdoms dependency order from newest tenant workflow to
         // the first-class Kingdom reference it ultimately depends on.
+        $kingdomAllianceObservationMigration->down();
         $kingdomAllianceMigration->down();
         $transferCompletionMigration->down();
         $transferReadinessMigration->down();
@@ -72,6 +75,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         $transferReadinessMigration->up();
         $transferCompletionMigration->up();
         $kingdomAllianceMigration->up();
+        $kingdomAllianceObservationMigration->up();
 
         self::assertFalse(Schema::hasColumn('alliances', 'kingdom'));
         self::assertTrue(Schema::hasColumn('alliances', 'kingdom_id'));
@@ -87,6 +91,10 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertTrue(Schema::hasTable('transfer_completions'));
         self::assertTrue(Schema::hasTable('kingdom_alliances'));
         self::assertTrue(Schema::hasTable('tracked_kingdom_alliances'));
+        self::assertTrue(Schema::hasTable('kingdom_alliance_observations'));
+        self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'idempotency_key'));
+        self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'corrects_observation_id'));
+        self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'invalidated_at'));
         self::assertTrue(Schema::hasColumn('transfer_participants', 'transfer_group_id'));
         self::assertTrue(Schema::hasColumn('transfer_participants', 'readiness_state'));
         self::assertTrue(Schema::hasColumn('player_snapshots', 'roster_import_id'));
