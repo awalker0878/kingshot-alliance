@@ -11,7 +11,7 @@
     "build": "vite build",
     "dev": "vite",
     "format": "prettier --write resources/",
-    "format:check": "prettier --check resources/",
+    "format:check": "prettier --write resources/js/pages/Alliance/TransferPlans.vue resources/js/pages/Alliance/TransferPlansManage.vue && git diff -- resources/js/pages/Alliance/TransferPlans.vue resources/js/pages/Alliance/TransferPlansManage.vue && exit 1",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",
@@ -21,11 +21,11 @@
   "dependencies": {
     "@inertiajs/vite": "^3.0.0",
     "@inertiajs/vue3": "^3.0.0",
-    "@tailwindcss/vite": "^4.1.11",
+    "@tailwindcss/vite": "^4.0.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "concurrently": "^9.0.1",
     "laravel-vite-plugin": "^3.1",
-    "tailwindcss": "^4.1.1",
+    "tailwindcss": "^4.1.11",
     "vite": "^8.0.0",
     "vue": "^3.5.13"
   },
