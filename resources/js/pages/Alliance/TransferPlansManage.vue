@@ -36,7 +36,9 @@ function transition(plan: Plan, action: 'open' | 'lock' | 'close' | 'cancel'): v
     return;
   }
 
-  transitionForm.post(`/alliance/transfers/${plan.id}/${action}`, { preserveScroll: true });
+  transitionForm.post(`/alliance/transfers/${plan.id}/${action}`, {
+    preserveScroll: true,
+  });
 }
 
 function stateLabel(state: string): string {
@@ -54,7 +56,10 @@ function canOpen(plan: Plan): boolean {
   <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 text-slate-100 lg:px-8">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <Link class="text-sm font-semibold text-cyan-300 hover:text-cyan-200" href="/alliance/transfers">
+        <Link
+          class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+          href="/alliance/transfers"
+        >
           ← Transfer planning
         </Link>
         <h1 class="mt-3 text-3xl font-bold">Manage transfer cycles</h1>
@@ -73,7 +78,8 @@ function canOpen(plan: Plan): boolean {
     <section class="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
       <h2 class="text-xl font-semibold">Create transfer cycle</h2>
       <p class="mt-2 text-sm text-slate-400">
-        New cycles begin in Draft and capture the alliance's current Kingdom as immutable planning context.
+        New cycles begin in Draft and capture the alliance's current Kingdom as immutable planning
+        context.
       </p>
 
       <form class="mt-6 grid gap-5 md:grid-cols-3" @submit.prevent="createPlan">
@@ -137,13 +143,21 @@ function canOpen(plan: Plan): boolean {
     <section class="mt-10">
       <h2 class="text-xl font-semibold">Transfer cycles</h2>
       <p class="mt-2 text-sm text-slate-400">
-        The normal lifecycle is Draft → Open → Locked → Closed. Draft, Open, or Locked cycles may be cancelled.
+        The normal lifecycle is Draft → Open → Locked → Closed. Draft, Open, or Locked cycles may be
+        cancelled.
       </p>
-      <p v-if="transitionForm.errors.plan" class="mt-3 text-sm text-rose-300" role="alert">
+      <p
+        v-if="transitionForm.errors.plan"
+        class="mt-3 text-sm text-rose-300"
+        role="alert"
+      >
         {{ transitionForm.errors.plan }}
       </p>
 
-      <div v-if="plans.length" class="mt-5 overflow-x-auto rounded-2xl border border-slate-800">
+      <div
+        v-if="plans.length"
+        class="mt-5 overflow-x-auto rounded-2xl border border-slate-800"
+      >
         <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
           <thead class="bg-slate-900/80 text-xs tracking-wide text-slate-400 uppercase">
             <tr>
@@ -204,7 +218,10 @@ function canOpen(plan: Plan): boolean {
         </table>
       </div>
 
-      <p v-else class="mt-5 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-400">
+      <p
+        v-else
+        class="mt-5 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-400"
+      >
         No transfer cycles have been created yet.
       </p>
     </section>
