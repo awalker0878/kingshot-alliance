@@ -264,22 +264,20 @@ final class TransferPlanController extends Controller
     {
         $row = [
             'name' => (string) $group->name,
-            'coordinators' => $group->coordinators
-                ->map(static fn (AllianceMembership $membership): array => [
-                    'name' => (string) $membership->user?->name,
-                ])
-                ->values()
-                ->all(),
+            'direction' => $group->direction->value,
+            'destinationKingdom' => $group->destinationKingdom === null
+                ? null
+                : (string) $group->destinationKingdom->number,
+            'coordinator' => $group->coordinator === null
+                ? null
+                : ['name' => (string) $group->coordinator->user?->name],
         ];
 
         if ($includePrivate) {
             $row['id'] = (string) $group->id;
-            $row['archivedAt'] = $group->archived_at?->toIso8601String();
-            $row['coordinatorMembershipIds'] = $group->coordinators
-                ->map(static fn (AllianceMembership $membership): string => (string) $membership->id)
-                ->sort()
-                ->values()
-                ->all();
+            $row['state'] = $group->state->value;
+            $row['coordinatorMembershipId'] = $group->coordinator_membership_id;
+            $row['managerNotes'] = $group->manager_notes;
         }
 
         return $row;
