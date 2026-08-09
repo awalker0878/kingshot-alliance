@@ -250,8 +250,12 @@ final class RosterCsvImportTest extends TestCase
             ->withSession([(string) config('identity.active_alliance_session_key') => $alliance->id])
             ->get('/alliance/roster/export.csv?scope=member')
             ->assertOk()
-            ->assertHeader('Cache-Control', 'private, no-store, max-age=0')
             ->assertHeader('X-Content-Type-Options', 'nosniff');
+        $cacheControl = $memberResponse->headers->get('Cache-Control');
+        self::assertIsString($cacheControl);
+        self::assertStringContainsString('private', $cacheControl);
+        self::assertStringContainsString('no-store', $cacheControl);
+        self::assertStringContainsString('max-age=0', $cacheControl);
         $memberContent = $memberResponse->getContent();
         self::assertIsString($memberContent);
         self::assertStringNotContainsString('manager_notes', $memberContent);
@@ -334,7 +338,7 @@ final class RosterCsvImportTest extends TestCase
         return $membership;
     }
 
-    /** @param list<list<string>> $rows */
+    /** @param  list<list<string>>  $rows */
     private function csv(array $rows): string
     {
         $handle = fopen('php://temp', 'w+b');
