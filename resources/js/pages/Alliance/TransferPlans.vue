@@ -90,6 +90,13 @@ function groupDestinationLabel(group: Group): string {
         </Link>
         <Link
           v-if="canManage"
+          class="rounded-lg border border-cyan-400 px-4 py-2 text-sm font-semibold text-cyan-200"
+          href="/alliance/transfers/readiness"
+        >
+          Readiness board
+        </Link>
+        <Link
+          v-if="canManage"
           class="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950"
           href="/alliance/transfers/manage"
         >
