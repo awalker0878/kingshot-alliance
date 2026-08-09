@@ -15,7 +15,7 @@
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",
-    "check": "npm run lint:check && prettier --write resources/js/pages/Alliance/TransferCompletionManage.vue && git diff -- resources/js/pages/Alliance/TransferCompletionManage.vue && exit 1",
+    "check": "npm run lint:check && npm run format:check && npm run types:check && npm run build",
     "audit": "npm audit --audit-level=high"
   },
   "dependencies": {
