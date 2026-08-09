@@ -21,6 +21,7 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterImport.vue',
             'KingdomAlliances.vue',
             'KingdomAlliancesManage.vue',
+            'KingdomAllianceHistory.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
@@ -45,6 +46,7 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterHistory.vue',
             'RosterImport.vue',
             'KingdomAlliancesManage.vue',
+            'KingdomAllianceHistory.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
             'TransferCompletionManage.vue',
@@ -60,6 +62,20 @@ final class KingdomAccessibilityTest extends TestCase
         self::assertStringContainsString('Resolution for CSV row', $import);
         self::assertStringContainsString('aria-live="polite"', $import);
         self::assertStringContainsString('role="alert"', $import);
+
+        $observationHistory = file_get_contents($root.'KingdomAllianceHistory.vue');
+        self::assertIsString($observationHistory);
+        foreach ([
+            'for="observation-name"',
+            'for="observation-tag"',
+            'for="observation-power"',
+            'for="observation-members"',
+            'for="observation-captured"',
+            'for="correction-reason"',
+            'for="invalidation-reason"',
+        ] as $label) {
+            self::assertStringContainsString($label, $observationHistory);
+        }
     }
 
     public function test_transfer_readiness_and_completion_controls_keep_programmatic_context(): void
@@ -92,6 +108,7 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterImport.vue',
             'KingdomAlliances.vue',
             'KingdomAlliancesManage.vue',
+            'KingdomAllianceHistory.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
         ] as $page) {
