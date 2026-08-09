@@ -30,6 +30,7 @@ type Participant = {
   destinationKingdom: string | null;
   membership: { name: string } | null;
   group: Group | null;
+  completedAt: string | null;
 };
 
 defineProps<{
@@ -94,6 +95,13 @@ function groupDestinationLabel(group: Group): string {
           href="/alliance/transfers/readiness"
         >
           Readiness board
+        </Link>
+        <Link
+          v-if="canManage"
+          class="rounded-lg border border-emerald-400 px-4 py-2 text-sm font-semibold text-emerald-200"
+          href="/alliance/transfers/completion"
+        >
+          Completion
         </Link>
         <Link
           v-if="canManage"
@@ -165,7 +173,8 @@ function groupDestinationLabel(group: Group): string {
       <h2 class="text-xl font-semibold">Planned participants</h2>
       <p class="mt-2 text-sm text-slate-400">
         Direction, destination, group, and readiness are manually maintained by alliance leadership.
-        Readiness is a planning status, not inferred eligibility.
+        Confirmed readiness is still planning state; the outcome becomes completed only after an
+        explicit manager roster handoff.
       </p>
 
       <div
@@ -178,6 +187,7 @@ function groupDestinationLabel(group: Group): string {
               <th class="px-4 py-3" scope="col">Player</th>
               <th class="px-4 py-3" scope="col">Direction</th>
               <th class="px-4 py-3" scope="col">Readiness</th>
+              <th class="px-4 py-3" scope="col">Outcome</th>
               <th class="px-4 py-3" scope="col">Source</th>
               <th class="px-4 py-3" scope="col">Destination</th>
               <th class="px-4 py-3" scope="col">Group</th>
@@ -194,6 +204,13 @@ function groupDestinationLabel(group: Group): string {
               </td>
               <td class="px-4 py-4">{{ directionLabel(participant.direction) }}</td>
               <td class="px-4 py-4">{{ stateLabel(participant.readiness) }}</td>
+              <td class="px-4 py-4">
+                <template v-if="participant.completedAt">
+                  <span class="font-semibold">Completed</span>
+                  <span class="block text-xs text-slate-500">{{ participant.completedAt }}</span>
+                </template>
+                <span v-else>Planning</span>
+              </td>
               <td class="px-4 py-4">{{ participant.sourceKingdom ?? 'Unknown' }}</td>
               <td class="px-4 py-4">{{ destinationLabel(participant) }}</td>
               <td class="px-4 py-4">
