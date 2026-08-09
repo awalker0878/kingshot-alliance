@@ -3,8 +3,9 @@
 [← Domain documentation](README.md)
 
 **Increment:** [`KINGDOMS-001` — Kingdoms roster intelligence](../product/kingdoms-roster-intelligence-increment.md)  
-**Current state:** Complete implementation under `K1-P6` acceptance validation  
-**Implementation sequence:** [KINGDOMS-001 implementation plan](../product/kingdoms-roster-intelligence-implementation-plan.md)
+**Current state:** Accepted  
+**Implementation sequence:** [KINGDOMS-001 implementation plan](../product/kingdoms-roster-intelligence-implementation-plan.md)  
+**Acceptance evidence:** [KINGDOMS-001 exit report](../product/kingdoms-roster-intelligence-exit-report.md)
 
 `Kingdoms` owns Kingshot game-world reference identity plus alliance-owned roster observations, history, controlled spreadsheet migration and derived roster intelligence. This guide is the top-level domain contract; detailed workflow contracts remain in [Kingdoms roster](kingdoms-roster.md), [player snapshots](kingdoms-snapshots.md), [roster intelligence](kingdoms-intelligence.md), and [controlled CSV migration](kingdoms-csv-migration.md).
 
