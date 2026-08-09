@@ -259,11 +259,13 @@ final class KingdomAllianceObservationTest extends TestCase
         $session = $this->confirmedSession($alliance->id);
         $tracking = $this->track($owner, $alliance, $session, 'Protected Observation', 'protected-observation-6207');
 
-        $this->actingAs($owner)->withSession([(string) config('identity.active_alliance_session_key') => $alliance->id])
-            ->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
-                'observed_name' => 'Protected Observation',
-                'captured_at' => now()->toIso8601String(),
-            ])->assertRedirect(route('password.confirm'));
+        $this->actingAs($owner)->withSession([
+            (string) config('identity.active_alliance_session_key') => $alliance->id,
+            'auth.password_confirmed_at' => 0,
+        ])->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
+            'observed_name' => 'Protected Observation',
+            'captured_at' => now()->toIso8601String(),
+        ])->assertRedirect(route('password.confirm'));
 
         self::assertSame(0, KingdomAllianceObservation::query()->count());
     }
