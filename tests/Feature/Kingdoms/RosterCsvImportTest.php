@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Audit\Models\AuditEvent;
 use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
@@ -130,7 +131,7 @@ final class RosterCsvImportTest extends TestCase
                 'resolutions' => ['2' => (string) $entry->id],
             ])->assertRedirect();
         $this->assertDatabaseCount('player_snapshots', 1);
-        self::assertSame(1, \App\Domain\Audit\Models\AuditEvent::query()
+        self::assertSame(1, AuditEvent::query()
             ->where('event', 'kingdoms.roster_import_committed')->count());
 
         $this->withSession($session)->post('/alliance/roster/import/preview', [
@@ -251,7 +252,7 @@ final class RosterCsvImportTest extends TestCase
             ->assertOk()
             ->assertHeader('Cache-Control', 'private, no-store, max-age=0')
             ->assertHeader('X-Content-Type-Options', 'nosniff');
-        $memberContent = $memberResponse->streamedContent() ?: $memberResponse->getContent();
+        $memberContent = $memberResponse->getContent();
         self::assertIsString($memberContent);
         self::assertStringNotContainsString('manager_notes', $memberContent);
         self::assertStringNotContainsString('@SUM(1,1)', $memberContent);
@@ -265,7 +266,7 @@ final class RosterCsvImportTest extends TestCase
             ->withSession([(string) config('identity.active_alliance_session_key') => $alliance->id])
             ->get('/alliance/roster/export.csv?scope=management')
             ->assertOk();
-        $managerContent = $managerResponse->streamedContent() ?: $managerResponse->getContent();
+        $managerContent = $managerResponse->getContent();
         self::assertIsString($managerContent);
         self::assertStringContainsString('manager_notes', $managerContent);
         self::assertStringContainsString("'@SUM(1,1)", $managerContent);
@@ -309,7 +310,10 @@ final class RosterCsvImportTest extends TestCase
         $this->from('/alliance/roster/import')
             ->withSession($session)
             ->post('/alliance/roster/import/preview', [
-                'file' => UploadedFile::fake()->createWithContent('too-large.csv', str_repeat('x', RosterCsvParser::MAX_BYTES + 1)),
+                'file' => UploadedFile::fake()->createWithContent(
+                    'too-large.csv',
+                    str_repeat('x', RosterCsvParser::MAX_BYTES + 1),
+                ),
             ])->assertSessionHasErrors('file');
     }
 
