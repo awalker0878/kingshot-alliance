@@ -305,7 +305,12 @@ function isRosterBound(direction: string): boolean {
         <template v-if="participantForm.direction === 'incoming'">
           <div>
             <label for="participant-name">Incoming player name</label>
-            <input id="participant-name" v-model="participantForm.name" maxlength="160" type="text" />
+            <input
+              id="participant-name"
+              v-model="participantForm.name"
+              maxlength="160"
+              type="text"
+            />
           </div>
           <div>
             <label for="participant-game-id">Game player ID</label>
