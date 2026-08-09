@@ -17,19 +17,12 @@ final class ResolveTransferKingdomPlayer
             return null;
         }
 
-        $name = trim($name);
-        $player = KingdomPlayer::query()->firstOrCreate(
+        return KingdomPlayer::query()->firstOrCreate(
             [
                 'kingdom_id' => $sourceKingdom->id,
                 'game_player_id' => $gamePlayerId,
             ],
-            ['current_name' => $name],
+            ['current_name' => trim($name)],
         );
-
-        if ($player->current_name !== $name) {
-            $player->forceFill(['current_name' => $name])->save();
-        }
-
-        return $player;
     }
 }
