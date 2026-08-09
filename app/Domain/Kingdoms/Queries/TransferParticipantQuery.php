@@ -24,7 +24,7 @@ final class TransferParticipantQuery
                 'destinationKingdom:id,number',
                 'group.coordinator.user:id,name,email',
                 'group.destinationKingdom:id,number',
-                'completion:id,transfer_participant_id,roster_entry_id,completed_at',
+                'completion:id,transfer_participant_id,roster_entry_id,completed_by_user_id,completed_at',
             ]);
 
         if ($includeWithdrawn === false) {
