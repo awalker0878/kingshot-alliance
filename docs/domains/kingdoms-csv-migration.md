@@ -2,7 +2,7 @@
 
 [← Domain documentation](README.md)
 
-**Status:** Slice D / `K1-P5` implementation candidate  
+**Status:** Slice D / `K1-P5` validated implementation candidate  
 **Scope:** `KINGDOMS-001` controlled roster migration only
 
 This guide describes the controlled CSV workflow for moving an alliance roster out of spreadsheets and into the Kingdoms roster/snapshot model. It is deliberately a bounded migration surface, not a generic game-data ingestion subsystem.
@@ -157,4 +157,4 @@ The Slice D acceptance suite covers:
 - formula-injection neutralization; and
 - 500-row / 1-MiB parser boundaries.
 
-The phase becomes a validated implementation candidate only after protected repository checks pass on its final head. `KINGDOMS-001` itself remains **In progress** until `K1-P6` completes whole-increment hardening and acceptance.
+Slice D has passed its protected implementation gate and is a validated implementation candidate. `KINGDOMS-001` itself remains **In progress** until `K1-P6` completes whole-increment hardening and acceptance.
