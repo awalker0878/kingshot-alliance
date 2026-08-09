@@ -88,10 +88,7 @@ jobs:
         run: php artisan migrate --force
 
       - name: Run PHP checks
-        run: |
-          ./vendor/bin/pint app/Domain/Kingdoms/Http/Controllers/RosterCsvController.php app/Domain/Kingdoms/Services/RosterCsvParser.php tests/Feature/Kingdoms/RosterCsvImportTest.php
-          git diff -- app/Domain/Kingdoms/Http/Controllers/RosterCsvController.php app/Domain/Kingdoms/Services/RosterCsvParser.php tests/Feature/Kingdoms/RosterCsvImportTest.php
-          composer check
+        run: composer check
 
   frontend:
     name: Frontend quality and build
@@ -116,11 +113,6 @@ jobs:
 
       - name: Check dependency advisories
         run: npm audit --audit-level=high
-
-      - name: Show Slice D formatter diff
-        run: |
-          npx prettier --write resources/js/pages/Alliance/RosterImport.vue
-          git diff -- resources/js/pages/Alliance/RosterImport.vue
 
       - name: Run frontend checks
         run: npm run check
