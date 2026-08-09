@@ -396,7 +396,10 @@ final class TransferCompletionTest extends TestCase
         $owner = User::factory()->create();
         $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
 
-        return [$owner, $alliance, $this->confirmedSession($alliance->id)];
+        return [$owner, $alliance, [
+            (string) config('identity.active_alliance_session_key') => $alliance->id,
+            'auth.password_confirmed_at' => time(),
+        ]];
     }
 
     private function plan(Alliance $alliance, User $owner, string $label): TransferPlan
