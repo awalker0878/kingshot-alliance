@@ -19,9 +19,11 @@ use Illuminate\Support\Carbon;
  * @property TransferBlockerState $state
  * @property string $summary
  * @property string|null $details
- * @property string|null $created_by_user_id
- * @property string|null $resolved_by_user_id
+ * @property int|null $created_by_user_id
+ * @property int|null $resolved_by_user_id
  * @property Carbon|null $resolved_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Alliance $alliance
  * @property-read TransferPlan $plan
  * @property-read TransferParticipant $participant
