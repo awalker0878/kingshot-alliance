@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
 use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
 use App\Domain\Kingdoms\Http\Controllers\RosterController;
@@ -41,6 +42,11 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/roster/{entry}/history', [PlayerSnapshotController::class, 'show'])
         ->name('alliance.roster.history');
 
+    Route::get('/alliance/kingdom-alliances', [KingdomAllianceController::class, 'index'])
+        ->name('alliance.kingdom-alliances.index');
+    Route::get('/alliance/kingdom-alliances/manage', [KingdomAllianceController::class, 'manage'])
+        ->name('alliance.kingdom-alliances.manage');
+
     Route::get('/alliance/transfers', [TransferPlanController::class, 'index'])
         ->name('alliance.transfers.index');
     Route::get('/alliance/transfers/manage', [TransferPlanController::class, 'manage'])
@@ -63,6 +69,13 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             ->name('alliance.roster.import.preview');
         Route::post('/alliance/roster/import/{import}/commit', [RosterCsvController::class, 'commit'])
             ->name('alliance.roster.import.commit');
+
+        Route::post('/alliance/kingdom-alliances', [KingdomAllianceController::class, 'store'])
+            ->name('alliance.kingdom-alliances.store');
+        Route::patch('/alliance/kingdom-alliances/{tracking}', [KingdomAllianceController::class, 'update'])
+            ->name('alliance.kingdom-alliances.update');
+        Route::post('/alliance/kingdom-alliances/{tracking}/archive', [KingdomAllianceController::class, 'archive'])
+            ->name('alliance.kingdom-alliances.archive');
 
         Route::post('/alliance/transfers', [TransferPlanController::class, 'store'])
             ->name('alliance.transfers.store');
