@@ -11,6 +11,11 @@ type Plan = {
   createdAt: string | null;
 };
 
+type Group = {
+  name: string;
+  coordinators: { name: string }[];
+};
+
 type Participant = {
   id: string;
   direction: 'staying' | 'outgoing' | 'incoming';
@@ -19,12 +24,14 @@ type Participant = {
   sourceKingdom: string | null;
   destinationKingdom: string | null;
   membership: { name: string } | null;
+  group: Group | null;
 };
 
 defineProps<{
   alliance: { id: string; name: string; kingdom: string | null };
   canManage: boolean;
   plan: Plan | null;
+  groups: Group[];
   participants: Participant[];
 }>();
 
@@ -43,6 +50,10 @@ function destinationLabel(participant: Participant): string {
   }
 
   return participant.destinationKingdom ?? '—';
+}
+
+function coordinatorLabel(group: Group): string {
+  return group.coordinators.map((coordinator) => coordinator.name).join(', ') || 'Unassigned';
 }
 </script>
 
@@ -109,9 +120,32 @@ function destinationLabel(participant: Participant): string {
     </section>
 
     <section v-if="plan" class="mt-10">
+      <h2 class="text-xl font-semibold">Transfer groups</h2>
+      <p class="mt-2 text-sm text-slate-400">
+        Groups organize transfer work. Coordinator assignment is responsibility only and does not
+        grant management permissions.
+      </p>
+
+      <div v-if="groups.length" class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <article
+          v-for="group in groups"
+          :key="group.name"
+          class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
+        >
+          <h3 class="font-semibold">{{ group.name }}</h3>
+          <p class="mt-2 text-sm text-slate-400">
+            Coordinators: {{ coordinatorLabel(group) }}
+          </p>
+        </article>
+      </div>
+      <p v-else class="mt-5 text-sm text-slate-400">No transfer groups have been created yet.</p>
+    </section>
+
+    <section v-if="plan" class="mt-10">
       <h2 class="text-xl font-semibold">Planned participants</h2>
       <p class="mt-2 text-sm text-slate-400">
-        Incoming, outgoing, and staying intent is manually maintained by alliance leadership.
+        Incoming, outgoing, staying, group, and destination intent is manually maintained by alliance
+        leadership.
       </p>
 
       <div
@@ -125,6 +159,7 @@ function destinationLabel(participant: Participant): string {
               <th class="px-4 py-3" scope="col">Direction</th>
               <th class="px-4 py-3" scope="col">Source</th>
               <th class="px-4 py-3" scope="col">Destination</th>
+              <th class="px-4 py-3" scope="col">Group</th>
               <th class="px-4 py-3" scope="col">Membership</th>
             </tr>
           </thead>
@@ -139,6 +174,15 @@ function destinationLabel(participant: Participant): string {
               <td class="px-4 py-4">{{ directionLabel(participant.direction) }}</td>
               <td class="px-4 py-4">{{ participant.sourceKingdom ?? 'Unknown' }}</td>
               <td class="px-4 py-4">{{ destinationLabel(participant) }}</td>
+              <td class="px-4 py-4">
+                <template v-if="participant.group">
+                  <span class="font-semibold">{{ participant.group.name }}</span>
+                  <span class="block text-xs text-slate-500">
+                    {{ coordinatorLabel(participant.group) }}
+                  </span>
+                </template>
+                <span v-else>Unassigned</span>
+              </td>
               <td class="px-4 py-4">{{ participant.membership?.name ?? 'Not linked' }}</td>
             </tr>
           </tbody>
