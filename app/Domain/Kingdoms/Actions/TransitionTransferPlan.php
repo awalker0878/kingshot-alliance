@@ -11,6 +11,7 @@ use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -91,6 +92,21 @@ final readonly class TransitionTransferPlan
                 if ($conflict) {
                     throw ValidationException::withMessages([
                         'plan' => 'This alliance already has an open transfer cycle.',
+                    ]);
+                }
+            }
+
+            if ($target === TransferPlanState::Closed) {
+                $incomplete = TransferParticipant::query()
+                    ->where('alliance_id', $currentAlliance->id)
+                    ->where('transfer_plan_id', $plan->id)
+                    ->whereNull('withdrawn_at')
+                    ->whereDoesntHave('completion')
+                    ->exists();
+
+                if ($incomplete) {
+                    throw ValidationException::withMessages([
+                        'plan' => 'Complete or withdraw every active transfer participant before closing this cycle.',
                     ]);
                 }
             }
