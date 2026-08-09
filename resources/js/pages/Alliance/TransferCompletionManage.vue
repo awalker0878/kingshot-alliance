@@ -80,9 +80,7 @@ function destinationLabel(participant: Participant): string {
 function eligibleRosterOptions(participant: Participant): RosterOption[] {
   if (participant.gamePlayerId === null) return props.rosterOptions;
 
-  return props.rosterOptions.filter(
-    (option) => option.gamePlayerId === participant.gamePlayerId,
-  );
+  return props.rosterOptions.filter((option) => option.gamePlayerId === participant.gamePlayerId);
 }
 
 function canComplete(participant: Participant): boolean {
@@ -188,9 +186,7 @@ function completeParticipant(participant: Participant): void {
               Stable game ID {{ participant.gamePlayerId }}
             </p>
           </div>
-          <span
-            class="rounded-full border border-slate-700 px-3 py-1 text-sm font-semibold"
-          >
+          <span class="rounded-full border border-slate-700 px-3 py-1 text-sm font-semibold">
             {{ participant.completion ? 'Completed' : 'Not completed' }}
           </span>
         </div>
