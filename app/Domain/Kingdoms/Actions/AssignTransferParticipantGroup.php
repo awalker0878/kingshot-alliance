@@ -9,6 +9,8 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Enums\TransferDirection;
+use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
@@ -71,7 +73,7 @@ final readonly class AssignTransferParticipantGroup
                 $group = TransferGroup::query()
                     ->where('alliance_id', $currentAlliance->id)
                     ->where('transfer_plan_id', $plan->id)
-                    ->whereNull('archived_at')
+                    ->where('state', TransferGroupState::Active->value)
                     ->lockForUpdate()
                     ->find($groupId);
 
@@ -80,13 +82,18 @@ final readonly class AssignTransferParticipantGroup
                         'transfer_group_id' => 'The selected transfer group must be active in this transfer cycle.',
                     ]);
                 }
+
+                $this->assertCompatible($participant, $group);
             }
 
             $oldGroupId = $participant->transfer_group_id;
             $newGroupId = $group === null ? null : (string) $group->id;
 
             if ($oldGroupId === $newGroupId) {
-                return $participant->load('group.coordinators.user:id,name,email');
+                return $participant->load([
+                    'group.coordinator.user:id,name,email',
+                    'group.destinationKingdom:id,number',
+                ]);
             }
 
             $participant->forceFill(['transfer_group_id' => $newGroupId])->save();
@@ -112,8 +119,34 @@ final readonly class AssignTransferParticipantGroup
                 $metadata,
             );
 
-            return $participant->refresh()->load('group.coordinators.user:id,name,email');
+            return $participant->refresh()->load([
+                'group.coordinator.user:id,name,email',
+                'group.destinationKingdom:id,number',
+            ]);
         });
+    }
+
+    private function assertCompatible(TransferParticipant $participant, TransferGroup $group): void
+    {
+        if ($participant->direction === TransferDirection::Staying) {
+            throw ValidationException::withMessages([
+                'transfer_group_id' => 'Staying participants cannot be assigned to moving transfer groups.',
+            ]);
+        }
+
+        if ($participant->direction !== $group->direction) {
+            throw ValidationException::withMessages([
+                'transfer_group_id' => 'The participant direction must match the transfer group direction.',
+            ]);
+        }
+
+        if ($group->direction === TransferDirection::Outgoing
+            && $group->destination_kingdom_id !== null
+            && $participant->destination_kingdom_id !== $group->destination_kingdom_id) {
+            throw ValidationException::withMessages([
+                'transfer_group_id' => 'The outgoing participant destination must match the transfer group destination.',
+            ]);
+        }
     }
 
     private function assertMutable(Alliance $alliance, TransferPlan $plan): void
