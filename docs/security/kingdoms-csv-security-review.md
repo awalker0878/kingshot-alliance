@@ -3,7 +3,7 @@
 [← Security documentation](README.md)
 
 **Scope:** `KINGDOMS-001` Slice D / `K1-P5` controlled CSV roster migration  
-**Status:** Implementation candidate pending final protected validation
+**Status:** Validated implementation candidate
 
 This review covers the new CSV upload/preview/confirmation/export boundary. It does not approve automated game-data ingestion, public roster integrations, transfer planning or cross-alliance intelligence.
 
@@ -170,9 +170,9 @@ Audit events record import/export identifiers, checksum/schema, row counts, scop
 
 Imported snapshots retain actor and import provenance under the existing snapshot privacy contract. Ordinary member snapshot/history payloads do not gain import-manager metadata through Slice D.
 
-## Verification evidence required for the Slice D gate
+## Verification evidence for the Slice D gate
 
-Repository validation must cover:
+Repository validation covers:
 
 - migration up/down ordering with snapshot import provenance;
 - strict parser/file/row boundaries;
@@ -187,4 +187,4 @@ Repository validation must cover:
 - frontend lint/format/types/build; and
 - the inherited container/staging/recovery/security scan.
 
-This review becomes validated-candidate evidence only when those protected checks are green on the final Slice D head. Whole-increment security acceptance remains part of `K1-P6`; this document does not approve a real production cutover.
+Those protected checks passed on the Slice D implementation head, so this review is validated-candidate evidence. Whole-increment security acceptance remains part of `K1-P6`; this document does not approve a real production cutover.
