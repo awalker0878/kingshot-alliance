@@ -2,11 +2,11 @@
 
 [← Kingdoms player snapshots](kingdoms-snapshots.md)
 
-**Status:** `KINGDOMS-001` Slice C2 / `K1-P4` implementation candidate  
-**Dependency:** validated Slice C1 snapshot candidate  
-**Approved scope:** [Kingdoms roster intelligence increment](../product/kingdoms-roster-intelligence-increment.md)
+**Status:** Accepted as part of `KINGDOMS-001`  
+**Scope:** [Kingdoms roster intelligence increment](../product/kingdoms-roster-intelligence-increment.md)  
+**Acceptance evidence:** [KINGDOMS-001 exit report](../product/kingdoms-roster-intelligence-exit-report.md)
 
-This guide defines the Slice C2 calculation and visibility contract. Intelligence is computed from alliance-owned roster state and recorded snapshots at read time. It does not introduce another persistence source for current power, a scheduled calculation job, member scoring, or CSV workflow.
+This guide defines the current calculation and visibility contract. Intelligence is computed from alliance-owned roster state and recorded snapshots at read time. It does not introduce another persistence source for current power, a scheduled calculation job, member scoring, or cross-alliance aggregation.
 
 ## Current-metric universe
 
@@ -20,13 +20,11 @@ For each active/tracked roster entry, the latest snapshot by capture time is the
 
 Current recorded-power aggregates include players with a latest snapshot even when that snapshot is stale. Staleness is surfaced separately so the dashboard does not silently discard recorded values or imply that old data is fresh.
 
-Players with no snapshot are **missing**, not zero, and are excluded from total/average/median calculations.
-
-A recorded power value of `0` remains a real numeric observation and participates in aggregates.
+Players with no snapshot are **missing**, not zero, and are excluded from total/average/median calculations. A recorded power value of `0` remains a real numeric observation and participates in aggregates.
 
 ### Exact arithmetic
 
-Individual snapshots use signed 64-bit integer power. Alliance totals and accumulated trend deltas can exceed one signed 64-bit value when many players are summed, so Slice C2 uses decimal-string arithmetic rather than floating-point conversion.
+Individual snapshots use signed 64-bit integer power. Alliance totals and accumulated trend deltas can exceed one signed 64-bit value when many players are summed, so the implementation uses decimal-string arithmetic rather than floating-point conversion.
 
 Dashboard power values and deltas remain decimal strings through the server/browser boundary. The browser formats those strings for display and does not coerce them to JavaScript `Number` values.
 
@@ -40,13 +38,13 @@ When no player has a snapshot, total, average and median are missing rather than
 
 ## Snapshot quality
 
-The Slice C1 freshness threshold remains authoritative:
+The accepted snapshot freshness threshold is:
 
 - **current** — latest snapshot captured within 30 days;
 - **stale** — history exists but the latest snapshot is older than 30 days;
 - **missing** — no snapshot exists.
 
-These counts cover active/tracked roster entries only.
+These counts cover active/tracked roster entries only. Manual and CSV snapshots participate in the same history/projection contract.
 
 ## Recent roster movement
 
@@ -67,7 +65,7 @@ The displayed percentage uses one decimal place. When there are no active/tracke
 
 ## Trend-window contract
 
-Slice C2 computes aggregate 7-day and 30-day power change without interpolation.
+The accepted implementation computes aggregate 7-day and 30-day power change without interpolation.
 
 For an N-day comparison:
 
@@ -101,14 +99,11 @@ UI and future consumers must not collapse these states.
 
 ## Visibility and authorization
 
-Aggregate roster intelligence uses ordinary authenticated roster visibility:
-
-- active authenticated Alliance context; and
-- `alliance.view`.
+Aggregate roster intelligence uses ordinary authenticated roster visibility: active authenticated Alliance context plus `alliance.view`.
 
 Individual comparison detail is management-only and requires `kingdoms.manage`.
 
-The member response does not contain the individual comparison rows. It also does not expose manager notes, membership emails/IDs, snapshot actor identity, or other management-only data.
+The member response does not contain individual comparison rows, manager notes, membership emails/IDs, snapshot actor identity or import-management metadata.
 
 The manager comparison table is deliberately alphabetical by player display name. It is not sorted by growth/decline, does not label winners/losers, and does not assign a score.
 
@@ -130,23 +125,25 @@ This view exists for data-quality and roster-management diagnosis. It must not b
 
 Power growth is a game observation and **not** a Contribution record.
 
-Slice C2 does not write Contribution data, award contribution credit, assign member scores, or feed disciplinary workflows from power change.
+The implementation does not write Contribution data, award contribution credit, assign member scores, or feed disciplinary workflows from power change. Any future cross-domain use requires an explicit supported contract rather than reading Kingdoms persistence internals.
 
-Any future cross-domain use requires an explicit supported contract rather than reading Kingdoms persistence internals.
+## Runtime, query and operational model
 
-## Runtime and operational model
+Intelligence is calculated synchronously when the dashboard is requested.
 
-Intelligence is currently calculated synchronously when the dashboard is requested.
+The accepted implementation introduces:
 
-Slice C2 introduces:
-
-- no new database table;
+- no intelligence database table;
 - no mutable aggregate/cache table;
 - no queue job;
 - no scheduler command; and
 - no configuration variable.
 
-Historical snapshots remain the calculation source of truth. If measured scale later requires cached projections, that must be designed as an explicit derived-data contract with invalidation/recovery semantics rather than silently changing this source-of-truth model.
+Historical snapshots remain the calculation source of truth. Latest/current and trend-baseline queries are batched under the active Alliance rather than executed one player at a time.
+
+The `K1-P6` performance regression seeds 150 tracked players with 450 snapshots and asserts the calculation remains within a fixed bounded SELECT-query budget. This protects query shape/N+1 behavior; it is not a production capacity benchmark.
+
+See [Kingdoms roster intelligence operations](../operations/kingdoms-roster-intelligence.md) for diagnostic and rollback guidance.
 
 ## Tenant isolation
 
@@ -159,16 +156,11 @@ All input records are selected under the active Alliance:
 
 Another alliance in the same Kingdom cannot affect or appear in the current alliance's totals, trends or manager detail.
 
-## Explicit deferrals
+## Related accepted contracts and boundaries
 
-Slice C2 does not implement:
+- [Kingdoms roster](kingdoms-roster.md)
+- [Kingdoms player snapshots](kingdoms-snapshots.md)
+- [Kingdoms controlled CSV migration](kingdoms-csv-migration.md)
+- [Whole-increment security review](../security/kingdoms-roster-intelligence-security-review.md)
 
-- CSV import/export (`K1-P5`);
-- import-driven snapshot provenance;
-- automatic ranking, scoring, disciplinary recommendations or contribution scoring;
-- public roster/intelligence API or webhook exposure;
-- cross-alliance or kingdom-wide aggregate intelligence;
-- transfer planning or diplomacy/NAP workflows; or
-- automated game-data ingestion.
-
-Those capabilities require their own approved phase/increment contracts.
+Automatic ranking/scoring, disciplinary recommendations, contribution scoring, public Kingdoms API/webhook exposure, cross-alliance/kingdom-wide intelligence, transfer/diplomacy workflows and automated game-data ingestion remain outside `KINGDOMS-001`.
