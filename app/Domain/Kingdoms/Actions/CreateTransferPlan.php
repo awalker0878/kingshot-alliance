@@ -28,7 +28,7 @@ final readonly class CreateTransferPlan
     ) {}
 
     /**
-     * @param array{label: string, starts_on?: string|null, ends_on?: string|null} $attributes
+     * @param  array{label: string, starts_on?: string|null, ends_on?: string|null}  $attributes
      */
     public function handle(Alliance $alliance, User $actor, array $attributes): TransferPlan
     {
