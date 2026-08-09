@@ -44,7 +44,7 @@ A domain does not require a separate Markdown file merely because it has runtime
 - A guide describes behavior owned by its domain; it should not create an alternate architecture.
 - Cross-domain collaboration should reference intentional public actions, queries, services, value objects, or events rather than another domain's persistence internals.
 - Global platform/foundation concerns may be referenced where necessary, but domain-specific persistence remains owned by the domain that defines it.
-- Historical phase ownership and approved product-increment scope belong in `../product/`; threat and abuse analysis belongs in `../security/`; operational procedures belongs in `../operations/`.
+- Historical phase ownership and approved product-increment scope belong in `../product/`; threat and abuse analysis belongs in `../security/`; operational procedures belong in `../operations/`.
 - If a domain guide conflicts with the baseline implementation plan, an approved product-increment scope, or an accepted ADR, update the guide or record the required scope/architecture decision rather than silently redefining the architecture here.
 
 ## Updating a domain guide
