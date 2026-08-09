@@ -2,12 +2,13 @@
 
 [← Domain documentation](README.md)
 
-**Status:** Slice D / `K1-P5` validated implementation candidate  
-**Scope:** `KINGDOMS-001` controlled roster migration only
+**Status:** Accepted as part of `KINGDOMS-001`  
+**Scope:** `KINGDOMS-001` controlled roster migration only  
+**Acceptance evidence:** [KINGDOMS-001 exit report](../product/kingdoms-roster-intelligence-exit-report.md)
 
-This guide describes the controlled CSV workflow for moving an alliance roster out of spreadsheets and into the Kingdoms roster/snapshot model. It is deliberately a bounded migration surface, not a generic game-data ingestion subsystem.
+This guide describes the accepted controlled CSV workflow for moving an alliance roster out of spreadsheets and into the Kingdoms roster/snapshot model. It is deliberately a bounded migration surface, not a generic game-data ingestion subsystem.
 
-Code and tests remain authoritative for exact runtime behavior. The approved scope is [`KINGDOMS-001`](../product/kingdoms-roster-intelligence-increment.md), with sequencing in the [implementation plan](../product/kingdoms-roster-intelligence-implementation-plan.md).
+Code and tests remain authoritative for exact runtime behavior. The governing scope is [`KINGDOMS-001`](../product/kingdoms-roster-intelligence-increment.md), with sequencing in the [implementation plan](../product/kingdoms-roster-intelligence-implementation-plan.md).
 
 ## Authorization and assurance
 
@@ -20,7 +21,7 @@ Code and tests remain authoritative for exact runtime behavior. The approved sco
 
 ## CSV schema
 
-The only accepted import contract in Slice D is `kingdoms-roster.v1` with this exact header order:
+The accepted import contract is `kingdoms-roster.v1` with this exact header order:
 
 ```text
 game_player_id,name,power,progression_level,alliance_tag,game_role,state,joined_at,captured_at
@@ -112,7 +113,7 @@ A successful confirmation stores a summary with committed row count, roster crea
 
 ## Export contract
 
-Slice D exposes a current active/tracked roster CSV export using the same public columns as `kingdoms-roster.v1`.
+The accepted workflow exposes a current active/tracked roster CSV export using the same public columns as `kingdoms-roster.v1`.
 
 The export projects each roster profile's latest recorded snapshot. No snapshot means snapshot-derived fields are blank; missing data is not converted to zero.
 
@@ -125,25 +126,29 @@ Export responses are marked private/no-store and `nosniff`.
 
 Every string cell is sanitized against spreadsheet formula execution. Cells beginning with `=`, `+`, `-`, `@`, tab, carriage return or line feed are prefixed with an apostrophe before CSV encoding. Quoting a dangerous formula-shaped value is not considered sufficient protection by itself.
 
-## What Slice D does not implement
+## Internal events and external boundary
 
-Slice D does not introduce:
+CSV preview/confirmation is a first-party tenant workflow. A committed import creates audit/outbox evidence, but `kingdoms.*` outbox events remain internal to `KINGDOMS-001` and are excluded from generic external webhook fan-out. No public roster/import API or webhook schema is accepted by this increment.
+
+## Explicit boundaries
+
+The accepted CSV workflow does not introduce:
 
 - background or recurring imports;
 - OCR/screenshot parsing;
 - browser automation or scraping;
 - undocumented Kingshot APIs or bots;
-- public roster API endpoints;
-- roster webhook contracts;
-- cross-alliance roster exchange;
+- public Kingdoms roster/import API endpoints;
+- Kingdoms webhook contracts;
+- cross-alliance roster exchange/ranking;
 - transfer planning or diplomacy/NAP intelligence; or
 - automatic player deduplication by name.
 
-Those boundaries remain outside `K1-P5`; follow-on capabilities require their own approved product increment.
+Those capabilities require their own approved product/integration increments.
 
 ## Verification
 
-The Slice D acceptance suite covers:
+The accepted Slice D and `K1-P6` suites cover:
 
 - create/update/ambiguous/rejected preview classification;
 - preview-without-persistence;
@@ -154,7 +159,8 @@ The Slice D acceptance suite covers:
 - CSV provenance and batch audit/outbox evidence;
 - tenant and permission isolation;
 - management-field export gating;
-- formula-injection neutralization; and
-- 500-row / 1-MiB parser boundaries.
+- formula-injection neutralization;
+- 500-row / 1-MiB parser boundaries; and
+- the complete end-to-end Kingdoms acceptance workflow.
 
-Slice D has passed its protected implementation gate and is a validated implementation candidate. `KINGDOMS-001` itself remains **In progress** until `K1-P6` completes whole-increment hardening and acceptance.
+Exact protected evidence is recorded in the [KINGDOMS-001 exit report](../product/kingdoms-roster-intelligence-exit-report.md).
