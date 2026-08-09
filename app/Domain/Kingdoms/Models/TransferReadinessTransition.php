@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
  * @property string $transfer_participant_id
  * @property TransferReadinessState|null $from_state
  * @property TransferReadinessState $to_state
- * @property string|null $actor_user_id
+ * @property int|null $actor_user_id
  * @property Carbon $created_at
  * @property-read Alliance $alliance
  * @property-read TransferPlan $plan
