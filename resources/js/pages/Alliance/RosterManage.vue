@@ -133,6 +133,12 @@ function formatInteger(value: string): string {
           separately as append-only snapshots.
         </p>
       </div>
+      <Link
+        class="rounded-lg border border-cyan-800 px-4 py-2 font-semibold text-cyan-300 hover:border-cyan-600"
+        href="/alliance/roster/import"
+      >
+        CSV migration
+      </Link>
     </div>
 
     <section class="mt-8 grid gap-4 md:grid-cols-2" aria-label="Roster linkage gaps">
