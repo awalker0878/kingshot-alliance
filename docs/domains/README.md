@@ -20,7 +20,7 @@ This directory documents business/domain behavior and ownership. Runtime code re
 - [Kingdoms controlled CSV migration](kingdoms-csv-migration.md) — Slice D strict CSV schema, dry-run classification, identity resolution, atomic/idempotent confirmation, provenance, export safety, and tenant boundaries.
 - [Platform scale and administration](platform-scale-and-administration.md) — platform administration, tenant lifecycle, entitlements, API/webhook controls, retention, and operational scale.
 
-The Kingdom foundation from `KINGDOMS-001` Slice A / `K1-P1` is validated. Slice B / `K1-P2`, Slice C1 / `K1-P3`, and Slice C2 / `K1-P4` have passed their protected implementation gates and remain review candidates until accepted into the dependency stack. Slice D / `K1-P5` is an implementation candidate pending its protected gate. `K1-P6` remains the whole-increment hardening and acceptance phase.
+The Kingdom foundation from `KINGDOMS-001` Slice A / `K1-P1` is validated. Slice B / `K1-P2`, Slice C1 / `K1-P3`, Slice C2 / `K1-P4`, and Slice D / `K1-P5` have passed their protected implementation gates and remain review candidates until accepted into the dependency stack. `K1-P6` remains the whole-increment hardening and acceptance phase.
 
 ## Architecture evidence
 
@@ -35,7 +35,7 @@ The implementation plan defines these canonical ownership roots:
 
 `Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, and `Recruitment`.
 
-All canonical roots own runtime PHP. `Kingdoms` owns the validated first-class Kingdom foundation plus the validated roster, snapshot, and intelligence candidates and the Slice D CSV migration candidate on this branch. `K1-P6` acceptance and unapproved follow-on capabilities remain outside current accepted runtime state until their own gates are complete.
+All canonical roots own runtime PHP. `Kingdoms` owns the validated first-class Kingdom foundation plus the validated roster, snapshot, intelligence, and CSV migration candidates on this branch. `K1-P6` acceptance and unapproved follow-on capabilities remain outside current accepted runtime state until their own gates are complete.
 
 A domain does not require a separate Markdown file merely because it has runtime code. Add a domain guide when it clarifies a meaningful workflow, public contract, lifecycle, or cross-domain boundary that would otherwise be duplicated across implementation files.
 
