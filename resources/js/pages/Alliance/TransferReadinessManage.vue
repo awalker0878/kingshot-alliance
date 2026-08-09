@@ -61,10 +61,9 @@ const readinessStates: Readiness[] = [
 
 const filter = ref<'all' | Readiness>('all');
 const readinessDrafts = reactive(
-  Object.fromEntries(props.participants.map((participant) => [participant.id, participant.readiness])) as Record<
-    string,
-    Readiness
-  >,
+  Object.fromEntries(
+    props.participants.map((participant) => [participant.id, participant.readiness]),
+  ) as Record<string, Readiness>,
 );
 const blockerDrafts = reactive(
   Object.fromEntries(
@@ -94,7 +93,8 @@ function activeBlockers(participant: Participant): Blocker[] {
 }
 
 function allowedTransitions(participant: Participant): Readiness[] {
-  if (participant.readiness === 'withdrawn') return ['withdrawn'];
+  const current = participant.readiness;
+  if (current === 'withdrawn') return ['withdrawn'];
 
   const allowed: Record<Exclude<Readiness, 'withdrawn'>, Readiness[]> = {
     not_started: ['not_started', 'preparing', 'blocked'],
@@ -104,7 +104,7 @@ function allowedTransitions(participant: Participant): Readiness[] {
     confirmed: ['confirmed', 'ready', 'blocked'],
   };
 
-  return allowed[participant.readiness];
+  return allowed[current];
 }
 
 function saveReadiness(participant: Participant): void {
@@ -157,7 +157,8 @@ function withdrawParticipant(participant: Participant): void {
 
 function destinationLabel(participant: Participant): string {
   if (participant.direction === 'staying') return 'Staying';
-  if (participant.direction === 'outgoing' && participant.destinationKingdom === null) return 'Undecided';
+  if (participant.direction === 'outgoing' && participant.destinationKingdom === null)
+    return 'Undecided';
 
   return participant.destinationKingdom ?? '—';
 }
@@ -169,7 +170,10 @@ function destinationLabel(participant: Participant): string {
   <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 text-slate-100 lg:px-8">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <Link class="text-sm font-semibold text-cyan-300 hover:text-cyan-200" href="/alliance/transfers">
+        <Link
+          class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+          href="/alliance/transfers"
+        >
           ← Transfer planning
         </Link>
         <h1 class="mt-3 text-3xl font-bold">Transfer readiness</h1>
@@ -206,10 +210,12 @@ function destinationLabel(participant: Participant): string {
 
       <p class="mt-4 text-sm text-slate-300">
         Readiness is manually maintained. Resolving blockers never advances readiness automatically,
-        and Confirmed remains a planning state until an explicit roster handoff is implemented in a later slice.
+        and Confirmed remains a planning state until an explicit roster handoff is implemented in a
+        later slice.
       </p>
       <p v-if="!plan.mutable" class="mt-3 text-sm font-semibold text-amber-200">
-        This cycle is read-only. Readiness history remains visible, but transitions and blockers cannot change.
+        This cycle is read-only. Readiness history remains visible, but transitions and blockers
+        cannot change.
       </p>
     </section>
 
@@ -223,8 +229,9 @@ function destinationLabel(participant: Participant): string {
           <div>
             <h2 class="text-xl font-semibold">{{ participant.name }}</h2>
             <p class="mt-1 text-sm text-slate-400">
-              {{ directionLabel(participant.direction) }} · Destination {{ destinationLabel(participant) }} ·
-              Group {{ participant.groupName ?? 'Unassigned' }}
+              {{ directionLabel(participant.direction) }} · Destination
+              {{ destinationLabel(participant) }} · Group
+              {{ participant.groupName ?? 'Unassigned' }}
             </p>
           </div>
           <p class="rounded-full border border-slate-700 px-3 py-1 text-sm font-semibold">
@@ -245,13 +252,19 @@ function destinationLabel(participant: Participant): string {
                 :disabled="!plan.mutable"
                 class="mt-2 text-slate-950"
               >
-                <option v-for="state in allowedTransitions(participant)" :key="state" :value="state">
+                <option
+                  v-for="state in allowedTransitions(participant)"
+                  :key="state"
+                  :value="state"
+                >
                   {{ stateLabel(state) }}
                 </option>
               </select>
               <div class="mt-3 flex flex-wrap gap-3">
                 <button
-                  :disabled="!plan.mutable || readinessDrafts[participant.id] === participant.readiness"
+                  :disabled="
+                    !plan.mutable || readinessDrafts[participant.id] === participant.readiness
+                  "
                   type="button"
                   @click="saveReadiness(participant)"
                 >
@@ -266,10 +279,13 @@ function destinationLabel(participant: Participant): string {
                 </button>
               </div>
               <p v-if="participant.readiness === 'blocked'" class="mt-3 text-sm text-slate-400">
-                Resolve every active blocker before leaving Blocked. The next state is still chosen explicitly.
+                Resolve every active blocker before leaving Blocked. The next state is still chosen
+                explicitly.
               </p>
             </template>
-            <p v-else class="text-sm text-slate-400">Withdrawn participants are retained as history.</p>
+            <p v-else class="text-sm text-slate-400">
+              Withdrawn participants are retained as history.
+            </p>
           </fieldset>
 
           <fieldset class="rounded-xl border border-slate-800 p-4">
@@ -285,7 +301,10 @@ function destinationLabel(participant: Participant): string {
                 maxlength="255"
                 type="text"
               />
-              <label :for="`blocker-details-${participant.id}`" class="mt-3 block text-sm font-semibold">
+              <label
+                :for="`blocker-details-${participant.id}`"
+                class="mt-3 block text-sm font-semibold"
+              >
                 Private details
               </label>
               <textarea
@@ -307,14 +326,17 @@ function destinationLabel(participant: Participant): string {
                 Blocker text is management-only and is not copied into audit or outbox payloads.
               </p>
             </template>
-            <p v-else class="text-sm text-slate-400">No new blockers can be added after withdrawal.</p>
+            <p v-else class="text-sm text-slate-400">
+              No new blockers can be added after withdrawal.
+            </p>
           </fieldset>
         </div>
 
         <section class="mt-6">
           <h3 class="font-semibold">Blockers</h3>
           <p class="mt-1 text-sm text-slate-400">
-            {{ activeBlockers(participant).length }} active · {{ participant.blockers.length }} recorded
+            {{ activeBlockers(participant).length }} active ·
+            {{ participant.blockers.length }} recorded
           </p>
           <div v-if="participant.blockers.length" class="mt-3 grid gap-3">
             <article
@@ -325,7 +347,7 @@ function destinationLabel(participant: Participant): string {
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h4 class="font-semibold">{{ blocker.summary }}</h4>
-                  <p v-if="blocker.details" class="mt-2 whitespace-pre-wrap text-sm text-slate-300">
+                  <p v-if="blocker.details" class="mt-2 text-sm whitespace-pre-wrap text-slate-300">
                     {{ blocker.details }}
                   </p>
                   <p class="mt-2 text-xs text-slate-500">
@@ -363,7 +385,8 @@ function destinationLabel(participant: Participant): string {
               :key="`${entry.changedAt}-${index}`"
               class="rounded-xl border border-slate-800 p-3 text-sm"
             >
-              {{ entry.from === null ? 'Initial' : stateLabel(entry.from) }} → {{ stateLabel(entry.to) }}
+              {{ entry.from === null ? 'Initial' : stateLabel(entry.from) }} →
+              {{ stateLabel(entry.to) }}
               <span class="text-slate-500">
                 · {{ entry.actor?.name ?? 'Unknown actor' }} · {{ entry.changedAt }}
               </span>
