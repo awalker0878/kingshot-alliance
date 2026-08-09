@@ -2,8 +2,8 @@
 
 [← Operations documentation](README.md)
 
-**Scope:** `KINGDOMS-001` accepted-runtime operations contract candidate  
-**Status:** Acceptance candidate pending final protected validation
+**Scope:** `KINGDOMS-001` accepted runtime operations contract  
+**Status:** Accepted
 
 ## Runtime shape
 
@@ -81,9 +81,13 @@ The Kingdoms migration series must be reversed in dependency order:
 3. roster tables/permission dependency as applicable; and
 4. first-class Kingdom migration.
 
-The existing migration round-trip test exercises that dependency order and then reapplies the full series, including reconstruction/backfill of the legacy pre-increment Alliance kingdom representation for development/test rollback verification.
+The migration round-trip test exercises that dependency order and then reapplies the full series, including reconstruction/backfill of the legacy pre-increment Alliance kingdom representation for development/test rollback verification.
 
 Production rollback should prefer the normal immutable-image/database backup procedures in the deployment runbook. A destructive schema rollback after real user data exists requires an explicit operator decision and backup evidence; the repository migration test does not substitute for a production data-recovery plan.
+
+## Accepted validation evidence
+
+The accepted implementation SHA `7f743507b70865692290f517cd2de494ec54abae` passed the full protected gate, including the realistic-volume query regression, migrations, immutable-image staging, backup/restore and image scan. See the [KINGDOMS-001 exit report](../product/kingdoms-roster-intelligence-exit-report.md) for run IDs and measured counts.
 
 ## Security and privacy
 
