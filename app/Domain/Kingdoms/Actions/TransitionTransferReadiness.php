@@ -82,6 +82,7 @@ final readonly class TransitionTransferReadiness
                 ->where('transfer_participant_id', $participant->id)
                 ->where('state', TransferBlockerState::Active->value)
                 ->lockForUpdate()
+                ->get(['id'])
                 ->count();
 
             if ($target === TransferReadinessState::Blocked && $activeBlockerCount === 0) {
