@@ -1,12 +1,24 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 
+type LatestObservation = {
+  observedName: string;
+  observedTag: string | null;
+  power: string | null;
+  memberCount: number | null;
+  capturedAt: string;
+  source: string;
+};
+
 type TrackingSummary = {
   name: string;
   tag: string | null;
   state: string;
   kingdom: string;
   contextCurrent: boolean;
+  historyUrl: string;
+  freshness: 'current' | 'stale' | 'missing';
+  latestObservation: LatestObservation | null;
 };
 
 defineProps<{
@@ -18,6 +30,13 @@ defineProps<{
   canManage: boolean;
   tracking: TrackingSummary[];
 }>();
+
+function formatCapturedAt(value: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
 </script>
 
 <template>
@@ -31,9 +50,9 @@ defineProps<{
         </p>
         <h1 class="mt-2 text-3xl font-bold">Tracked game-side alliances</h1>
         <p class="mt-2 max-w-3xl text-sm text-slate-400">
-          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. This
-          view contains neutral alliance identity and tracking state only; observations and
-          diplomacy are not part of this slice.
+          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. Latest
+          accepted observations are factual history; freshness does not imply strength, threat, or
+          diplomacy state.
         </p>
       </div>
       <div class="flex flex-wrap gap-3">
@@ -58,7 +77,8 @@ defineProps<{
         <div>
           <h2 class="text-xl font-semibold">Alliance tracking</h2>
           <p class="mt-1 text-sm text-slate-400">
-            Names and tags are display data, not stable identity keys.
+            Current means the latest accepted observation was captured within 30 days. Missing is
+            different from zero.
           </p>
         </div>
         <p class="text-sm text-slate-400">{{ tracking.length }} record(s)</p>
@@ -69,15 +89,37 @@ defineProps<{
           <thead class="text-xs tracking-wide text-slate-400 uppercase">
             <tr>
               <th class="px-3 py-3 font-semibold">Alliance</th>
-              <th class="px-3 py-3 font-semibold">Tag</th>
+              <th class="px-3 py-3 font-semibold">Latest facts</th>
+              <th class="px-3 py-3 font-semibold">Freshness</th>
               <th class="px-3 py-3 font-semibold">Kingdom context</th>
-              <th class="px-3 py-3 font-semibold">Tracking state</th>
+              <th class="px-3 py-3 font-semibold">Tracking</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800">
             <tr v-for="(entry, index) in tracking" :key="`${entry.name}-${entry.kingdom}-${index}`">
-              <td class="px-3 py-4 font-medium text-slate-100">{{ entry.name }}</td>
-              <td class="px-3 py-4 text-slate-300">{{ entry.tag ?? '—' }}</td>
+              <td class="px-3 py-4">
+                <Link class="font-medium text-cyan-300 hover:underline" :href="entry.historyUrl">
+                  {{ entry.name }}
+                </Link>
+                <p class="mt-1 text-xs text-slate-400">{{ entry.tag ?? 'No tag recorded' }}</p>
+              </td>
+              <td class="px-3 py-4 text-slate-300">
+                <template v-if="entry.latestObservation">
+                  <p>
+                    Power {{ entry.latestObservation.power ?? 'missing' }} · Members
+                    {{ entry.latestObservation.memberCount ?? 'missing' }}
+                  </p>
+                  <p class="mt-1 text-xs text-slate-500">
+                    {{ formatCapturedAt(entry.latestObservation.capturedAt) }}
+                  </p>
+                </template>
+                <span v-else> No accepted observation </span>
+              </td>
+              <td class="px-3 py-4 text-slate-300">
+                <span class="rounded-full border border-slate-700 px-2 py-1 text-xs font-semibold">
+                  {{ entry.freshness }}
+                </span>
+              </td>
               <td class="px-3 py-4 text-slate-300">
                 Kingdom {{ entry.kingdom }}
                 <span
