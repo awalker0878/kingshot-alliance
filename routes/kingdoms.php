@@ -44,6 +44,8 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         ->name('alliance.transfers.index');
     Route::get('/alliance/transfers/manage', [TransferPlanController::class, 'manage'])
         ->name('alliance.transfers.manage');
+    Route::get('/alliance/transfers/readiness', [TransferReadinessController::class, 'index'])
+        ->name('alliance.transfers.readiness');
 
     Route::middleware('password.confirm')->group(function (): void {
         Route::post('/alliance/roster', [RosterController::class, 'store'])
