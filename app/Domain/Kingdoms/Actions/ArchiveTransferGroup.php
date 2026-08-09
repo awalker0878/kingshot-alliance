@@ -9,6 +9,7 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
@@ -54,8 +55,8 @@ final readonly class ArchiveTransferGroup
                 ->lockForUpdate()
                 ->findOrFail($groupId);
 
-            if ($group->archived_at !== null) {
-                return $group;
+            if ($group->state === TransferGroupState::Archived) {
+                return $group->load(['coordinator.user:id,name,email', 'destinationKingdom:id,number']);
             }
 
             $hasActiveParticipants = TransferParticipant::query()
@@ -63,6 +64,7 @@ final readonly class ArchiveTransferGroup
                 ->where('transfer_plan_id', $plan->id)
                 ->where('transfer_group_id', $group->id)
                 ->whereNull('withdrawn_at')
+                ->lockForUpdate()
                 ->exists();
 
             if ($hasActiveParticipants) {
@@ -71,11 +73,13 @@ final readonly class ArchiveTransferGroup
                 ]);
             }
 
-            $group->forceFill(['archived_at' => now()])->save();
+            $group->forceFill(['state' => TransferGroupState::Archived])->save();
 
             $metadata = [
                 'transfer_plan_id' => (string) $plan->id,
                 'transfer_group_id' => (string) $group->id,
+                'direction' => $group->direction->value,
+                'destination_kingdom_id' => $group->destination_kingdom_id,
             ];
 
             $this->audit->record(
@@ -92,7 +96,10 @@ final readonly class ArchiveTransferGroup
                 $metadata,
             );
 
-            return $group->refresh()->load('coordinators.user:id,name,email');
+            return $group->refresh()->load([
+                'coordinator.user:id,name,email',
+                'destinationKingdom:id,number',
+            ]);
         });
     }
 
