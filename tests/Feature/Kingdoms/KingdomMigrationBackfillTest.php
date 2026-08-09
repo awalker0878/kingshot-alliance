@@ -28,15 +28,18 @@ final class KingdomMigrationBackfillTest extends TestCase
         $importMigration = require database_path('migrations/2026_08_08_143000_create_kingdom_roster_imports.php');
         $transferPlanMigration = require database_path('migrations/2026_08_09_090000_create_transfer_plans.php');
         $transferParticipantMigration = require database_path('migrations/2026_08_09_100000_create_transfer_participants.php');
+        $transferGroupMigration = require database_path('migrations/2026_08_09_110000_create_transfer_groups.php');
         self::assertInstanceOf(Migration::class, $kingdomMigration);
         self::assertInstanceOf(Migration::class, $rosterMigration);
         self::assertInstanceOf(Migration::class, $snapshotMigration);
         self::assertInstanceOf(Migration::class, $importMigration);
         self::assertInstanceOf(Migration::class, $transferPlanMigration);
         self::assertInstanceOf(Migration::class, $transferParticipantMigration);
+        self::assertInstanceOf(Migration::class, $transferGroupMigration);
 
         // Exercise the full Kingdoms dependency order from newest tenant workflow to
         // the first-class Kingdom reference it ultimately depends on.
+        $transferGroupMigration->down();
         $transferParticipantMigration->down();
         $transferPlanMigration->down();
         $importMigration->down();
@@ -56,6 +59,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         $importMigration->up();
         $transferPlanMigration->up();
         $transferParticipantMigration->up();
+        $transferGroupMigration->up();
 
         self::assertFalse(Schema::hasColumn('alliances', 'kingdom'));
         self::assertTrue(Schema::hasColumn('alliances', 'kingdom_id'));
@@ -65,6 +69,9 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertTrue(Schema::hasTable('kingdom_roster_imports'));
         self::assertTrue(Schema::hasTable('transfer_plans'));
         self::assertTrue(Schema::hasTable('transfer_participants'));
+        self::assertTrue(Schema::hasTable('transfer_groups'));
+        self::assertTrue(Schema::hasTable('transfer_group_coordinators'));
+        self::assertTrue(Schema::hasColumn('transfer_participants', 'transfer_group_id'));
         self::assertTrue(Schema::hasColumn('player_snapshots', 'roster_import_id'));
         self::assertSame(1, DB::table('kingdoms')->where('number', 2400)->count());
 
