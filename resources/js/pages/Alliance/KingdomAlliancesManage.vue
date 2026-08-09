@@ -39,6 +39,10 @@ const editForm = useForm({
   manager_notes: '',
 });
 
+function trackingError(errors: object): string | undefined {
+  return (errors as Record<string, string | undefined>).tracking;
+}
+
 function createTracking(): void {
   createForm.post('/alliance/kingdom-alliances', {
     preserveScroll: true,
@@ -70,7 +74,9 @@ function saveEdit(): void {
 }
 
 function archiveTracking(entry: TrackingRow): void {
-  if (!window.confirm(`Archive tracking for ${entry.name}? Historical tracking remains available.`)) {
+  if (
+    !window.confirm(`Archive tracking for ${entry.name}? Historical tracking remains available.`)
+  ) {
     return;
   }
 
@@ -89,8 +95,9 @@ function archiveTracking(entry: TrackingRow): void {
         </p>
         <h1 class="mt-2 text-3xl font-bold">Manage tracked game-side alliances</h1>
         <p class="mt-2 max-w-3xl text-sm text-slate-400">
-          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}.
-          Stable game alliance ID is the only automatic identity key. Names and tags never auto-merge records.
+          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. Stable
+          game alliance ID is the only automatic identity key. Names and tags never auto-merge
+          records.
         </p>
       </div>
       <Link
@@ -104,7 +111,8 @@ function archiveTracking(entry: TrackingRow): void {
     <section class="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
       <h2 class="text-xl font-semibold">Start tracking</h2>
       <p class="mt-1 text-sm text-slate-400">
-        Without a stable game alliance ID, a new distinct neutral reference is created even if another record has the same name or tag.
+        Without a stable game alliance ID, a new distinct neutral reference is created even if
+        another record has the same name or tag.
       </p>
 
       <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="createTracking">
@@ -148,14 +156,18 @@ function archiveTracking(entry: TrackingRow): void {
             maxlength="100"
             type="text"
           />
-          <p class="mt-1 text-xs text-slate-500">Optional. Once assigned, it cannot be cleared or changed in place.</p>
+          <p class="mt-1 text-xs text-slate-500">
+            Optional. Once assigned, it cannot be cleared or changed in place.
+          </p>
           <p v-if="createForm.errors.game_alliance_id" class="mt-1 text-sm text-rose-300">
             {{ createForm.errors.game_alliance_id }}
           </p>
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="tracked-alliance-notes">Manager notes</label>
+          <label class="block text-sm font-medium" for="tracked-alliance-notes"
+            >Manager notes</label
+          >
           <textarea
             id="tracked-alliance-notes"
             v-model="createForm.manager_notes"
@@ -169,8 +181,8 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div class="md:col-span-2">
-          <p v-if="createForm.errors.tracking" class="mb-3 text-sm text-rose-300">
-            {{ createForm.errors.tracking }}
+          <p v-if="trackingError(createForm.errors)" class="mb-3 text-sm text-rose-300">
+            {{ trackingError(createForm.errors) }}
           </p>
           <button
             class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
@@ -187,7 +199,8 @@ function archiveTracking(entry: TrackingRow): void {
       <div>
         <h2 class="text-xl font-semibold">Tracking records</h2>
         <p class="mt-1 text-sm text-slate-400">
-          Historical Kingdom context is retained. Drifted records may be archived but cannot be edited.
+          Historical Kingdom context is retained. Drifted records may be archived but cannot be
+          edited.
         </p>
       </div>
 
@@ -243,7 +256,10 @@ function archiveTracking(entry: TrackingRow): void {
           </tbody>
         </table>
       </div>
-      <p v-else class="mt-6 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-400">
+      <p
+        v-else
+        class="mt-6 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-400"
+      >
         No tracking records yet.
       </p>
     </section>
@@ -254,12 +270,15 @@ function archiveTracking(entry: TrackingRow): void {
     >
       <h2 class="text-xl font-semibold">Edit tracked alliance</h2>
       <p class="mt-1 text-sm text-slate-400">
-        Assigning a stable ID is explicit. A conflicting stable ID fails closed rather than merging references.
+        Assigning a stable ID is explicit. A conflicting stable ID fails closed rather than merging
+        references.
       </p>
 
       <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="saveEdit">
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-name">Alliance name</label>
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-name"
+            >Alliance name</label
+          >
           <input
             id="edit-tracked-alliance-name"
             v-model="editForm.current_name"
@@ -274,7 +293,9 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-tag">Alliance tag</label>
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-tag"
+            >Alliance tag</label
+          >
           <input
             id="edit-tracked-alliance-tag"
             v-model="editForm.current_tag"
@@ -301,7 +322,9 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-notes">Manager notes</label>
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-notes"
+            >Manager notes</label
+          >
           <textarea
             id="edit-tracked-alliance-notes"
             v-model="editForm.manager_notes"
@@ -314,8 +337,8 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div class="flex flex-wrap gap-3 md:col-span-2">
-          <p v-if="editForm.errors.tracking" class="w-full text-sm text-rose-300">
-            {{ editForm.errors.tracking }}
+          <p v-if="trackingError(editForm.errors)" class="w-full text-sm text-rose-300">
+            {{ trackingError(editForm.errors) }}
           </p>
           <button
             class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
