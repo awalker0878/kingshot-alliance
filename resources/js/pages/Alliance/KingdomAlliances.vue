@@ -31,8 +31,9 @@ defineProps<{
         </p>
         <h1 class="mt-2 text-3xl font-bold">Tracked game-side alliances</h1>
         <p class="mt-2 max-w-3xl text-sm text-slate-400">
-          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}.
-          This view contains neutral alliance identity and tracking state only; observations and diplomacy are not part of this slice.
+          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. This
+          view contains neutral alliance identity and tracking state only; observations and
+          diplomacy are not part of this slice.
         </p>
       </div>
       <div class="flex flex-wrap gap-3">
@@ -92,7 +93,10 @@ defineProps<{
         </table>
       </div>
 
-      <p v-else class="mt-6 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-400">
+      <p
+        v-else
+        class="mt-6 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-400"
+      >
         No game-side alliances are tracked yet.
       </p>
     </section>
