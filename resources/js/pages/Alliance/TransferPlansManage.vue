@@ -183,9 +183,13 @@ function createGroup(): void {
 function saveGroup(group: Group): void {
   if (props.mutablePlan === null || group.state !== 'active') return;
 
-  router.patch(`/alliance/transfers/${props.mutablePlan.id}/groups/${group.id}`, groupDrafts[group.id], {
-    preserveScroll: true,
-  });
+  router.patch(
+    `/alliance/transfers/${props.mutablePlan.id}/groups/${group.id}`,
+    groupDrafts[group.id],
+    {
+      preserveScroll: true,
+    },
+  );
 }
 
 function archiveGroup(group: Group): void {
@@ -277,11 +281,19 @@ function compatibleGroups(participant: Participant): Group[] {
 
     <section>
       <h2>Create transfer cycle</h2>
-      <p>New cycles begin in Draft and capture the alliance's current Kingdom as planning context.</p>
+      <p>
+        New cycles begin in Draft and capture the alliance's current Kingdom as planning context.
+      </p>
       <form @submit.prevent="createPlan">
         <div>
           <label for="transfer-label">Cycle label</label>
-          <input id="transfer-label" v-model="createForm.label" maxlength="160" required type="text" />
+          <input
+            id="transfer-label"
+            v-model="createForm.label"
+            maxlength="160"
+            required
+            type="text"
+          />
           <p v-if="createForm.errors.label">{{ createForm.errors.label }}</p>
         </div>
         <div>
@@ -299,7 +311,10 @@ function compatibleGroups(participant: Participant): Group[] {
 
     <section>
       <h2>Transfer cycles</h2>
-      <p>The normal lifecycle is Draft → Open → Locked → Closed. Draft, Open, or Locked may be cancelled.</p>
+      <p>
+        The normal lifecycle is Draft → Open → Locked → Closed. Draft, Open, or Locked may be
+        cancelled.
+      </p>
       <p v-if="transitionForm.errors.plan" role="alert">{{ transitionForm.errors.plan }}</p>
       <div v-if="plans.length" class="overflow-x-auto">
         <table>
@@ -319,10 +334,35 @@ function compatibleGroups(participant: Participant): Group[] {
               <td>{{ plan.startsOn ?? '—' }} → {{ plan.endsOn ?? '—' }}</td>
               <td>{{ stateLabel(plan.state) }}</td>
               <td>
-                <button v-if="plan.state === 'draft'" :disabled="!canOpen(plan)" type="button" @click="transition(plan, 'open')">Open</button>
-                <button v-if="plan.state === 'open'" type="button" @click="transition(plan, 'lock')">Lock</button>
-                <button v-if="plan.state === 'locked'" type="button" @click="transition(plan, 'close')">Close</button>
-                <button v-if="['draft', 'open', 'locked'].includes(plan.state)" type="button" @click="transition(plan, 'cancel')">Cancel</button>
+                <button
+                  v-if="plan.state === 'draft'"
+                  :disabled="!canOpen(plan)"
+                  type="button"
+                  @click="transition(plan, 'open')"
+                >
+                  Open
+                </button>
+                <button
+                  v-if="plan.state === 'open'"
+                  type="button"
+                  @click="transition(plan, 'lock')"
+                >
+                  Lock
+                </button>
+                <button
+                  v-if="plan.state === 'locked'"
+                  type="button"
+                  @click="transition(plan, 'close')"
+                >
+                  Close
+                </button>
+                <button
+                  v-if="['draft', 'open', 'locked'].includes(plan.state)"
+                  type="button"
+                  @click="transition(plan, 'cancel')"
+                >
+                  Cancel
+                </button>
               </td>
             </tr>
           </tbody>
@@ -334,8 +374,8 @@ function compatibleGroups(participant: Participant): Group[] {
     <section v-if="mutablePlan">
       <h2>Transfer groups · {{ mutablePlan.label }}</h2>
       <p>
-        Groups coordinate incoming or outgoing players with compatible destinations. A coordinator is
-        workflow responsibility only and receives no additional permissions.
+        Groups coordinate incoming or outgoing players with compatible destinations. A coordinator
+        is workflow responsibility only and receives no additional permissions.
       </p>
 
       <form @submit.prevent="createGroup">
@@ -353,7 +393,12 @@ function compatibleGroups(participant: Participant): Group[] {
         </div>
         <div v-if="groupForm.direction === 'outgoing'">
           <label for="group-destination">Destination Kingdom</label>
-          <input id="group-destination" v-model="groupForm.destination_kingdom" inputmode="numeric" type="text" />
+          <input
+            id="group-destination"
+            v-model="groupForm.destination_kingdom"
+            inputmode="numeric"
+            type="text"
+          />
           <p>Leave blank while the outgoing destination is undecided.</p>
         </div>
         <p v-else>Incoming destination is fixed to Kingdom {{ mutablePlan.homeKingdom }}.</p>
@@ -391,35 +436,71 @@ function compatibleGroups(participant: Participant): Group[] {
             <tr v-for="group in groups" :key="group.id">
               <td>
                 <label :for="`group-name-${group.id}`">Name</label>
-                <input :id="`group-name-${group.id}`" v-model="groupDrafts[group.id].name" :disabled="group.state !== 'active'" maxlength="160" type="text" />
+                <input
+                  :id="`group-name-${group.id}`"
+                  v-model="groupDrafts[group.id].name"
+                  :disabled="group.state !== 'active'"
+                  maxlength="160"
+                  type="text"
+                />
               </td>
               <td>
                 <label :for="`group-direction-${group.id}`">Direction</label>
-                <select :id="`group-direction-${group.id}`" v-model="groupDrafts[group.id].direction" :disabled="group.state !== 'active'">
+                <select
+                  :id="`group-direction-${group.id}`"
+                  v-model="groupDrafts[group.id].direction"
+                  :disabled="group.state !== 'active'"
+                >
                   <option value="incoming">Incoming</option>
                   <option value="outgoing">Outgoing</option>
                 </select>
                 <template v-if="groupDrafts[group.id].direction === 'outgoing'">
                   <label :for="`group-destination-${group.id}`">Destination Kingdom</label>
-                  <input :id="`group-destination-${group.id}`" v-model="groupDrafts[group.id].destination_kingdom" :disabled="group.state !== 'active'" inputmode="numeric" type="text" />
+                  <input
+                    :id="`group-destination-${group.id}`"
+                    v-model="groupDrafts[group.id].destination_kingdom"
+                    :disabled="group.state !== 'active'"
+                    inputmode="numeric"
+                    type="text"
+                  />
                 </template>
                 <span v-else>Kingdom {{ mutablePlan.homeKingdom }}</span>
               </td>
               <td>
                 <label :for="`group-coordinator-${group.id}`">Coordinator</label>
-                <select :id="`group-coordinator-${group.id}`" v-model="groupDrafts[group.id].coordinator_membership_id" :disabled="group.state !== 'active'">
+                <select
+                  :id="`group-coordinator-${group.id}`"
+                  v-model="groupDrafts[group.id].coordinator_membership_id"
+                  :disabled="group.state !== 'active'"
+                >
                   <option value="">Unassigned</option>
-                  <option v-for="membership in memberships" :key="membership.id" :value="membership.id">{{ membership.name }}</option>
+                  <option
+                    v-for="membership in memberships"
+                    :key="membership.id"
+                    :value="membership.id"
+                  >
+                    {{ membership.name }}
+                  </option>
                 </select>
               </td>
               <td>
                 <label :for="`group-notes-${group.id}`">Manager notes</label>
-                <textarea :id="`group-notes-${group.id}`" v-model="groupDrafts[group.id].manager_notes" :disabled="group.state !== 'active'" maxlength="5000" rows="2" />
+                <textarea
+                  :id="`group-notes-${group.id}`"
+                  v-model="groupDrafts[group.id].manager_notes"
+                  :disabled="group.state !== 'active'"
+                  maxlength="5000"
+                  rows="2"
+                />
               </td>
               <td>{{ stateLabel(group.state) }}</td>
               <td>
-                <button v-if="group.state === 'active'" type="button" @click="saveGroup(group)">Save</button>
-                <button v-if="group.state === 'active'" type="button" @click="archiveGroup(group)">Archive</button>
+                <button v-if="group.state === 'active'" type="button" @click="saveGroup(group)">
+                  Save
+                </button>
+                <button v-if="group.state === 'active'" type="button" @click="archiveGroup(group)">
+                  Archive
+                </button>
               </td>
             </tr>
           </tbody>
@@ -430,7 +511,10 @@ function compatibleGroups(participant: Participant): Group[] {
 
     <section v-if="mutablePlan">
       <h2>Participants · {{ mutablePlan.label }}</h2>
-      <p>Draft and Open cycles may be edited. Incoming players may exist before roster or site membership.</p>
+      <p>
+        Draft and Open cycles may be edited. Incoming players may exist before roster or site
+        membership.
+      </p>
 
       <form @submit.prevent="createParticipant">
         <div>
@@ -445,42 +529,73 @@ function compatibleGroups(participant: Participant): Group[] {
           <label for="participant-roster">Roster player</label>
           <select id="participant-roster" v-model="participantForm.roster_entry_id" required>
             <option value="">Select roster player</option>
-            <option v-for="entry in rosterOptions" :key="entry.id" :value="entry.id">{{ entry.name }}</option>
+            <option v-for="entry in rosterOptions" :key="entry.id" :value="entry.id">
+              {{ entry.name }}
+            </option>
           </select>
         </div>
         <div v-if="participantForm.direction === 'outgoing'">
           <label for="participant-destination">Destination Kingdom</label>
-          <input id="participant-destination" v-model="participantForm.destination_kingdom" inputmode="numeric" type="text" />
+          <input
+            id="participant-destination"
+            v-model="participantForm.destination_kingdom"
+            inputmode="numeric"
+            type="text"
+          />
           <p>Leave blank while the destination is undecided.</p>
         </div>
         <template v-if="participantForm.direction === 'incoming'">
           <div>
             <label for="participant-name">Incoming player name</label>
-            <input id="participant-name" v-model="participantForm.name" maxlength="160" type="text" />
+            <input
+              id="participant-name"
+              v-model="participantForm.name"
+              maxlength="160"
+              type="text"
+            />
           </div>
           <div>
             <label for="participant-game-id">Game player ID</label>
-            <input id="participant-game-id" v-model="participantForm.game_player_id" maxlength="100" type="text" />
+            <input
+              id="participant-game-id"
+              v-model="participantForm.game_player_id"
+              maxlength="100"
+              type="text"
+            />
           </div>
           <div>
             <label for="participant-source">Source Kingdom</label>
-            <input id="participant-source" v-model="participantForm.source_kingdom" inputmode="numeric" type="text" />
+            <input
+              id="participant-source"
+              v-model="participantForm.source_kingdom"
+              inputmode="numeric"
+              type="text"
+            />
           </div>
           <div>
             <label for="participant-membership">Site membership</label>
             <select id="participant-membership" v-model="participantForm.membership_id">
               <option value="">Not linked</option>
-              <option v-for="membership in memberships" :key="membership.id" :value="membership.id">{{ membership.name }}</option>
+              <option v-for="membership in memberships" :key="membership.id" :value="membership.id">
+                {{ membership.name }}
+              </option>
             </select>
           </div>
         </template>
         <div>
           <label for="participant-notes">Manager notes</label>
-          <textarea id="participant-notes" v-model="participantForm.manager_notes" maxlength="5000" rows="3" />
+          <textarea
+            id="participant-notes"
+            v-model="participantForm.manager_notes"
+            maxlength="5000"
+            rows="3"
+          />
         </div>
         <button :disabled="participantForm.processing" type="submit">Add participant</button>
         <p v-if="participantError" role="alert">{{ participantError }}</p>
-        <p v-if="participantForm.hasErrors" role="alert">Correct the participant fields above and try again.</p>
+        <p v-if="participantForm.hasErrors" role="alert">
+          Correct the participant fields above and try again.
+        </p>
       </form>
 
       <div v-if="participants.length" class="overflow-x-auto">
@@ -501,26 +616,47 @@ function compatibleGroups(participant: Participant): Group[] {
                 <template v-if="participant.rosterEntryId">{{ participant.name }}</template>
                 <template v-else>
                   <label :for="`incoming-name-${participant.id}`">Incoming name</label>
-                  <input :id="`incoming-name-${participant.id}`" v-model="drafts[participant.id].name" maxlength="160" type="text" />
+                  <input
+                    :id="`incoming-name-${participant.id}`"
+                    v-model="drafts[participant.id].name"
+                    maxlength="160"
+                    type="text"
+                  />
                 </template>
                 <span v-if="participant.withdrawnAt"> Withdrawn</span>
               </td>
               <td>
                 <template v-if="participant.rosterEntryId">
                   <label :for="`direction-${participant.id}`">Direction</label>
-                  <select :id="`direction-${participant.id}`" v-model="drafts[participant.id].direction" :disabled="participant.withdrawnAt !== null">
+                  <select
+                    :id="`direction-${participant.id}`"
+                    v-model="drafts[participant.id].direction"
+                    :disabled="participant.withdrawnAt !== null"
+                  >
                     <option value="staying">Staying</option>
                     <option value="outgoing">Outgoing</option>
                   </select>
                   <template v-if="drafts[participant.id].direction === 'outgoing'">
                     <label :for="`destination-${participant.id}`">Destination Kingdom</label>
-                    <input :id="`destination-${participant.id}`" v-model="drafts[participant.id].destination_kingdom" :disabled="participant.withdrawnAt !== null" inputmode="numeric" type="text" />
+                    <input
+                      :id="`destination-${participant.id}`"
+                      v-model="drafts[participant.id].destination_kingdom"
+                      :disabled="participant.withdrawnAt !== null"
+                      inputmode="numeric"
+                      type="text"
+                    />
                   </template>
                 </template>
                 <template v-else>
                   Incoming → Kingdom {{ mutablePlan.homeKingdom }}
                   <label :for="`source-${participant.id}`">Source Kingdom</label>
-                  <input :id="`source-${participant.id}`" v-model="drafts[participant.id].source_kingdom" :disabled="participant.withdrawnAt !== null" inputmode="numeric" type="text" />
+                  <input
+                    :id="`source-${participant.id}`"
+                    v-model="drafts[participant.id].source_kingdom"
+                    :disabled="participant.withdrawnAt !== null"
+                    inputmode="numeric"
+                    type="text"
+                  />
                 </template>
               </td>
               <td>
@@ -530,11 +666,27 @@ function compatibleGroups(participant: Participant): Group[] {
                 </template>
                 <template v-else>
                   <label :for="`game-id-${participant.id}`">Game player ID</label>
-                  <input :id="`game-id-${participant.id}`" v-model="drafts[participant.id].game_player_id" :disabled="participant.withdrawnAt !== null" maxlength="100" type="text" />
+                  <input
+                    :id="`game-id-${participant.id}`"
+                    v-model="drafts[participant.id].game_player_id"
+                    :disabled="participant.withdrawnAt !== null"
+                    maxlength="100"
+                    type="text"
+                  />
                   <label :for="`membership-${participant.id}`">Site membership</label>
-                  <select :id="`membership-${participant.id}`" v-model="drafts[participant.id].membership_id" :disabled="participant.withdrawnAt !== null">
+                  <select
+                    :id="`membership-${participant.id}`"
+                    v-model="drafts[participant.id].membership_id"
+                    :disabled="participant.withdrawnAt !== null"
+                  >
                     <option value="">Not linked</option>
-                    <option v-for="membership in memberships" :key="membership.id" :value="membership.id">{{ membership.name }}</option>
+                    <option
+                      v-for="membership in memberships"
+                      :key="membership.id"
+                      :value="membership.id"
+                    >
+                      {{ membership.name }}
+                    </option>
                   </select>
                 </template>
               </td>
@@ -544,22 +696,54 @@ function compatibleGroups(participant: Participant): Group[] {
                 </template>
                 <template v-else>
                   <label :for="`group-${participant.id}`">Transfer group</label>
-                  <select :id="`group-${participant.id}`" v-model="groupAssignments[participant.id]" :disabled="participant.withdrawnAt !== null">
+                  <select
+                    :id="`group-${participant.id}`"
+                    v-model="groupAssignments[participant.id]"
+                    :disabled="participant.withdrawnAt !== null"
+                  >
                     <option value="">Unassigned</option>
-                    <option v-for="group in compatibleGroups(participant)" :key="group.id" :value="group.id">
+                    <option
+                      v-for="group in compatibleGroups(participant)"
+                      :key="group.id"
+                      :value="group.id"
+                    >
                       {{ group.name }}
                     </option>
                   </select>
-                  <button v-if="participant.withdrawnAt === null" type="button" @click="assignParticipantGroup(participant)">Save group</button>
+                  <button
+                    v-if="participant.withdrawnAt === null"
+                    type="button"
+                    @click="assignParticipantGroup(participant)"
+                  >
+                    Save group
+                  </button>
                 </template>
               </td>
               <td>
                 <label :for="`notes-${participant.id}`">Manager notes</label>
-                <textarea :id="`notes-${participant.id}`" v-model="drafts[participant.id].manager_notes" :disabled="participant.withdrawnAt !== null" maxlength="5000" rows="2" />
+                <textarea
+                  :id="`notes-${participant.id}`"
+                  v-model="drafts[participant.id].manager_notes"
+                  :disabled="participant.withdrawnAt !== null"
+                  maxlength="5000"
+                  rows="2"
+                />
               </td>
               <td>
-                <button v-if="participant.withdrawnAt === null" type="button" @click="saveParticipant(participant)">Save</button>
-                <button v-if="participant.withdrawnAt === null" type="button" @click="withdrawParticipant(participant)">Withdraw</button>
+                <button
+                  v-if="participant.withdrawnAt === null"
+                  type="button"
+                  @click="saveParticipant(participant)"
+                >
+                  Save
+                </button>
+                <button
+                  v-if="participant.withdrawnAt === null"
+                  type="button"
+                  @click="withdrawParticipant(participant)"
+                >
+                  Withdraw
+                </button>
               </td>
             </tr>
           </tbody>
