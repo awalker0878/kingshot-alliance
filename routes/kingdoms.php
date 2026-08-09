@@ -10,6 +10,7 @@ use App\Domain\Kingdoms\Http\Controllers\RosterIntelligenceController;
 use App\Domain\Kingdoms\Http\Controllers\TransferGroupController;
 use App\Domain\Kingdoms\Http\Controllers\TransferParticipantController;
 use App\Domain\Kingdoms\Http\Controllers\TransferPlanController;
+use App\Domain\Kingdoms\Http\Controllers\TransferReadinessController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {
@@ -86,6 +87,18 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             '/alliance/transfers/{plan}/participants/{participant}/group',
             [TransferGroupController::class, 'assignParticipant'],
         )->name('alliance.transfers.participants.group');
+        Route::patch(
+            '/alliance/transfers/{plan}/participants/{participant}/readiness',
+            [TransferReadinessController::class, 'transition'],
+        )->name('alliance.transfers.participants.readiness');
+        Route::post(
+            '/alliance/transfers/{plan}/participants/{participant}/blockers',
+            [TransferReadinessController::class, 'storeBlocker'],
+        )->name('alliance.transfers.participants.blockers.store');
+        Route::post(
+            '/alliance/transfers/{plan}/participants/{participant}/blockers/{blocker}/resolve',
+            [TransferReadinessController::class, 'resolveBlocker'],
+        )->name('alliance.transfers.participants.blockers.resolve');
         Route::post(
             '/alliance/transfers/{plan}/participants/{participant}/withdraw',
             [TransferParticipantController::class, 'withdraw'],
