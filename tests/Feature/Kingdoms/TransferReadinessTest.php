@@ -185,18 +185,31 @@ final class TransferReadinessTest extends TestCase
         self::assertSame(TransferBlockerState::Active, $blockerB->refresh()->state);
     }
 
-    public function test_readiness_requires_password_and_fails_closed_for_locked_or_drifted_plan(): void
+    public function test_readiness_mutations_require_recent_password_confirmation(): void
     {
-        [$owner, $alliance] = $this->ownerAlliance('Readiness Gates', 'readiness-gates', 5407);
-        $session = $this->confirmedSession($alliance->id);
-        $plan = $this->plan($alliance, $owner, 'Gate plan');
-        $participant = $this->incoming($owner, $session, $plan, 'Foxtrot');
+        [$owner, $alliance] = $this->ownerAlliance('Readiness Password', 'readiness-password', 5411);
+        $plan = $this->plan($alliance, $owner, 'Password plan');
+        $participant = TransferParticipant::query()->create([
+            'alliance_id' => $alliance->id,
+            'transfer_plan_id' => $plan->id,
+            'direction' => 'incoming',
+            'observed_name' => 'Foxtrot',
+            'destination_kingdom_id' => $plan->home_kingdom_id,
+        ]);
         $sessionKey = (string) config('identity.active_alliance_session_key');
 
         $this->actingAs($owner)
             ->withSession([$sessionKey => $alliance->id])
             ->patch($this->readinessUrl($plan, $participant), ['readiness' => 'preparing'])
             ->assertRedirect(route('password.confirm'));
+    }
+
+    public function test_readiness_fails_closed_for_locked_or_drifted_plan(): void
+    {
+        [$owner, $alliance] = $this->ownerAlliance('Readiness Gates', 'readiness-gates', 5407);
+        $session = $this->confirmedSession($alliance->id);
+        $plan = $this->plan($alliance, $owner, 'Gate plan');
+        $participant = $this->incoming($owner, $session, $plan, 'Foxtrot');
 
         $this->withSession($session)->post("/alliance/transfers/{$plan->id}/open")->assertRedirect();
         $this->withSession($session)->post("/alliance/transfers/{$plan->id}/lock")->assertRedirect();
