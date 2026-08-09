@@ -27,7 +27,7 @@ return new class extends Migration
             $table->foreignUlid('transfer_participant_id')->constrained('transfer_participants')->cascadeOnDelete();
             $table->string('from_state', 24)->nullable();
             $table->string('to_state', 24);
-            $table->foreignUlid('actor_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('actor_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestampTz('created_at')->useCurrent();
 
             $table->index(['transfer_participant_id', 'created_at']);
@@ -42,8 +42,8 @@ return new class extends Migration
             $table->string('state', 24)->default('active');
             $table->string('summary', 255);
             $table->text('details')->nullable();
-            $table->foreignUlid('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignUlid('resolved_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('resolved_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestampTz('resolved_at')->nullable();
             $table->timestamps();
 
