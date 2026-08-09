@@ -2,7 +2,7 @@
 
 [← Product and program documentation](README.md)
 
-**Status:** Approved scope — implementation Planned  
+**Status:** Approved scope — implementation **In progress**; `K3-P1` and `K3-P2` Validated  
 **Scope ID:** `KINGDOMS-003`  
 **Owning domain:** `Kingdoms`  
 **Delivery model:** Post-program product increment; this is **not Phase 7**  
