@@ -3,22 +3,22 @@
 [← Kingdoms](kingdoms.md)
 
 **Increment:** `KINGDOMS-002`  
-**Current delivery:** Slice B / `K2-P2` candidate on validated Slice A  
-**Slice A evidence:** [KINGDOMS-002 Slice A validation](../product/kingdoms-transfer-planning-slice-a-validation.md)
+**Current delivery:** Slice C1 / `K2-P3` candidate on validated Slice B  
+**Slice B evidence:** [KINGDOMS-002 Slice B validation](../product/kingdoms-transfer-planning-slice-b-validation.md)
 
-`KINGDOMS-002` is an alliance-owned planning workflow layered on the accepted `KINGDOMS-001` Kingdom/player/roster foundation. Slice B adds participant intent and destination planning without implementing groups, readiness, blockers, or transfer completion.
+`KINGDOMS-002` is an alliance-owned planning workflow layered on the accepted `KINGDOMS-001` Kingdom/player/roster foundation. Slice C1 adds transfer groups and coordinator responsibility without implementing readiness, blockers, eligibility/resources, or transfer completion.
 
 ## Ownership and tenancy
 
-`TransferPlan` and `TransferParticipant` are Kingdoms-domain tenant data owned by one Alliance. `Kingdom` and `KingdomPlayer` remain global neutral reference data only.
+`TransferPlan`, `TransferParticipant`, and `TransferGroup` are Kingdoms-domain tenant data owned by one Alliance. `Kingdom` and `KingdomPlayer` remain global neutral reference data only.
 
-Every participant read and mutation is constrained by both the active Alliance and the selected transfer plan. Submitted plan, participant, roster, and membership IDs are re-resolved under that tenant boundary.
+Every group/participant read and mutation is constrained by the active Alliance and selected transfer plan. Submitted plan, participant, group, roster, membership, source-Kingdom, and destination-Kingdom values are re-resolved under the applicable domain boundary.
 
-Sharing the same Kingdom or neutral player reference never grants another Alliance access to transfer intent, private manager notes, membership linkage, or destination planning.
+Sharing the same Kingdom or neutral player reference never grants another Alliance access to transfer intent, group assignments, coordinator responsibility, manager notes, membership linkage, or destination planning.
 
 ## Transfer plan lifecycle
 
-The validated Slice A lifecycle remains:
+The validated plan lifecycle remains:
 
 ```text
 draft → open → locked → closed
@@ -26,114 +26,125 @@ draft → open → locked → closed
          └────────→ cancelled
 ```
 
-Participant changes are permitted only while the plan is `draft` or `open`. `locked`, `closed`, and `cancelled` plans are read-only for Slice B.
+Participant and group changes are permitted only while the plan is `draft` or `open`. `locked`, `closed`, and `cancelled` plans are read-only for Slice C1.
 
-The plan captures immutable `home_kingdom_id`. If the Alliance's current Kingdom later differs, participant mutations fail closed. Cancellation remains the safe stale-plan recovery path.
+The plan captures immutable `home_kingdom_id`. If the Alliance's current Kingdom later differs, participant/group mutations fail closed. Cancellation remains the stale-plan recovery path.
 
 ## Participant directions
 
-Slice B defines three explicit manual directions:
+Slice B direction semantics remain authoritative:
 
-- `staying` — an existing active/tracked alliance roster player who is not planned to move;
-- `outgoing` — an existing active/tracked alliance roster player who may move to another Kingdom; and
-- `incoming` — a player planned to arrive in the plan home Kingdom, potentially before a site membership or alliance roster entry exists.
+- `staying` — active/tracked alliance roster player not planned to move;
+- `outgoing` — active/tracked alliance roster player planned or potentially planned to move away; and
+- `incoming` — player planned to arrive in the plan home Kingdom, potentially before site membership or roster entry exists.
 
-Direction is planning intent, not an automated recommendation or game-derived fact.
+Incoming destination is always the plan home Kingdom. Outgoing destination may be undecided or another active Kingdom. Staying has no transfer destination. Destination planning never mutates `KingdomPlayer.kingdom_id`.
 
-### Staying
+## Transfer groups
 
-A staying participant:
+A `TransferGroup` is alliance/plan-scoped coordination data. It stores only the C1 workflow fields required at runtime:
 
-- must bind to an active/tracked roster entry in the active Alliance;
-- uses the plan home Kingdom as source;
-- has no transfer destination; and
-- derives neutral player identity and optional membership linkage from the existing roster record.
+- name;
+- direction/context (`incoming` or `outgoing`);
+- optional destination Kingdom according to direction rules;
+- lifecycle state (`active` or `archived`);
+- optional same-alliance coordinator membership;
+- manager-only notes; and
+- normal timestamps.
 
-### Outgoing
+A participant may belong to at most one group. A participant may remain unassigned. C1 deliberately does not introduce a participant/group many-to-many relationship.
 
-An outgoing participant:
+### Incoming groups
 
-- must bind to an active/tracked roster entry in the active Alliance;
-- uses the plan home Kingdom as source;
-- may have no destination while leadership is still deciding;
-- may reference another active canonical Kingdom as destination; and
-- cannot use the plan home Kingdom as its outgoing destination.
+An incoming group:
 
-Changing a destination never changes the neutral `KingdomPlayer.kingdom_id`; destination is plan-scoped intent only.
+- has `incoming` direction;
+- always uses the plan home Kingdom as destination regardless of submitted destination input; and
+- accepts only active incoming participants from the same plan.
 
-### Incoming
+### Outgoing groups
 
-An incoming participant:
+An outgoing group:
 
-- may exist without an alliance roster entry;
-- may exist without a site membership;
-- stores an observed player name as plan-scoped identity;
-- may optionally link an active same-alliance membership;
-- may optionally record a source Kingdom;
-- always uses the plan home Kingdom as destination; and
-- may resolve a neutral `KingdomPlayer` only when a source Kingdom and stable game-player ID are both supplied.
+- has `outgoing` direction;
+- may have an undecided destination; or
+- may bind to another active canonical Kingdom as destination.
 
-A display name alone never creates or merges neutral game identity. If no source + stable ID pair exists, the participant remains plan-scoped rather than guessing global identity.
+The plan home Kingdom is not a valid outgoing group destination.
 
-## Identity continuity
+If an outgoing group has a destination, assigned outgoing participants must already have that exact destination. Assignment or later edits fail rather than silently rewriting participant destination intent.
 
-Normal updates may refine planning without silently changing who the row represents:
+### Staying participants
 
-- roster-bound participant rows cannot be switched to a different roster entry;
-- incoming rows with a known stable game-player ID cannot replace it with another ID;
-- incoming rows with a known source Kingdom cannot replace it with another source;
-- a resolved neutral player cannot be replaced by another neutral player; and
-- changing between incoming and roster-bound identity classes requires withdraw + recreate.
+Staying participants cannot be assigned to moving transfer groups. Slice C1 groups are coordination for participants who are actually moving (`incoming` or `outgoing`).
 
-This preserves auditability while still allowing an initially unlinked incoming row to gain a source/stable identity later.
+## Compatibility and transaction rules
+
+Compatibility is checked from both mutation directions:
+
+- participant → group assignment checks plan/Alliance, active group, moving direction, direction equality, and outgoing destination compatibility;
+- group updates lock and revalidate every active assigned participant before changing direction/destination; and
+- participant updates revalidate the existing active group before changing direction/destination.
+
+If any active assigned participant would become incompatible, the transaction fails and neither the group nor participant intent is rewritten.
+
+This preserves the previously approved direction/destination decision rather than treating group data as a source of truth that silently overwrites participant planning.
+
+## Coordinator responsibility
+
+A group may have one optional coordinator membership.
+
+The coordinator membership must be active and belong to the active Alliance when assigned. The coordinator is workflow responsibility only:
+
+- being named coordinator does not grant `kingdoms.manage`;
+- it does not alter roles or permissions;
+- it does not bypass password confirmation; and
+- every privileged group/participant mutation continues through normal policy authorization.
+
+C1 does not create coordinator-specific mutation permissions.
+
+## Group lifecycle
+
+Groups begin `active`. Managers may archive an active group only while its plan is Draft/Open and the Alliance home-Kingdom context has not drifted.
+
+A group with active assigned participants cannot be archived. Move/unassign those participants first. Withdrawn historical participants may retain the group reference so history is not erased.
+
+Archive retries are idempotent and do not duplicate audit/outbox evidence. Active group names are case-insensitively unique within one plan; an archived name may be reused by a later active group.
 
 ## Visibility and authorization
 
 - member transfer view: `alliance.view`;
 - management view: `kingdoms.manage`;
-- participant create/update/withdraw: `kingdoms.manage` plus recent password confirmation.
+- plan/participant/group mutations: `kingdoms.manage` plus recent password confirmation.
 
-Member payloads expose operationally safe participant direction/source/destination/linkage display only. Manager notes and private membership details are excluded.
-
-Coordinator concepts do not exist in Slice B. A later coordinator assignment cannot become an authorization shortcut.
+Member payloads may expose operationally useful group name, direction, destination, and coordinator display name. They exclude group IDs, coordinator membership IDs, participant group IDs, manager-only group notes, participant manager notes, and private membership details.
 
 ## Audit and outbox
 
-Material participant changes emit attributable audit and internal-outbox events:
+Slice C1 emits attributable internal events for material changes:
 
-- `kingdoms.transfer_participant_created`;
-- `kingdoms.transfer_participant_updated`; and
-- `kingdoms.transfer_participant_withdrawn`.
+- `kingdoms.transfer_group_created`;
+- `kingdoms.transfer_group_updated`;
+- `kingdoms.transfer_group_archived`; and
+- `kingdoms.transfer_participant_group_changed`.
 
-Manager notes are not copied into audit/outbox metadata.
+Existing plan and participant events remain unchanged.
 
-The existing integration boundary excludes all `kingdoms.*` events from generic external webhook fan-out. Slice B therefore creates no public webhook contract.
+Group/participant manager notes are never copied into audit/outbox metadata. `kingdoms.*` remains excluded from generic external webhook fan-out, so C1 creates no public webhook contract.
 
-## Withdrawal and duplicates
+## Explicit Slice C1 non-capabilities
 
-Withdrawal is soft workflow history: the participant row remains with `withdrawn_at`.
+Slice C1 does not implement:
 
-Withdrawal retries are idempotent and do not duplicate audit/outbox evidence.
-
-Within one plan:
-
-- a roster entry can have at most one active transfer participant row; and
-- an incoming neutral player with a resolved stable identity can have at most one active incoming row.
-
-Display-name collisions remain allowed when stable identity is unknown.
-
-## Explicit Slice B non-capabilities
-
-Slice B does not implement:
-
-- transfer groups or coordinators;
 - readiness states or blocker tracking;
 - transfer passes/tickets/resources or eligibility rules;
-- automated stay/leave decisions or destination ranking;
+- inferred eligibility, automated destination ranking, or stay/leave recommendations;
 - transfer execution or roster completion/handoff;
-- transfer marketplace/public advertising;
+- marketplace/public advertising;
 - diplomacy/NAP intelligence;
 - cross-alliance transfer visibility;
 - scraping, OCR, bots, or undocumented game APIs;
-- AI/punitive scoring or recommendations; or
+- AI/punitive scoring; or
 - public Kingdoms API/webhook contracts.
+
+`KINGDOMS-002` remains in progress until later slices and the whole-increment acceptance gate pass.
