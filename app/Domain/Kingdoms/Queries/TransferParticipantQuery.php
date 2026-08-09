@@ -22,7 +22,8 @@ final class TransferParticipantQuery
                 'membership.user:id,name,email',
                 'sourceKingdom:id,number',
                 'destinationKingdom:id,number',
-                'group.coordinators.user:id,name,email',
+                'group.coordinator.user:id,name,email',
+                'group.destinationKingdom:id,number',
             ]);
 
         if ($includeWithdrawn === false) {
