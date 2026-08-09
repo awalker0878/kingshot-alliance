@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -37,6 +38,7 @@ use Illuminate\Support\Carbon;
  * @property-read AllianceMembership|null $membership
  * @property-read Kingdom|null $sourceKingdom
  * @property-read Kingdom|null $destinationKingdom
+ * @property-read TransferCompletion|null $completion
  */
 final class TransferParticipant extends Model
 {
@@ -130,5 +132,11 @@ final class TransferParticipant extends Model
     public function readinessTransitions(): HasMany
     {
         return $this->hasMany(TransferReadinessTransition::class, 'transfer_participant_id');
+    }
+
+    /** @return HasOne<TransferCompletion, $this> */
+    public function completion(): HasOne
+    {
+        return $this->hasOne(TransferCompletion::class, 'transfer_participant_id');
     }
 }
