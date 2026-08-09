@@ -28,6 +28,12 @@ final class TransferParticipantQuery
 
         if ($includeWithdrawn === false) {
             $query->whereNull('withdrawn_at');
+        } else {
+            $query->with([
+                'blockers.createdBy:id,name',
+                'blockers.resolvedBy:id,name',
+                'readinessTransitions.actor:id,name',
+            ]);
         }
 
         return $query
