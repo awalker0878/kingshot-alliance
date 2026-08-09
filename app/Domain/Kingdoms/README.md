@@ -34,7 +34,7 @@ Slice C1 / `K1-P3` adds the validated snapshot-history candidate:
 - roster current/stale/missing semantics driven by snapshot capture time rather than mutable roster metadata; and
 - member-visible history plus password-confirmed `kingdoms.manage` snapshot recording.
 
-Slice C2 / `K1-P4` adds the roster-intelligence implementation candidate:
+Slice C2 / `K1-P4` adds the validated roster-intelligence candidate:
 
 - active/tracked roster totals, exact recorded-power average and median;
 - current/stale/missing snapshot-quality counts;
@@ -43,10 +43,20 @@ Slice C2 / `K1-P4` adds the roster-intelligence implementation candidate:
 - member-visible aggregate intelligence under `alliance.view`; and
 - manager-only, alphabetical individual comparison detail under `kingdoms.manage` with no ranking or scoring.
 
-Slice B and Slice C1 have passed their protected implementation gates and remain review candidates until accepted into the dependency stack. Slice C2 remains an implementation candidate until its protected gate succeeds.
+Slice D / `K1-P5` adds the controlled CSV migration implementation candidate:
 
-The living contracts are documented in [`docs/domains/kingdoms.md`](../../../docs/domains/kingdoms.md), [`docs/domains/kingdoms-roster.md`](../../../docs/domains/kingdoms-roster.md), [`docs/domains/kingdoms-snapshots.md`](../../../docs/domains/kingdoms-snapshots.md), and [`docs/domains/kingdoms-intelligence.md`](../../../docs/domains/kingdoms-intelligence.md).
+- strict `kingdoms-roster.v1` UTF-8 CSV schema with 1 MiB / 500-row limits;
+- dry-run create/update/ambiguous/rejected row classification before roster persistence;
+- stable game ID as the only automatic identity-match key and explicit manager resolution for display-name ambiguity;
+- checksum-backed alliance-owned import records and atomic password-confirmed confirmation;
+- fail-closed preview-drift checks plus idempotent committed-import retries;
+- CSV provenance carried through the existing roster/snapshot actions, audit trail and transactional outbox; and
+- member/management current-roster exports with private-field gating, private/no-store responses and spreadsheet-formula neutralization.
 
-## Not implemented by Slice C2
+Slices B, C1 and C2 have passed their protected implementation gates and remain review candidates until accepted into the dependency stack. Slice D remains an implementation candidate until its protected gate succeeds.
 
-CSV import/export (`K1-P5`), transfer planning, diplomacy/NAP intelligence, public roster/intelligence API or webhook exposure, cross-alliance rankings, automated scoring/recommendations and automated game-data ingestion remain later `KINGDOMS-001` phases or follow-on candidates. Do not add those as dormant schema or represent them as current accepted capability before their owning slice is approved and implemented.
+The living contracts are documented in [`docs/domains/kingdoms.md`](../../../docs/domains/kingdoms.md), [`docs/domains/kingdoms-roster.md`](../../../docs/domains/kingdoms-roster.md), [`docs/domains/kingdoms-snapshots.md`](../../../docs/domains/kingdoms-snapshots.md), [`docs/domains/kingdoms-intelligence.md`](../../../docs/domains/kingdoms-intelligence.md), and [`docs/domains/kingdoms-csv-migration.md`](../../../docs/domains/kingdoms-csv-migration.md).
+
+## Not implemented by Slice D
+
+Transfer planning, diplomacy/NAP intelligence, public roster/intelligence API or webhook exposure, cross-alliance rankings, automated scoring/recommendations and automated game-data ingestion remain follow-on candidates and are not approved current runtime scope. `K1-P6` whole-increment hardening/acceptance also remains outstanding. Do not add follow-on capabilities as dormant schema or represent `KINGDOMS-001` as Accepted before its final acceptance gate completes.
