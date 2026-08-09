@@ -74,7 +74,7 @@ final class KingdomRosterStructureTest extends TestCase
         $fanout = file_get_contents($root.'/app/Domain/Integrations/Actions/QueueWebhookDeliveries.php');
         self::assertIsString($fanout);
 
-        self::assertStringContainsString("$eventType !== 'alliance.kingdom_updated'", $fanout);
-        self::assertStringContainsString("str_starts_with($eventType, 'kingdoms.')", $fanout);
+        self::assertStringContainsString("\$eventType !== 'alliance.kingdom_updated'", $fanout);
+        self::assertStringContainsString("str_starts_with(\$eventType, 'kingdoms.')", $fanout);
     }
 }
