@@ -12,7 +12,9 @@ use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\ArchiveTrackedKingdomAlliance;
 use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
 use App\Domain\Kingdoms\Actions\UpdateTrackedKingdomAlliance;
+use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Domain\Kingdoms\Queries\KingdomAllianceObservationQuery;
 use App\Domain\Kingdoms\Queries\KingdomAllianceQuery;
 use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -126,7 +128,7 @@ final class KingdomAllianceController extends Controller
     }
 
     /**
-     * @param  iterable<int, TrackedKingdomAlliance>  $tracking
+     * @param iterable<int, TrackedKingdomAlliance> $tracking
      * @return list<array<string, mixed>>
      */
     private function trackingRows(iterable $tracking, Alliance $alliance, bool $includePrivate): array
@@ -134,12 +136,28 @@ final class KingdomAllianceController extends Controller
         $rows = [];
 
         foreach ($tracking as $entry) {
+            /** @var KingdomAllianceObservation|null $latest */
+            $latest = $entry->observations->first();
+            $freshness = $latest === null
+                ? 'missing'
+                : ($latest->captured_at->gte(now()->subDays(KingdomAllianceObservationQuery::FRESH_DAYS)) ? 'current' : 'stale');
+
             $row = [
                 'name' => (string) $entry->kingdomAlliance->current_name,
                 'tag' => $entry->kingdomAlliance->current_tag,
                 'state' => $entry->state->value,
                 'kingdom' => (string) $entry->kingdom->number,
                 'contextCurrent' => $alliance->kingdom_id !== null && $alliance->kingdom_id === $entry->kingdom_id,
+                'historyUrl' => route('alliance.kingdom-alliances.history', ['tracking' => $entry->id], false),
+                'freshness' => $freshness,
+                'latestObservation' => $latest === null ? null : [
+                    'observedName' => $latest->observed_name,
+                    'observedTag' => $latest->observed_tag,
+                    'power' => $latest->power === null ? null : (string) $latest->power,
+                    'memberCount' => $latest->member_count,
+                    'capturedAt' => $latest->captured_at->toIso8601String(),
+                    'source' => $latest->source,
+                ],
             ];
 
             if ($includePrivate) {
