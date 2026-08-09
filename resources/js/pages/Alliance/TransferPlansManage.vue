@@ -69,7 +69,13 @@ function canOpen(plan: Plan): boolean {
       <form @submit.prevent="createPlan">
         <div>
           <label for="transfer-label">Cycle label</label>
-          <input id="transfer-label" v-model="createForm.label" maxlength="160" required type="text" />
+          <input
+            id="transfer-label"
+            v-model="createForm.label"
+            maxlength="160"
+            required
+            type="text"
+          />
           <p v-if="createForm.errors.label">{{ createForm.errors.label }}</p>
         </div>
         <div>
