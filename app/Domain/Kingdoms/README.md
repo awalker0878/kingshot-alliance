@@ -9,7 +9,7 @@ Accepted product increments:
 
 Approved in-progress product increment:
 
-- [`KINGDOMS-003` — Kingdom/alliance intelligence and diplomacy](../../../docs/product/kingdoms-alliance-intelligence-increment.md), with `K3-P0` locked and Slice A / `K3-P1` currently implementing neutral game-side alliance identity plus tenant tracking.
+- [`KINGDOMS-003` — Kingdom/alliance intelligence and diplomacy](../../../docs/product/kingdoms-alliance-intelligence-increment.md), with `K3-P0` locked, Slice A / `K3-P1` validated, and Slice B / `K3-P2` currently adding append-oriented factual observation history.
 
 ## Accepted runtime ownership
 
@@ -32,9 +32,11 @@ The accepted K1/K2 runtime owns:
 
 `kingdoms.manage` protects roster/snapshot/import/transfer management and manager-only data; built-in Owner, Leader and Officer roles receive it. Ordinary roster/history/intelligence/transfer reads use `alliance.view`. Alliance→Kingdom association remains an `alliance.manage` operation. Privileged mutations require recent password confirmation under the accepted Kingdoms controls.
 
-## `KINGDOMS-003` Slice A candidate ownership
+## `KINGDOMS-003` current sliced ownership
 
-Slice A introduces only:
+### Slice A / `K3-P1` — validated
+
+Slice A introduced:
 
 - global neutral `KingdomAlliance` reference identity scoped to one Kingdom;
 - tenant-owned `TrackedKingdomAlliance` relationships with captured Kingdom context;
@@ -49,7 +51,31 @@ Name/tag collisions never auto-merge identity. Without a stable game alliance ID
 
 If the platform Alliance changes Kingdom, historical tracking remains readable, ordinary tracking edits fail closed, and archive remains the safe stale-context recovery action. Captured Kingdom context is never rewritten automatically.
 
-Slice A contains no observations, power/member facts, diplomacy/NAP state, contacts, derived intelligence, ranking/scoring, automated ingestion, cross-tenant sharing or public Kingdoms API/webhook contract.
+### Slice B / `K3-P2` — candidate
+
+Slice B adds `KingdomAllianceObservation` as alliance-owned factual history. Each observation is explicitly scoped to the active tenant and tracked/neutral game-side alliance and records:
+
+- observed name/tag;
+- optional power and member count;
+- capture time;
+- manual source and actor provenance;
+- deterministic exact-retry idempotency;
+- optional correction linkage; and
+- explicit invalidation evidence.
+
+Observation history is append-oriented. Correcting an accepted observation appends a replacement and invalidates the original transactionally; standalone invalidation also preserves the original row. Repeated invalidation is idempotent.
+
+Latest accepted projection is selected by capture time, then observation ULID. Invalidated rows are excluded from latest/freshness/member projections. Freshness uses the existing Kingdoms 30-day rule: current, stale or missing. Missing facts remain distinct from zero.
+
+Power is bounded to signed 64-bit range and serialized to browser clients as a decimal string to prevent JavaScript precision loss. First-party `datetime-local` capture values are converted to ISO/UTC before submission.
+
+Accepted observation name/tag can refresh neutral current display identity only through the identity-aware observation action. An older observation inserted later does not overwrite newer accepted neutral identity.
+
+Member history exposes safe factual observation fields only. Manager history additionally exposes observation IDs, actor provenance, correction/invalidation metadata and private reasons needed for management. Private reason text is excluded from audit/outbox metadata.
+
+Observation recording/correction/invalidation requires `kingdoms.manage` plus recent password confirmation. Safe tracking/history reads use `alliance.view`. Submitted tracking and observation IDs are always re-resolved under the active Alliance.
+
+If the Alliance changes Kingdom, historical observation reads remain available but normal observation mutation fails closed. Tracking/observation history is never silently retargeted.
 
 ## `KINGDOMS-002` accepted transfer contract
 
@@ -73,11 +99,11 @@ Coordinator assignment remains workflow responsibility only. It never grants `ki
 
 ## Tenant and integration boundaries
 
-Global Kingdom/player/game-alliance identity is never an authorization boundary. Alliance-owned roster, observations, imports, metrics, transfer plans, transfer details, K3 tracking state and private notes remain tenant-scoped even when two alliances share neutral references.
+Global Kingdom/player/game-alliance identity is never an authorization boundary. Alliance-owned roster history, K3 tracking relationships, observation history/provenance/private reasons, imports, metrics, transfer plans and private notes remain tenant-scoped even when two platform Alliances share neutral references.
 
 Internal Kingdoms durability events are not external webhook contracts. `alliance.kingdom_updated` and all `kingdoms.*` event families remain excluded from generic webhook fan-out until a separately approved integration contract exposes them.
 
-No public Kingdoms API route/scope is part of the accepted or current K3 Slice A runtime.
+No public Kingdoms API route/scope is part of the accepted or current K3 sliced runtime.
 
 ## Living contracts
 
@@ -95,6 +121,7 @@ No public Kingdoms API route/scope is part of the accepted or current K3 Slice A
 - [`docs/security/kingdoms-transfer-planning-security-review.md`](../../../docs/security/kingdoms-transfer-planning-security-review.md)
 - [`docs/security/kingdoms-alliance-intelligence-p0-security-review.md`](../../../docs/security/kingdoms-alliance-intelligence-p0-security-review.md)
 - [`docs/security/kingdoms-alliance-tracking-security-review.md`](../../../docs/security/kingdoms-alliance-tracking-security-review.md)
+- [`docs/security/kingdoms-alliance-observation-security-review.md`](../../../docs/security/kingdoms-alliance-observation-security-review.md)
 
 Slice-specific Kingdoms security/validation records remain implementation evidence; whole-increment K3 acceptance is deferred to `K3-P6`.
 
@@ -102,6 +129,6 @@ Slice-specific Kingdoms security/validation records remain implementation eviden
 
 Accepted `KINGDOMS-002` does **not** implement transfer-resource/pass optimization, inferred eligibility/readiness, automated stay/leave decisions, player/destination rankings, bulk completion, automated in-game transfer execution, marketplace/public advertising, diplomacy/NAP intelligence, public Kingdoms API/webhook schemas, cross-alliance transfer visibility/rankings, automated scoring/recommendations, or automated game-data ingestion.
 
-`KINGDOMS-003` Slice A does not weaken those boundaries. It adds neutral game-side alliance identity/tracking only; later K3 slices and future K4/K5 scopes remain explicitly separate.
+`KINGDOMS-003` through Slice B does not weaken those boundaries. It adds neutral game-side alliance tracking plus factual observation history only. It does **not** add diplomacy/NAP state, contacts, threat/ranking/scoring, combat prediction, automated recommendations, game-data scraping/OCR/bots, cross-tenant shared intelligence or public Kingdoms API/webhooks. Later K3 slices and future scopes remain explicitly separate.
 
-`KINGDOMS-001` and `KINGDOMS-002` are **Accepted** repository/product capabilities. `KINGDOMS-003` is **In progress** on this implementation branch and is not whole-increment Accepted until `K3-P6`. A real production cutover remains separately **not yet approved**.
+`KINGDOMS-001` and `KINGDOMS-002` are **Accepted** repository/product capabilities. `KINGDOMS-003` is **In progress** and is not whole-increment Accepted until `K3-P6`. A real production cutover remains separately **not yet approved**.
