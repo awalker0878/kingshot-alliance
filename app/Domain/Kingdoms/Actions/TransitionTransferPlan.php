@@ -37,7 +37,7 @@ final readonly class TransitionTransferPlan
         string $event,
         bool $allowHomeKingdomDrift = false,
     ): TransferPlan {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
+        if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
             throw new AuthorizationException;
         }
 
@@ -65,7 +65,7 @@ final readonly class TransitionTransferPlan
                 return $plan->load('homeKingdom');
             }
 
-            if (! in_array($plan->state, $allowedFrom, true)) {
+            if (in_array($plan->state, $allowedFrom, true) === false) {
                 throw ValidationException::withMessages([
                     'plan' => sprintf(
                         'A transfer cycle cannot move from %s to %s.',
@@ -75,7 +75,7 @@ final readonly class TransitionTransferPlan
                 ]);
             }
 
-            if (! $allowHomeKingdomDrift && $currentAlliance->kingdom_id !== $plan->home_kingdom_id) {
+            if ($allowHomeKingdomDrift === false && $currentAlliance->kingdom_id !== $plan->home_kingdom_id) {
                 throw ValidationException::withMessages([
                     'plan' => 'The alliance Kingdom changed after this transfer cycle was created. Cancel the stale cycle before continuing.',
                 ]);
