@@ -173,9 +173,7 @@ function formatInteger(value: string): string {
 
       <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
         <h2 class="text-xl font-semibold">Required columns</h2>
-        <code
-          class="mt-3 block overflow-x-auto rounded-lg bg-slate-950 p-3 text-xs text-slate-300"
-        >
+        <code class="mt-3 block overflow-x-auto rounded-lg bg-slate-950 p-3 text-xs text-slate-300">
           {{ schema.headers.join(',') }}
         </code>
         <ul class="mt-4 space-y-2 text-sm text-slate-400">
@@ -258,7 +256,7 @@ function formatInteger(value: string): string {
                   </span>
                 </td>
                 <td class="px-4 py-4">{{ formatInteger(row.data.power) }}</td>
-                <td class="px-4 py-4 capitalize text-slate-400">{{ row.data.state }}</td>
+                <td class="px-4 py-4 text-slate-400 capitalize">{{ row.data.state }}</td>
                 <td class="px-4 py-4 capitalize">{{ row.outcome }}</td>
                 <td class="min-w-72 px-4 py-4">
                   <ul v-if="row.errors.length" class="space-y-1 text-rose-300">
