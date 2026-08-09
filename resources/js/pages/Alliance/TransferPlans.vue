@@ -151,8 +151,8 @@ function groupDestinationLabel(group: Group): string {
     <section v-if="plan" class="mt-10">
       <h2 class="text-xl font-semibold">Planned participants</h2>
       <p class="mt-2 text-sm text-slate-400">
-        Incoming, outgoing, staying, group, and destination intent is manually maintained by alliance
-        leadership.
+        Incoming, outgoing, staying, group, and destination intent is manually maintained by
+        alliance leadership.
       </p>
 
       <div
