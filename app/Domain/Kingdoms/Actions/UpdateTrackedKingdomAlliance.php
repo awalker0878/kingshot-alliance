@@ -72,9 +72,13 @@ final readonly class UpdateTrackedKingdomAlliance
                 ]);
             }
 
-            $tag = $this->nullableLine($attributes['current_tag'] ?? null);
-            $stableId = $this->nullableLine($attributes['game_alliance_id'] ?? null);
+            $tag = array_key_exists('current_tag', $attributes)
+                ? $this->nullableLine($attributes['current_tag'])
+                : $reference->current_tag;
             $existingStableId = $reference->game_alliance_id;
+            $stableId = array_key_exists('game_alliance_id', $attributes)
+                ? $this->nullableLine($attributes['game_alliance_id'])
+                : $existingStableId;
 
             if ($existingStableId !== null && $stableId !== $existingStableId) {
                 throw ValidationException::withMessages([
@@ -86,7 +90,7 @@ final readonly class UpdateTrackedKingdomAlliance
                 $conflict = KingdomAlliance::query()
                     ->where('kingdom_id', $reference->kingdom_id)
                     ->where('game_alliance_id', $stableId)
-                    ->whereKeyNot($reference->id)
+                    ->where('id', '<>', $reference->id)
                     ->exists();
 
                 if ($conflict) {
@@ -96,7 +100,9 @@ final readonly class UpdateTrackedKingdomAlliance
                 }
             }
 
-            $managerNotes = $this->nullableText($attributes['manager_notes'] ?? null);
+            $managerNotes = array_key_exists('manager_notes', $attributes)
+                ? $this->nullableText($attributes['manager_notes'])
+                : $tracking->manager_notes;
             $identityChanged = $reference->current_name !== $name
                 || $reference->current_tag !== $tag
                 || $reference->game_alliance_id !== $stableId;
