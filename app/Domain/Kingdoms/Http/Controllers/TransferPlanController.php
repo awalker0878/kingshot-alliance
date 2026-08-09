@@ -16,9 +16,11 @@ use App\Domain\Kingdoms\Actions\LockTransferPlan;
 use App\Domain\Kingdoms\Actions\OpenTransferPlan;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Kingdoms\Models\TransferBlocker;
 use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
+use App\Domain\Kingdoms\Models\TransferReadinessTransition;
 use App\Domain\Kingdoms\Queries\RosterQuery;
 use App\Domain\Kingdoms\Queries\TransferGroupQuery;
 use App\Domain\Kingdoms\Queries\TransferParticipantQuery;
@@ -226,6 +228,7 @@ final class TransferPlanController extends Controller
         $row = [
             'id' => (string) $participant->id,
             'direction' => $participant->direction->value,
+            'readiness' => $participant->readiness_state->value,
             'name' => (string) $participant->observed_name,
             'gamePlayerId' => $participant->game_player_id,
             'sourceKingdom' => $participant->sourceKingdom === null
@@ -254,6 +257,36 @@ final class TransferPlanController extends Controller
                     'name' => (string) $participant->membership->user?->name,
                     'email' => (string) $participant->membership->user?->email,
                 ];
+            $row['blockers'] = $participant->blockers
+                ->sortByDesc(static fn (TransferBlocker $blocker): string => $blocker->created_at?->toIso8601String() ?? '')
+                ->values()
+                ->map(static fn (TransferBlocker $blocker): array => [
+                    'id' => (string) $blocker->id,
+                    'state' => $blocker->state->value,
+                    'summary' => (string) $blocker->summary,
+                    'details' => $blocker->details,
+                    'createdAt' => $blocker->created_at?->toIso8601String(),
+                    'resolvedAt' => $blocker->resolved_at?->toIso8601String(),
+                    'createdBy' => $blocker->createdBy === null
+                        ? null
+                        : ['name' => (string) $blocker->createdBy->name],
+                    'resolvedBy' => $blocker->resolvedBy === null
+                        ? null
+                        : ['name' => (string) $blocker->resolvedBy->name],
+                ])
+                ->all();
+            $row['readinessHistory'] = $participant->readinessTransitions
+                ->sortByDesc(static fn (TransferReadinessTransition $transition): string => $transition->created_at->toIso8601String())
+                ->values()
+                ->map(static fn (TransferReadinessTransition $transition): array => [
+                    'from' => $transition->from_state?->value,
+                    'to' => $transition->to_state->value,
+                    'changedAt' => $transition->created_at->toIso8601String(),
+                    'actor' => $transition->actor === null
+                        ? null
+                        : ['name' => (string) $transition->actor->name],
+                ])
+                ->all();
         }
 
         return $row;
