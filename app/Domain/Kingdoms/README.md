@@ -1,15 +1,19 @@
 # Kingdoms domain
 
-`Kingdoms` is the canonical owner for approved Kingshot game-world reference, roster-history, migration, roster-intelligence, and transfer-planning capabilities.
+`Kingdoms` is the canonical owner for approved Kingshot game-world reference, roster-history, migration, roster-intelligence, transfer-planning, and approved alliance-intelligence/diplomacy work.
 
-The accepted product increments are:
+Accepted product increments:
 
 - [`KINGDOMS-001` — Kingdoms roster intelligence](../../../docs/product/kingdoms-roster-intelligence-increment.md), with evidence in the [KINGDOMS-001 exit report](../../../docs/product/kingdoms-roster-intelligence-exit-report.md); and
 - [`KINGDOMS-002` — Transfer planning](../../../docs/product/kingdoms-transfer-planning-increment.md), with evidence in the [KINGDOMS-002 exit report](../../../docs/product/kingdoms-transfer-planning-exit-report.md).
 
+Approved in-progress product increment:
+
+- [`KINGDOMS-003` — Kingdom/alliance intelligence and diplomacy](../../../docs/product/kingdoms-alliance-intelligence-increment.md), with `K3-P0` locked and Slice A / `K3-P1` currently implementing neutral game-side alliance identity plus tenant tracking.
+
 ## Accepted runtime ownership
 
-The domain owns:
+The accepted K1/K2 runtime owns:
 
 - global first-class `Kingdom` references and lifecycle state;
 - canonical Alliance→Kingdom resolution/association while Alliances retains ownership of the Alliance aggregate;
@@ -27,6 +31,25 @@ The domain owns:
 - explicit idempotent transfer completion with accepted roster handoff.
 
 `kingdoms.manage` protects roster/snapshot/import/transfer management and manager-only data; built-in Owner, Leader and Officer roles receive it. Ordinary roster/history/intelligence/transfer reads use `alliance.view`. Alliance→Kingdom association remains an `alliance.manage` operation. Privileged mutations require recent password confirmation under the accepted Kingdoms controls.
+
+## `KINGDOMS-003` Slice A candidate ownership
+
+Slice A introduces only:
+
+- global neutral `KingdomAlliance` reference identity scoped to one Kingdom;
+- tenant-owned `TrackedKingdomAlliance` relationships with captured Kingdom context;
+- active/archived tracking lifecycle and private manager notes;
+- stable game alliance ID as the only automatic neutral identity resolution key;
+- safe member tracking presentation and manager tracking controls; and
+- attributable internal audit/outbox evidence.
+
+A platform `Alliance` remains the tenant/authorization principal. `KingdomAlliance` never grants authentication, membership, role or permission.
+
+Name/tag collisions never auto-merge identity. Without a stable game alliance ID, tracking deliberately creates a distinct unresolved neutral reference. Stable ID assignment is explicit and assign-once; a conflict fails closed instead of merging references.
+
+If the platform Alliance changes Kingdom, historical tracking remains readable, ordinary tracking edits fail closed, and archive remains the safe stale-context recovery action. Captured Kingdom context is never rewritten automatically.
+
+Slice A contains no observations, power/member facts, diplomacy/NAP state, contacts, derived intelligence, ranking/scoring, automated ingestion, cross-tenant sharing or public Kingdoms API/webhook contract.
 
 ## `KINGDOMS-002` accepted transfer contract
 
@@ -50,11 +73,11 @@ Coordinator assignment remains workflow responsibility only. It never grants `ki
 
 ## Tenant and integration boundaries
 
-Global Kingdom/player identity is never an authorization boundary. Alliance-owned roster, observations, imports, metrics, transfer plans, participant intent, groups, coordinator assignments, readiness, blockers, completion records, notes, and destinations remain tenant-scoped even when two alliances share Kingdom/player references.
+Global Kingdom/player/game-alliance identity is never an authorization boundary. Alliance-owned roster, observations, imports, metrics, transfer plans, transfer details, K3 tracking state and private notes remain tenant-scoped even when two alliances share neutral references.
 
-Internal Kingdoms durability events are not external webhook contracts. `alliance.kingdom_updated` and `kingdoms.*`, including `kingdoms.transfer_*`, remain excluded from generic webhook fan-out until a separately approved integration contract exposes them.
+Internal Kingdoms durability events are not external webhook contracts. `alliance.kingdom_updated` and all `kingdoms.*` event families remain excluded from generic webhook fan-out until a separately approved integration contract exposes them.
 
-No public Transfer/Kingdoms API route/scope is part of the accepted runtime.
+No public Kingdoms API route/scope is part of the accepted or current K3 Slice A runtime.
 
 ## Living contracts
 
@@ -64,16 +87,21 @@ No public Transfer/Kingdoms API route/scope is part of the accepted runtime.
 - [`docs/domains/kingdoms-intelligence.md`](../../../docs/domains/kingdoms-intelligence.md)
 - [`docs/domains/kingdoms-csv-migration.md`](../../../docs/domains/kingdoms-csv-migration.md)
 - [`docs/domains/kingdoms-transfer-planning.md`](../../../docs/domains/kingdoms-transfer-planning.md)
+- [`docs/domains/kingdoms-alliance-intelligence.md`](../../../docs/domains/kingdoms-alliance-intelligence.md)
 - [`docs/operations/kingdoms-roster-intelligence.md`](../../../docs/operations/kingdoms-roster-intelligence.md)
 - [`docs/operations/kingdoms-transfer-planning.md`](../../../docs/operations/kingdoms-transfer-planning.md)
+- [`docs/operations/kingdoms-alliance-intelligence.md`](../../../docs/operations/kingdoms-alliance-intelligence.md)
 - [`docs/security/kingdoms-roster-intelligence-security-review.md`](../../../docs/security/kingdoms-roster-intelligence-security-review.md)
 - [`docs/security/kingdoms-transfer-planning-security-review.md`](../../../docs/security/kingdoms-transfer-planning-security-review.md)
-- [`docs/product/kingdoms-transfer-planning-accessibility.md`](../../../docs/product/kingdoms-transfer-planning-accessibility.md)
+- [`docs/security/kingdoms-alliance-intelligence-p0-security-review.md`](../../../docs/security/kingdoms-alliance-intelligence-p0-security-review.md)
+- [`docs/security/kingdoms-alliance-tracking-security-review.md`](../../../docs/security/kingdoms-alliance-tracking-security-review.md)
 
-Slice-specific Kingdoms security/validation records remain historical implementation evidence.
+Slice-specific Kingdoms security/validation records remain implementation evidence; whole-increment K3 acceptance is deferred to `K3-P6`.
 
 ## Explicit boundaries
 
 Accepted `KINGDOMS-002` does **not** implement transfer-resource/pass optimization, inferred eligibility/readiness, automated stay/leave decisions, player/destination rankings, bulk completion, automated in-game transfer execution, marketplace/public advertising, diplomacy/NAP intelligence, public Kingdoms API/webhook schemas, cross-alliance transfer visibility/rankings, automated scoring/recommendations, or automated game-data ingestion.
 
-`KINGDOMS-001` and `KINGDOMS-002` are **Accepted** repository/product capabilities. A real production cutover remains separately **not yet approved** until the production-launch record has the required external infrastructure/operator evidence.
+`KINGDOMS-003` Slice A does not weaken those boundaries. It adds neutral game-side alliance identity/tracking only; later K3 slices and future K4/K5 scopes remain explicitly separate.
+
+`KINGDOMS-001` and `KINGDOMS-002` are **Accepted** repository/product capabilities. `KINGDOMS-003` is **In progress** on this implementation branch and is not whole-increment Accepted until `K3-P6`. A real production cutover remains separately **not yet approved**.
