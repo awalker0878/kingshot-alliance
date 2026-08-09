@@ -7,11 +7,11 @@ This directory owns the completed Phase 0–6 baseline, approved post-program pr
 ## Authoritative current records
 
 - [Implementation plan](implementation-plan.md) — approved Phase 0–6 program baseline, phase boundaries, cross-cutting requirements, canonical repository structure, and program definition of done.
-- [Kingdoms roster intelligence increment](kingdoms-roster-intelligence-increment.md) — **Approved scope / `K1-P6` acceptance in progress** for first-class Kingdoms, neutral game-player identity, alliance rosters, snapshots, imports/exports, and roster intelligence.
-- [KINGDOMS-001 implementation plan](kingdoms-roster-intelligence-implementation-plan.md) — gated sequence `K1-P0` through `K1-P6`; `K1-P1`–`K1-P5` implementation gates are complete and the whole increment is under final acceptance validation.
-- [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md) — whole-increment domain/security/accessibility/migration/query/operations/API-webhook review and final protected evidence record.
-- [KINGDOMS-001 accessibility review](kingdoms-roster-intelligence-accessibility.md) — semantic, keyboard, form/table/status and automated accessibility evidence for the complete first-party workflow.
-- [Current capability matrix](current-capability-matrix.md) — present-tense navigation across implemented capabilities, approved remaining scope, ownership, living contracts, and explicit non-capabilities/boundaries.
+- [Kingdoms roster intelligence increment](kingdoms-roster-intelligence-increment.md) — **Approved scope / Accepted implementation** for first-class Kingdoms, neutral game-player identity, alliance rosters, snapshots, imports/exports, and roster intelligence.
+- [KINGDOMS-001 implementation plan](kingdoms-roster-intelligence-implementation-plan.md) — gated sequence `K1-P0` through `K1-P6`; implementation slices and whole-increment hardening are complete.
+- [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md) — **Accepted** whole-increment domain/security/accessibility/migration/query/operations/API-webhook review and protected evidence record.
+- [KINGDOMS-001 accessibility review](kingdoms-roster-intelligence-accessibility.md) — accepted repository accessibility evidence for the complete first-party workflow, with manual assistive-technology smoke testing retained as release QA guidance.
+- [Current capability matrix](current-capability-matrix.md) — present-tense navigation across implemented capabilities, ownership, living contracts, and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations used with the baseline plan and approved product increments.
 - [Production hardening exit report](production-hardening-exit-report.md) — **Accepted** repository-controlled post-Phase-6 hardening evidence.
 - [Production launch approval](production-launch-approval.md) — **Not yet approved** for a real production cutover until required deployment/external-control evidence is recorded.
@@ -25,7 +25,7 @@ The Phase 0–6 program remains closed. New product work is approved as a named 
 
 | Scope ID | Increment | Status | Outcome |
 | --- | --- | --- | --- |
-| `KINGDOMS-001` | [Kingdoms roster intelligence](kingdoms-roster-intelligence-increment.md) | **In progress — complete implementation under `K1-P6` acceptance validation** | First-class Kingdom/game-player model, alliance roster management, historical snapshots, controlled CSV migration/export, and roster intelligence. |
+| `KINGDOMS-001` | [Kingdoms roster intelligence](kingdoms-roster-intelligence-increment.md) | **Accepted** | First-class Kingdom/game-player model, alliance roster management, historical snapshots, controlled CSV migration/export, and roster intelligence. |
 
 Implementation sequence: [KINGDOMS-001 implementation plan](kingdoms-roster-intelligence-implementation-plan.md). Acceptance record: [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md). Current runtime detail: [Kingdoms domain guide](../domains/kingdoms.md).
 
@@ -70,7 +70,7 @@ Use status terms consistently:
 - **Approved** — an accountable owner explicitly approved a scope or external/production decision; approval does not imply implementation is complete.
 - **Not yet approved / Pending** — required evidence or accountable approval is still outstanding.
 
-Do not use **Accepted** and **Approved** interchangeably. `KINGDOMS-001` is Approved scope and currently under final acceptance validation. Repository production hardening is Accepted while real production launch remains Not yet approved.
+Do not use **Accepted** and **Approved** interchangeably. `KINGDOMS-001` is Approved scope with an Accepted implementation. Repository production hardening is Accepted while real production launch remains Not yet approved.
 
 ## Updating program state
 
