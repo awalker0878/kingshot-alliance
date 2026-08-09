@@ -76,13 +76,14 @@ final readonly class TransitionTransferReadiness
                 ]);
             }
 
+            // Blocker mutations take the same participant row lock first, so this
+            // count is serialized with blocker creation/resolution without placing
+            // FOR UPDATE on a PostgreSQL aggregate query.
             $activeBlockerCount = TransferBlocker::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->where('transfer_plan_id', $plan->id)
                 ->where('transfer_participant_id', $participant->id)
                 ->where('state', TransferBlockerState::Active->value)
-                ->lockForUpdate()
-                ->get(['id'])
                 ->count();
 
             if ($target === TransferReadinessState::Blocked && $activeBlockerCount === 0) {
