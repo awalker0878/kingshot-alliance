@@ -18,6 +18,11 @@ final class KingdomAllianceQuery
             ->with([
                 'kingdomAlliance:id,kingdom_id,game_alliance_id,current_name,current_tag,status',
                 'kingdom:id,number,status',
+                'observations' => fn ($query) => $query
+                    ->whereNull('invalidated_at')
+                    ->orderByDesc('captured_at')
+                    ->orderByDesc('id')
+                    ->limit(1),
             ])
             ->orderBy('state')
             ->orderByDesc('created_at')
