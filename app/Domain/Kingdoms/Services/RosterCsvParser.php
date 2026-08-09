@@ -12,6 +12,20 @@ use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Throwable;
 
+/**
+ * @phpstan-type CsvRowData array{
+ *   game_player_id: string|null,
+ *   name: string,
+ *   power: string,
+ *   progression_level: string|null,
+ *   alliance_tag: string|null,
+ *   game_role: string|null,
+ *   state: string,
+ *   joined_at: string|null,
+ *   captured_at: string
+ * }
+ * @phpstan-type CsvRow array{row: int, data: CsvRowData, errors: list<string>}
+ */
 final class RosterCsvParser
 {
     public const SCHEMA_VERSION = 'kingdoms-roster.v1';
@@ -35,27 +49,7 @@ final class RosterCsvParser
         'captured_at',
     ];
 
-    /**
-     * @return array{
-     *   checksum: string,
-     *   filename: string,
-     *   rows: list<array{
-     *     row: int,
-     *     data: array{
-     *       game_player_id: string|null,
-     *       name: string,
-     *       power: string,
-     *       progression_level: string|null,
-     *       alliance_tag: string|null,
-     *       game_role: string|null,
-     *       state: string,
-     *       joined_at: string|null,
-     *       captured_at: string
-     *     },
-     *     errors: list<string>
-     *   }>
-     * }
-     */
+    /** @return array{checksum: string, filename: string, rows: list<CsvRow>} */
     public function parse(UploadedFile $file, Carbon $previewedAt): array
     {
         $filename = trim($file->getClientOriginalName());
@@ -114,6 +108,7 @@ final class RosterCsvParser
             ]);
         }
 
+        /** @var list<CsvRow> $rows */
         $rows = [];
         $csvRow = 1;
 
@@ -140,6 +135,7 @@ final class RosterCsvParser
             throw ValidationException::withMessages(['file' => 'The CSV file does not contain any data rows.']);
         }
 
+        /** @var array<string, list<int>> $duplicates */
         $duplicates = [];
         foreach ($rows as $index => $row) {
             $stableId = $row['data']['game_player_id'];
@@ -154,7 +150,10 @@ final class RosterCsvParser
             }
 
             foreach ($indexes as $index) {
-                $rows[$index]['errors'][] = 'The stable game player ID appears more than once in this file.';
+                $rows[$index] = $this->withError(
+                    $rows[$index],
+                    'The stable game player ID appears more than once in this file.',
+                );
             }
         }
 
@@ -165,7 +164,7 @@ final class RosterCsvParser
         ];
     }
 
-    /** @param array<int, mixed> $values */
+    /** @param  array<int, mixed>  $values */
     private function blankRow(array $values): bool
     {
         foreach ($values as $value) {
@@ -178,22 +177,8 @@ final class RosterCsvParser
     }
 
     /**
-     * @param array<int, mixed> $values
-     * @return array{
-     *   row: int,
-     *   data: array{
-     *     game_player_id: string|null,
-     *     name: string,
-     *     power: string,
-     *     progression_level: string|null,
-     *     alliance_tag: string|null,
-     *     game_role: string|null,
-     *     state: string,
-     *     joined_at: string|null,
-     *     captured_at: string
-     *   },
-     *   errors: list<string>
-     * }
+     * @param  array<int, mixed>  $values
+     * @return CsvRow
      */
     private function row(int $rowNumber, array $values, Carbon $previewedAt): array
     {
@@ -204,10 +189,10 @@ final class RosterCsvParser
         }
 
         $values = array_pad(array_slice($values, 0, count(self::HEADERS)), count(self::HEADERS), '');
-        $record = array_combine(self::HEADERS, array_map(static fn (mixed $value): string => trim((string) $value), $values));
-        if (is_array($record) === false) {
-            throw new RuntimeException('Unable to normalize CSV row.');
-        }
+        $record = array_combine(
+            self::HEADERS,
+            array_map(static fn (mixed $value): string => trim((string) $value), $values),
+        );
 
         $gamePlayerId = $this->nullable($record['game_player_id']);
         $name = $record['name'];
@@ -285,7 +270,18 @@ final class RosterCsvParser
         ];
     }
 
-    /** @param list<string> $errors */
+    /**
+     * @param  CsvRow  $row
+     * @return CsvRow
+     */
+    private function withError(array $row, string $error): array
+    {
+        $row['errors'][] = $error;
+
+        return $row;
+    }
+
+    /** @param  list<string>  $errors */
     private function power(string $value, array &$errors): string
     {
         if ($value === '' || preg_match('/^\d+$/', $value) !== 1) {
