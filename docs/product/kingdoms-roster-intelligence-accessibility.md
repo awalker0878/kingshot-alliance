@@ -17,9 +17,9 @@ The roster, history, intelligence and CSV-preview data use semantic tables with 
 
 Kingdom settings, roster filters, roster management, snapshot recording and CSV upload use explicit labels associated with native inputs/selects/textareas.
 
-`K1-P6` closes the remaining CSV ambiguity-control gap by giving each row-resolution select a programmatic label that includes the CSV row number and player name. The control retains a stable generated `id`/`for` pair, so managers do not need table position or visual proximity alone to identify what is being resolved.
+`K1-P6` closes the remaining CSV ambiguity-control gap by giving each row-resolution select a programmatic accessible label that includes the CSV row number and player name. Managers therefore do not need table position or visual proximity alone to identify what is being resolved.
 
-Kingdom-number and CSV-upload server validation also expose `aria-invalid`/described error text. Import commit/rejection failures use alert semantics, while successful commit summaries use a polite status region.
+Kingdom-number and CSV-upload server validation also expose `aria-invalid`/described error text. Row/file errors use alert semantics, while successful commit summaries use a polite status region.
 
 ## Keyboard interaction
 
@@ -37,13 +37,7 @@ The intelligence page describes missing-data behavior and trend-window semantics
 
 Server-side validation remains authoritative through Laravel/Inertia. User-facing forms retain visible inline error text. `K1-P6` strengthens the highest-risk CSV and Kingdom-setting errors with alert/association semantics and preserves disabled-state feedback for in-flight actions.
 
-The CSV page communicates:
-
-- row-level validation failures;
-- unresolved ambiguity count;
-- rejected-batch refusal;
-- commit failure; and
-- successful atomic-import summary.
+The CSV page communicates row-level validation failures, unresolved ambiguity count, rejected-batch refusal, commit failure and successful atomic-import summary.
 
 ## Responsive behavior
 
@@ -61,8 +55,8 @@ The increment adds no autoplay, flashing content, timed animation, audio/video o
 
 - main landmarks and primary headings;
 - native controls rather than pseudo-buttons;
-- explicit labels on form surfaces;
-- labelled per-row CSV ambiguity resolution;
+- explicit labels on normal form surfaces;
+- programmatically labelled per-row CSV ambiguity resolution;
 - import status/error live-region semantics; and
 - semantic, horizontally scrollable tables.
 
