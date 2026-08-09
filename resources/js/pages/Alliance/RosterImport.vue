@@ -101,6 +101,10 @@ function formatBytes(bytes: number): string {
 function formatInteger(value: string): string {
   return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
+
+function resolutionLabel(row: PreviewRow): string {
+  return `Resolution for CSV row ${row.row}, ${row.data.name}`;
+}
 </script>
 
 <template>
@@ -268,35 +272,27 @@ function formatInteger(value: string): string {
                 <td class="px-4 py-4 text-slate-400 capitalize">{{ row.data.state }}</td>
                 <td class="px-4 py-4 capitalize">{{ row.outcome }}</td>
                 <td class="min-w-72 px-4 py-4">
-                  <ul
-                    v-if="row.errors.length"
-                    class="space-y-1 text-rose-300"
-                    role="alert"
-                  >
+                  <ul v-if="row.errors.length" class="space-y-1 text-rose-300" role="alert">
                     <li v-for="error in row.errors" :key="error">{{ error }}</li>
                   </ul>
-                  <template v-else-if="row.outcome === 'ambiguous'">
-                    <label class="sr-only" :for="`resolution-${row.row}`">
-                      Resolution for CSV row {{ row.row }}, {{ row.data.name }}
-                    </label>
-                    <select
-                      :id="`resolution-${row.row}`"
-                      v-model="resolutionDrafts[String(row.row)]"
-                      class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                      :disabled="importRecord.status === 'committed'"
+                  <select
+                    v-else-if="row.outcome === 'ambiguous'"
+                    v-model="resolutionDrafts[String(row.row)]"
+                    :aria-label="resolutionLabel(row)"
+                    class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                    :disabled="importRecord.status === 'committed'"
+                  >
+                    <option value="">Choose a resolution</option>
+                    <option value="create">Create a new game-player identity</option>
+                    <option
+                      v-for="candidate in row.candidates"
+                      :key="candidate.entry_id"
+                      :value="candidate.entry_id"
                     >
-                      <option value="">Choose a resolution</option>
-                      <option value="create">Create a new game-player identity</option>
-                      <option
-                        v-for="candidate in row.candidates"
-                        :key="candidate.entry_id"
-                        :value="candidate.entry_id"
-                      >
-                        Update {{ candidate.name }} · {{ candidate.game_player_id ?? 'no game ID' }} ·
-                        {{ candidate.state }}
-                      </option>
-                    </select>
-                  </template>
+                      Update {{ candidate.name }} · {{ candidate.game_player_id ?? 'no game ID' }} ·
+                      {{ candidate.state }}
+                    </option>
+                  </select>
                   <span v-else-if="row.outcome === 'update'" class="text-slate-400">
                     Stable game ID matches roster entry {{ row.target_entry_id }}.
                   </span>
@@ -308,15 +304,11 @@ function formatInteger(value: string): string {
         </div>
 
         <div v-if="importRecord.status !== 'committed'" class="mt-5">
-          <p
-            v-if="importRecord.rejectedCount"
-            class="text-sm text-rose-300"
-            role="alert"
-          >
+          <p v-if="importRecord.rejectedCount" class="text-sm text-rose-300">
             This batch cannot be committed while any row is rejected. Correct the CSV and upload it
             again.
           </p>
-          <p v-else-if="unresolvedAmbiguous" class="text-sm text-amber-300" role="status">
+          <p v-else-if="unresolvedAmbiguous" class="text-sm text-amber-300">
             Resolve {{ unresolvedAmbiguous }} ambiguous row(s) before confirmation.
           </p>
           <button
@@ -329,11 +321,7 @@ function formatInteger(value: string): string {
           >
             Confirm atomic import
           </button>
-          <p
-            v-if="Object.keys(commitForm.errors).length"
-            class="mt-3 text-sm text-rose-300"
-            role="alert"
-          >
+          <p v-if="Object.keys(commitForm.errors).length" class="mt-3 text-sm text-rose-300">
             The import could not be committed. Review the row resolutions or create a fresh preview.
           </p>
         </div>
