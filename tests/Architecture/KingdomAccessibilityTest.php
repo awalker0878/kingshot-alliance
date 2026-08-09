@@ -46,8 +46,8 @@ final class KingdomAccessibilityTest extends TestCase
 
         $import = file_get_contents($root.'RosterImport.vue');
         self::assertIsString($import);
-        self::assertStringContainsString(':for="`resolution-${row.row}`"', $import);
-        self::assertStringContainsString(':id="`resolution-${row.row}`"', $import);
+        self::assertStringContainsString(':aria-label="resolutionLabel(row)"', $import);
+        self::assertStringContainsString('Resolution for CSV row', $import);
         self::assertStringContainsString('aria-live="polite"', $import);
         self::assertStringContainsString('role="alert"', $import);
     }
