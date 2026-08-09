@@ -17,9 +17,10 @@ This directory documents business/domain behavior and ownership. Runtime code re
 - [Kingdoms roster](kingdoms-roster.md) — Slice B game-player identity, alliance-owned roster, membership linkage, roster authorization, filtering, data minimization, and tenant-isolation validated-candidate contract.
 - [Kingdoms player snapshots](kingdoms-snapshots.md) — Slice C1 append-only observations, idempotency, latest projection, snapshot freshness, history visibility, provenance, and tenant-isolation validated-candidate contract.
 - [Kingdoms roster intelligence](kingdoms-intelligence.md) — Slice C2 exact power aggregates, data-quality indicators, bounded 7/30-day trends, linkage/movement summaries, manager-only comparisons, and interpretation boundaries.
+- [Kingdoms controlled CSV migration](kingdoms-csv-migration.md) — Slice D strict CSV schema, dry-run classification, identity resolution, atomic/idempotent confirmation, provenance, export safety, and tenant boundaries.
 - [Platform scale and administration](platform-scale-and-administration.md) — platform administration, tenant lifecycle, entitlements, API/webhook controls, retention, and operational scale.
 
-The Kingdom foundation from `KINGDOMS-001` Slice A / `K1-P1` is validated. Slice B / `K1-P2` and Slice C1 / `K1-P3` have passed their protected implementation gates and remain review candidates until accepted into the dependency stack. Slice C2 / `K1-P4` is an implementation candidate pending its protected gate. CSV migration remains `K1-P5` and has not started.
+The Kingdom foundation from `KINGDOMS-001` Slice A / `K1-P1` is validated. Slice B / `K1-P2`, Slice C1 / `K1-P3`, and Slice C2 / `K1-P4` have passed their protected implementation gates and remain review candidates until accepted into the dependency stack. Slice D / `K1-P5` is an implementation candidate pending its protected gate. `K1-P6` remains the whole-increment hardening and acceptance phase.
 
 ## Architecture evidence
 
@@ -34,7 +35,7 @@ The implementation plan defines these canonical ownership roots:
 
 `Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, and `Recruitment`.
 
-All canonical roots own runtime PHP. `Kingdoms` owns the validated first-class Kingdom foundation, validated Slice B roster candidate, validated Slice C1 snapshot candidate, and Slice C2 intelligence candidate on this branch. Later `KINGDOMS-001` capabilities remain approved scope rather than current accepted behavior until their own implementation phases pass their gates and are accepted into the dependency stack.
+All canonical roots own runtime PHP. `Kingdoms` owns the validated first-class Kingdom foundation plus the validated roster, snapshot, and intelligence candidates and the Slice D CSV migration candidate on this branch. `K1-P6` acceptance and unapproved follow-on capabilities remain outside current accepted runtime state until their own gates are complete.
 
 A domain does not require a separate Markdown file merely because it has runtime code. Add a domain guide when it clarifies a meaningful workflow, public contract, lifecycle, or cross-domain boundary that would otherwise be duplicated across implementation files.
 
