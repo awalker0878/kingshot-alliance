@@ -350,7 +350,7 @@ final class KingdomAllianceTrackingTest extends TestCase
             'kingdoms.alliance_intelligence_tracking_started',
             'kingdoms.alliance_intelligence_tracking_updated',
         ];
-        $auditPayload = DB::table('audit_events')->whereIn('event', $events)->pluck('payload')->implode(' ');
+        $auditPayload = DB::table('audit_events')->whereIn('event', $events)->pluck('metadata')->implode(' ');
         $outboxPayload = DB::table('outbox_messages')->whereIn('event_type', $events)->pluck('payload')->implode(' ');
 
         self::assertStringNotContainsString($secret, $auditPayload);
