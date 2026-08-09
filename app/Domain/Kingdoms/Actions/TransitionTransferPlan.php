@@ -26,7 +26,7 @@ final readonly class TransitionTransferPlan
     ) {}
 
     /**
-     * @param list<TransferPlanState> $allowedFrom
+     * @param  list<TransferPlanState>  $allowedFrom
      */
     public function handle(
         Alliance $alliance,
