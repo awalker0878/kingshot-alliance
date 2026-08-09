@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
@@ -243,7 +244,7 @@ final class TransferPlanTest extends TestCase
         self::assertSame(TransferPlanState::Cancelled, $plan->refresh()->state);
     }
 
-    /** @return array{0: User, 1: \App\Domain\Alliances\Models\Alliance, 2: array<string, mixed>} */
+    /** @return array{0: User, 1: Alliance, 2: array<string, mixed>} */
     private function ownerAlliance(string $name, string $slug, int $kingdom): array
     {
         $owner = User::factory()->create();
