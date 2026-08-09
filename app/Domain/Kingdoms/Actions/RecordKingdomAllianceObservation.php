@@ -34,7 +34,7 @@ final readonly class RecordKingdomAllianceObservation
      *   observed_name: string,
      *   observed_tag?: string|null,
      *   power?: string|null,
-     *   member_count?: int|null,
+     *   member_count?: int|string|null,
      *   captured_at: string,
      *   corrects_observation_id?: string|null,
      *   correction_reason?: string|null
@@ -86,7 +86,7 @@ final readonly class RecordKingdomAllianceObservation
             $observedName = trim($attributes['observed_name']);
             $observedTag = $this->nullableLine($attributes['observed_tag'] ?? null);
             $power = $this->power($attributes['power'] ?? null);
-            $memberCount = $attributes['member_count'] ?? null;
+            $memberCount = $this->memberCount($attributes['member_count'] ?? null);
             $correctsId = $this->nullableLine($attributes['corrects_observation_id'] ?? null);
             $correctionReason = $this->nullableText($attributes['correction_reason'] ?? null);
 
@@ -224,6 +224,15 @@ final readonly class RecordKingdomAllianceObservation
         }
 
         return $canonical;
+    }
+
+    private function memberCount(int|string|null $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (int) $value;
     }
 
     private function nullableLine(?string $value): ?string
