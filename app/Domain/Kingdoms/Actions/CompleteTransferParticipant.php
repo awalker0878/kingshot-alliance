@@ -201,7 +201,7 @@ final readonly class CompleteTransferParticipant
             'state' => $entry->state,
             'joined_at' => $entry->joined_at?->toDateString(),
             'manager_notes' => $entry->manager_notes,
-        ], (string) $entry->id);
+        ], (string) $entry->id, (string) $entry->source);
     }
 
     private function completeOutgoing(
