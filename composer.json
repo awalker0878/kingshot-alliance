@@ -62,9 +62,7 @@
             "pint --parallel"
         ],
         "lint:check": [
-            "pint app/Domain/Kingdoms/Actions/CreateTransferPlan.php app/Domain/Kingdoms/Actions/TransitionTransferPlan.php",
-            "git diff -- app/Domain/Kingdoms/Actions/CreateTransferPlan.php app/Domain/Kingdoms/Actions/TransitionTransferPlan.php",
-            "@php -r \"exit(1);\""
+            "pint --parallel --test"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
