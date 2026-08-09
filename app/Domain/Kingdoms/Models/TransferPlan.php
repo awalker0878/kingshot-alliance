@@ -65,4 +65,10 @@ final class TransferPlan extends Model
     {
         return $this->hasMany(TransferParticipant::class, 'transfer_plan_id');
     }
+
+    /** @return HasMany<TransferGroup, $this> */
+    public function groups(): HasMany
+    {
+        return $this->hasMany(TransferGroup::class, 'transfer_plan_id');
+    }
 }
