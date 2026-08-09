@@ -85,6 +85,39 @@ final class KingdomTransferStructureTest extends TestCase
         }
     }
 
+    public function test_slice_c2_schema_contains_manual_readiness_history_and_blockers_without_completion(): void
+    {
+        $migration = file_get_contents(dirname(__DIR__, 2).'/database/migrations/2026_08_09_120000_create_transfer_readiness_and_blockers.php');
+        self::assertIsString($migration);
+
+        foreach ([
+            'readiness_state',
+            'transfer_readiness_transitions',
+            'from_state',
+            'to_state',
+            'actor_user_id',
+            'transfer_blockers',
+            'summary',
+            'details',
+            'resolved_at',
+            'resolved_by_user_id',
+        ] as $field) {
+            self::assertStringContainsString($field, $migration);
+        }
+
+        foreach ([
+            'completed_at',
+            'completion',
+            'handoff',
+            'eligibility',
+            'transfer_pass',
+            'ticket_count',
+            'resource_score',
+        ] as $futureField) {
+            self::assertStringNotContainsString($futureField, $migration);
+        }
+    }
+
     public function test_transfer_events_remain_inside_the_existing_kingdoms_webhook_boundary(): void
     {
         $queue = file_get_contents(dirname(__DIR__, 2).'/app/Domain/Integrations/Actions/QueueWebhookDeliveries.php');
@@ -100,11 +133,15 @@ final class KingdomTransferStructureTest extends TestCase
             'Models/TransferPlan.php',
             'Models/TransferParticipant.php',
             'Models/TransferGroup.php',
+            'Models/TransferBlocker.php',
+            'Models/TransferReadinessTransition.php',
             'Queries/TransferPlanQuery.php',
             'Queries/TransferParticipantQuery.php',
             'Queries/TransferGroupQuery.php',
             'Enums/TransferDirection.php',
             'Enums/TransferGroupState.php',
+            'Enums/TransferReadinessState.php',
+            'Enums/TransferBlockerState.php',
             'Actions/CreateTransferPlan.php',
             'Actions/TransitionTransferPlan.php',
             'Actions/OpenTransferPlan.php',
@@ -117,9 +154,13 @@ final class KingdomTransferStructureTest extends TestCase
             'Actions/SaveTransferGroup.php',
             'Actions/ArchiveTransferGroup.php',
             'Actions/AssignTransferParticipantGroup.php',
+            'Actions/TransitionTransferReadiness.php',
+            'Actions/CreateTransferBlocker.php',
+            'Actions/ResolveTransferBlocker.php',
             'Http/Controllers/TransferPlanController.php',
             'Http/Controllers/TransferParticipantController.php',
             'Http/Controllers/TransferGroupController.php',
+            'Http/Controllers/TransferReadinessController.php',
         ] as $path) {
             self::assertFileExists($root.$path);
         }
