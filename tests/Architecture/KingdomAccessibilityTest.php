@@ -19,6 +19,8 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterHistory.vue',
             'RosterIntelligence.vue',
             'RosterImport.vue',
+            'KingdomAlliances.vue',
+            'KingdomAlliancesManage.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
@@ -42,6 +44,7 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterManage.vue',
             'RosterHistory.vue',
             'RosterImport.vue',
+            'KingdomAlliancesManage.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
             'TransferCompletionManage.vue',
@@ -78,7 +81,7 @@ final class KingdomAccessibilityTest extends TestCase
         self::assertStringContainsString('Record actual completion', $completion);
     }
 
-    public function test_roster_and_transfer_tables_keep_narrow_viewport_overflow(): void
+    public function test_roster_transfer_and_kingdom_alliance_tables_keep_narrow_viewport_overflow(): void
     {
         $root = dirname(__DIR__, 2).'/resources/js/pages/Alliance/';
 
@@ -87,6 +90,8 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterHistory.vue',
             'RosterIntelligence.vue',
             'RosterImport.vue',
+            'KingdomAlliances.vue',
+            'KingdomAlliancesManage.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
         ] as $page) {
