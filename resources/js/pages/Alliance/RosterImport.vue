@@ -153,6 +153,8 @@ function formatInteger(value: string): string {
           <input
             id="roster-csv"
             accept=".csv,text/csv"
+            :aria-describedby="uploadForm.errors.file ? 'roster-csv-error' : undefined"
+            :aria-invalid="uploadForm.errors.file ? 'true' : undefined"
             class="mt-2 block w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
             required
             type="file"
@@ -165,7 +167,12 @@ function formatInteger(value: string): string {
           >
             Validate and preview
           </button>
-          <p v-if="uploadForm.errors.file" class="mt-3 text-sm text-rose-300">
+          <p
+            v-if="uploadForm.errors.file"
+            id="roster-csv-error"
+            class="mt-3 text-sm text-rose-300"
+            role="alert"
+          >
             {{ uploadForm.errors.file }}
           </p>
         </form>
@@ -227,6 +234,8 @@ function formatInteger(value: string): string {
         <div
           v-if="importRecord.status === 'committed' && importRecord.committedSummary"
           class="mt-5 rounded-xl border border-emerald-900/70 bg-emerald-950/30 p-4 text-sm text-emerald-200"
+          role="status"
+          aria-live="polite"
         >
           Committed {{ importRecord.committedSummary.rows_committed }} rows:
           {{ importRecord.committedSummary.roster_entries_created }} roster creates,
@@ -259,26 +268,31 @@ function formatInteger(value: string): string {
                 <td class="px-4 py-4 text-slate-400 capitalize">{{ row.data.state }}</td>
                 <td class="px-4 py-4 capitalize">{{ row.outcome }}</td>
                 <td class="min-w-72 px-4 py-4">
-                  <ul v-if="row.errors.length" class="space-y-1 text-rose-300">
+                  <ul v-if="row.errors.length" class="space-y-1 text-rose-300" role="alert">
                     <li v-for="error in row.errors" :key="error">{{ error }}</li>
                   </ul>
-                  <select
-                    v-else-if="row.outcome === 'ambiguous'"
-                    v-model="resolutionDrafts[String(row.row)]"
-                    class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                    :disabled="importRecord.status === 'committed'"
-                  >
-                    <option value="">Choose a resolution</option>
-                    <option value="create">Create a new game-player identity</option>
-                    <option
-                      v-for="candidate in row.candidates"
-                      :key="candidate.entry_id"
-                      :value="candidate.entry_id"
+                  <template v-else-if="row.outcome === 'ambiguous'">
+                    <label class="sr-only" :for="`resolution-${row.row}`">
+                      Resolution for CSV row {{ row.row }}, {{ row.data.name }}
+                    </label>
+                    <select
+                      :id="`resolution-${row.row}`"
+                      v-model="resolutionDrafts[String(row.row)]"
+                      class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                      :disabled="importRecord.status === 'committed'"
                     >
-                      Update {{ candidate.name }} · {{ candidate.game_player_id ?? 'no game ID' }} ·
-                      {{ candidate.state }}
-                    </option>
-                  </select>
+                      <option value="">Choose a resolution</option>
+                      <option value="create">Create a new game-player identity</option>
+                      <option
+                        v-for="candidate in row.candidates"
+                        :key="candidate.entry_id"
+                        :value="candidate.entry_id"
+                      >
+                        Update {{ candidate.name }} · {{ candidate.game_player_id ?? 'no game ID' }} ·
+                        {{ candidate.state }}
+                      </option>
+                    </select>
+                  </template>
                   <span v-else-if="row.outcome === 'update'" class="text-slate-400">
                     Stable game ID matches roster entry {{ row.target_entry_id }}.
                   </span>
@@ -290,11 +304,11 @@ function formatInteger(value: string): string {
         </div>
 
         <div v-if="importRecord.status !== 'committed'" class="mt-5">
-          <p v-if="importRecord.rejectedCount" class="text-sm text-rose-300">
+          <p v-if="importRecord.rejectedCount" class="text-sm text-rose-300" role="alert">
             This batch cannot be committed while any row is rejected. Correct the CSV and upload it
             again.
           </p>
-          <p v-else-if="unresolvedAmbiguous" class="text-sm text-amber-300">
+          <p v-else-if="unresolvedAmbiguous" class="text-sm text-amber-300" role="status">
             Resolve {{ unresolvedAmbiguous }} ambiguous row(s) before confirmation.
           </p>
           <button
@@ -307,7 +321,11 @@ function formatInteger(value: string): string {
           >
             Confirm atomic import
           </button>
-          <p v-if="Object.keys(commitForm.errors).length" class="mt-3 text-sm text-rose-300">
+          <p
+            v-if="Object.keys(commitForm.errors).length"
+            class="mt-3 text-sm text-rose-300"
+            role="alert"
+          >
             The import could not be committed. Review the row resolutions or create a fresh preview.
           </p>
         </div>
