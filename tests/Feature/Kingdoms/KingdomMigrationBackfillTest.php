@@ -26,12 +26,16 @@ final class KingdomMigrationBackfillTest extends TestCase
         $rosterMigration = require database_path('migrations/2026_08_08_141000_create_kingdom_roster_tables.php');
         $snapshotMigration = require database_path('migrations/2026_08_08_142000_create_player_snapshots.php');
         $importMigration = require database_path('migrations/2026_08_08_143000_create_kingdom_roster_imports.php');
+        $transferPlanMigration = require database_path('migrations/2026_08_09_090000_create_transfer_plans.php');
         self::assertInstanceOf(Migration::class, $kingdomMigration);
         self::assertInstanceOf(Migration::class, $rosterMigration);
         self::assertInstanceOf(Migration::class, $snapshotMigration);
         self::assertInstanceOf(Migration::class, $importMigration);
+        self::assertInstanceOf(Migration::class, $transferPlanMigration);
 
-        // Exercise Slice A in the dependency order a real rollback uses after Slice D exists.
+        // Exercise the full Kingdoms dependency order. Newer transfer tables must be removed
+        // before the first-class Kingdom table they reference can be rolled back.
+        $transferPlanMigration->down();
         $importMigration->down();
         $snapshotMigration->down();
         $rosterMigration->down();
@@ -47,6 +51,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         $rosterMigration->up();
         $snapshotMigration->up();
         $importMigration->up();
+        $transferPlanMigration->up();
 
         self::assertFalse(Schema::hasColumn('alliances', 'kingdom'));
         self::assertTrue(Schema::hasColumn('alliances', 'kingdom_id'));
@@ -54,6 +59,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertTrue(Schema::hasTable('alliance_roster_entries'));
         self::assertTrue(Schema::hasTable('player_snapshots'));
         self::assertTrue(Schema::hasTable('kingdom_roster_imports'));
+        self::assertTrue(Schema::hasTable('transfer_plans'));
         self::assertTrue(Schema::hasColumn('player_snapshots', 'roster_import_id'));
         self::assertSame(1, DB::table('kingdoms')->where('number', 2400)->count());
 
