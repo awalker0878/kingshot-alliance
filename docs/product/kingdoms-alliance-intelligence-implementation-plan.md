@@ -2,10 +2,11 @@
 
 [← Kingdoms alliance intelligence and diplomacy product increment](kingdoms-alliance-intelligence-increment.md)
 
-**Status:** Approved scope — implementation Planned  
+**Status:** Approved scope — runtime implementation Planned; `K3-P0` contract lock Complete  
 **Scope ID:** `KINGDOMS-003`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Accepted `KINGDOMS-001` and `KINGDOMS-002` implementations  
+**K3-P0 decisions:** [KINGDOMS-003 K3-P0 design decisions](kingdoms-alliance-intelligence-p0-decisions.md)  
 **Important:** These are implementation phases inside `KINGDOMS-003`; they are not a continuation of historical program phase numbering.
 
 ## 1. Purpose
@@ -34,52 +35,57 @@ The implementation must preserve the platform rules established by the accepted 
 - security, accessibility, operations and living documentation updated with each slice; and
 - no dormant ingestion, public-sharing, ranking, threat-score, AI-recommendation or public-API placeholders.
 
-## 2. Planned phase status
+## 2. Phase status
 
-| Phase | Planned outcome | Delivery slice |
-| --- | --- | --- |
-| `K3-P0` | Identity, tenancy, diplomacy-state, privacy and history contracts locked | Slice A preparation |
-| `K3-P1` | Neutral game-side alliance identity and alliance-owned tracking foundation | Slice A |
-| `K3-P2` | Append-oriented alliance observations and historical facts | Slice B |
-| `K3-P3` | Explicit diplomacy/NAP lifecycle and transition history | Slice C1 |
-| `K3-P4` | Manager-private diplomacy contacts | Slice C2 |
-| `K3-P5` | Alliance intelligence dashboard and derived descriptive trends | Slice D |
-| `K3-P6` | Whole-increment hardening and acceptance | Whole increment |
+| Phase | Status | Outcome | Delivery slice |
+| --- | --- | --- | --- |
+| `K3-P0` | **Complete** | Identity, tenancy, diplomacy-state, privacy and history contracts locked | Pre-runtime contract gate |
+| `K3-P1` | Planned | Neutral game-side alliance identity and alliance-owned tracking foundation | Slice A |
+| `K3-P2` | Planned | Append-oriented alliance observations and historical facts | Slice B |
+| `K3-P3` | Planned | Explicit diplomacy/NAP lifecycle and transition history | Slice C1 |
+| `K3-P4` | Planned | Manager-private diplomacy contacts | Slice C2 |
+| `K3-P5` | Planned | Alliance intelligence dashboard and derived descriptive trends | Slice D |
+| `K3-P6` | Planned | Whole-increment hardening and acceptance | Whole increment |
 
-`KINGDOMS-003` remains Planned until implementation starts and must not be described as current runtime capability before `K3-P6` acceptance.
+`KINGDOMS-003` runtime implementation remains Planned until `K3-P1` starts and must not be described as current runtime capability before `K3-P6` acceptance.
 
-## 3. `K3-P0` — Design and contract lock
+## 3. `K3-P0` — Design and contract lock — Complete
 
 ### Objective
 
 Lock the identity, tenancy, state, privacy and history model before runtime schema work begins.
 
-### Required decisions
+### Locked decisions
 
-Lock at minimum:
+The normative decisions are recorded in [KINGDOMS-003 K3-P0 design decisions](kingdoms-alliance-intelligence-p0-decisions.md) and the companion [K3-P0 security/privacy review](../security/kingdoms-alliance-intelligence-p0-security-review.md).
 
-- neutral game-side alliance entity naming (`KingdomAlliance` or equivalent) and ownership;
-- stable game alliance ID normalization/uniqueness rules inside one Kingdom;
-- current neutral name/tag semantics and how historical tag/name changes remain observable;
-- alliance-owned tracking relation and active/archive lifecycle;
-- same-current-Kingdom creation/mutation invariant;
-- Alliance-Kingdom-drift recovery/archival behavior;
-- diplomacy state vocabulary and allowed transitions;
-- effective/review/expiry semantics and no-auto-transition rule;
-- observation correction/invalidation semantics without destructive deletion;
-- manual-submission retry/idempotency key behavior;
-- contact minimum-data/privacy rules;
-- member-safe versus manager-private field matrix;
-- audit/outbox event families and private-payload exclusions; and
-- migration/rollback dependency order.
+They lock at minimum:
+
+- canonical neutral game-side alliance entity `KingdomAlliance` and tenant-owned `TrackedKingdomAlliance` tracking relationship;
+- stable game alliance ID scoped to one Kingdom as the only automatic identity-resolution key;
+- name/tag/handle values as non-identity display/coordination data that never auto-merge;
+- global neutral current identity separated from tenant-owned observation/diplomacy/contact history;
+- tracking lifecycle `active` / `archived` and one active tracking relationship per tenant/reference;
+- same-current-Kingdom creation/mutation invariant and fail-closed Kingdom drift behavior with archival recovery;
+- diplomacy states exactly `unknown`, `neutral`, `friendly`, `nap`, `ally`, `rival`;
+- explicit human-maintained transitions between any diplomacy states with append-oriented transition history;
+- effective/review/expiry dates as advisory workflow metadata that never auto-transition state;
+- append-oriented observations with deterministic exact-retry idempotency;
+- invalidation/correction preserving original observations rather than destructive overwrite;
+- no K3 diplomacy-contact linkage to `KingdomPlayer` in the initial increment;
+- contact data minimization and manager-private handle/note visibility;
+- `alliance.view` safe reads and `kingdoms.manage` + recent password confirmation for all K3 mutations;
+- member-safe versus manager-private field boundaries;
+- internal-only `kingdoms.*` audit/outbox event families with private-text exclusions; and
+- migration order `KingdomAlliance` → tracking → observations → diplomacy/history → contacts, reversed for rollback.
 
 ### Design gates
 
-Before Slice A runtime is accepted, prove that the design cannot:
+The locked design cannot:
 
 - confuse a neutral game alliance with a platform tenant;
 - grant access because two tenants track the same neutral reference;
-- auto-merge by tag/name;
+- auto-merge by tag/name/handle;
 - store one tenant's diplomacy/contact state on a global reference;
 - silently retarget records after the platform Alliance changes Kingdom;
 - infer diplomacy from observations;
@@ -96,10 +102,10 @@ Introduce neutral game-side alliance identity plus an explicit tenant-owned trac
 
 ### Persistence
 
-Likely entities:
+Entities:
 
 - `KingdomAlliance` — global neutral reference;
-- `TrackedKingdomAlliance` (or equivalent) — alliance-owned relationship to the neutral reference.
+- `TrackedKingdomAlliance` — alliance-owned relationship to the neutral reference.
 
 The neutral reference should support only current reference identity required now:
 
@@ -116,7 +122,7 @@ The tenant-owned tracking record should support:
 - active Alliance ID;
 - neutral game-side alliance ID;
 - captured/current Kingdom context required for fail-closed behavior;
-- tracking lifecycle (`active` / `archived` or equivalent);
+- tracking lifecycle (`active` / `archived`);
 - manager-only tracking notes if required now; and
 - actor/provenance metadata where justified.
 
@@ -126,13 +132,13 @@ Add actions to:
 
 - resolve/create a neutral game-side alliance by stable game alliance ID where known;
 - explicitly create an unresolved neutral identity when no stable ID exists without name-only deduplication;
-- start/stop/archive tenant tracking;
+- start/archive tenant tracking;
 - update neutral current name/tag only through validated identity-aware actions; and
 - fail closed if the target alliance is outside the active Alliance's current Kingdom.
 
 Tag/name collision never auto-merges records.
 
-If the platform Alliance Kingdom changes, stale-context tracking remains historical/readable but privileged mutation fails closed until explicit archival/reconciliation.
+If the platform Alliance Kingdom changes, stale-context tracking remains historical/readable but normal privileged mutation fails closed. Archival remains available as the safe terminal recovery action; tracking is never silently retargeted.
 
 ### Authorization and UI
 
@@ -245,7 +251,7 @@ Represent current diplomacy as explicit manager-maintained state with historical
 
 Add alliance/tracking-scoped diplomacy state plus append-oriented transition history.
 
-Lock the final state vocabulary in `K3-P0`; expected operational states include concepts such as:
+The locked state vocabulary is:
 
 - `unknown`;
 - `neutral`;
@@ -254,7 +260,7 @@ Lock the final state vocabulary in `K3-P0`; expected operational states include 
 - `ally`; and
 - `rival`.
 
-Do not add additional states without a clear workflow requirement.
+Do not add additional states without an explicit scope update and clear workflow requirement.
 
 Current relationship state may store:
 
@@ -269,13 +275,13 @@ Transition history stores prior/new state and actor/effective timestamps without
 ### Domain behavior
 
 - explicit manager transition only;
-- validated allowed transitions where needed to preserve workflow meaning;
-- repeat of the already-current transition is idempotent;
+- any current state may transition explicitly to any other locked state;
+- repeat of the already-current transition with the same effective meaning is idempotent;
 - expiry/review time does not automatically transition state;
 - derived `needs_review` may be calculated from time/state;
 - observations, attacks, power changes, transfer state and contact data never auto-transition diplomacy;
 - changing/archiving tracking retains relationship history; and
-- current-Kingdom drift fails closed for mutations.
+- current-Kingdom drift fails closed for normal mutations.
 
 ### UI
 
@@ -318,7 +324,7 @@ Add alliance/tracking-scoped contacts with only the data required by the initial
 
 Do not add phone/address/private-secret fields.
 
-Optional neutral `KingdomPlayer` linkage may be included only if `K3-P0` proves it is required and can reuse stable player identity rules. A handle/display name alone never links a player automatically.
+`K3-P0` explicitly defers `KingdomPlayer` linkage for diplomacy contacts. A handle/display name never links a player automatically, and Slice C2 does not add a player foreign key merely for future convenience.
 
 ### Domain behavior
 
@@ -449,19 +455,21 @@ The complete stack must pass the repository's protected quality/security pipelin
 
 ## 10. Pull-request sequencing
 
-Planned dependency order:
+Dependency order:
 
-1. **Slice A / `K3-P1` — External alliance identity and tracking foundation** (including final `K3-P0` decisions).
-2. **Slice B / `K3-P2` — Observations and historical facts**.
-3. **Slice C1 / `K3-P3` — Diplomacy and NAP lifecycle**.
-4. **Slice C2 / `K3-P4` — Diplomacy contacts**.
-5. **Slice D / `K3-P5` — Intelligence dashboard and derived trends**.
-6. **`K3-P6` — Whole-increment hardening, audits, documentation and acceptance record**.
+1. **`K3-P0` — Design/security contract lock** (documentation-only prerequisite).
+2. **Slice A / `K3-P1` — External alliance identity and tracking foundation**.
+3. **Slice B / `K3-P2` — Observations and historical facts**.
+4. **Slice C1 / `K3-P3` — Diplomacy and NAP lifecycle**.
+5. **Slice C2 / `K3-P4` — Diplomacy contacts**.
+6. **Slice D / `K3-P5` — Intelligence dashboard and derived trends**.
+7. **`K3-P6` — Whole-increment hardening, audits, documentation and acceptance record**.
 
-Each slice must remain independently migratable/testable and must not add compatibility shims or dormant future-schema fields solely to simplify later slices.
+Each runtime slice must remain independently migratable/testable and must not add compatibility shims or dormant future-schema fields solely to simplify later slices.
 
 ## 11. Suggested branch naming
 
+- `agent/kingdoms-003-p0`
 - `agent/kingdoms-003-slice-a`
 - `agent/kingdoms-003-slice-b`
 - `agent/kingdoms-003-slice-c1`
@@ -469,4 +477,4 @@ Each slice must remain independently migratable/testable and must not add compat
 - `agent/kingdoms-003-slice-d`
 - `agent/kingdoms-003-acceptance`
 
-The planning branch may be merged independently before Slice A begins so approved scope remains distinct from implementation evidence.
+The planning branch may be merged independently before Slice A begins so approved scope remains distinct from implementation evidence. The P0 branch may be stacked on planning and establishes the final contract that Slice A must inherit.
