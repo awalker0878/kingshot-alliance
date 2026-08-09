@@ -2,7 +2,7 @@
 
 [← Kingdoms alliance intelligence and diplomacy product increment](kingdoms-alliance-intelligence-increment.md)
 
-**Status:** Approved scope — runtime implementation Planned; `K3-P0` contract lock Complete  
+**Status:** Approved scope — runtime implementation **In progress**; `K3-P0` Complete; `K3-P1` Validated  
 **Scope ID:** `KINGDOMS-003`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Accepted `KINGDOMS-001` and `KINGDOMS-002` implementations  
@@ -40,14 +40,14 @@ The implementation must preserve the platform rules established by the accepted 
 | Phase | Status | Outcome | Delivery slice |
 | --- | --- | --- | --- |
 | `K3-P0` | **Complete** | Identity, tenancy, diplomacy-state, privacy and history contracts locked | Pre-runtime contract gate |
-| `K3-P1` | Planned | Neutral game-side alliance identity and alliance-owned tracking foundation | Slice A |
+| `K3-P1` | **Validated** | Neutral game-side alliance identity and alliance-owned tracking foundation | Slice A |
 | `K3-P2` | Planned | Append-oriented alliance observations and historical facts | Slice B |
 | `K3-P3` | Planned | Explicit diplomacy/NAP lifecycle and transition history | Slice C1 |
 | `K3-P4` | Planned | Manager-private diplomacy contacts | Slice C2 |
 | `K3-P5` | Planned | Alliance intelligence dashboard and derived descriptive trends | Slice D |
 | `K3-P6` | Planned | Whole-increment hardening and acceptance | Whole increment |
 
-`KINGDOMS-003` runtime implementation remains Planned until `K3-P1` starts and must not be described as current runtime capability before `K3-P6` acceptance.
+`KINGDOMS-003` runtime implementation is **In progress**. Slice A / `K3-P1` is validated, while observations, diplomacy/NAP, contacts and derived intelligence remain later slices. The whole increment must not be described as Accepted before `K3-P6` passes and its evidence is recorded.
 
 ## 3. `K3-P0` — Design and contract lock — Complete
 
@@ -94,7 +94,7 @@ The locked design cannot:
 
 No future-slice schema or UI placeholders are added in `K3-P0`.
 
-## 4. `K3-P1` / Slice A — External alliance identity and tracking foundation
+## 4. `K3-P1` / Slice A — External alliance identity and tracking foundation — Validated
 
 ### Objective
 
@@ -107,7 +107,7 @@ Entities:
 - `KingdomAlliance` — global neutral reference;
 - `TrackedKingdomAlliance` — alliance-owned relationship to the neutral reference.
 
-The neutral reference should support only current reference identity required now:
+The neutral reference supports only current reference identity required now:
 
 - ULID;
 - `kingdom_id`;
@@ -117,18 +117,18 @@ The neutral reference should support only current reference identity required no
 - lifecycle state; and
 - timestamps.
 
-The tenant-owned tracking record should support:
+The tenant-owned tracking record supports:
 
 - active Alliance ID;
 - neutral game-side alliance ID;
-- captured/current Kingdom context required for fail-closed behavior;
+- captured Kingdom context required for fail-closed behavior;
 - tracking lifecycle (`active` / `archived`);
-- manager-only tracking notes if required now; and
-- actor/provenance metadata where justified.
+- manager-only tracking notes; and
+- archive/timestamp evidence.
 
 ### Domain behavior
 
-Add actions to:
+Delivered actions:
 
 - resolve/create a neutral game-side alliance by stable game alliance ID where known;
 - explicitly create an unresolved neutral identity when no stable ID exists without name-only deduplication;
@@ -136,7 +136,7 @@ Add actions to:
 - update neutral current name/tag only through validated identity-aware actions; and
 - fail closed if the target alliance is outside the active Alliance's current Kingdom.
 
-Tag/name collision never auto-merges records.
+Tag/name collision never auto-merges records. Stable IDs are assign-once and same-Kingdom conflicts fail closed instead of merging or relinking references.
 
 If the platform Alliance Kingdom changes, stale-context tracking remains historical/readable but normal privileged mutation fails closed. Archival remains available as the safe terminal recovery action; tracking is never silently retargeted.
 
@@ -145,8 +145,8 @@ If the platform Alliance Kingdom changes, stale-context tracking remains histori
 - ordinary safe tracked-alliance list: `alliance.view`;
 - tracking/identity mutation: `kingdoms.manage` + recent password confirmation;
 - active-Alliance re-resolution for every submitted tracking/reference ID;
-- member list exposes only safe neutral identity/tracking data;
-- manager workspace exposes the minimum IDs/notes required to manage tracking.
+- member list exposes only safe neutral identity/tracking data; and
+- manager workspace exposes only the IDs/stable identity/private notes required to manage tracking.
 
 ### Audit/outbox
 
@@ -154,18 +154,28 @@ Material tracking/reference changes produce attributable audit evidence and inte
 
 ### Tests and exit criteria
 
-- stable-ID identity resolution tests;
+Validated coverage includes:
+
+- stable-ID identity resolution/reuse/conflict tests;
 - duplicate tag/name no-auto-merge tests;
-- same-Kingdom validation tests;
+- same-Kingdom and Kingdom-drift validation;
 - cross-tenant tracking/reference-ID tampering tests;
-- Alliance-Kingdom-drift tests;
 - `alliance.view` / `kingdoms.manage` / password-confirmation tests;
 - member payload minimization tests;
-- audit/outbox internal-event tests;
-- migration rollback/reapply tests; and
-- accessibility validation for tracking controls.
+- private-note audit/outbox payload-safety tests;
+- archive idempotency/re-tracking history tests;
+- complete Kingdoms migration rollback/reapply tests; and
+- accessibility/public-API/future-slice architecture guards.
 
-Slice A is complete when neutral game-side identity and tenant tracking exist without observations, diplomacy or contacts hidden in the schema.
+Slice A is complete: neutral game-side identity and tenant tracking exist without observations, diplomacy or contacts hidden in the schema.
+
+### Validation
+
+Exact validated runtime SHA: `f57b81a7550b9a5cb94a2ae233e31da5805c8b55`.
+
+The [Slice A validation record](kingdoms-alliance-intelligence-slice-a-validation.md) records successful Dependency Review, CodeQL and full CI, including frontend checks/build, PostgreSQL migrations, Pint, PHPStan, 314 tests / 3661 assertions, immutable-image staging, backup/restore and image scanning.
+
+`K3-P1` is **Validated**. Append-oriented game-side alliance observations remain `K3-P2`; no observation, diplomacy, contact, ingestion, ranking/scoring or shared-intelligence capability is implied by Slice A.
 
 ## 5. `K3-P2` / Slice B — Observations and historical facts
 
@@ -451,14 +461,14 @@ The complete stack must pass the repository's protected quality/security pipelin
 - backup/restore; and
 - image scanning where those controls remain part of the repository gate.
 
-`KINGDOMS-003` remains Planned/In progress/Candidate until the exact final evidence is recorded. Repository/product acceptance does not itself approve real production cutover.
+`KINGDOMS-003` remains In progress/Candidate until the exact final whole-increment evidence is recorded. Repository/product acceptance does not itself approve real production cutover.
 
 ## 10. Pull-request sequencing
 
 Dependency order:
 
 1. **`K3-P0` — Design/security contract lock** (documentation-only prerequisite).
-2. **Slice A / `K3-P1` — External alliance identity and tracking foundation**.
+2. **Slice A / `K3-P1` — External alliance identity and tracking foundation** — Validated.
 3. **Slice B / `K3-P2` — Observations and historical facts**.
 4. **Slice C1 / `K3-P3` — Diplomacy and NAP lifecycle**.
 5. **Slice C2 / `K3-P4` — Diplomacy contacts**.
@@ -477,4 +487,4 @@ Each runtime slice must remain independently migratable/testable and must not ad
 - `agent/kingdoms-003-slice-d`
 - `agent/kingdoms-003-acceptance`
 
-The planning branch may be merged independently before Slice A begins so approved scope remains distinct from implementation evidence. The P0 branch may be stacked on planning and establishes the final contract that Slice A must inherit.
+The planning branch may be merged independently before Slice A begins so approved scope remains distinct from implementation evidence. The P0 branch may be stacked on planning and establishes the final contract that Slice A inherited.
