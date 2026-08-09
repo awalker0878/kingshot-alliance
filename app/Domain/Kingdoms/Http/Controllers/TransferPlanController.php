@@ -244,6 +244,7 @@ final class TransferPlanController extends Controller
                 ? null
                 : $this->group($participant->group, false),
             'withdrawnAt' => $participant->withdrawn_at?->toIso8601String(),
+            'completedAt' => $participant->completion?->completed_at->toIso8601String(),
         ];
 
         if ($includePrivate) {
@@ -287,6 +288,23 @@ final class TransferPlanController extends Controller
                         : ['name' => (string) $transition->actor->name],
                 ])
                 ->all();
+            $completion = $participant->completion;
+            $row['completion'] = $completion === null
+                ? null
+                : [
+                    'completedAt' => $completion->completed_at->toIso8601String(),
+                    'completedBy' => $completion->completedBy === null
+                        ? null
+                        : ['name' => (string) $completion->completedBy->name],
+                    'rosterEntry' => $completion->rosterEntry === null
+                        ? null
+                        : [
+                            'id' => (string) $completion->rosterEntry->id,
+                            'name' => (string) $completion->rosterEntry->observed_name,
+                            'state' => $completion->rosterEntry->state->value,
+                            'gamePlayerId' => $completion->rosterEntry->player->game_player_id,
+                        ],
+                ];
         }
 
         return $row;
