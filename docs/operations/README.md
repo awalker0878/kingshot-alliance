@@ -6,11 +6,12 @@ This directory contains the living operating model, production/release controls,
 
 ## Start here — living operations
 
-Operators should use these documents for the current Phase 0–6-complete runtime rather than reconstructing today's behavior from historical phase records:
+Operators should use these documents for the current Phase 0–6-complete runtime and implemented post-program increments rather than reconstructing today's behavior from historical phase records:
 
 - [Background processing](background-processing.md) — scheduler commands, Horizon queues, outbox processing, idempotency, failure signals, and safe catch-up/recovery.
 - [Runtime configuration reference](configuration-reference.md) — application, PostgreSQL, Redis/session/queue, storage, mail, security/proxy, Horizon, launch-threshold, and deployment-host settings.
 - [Observability](observability.md) — liveness/readiness, request/trace correlation, JSON logs, audit correlation, Horizon, outbox/webhook signals, release identity, alert categories, and evidence boundaries.
+- [Kingdoms roster intelligence operations](kingdoms-roster-intelligence.md) — `KINGDOMS-001` persisted state, CSV diagnostics, snapshot/history behavior, intelligence query/index boundary, migration order and internal-only outbox contract.
 
 These are living operational contracts. Update them in the same PR when runtime behavior, configuration, scheduler cadence, queue ownership, health checks, or observability semantics change.
 
@@ -31,6 +32,8 @@ A practical operator path is:
 3. verify application/dependency signals using [observability](observability.md);
 4. verify scheduler, outbox, and queues using [background processing](background-processing.md); and
 5. use the rollback, backup/restore, or incident-response runbook when a stop/recovery condition is reached.
+
+For `KINGDOMS-001` roster/import/history/intelligence incidents, use the [Kingdoms operations guide](kingdoms-roster-intelligence.md) together with those shared runbooks rather than inventing a separate deployment path.
 
 ## Production and release
 
