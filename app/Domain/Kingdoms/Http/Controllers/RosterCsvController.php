@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Http\Controllers;
 
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
@@ -129,7 +130,7 @@ final class RosterCsvController extends Controller
         ]);
     }
 
-    private function page(\App\Domain\Alliances\Models\Alliance $alliance, ?RosterImport $import): Response
+    private function page(Alliance $alliance, ?RosterImport $import): Response
     {
         return Inertia::render('Alliance/RosterImport', [
             'alliance' => [
@@ -143,7 +144,7 @@ final class RosterCsvController extends Controller
                 'maxBytes' => RosterCsvParser::MAX_BYTES,
                 'maxRows' => RosterCsvParser::MAX_ROWS,
             ],
-            'import' => $import === null ? null : [
+            'importRecord' => $import === null ? null : [
                 'id' => (string) $import->id,
                 'status' => (string) $import->status,
                 'filename' => (string) $import->original_filename,
@@ -166,7 +167,7 @@ final class RosterCsvController extends Controller
     private function authorizeManage(
         AllianceAuthorization $authorization,
         User $user,
-        \App\Domain\Alliances\Models\Alliance $alliance,
+        Alliance $alliance,
     ): void {
         if (! $authorization->allows($user, $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
