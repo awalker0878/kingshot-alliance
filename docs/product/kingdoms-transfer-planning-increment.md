@@ -2,12 +2,13 @@
 
 [← Product and program documentation](README.md)
 
-**Status:** Approved scope — implementation Planned  
+**Status:** Approved scope — **Accepted implementation**  
 **Scope ID:** `KINGDOMS-002`  
 **Owning domain:** `Kingdoms`  
 **Delivery model:** Post-program product increment; this is **not Phase 7**  
 **Baseline dependency:** Accepted `KINGDOMS-001` roster/player identity, tenancy and production-hardening controls  
-**Implementation sequence:** [KINGDOMS-002 implementation plan](kingdoms-transfer-planning-implementation-plan.md)
+**Implementation sequence:** [KINGDOMS-002 implementation plan](kingdoms-transfer-planning-implementation-plan.md)  
+**Acceptance evidence:** [KINGDOMS-002 exit report](kingdoms-transfer-planning-exit-report.md) — validated implementation `64189559c66e15dc56ec31f9b340284c89c30e6c`
 
 ## 1. Purpose
 
@@ -119,7 +120,7 @@ Provide alliance-scoped transfer plans with:
 - actor/audit provenance for privileged lifecycle changes; and
 - no implicit recurring scheduler requirement.
 
-Only one plan needs to be active/open for an alliance at a time unless implementation evidence proves multiple concurrent plans are required. The initial implementation should prefer the simpler single-active-plan invariant.
+The accepted implementation enforces at most one `open` transfer plan per Alliance.
 
 ### 4.2 Transfer participants
 
@@ -135,7 +136,7 @@ Provide alliance-scoped participant records supporting:
 - readiness state;
 - optional transfer-group assignment;
 - private manager notes; and
-- explicit withdrawn/completed timestamps where applicable.
+- explicit withdrawn/completed state where applicable.
 
 Do not require an application account for an incoming player.
 
@@ -158,15 +159,13 @@ Coordinator membership must belong to the same Alliance and must be revalidated 
 
 Provide an explicit readiness workflow and manager-maintained blockers.
 
-Blockers must be attributable and mutable without destroying the historical fact that a participant previously had a different readiness state. The implementation may use append-oriented status history or equivalent auditable state-transition records; final design is locked in `K2-P0`.
-
-No automatic readiness calculation, transfer eligibility engine or player score is approved.
+Blockers are attributable and readiness transition history preserves meaningful prior state. No automatic readiness calculation, transfer eligibility engine or player score is implemented or approved.
 
 ### 4.5 Member and management views
 
 Provide an authenticated alliance transfer-planning workspace.
 
-Ordinary member visibility uses `alliance.view` and must exclude private manager notes, restricted blocker detail, internal coordinator notes and privileged audit metadata.
+Ordinary member visibility uses `alliance.view` and excludes private manager notes, restricted blocker detail, internal coordinator identifiers and privileged audit/handoff metadata.
 
 Management surfaces require `kingdoms.manage` and support plan lifecycle, participant direction/destination, group assignment, coordinator assignment, readiness/blocker maintenance and explicit completion.
 
@@ -186,7 +185,7 @@ Completion re-resolves all references under the active Alliance, uses existing r
 
 Built-in role defaults remain unchanged from `KINGDOMS-001`: Owner, Leader and Officer receive `kingdoms.manage`; other built-in roles do not. Custom-role permission union semantics remain authoritative.
 
-Privileged mutations require recent password confirmation where the accepted Kingdoms mutation pattern requires it, especially plan lifecycle, destination/group changes and completion/handoff operations.
+Privileged mutations require recent password confirmation under the accepted Kingdoms mutation pattern.
 
 Coordinator assignment is workflow metadata only and never confers authorization.
 
@@ -203,21 +202,22 @@ Platform administrators do not implicitly become transfer managers. Cross-tenant
 | Transfer participant | Kingdoms | Alliance-scoped |
 | Transfer group | Kingdoms | Alliance-scoped |
 | Transfer readiness/blocker history | Kingdoms | Alliance-scoped |
+| Transfer completion | Kingdoms | Alliance-scoped |
 | Coordinator membership reference | Memberships reference | Same-alliance only |
 | Audit event | Audit | Correlated to actor/alliance as applicable |
 | Durable internal event | Platform outbox | Alliance-scoped where tenant data is involved |
 
-Global Kingdom/KingdomPlayer records must not contain transfer-plan notes, readiness, blockers or alliance-private coordination state.
+Global Kingdom/KingdomPlayer records do not contain transfer-plan notes, readiness, blockers or alliance-private coordination state.
 
 ## 7. Cross-domain contracts
 
 ### Kingdoms roster
 
-Transfer planning consumes the accepted roster/player query and action contracts. It must not reach around them to mutate roster persistence directly.
+Transfer planning consumes the accepted roster/player query and action contracts. It does not reach around them to mutate roster persistence directly.
 
 ### Alliances
 
-The active Alliance and its captured home Kingdom establish the tenant and destination context. Alliance Kingdom changes are reconciled explicitly rather than silently rewriting open transfer plans.
+The active Alliance and its captured home Kingdom establish the tenant and destination context. Alliance Kingdom changes are reconciled explicitly rather than silently rewriting active transfer plans.
 
 ### Memberships and Identity
 
@@ -225,58 +225,37 @@ A coordinator or linked participant membership must belong to the active Allianc
 
 ### Recruitment
 
-No Recruitment-domain integration is required for `KINGDOMS-002`. A future increment may explicitly connect accepted recruitment candidates to transfer participants if product scope approves the cross-domain lifecycle.
+No Recruitment-domain integration is part of `KINGDOMS-002`.
 
 ### Integrations
 
-No public Transfer/Kingdoms API or webhook contract is introduced. New `kingdoms.transfer_*` outbox events remain internal and must be excluded from generic external webhook fan-out unless a later integration increment explicitly approves exposure.
+No public Transfer/Kingdoms API or webhook contract is introduced. `kingdoms.transfer_*` outbox events remain internal and are excluded from generic external webhook fan-out unless a later approved integration contract explicitly exposes them.
 
 ## 8. Delivery slices
 
 ### Slice A — Transfer cycle foundation
 
-- transfer-plan persistence and lifecycle;
-- captured home-Kingdom invariant;
-- tenant-scoped read/manage routes;
-- `alliance.view` / `kingdoms.manage` authorization;
-- audit/outbox boundaries; and
-- architecture/domain documentation.
+Accepted transfer-plan persistence/lifecycle, captured home-Kingdom invariant, tenant-scoped member/manage routes, authorization and audit/outbox boundaries.
 
 ### Slice B — Participant direction and destination
 
-- incoming/outgoing/staying participant records;
-- roster/player/membership linking rules;
-- source/destination Kingdom validation;
-- no-name-only identity merging;
-- member/manager participant views; and
-- tenant-isolation/object-ID tests.
+Accepted incoming/outgoing/staying participants, roster/player/membership linking rules, source/destination validation, no-name-only identity merging and tenant-isolation protections.
 
 ### Slice C1 — Transfer groups and coordinators
 
-- transfer groups;
-- destination-compatible group assignment;
-- same-alliance coordinator assignment;
-- manager notes and group lifecycle; and
-- coordinator-is-not-authorization regression coverage.
+Accepted transfer groups, destination-compatible assignment, same-alliance coordinator assignment, manager-only notes and coordinator-is-not-authorization protections.
 
 ### Slice C2 — Readiness and blocker workflow
 
-- readiness state machine;
-- blocker/history model;
-- manager workflow and member-safe presentation;
-- deterministic status transitions; and
-- accessibility/operational diagnostics.
+Accepted manual readiness state machine, blocker/history model, manager workflow/member-safe presentation and operational diagnostics.
 
 ### Slice D — Explicit completion and roster handoff
 
-- confirmed incoming handoff to accepted roster actions;
-- confirmed outgoing handoff to mark-left behavior;
-- staying completion with no roster lifecycle mutation;
-- idempotent retries;
-- transaction/audit/outbox integration; and
-- end-to-end transfer-cycle presentation.
+Accepted explicit incoming/outgoing/staying handoff, idempotency, transaction/audit/outbox behavior and locked-plan completion workflow.
 
-A final hardening phase validates the complete dependency stack end to end before `KINGDOMS-002` can become Accepted.
+### `K2-P6` — Whole-increment hardening and acceptance
+
+Accepted whole-stack domain/security/accessibility/migration/query/operations/integration evidence is recorded in the [KINGDOMS-002 exit report](kingdoms-transfer-planning-exit-report.md).
 
 ## 9. Explicitly out of scope
 
@@ -288,7 +267,7 @@ A final hardening phase validates the complete dependency stack end to end befor
 - automatic readiness/eligibility calculations from power or other game data;
 - transfer pass/ticket/resource optimization unless separately approved with authoritative game rules;
 - scraping, OCR, bots or undocumented/unapproved Kingshot APIs;
-- automated transfer execution;
+- automated or bulk transfer execution/completion;
 - cross-alliance visibility into another alliance's transfer plan;
 - diplomacy/NAP/ally/rival management (`KINGDOMS-003` candidate scope);
 - automated game-data ingestion (`KINGDOMS-004` candidate scope);
@@ -296,11 +275,11 @@ A final hardening phase validates the complete dependency stack end to end befor
 - public Kingdoms/transfer APIs or webhook contracts; or
 - AI-generated player scoring, punitive recommendations or forced roster decisions.
 
-Deferred capabilities must not be partially introduced as dormant schema, routes or UI placeholders.
+Deferred capabilities are not partially introduced as dormant schema, routes or UI placeholders.
 
 ## 10. Security, privacy and abuse requirements
 
-Acceptance requires review of at least:
+Acceptance reviewed:
 
 - cross-alliance plan/participant/group disclosure;
 - object-ID tampering and scoped binding;
@@ -313,57 +292,35 @@ Acceptance requires review of at least:
 - punitive or coercive use of transfer status; and
 - accidental external webhook/API exposure.
 
-Game-facing information is not automatically public merely because it may be observable in-game.
+See the [whole-increment security review](../security/kingdoms-transfer-planning-security-review.md).
 
 ## 11. Operational and observability requirements
 
-The increment must provide enough structured diagnostics to investigate:
+The accepted increment provides structured diagnostics for plan lifecycle, participant/group validation, authorization/tenant failures, home-Kingdom drift, readiness/blocker transitions, completion/roster handoff and outbox publication while keeping private notes/blocker text out of generic application event payloads.
 
-- plan lifecycle failures;
-- participant/group validation failures;
-- authorization/tenant failures;
-- home-Kingdom drift;
-- readiness/blocker transition failures;
-- completion/roster-handoff failures; and
-- outbox publication failures.
-
-Private notes and sensitive blocker text must not be written into general application logs.
-
-No recurring scheduler, crawler or external ingestion worker is required for the initial manual planning workflow.
+No recurring scheduler, crawler or external ingestion worker is required for the manual planning workflow.
 
 ## 12. Testing requirements
 
-Acceptance includes:
+The accepted whole-stack gate covers lifecycle/transition behavior, feature workflows, authorization, tenant isolation, coordinator invariants, incoming identity ambiguity, Kingdom drift, group destination compatibility, completion idempotency/roster handoff, audit/outbox evidence, accessibility, migration rollback/reapply, and realistic-volume query shape.
 
-- unit tests for lifecycle and transition rules;
-- feature tests for plan, participant, group, readiness and completion workflows;
-- authorization tests for `alliance.view` and `kingdoms.manage`;
-- tenant-isolation tests across every submitted object identifier;
-- same-alliance coordinator/membership invariant tests;
-- incoming identity ambiguity tests;
-- home-Kingdom drift/fail-closed tests;
-- group destination-compatibility tests;
-- completion idempotency and roster-handoff tests;
-- audit/outbox assertions;
-- accessibility validation for member and management planning surfaces;
-- migration rollback/reapply validation; and
-- realistic-volume query-shape validation for transfer-cycle views.
+Exact protected evidence is recorded in the [exit report](kingdoms-transfer-planning-exit-report.md).
 
 ## 13. Acceptance criteria
 
-`KINGDOMS-002` is complete only when all of the following are true:
+All `KINGDOMS-002` acceptance criteria are satisfied by the validated implementation and whole-increment evidence:
 
-1. An alliance can create and manage an alliance-scoped transfer cycle with a captured home Kingdom.
-2. Authorized managers can track incoming, outgoing and staying participants without requiring every incoming player to have an application account.
-3. Outgoing destinations and incoming home-Kingdom rules are validated without mutating global/player/Alliance identity merely because a move is planned.
-4. Transfer groups and same-alliance coordinators can be managed without coordinator assignment granting authorization.
-5. Readiness and blockers are manual, explainable and auditable; missing information is not converted into a score or inferred eligibility.
-6. Ordinary members can see approved transfer-plan information while manager notes, restricted blockers and privileged history remain protected.
-7. A confirmed incoming/outgoing transfer can be explicitly handed off to the accepted roster lifecycle without duplicate mutations on retry.
-8. Every read and mutation preserves active-Alliance tenancy even when multiple alliances share Kingdom/player references or destinations.
-9. Privileged changes are authorized, password-confirmed where required, audited and durably represented through internal outbox events.
+1. Alliance-scoped transfer cycles capture home Kingdom context.
+2. Incoming/outgoing/staying participants are supported without requiring every incoming player to have an application account.
+3. Destination rules do not mutate neutral/player/Alliance identity merely because a move is planned.
+4. Groups/coordinators remain coordination-only and do not grant authorization.
+5. Readiness/blockers are manual, explainable and auditable with no inferred score/eligibility.
+6. Member-safe transfer visibility excludes manager/private workflow data.
+7. Explicit incoming/outgoing roster handoff is idempotent and staying completion is a roster no-op.
+8. Active-Alliance tenancy holds across all transfer identifiers.
+9. Privileged mutations are authorized, password-confirmed where required, audited and represented through internal outbox events.
 10. No public Kingdoms/transfer API or webhook exposure is introduced.
-11. Security, accessibility, migration, query-shape, operations and end-to-end acceptance gates pass on the complete stack.
-12. Current capability documentation is updated from Planned to Implemented only after the acceptance gate passes.
+11. Security, accessibility, migration, query-shape, operations and end-to-end gates pass on the complete stack.
+12. Capability/status documentation records the increment as Accepted/Implemented.
 
 Real production cutover remains a separate approval decision and is not implied by repository/product acceptance.
