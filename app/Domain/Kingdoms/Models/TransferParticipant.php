@@ -6,10 +6,12 @@ namespace App\Domain\Kingdoms\Models;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Enums\TransferDirection;
+use App\Domain\Kingdoms\Enums\TransferReadinessState;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -17,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string $transfer_plan_id
  * @property string|null $transfer_group_id
  * @property TransferDirection $direction
+ * @property TransferReadinessState $readiness_state
  * @property string|null $roster_entry_id
  * @property string|null $kingdom_player_id
  * @property string|null $membership_id
@@ -48,6 +51,7 @@ final class TransferParticipant extends Model
         'transfer_plan_id',
         'transfer_group_id',
         'direction',
+        'readiness_state',
         'roster_entry_id',
         'kingdom_player_id',
         'membership_id',
@@ -63,6 +67,7 @@ final class TransferParticipant extends Model
     {
         return [
             'direction' => TransferDirection::class,
+            'readiness_state' => TransferReadinessState::class,
             'withdrawn_at' => 'datetime',
         ];
     }
@@ -113,5 +118,17 @@ final class TransferParticipant extends Model
     public function destinationKingdom(): BelongsTo
     {
         return $this->belongsTo(Kingdom::class, 'destination_kingdom_id');
+    }
+
+    /** @return HasMany<TransferBlocker, $this> */
+    public function blockers(): HasMany
+    {
+        return $this->hasMany(TransferBlocker::class, 'transfer_participant_id');
+    }
+
+    /** @return HasMany<TransferReadinessTransition, $this> */
+    public function readinessTransitions(): HasMany
+    {
+        return $this->hasMany(TransferReadinessTransition::class, 'transfer_participant_id');
     }
 }
