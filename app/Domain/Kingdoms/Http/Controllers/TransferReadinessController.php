@@ -16,7 +16,6 @@ use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Enums\TransferReadinessState;
 use App\Domain\Kingdoms\Models\TransferBlocker;
 use App\Domain\Kingdoms\Models\TransferParticipant;
-use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Kingdoms\Models\TransferReadinessTransition;
 use App\Domain\Kingdoms\Queries\TransferParticipantQuery;
 use App\Domain\Kingdoms\Queries\TransferPlanQuery;
