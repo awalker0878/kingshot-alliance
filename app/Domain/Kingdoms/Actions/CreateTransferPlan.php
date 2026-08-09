@@ -32,7 +32,7 @@ final readonly class CreateTransferPlan
      */
     public function handle(Alliance $alliance, User $actor, array $attributes): TransferPlan
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
+        if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
             throw new AuthorizationException;
         }
 
@@ -52,7 +52,7 @@ final readonly class CreateTransferPlan
                 ->where('status', KingdomStatus::Active->value)
                 ->first();
 
-            if (! $homeKingdom instanceof Kingdom) {
+            if (($homeKingdom instanceof Kingdom) === false) {
                 throw ValidationException::withMessages([
                     'plan' => 'The alliance must reference an active Kingdom before creating a transfer cycle.',
                 ]);
