@@ -2,17 +2,18 @@
 
 [← Product and program documentation](README.md)
 
-**Status:** Approved roadmap scope — implementation in progress  
+**Status:** Approved roadmap scope — implementation Accepted  
 **Scope ID:** `KINGDOMS-001`  
 **Owning domain:** `Kingdoms`  
 **Delivery model:** Post-program product increment; this is **not Phase 7**  
-**Baseline dependency:** Accepted Phase 0–6 repository baseline and production-hardening controls
+**Baseline dependency:** Accepted Phase 0–6 repository baseline and production-hardening controls  
+**Acceptance evidence:** [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md)
 
 ## 1. Purpose
 
-`KINGDOMS-001` activates the currently reserved `Kingdoms` domain with a first-class game-world reference model and alliance roster intelligence.
+`KINGDOMS-001` activates the previously reserved `Kingdoms` domain with a first-class game-world reference model and alliance roster intelligence.
 
-The increment should replace the current loose kingdom string and spreadsheet-style roster tracking with a durable model that can answer:
+The increment replaces the loose kingdom string and spreadsheet-style roster tracking with a durable model that can answer:
 
 - which kingdom an alliance belongs to;
 - which Kingshot players the alliance is tracking;
@@ -21,13 +22,13 @@ The increment should replace the current loose kingdom string and spreadsheet-st
 - which roster records are stale, newly joined, recently departed, or unlinked; and
 - what historical observations produced current roster metrics.
 
-The initial implementation is deliberately **manual/import first**. It must not depend on an unofficial scraper, bot, OCR workflow, or undocumented Kingshot interface. Approved automated ingestion can be added later against the same domain model.
+The accepted implementation is deliberately **manual/import first**. It does not depend on an unofficial scraper, bot, OCR workflow, or undocumented Kingshot interface. Approved automated ingestion can be added later against the same domain model through a separate increment.
 
 ## 2. Product outcome
 
-Alliance leadership should be able to maintain an accurate game roster inside Kingshot Alliance and use historical snapshots to understand roster health and growth without maintaining a separate spreadsheet.
+Alliance leadership can maintain an accurate game roster inside Kingshot Alliance and use historical snapshots to understand roster health and growth without maintaining a separate spreadsheet.
 
-Members should be able to see the alliance roster and their linked game identity without conflating an application account with a Kingshot player record.
+Members can see the alliance roster and their linked game identity without conflating an application account with a Kingshot player record.
 
 The increment establishes a durable foundation for later transfer planning, kingdom diplomacy, external game-data ingestion, and opt-in cross-alliance intelligence without implementing those capabilities now.
 
@@ -60,11 +61,11 @@ A Kingshot player may exist without an application account. An application user 
 
 A neutral kingdom/player reference must not become a path around alliance tenancy. Roster notes, membership links, status, snapshots, imports, exports, and derived metrics remain alliance-scoped.
 
-No initial feature exposes another alliance's tracked roster or observations, even when both alliances are in the same kingdom.
+No accepted feature exposes another alliance's tracked roster or observations, even when both alliances are in the same kingdom.
 
 ### History is append-oriented
 
-Power and other observed game values should be recorded as snapshots rather than overwritten as the only source of truth. Current views may project the latest observation, while historical values remain available for trends and auditability.
+Power and other observed game values are recorded as snapshots rather than overwritten as the only source of truth. Current views project the latest observation, while historical values remain available for trends and auditability.
 
 ## 4. In-scope capabilities
 
@@ -85,7 +86,7 @@ An alliance can belong to one current kingdom at a time. Changing that associati
 
 Introduce a neutral `KingdomPlayer` identity that belongs to a kingdom and can represent a Kingshot player independently of any site account.
 
-The initial identity model should support:
+The initial identity model supports:
 
 - optional stable game/player identifier when known;
 - current display name;
@@ -93,13 +94,13 @@ The initial identity model should support:
 - created/updated timestamps; and
 - future-safe merge/reference handling without deduplicating solely by player name.
 
-If no stable game identifier exists, names must not be assumed globally unique.
+If no stable game identifier exists, names are not assumed globally unique.
 
 ### 4.3 Alliance roster entries
 
 Introduce an alliance-scoped roster record that connects an alliance to a tracked `KingdomPlayer`.
 
-A roster entry should support:
+A roster entry supports:
 
 - alliance ID;
 - kingdom-player ID;
@@ -112,9 +113,9 @@ A roster entry should support:
 - last-observed timestamp; and
 - source/provenance for the latest update.
 
-A membership link is optional. Linking must verify that the membership belongs to the same alliance as the roster entry.
+A membership link is optional. Linking verifies that the membership belongs to the same alliance as the roster entry.
 
-The system should surface both mismatch directions:
+The system surfaces both mismatch directions:
 
 - active application memberships with no linked game-player roster entry; and
 - active game roster entries with no linked application membership.
@@ -123,7 +124,7 @@ The system should surface both mismatch directions:
 
 Record time-series observations rather than replacing historical game data.
 
-An alliance-scoped player snapshot should support at minimum:
+An alliance-scoped player snapshot supports at minimum:
 
 - alliance ID;
 - roster/player reference;
@@ -135,9 +136,9 @@ An alliance-scoped player snapshot should support at minimum:
 - source (`manual` or `csv` initially); and
 - actor/import provenance where applicable.
 
-Snapshot uniqueness/idempotency must prevent the same accepted observation from being multiplied by retries without blocking legitimate later observations.
+Snapshot uniqueness/idempotency prevents the same accepted observation from being multiplied by retries without blocking legitimate later observations.
 
-The latest snapshot may be projected onto roster views for fast display, but historical snapshots remain the source for trends.
+The latest snapshot is projected onto roster views for current display, while historical snapshots remain the source for trends.
 
 ### 4.5 Roster management UI
 
@@ -152,13 +153,13 @@ Provide an authenticated alliance roster workspace that supports:
 - inspect snapshot history; and
 - identify stale or incomplete records.
 
-Useful filters should include roster state, linked/unlinked membership, game role/rank, power range where data exists, and stale last-observed date.
+Useful filters include roster state, linked/unlinked membership, game role/rank and stale/missing observation state where data exists.
 
 ### 4.6 CSV import and export
 
 Provide a controlled roster import workflow so alliances can move off spreadsheets without waiting for automated game integration.
 
-Import must include:
+Import includes:
 
 1. upload/parse;
 2. validation and dry-run preview;
@@ -167,17 +168,17 @@ Import must include:
 5. row-level error reporting; and
 6. an auditable committed result.
 
-The first supported import should accept a documented subset such as player identifier, player name, power, level, game role, and roster state. The exact CSV contract becomes part of the living Kingdoms domain guide when implemented.
+The supported `kingdoms-roster.v1` contract includes player identifier, player name, power, progression level, game-side tag/role, roster state, joined date and capture time under the documented validation rules.
 
-Import must never merge two players merely because their display names match. A stable game identifier may be used when present; otherwise the user must resolve ambiguous matches explicitly.
+Import never merges two players merely because their display names match. A stable game identifier may be used when present; otherwise the user must resolve ambiguous matches explicitly.
 
-Provide an authenticated alliance-scoped CSV export of the current roster and latest observations. Exported private notes require the roster-management permission and must not be included in ordinary member-facing exports by default.
+Provide an authenticated alliance-scoped CSV export of the current roster and latest observations. Exported private notes require the roster-management permission and are not included in ordinary member-facing exports by default.
 
 ### 4.7 Roster intelligence dashboard
 
 Provide an alliance-scoped roster dashboard derived from current roster state and snapshots.
 
-Initial metrics should include:
+Initial metrics include:
 
 - active tracked-player count;
 - total recorded alliance power;
@@ -186,19 +187,21 @@ Initial metrics should include:
 - recent joins and departures;
 - 7-day and 30-day aggregate power change where sufficient history exists;
 - membership-to-game-profile linkage coverage; and
-- configurable manager views for notable individual growth/decline where the alliance chooses to use comparative metrics.
+- manager-controlled individual comparison detail for operational diagnosis.
 
-Metrics must distinguish missing data from zero values. Historical calculations must state their observation window and should not imply precision that the underlying manual/import data cannot support.
+Metrics distinguish missing data from zero values. Historical calculations state their observation window and do not imply precision that the underlying manual/import data cannot support.
 
-Comparative views must follow the program's existing rule that metrics should not encourage unhealthy play or punitive member management.
+Comparative views follow the program's existing rule that metrics should not encourage unhealthy play or punitive member management; accepted manager detail is alphabetical and does not create an automated score/ranking.
 
 ## 5. Authorization model
 
-The initial implementation should reuse `alliance.view` for ordinary authenticated roster visibility and introduce one explicit mutation permission:
+The implementation reuses `alliance.view` for ordinary authenticated roster visibility and introduces one explicit roster mutation permission:
 
-- `kingdoms.manage` — manage the alliance's game roster, membership links, snapshots, imports, exports containing management-only fields, and kingdom association where allowed by policy.
+- `kingdoms.manage` — manage the alliance's game roster, membership links, snapshots, imports, management-only exports and manager comparison detail.
 
-Recommended built-in defaults:
+Alliance→Kingdom association remains an Alliance-setting operation under `alliance.manage`; it is not silently folded into roster RBAC.
+
+Built-in defaults:
 
 | Role | Roster view | `kingdoms.manage` |
 | --- | --- | --- |
@@ -216,9 +219,7 @@ Roster-management mutations require recent password confirmation, follow the exi
 
 Platform administrators do not implicitly act as alliance roster managers through alliance RBAC. Any cross-tenant support surface requires an explicit Platform-domain workflow rather than bypassing tenant authorization.
 
-## 6. Proposed data ownership
-
-Exact table names may be refined during implementation, but ownership should remain equivalent to:
+## 6. Data ownership
 
 | Concept | Ownership | Tenant scope |
 | --- | --- | --- |
@@ -226,12 +227,13 @@ Exact table names may be refined during implementation, but ownership should rem
 | Kingdom player identity | Kingdoms | Global neutral identity/reference |
 | Alliance roster entry | Kingdoms | Alliance-scoped |
 | Player snapshot | Kingdoms | Alliance-scoped |
+| Roster CSV import | Kingdoms | Alliance-scoped |
 | Application user | Identity | Global |
 | Alliance membership | Memberships | Alliance-scoped |
 | Audit event | Audit | Correlated to actor/alliance as applicable |
-| Durable integration event | Platform outbox | Alliance-scoped where tenant data is involved |
+| Durable internal event | Platform outbox | Alliance-scoped where tenant data is involved |
 
-Global Kingdom/KingdomPlayer records contain only neutral reference identity. Private notes, observations, roster status, and metrics belong to the alliance-scoped records.
+Global Kingdom/KingdomPlayer records contain only neutral reference identity. Private notes, observations, roster status, import state and metrics belong to alliance-scoped records.
 
 ## 7. Cross-domain contracts
 
@@ -245,7 +247,7 @@ Global Kingdom/KingdomPlayer records contain only neutral reference identity. Pr
 
 ### Recruitment
 
-No Recruitment workflow changes are required in `KINGDOMS-001`. The roster model should expose an intentional future contract so an accepted/incoming recruit can later be associated with a tracked game player without duplicating identity models.
+No Recruitment workflow changes are required in `KINGDOMS-001`. A future approved workflow may associate an accepted/incoming recruit with a tracked game player without duplicating identity models.
 
 ### Events and Rallies
 
@@ -253,11 +255,11 @@ No event/rally optimization is introduced in this increment. Future features may
 
 ### Contributions
 
-Roster power snapshots are game observations, not contribution records. Contributions may consume explicit future metrics, but this increment must not silently convert power growth into contribution scoring.
+Roster power snapshots are game observations, not contribution records. Contributions may consume explicit future metrics, but this increment does not convert power growth into contribution scoring.
 
 ### Integrations
 
-No new public API or webhook schema is required for initial acceptance. Domain events should still use the transactional outbox where downstream side effects need durable publication. External Kingdoms API/webhook exposure requires an explicit contract update after the internal model is stable.
+No new public Kingdoms API or webhook schema is accepted in this increment. Kingdoms mutations still use the transactional outbox where durable publication is required, but `alliance.kingdom_updated` and `kingdoms.*` events remain internal and are excluded from generic external webhook fan-out. External Kingdoms API/webhook exposure requires an explicit future contract update.
 
 ## 8. Delivery slices
 
@@ -294,7 +296,7 @@ No new public API or webhook schema is required for initial acceptance. Domain e
 - import/export audit evidence; and
 - limits/performance validation for realistic alliance roster sizes.
 
-The slices may be implemented through multiple pull requests, but `KINGDOMS-001` is accepted only when the complete increment works end to end.
+These slices were implemented through multiple pull requests. `K1-P6` then validated the complete increment end to end; `KINGDOMS-001` is Accepted.
 
 ## 9. Explicitly out of scope
 
@@ -331,7 +333,7 @@ These are roadmap candidates, not approved implementation scope. Each requires i
 
 ## 11. Security, privacy, and abuse requirements
 
-Implementation must include a current threat/security review covering at minimum:
+Implementation includes a current threat/security review covering at minimum:
 
 - cross-alliance roster/snapshot disclosure;
 - roster-note privacy;
@@ -345,11 +347,13 @@ Implementation must include a current threat/security review covering at minimum
 - abusive/punitive comparative metrics; and
 - future ingestion trust boundaries without implementing them prematurely.
 
-Game-facing information is not automatically public merely because it may be observable in-game. The platform must preserve its existing authenticated tenant boundary unless a later feature explicitly approves broader disclosure.
+Game-facing information is not automatically public merely because it may be observable in-game. The platform preserves its authenticated tenant boundary unless a later feature explicitly approves broader disclosure.
+
+The accepted whole-increment evidence is in the [KINGDOMS-001 security review](../security/kingdoms-roster-intelligence-security-review.md).
 
 ## 12. Operational and observability requirements
 
-The increment must document and expose enough information to diagnose:
+The increment documents and exposes enough information to diagnose:
 
 - import failures and rejected rows;
 - authorization/tenant failures;
@@ -358,11 +362,11 @@ The increment must document and expose enough information to diagnose:
 - outbox publication failures for Kingdoms events; and
 - migration/backfill failures.
 
-No recurring scheduler is required merely to support manual/import snapshots. If implementation introduces scheduled processing, the same change must update `../operations/background-processing.md`, configuration/observability guidance, and launch-health considerations.
+No recurring scheduler is required to support manual/import snapshots. The accepted increment adds no Kingdoms-specific scheduler or worker; operational behavior is documented in [Kingdoms roster intelligence operations](../operations/kingdoms-roster-intelligence.md).
 
 ## 13. Testing requirements
 
-At minimum, acceptance requires:
+Acceptance includes:
 
 - unit tests for identity/matching and trend calculations;
 - feature tests for roster CRUD, linking, snapshots, dashboard and imports/exports;
@@ -373,7 +377,7 @@ At minimum, acceptance requires:
 - CSV injection/validation tests;
 - time-series tests with missing/irregular observations;
 - accessibility validation for roster/dashboard/import workflows; and
-- performance validation against realistic roster/snapshot volumes.
+- performance/query-shape validation against realistic roster/snapshot volumes.
 
 ## 14. Acceptance criteria
 
@@ -389,12 +393,14 @@ At minimum, acceptance requires:
 8. Exports are tenant-scoped, safe against spreadsheet formula injection and auditable where privileged data is included.
 9. Privileged mutations are password-confirmed, authorized, audited and tenant-isolated.
 10. Domain events that require durable downstream processing use the existing transactional-outbox boundary.
-11. Living domain, security, operations (if affected), architecture and capability documentation reflects the implemented contract.
+11. Living domain, security, operations, architecture and capability documentation reflects the implemented contract.
 12. Protected CI, tests, migrations, staging validation and relevant security/accessibility checks pass.
 13. No unofficial automated game-data ingestion, transfer workflow, diplomacy system or cross-alliance ranking is represented as implemented.
 
+All 13 criteria passed the `K1-P6` acceptance gate recorded in the [exit report](kingdoms-roster-intelligence-exit-report.md).
+
 ## 15. Exit record
 
-When implementation is complete, create a dedicated `KINGDOMS-001` acceptance/exit record under `docs/product/` with the validated head SHA, protected-check evidence, security/accessibility evidence, migration result, deferred work, and acceptance decision.
+The dedicated [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md) records the validated implementation SHA, protected-check evidence, security/accessibility evidence, migration/query review, deferred work, and Accepted decision.
 
-Do not create a Phase 7 exit report. Post-program increments retain their own stable scope IDs and acceptance records so the completed Phase 0–6 historical program remains intact.
+No Phase 7 exit report is created. Post-program increments retain their own stable scope IDs and acceptance records so the completed Phase 0–6 historical program remains intact.
