@@ -224,7 +224,26 @@ final class TransferGroupTest extends TestCase
         self::assertNull($participant->refresh()->transfer_group_id);
     }
 
-    public function test_cross_alliance_group_id_password_confirmation_locked_plan_and_home_drift_fail_closed(): void
+    public function test_group_mutation_requires_recent_password_confirmation(): void
+    {
+        [$owner, $alliance] = $this->ownerAlliance('Group Password', 'group-password', 5310);
+        $plan = $this->plan($alliance, $owner, 'Password plan');
+
+        $this->actingAs($owner)
+            ->withSession([(string) config('identity.active_alliance_session_key') => $alliance->id])
+            ->post("/alliance/transfers/{$plan->id}/groups", [
+                'name' => 'Needs Password',
+                'direction' => 'incoming',
+            ])
+            ->assertRedirect(route('password.confirm'));
+
+        self::assertSame(
+            0,
+            TransferGroup::query()->where('transfer_plan_id', $plan->id)->count(),
+        );
+    }
+
+    public function test_cross_alliance_group_id_locked_plan_and_home_drift_fail_closed(): void
     {
         [$ownerA, $allianceA, $sessionA] = $this->ownerAlliance('Group Tenant A', 'group-tenant-a', 5307);
         [$ownerB, $allianceB, $sessionB] = $this->ownerAlliance('Group Tenant B', 'group-tenant-b', 5308);
@@ -242,17 +261,13 @@ final class TransferGroupTest extends TestCase
             ->assertRedirect('/alliance/transfers/manage')
             ->assertSessionHasErrors('transfer_group_id');
 
-        $sessionKey = (string) config('identity.active_alliance_session_key');
-        $this->withSession([$sessionKey => $allianceA->id])
-            ->post("/alliance/transfers/{$planA->id}/groups", [
-                'name' => 'Needs Password',
-                'direction' => 'incoming',
-            ])
-            ->assertRedirect(route('password.confirm'));
-
         $groupA = $this->group($ownerA, $sessionA, $planA, 'Mutable Group', 'incoming');
-        $this->withSession($sessionA)->post("/alliance/transfers/{$planA->id}/open")->assertRedirect();
-        $this->withSession($sessionA)->post("/alliance/transfers/{$planA->id}/lock")->assertRedirect();
+        $this->withSession($sessionA)
+            ->post("/alliance/transfers/{$planA->id}/open")
+            ->assertRedirect();
+        $this->withSession($sessionA)
+            ->post("/alliance/transfers/{$planA->id}/lock")
+            ->assertRedirect();
         $this->withSession($sessionA)
             ->from('/alliance/transfers/manage')
             ->patch("/alliance/transfers/{$planA->id}/groups/{$groupA->id}", [
@@ -281,7 +296,16 @@ final class TransferGroupTest extends TestCase
     {
         [$owner, $alliance, $session] = $this->ownerAlliance('Archive Group', 'archive-group', 5309);
         $plan = $this->plan($alliance, $owner, 'Archive plan');
-        $group = $this->group($owner, $session, $plan, 'Archive Me', 'incoming', null, null, 'Secret group note');
+        $group = $this->group(
+            $owner,
+            $session,
+            $plan,
+            'Archive Me',
+            'incoming',
+            null,
+            null,
+            'Secret group note',
+        );
         $participant = $this->incoming($owner, $session, $plan, 'India');
 
         $this->actingAs($owner)
@@ -306,18 +330,45 @@ final class TransferGroupTest extends TestCase
             ->post("/alliance/transfers/{$plan->id}/groups/{$group->id}/archive")
             ->assertRedirect();
 
-        $auditCount = $this->eventCount('audit_events', 'event', 'kingdoms.transfer_group_archived', $alliance->id);
-        $outboxCount = $this->eventCount('outbox_messages', 'event_type', 'kingdoms.transfer_group_archived', $alliance->id);
+        $auditCount = $this->eventCount(
+            'audit_events',
+            'event',
+            'kingdoms.transfer_group_archived',
+            $alliance->id,
+        );
+        $outboxCount = $this->eventCount(
+            'outbox_messages',
+            'event_type',
+            'kingdoms.transfer_group_archived',
+            $alliance->id,
+        );
 
         $this->withSession($session)
             ->post("/alliance/transfers/{$plan->id}/groups/{$group->id}/archive")
             ->assertRedirect();
 
-        self::assertSame($auditCount, $this->eventCount('audit_events', 'event', 'kingdoms.transfer_group_archived', $alliance->id));
-        self::assertSame($outboxCount, $this->eventCount('outbox_messages', 'event_type', 'kingdoms.transfer_group_archived', $alliance->id));
+        self::assertSame(
+            $auditCount,
+            $this->eventCount('audit_events', 'event', 'kingdoms.transfer_group_archived', $alliance->id),
+        );
+        self::assertSame(
+            $outboxCount,
+            $this->eventCount(
+                'outbox_messages',
+                'event_type',
+                'kingdoms.transfer_group_archived',
+                $alliance->id,
+            ),
+        );
         self::assertSame('archived', $group->refresh()->state->value);
-        self::assertFalse(DB::table('audit_events')->where('alliance_id', $alliance->id)->whereRaw('metadata::text like ?', ['%Secret group note%'])->exists());
-        self::assertFalse(DB::table('outbox_messages')->where('alliance_id', $alliance->id)->whereRaw('payload::text like ?', ['%Secret group note%'])->exists());
+        self::assertFalse(DB::table('audit_events')
+            ->where('alliance_id', $alliance->id)
+            ->whereRaw('metadata::text like ?', ['%Secret group note%'])
+            ->exists());
+        self::assertFalse(DB::table('outbox_messages')
+            ->where('alliance_id', $alliance->id)
+            ->whereRaw('payload::text like ?', ['%Secret group note%'])
+            ->exists());
     }
 
     /** @return array{0: User, 1: Alliance, 2: array<string, mixed>} */
@@ -350,7 +401,11 @@ final class TransferGroupTest extends TestCase
 
     private function plan(Alliance $alliance, User $owner, string $label): TransferPlan
     {
-        return $this->app->make(CreateTransferPlan::class)->handle($alliance, $owner, ['label' => $label]);
+        return $this->app->make(CreateTransferPlan::class)->handle(
+            $alliance,
+            $owner,
+            ['label' => $label],
+        );
     }
 
     private function group(
@@ -380,8 +435,12 @@ final class TransferGroupTest extends TestCase
             ->sole();
     }
 
-    private function incoming(User $owner, array $session, TransferPlan $plan, string $name): TransferParticipant
-    {
+    private function incoming(
+        User $owner,
+        array $session,
+        TransferPlan $plan,
+        string $name,
+    ): TransferParticipant {
         $this->actingAs($owner)
             ->withSession($session)
             ->post("/alliance/transfers/{$plan->id}/participants", [
@@ -390,7 +449,10 @@ final class TransferGroupTest extends TestCase
             ])
             ->assertRedirect();
 
-        return TransferParticipant::query()->where('transfer_plan_id', $plan->id)->where('observed_name', $name)->sole();
+        return TransferParticipant::query()
+            ->where('transfer_plan_id', $plan->id)
+            ->where('observed_name', $name)
+            ->sole();
     }
 
     private function outgoing(
@@ -411,7 +473,10 @@ final class TransferGroupTest extends TestCase
             ])
             ->assertRedirect();
 
-        return TransferParticipant::query()->where('transfer_plan_id', $plan->id)->where('roster_entry_id', $roster->id)->sole();
+        return TransferParticipant::query()
+            ->where('transfer_plan_id', $plan->id)
+            ->where('roster_entry_id', $roster->id)
+            ->sole();
     }
 
     private function staying(
@@ -430,7 +495,10 @@ final class TransferGroupTest extends TestCase
             ])
             ->assertRedirect();
 
-        return TransferParticipant::query()->where('transfer_plan_id', $plan->id)->where('roster_entry_id', $roster->id)->sole();
+        return TransferParticipant::query()
+            ->where('transfer_plan_id', $plan->id)
+            ->where('roster_entry_id', $roster->id)
+            ->sole();
     }
 
     private function roster(Alliance $alliance, User $owner, string $name): AllianceRosterEntry
