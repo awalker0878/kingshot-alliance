@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property string $alliance_id
  * @property string $transfer_plan_id
+ * @property string|null $transfer_group_id
  * @property TransferDirection $direction
  * @property string|null $roster_entry_id
  * @property string|null $kingdom_player_id
@@ -27,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $withdrawn_at
  * @property-read Alliance $alliance
  * @property-read TransferPlan $plan
+ * @property-read TransferGroup|null $group
  * @property-read AllianceRosterEntry|null $rosterEntry
  * @property-read KingdomPlayer|null $player
  * @property-read AllianceMembership|null $membership
@@ -44,6 +46,7 @@ final class TransferParticipant extends Model
     protected $fillable = [
         'alliance_id',
         'transfer_plan_id',
+        'transfer_group_id',
         'direction',
         'roster_entry_id',
         'kingdom_player_id',
@@ -74,6 +77,12 @@ final class TransferParticipant extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(TransferPlan::class, 'transfer_plan_id');
+    }
+
+    /** @return BelongsTo<TransferGroup, $this> */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(TransferGroup::class, 'transfer_group_id');
     }
 
     /** @return BelongsTo<AllianceRosterEntry, $this> */
