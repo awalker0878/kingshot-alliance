@@ -19,6 +19,10 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterHistory.vue',
             'RosterIntelligence.vue',
             'RosterImport.vue',
+            'TransferPlans.vue',
+            'TransferPlansManage.vue',
+            'TransferReadinessManage.vue',
+            'TransferCompletionManage.vue',
         ] as $page) {
             $source = file_get_contents($root.$page);
             self::assertIsString($source);
@@ -38,6 +42,9 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterManage.vue',
             'RosterHistory.vue',
             'RosterImport.vue',
+            'TransferPlansManage.vue',
+            'TransferReadinessManage.vue',
+            'TransferCompletionManage.vue',
         ] as $page) {
             $source = file_get_contents($root.$page);
             self::assertIsString($source);
@@ -52,7 +59,26 @@ final class KingdomAccessibilityTest extends TestCase
         self::assertStringContainsString('role="alert"', $import);
     }
 
-    public function test_roster_history_intelligence_and_import_tables_keep_narrow_viewport_overflow(): void
+    public function test_transfer_readiness_and_completion_controls_keep_programmatic_context(): void
+    {
+        $root = dirname(__DIR__, 2).'/resources/js/pages/Alliance/';
+        $readiness = file_get_contents($root.'TransferReadinessManage.vue');
+        $completion = file_get_contents($root.'TransferCompletionManage.vue');
+        self::assertIsString($readiness);
+        self::assertIsString($completion);
+
+        self::assertStringContainsString('<fieldset', $readiness);
+        self::assertStringContainsString('<legend', $readiness);
+        self::assertStringContainsString(':for="`readiness-${participant.id}`"', $readiness);
+        self::assertStringContainsString(':for="`blocker-summary-${participant.id}`"', $readiness);
+        self::assertStringContainsString(':for="`blocker-details-${participant.id}`"', $readiness);
+
+        self::assertStringContainsString(':for="`roster-result-${participant.id}`"', $completion);
+        self::assertStringContainsString(':id="`roster-result-${participant.id}`"', $completion);
+        self::assertStringContainsString('Record actual completion', $completion);
+    }
+
+    public function test_roster_and_transfer_tables_keep_narrow_viewport_overflow(): void
     {
         $root = dirname(__DIR__, 2).'/resources/js/pages/Alliance/';
 
@@ -61,6 +87,8 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterHistory.vue',
             'RosterIntelligence.vue',
             'RosterImport.vue',
+            'TransferPlans.vue',
+            'TransferPlansManage.vue',
         ] as $page) {
             $source = file_get_contents($root.$page);
             self::assertIsString($source);

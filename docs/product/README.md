@@ -10,14 +10,18 @@ This directory owns the completed Phase 0–6 baseline, approved post-program pr
 - [Kingdoms roster intelligence increment](kingdoms-roster-intelligence-increment.md) — **Approved scope / Accepted implementation** for first-class Kingdoms, neutral game-player identity, alliance rosters, snapshots, imports/exports, and roster intelligence.
 - [KINGDOMS-001 implementation plan](kingdoms-roster-intelligence-implementation-plan.md) — gated sequence `K1-P0` through `K1-P6`; implementation slices and whole-increment hardening are complete.
 - [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md) — **Accepted** whole-increment domain/security/accessibility/migration/query/operations/API-webhook review and protected evidence record.
-- [KINGDOMS-001 accessibility review](kingdoms-roster-intelligence-accessibility.md) — accepted repository accessibility evidence for the complete first-party workflow, with manual assistive-technology smoke testing retained as release QA guidance.
-- [Current capability matrix](current-capability-matrix.md) — present-tense navigation across implemented capabilities, ownership, living contracts, and explicit non-capabilities/boundaries.
+- [KINGDOMS-001 accessibility review](kingdoms-roster-intelligence-accessibility.md) — accepted repository accessibility evidence for the complete first-party workflow.
+- [Kingdoms transfer planning increment](kingdoms-transfer-planning-increment.md) — **Approved scope / Accepted implementation** for alliance-owned transfer cycles, incoming/outgoing/staying participants, destinations, groups, coordinators, readiness/blockers, and explicit roster handoff.
+- [KINGDOMS-002 implementation plan](kingdoms-transfer-planning-implementation-plan.md) — completed gated sequence `K2-P0` through `K2-P6`.
+- [KINGDOMS-002 exit report](kingdoms-transfer-planning-exit-report.md) — **Accepted** whole-increment domain/security/accessibility/migration/query/operations/API-webhook review and protected evidence record.
+- [KINGDOMS-002 accessibility review](kingdoms-transfer-planning-accessibility.md) — accepted repository/source-level accessibility evidence for the complete transfer-planning workflow.
+- [Current capability matrix](current-capability-matrix.md) — present-tense navigation across implemented capabilities, accepted increments, living contracts, and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations used with the baseline plan and approved product increments.
 - [Production hardening exit report](production-hardening-exit-report.md) — **Accepted** repository-controlled post-Phase-6 hardening evidence.
 - [Production launch approval](production-launch-approval.md) — **Not yet approved** for a real production cutover until required deployment/external-control evidence is recorded.
 - [Phase 6 launch readiness](phase-6-launch-readiness.md) — historical Phase 6 launch-control expectations feeding the post-phase hardening/approval process.
 
-Use the capability matrix to answer what exists now. Use the implementation plan for the completed Phase 0–6 baseline and an approved increment scope for product work added after that baseline. Use an increment implementation plan for gated delivery. Use the increment exit record for final repository/product acceptance evidence. Use production launch approval to answer whether a real production cutover is authorized.
+Use the capability matrix to answer what exists now. Use the implementation plan for the completed Phase 0–6 baseline and an approved increment scope for post-program product work. Use increment implementation plans for gated delivery and increment exit records for final repository/product acceptance evidence. Use production launch approval to answer whether a real production cutover is authorized.
 
 ## Approved post-program roadmap increments
 
@@ -26,8 +30,9 @@ The Phase 0–6 program remains closed. New product work is approved as a named 
 | Scope ID | Increment | Status | Outcome |
 | --- | --- | --- | --- |
 | `KINGDOMS-001` | [Kingdoms roster intelligence](kingdoms-roster-intelligence-increment.md) | **Accepted** | First-class Kingdom/game-player model, alliance roster management, historical snapshots, controlled CSV migration/export, and roster intelligence. |
+| `KINGDOMS-002` | [Kingdoms transfer planning](kingdoms-transfer-planning-increment.md) | **Accepted** | Alliance-owned transfer cycles with incoming/outgoing/staying intent, destinations, groups/coordinators, manual readiness/blockers, and explicit roster handoff. |
 
-Implementation sequence: [KINGDOMS-001 implementation plan](kingdoms-roster-intelligence-implementation-plan.md). Acceptance record: [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md). Current runtime detail: [Kingdoms domain guide](../domains/kingdoms.md).
+Implementation sequences: [KINGDOMS-001](kingdoms-roster-intelligence-implementation-plan.md) and [KINGDOMS-002](kingdoms-transfer-planning-implementation-plan.md). Acceptance evidence is recorded in the [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md) and [KINGDOMS-002 exit report](kingdoms-transfer-planning-exit-report.md). Current runtime detail remains in the [Kingdoms domain guide](../domains/kingdoms.md).
 
 An approved increment scope is an explicit post-program plan addendum. It may extend product scope without reopening or renumbering the completed Phase 0–6 program. Candidate follow-on increments listed inside an approved scope are not themselves approved until they receive their own scope record.
 
@@ -43,11 +48,12 @@ The baseline implementation plan ends at Phase 6. Accepted delivery evidence is 
 - [Phase 5 exit report](phase-5-exit-report.md)
 - [Phase 6 exit report](phase-6-exit-report.md)
 
-These are historical acceptance records. They should preserve the evidence and context of their phase even when later product increments are approved or implemented. Do not infer the current roadmap from old “next phase” wording, and do not repurpose phase exit reports as release notes or a user-facing changelog.
+These are historical acceptance records. They preserve the evidence/context of their phase even when later product increments are implemented. Do not infer the current roadmap from old “next phase” wording, and do not repurpose phase exit reports as release notes or a user-facing changelog.
 
 ## Supporting product evidence
 
 - [KINGDOMS-001 accessibility review](kingdoms-roster-intelligence-accessibility.md)
+- [KINGDOMS-002 accessibility review](kingdoms-transfer-planning-accessibility.md)
 - [Phase 3 scope](phase-3-scope.md)
 - [Phases 1–4 alignment audit](phases-1-4-alignment-audit.md)
 - [Phase 1 accessibility review](phase-1-accessibility-review.md)
@@ -57,7 +63,7 @@ These are historical acceptance records. They should preserve the evidence and c
 - [Phase 5 accessibility](phase-5-accessibility.md)
 - [Phase 6 accessibility](phase-6-accessibility.md)
 
-Use the current capability matrix and current acceptance/launch records for present-tense status; use the implementation plan plus approved increment scopes for approved product scope; use increment implementation plans for delivery sequencing; use supporting documents to understand specific evidence and historical gates.
+Use the current capability matrix and current acceptance/launch records for present-tense status; use the implementation plan plus approved increment scopes for product scope; use increment implementation plans for delivery sequencing; use supporting documents to understand specific evidence and historical gates.
 
 ## Status vocabulary
 
@@ -70,7 +76,7 @@ Use status terms consistently:
 - **Approved** — an accountable owner explicitly approved a scope or external/production decision; approval does not imply implementation is complete.
 - **Not yet approved / Pending** — required evidence or accountable approval is still outstanding.
 
-Do not use **Accepted** and **Approved** interchangeably. `KINGDOMS-001` is Approved scope with an Accepted implementation. Repository production hardening is Accepted while real production launch remains Not yet approved.
+Do not use **Accepted** and **Approved** interchangeably. `KINGDOMS-001` and `KINGDOMS-002` are Approved scope with Accepted implementations. Repository production hardening is Accepted while real production launch remains Not yet approved.
 
 ## Updating program state
 
@@ -84,4 +90,4 @@ When a post-program increment is proposed or delivered:
 6. Preserve historical phase reports rather than rewriting old evidence to sound current.
 7. Record deferred work explicitly without partially implementing or documenting it as present capability.
 
-There is no Phase 7 in the current baseline. `KINGDOMS-001` is an approved post-program product increment, not a continuation of phase numbering.
+There is no Phase 7 in the current baseline. `KINGDOMS-001` and `KINGDOMS-002` are accepted post-program product increments, not a continuation of phase numbering. Real production cutover remains separately governed and is not implied by increment acceptance.

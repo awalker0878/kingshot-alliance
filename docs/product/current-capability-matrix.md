@@ -4,9 +4,9 @@
 
 **Status:** Current
 
-This matrix summarizes capabilities implemented in the current Phase 0–6-complete runtime and accepted post-program increments, and separately identifies explicit non-capabilities/boundaries. It is a navigation aid, not a replacement for the baseline implementation plan, approved product-increment scopes, accepted ADRs, living domain guides, or code/tests.
+This matrix summarizes capabilities implemented in the current Phase 0–6-complete runtime and accepted post-program increments, and identifies explicit non-capabilities/boundaries. It is a navigation aid, not a replacement for the baseline implementation plan, approved product-increment scopes, accepted ADRs, living domain guides, or code/tests.
 
-Code and tests remain authoritative for exact runtime behavior. The [implementation plan](implementation-plan.md) remains authoritative for the completed Phase 0–6 baseline; approved post-program scope is recorded in named increment documents such as [`KINGDOMS-001`](kingdoms-roster-intelligence-increment.md), with acceptance evidence in its [exit report](kingdoms-roster-intelligence-exit-report.md). A real production cutover remains **not yet approved**; see [production launch approval](production-launch-approval.md).
+Code and tests remain authoritative for exact runtime behavior. The [implementation plan](implementation-plan.md) remains authoritative for the completed Phase 0–6 baseline. Accepted post-program implementation evidence is recorded for [`KINGDOMS-001`](kingdoms-roster-intelligence-exit-report.md) and [`KINGDOMS-002`](kingdoms-transfer-planning-exit-report.md). A real production cutover remains **not yet approved**; see [production launch approval](production-launch-approval.md).
 
 ## Implemented product capabilities
 
@@ -21,6 +21,11 @@ Code and tests remain authoritative for exact runtime behavior. The [implementat
 | Append-only player snapshots and current/stale/missing projection | **Accepted by `KINGDOMS-001`** | Kingdoms | [Kingdoms player snapshots](../domains/kingdoms-snapshots.md) |
 | Roster totals, data-quality indicators and bounded 7/30-day intelligence | **Accepted by `KINGDOMS-001`** | Kingdoms | [Kingdoms roster intelligence](../domains/kingdoms-intelligence.md) |
 | Controlled roster CSV preview/confirmation and safe exports | **Accepted by `KINGDOMS-001`** | Kingdoms | [Kingdoms controlled CSV migration](../domains/kingdoms-csv-migration.md) |
+| Alliance-owned transfer cycles and captured home-Kingdom lifecycle | **Accepted by `KINGDOMS-002`** | Kingdoms | [Kingdoms transfer planning](../domains/kingdoms-transfer-planning.md) |
+| Incoming/outgoing/staying transfer participants and destination planning | **Accepted by `KINGDOMS-002`** | Kingdoms | [Kingdoms transfer planning](../domains/kingdoms-transfer-planning.md) |
+| Transfer groups and same-alliance coordinators | **Accepted by `KINGDOMS-002`** | Kingdoms, Memberships reference | [Kingdoms transfer planning](../domains/kingdoms-transfer-planning.md) |
+| Manual readiness, blocker history and coordination summaries | **Accepted by `KINGDOMS-002`** | Kingdoms | [Kingdoms transfer planning](../domains/kingdoms-transfer-planning.md) |
+| Explicit idempotent transfer completion and accepted roster handoff | **Accepted by `KINGDOMS-002`** | Kingdoms | [Kingdoms transfer planning](../domains/kingdoms-transfer-planning.md) |
 | Public alliance presence and managed content | Implemented | Content | [Content management](../domains/content-management.md) |
 | Content revisions, visibility, scheduling, and private media | Implemented | Content | [Content management](../domains/content-management.md) |
 | Events, recurrence, registration, waitlisting, and attendance | Implemented | Events | [Events and rallies](../domains/events-and-rallies.md) |
@@ -42,37 +47,40 @@ Code and tests remain authoritative for exact runtime behavior. The [implementat
 | Liveness/readiness and request/trace correlation | Implemented | Platform | [Observability](../operations/observability.md) |
 | Immutable-image deployment, staging validation, backup/restore tooling, and rollback procedures | Implemented repository controls | Operations | [Operations index](../operations/README.md) |
 
-## Accepted post-program increments
+## Post-program increments
 
-| Scope | Status | Accepted outcome | Evidence |
+| Scope | Status | Outcome | Evidence / plan |
 | --- | --- | --- | --- |
 | `KINGDOMS-001` — Kingdoms roster intelligence | **Accepted** | First-class Kingdom/game-player model, alliance-owned roster, append-only snapshots, derived roster intelligence, controlled CSV migration/export, cross-slice security/accessibility/query/rollback hardening | [Scope](kingdoms-roster-intelligence-increment.md), [implementation plan](kingdoms-roster-intelligence-implementation-plan.md), [exit report](kingdoms-roster-intelligence-exit-report.md) |
+| `KINGDOMS-002` — Transfer planning | **Accepted** | Alliance-owned transfer cycles, incoming/outgoing/staying intent, destinations, groups/coordinators, manual readiness/blockers, explicit idempotent roster handoff, cross-slice security/accessibility/query/rollback hardening | [Scope](kingdoms-transfer-planning-increment.md), [implementation plan](kingdoms-transfer-planning-implementation-plan.md), [exit report](kingdoms-transfer-planning-exit-report.md) |
 
-Candidate transfer planning, kingdom-alliance/diplomacy intelligence, automated game-data ingestion, opt-in cross-alliance intelligence, automated player scoring and public Kingdoms API/webhook contracts remain follow-on candidates only. They are **not approved implementation scope** until each receives its own increment record.
+Kingdom-alliance/diplomacy intelligence, automated game-data ingestion, opt-in cross-alliance intelligence, automated player scoring and public Kingdoms API/webhook contracts remain follow-on candidates only and are **not approved implementation scope** until each receives its own increment record.
 
 ## Explicit current boundaries
 
 | Area | Current state | Meaning |
 | --- | --- | --- |
-| `KINGDOMS-001` | **Accepted / implemented** | `K1-P1`–`K1-P5` deliver the complete runtime capability and `K1-P6` closes domain/security/accessibility/migration/query/operations/integration acceptance. |
-| Global Kingdom / `KingdomPlayer` identity | **Neutral reference data** | Shared reference identity never grants cross-alliance access to roster state, private notes, membership links, snapshots, imports, exports or metrics. |
+| `KINGDOMS-001` | **Accepted / implemented** | `K1-P1`–`K1-P5` deliver the runtime capability and `K1-P6` closes domain/security/accessibility/migration/query/operations/integration acceptance. |
+| `KINGDOMS-002` transfer planning | **Accepted / implemented** | `K2-P1`–`K2-P5` deliver transfer cycles, participants, groups/coordinators, manual readiness/blockers and explicit completion; `K2-P6` closes whole-increment domain/security/accessibility/migration/query/operations/integration acceptance. |
+| Global Kingdom / `KingdomPlayer` identity | **Neutral reference data** | Shared reference identity never grants cross-alliance access to roster state, private notes, membership links, snapshots, imports, exports, metrics or transfer-plan data. |
 | Legacy free-form alliance kingdom storage | **Removed** | Alliance persistence uses `kingdom_id`; existing presentation/API `kingdom` values are derived from the canonical relation rather than a compatibility column. |
-| Kingdoms external API | **Not approved / not implemented** | `/api/v1` remains limited to documented alliance/events/contributions reads; no roster/snapshot/intelligence API scope or route exists. |
-| Kingdoms external webhooks | **Not approved / not implemented** | `alliance.kingdom_updated` and `kingdoms.*` are internal outbox events and are excluded from generic webhook fan-out, including wildcard subscriptions. |
-| Automated Kingshot game-data ingestion | **Not approved / not implemented** | `KINGDOMS-001` is manual/import first. Scraping, OCR, bots, and undocumented/unapproved APIs are explicitly outside its scope. |
-| Transfer planning and kingdom diplomacy | **Roadmap candidates / not approved** | These may follow the roster foundation but require separate product increment approval. |
-| Cross-alliance Kingdoms rankings/intelligence | **Not approved / not implemented** | No cross-alliance player ranking, punitive scoring or shared roster intelligence is part of `KINGDOMS-001`. |
+| Kingdoms external API | **Not approved / not implemented** | `/api/v1` remains limited to documented alliance/events/contributions reads; no roster/snapshot/intelligence/transfer API scope or route exists. |
+| Kingdoms external webhooks | **Not approved / not implemented** | `alliance.kingdom_updated` and `kingdoms.*`, including `kingdoms.transfer_*`, are internal outbox events and are excluded from generic webhook fan-out, including wildcard subscriptions. |
+| Automated Kingshot game-data ingestion | **Not approved / not implemented** | Accepted Kingdoms behavior remains manual/import first. Scraping, OCR, bots, and undocumented/unapproved APIs are outside current runtime scope. |
+| Transfer marketplace / eligibility / resource optimization / automatic execution | **Not approved / not implemented** | Accepted transfer planning is manual coordination only. There is no player ranking, inferred eligibility/readiness, transfer-pass/ticket optimization, bulk completion or automatic in-game transfer. |
+| Kingdom diplomacy | **Roadmap candidate / not approved** | Diplomacy/NAP/ally/rival intelligence may follow but requires a separate product increment approval. |
+| Cross-alliance Kingdoms rankings/intelligence | **Not approved / not implemented** | No cross-alliance player ranking, punitive scoring or shared roster/transfer intelligence is current capability. |
 | Payment processing / billing | **Not implemented** | Plans and entitlements exist, but there is no payment-processing workflow. |
 | Support impersonation | **Not implemented** | Platform administrators do not receive an impersonation capability. |
 | Generic email/SMS/push notification provider | **Not implemented as a Notifications-domain transport** | Current Notifications behavior coordinates in-app reminder/report requests through persisted state and the transactional outbox. |
 | Public webhook event catalog/schema version | **Not currently centralized** | The webhook envelope/signature contract is documented; externally eligible event types remain constrained by the Integrations boundary and event-specific payloads are not governed by a separate schema registry/version field. |
 | Laravel Pulse recording | **Disabled** | Pulse is present as a foundation but hosted configuration requires recording to remain disabled until its schema/access policy is introduced. |
 | OpenTelemetry exporter | **Not configured in-repository** | Request/trace correlation exists, but there is no repository-configured OTEL exporter. |
-| Real production launch | **Not yet approved** | Repository hardening and `KINGDOMS-001` product acceptance do not prove external production infrastructure/operational evidence required before cutover approval. |
+| Real production launch | **Not yet approved** | Repository hardening and product-increment acceptance do not prove external production infrastructure/operational evidence required before cutover approval. |
 
 ## How to use this matrix
 
-Use the implemented-capability table to answer “is this available in the accepted product?” Use the accepted-increment table to trace post-program acceptance evidence. Use explicit boundaries to answer what is deliberately **not** part of the runtime.
+Use the implemented-capability table to answer “is this available in the accepted product?” Use the post-program increment table to distinguish Accepted implementation from approved future scope. Use explicit boundaries to answer what is deliberately **not** part of the runtime.
 
 For architectural reasoning, use the [architecture decisions and current architecture view](../adr/README.md). For operational behavior, use the [operations index](../operations/README.md). For security requirements and current launch-security evidence, use the [security index](../security/README.md).
 
