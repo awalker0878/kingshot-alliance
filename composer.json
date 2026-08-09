@@ -62,7 +62,7 @@
             "pint --parallel"
         ],
         "lint:check": [
-            "pint app/Domain/Kingdoms/Http/Controllers/TransferReadinessController.php && git diff -- app/Domain/Kingdoms/Http/Controllers/TransferReadinessController.php && exit 1"
+            "pint --parallel --test"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
