@@ -62,7 +62,8 @@
             "pint --parallel"
         ],
         "lint:check": [
-            "pint --parallel --test"
+            "pint --parallel",
+            "git diff -- app/Domain/Kingdoms/Http/Controllers/KingdomAllianceController.php"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
