@@ -12,6 +12,7 @@ use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\ArchiveTrackedKingdomAlliance;
 use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
 use App\Domain\Kingdoms\Actions\UpdateTrackedKingdomAlliance;
+use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Queries\KingdomAllianceObservationQuery;
@@ -141,6 +142,10 @@ final class KingdomAllianceController extends Controller
             $freshness = $latest === null
                 ? 'missing'
                 : ($latest->captured_at->gte(now()->subDays(KingdomAllianceObservationQuery::FRESH_DAYS)) ? 'current' : 'stale');
+            $diplomacy = $entry->diplomacy;
+            $diplomacyNeedsReview = $diplomacy !== null
+                && (($diplomacy->review_at !== null && $diplomacy->review_at->lte(now()))
+                    || ($diplomacy->expires_at !== null && $diplomacy->expires_at->lte(now())));
 
             $row = [
                 'name' => (string) $entry->kingdomAlliance->current_name,
@@ -158,6 +163,8 @@ final class KingdomAllianceController extends Controller
                     'capturedAt' => $latest->captured_at->toIso8601String(),
                     'source' => $latest->source,
                 ],
+                'diplomacyState' => $diplomacy?->current_state->value ?? KingdomAllianceDiplomacyState::Unknown->value,
+                'diplomacyNeedsReview' => $diplomacyNeedsReview,
             ];
 
             if ($includePrivate) {
@@ -167,6 +174,7 @@ final class KingdomAllianceController extends Controller
                 $row['referenceStatus'] = $entry->kingdomAlliance->status->value;
                 $row['managerNotes'] = $entry->manager_notes;
                 $row['archivedAt'] = $entry->archived_at?->toIso8601String();
+                $row['diplomacyUrl'] = route('alliance.kingdom-alliances.diplomacy.show', ['tracking' => $entry->id], false);
             }
 
             $rows[] = $row;
