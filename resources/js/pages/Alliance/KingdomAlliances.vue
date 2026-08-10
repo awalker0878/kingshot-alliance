@@ -19,6 +19,8 @@ type TrackingSummary = {
   historyUrl: string;
   freshness: 'current' | 'stale' | 'missing';
   latestObservation: LatestObservation | null;
+  diplomacyState: string;
+  diplomacyNeedsReview: boolean;
 };
 
 defineProps<{
@@ -37,6 +39,11 @@ function formatCapturedAt(value: string): string {
     timeStyle: 'short',
   }).format(new Date(value));
 }
+
+function stateLabel(value: string): string {
+  if (value === 'nap') return 'NAP';
+  return value.charAt(0).toUpperCase() + value.slice(1).replaceAll('_', ' ');
+}
 </script>
 
 <template>
@@ -51,7 +58,7 @@ function formatCapturedAt(value: string): string {
         <h1 class="mt-2 text-3xl font-bold">Tracked game-side alliances</h1>
         <p class="mt-2 max-w-3xl text-sm text-slate-400">
           {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. Latest
-          accepted observations are factual history; freshness does not imply strength, threat, or
+          accepted observations are factual history; they never infer or automatically change
           diplomacy state.
         </p>
       </div>
@@ -78,7 +85,7 @@ function formatCapturedAt(value: string): string {
           <h2 class="text-xl font-semibold">Alliance tracking</h2>
           <p class="mt-1 text-sm text-slate-400">
             Current means the latest accepted observation was captured within 30 days. Missing is
-            different from zero.
+            different from zero. Diplomacy labels are explicit manager-maintained state.
           </p>
         </div>
         <p class="text-sm text-slate-400">{{ tracking.length }} record(s)</p>
@@ -91,6 +98,7 @@ function formatCapturedAt(value: string): string {
               <th class="px-3 py-3 font-semibold">Alliance</th>
               <th class="px-3 py-3 font-semibold">Latest facts</th>
               <th class="px-3 py-3 font-semibold">Freshness</th>
+              <th class="px-3 py-3 font-semibold">Diplomacy</th>
               <th class="px-3 py-3 font-semibold">Kingdom context</th>
               <th class="px-3 py-3 font-semibold">Tracking</th>
             </tr>
@@ -118,6 +126,15 @@ function formatCapturedAt(value: string): string {
               <td class="px-3 py-4 text-slate-300">
                 <span class="rounded-full border border-slate-700 px-2 py-1 text-xs font-semibold">
                   {{ entry.freshness }}
+                </span>
+              </td>
+              <td class="px-3 py-4 text-slate-300">
+                <span class="font-semibold">{{ stateLabel(entry.diplomacyState) }}</span>
+                <span
+                  v-if="entry.diplomacyNeedsReview"
+                  class="ml-2 rounded-full bg-amber-950 px-2 py-1 text-xs font-semibold text-amber-300"
+                >
+                  Review due
                 </span>
               </td>
               <td class="px-3 py-4 text-slate-300">
