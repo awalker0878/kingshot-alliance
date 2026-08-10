@@ -1,16 +1,29 @@
 # Contributions domain
 
-Phase 5 owns contribution categories, immutable contribution records, approval/correction/reversal workflows, event-participation reconciliation, data-quality flags, contribution reporting, leaderboards, exports, and scheduled report definitions.
+## Purpose
 
-## Reporting semantics
+Owns Alliance contribution categories/records, explainable calculations, corrections/reversals, Event-attendance reconciliation, data-quality flags, reporting, exports, and scheduled report definitions.
 
-- `recorded_fact` identifies directly recorded operational facts.
-- `calculated_metric` identifies values derived from a named, versioned calculation rule.
-- `subjective_assessment` identifies explicitly subjective records and must never be presented as an objective fact.
-- Corrections create a replacement record linked through `correction_of_record_id`; the original record is retained and reversed.
-- Event participation is derived only from Phase 3 attendance records using the `event_attendance` calculation key.
-- Leaderboards are category-level opt-in and always expose the calculation description/version used for the displayed total.
-- Interactive exports create auditable report-run records with a report version, row count, and SHA-256 checksum.
-- Scheduled reports are queued through the Notifications domain and transactional outbox using deterministic idempotency keys.
+## Owned code
 
-Phase 6 platform administration, billing, external webhooks, and generalized integration delivery are intentionally outside this domain.
+Runtime code in this module owns Contribution persistence/calculation semantics, report schedules/runs, reconciliation, reporting/data-quality queries, and export workflows.
+
+## Public contracts
+
+- recorded facts, versioned calculated metrics, and explicit subjective assessments;
+- append-oriented correction/reversal workflow;
+- idempotent `event_attendance` reconciliation from Events-owned attendance;
+- member/manager reporting and opt-in leaderboards; and
+- scheduled report definitions consumed by Notifications for due-time coordination.
+
+## Dependencies
+
+- `Events` — authoritative Event attendance facts.
+- `Memberships` — member/report-recipient identity.
+- `Notifications` — scheduled report-request coordination.
+- `Authorization` — `contributions.manage`.
+- `Audit` / Platform outbox — privileged/durable evidence.
+
+## Canonical documentation
+
+- [`docs/domains/contributions/`](../../../docs/domains/contributions/README.md)
