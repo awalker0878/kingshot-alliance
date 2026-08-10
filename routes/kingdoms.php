@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceController;
+use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceObservationController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
 use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
@@ -49,6 +50,8 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         ->name('alliance.kingdom-alliances.manage');
     Route::get('/alliance/kingdom-alliances/{tracking}/history', [KingdomAllianceObservationController::class, 'show'])
         ->name('alliance.kingdom-alliances.history');
+    Route::get('/alliance/kingdom-alliances/{tracking}/diplomacy', [KingdomAllianceDiplomacyController::class, 'show'])
+        ->name('alliance.kingdom-alliances.diplomacy.show');
 
     Route::get('/alliance/transfers', [TransferPlanController::class, 'index'])
         ->name('alliance.transfers.index');
@@ -85,6 +88,10 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             '/alliance/kingdom-alliances/{tracking}/observations/{observation}/invalidate',
             [KingdomAllianceObservationController::class, 'invalidate'],
         )->name('alliance.kingdom-alliances.observations.invalidate');
+        Route::post(
+            '/alliance/kingdom-alliances/{tracking}/diplomacy/transitions',
+            [KingdomAllianceDiplomacyController::class, 'transition'],
+        )->name('alliance.kingdom-alliances.diplomacy.transition');
 
         Route::post('/alliance/transfers', [TransferPlanController::class, 'store'])
             ->name('alliance.transfers.store');
