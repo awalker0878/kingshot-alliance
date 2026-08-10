@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceController;
+use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyContactController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceObservationController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
@@ -52,6 +53,10 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         ->name('alliance.kingdom-alliances.history');
     Route::get('/alliance/kingdom-alliances/{tracking}/diplomacy', [KingdomAllianceDiplomacyController::class, 'show'])
         ->name('alliance.kingdom-alliances.diplomacy.show');
+    Route::get(
+        '/alliance/kingdom-alliances/{tracking}/diplomacy/contacts',
+        [KingdomAllianceDiplomacyContactController::class, 'show'],
+    )->name('alliance.kingdom-alliances.diplomacy.contacts.show');
 
     Route::get('/alliance/transfers', [TransferPlanController::class, 'index'])
         ->name('alliance.transfers.index');
@@ -92,6 +97,18 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             '/alliance/kingdom-alliances/{tracking}/diplomacy/transitions',
             [KingdomAllianceDiplomacyController::class, 'transition'],
         )->name('alliance.kingdom-alliances.diplomacy.transition');
+        Route::post(
+            '/alliance/kingdom-alliances/{tracking}/diplomacy/contacts',
+            [KingdomAllianceDiplomacyContactController::class, 'store'],
+        )->name('alliance.kingdom-alliances.diplomacy.contacts.store');
+        Route::patch(
+            '/alliance/kingdom-alliances/{tracking}/diplomacy/contacts/{contact}',
+            [KingdomAllianceDiplomacyContactController::class, 'update'],
+        )->name('alliance.kingdom-alliances.diplomacy.contacts.update');
+        Route::post(
+            '/alliance/kingdom-alliances/{tracking}/diplomacy/contacts/{contact}/deactivate',
+            [KingdomAllianceDiplomacyContactController::class, 'deactivate'],
+        )->name('alliance.kingdom-alliances.diplomacy.contacts.deactivate');
 
         Route::post('/alliance/transfers', [TransferPlanController::class, 'store'])
             ->name('alliance.transfers.store');
