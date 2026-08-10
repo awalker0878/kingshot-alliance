@@ -19,6 +19,12 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterHistory.vue',
             'RosterIntelligence.vue',
             'RosterImport.vue',
+            'KingdomAlliances.vue',
+            'KingdomAlliancesManage.vue',
+            'KingdomAllianceHistory.vue',
+            'KingdomAllianceDiplomacy.vue',
+            'KingdomAllianceDiplomacyContacts.vue',
+            'KingdomAllianceIntelligence.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
@@ -42,6 +48,11 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterManage.vue',
             'RosterHistory.vue',
             'RosterImport.vue',
+            'KingdomAlliancesManage.vue',
+            'KingdomAllianceHistory.vue',
+            'KingdomAllianceDiplomacy.vue',
+            'KingdomAllianceDiplomacyContacts.vue',
+            'KingdomAllianceIntelligence.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
             'TransferCompletionManage.vue',
@@ -57,6 +68,59 @@ final class KingdomAccessibilityTest extends TestCase
         self::assertStringContainsString('Resolution for CSV row', $import);
         self::assertStringContainsString('aria-live="polite"', $import);
         self::assertStringContainsString('role="alert"', $import);
+
+        $observationHistory = file_get_contents($root.'KingdomAllianceHistory.vue');
+        self::assertIsString($observationHistory);
+        foreach ([
+            'for="observation-name"',
+            'for="observation-tag"',
+            'for="observation-power"',
+            'for="observation-members"',
+            'for="observation-captured"',
+            'for="correction-reason"',
+            'for="invalidation-reason"',
+        ] as $label) {
+            self::assertStringContainsString($label, $observationHistory);
+        }
+
+        $diplomacy = file_get_contents($root.'KingdomAllianceDiplomacy.vue');
+        self::assertIsString($diplomacy);
+        foreach ([
+            'for="diplomacy-state"',
+            'for="diplomacy-effective"',
+            'for="diplomacy-review"',
+            'for="diplomacy-expiry"',
+            'for="diplomacy-terms"',
+            'for="diplomacy-rationale"',
+        ] as $label) {
+            self::assertStringContainsString($label, $diplomacy);
+        }
+
+        $contacts = file_get_contents($root.'KingdomAllianceDiplomacyContacts.vue');
+        self::assertIsString($contacts);
+        foreach ([
+            'for="contact-display-name"',
+            'for="contact-game-role"',
+            'for="contact-channel"',
+            'for="contact-handle"',
+            'for="contact-last-verified"',
+            'for="contact-manager-notes"',
+        ] as $label) {
+            self::assertStringContainsString($label, $contacts);
+        }
+
+        $intelligence = file_get_contents($root.'KingdomAllianceIntelligence.vue');
+        self::assertIsString($intelligence);
+        foreach ([
+            'for="tracking-filter"',
+            'for="freshness-filter"',
+            'for="diplomacy-filter"',
+            'for="sort-filter"',
+            'for="direction-filter"',
+            '<caption class="sr-only">',
+        ] as $accessibilityContract) {
+            self::assertStringContainsString($accessibilityContract, $intelligence);
+        }
     }
 
     public function test_transfer_readiness_and_completion_controls_keep_programmatic_context(): void
@@ -78,7 +142,7 @@ final class KingdomAccessibilityTest extends TestCase
         self::assertStringContainsString('Record actual completion', $completion);
     }
 
-    public function test_roster_and_transfer_tables_keep_narrow_viewport_overflow(): void
+    public function test_roster_transfer_and_kingdom_alliance_tables_keep_narrow_viewport_overflow(): void
     {
         $root = dirname(__DIR__, 2).'/resources/js/pages/Alliance/';
 
@@ -87,6 +151,12 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterHistory.vue',
             'RosterIntelligence.vue',
             'RosterImport.vue',
+            'KingdomAlliances.vue',
+            'KingdomAlliancesManage.vue',
+            'KingdomAllianceHistory.vue',
+            'KingdomAllianceDiplomacy.vue',
+            'KingdomAllianceDiplomacyContacts.vue',
+            'KingdomAllianceIntelligence.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
         ] as $page) {

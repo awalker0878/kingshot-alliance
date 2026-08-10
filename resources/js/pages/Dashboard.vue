@@ -144,6 +144,13 @@ function logout(): void {
             <Link
               v-if="activeAllianceId === membership.alliance.id"
               class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 hover:border-slate-500"
+              href="/alliance/kingdom-alliances"
+            >
+              Kingdom alliances
+            </Link>
+            <Link
+              v-if="activeAllianceId === membership.alliance.id"
+              class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 hover:border-slate-500"
               href="/alliance/transfers"
             >
               Transfers
