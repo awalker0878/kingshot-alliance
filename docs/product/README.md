@@ -2,62 +2,27 @@
 
 [← Documentation home](../README.md)
 
-This directory owns the completed Phase 0–6 baseline, approved post-program product increments, current capability/status navigation, architecture/documentation governance evidence, increment/phase acceptance, accessibility evidence, and production-readiness/approval state.
+This directory owns **repository-wide product and program governance**: the completed baseline plan, current capability/status navigation, documentation/architecture governance, phase-wide historical acceptance evidence, production hardening, and real-production approval state.
+
+Domain-specific product scopes, implementation plans, slice validations, accessibility records, and increment exit evidence belong with the code-owning domain under `docs/domains/<domain>/`.
 
 ## Authoritative current records
 
 - [Implementation plan](implementation-plan.md) — approved Phase 0–6 baseline, canonical repository structure, delivery governance, and program definition of done.
-- [Documentation standard](documentation-standard.md) — **Current** normative docs structure, naming, standard formats, one-domain/one-folder rule, migration record, and CI contract.
+- [Documentation standard](documentation-standard.md) — normative repository documentation ownership, structure, naming, standard formats, and CI contract.
 - [Current capability matrix](current-capability-matrix.md) — present-tense implemented capabilities and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations.
-- [Repository structure audit](repository-structure-audit.md) — current physical repository/docs structure evidence and historical refactor context.
-- [Domain boundary audit](domain-boundary-audit.md) — current semantic ownership/cross-domain contract evidence.
+- [Repository structure audit](repository-structure-audit.md) — physical repository/documentation structure evidence.
+- [Domain boundary audit](domain-boundary-audit.md) — cross-domain ownership and supported-contract evidence.
 - [Production hardening exit report](production-hardening-exit-report.md) — **Accepted** repository-controlled hardening evidence.
 - [Production launch approval](production-launch-approval.md) — **Not yet approved** for real production cutover until required external/deployment evidence is recorded.
-- [Phase 6 launch readiness](phase-6-launch-readiness.md) — historical Phase 6 launch-control expectations feeding current production approval.
+- [Phase 6 launch readiness](phase-6-launch-readiness.md) — historical launch-control expectations feeding the current production-approval process.
 
-Use the capability matrix to answer what exists now. Use the implementation plan for the completed baseline and approved increment scopes for post-program scope. Use living domain folders under [`../domains/`](../domains/README.md) for current business/runtime contracts. Use production launch approval to answer whether real cutover is authorized.
+Use the [domain index](../domains/README.md) for current business/runtime ownership and domain-specific delivery evidence. In particular, all `KINGDOMS-001` through `KINGDOMS-003` product/acceptance records now live under the [Kingdoms product evidence index](../domains/kingdoms/product/README.md).
 
-## Accepted post-program Kingdoms increments
+## Historical program acceptance
 
-| Scope ID | Increment | Status | Outcome |
-| --- | --- | --- | --- |
-| `KINGDOMS-001` | [Kingdoms roster intelligence](kingdoms-roster-intelligence-increment.md) | **Accepted** | First-class Kingdom/game-player model, Alliance-owned roster, snapshots, controlled CSV migration/export, descriptive roster intelligence. |
-| `KINGDOMS-002` | [Kingdoms transfer planning](kingdoms-transfer-planning-increment.md) | **Accepted** | Alliance-owned transfer cycles, participant intent/destinations, groups/coordinators, manual readiness/blockers, explicit roster handoff. |
-| `KINGDOMS-003` | [Kingdom/Alliance intelligence and diplomacy](kingdoms-alliance-intelligence-increment.md) | **Accepted** | Neutral game-Alliance identity/tracking, factual observations/history, explicit diplomacy/NAP lifecycle, manager-private contacts, descriptive intelligence. |
-
-### KINGDOMS-001 records
-
-- [Implementation plan](kingdoms-roster-intelligence-implementation-plan.md)
-- [Exit report](kingdoms-roster-intelligence-exit-report.md)
-- [Accessibility review](kingdoms-roster-intelligence-accessibility.md)
-- Living domain contracts: [Kingdoms](../domains/kingdoms/README.md), [Roster](../domains/kingdoms/roster.md), [Snapshots](../domains/kingdoms/snapshots.md), [Intelligence](../domains/kingdoms/intelligence.md), [CSV migration](../domains/kingdoms/csv-migration.md)
-
-### KINGDOMS-002 records
-
-- [Implementation plan](kingdoms-transfer-planning-implementation-plan.md)
-- [Exit report](kingdoms-transfer-planning-exit-report.md)
-- [Accessibility review](kingdoms-transfer-planning-accessibility.md)
-- Living domain contract: [Transfer planning](../domains/kingdoms/transfer-planning.md)
-
-### KINGDOMS-003 records
-
-- [Implementation plan](kingdoms-alliance-intelligence-implementation-plan.md)
-- [K3-P0 decisions](kingdoms-alliance-intelligence-p0-decisions.md)
-- [Slice A validation](kingdoms-alliance-intelligence-slice-a-validation.md)
-- [Slice B validation](kingdoms-alliance-intelligence-slice-b-validation.md)
-- [Slice C1 validation](kingdoms-alliance-intelligence-slice-c1-validation.md)
-- [Slice C2 validation](kingdoms-alliance-intelligence-slice-c2-validation.md)
-- [Slice D validation](kingdoms-alliance-intelligence-slice-d-validation.md)
-- [Accessibility review](kingdoms-alliance-intelligence-accessibility.md)
-- [Exit report](kingdoms-alliance-intelligence-exit-report.md)
-- Living domain contract: [Alliance intelligence and diplomacy](../domains/kingdoms/alliance-intelligence.md)
-
-Candidate follow-ons named inside accepted scopes—such as automated game-data ingestion or opt-in shared Kingdom intelligence—are not themselves approved until they receive an explicit scope/acceptance process.
-
-## Phase acceptance history
-
-The baseline implementation plan ends at Phase 6. Accepted delivery evidence is retained in:
+The baseline implementation plan ends at Phase 6. Phase-wide accepted delivery evidence remains here because it records the overall program sequence rather than one current code-domain contract:
 
 - [Phase 0 exit report](phase-0-exit-report.md)
 - [Phase 1 exit report](phase-1-exit-report.md)
@@ -67,9 +32,7 @@ The baseline implementation plan ends at Phase 6. Accepted delivery evidence is 
 - [Phase 5 exit report](phase-5-exit-report.md)
 - [Phase 6 exit report](phase-6-exit-report.md)
 
-These are historical acceptance records. Navigation/path maintenance is allowed; do not rewrite old evidence to make it sound like a current changelog.
-
-## Supporting product evidence
+Supporting phase-wide program evidence includes:
 
 - [Phase 3 scope](phase-3-scope.md)
 - [Phases 1–4 alignment audit](phases-1-4-alignment-audit.md)
@@ -80,47 +43,49 @@ These are historical acceptance records. Navigation/path maintenance is allowed;
 - [Phase 5 accessibility](phase-5-accessibility.md)
 - [Phase 6 accessibility](phase-6-accessibility.md)
 
-Use current capability/launch records for present-tense status; use historical phase/increment records for the evidence they were created to preserve.
+These are historical acceptance/program records. Navigation/path maintenance is appropriate; do not rewrite them into current feature documentation.
+
+## Domain-specific product evidence
+
+A product record moves under its owning domain when its scope, implementation sequence, validation, accessibility, or acceptance evidence is primarily about that domain's code/business contract.
+
+Canonical pattern:
+
+```text
+docs/domains/<domain>/product/
+  README.md
+  <domain-specific scope/evidence>.md
+```
+
+Current example:
+
+- [Kingdoms product and acceptance evidence](../domains/kingdoms/product/README.md) — `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` scope, plans, decisions, validations, accessibility, and exit evidence.
+
+Top-level `docs/product/` should not become an inventory of implementation files owned by individual domains.
 
 ## Status vocabulary
 
 Use status terms consistently:
 
-- **Planned** — approved scope exists but runtime implementation has not started; design gates may already be complete.
+- **Planned** — approved scope exists but runtime implementation has not started.
 - **In progress** — runtime implementation/evidence is being produced.
-- **Candidate** — implementation is complete enough for final protected validation but gate not yet passed.
-- **Validated** — defined slice/evidence gate passed on the recorded implementation.
-- **Accepted** — repository/product completion gate passed and evidence recorded.
-- **Approved** — an accountable owner explicitly approved scope or external/production decision; approval does not imply implementation is complete.
+- **Candidate** — implementation is ready for final protected validation but the gate has not passed.
+- **Validated** — a defined slice/evidence gate passed on the recorded implementation.
+- **Accepted** — repository/product completion gate passed and evidence is recorded.
+- **Approved** — an accountable owner explicitly approved scope or an external/production decision; approval does not imply implementation is complete.
 - **Not yet approved / Pending** — required evidence/accountable approval remains outstanding.
 
-Do not use **Accepted** and **Approved** interchangeably. K1–K3 are Approved scopes with Accepted implementations. Repository production hardening is Accepted while real production launch remains Not yet approved.
-
-## Documentation architecture
-
-The code/document relationship is deterministic:
-
-```text
-app/Domain/<Domain>/
-        ↕
-docs/domains/<domain>/README.md
-```
-
-Capability files stay inside the owning domain folder. `docs/domains/README.md` is the only Markdown file directly under `docs/domains/`. The structure is enforced by `tests/Architecture/RepositoryStructureTest.php` in normal CI.
-
-The former flat domain guides were fully migrated and removed; the authoritative mapping/history is recorded in the [documentation standard](documentation-standard.md).
+Do not use **Accepted** and **Approved** interchangeably. Repository production hardening can be Accepted while real production launch remains Not yet approved.
 
 ## Updating program state
 
-When a post-program increment is proposed or delivered:
+When product work changes:
 
-1. Create/update a named increment scope with stable ID, ownership, boundaries, dependencies, security/operational requirements, acceptance criteria, and explicit deferrals.
-2. Create a gated implementation plan when multiple independently reviewable stages are required.
-3. Do not create a new numbered program phase unless the baseline implementation plan itself is deliberately reopened/re-approved.
-4. Update the capability matrix and living domain folders so implemented slices, accepted work, and unapproved candidates remain distinguishable.
-5. When implementation closes, create an increment-specific exit/acceptance record with exact validated head/protected evidence.
-6. Preserve historical phase reports rather than rewriting them into current-state prose.
-7. Record deferred work explicitly without partially documenting it as present capability.
-8. Keep documentation aligned with the [documentation standard](documentation-standard.md) and required architecture CI rules.
+1. Keep cross-program baseline/governance/status records here.
+2. Put domain-specific scope, implementation, validation, security/operations references, accessibility, and acceptance evidence under the owning domain.
+3. Update the [current capability matrix](current-capability-matrix.md) with present-tense status and links to the owning domain.
+4. Preserve historical phase-wide evidence rather than extending it as current feature documentation.
+5. Keep real production approval separate from repository/product acceptance.
+6. Follow the [documentation standard](documentation-standard.md) and protected architecture/link checks.
 
-There is no Phase 7 in the current baseline. `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted post-program increments, not continuation of phase numbering. Real production cutover remains separately governed.
+There is no Phase 7 in the current baseline. Accepted post-program increments are domain-owned evidence, not continuation of the historical phase numbering.
