@@ -8,7 +8,6 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Queries\KingdomAllianceIntelligenceQuery;
 use App\Domain\Kingdoms\Queries\KingdomAllianceObservationQuery;
 use Illuminate\Support\Carbon;
@@ -44,22 +43,14 @@ final readonly class KingdomAllianceIntelligence
             ? $this->query->contactDiagnostics($alliance, $tracking, $asOf)
             : [];
         $freshCutoff = $asOf->copy()->subDays(KingdomAllianceObservationQuery::FRESH_DAYS);
-        $summary = [
-            'activeTrackedAlliances' => 0,
-            'observationQuality' => [
-                'current' => 0,
-                'stale' => 0,
-                'missing' => 0,
-                'staleAfterDays' => KingdomAllianceObservationQuery::FRESH_DAYS,
-            ],
-            'diplomacyStates' => $this->emptyDiplomacyCounts(),
-            'relationshipsNeedingReview' => 0,
-        ];
-        $managerSummary = [
-            'trackedWithActiveContact' => 0,
-            'trackedWithVerificationDue' => 0,
-            'verificationStaleAfterDays' => KingdomAllianceIntelligenceQuery::CONTACT_VERIFICATION_STALE_DAYS,
-        ];
+        $activeTracked = 0;
+        $currentObservations = 0;
+        $staleObservations = 0;
+        $missingObservations = 0;
+        $diplomacyCounts = $this->emptyDiplomacyCounts();
+        $relationshipsNeedingReview = 0;
+        $trackedWithActiveContact = 0;
+        $trackedWithVerificationDue = 0;
         $rows = [];
 
         foreach ($tracking as $entry) {
@@ -78,20 +69,28 @@ final readonly class KingdomAllianceIntelligence
             ];
 
             if ($entry->state === TrackedKingdomAllianceState::Active) {
-                $summary['activeTrackedAlliances']++;
-                $summary['observationQuality'][$freshness]++;
-                $summary['diplomacyStates'][$diplomacyState]++;
+                $activeTracked++;
+
+                match ($freshness) {
+                    'current' => $currentObservations++,
+                    'stale' => $staleObservations++,
+                    default => $missingObservations++,
+                };
+
+                if (array_key_exists($diplomacyState, $diplomacyCounts)) {
+                    $diplomacyCounts[$diplomacyState]++;
+                }
 
                 if ($needsReview) {
-                    $summary['relationshipsNeedingReview']++;
+                    $relationshipsNeedingReview++;
                 }
 
                 if ($includePrivate && $diagnostics['active'] > 0) {
-                    $managerSummary['trackedWithActiveContact']++;
+                    $trackedWithActiveContact++;
                 }
 
                 if ($includePrivate && $diagnostics['verificationDue'] > 0) {
-                    $managerSummary['trackedWithVerificationDue']++;
+                    $trackedWithVerificationDue++;
                 }
             }
 
@@ -146,8 +145,22 @@ final readonly class KingdomAllianceIntelligence
 
         return [
             'asOf' => $asOf->toIso8601String(),
-            'summary' => $summary,
-            'managerSummary' => $includePrivate ? $managerSummary : null,
+            'summary' => [
+                'activeTrackedAlliances' => $activeTracked,
+                'observationQuality' => [
+                    'current' => $currentObservations,
+                    'stale' => $staleObservations,
+                    'missing' => $missingObservations,
+                    'staleAfterDays' => KingdomAllianceObservationQuery::FRESH_DAYS,
+                ],
+                'diplomacyStates' => $diplomacyCounts,
+                'relationshipsNeedingReview' => $relationshipsNeedingReview,
+            ],
+            'managerSummary' => $includePrivate ? [
+                'trackedWithActiveContact' => $trackedWithActiveContact,
+                'trackedWithVerificationDue' => $trackedWithVerificationDue,
+                'verificationStaleAfterDays' => KingdomAllianceIntelligenceQuery::CONTACT_VERIFICATION_STALE_DAYS,
+            ] : null,
             'windows' => [
                 'sevenDay' => [
                     'days' => self::SEVEN_DAY_WINDOW,
@@ -246,9 +259,7 @@ final readonly class KingdomAllianceIntelligence
         ));
     }
 
-    /**
-     * @param  list<array<string, mixed>>  $rows
-     */
+    /** @param list<array<string, mixed>> $rows */
     private function sortRows(array &$rows, string $sort, string $direction): void
     {
         usort($rows, function (array $left, array $right) use ($sort, $direction): int {
