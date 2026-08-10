@@ -95,6 +95,52 @@ final class KingdomAllianceStructureTest extends TestCase
         }
     }
 
+    public function test_slice_c1_schema_has_explicit_diplomacy_state_and_append_history_without_contacts_or_scoring(): void
+    {
+        $migration = file_get_contents(
+            dirname(__DIR__, 2).'/database/migrations/2026_08_10_090000_create_kingdom_alliance_diplomacy.php',
+        );
+        self::assertIsString($migration);
+
+        foreach ([
+            'kingdom_alliance_diplomacy_relationships',
+            'kingdom_alliance_diplomacy_transitions',
+            'alliance_id',
+            'tracked_kingdom_alliance_id',
+            'kingdom_alliance_id',
+            'current_state',
+            'effective_at',
+            'review_at',
+            'expires_at',
+            'terms',
+            'rationale',
+            'last_transition_user_id',
+            'from_state',
+            'to_state',
+            'actor_user_id',
+        ] as $field) {
+            self::assertStringContainsString($field, $migration);
+        }
+
+        foreach ([
+            'contact',
+            'phone',
+            'address',
+            'handle',
+            'kingdom_player_id',
+            'threat',
+            'rank',
+            'score',
+            'recommendation',
+            'ingestion',
+            'scrape',
+            'ocr',
+            'webhook',
+        ] as $futureField) {
+            self::assertStringNotContainsString($futureField, $migration);
+        }
+    }
+
     public function test_k3_runtime_stays_under_the_kingdoms_domain(): void
     {
         $root = dirname(__DIR__, 2).'/app/Domain/Kingdoms/';
@@ -102,19 +148,25 @@ final class KingdomAllianceStructureTest extends TestCase
         foreach ([
             'Enums/KingdomAllianceStatus.php',
             'Enums/TrackedKingdomAllianceState.php',
+            'Enums/KingdomAllianceDiplomacyState.php',
             'Models/KingdomAlliance.php',
             'Models/TrackedKingdomAlliance.php',
             'Models/KingdomAllianceObservation.php',
+            'Models/KingdomAllianceDiplomacy.php',
+            'Models/KingdomAllianceDiplomacyTransition.php',
             'Actions/ResolveKingdomAlliance.php',
             'Actions/StartTrackingKingdomAlliance.php',
             'Actions/UpdateTrackedKingdomAlliance.php',
             'Actions/ArchiveTrackedKingdomAlliance.php',
             'Actions/RecordKingdomAllianceObservation.php',
             'Actions/InvalidateKingdomAllianceObservation.php',
+            'Actions/TransitionKingdomAllianceDiplomacy.php',
             'Queries/KingdomAllianceQuery.php',
             'Queries/KingdomAllianceObservationQuery.php',
+            'Queries/KingdomAllianceDiplomacyQuery.php',
             'Http/Controllers/KingdomAllianceController.php',
             'Http/Controllers/KingdomAllianceObservationController.php',
+            'Http/Controllers/KingdomAllianceDiplomacyController.php',
         ] as $path) {
             self::assertFileExists($root.$path);
         }
@@ -144,7 +196,7 @@ final class KingdomAllianceStructureTest extends TestCase
         }
     }
 
-    public function test_slice_b_routes_expose_observation_history_but_no_later_k3_or_k4_behavior(): void
+    public function test_slice_c1_routes_expose_diplomacy_history_but_no_contacts_or_later_k3_k4_behavior(): void
     {
         $routes = file_get_contents(dirname(__DIR__, 2).'/routes/kingdoms.php');
         self::assertIsString($routes);
@@ -152,9 +204,10 @@ final class KingdomAllianceStructureTest extends TestCase
         self::assertStringContainsString('/alliance/kingdom-alliances', $routes);
         self::assertStringContainsString('/observations', $routes);
         self::assertStringContainsString('/history', $routes);
+        self::assertStringContainsString('/diplomacy', $routes);
+        self::assertStringContainsString('/diplomacy/transitions', $routes);
 
         foreach ([
-            'diplomacy',
             'contacts',
             'threat-score',
             'recommendation',
