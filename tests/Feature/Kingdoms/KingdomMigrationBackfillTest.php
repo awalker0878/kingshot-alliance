@@ -126,4 +126,51 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertSame($kingdomId, DB::table('alliances')->where('id', $first->id)->value('kingdom_id'));
         self::assertSame($kingdomId, DB::table('alliances')->where('id', $second->id)->value('kingdom_id'));
     }
+
+    public function test_k3_migrations_round_trip_cleanly_to_the_accepted_k2_baseline(): void
+    {
+        $trackingMigration = require database_path('migrations/2026_08_09_140000_create_kingdom_alliance_tracking.php');
+        $observationMigration = require database_path('migrations/2026_08_09_150000_create_kingdom_alliance_observations.php');
+        $diplomacyMigration = require database_path('migrations/2026_08_10_090000_create_kingdom_alliance_diplomacy.php');
+        $contactMigration = require database_path('migrations/2026_08_10_100000_create_kingdom_alliance_diplomacy_contacts.php');
+
+        foreach ([$trackingMigration, $observationMigration, $diplomacyMigration, $contactMigration] as $migration) {
+            self::assertInstanceOf(Migration::class, $migration);
+        }
+
+        self::assertTrue(Schema::hasTable('transfer_completions'));
+        self::assertTrue(Schema::hasTable('alliance_roster_entries'));
+        self::assertTrue(Schema::hasTable('player_snapshots'));
+        self::assertTrue(Schema::hasTable('kingdom_alliance_diplomacy_contacts'));
+
+        $contactMigration->down();
+        $diplomacyMigration->down();
+        $observationMigration->down();
+        $trackingMigration->down();
+
+        self::assertTrue(Schema::hasTable('transfer_completions'));
+        self::assertTrue(Schema::hasTable('alliance_roster_entries'));
+        self::assertTrue(Schema::hasTable('player_snapshots'));
+        self::assertFalse(Schema::hasTable('kingdom_alliances'));
+        self::assertFalse(Schema::hasTable('tracked_kingdom_alliances'));
+        self::assertFalse(Schema::hasTable('kingdom_alliance_observations'));
+        self::assertFalse(Schema::hasTable('kingdom_alliance_diplomacy_relationships'));
+        self::assertFalse(Schema::hasTable('kingdom_alliance_diplomacy_transitions'));
+        self::assertFalse(Schema::hasTable('kingdom_alliance_diplomacy_contacts'));
+
+        $trackingMigration->up();
+        $observationMigration->up();
+        $diplomacyMigration->up();
+        $contactMigration->up();
+
+        self::assertTrue(Schema::hasTable('transfer_completions'));
+        self::assertTrue(Schema::hasTable('alliance_roster_entries'));
+        self::assertTrue(Schema::hasTable('player_snapshots'));
+        self::assertTrue(Schema::hasTable('kingdom_alliances'));
+        self::assertTrue(Schema::hasTable('tracked_kingdom_alliances'));
+        self::assertTrue(Schema::hasTable('kingdom_alliance_observations'));
+        self::assertTrue(Schema::hasTable('kingdom_alliance_diplomacy_relationships'));
+        self::assertTrue(Schema::hasTable('kingdom_alliance_diplomacy_transitions'));
+        self::assertTrue(Schema::hasTable('kingdom_alliance_diplomacy_contacts'));
+    }
 }
