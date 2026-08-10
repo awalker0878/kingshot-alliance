@@ -141,6 +141,56 @@ final class KingdomAllianceStructureTest extends TestCase
         }
     }
 
+    public function test_slice_c2_schema_has_private_contacts_without_identity_authorization_or_future_scoring_fields(): void
+    {
+        $migration = file_get_contents(
+            dirname(__DIR__, 2).'/database/migrations/2026_08_10_100000_create_kingdom_alliance_diplomacy_contacts.php',
+        );
+        self::assertIsString($migration);
+
+        foreach ([
+            'kingdom_alliance_diplomacy_contacts',
+            'alliance_id',
+            'tracked_kingdom_alliance_id',
+            'kingdom_alliance_id',
+            'display_name',
+            'game_role',
+            'channel_type',
+            'handle',
+            'state',
+            'last_verified_at',
+            'manager_notes',
+            'created_by_user_id',
+            'updated_by_user_id',
+            'deactivated_at',
+            'deactivated_by_user_id',
+        ] as $field) {
+            self::assertStringContainsString($field, $migration);
+        }
+
+        foreach ([
+            'kingdom_player_id',
+            'alliance_membership_id',
+            'role_id',
+            'permission_id',
+            'phone',
+            'home_address',
+            'password',
+            'credential',
+            'recovery_secret',
+            'threat',
+            'rank',
+            'score',
+            'recommendation',
+            'ingestion',
+            'scrape',
+            'ocr',
+            'webhook',
+        ] as $forbiddenField) {
+            self::assertStringNotContainsString($forbiddenField, $migration);
+        }
+    }
+
     public function test_k3_runtime_stays_under_the_kingdoms_domain(): void
     {
         $root = dirname(__DIR__, 2).'/app/Domain/Kingdoms/';
@@ -149,11 +199,14 @@ final class KingdomAllianceStructureTest extends TestCase
             'Enums/KingdomAllianceStatus.php',
             'Enums/TrackedKingdomAllianceState.php',
             'Enums/KingdomAllianceDiplomacyState.php',
+            'Enums/KingdomAllianceContactChannel.php',
+            'Enums/KingdomAllianceContactState.php',
             'Models/KingdomAlliance.php',
             'Models/TrackedKingdomAlliance.php',
             'Models/KingdomAllianceObservation.php',
             'Models/KingdomAllianceDiplomacy.php',
             'Models/KingdomAllianceDiplomacyTransition.php',
+            'Models/KingdomAllianceDiplomacyContact.php',
             'Actions/ResolveKingdomAlliance.php',
             'Actions/StartTrackingKingdomAlliance.php',
             'Actions/UpdateTrackedKingdomAlliance.php',
@@ -161,12 +214,16 @@ final class KingdomAllianceStructureTest extends TestCase
             'Actions/RecordKingdomAllianceObservation.php',
             'Actions/InvalidateKingdomAllianceObservation.php',
             'Actions/TransitionKingdomAllianceDiplomacy.php',
+            'Actions/SaveKingdomAllianceDiplomacyContact.php',
+            'Actions/DeactivateKingdomAllianceDiplomacyContact.php',
             'Queries/KingdomAllianceQuery.php',
             'Queries/KingdomAllianceObservationQuery.php',
             'Queries/KingdomAllianceDiplomacyQuery.php',
+            'Queries/KingdomAllianceDiplomacyContactQuery.php',
             'Http/Controllers/KingdomAllianceController.php',
             'Http/Controllers/KingdomAllianceObservationController.php',
             'Http/Controllers/KingdomAllianceDiplomacyController.php',
+            'Http/Controllers/KingdomAllianceDiplomacyContactController.php',
         ] as $path) {
             self::assertFileExists($root.$path);
         }
@@ -189,6 +246,7 @@ final class KingdomAllianceStructureTest extends TestCase
             'kingdom_alliances',
             'alliance-observations',
             'diplomacy',
+            'contacts',
             'kingdoms:read',
             'diplomacy:read',
         ] as $publicContract) {
@@ -196,7 +254,7 @@ final class KingdomAllianceStructureTest extends TestCase
         }
     }
 
-    public function test_slice_c1_routes_expose_diplomacy_history_but_no_contacts_or_later_k3_k4_behavior(): void
+    public function test_slice_c2_routes_expose_private_contact_lifecycle_but_no_delete_or_later_k3_k4_behavior(): void
     {
         $routes = file_get_contents(dirname(__DIR__, 2).'/routes/kingdoms.php');
         self::assertIsString($routes);
@@ -206,9 +264,11 @@ final class KingdomAllianceStructureTest extends TestCase
         self::assertStringContainsString('/history', $routes);
         self::assertStringContainsString('/diplomacy', $routes);
         self::assertStringContainsString('/diplomacy/transitions', $routes);
+        self::assertStringContainsString('/diplomacy/contacts', $routes);
+        self::assertStringContainsString('/deactivate', $routes);
+        self::assertStringNotContainsString('/diplomacy/contacts/{contact}/delete', $routes);
 
         foreach ([
-            'contacts',
             'threat-score',
             'recommendation',
             'ingestion',
