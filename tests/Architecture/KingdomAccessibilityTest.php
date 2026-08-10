@@ -22,6 +22,7 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAlliances.vue',
             'KingdomAlliancesManage.vue',
             'KingdomAllianceHistory.vue',
+            'KingdomAllianceDiplomacy.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
@@ -47,6 +48,7 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterImport.vue',
             'KingdomAlliancesManage.vue',
             'KingdomAllianceHistory.vue',
+            'KingdomAllianceDiplomacy.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
             'TransferCompletionManage.vue',
@@ -75,6 +77,19 @@ final class KingdomAccessibilityTest extends TestCase
             'for="invalidation-reason"',
         ] as $label) {
             self::assertStringContainsString($label, $observationHistory);
+        }
+
+        $diplomacy = file_get_contents($root.'KingdomAllianceDiplomacy.vue');
+        self::assertIsString($diplomacy);
+        foreach ([
+            'for="diplomacy-state"',
+            'for="diplomacy-effective"',
+            'for="diplomacy-review"',
+            'for="diplomacy-expiry"',
+            'for="diplomacy-terms"',
+            'for="diplomacy-rationale"',
+        ] as $label) {
+            self::assertStringContainsString($label, $diplomacy);
         }
     }
 
@@ -109,6 +124,7 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAlliances.vue',
             'KingdomAlliancesManage.vue',
             'KingdomAllianceHistory.vue',
+            'KingdomAllianceDiplomacy.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
         ] as $page) {
