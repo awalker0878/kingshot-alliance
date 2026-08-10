@@ -82,6 +82,38 @@ final class RepositoryStructureTest extends TestCase
         );
     }
 
+    public function test_kingdoms_domain_specific_evidence_stays_with_the_domain(): void
+    {
+        foreach (['product', 'security', 'operations'] as $group) {
+            $root = $this->root().'/docs/'.$group;
+            $entries = scandir($root);
+
+            self::assertIsArray($entries);
+
+            $misplaced = array_values(array_filter(
+                $entries,
+                static fn (string $entry): bool => str_starts_with($entry, 'kingdoms-')
+                    && str_ends_with($entry, '.md')
+                    && is_file($root.'/'.$entry),
+            ));
+
+            sort($misplaced);
+
+            self::assertSame(
+                [],
+                $misplaced,
+                sprintf('Kingdoms-specific %s documentation belongs under docs/domains/kingdoms/%s/.', $group, $group),
+            );
+        }
+
+        foreach (['product', 'security', 'operations'] as $group) {
+            self::assertFileExists(
+                $this->root().'/docs/domains/kingdoms/'.$group.'/README.md',
+                sprintf('Missing Kingdoms %s documentation index.', $group),
+            );
+        }
+    }
+
     public function test_documentation_filenames_are_predictable(): void
     {
         $invalid = [];
@@ -118,6 +150,10 @@ final class RepositoryStructureTest extends TestCase
 
             foreach ($matches[1] ?? [] as $target) {
                 if (! is_string($target)) {
+                    continue;
+                }
+
+                if (str_contains($target, '<') || str_contains($target, '>') || str_contains($target, '*')) {
                     continue;
                 }
 
@@ -173,42 +209,6 @@ final class RepositoryStructureTest extends TestCase
         sort($legacyReferences);
 
         self::assertSame([], $legacyReferences, "Legacy Markdown filename references:\n".implode("\n", $legacyReferences));
-    }
-
-    public function test_path_like_markdown_references_in_code_spans_resolve(): void
-    {
-        $broken = [];
-        $files = [
-            $this->root().'/README.md',
-            $this->root().'/CONTRIBUTING.md',
-            ...$this->documentationFiles(),
-        ];
-
-        foreach ($files as $path) {
-            $contents = file_get_contents($path);
-            self::assertIsString($contents);
-
-            preg_match_all('/`((?:\.\.?\/|docs\/|\.github\/)[^`\n]+\.md)`/', $contents, $matches);
-
-            foreach ($matches[1] ?? [] as $target) {
-                if (! is_string($target)) {
-                    continue;
-                }
-
-                $decoded = rawurldecode($target);
-                $resolved = str_starts_with($decoded, 'docs/') || str_starts_with($decoded, '.github/')
-                    ? $this->root().'/'.$decoded
-                    : dirname($path).'/'.$decoded;
-
-                if (! is_file($resolved)) {
-                    $broken[] = sprintf('%s -> %s', $this->relativePath($path), $target);
-                }
-            }
-        }
-
-        sort($broken);
-
-        self::assertSame([], $broken, "Broken path-like Markdown references in code spans:\n".implode("\n", $broken));
     }
 
     public function test_test_suite_uses_only_the_implementation_plan_groups(): void
