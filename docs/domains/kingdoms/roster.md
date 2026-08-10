@@ -159,7 +159,7 @@ The accepted runtime adds no Kingdoms-specific scheduler/worker for roster state
 
 Roster management should distinguish lifecycle state, membership linkage, snapshot quality, stable-ID identity, and provenance. Do not repair identity/history by direct destructive edits.
 
-See [Kingdoms roster intelligence operations](../../operations/kingdoms-roster-intelligence.md).
+See [Kingdoms roster intelligence operations](operations/kingdoms-roster-intelligence.md).
 
 ## 11. Tests and validation
 
@@ -173,7 +173,7 @@ Accepted tests/evidence cover:
 - cross-tenant search/mutation isolation; and
 - internal-only Kingdoms event exposure.
 
-See the [KINGDOMS-001 exit report](../../product/kingdoms-roster-intelligence-exit-report.md).
+See the [KINGDOMS-001 exit report](product/kingdoms-roster-intelligence-exit-report.md).
 
 ## 12. Related documentation
 
@@ -182,4 +182,4 @@ See the [KINGDOMS-001 exit report](../../product/kingdoms-roster-intelligence-ex
 - [Roster intelligence](intelligence.md)
 - [Controlled CSV migration](csv-migration.md)
 - [Transfer planning](transfer-planning.md)
-- [KINGDOMS-001 security review](../../security/kingdoms-roster-intelligence-security-review.md)
+- [KINGDOMS-001 security review](security/kingdoms-roster-intelligence-security-review.md)
