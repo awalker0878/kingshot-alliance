@@ -9,9 +9,13 @@
 
 ## 1. Purpose
 
-This document defines the required structure, naming, ownership, minimum coverage, and standard format for repository documentation.
+This document defines repository documentation ownership, structure, naming, minimum contract coverage, and CI enforcement.
 
-The goal is deterministic documentation: a contributor who sees `app/Domain/Events` can derive the canonical living contract without repository search:
+The governing principle is simple:
+
+> Documentation about a code/domain's business ownership, implementation contract, domain-specific product evidence, domain-specific security, and domain-specific operations belongs with that domain. Top-level documentation areas describe the overall program, shared runtime, or cross-domain policy.
+
+A contributor who sees `app/Domain/Events` can derive its canonical living contract without repository search:
 
 ```text
 app/Domain/Events/
@@ -19,9 +23,9 @@ app/Domain/Events/
 docs/domains/events/README.md
 ```
 
-Code and tests remain authoritative for exact implemented runtime behavior. Documentation defines intended ownership, business contracts, operating/security boundaries, product status, and evidence structure that must stay aligned with implementation.
+Code and tests remain authoritative for exact implemented runtime behavior. Documentation records intended ownership, stable business contracts, product/status evidence, security/operating boundaries, and accountable program decisions.
 
-## 2. Canonical documentation groups
+## 2. Five top-level documentation groups
 
 The repository has exactly five top-level documentation groups:
 
@@ -36,17 +40,53 @@ docs/
 
 Do not create parallel top-level groups such as `docs/architecture/`, `docs/runbooks/`, `docs/wiki/`, `docs/features/`, or `docs/reference/`.
 
-| Group | Owns | Does not own |
-| --- | --- | --- |
-| `adr/` | Durable architecture decisions and rationale | Feature instructions, status reporting, runbooks |
-| `domains/` | Current business/domain contracts and code ownership | Product approval, historical phase evidence, runbooks |
-| `operations/` | Runtime configuration, operations, observability, deployment, recovery, runbooks | Product scope/business ownership |
-| `product/` | Baseline plan, increments, current capability/status, acceptance/evidence, architecture audits, documentation governance | Feature runtime detail owned by a domain |
-| `security/` | Security baseline, threat models, security reviews, launch-security evidence | General business workflow documentation |
+### `docs/adr/`
 
-Every group has a `README.md` navigation index.
+Owns material architecture decisions and rationale that cross individual feature files or must survive implementation details.
 
-## 3. Canonical domain-documentation structure
+### `docs/domains/`
+
+Owns current code/business-domain contracts and domain-specific evidence/operations/security.
+
+### `docs/product/`
+
+Owns repository/program-wide product governance:
+
+- baseline implementation plan;
+- current capability/status navigation;
+- documentation/architecture governance;
+- cross-domain/program audits;
+- historical phase-wide acceptance/accessibility evidence; and
+- production hardening/launch approval state.
+
+It does **not** act as a flat storage area for implementation plans, validations, security reviews, or exit reports that belong primarily to one code domain.
+
+### `docs/security/`
+
+Owns repository-wide security policy and program evidence:
+
+- shared security baseline;
+- historical phase-wide threat models; and
+- production-launch security evidence.
+
+Domain-specific security reviews belong under the owning domain.
+
+### `docs/operations/`
+
+Owns the shared runtime operating platform:
+
+- configuration;
+- scheduler/queues/outbox;
+- observability;
+- deployment/release controls;
+- backup/restore/rollback/incident runbooks; and
+- historical phase-wide operating evidence.
+
+Domain-specific diagnostics/operating contracts belong under the owning domain and consume these shared runbooks.
+
+Every top-level group has `README.md` navigation.
+
+## 3. Canonical domain structure
 
 The canonical code roots are:
 
@@ -73,43 +113,21 @@ Documentation mirrors that set exactly:
 ```text
 docs/domains/
   README.md
-  alliances/
-    README.md
-  audit/
-    README.md
-  authorization/
-    README.md
-  content/
-    README.md
-  contributions/
-    README.md
-  events/
-    README.md
-  identity/
-    README.md
-  integrations/
-    README.md
-  kingdoms/
-    README.md
-    roster.md
-    snapshots.md
-    intelligence.md
-    csv-migration.md
-    transfer-planning.md
-    alliance-intelligence.md
-  memberships/
-    README.md
-  notifications/
-    README.md
-  platform/
-    README.md
-  rallies/
-    README.md
-  recruitment/
-    README.md
+  alliances/README.md
+  audit/README.md
+  authorization/README.md
+  content/README.md
+  contributions/README.md
+  events/README.md
+  identity/README.md
+  integrations/README.md
+  kingdoms/README.md
+  memberships/README.md
+  notifications/README.md
+  platform/README.md
+  rallies/README.md
+  recruitment/README.md
 ```
-
-### Mandatory one-to-one rule
 
 For every canonical code domain:
 
@@ -121,163 +139,122 @@ docs/domains/<canonical-domain-kebab>/README.md
 Both files are required.
 
 - The code-local README is concise developer navigation.
-- The docs-domain README is the full canonical living contract.
-- Additional capability files live inside the owning domain folder.
-- `docs/domains/README.md` is the **only** Markdown file permitted directly under `docs/domains/`.
-- Cross-domain/repository architecture audits belong under `docs/product/`, not as flat domain-root files.
+- The docs-domain README is the canonical living business/runtime contract.
+- `docs/domains/README.md` is the only Markdown file permitted directly under `docs/domains/`.
+- The first-level domain-directory set is bidirectionally identical to `app/Domain/*` after canonical kebab-case normalization.
 
-The mapping is bidirectional: a docs-domain directory without a matching code domain is also invalid.
+## 4. Domain-owned documentation
 
-## 4. Capability-document rule
+A domain folder may contain four kinds of material beneath its canonical README.
 
-A large domain may add:
+### 4.1 Capability contracts
 
 ```text
 docs/domains/<domain>/<capability>.md
 ```
 
-Create a capability document when at least one is true:
+Create a capability document when the capability has a distinct lifecycle/invariants, authorization/privacy boundary, substantial persistence/query semantics, significant integration/import/export behavior, or enough complexity that the root README becomes difficult to navigate.
 
-- the capability has a distinct lifecycle with meaningful invariants;
-- it has a distinct authorization/privacy boundary;
-- it has substantial persistence/query semantics;
-- it owns a significant import/export/integration contract;
-- the domain README would otherwise be difficult to navigate; or
-- it needs a stable review/operational link independent of the root contract.
+Do not create one file per model, controller, route, table, action, query, enum, or value object.
 
-Do **not** create one Markdown file per model, controller, route, table, action, query, enum, or value object.
-
-The folder already identifies ownership, so capability filenames do not repeat the domain name. Example:
+### 4.2 Product and acceptance evidence
 
 ```text
-docs/domains/kingdoms/roster.md
+docs/domains/<domain>/product/
+  README.md
+  <scope-or-evidence>.md
 ```
 
-not:
+Use this for domain-specific:
+
+- product increment scopes;
+- implementation plans;
+- design decision records associated with a named increment;
+- slice validation records;
+- accessibility records; and
+- increment exit/acceptance reports.
+
+Historical evidence filenames may retain increment/slice identifiers because those identifiers are part of the record identity.
+
+### 4.3 Security evidence
 
 ```text
-docs/domains/kingdoms/kingdoms-roster.md
+docs/domains/<domain>/security/
+  README.md
+  <subject>-security-review.md
 ```
 
-## 5. Universal naming rules
+Use this for domain-specific security/privacy reviews. Shared baseline and production-launch security remain top-level `docs/security/`.
 
-Unless a more specific rule applies:
+### 4.4 Operations
+
+```text
+docs/domains/<domain>/operations/
+  README.md
+  <capability>.md
+```
+
+Use this for domain-specific persisted-state semantics, diagnostics, replay/idempotency, data-quality interpretation, query/performance constraints, and safe operational recovery.
+
+Shared deployment/configuration/observability/runbooks remain top-level `docs/operations/` and are linked rather than copied.
+
+## 5. Current Kingdoms example
+
+The accepted Kingdoms documentation demonstrates the model:
+
+```text
+docs/domains/kingdoms/
+  README.md
+  roster.md
+  snapshots.md
+  intelligence.md
+  csv-migration.md
+  transfer-planning.md
+  alliance-intelligence.md
+  product/
+    README.md
+    kingdoms-roster-intelligence-*.md
+    kingdoms-transfer-planning-*.md
+    kingdoms-alliance-intelligence-*.md
+  security/
+    README.md
+    kingdoms-*-security-review.md
+  operations/
+    README.md
+    kingdoms-roster-intelligence.md
+    kingdoms-transfer-planning.md
+    kingdoms-alliance-intelligence.md
+```
+
+Top-level product/security/operations indexes point to these domain-owned areas instead of duplicating their file inventories.
+
+## 6. Naming rules
 
 - Markdown filenames use lowercase kebab-case.
-- Directory indexes are always `README.md`.
+- Directory indexes are `README.md`.
 - Domain directory names are lowercase kebab-case forms of canonical code-domain names.
-- Capability files use `<capability>.md` inside the owning domain folder.
-- Living filenames do not encode temporary implementation phase/slice/PR names.
+- Capability filenames use `<capability>.md`; do not repeat the domain name merely because the old flat path did.
+- Living filenames do not encode temporary PR/phase/slice names.
+- Historical evidence may retain phase/increment/slice identifiers.
 - Do not use vague names such as `notes.md`, `misc.md`, `new-plan.md`, `design2.md`, `final.md`, or `overview-new.md`.
-- Dates belong in evidence metadata, not living filenames.
-- Historical/evidence filenames may retain phase, increment, slice, or acceptance identifiers because those identifiers are part of the evidence identity.
-- Renames/moves update repository-relative links in the same change.
-- Accepted historical evidence is not renamed merely for cosmetic consistency.
+- Dates belong in evidence metadata rather than living filenames.
+- Moves/renames update repository-relative links in the same change.
+- Accepted historical evidence is not cosmetically renamed when relocation alone satisfies ownership.
 
-## 6. File taxonomy outside domain folders
+## 7. Code-local README format
 
-### 6.1 `docs/adr/`
-
-```text
-README.md
-adr-template.md
-NNNN-<decision-name>.md
-```
-
-A material architecture decision receives a new numbered ADR. If it replaces an earlier ADR, mark the earlier record superseded instead of rewriting its historical rationale.
-
-### 6.2 `docs/operations/`
-
-Global living documents use stable descriptive names, for example:
-
-```text
-configuration-reference.md
-background-processing.md
-observability.md
-release-checklist.md
-production-launch-runbook.md
-branch-protection.md
-```
-
-Domain/capability operating guides use:
-
-```text
-<domain>-operations.md
-<domain>-<capability>-operations.md
-```
-
-Runbooks use:
-
-```text
-runbooks/<procedure>.md
-```
-
-Historical phase operating evidence may retain `phase-<n>-...` naming.
-
-### 6.3 `docs/product/`
-
-Global/current records use stable names such as:
-
-```text
-implementation-plan.md
-current-capability-matrix.md
-definition-of-done.md
-production-launch-approval.md
-production-hardening-exit-report.md
-documentation-standard.md
-repository-structure-audit.md
-domain-boundary-audit.md
-```
-
-Named product increments use one stable slug consistently:
-
-```text
-<increment-slug>-increment.md
-<increment-slug>-implementation-plan.md
-<increment-slug>-p0-decisions.md
-<increment-slug>-slice-<id>-validation.md
-<increment-slug>-accessibility.md
-<increment-slug>-exit-report.md
-```
-
-Historical phase records may retain `phase-<n>-...` naming.
-
-### 6.4 `docs/security/`
-
-Canonical forms include:
-
-```text
-security-baseline.md
-<subject>-security-review.md
-<subject>-p0-security-review.md
-phase-<n>-threat-model.md
-production-launch-security-review.md
-```
-
-Security filenames identify the protected subject, not the author/team.
-
-## 7. Standard code-local domain README format
-
-Every `app/Domain/<Domain>/README.md` uses this section order:
+Every `app/Domain/<Domain>/README.md` uses:
 
 ```markdown
 # <Domain> domain
 
 ## Purpose
 
-One short paragraph stating what the module owns.
-
 ## Owned code
-
-Describe the important runtime code/types owned beneath this domain root. List only directories/types that actually exist or matter architecturally.
 
 ## Public contracts
 
-List intentional cross-domain actions, queries, services, value objects, enums, events, or supported state consumed elsewhere.
-
 ## Dependencies
-
-List intentional cross-domain dependencies and why they exist. Do not inventory framework/library dependencies.
 
 ## Canonical documentation
 
@@ -286,361 +263,161 @@ List intentional cross-domain dependencies and why they exist. Do not inventory 
 
 Rules:
 
-- normally concise (roughly 30–100 lines);
-- do not duplicate full lifecycle/security/operations detail from `/docs`;
-- historical phase status is not the primary description;
-- always link the matching docs-domain README; and
-- update the Owned code/public-contract sections when the module boundary materially changes.
+- keep it concise;
+- describe module ownership/public contracts/dependencies, not full user lifecycle/security/runbook detail;
+- do not use historical phase narrative as the primary description; and
+- always link the canonical docs-domain root.
 
-## 8. Standard canonical domain README format
+## 8. Canonical domain README format
 
-Every `docs/domains/<domain>/README.md` uses the following section order. A section may say `Not applicable` with a short reason; relevant contract areas must not silently disappear.
+Every `docs/domains/<domain>/README.md` uses this section order:
+
+1. Purpose and ownership.
+2. Scope (in/out).
+3. Domain model.
+4. Core invariants.
+5. Lifecycles and workflows.
+6. Authorization and tenancy.
+7. Cross-domain contracts (consumes/exposes).
+8. Persistence and data ownership.
+9. Events, outbox and integrations.
+10. HTTP, UI and API surfaces.
+11. Background processing.
+12. Failure, idempotency and concurrency.
+13. Security and privacy.
+14. Observability and operations.
+15. Testing and architecture enforcement.
+16. Explicit non-capabilities.
+17. Capability/evidence/operations documents.
+18. Related documentation.
+
+Required metadata:
 
 ```markdown
-# <Domain> domain
-
-[← Domain documentation](../README.md)
-
 **Document type:** Living domain contract  
 **Status:** Current  
 **Code owner:** `app/Domain/<Domain>`  
 **Primary authorization boundary:** `<permission/policy/platform grant or N/A>`
-
-## 1. Purpose and ownership
-
-## 2. Scope
-
-### In scope
-
-### Out of scope
-
-## 3. Domain model
-
-## 4. Core invariants
-
-## 5. Lifecycles and workflows
-
-## 6. Authorization and tenancy
-
-## 7. Cross-domain contracts
-
-### Consumes
-
-### Exposes
-
-## 8. Persistence and data ownership
-
-## 9. Events, outbox and integrations
-
-## 10. HTTP, UI and API surfaces
-
-## 11. Background processing
-
-## 12. Failure, idempotency and concurrency
-
-## 13. Security and privacy
-
-## 14. Observability and operations
-
-## 15. Testing and architecture enforcement
-
-## 16. Explicit non-capabilities
-
-## 17. Capability documents
-
-## 18. Related documentation
 ```
 
-### Domain writing rules
+Describe stable business/runtime rules rather than line-by-line implementation. State tenant/global, missing/zero, active/archived, and current/historical semantics explicitly where relevant.
 
-- describe stable business behavior/invariants, not line-by-line implementation;
-- name important classes only when they are architectural entry points;
-- avoid fragile exhaustive class/file counts;
-- state tenant/global, missing/zero, active/archived, and current/historical semantics explicitly where relevant;
-- state authorization in policy/permission terms, not only UI role names;
-- link deep capability contracts instead of duplicating them; and
-- link security/operations evidence instead of embedding entire threat models/runbooks.
+## 9. Capability document format
 
-## 9. Standard capability document format
+A capability document uses:
 
-A capability file uses:
+1. Purpose.
+2. Scope and non-scope.
+3. Model and state.
+4. Invariants.
+5. Workflows.
+6. Authorization, tenancy and privacy.
+7. Persistence and query semantics.
+8. Events/integrations/background processing.
+9. Failure, idempotency and concurrency.
+10. Operations and observability.
+11. Tests and validation.
+12. Related documentation.
+
+Required metadata:
 
 ```markdown
-# <Capability>
-
-[← <Domain> domain](README.md)
-
 **Document type:** Living capability contract  
 **Status:** Current  
 **Owning domain:** `<Domain>`
-
-## 1. Purpose
-## 2. Scope and non-scope
-## 3. Model and state
-## 4. Invariants
-## 5. Workflows
-## 6. Authorization, tenancy and privacy
-## 7. Persistence and query semantics
-## 8. Events/integrations/background processing
-## 9. Failure, idempotency and concurrency
-## 10. Operations and observability
-## 11. Tests and validation
-## 12. Related documentation
 ```
 
-Capability documents deepen the root contract; they never redefine ownership established by the domain README.
+Capability documents deepen the root domain contract; they do not redefine ownership.
 
-## 10. Standard product/evidence formats
+## 10. Evidence formats
 
-### 10.1 Product increment scope
+### Product increment scope
 
-Required metadata:
+Record stable scope ID, status, owner, dependencies, outcome/problem, approved scope, explicit non-scope, domain ownership, authorization/tenancy/privacy, data/integration boundaries, security/operations/accessibility requirements, acceptance criteria, and deferred follow-ons.
 
-```text
-Document type: Product increment scope
-Scope ID: <stable ID>
-Status: Proposed | Approved | In progress | Accepted
-Owner: <accountable owner/role>
-Dependencies: <accepted scopes>
-```
+### Implementation plan
 
-Required sections:
+Record dependency baseline, locked decisions, ordered implementation slices, per-slice scope/non-scope, verification gates, migration/rollback requirements, and whole-increment acceptance gate.
 
-1. Outcome/problem.
-2. Approved scope.
-3. Explicit non-scope.
-4. Domain ownership.
-5. Authorization/tenancy/privacy.
-6. Data/integration boundaries.
-7. Security/operations/accessibility requirements.
-8. Acceptance criteria.
-9. Deferred follow-ons.
+### Validation record
 
-### 10.2 Increment implementation plan
+Record exact validated SHA/date plus scope, runtime behavior, tests/checks, security/tenant/privacy assertions, migration/rollback, performance/query evidence where relevant, and remaining scope.
 
-Required sections:
+### Exit report
 
-1. Purpose/dependency baseline.
-2. Locked cross-cutting decisions (`P0` where used).
-3. Ordered implementation slices.
-4. Per-slice scope/non-scope.
-5. Verification gates.
-6. Migration/rollback requirements.
-7. Whole-increment acceptance gate.
+Record Accepted status, exact validated implementation SHA, final evidence/status SHA where different, accepted capability, whole-increment invariants, security/privacy/accessibility/migration/performance/operations/integration results, protected evidence IDs, deferred scope, and production-cutover boundary.
 
-### 10.3 Validation record
+### Security review
 
-Required metadata:
+Record scope/assets, trust boundaries, attackers/abuse cases, authorization/tenant/privacy/integrity/integration threats, controls, verification, residual risk, and external evidence requirements.
 
-```text
-Document type: Validation evidence
-Status: Validated
-Validated implementation SHA: <exact SHA>
-Validation date: <date>
-```
+### Operations guide
 
-Required sections:
+Record purpose/scope, runtime state, configuration dependencies, normal flow, observability, failure diagnosis, recovery/replay/idempotency, migration/rollback, capacity/performance, security/secret handling, and evidence to retain.
 
-1. Scope validated.
-2. Runtime behavior.
-3. Tests/checks.
-4. Security/tenant/privacy assertions.
-5. Migration/rollback evidence.
-6. Performance/query evidence where relevant.
-7. Explicit remaining scope.
+### Runbook
 
-### 10.4 Exit report
-
-Required metadata:
-
-```text
-Document type: Acceptance evidence
-Status: Accepted
-Validated implementation SHA: <exact SHA>
-Final evidence/status SHA: <exact SHA when different>
-```
-
-Required sections:
-
-1. Accepted capability.
-2. Whole-increment invariants.
-3. Security/privacy result.
-4. Accessibility result.
-5. Migration/rollback result.
-6. Performance/query result.
-7. Operations/integration result.
-8. Protected checks/evidence IDs.
-9. Deferred/unapproved scope.
-10. Production-cutover boundary.
-
-### 10.5 Security review
-
-Required sections:
-
-1. Scope/assets.
-2. Trust boundaries.
-3. Attackers/abuse cases.
-4. Authorization/tenant threats.
-5. Privacy/data-exposure threats.
-6. Integrity/idempotency/history threats.
-7. Integration/egress/event threats.
-8. Controls.
-9. Verification.
-10. Residual risk.
-11. External evidence requirements.
-
-### 10.6 Operations guide
-
-Required sections:
-
-1. Purpose/scope.
-2. Runtime components/state.
-3. Configuration.
-4. Normal operating flow.
-5. Observability/signals.
-6. Failure diagnosis.
-7. Recovery/replay/idempotency.
-8. Migration/rollback.
-9. Capacity/performance constraints.
-10. Security/secret handling.
-11. Evidence to retain.
-
-### 10.7 Runbook
-
-Required sections:
-
-1. Purpose.
-2. Preconditions.
-3. Safety/stop conditions.
-4. Procedure.
-5. Validation.
-6. Rollback/recovery.
-7. Escalation.
-8. Evidence to retain.
+Record purpose, preconditions, safety/stop conditions, procedure, validation, rollback/recovery, escalation, and evidence to retain.
 
 ## 11. Source-of-truth precedence
 
 When documentation overlaps:
 
-1. `docs/product/implementation-plan.md` — approved baseline repository/program architecture.
-2. Accepted ADRs — material architecture decisions/rationale.
-3. Approved named product increment scopes — authorized post-baseline product scope.
-4. `docs/product/current-capability-matrix.md` and current approval/status records — present capability/go-no-go state.
-5. `docs/domains/<domain>/README.md` plus capability files — current business/runtime contracts.
-6. Living operations/security documents — operating/security requirements.
-7. Validation, exit, accessibility, audit, and historical phase records — evidence.
-8. Code/tests — exact implemented behavior.
+1. `docs/product/implementation-plan.md` for the approved baseline repository/program architecture.
+2. Accepted ADRs for material architecture decisions/rationale.
+3. Approved domain-owned product scopes for authorized post-baseline domain capability.
+4. `docs/product/current-capability-matrix.md` and current approval/status records for present capability/go-no-go navigation.
+5. `docs/domains/<domain>/README.md` and capability docs for current business/runtime contracts.
+6. Shared/domain operations and security docs for operating/security requirements.
+7. Validation, accessibility, exit, audit, and historical phase evidence for evidence.
+8. Code/tests for exact implemented behavior.
 
-A lower-precedence document must not silently redefine a higher-precedence contract. If code/tests and documentation disagree, treat the discrepancy as a defect and reconcile it explicitly.
+A lower-precedence document must not silently redefine a higher-precedence contract. Documentation drift is a defect to reconcile, not a compatibility state to preserve.
 
-## 12. Implemented migration state
+## 12. Migration state
 
-The former flat domain layout has been fully migrated.
+The former flat `docs/domains/*.md` layout has been removed. Combined guides were split by code ownership, Kingdoms capabilities moved beneath `docs/domains/kingdoms/`, and cross-domain architecture audits moved to program product evidence.
 
-### Combined guides split by ownership
-
-```text
-identity-tenancy-and-membership.md
-  → identity/README.md
-  → alliances/README.md
-  → memberships/README.md
-  → authorization/README.md
-
-events-and-rallies.md
-  → events/README.md
-  → rallies/README.md
-
-content-management.md
-  → content/README.md
-
-contributions-and-reporting.md
-  → contributions/README.md
-
-platform-scale-and-administration.md
-  → platform/README.md
-```
-
-### Single-domain guides moved to canonical roots
+Domain-specific Kingdoms product, security, and operations material has also been moved out of the top-level program/shared directories into:
 
 ```text
-integrations.md → integrations/README.md
-notifications.md → notifications/README.md
-recruitment.md → recruitment/README.md
+docs/domains/kingdoms/product/
+docs/domains/kingdoms/security/
+docs/domains/kingdoms/operations/
 ```
 
-### Kingdoms capability guides nested
+No redirect/stub compatibility files are retained after repository links migrate.
 
-```text
-kingdoms.md                       → kingdoms/README.md
-kingdoms-roster.md                → kingdoms/roster.md
-kingdoms-snapshots.md             → kingdoms/snapshots.md
-kingdoms-intelligence.md          → kingdoms/intelligence.md
-kingdoms-csv-migration.md         → kingdoms/csv-migration.md
-kingdoms-transfer-planning.md     → kingdoms/transfer-planning.md
-kingdoms-alliance-intelligence.md → kingdoms/alliance-intelligence.md
-```
+## 13. CI enforcement
 
-### Architecture audits relocated
+`tests/Architecture/RepositoryStructureTest.php` is the documentation-structure/link gate. It protects:
 
-```text
-docs/domains/repository-structure-audit.md
-  → docs/product/repository-structure-audit.md
+- exactly five top-level docs groups;
+- required group indexes;
+- bidirectional code-domain/docs-domain parity;
+- required domain READMEs;
+- no flat Markdown under `docs/domains/` except `README.md`;
+- predictable kebab-case filenames;
+- local Markdown link integrity;
+- path-like Markdown references;
+- canonical test roots; and
+- repository-specific ownership regressions added as documentation architecture matures.
 
-docs/domains/domain-boundary-audit.md
-  → docs/product/domain-boundary-audit.md
-```
+The gate should also prevent domain-specific files that have been deliberately migrated from silently reappearing in top-level program/shared directories.
 
-Superseded flat files are removed after content/link migration; no redirect/stub compatibility files are retained.
-
-## 13. Implemented documentation architecture work
-
-The documentation-standardization increment completed these work packages:
-
-- **DOCS-P0 — Standard and structural anchors:** standard, implementation-plan alignment, 14 mirrored domain roots, initial parity CI.
-- **DOCS-P1 — Canonical domain contracts:** all 14 roots populated using the standard living-domain format; combined guides removed after migration.
-- **DOCS-P2 — Capability decomposition:** Kingdoms capability files moved beneath `docs/domains/kingdoms/`; no one-file-per-class sprawl introduced.
-- **DOCS-P3 — Code-local README normalization:** all 14 `app/Domain/*/README.md` files use the standard developer-navigation structure and canonical links.
-- **DOCS-P4 — Evidence/index cleanup:** documentation indexes/current architecture/status links updated; repository/domain audits moved to product evidence.
-- **DOCS-P5 — CI structure gate:** architecture tests enforce domain parity, required READMEs, predictable filenames, local links, and no flat domain-root Markdown reintroduction.
-
-Future documentation changes maintain this structure; they do not reopen the migration work packages.
-
-## 14. CI enforcement contract
-
-`tests/Architecture/RepositoryStructureTest.php` is the canonical documentation-structure gate and runs in normal protected CI.
-
-It enforces:
-
-1. `docs/` contains only the five approved top-level groups.
-2. Required documentation indexes exist.
-3. First-level `app/Domain/*` and `docs/domains/*` directories match bidirectionally after canonical kebab-case normalization.
-4. Every docs-domain directory contains `README.md`.
-5. `docs/domains/` contains no root Markdown file except `README.md`.
-6. Descriptive Markdown filenames use lowercase kebab-case (`README.md` and numbered ADR conventions are the documented exceptions).
-7. Local Markdown links resolve.
-8. Legacy uppercase/underscore Markdown references do not reappear.
-9. Path-like Markdown references in code spans resolve.
-10. Test roots remain within the approved canonical groups.
-
-The parity rule means CI fails if:
-
-- a code domain is introduced without matching documentation;
-- a docs-domain is invented without matching code;
-- a docs-domain loses its README; or
-- a flat living domain file is reintroduced at `docs/domains/*.md`.
-
-## 15. Definition of documentation done
+## 14. Definition of documentation done
 
 A material change is not documentation-complete until:
 
-- the owning domain directory is identifiable;
+- the owning domain is identifiable;
 - its canonical README remains correct;
-- affected capability documents are updated;
-- the code-local domain README remains correct;
-- authorization, tenancy, privacy, idempotency, failure, and integration behavior are documented where applicable;
-- affected operations/security/product evidence is updated;
-- indexes/current capability navigation are updated when necessary;
+- affected capability docs are updated;
+- the code-local README remains correct when ownership/public contracts/dependencies change;
+- domain-specific product/security/operations evidence is stored with that domain;
+- shared program/security/operations docs are updated only when a cross-domain/shared rule changes;
+- authorization, tenancy, privacy, idempotency, failure and integration behavior are documented where applicable;
+- indexes/current capability navigation are updated;
 - repository-relative links resolve; and
-- documentation architecture/protected CI checks pass on the exact final head.
+- protected documentation architecture checks pass on the exact final head.
 
-The end state is deterministic: code ownership determines documentation ownership, and repository structure makes that relationship obvious without search or tribal knowledge.
+The end state is deterministic: **code ownership determines documentation ownership; top-level documentation describes the overall program/shared platform.**
