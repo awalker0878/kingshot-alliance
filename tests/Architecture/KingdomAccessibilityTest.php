@@ -23,6 +23,7 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAlliancesManage.vue',
             'KingdomAllianceHistory.vue',
             'KingdomAllianceDiplomacy.vue',
+            'KingdomAllianceDiplomacyContacts.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
@@ -49,6 +50,7 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAlliancesManage.vue',
             'KingdomAllianceHistory.vue',
             'KingdomAllianceDiplomacy.vue',
+            'KingdomAllianceDiplomacyContacts.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
             'TransferCompletionManage.vue',
@@ -91,6 +93,19 @@ final class KingdomAccessibilityTest extends TestCase
         ] as $label) {
             self::assertStringContainsString($label, $diplomacy);
         }
+
+        $contacts = file_get_contents($root.'KingdomAllianceDiplomacyContacts.vue');
+        self::assertIsString($contacts);
+        foreach ([
+            'for="contact-display-name"',
+            'for="contact-game-role"',
+            'for="contact-channel"',
+            'for="contact-handle"',
+            'for="contact-last-verified"',
+            'for="contact-manager-notes"',
+        ] as $label) {
+            self::assertStringContainsString($label, $contacts);
+        }
     }
 
     public function test_transfer_readiness_and_completion_controls_keep_programmatic_context(): void
@@ -125,6 +140,7 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAlliancesManage.vue',
             'KingdomAllianceHistory.vue',
             'KingdomAllianceDiplomacy.vue',
+            'KingdomAllianceDiplomacyContacts.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
         ] as $page) {
