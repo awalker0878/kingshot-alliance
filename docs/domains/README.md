@@ -38,6 +38,8 @@ The relationship is enforced bidirectionally in `tests/Architecture/RepositorySt
 | `Rallies` | [rallies/](rallies/README.md) | Root established; split from `events-and-rallies.md` |
 | `Recruitment` | [recruitment/](recruitment/README.md) | Root established; migrate existing `recruitment.md` |
 
+The folders above are now the canonical structural anchors. During `DOCS-P1`/`DOCS-P2`, their transitional index content is replaced by the full living contracts and capability files while the old flat files are retired.
+
 ## Capability-document rule
 
 Capability documents live beneath the owning domain:
