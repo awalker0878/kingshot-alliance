@@ -108,12 +108,20 @@ function archiveTracking(entry: TrackingRow): void {
           records.
         </p>
       </div>
-      <Link
-        class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200"
-        href="/alliance/kingdom-alliances"
-      >
-        Member view
-      </Link>
+      <div class="flex flex-wrap gap-3">
+        <Link
+          class="rounded-lg border border-cyan-800 px-4 py-2 text-sm font-semibold text-cyan-300"
+          href="/alliance/kingdom-alliances/intelligence"
+        >
+          Intelligence overview
+        </Link>
+        <Link
+          class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200"
+          href="/alliance/kingdom-alliances"
+        >
+          Member view
+        </Link>
+      </div>
     </header>
 
     <section class="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
