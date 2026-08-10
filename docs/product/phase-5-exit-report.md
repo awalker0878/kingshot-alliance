@@ -74,7 +74,7 @@ Final protected validation on the accepted implementation head passed:
 
 ## Documentation
 
-- [Contributions and reporting](../domains/contributions-and-reporting.md)
+- [Contributions domain](../domains/contributions/README.md)
 - [Phase 5 operations](../operations/phase-5-operations.md)
 - [Phase 5 migration and rollback](../operations/phase-5-migration-rollback.md)
 - [Phase 5 threat model](../security/phase-5-threat-model.md)
