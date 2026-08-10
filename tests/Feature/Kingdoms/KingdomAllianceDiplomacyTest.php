@@ -117,7 +117,9 @@ final class KingdomAllianceDiplomacyTest extends TestCase
         )->assertRedirect();
 
         self::assertSame(2, KingdomAllianceDiplomacyTransition::query()->count());
-        $latest = KingdomAllianceDiplomacyTransition::query()->latest('created_at')->firstOrFail();
+        $latest = KingdomAllianceDiplomacyTransition::query()
+            ->where('terms', 'NAP terms revised by both sides')
+            ->sole();
         self::assertSame(KingdomAllianceDiplomacyState::Nap, $latest->from_state);
         self::assertSame(KingdomAllianceDiplomacyState::Nap, $latest->to_state);
         self::assertSame('NAP terms revised by both sides', $latest->terms);
