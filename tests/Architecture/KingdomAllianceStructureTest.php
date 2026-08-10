@@ -220,13 +220,64 @@ final class KingdomAllianceStructureTest extends TestCase
             'Queries/KingdomAllianceObservationQuery.php',
             'Queries/KingdomAllianceDiplomacyQuery.php',
             'Queries/KingdomAllianceDiplomacyContactQuery.php',
+            'Queries/KingdomAllianceIntelligenceQuery.php',
+            'Services/KingdomAllianceIntelligence.php',
             'Http/Controllers/KingdomAllianceController.php',
             'Http/Controllers/KingdomAllianceObservationController.php',
             'Http/Controllers/KingdomAllianceDiplomacyController.php',
             'Http/Controllers/KingdomAllianceDiplomacyContactController.php',
+            'Http/Controllers/KingdomAllianceIntelligenceController.php',
         ] as $path) {
             self::assertFileExists($root.$path);
         }
+    }
+
+    public function test_slice_d_intelligence_is_descriptive_and_has_no_scoring_or_automatic_decision_engine(): void
+    {
+        $root = dirname(__DIR__, 2);
+        $service = file_get_contents($root.'/app/Domain/Kingdoms/Services/KingdomAllianceIntelligence.php');
+        $query = file_get_contents($root.'/app/Domain/Kingdoms/Queries/KingdomAllianceIntelligenceQuery.php');
+        $controller = file_get_contents($root.'/app/Domain/Kingdoms/Http/Controllers/KingdomAllianceIntelligenceController.php');
+        self::assertIsString($service);
+        self::assertIsString($query);
+        self::assertIsString($controller);
+
+        foreach ([
+            'SEVEN_DAY_WINDOW',
+            'THIRTY_DAY_WINDOW',
+            'observationQuality',
+            'diplomacyStates',
+            'relationshipsNeedingReview',
+            'priorChange',
+            'sevenDayChange',
+            'thirtyDayChange',
+            'contactDiagnostics',
+        ] as $descriptiveContract) {
+            self::assertStringContainsString($descriptiveContract, $service);
+        }
+
+        foreach ([
+            'threatScore',
+            'desirabilityScore',
+            'targetScore',
+            'compositeScore',
+            'recommendedAction',
+            'recommendationEngine',
+            'autoTransition',
+            'autoNegotiate',
+            'rankedAlliances',
+        ] as $forbiddenBehavior) {
+            self::assertStringNotContainsString($forbiddenBehavior, $service);
+            self::assertStringNotContainsString($forbiddenBehavior, $query);
+            self::assertStringNotContainsString($forbiddenBehavior, $controller);
+        }
+
+        self::assertStringContainsString('captured_at desc', $query);
+        self::assertStringContainsString('$days * 2', $query);
+        self::assertStringContainsString("'tracking' =>", $controller);
+        self::assertStringContainsString("'freshness' =>", $controller);
+        self::assertStringContainsString("'diplomacy' =>", $controller);
+        self::assertStringContainsString("'sort' =>", $controller);
     }
 
     public function test_kingdom_alliance_events_remain_inside_existing_internal_webhook_boundary(): void
@@ -254,12 +305,13 @@ final class KingdomAllianceStructureTest extends TestCase
         }
     }
 
-    public function test_slice_c2_routes_expose_private_contact_lifecycle_but_no_delete_or_later_k3_k4_behavior(): void
+    public function test_slice_d_routes_add_read_only_intelligence_without_delete_or_automation_contracts(): void
     {
         $routes = file_get_contents(dirname(__DIR__, 2).'/routes/kingdoms.php');
         self::assertIsString($routes);
 
         self::assertStringContainsString('/alliance/kingdom-alliances', $routes);
+        self::assertStringContainsString('/kingdom-alliances/intelligence', $routes);
         self::assertStringContainsString('/observations', $routes);
         self::assertStringContainsString('/history', $routes);
         self::assertStringContainsString('/diplomacy', $routes);
@@ -271,6 +323,8 @@ final class KingdomAllianceStructureTest extends TestCase
         foreach ([
             'threat-score',
             'recommendation',
+            'auto-diplomacy',
+            'auto-transfer',
             'ingestion',
         ] as $futureContract) {
             self::assertStringNotContainsString($futureContract, $routes);
