@@ -2,12 +2,13 @@
 
 [← Product and program documentation](README.md)
 
-**Status:** Approved scope — implementation **In progress**; `K3-P1` and `K3-P2` Validated  
+**Status:** Approved scope — implementation **Accepted**  
 **Scope ID:** `KINGDOMS-003`  
 **Owning domain:** `Kingdoms`  
 **Delivery model:** Post-program product increment; this is **not Phase 7**  
 **Baseline dependency:** Accepted `KINGDOMS-001` roster/player identity and `KINGDOMS-002` transfer-planning controls  
-**Implementation sequence:** [KINGDOMS-003 implementation plan](kingdoms-alliance-intelligence-implementation-plan.md)
+**Implementation sequence:** [KINGDOMS-003 implementation plan](kingdoms-alliance-intelligence-implementation-plan.md)  
+**Acceptance evidence:** [KINGDOMS-003 exit report](kingdoms-alliance-intelligence-exit-report.md)
 
 ## 1. Purpose
 
@@ -40,9 +41,9 @@ The increment extends the accepted Kingdoms identity model rather than treating 
 
 `Alliance` remains the platform tenant aggregate owned by the Alliances domain.
 
-A new neutral `KingdomAlliance` reference represents an observed game-side alliance inside one `Kingdom`. It is reference identity only and does not create membership, authorization, tenant access, or a platform Alliance.
+A neutral `KingdomAlliance` reference represents an observed game-side alliance inside one `Kingdom`. It is reference identity only and does not create membership, authorization, tenant access, or a platform Alliance.
 
-A `KingdomAlliance` may exist even when no corresponding platform Alliance exists. The initial increment does not automatically link a neutral game-side alliance reference to a platform Alliance account.
+A `KingdomAlliance` may exist even when no corresponding platform Alliance exists. The accepted increment does not automatically link a neutral game-side alliance reference to a platform Alliance account.
 
 ### Stable game alliance ID is the only automatic identity key
 
@@ -62,7 +63,7 @@ Two platform Alliances may reference the same neutral `KingdomAlliance`; that do
 
 ### Current-Kingdom context fails closed
 
-Initial `KINGDOMS-003` tracking is limited to game-side alliances in the active Alliance's current Kingdom.
+`KINGDOMS-003` tracking is limited to game-side alliances in the active Alliance's current Kingdom.
 
 A tracked relationship captures/revalidates that Kingdom context. If the platform Alliance later changes Kingdom, existing old-Kingdom intelligence remains historical/readable to authorized users but privileged mutation fails closed until leadership deliberately archives/reconciles the old tracking context or creates tracking under the new Kingdom.
 
@@ -76,15 +77,15 @@ Observations are append-oriented. Current views project the latest accepted obse
 
 Missing data is not zero. Stale information is not represented as current.
 
-The product must not derive a threat score, desirability score, combat prediction, diplomacy recommendation or punitive ranking from observations.
+The product does not derive a threat score, desirability score, combat prediction, diplomacy recommendation or punitive ranking from observations.
 
 ### Diplomacy is explicit human-maintained state
 
-Diplomacy state is explicitly selected by an authorized manager. The initial state vocabulary is locked in `K3-P0` and should cover the approved operational needs such as unknown/neutral/friendly/NAP/ally/rival without implying an automated game judgment.
+Diplomacy state is explicitly selected by an authorized manager. The accepted state vocabulary is exactly `unknown`, `neutral`, `friendly`, `nap`, `ally`, and `rival`.
 
 Relationship changes preserve append-oriented transition history with actor/effective-time attribution.
 
-Optional effective/expiry dates are planning metadata. Reaching an expiry date does not automatically change diplomacy state; the UI may show that human review is required.
+Optional effective/review/expiry dates are planning metadata. Reaching a review/expiry date does not automatically change diplomacy state; the UI shows that human review is required.
 
 No combat result, roster change, power trend, transfer plan or other observed metric automatically changes diplomacy state.
 
@@ -92,11 +93,11 @@ No combat result, roster change, power trend, transfer plan or other observed me
 
 Diplomacy contacts are alliance-owned coordination records associated with a tracked game-side alliance.
 
-A contact may contain an in-game display name/role and an approved external handle/channel identifier needed for diplomacy coordination. Contact details and notes are manager-private by default.
+A contact may contain an in-game display name/role and an approved external handle/channel identifier needed for diplomacy coordination. Contact details and notes are manager-private.
 
 Contact assignment never grants platform permissions, application membership, `kingdoms.manage`, or access to another Alliance.
 
-Do not collect phone numbers, home addresses, private credentials, secrets or unrelated personal data in the initial increment. A contact handle is not a stable KingdomPlayer identity key.
+The accepted increment does not collect phone numbers, home addresses, private credentials, secrets or unrelated personal data. A contact handle is not a stable KingdomPlayer identity key, and K3 contacts do not link to `KingdomPlayer`, `User`, memberships, roles or permissions.
 
 ### Member-safe and manager-private presentation remain distinct
 
@@ -110,7 +111,7 @@ Privileged mutations require recent password confirmation under the accepted Kin
 
 ### Integration events remain internal
 
-New `kingdoms.alliance_intelligence_*` / `kingdoms.diplomacy_*` outbox events are durable internal evidence only.
+`kingdoms.alliance_intelligence_*` / `kingdoms.diplomacy_*` outbox events are durable internal evidence only.
 
 They remain ineligible for generic outbound webhook fan-out, including wildcard subscriptions, unless a later explicitly approved integration contract defines public event schemas.
 
@@ -145,7 +146,7 @@ Provide alliance-owned append-oriented observations supporting:
 - actor where applicable; and
 - safe invalidation/correction semantics that preserve the original observation rather than deleting history.
 
-Manual entry is sufficient for `KINGDOMS-003`. Automated game-data ingestion remains a separate `KINGDOMS-004` scope.
+Manual entry is the accepted `KINGDOMS-003` source. Automated game-data ingestion remains a separate `KINGDOMS-004` scope.
 
 ### 4.3 Diplomacy relationship and history
 
@@ -173,7 +174,7 @@ Provide manager-maintained contacts associated with a tracked game-side alliance
 - active/inactive state; and
 - manager-private notes.
 
-Contact records remain tenant-owned and management-private. The increment does not create a public contact directory.
+Contact records remain tenant-owned and management-private. The increment does not create a public contact directory or player/account identity linkage.
 
 ### 4.5 Alliance intelligence views
 
@@ -188,7 +189,7 @@ Provide authenticated alliance intelligence views that derive from tracked relat
 - manager-only contact and history detail; and
 - filters by diplomacy state, freshness and tracking state.
 
-Default presentation must not rank alliances by power, growth, “threat”, desirability or diplomacy priority. Comparisons are descriptive/diagnostic and should use neutral ordering such as name/tag unless the user explicitly chooses a factual sortable column.
+Default presentation does not rank alliances by power, growth, “threat”, desirability or diplomacy priority. Comparisons are descriptive/diagnostic and use neutral ordering such as name/tag unless the user explicitly chooses a factual sortable column.
 
 ### 4.6 History and auditability
 
@@ -212,7 +213,7 @@ Historical records are not silently rewritten when a neutral alliance changes na
 
 Built-in role defaults remain unchanged from `KINGDOMS-001`: Owner, Leader and Officer receive `kingdoms.manage`; Recruiter, Event Coordinator, Content Manager and Member do not.
 
-Custom-role permission union semantics remain authoritative. Do not add controller role-name checks.
+Custom-role permission union semantics remain authoritative. There are no controller role-name checks.
 
 Privileged mutations require recent password confirmation. Platform administrators do not implicitly become alliance intelligence/diplomacy managers; cross-tenant support requires an explicit Platform-domain workflow.
 
@@ -233,7 +234,7 @@ Privileged mutations require recent password confirmation. Platform administrato
 | Audit event | Audit | Correlated to actor/alliance as applicable |
 | Durable internal event | Platform outbox | Alliance-scoped where tenant data is involved |
 
-Global `KingdomAlliance` records must not contain one tenant's diplomacy state, contacts, private notes, observations or derived intelligence.
+Global `KingdomAlliance` records do not contain one tenant's diplomacy state, contacts, private notes, observations or derived intelligence.
 
 ## 7. Cross-domain contracts
 
@@ -243,13 +244,13 @@ The active platform Alliance establishes tenant context and current Kingdom. `KI
 
 ### Kingdoms roster/player identity
 
-A diplomacy contact may later be explicitly associated with an accepted neutral `KingdomPlayer` only when stable identity rules allow it. `KINGDOMS-003` does not auto-resolve a contact by display name/handle.
+Diplomacy contacts remain separate from accepted neutral `KingdomPlayer` identity in K3. A contact is not resolved or linked by display name/handle.
 
 Alliance intelligence observations do not mutate player snapshots or roster state.
 
 ### Transfer planning
 
-Diplomacy/intelligence may be displayed alongside future transfer decisions, but `KINGDOMS-003` does not automatically change transfer destination, readiness, groups or completion based on diplomacy state or observed alliance metrics.
+Diplomacy/intelligence may be viewed by people making transfer decisions, but `KINGDOMS-003` does not automatically change transfer destination, readiness, groups or completion based on diplomacy state or observed alliance metrics.
 
 ### Memberships and Identity
 
@@ -257,11 +258,11 @@ External diplomacy contacts are not application users or memberships. A contact 
 
 ### Integrations
 
-No public API, webhook, bot or automated game ingestion contract is introduced. Manual `KINGDOMS-003` actions should use reusable Kingdoms-domain actions/queries so a separately approved ingestion adapter can later reuse validated business invariants without bypassing them.
+No public API, webhook, bot or automated game ingestion contract is introduced. Accepted K3 actions/queries preserve first-party business invariants; separately approved future ingestion cannot bypass those invariants merely because K3 exists.
 
 ## 8. Delivery slices
 
-### Slice A — External alliance identity and tracking foundation
+### Slice A — External alliance identity and tracking foundation — Validated
 
 - neutral `KingdomAlliance` reference;
 - alliance-owned tracking relationship;
@@ -271,7 +272,7 @@ No public API, webhook, bot or automated game ingestion contract is introduced. 
 - member/manager tracked-alliance views; and
 - tenancy/authorization/audit/outbox boundaries.
 
-### Slice B — Observations and historical facts
+### Slice B — Observations and historical facts — Validated
 
 - append-oriented alliance observations;
 - power/member/name/tag capture;
@@ -280,7 +281,7 @@ No public API, webhook, bot or automated game ingestion contract is introduced. 
 - safe correction/invalidation preserving history; and
 - retry/idempotency protection for manual submission.
 
-### Slice C1 — Diplomacy and NAP lifecycle
+### Slice C1 — Diplomacy and NAP lifecycle — Validated
 
 - explicit diplomacy state;
 - effective/review/expiry metadata;
@@ -289,15 +290,15 @@ No public API, webhook, bot or automated game ingestion contract is introduced. 
 - human-review-on-expiry behavior; and
 - no automatic state inference/transition.
 
-### Slice C2 — Diplomacy contacts
+### Slice C2 — Diplomacy contacts — Validated
 
 - manager-private contact records;
 - role/channel/handle/verification lifecycle;
 - tenant isolation and minimum-data rules;
-- optional stable-identity linking only where explicitly supported; and
+- no player/account/membership/permission linkage; and
 - contact assignment never granting authorization.
 
-### Slice D — Intelligence dashboard and derived trends
+### Slice D — Intelligence dashboard and derived trends — Validated
 
 - member-safe tracked-alliance intelligence overview;
 - manager history/contact detail;
@@ -307,7 +308,9 @@ No public API, webhook, bot or automated game ingestion contract is introduced. 
 - filters/query/index hardening; and
 - explicit anti-ranking/anti-threat-score controls.
 
-A final hardening phase validates the complete dependency stack before `KINGDOMS-003` can become Accepted.
+### Whole-increment hardening — `K3-P6` — Accepted
+
+The final hardening phase validates the complete dependency stack across tenancy, history integrity, privacy, accessibility, K3-only rollback/reapply to K2, realistic-volume query shape, internal webhook boundaries and explicit non-capabilities. Exact evidence is in the [KINGDOMS-003 exit report](kingdoms-alliance-intelligence-exit-report.md).
 
 ## 9. Explicitly out of scope
 
@@ -328,11 +331,11 @@ A final hardening phase validates the complete dependency stack before `KINGDOMS
 - public Kingdoms/diplomacy API or webhook contracts; or
 - AI-generated punitive recommendations or automated player/alliance decisions.
 
-Deferred capabilities must not be partially introduced as dormant schema, routes or UI placeholders.
+Deferred capabilities are not partially introduced as dormant schema, routes or UI placeholders.
 
 ## 10. Security, privacy and abuse requirements
 
-Acceptance requires review of at least:
+Acceptance reviewed:
 
 - cross-alliance tracked-intelligence disclosure;
 - object-ID tampering across tracked alliance, observation, diplomacy and contact IDs;
@@ -349,9 +352,11 @@ Acceptance requires review of at least:
 
 Game-facing information is not automatically public merely because it may be observable in-game. Alliance-owned observations/diplomacy remain tenant-private unless a later approved sharing contract says otherwise.
 
+See the accepted [whole-increment security review](../security/kingdoms-alliance-intelligence-security-review.md).
+
 ## 11. Operational and observability requirements
 
-The increment must provide enough structured diagnostics to investigate:
+The increment provides enough structured diagnostics to investigate:
 
 - neutral alliance identity resolution failures;
 - tracking/current-Kingdom invariant failures;
@@ -362,9 +367,9 @@ The increment must provide enough structured diagnostics to investigate:
 - authorization/object-ID failures; and
 - outbox publication failures.
 
-Private notes, diplomacy terms and contact handles must not be written into general application logs or durable event payloads.
+Private notes, diplomacy terms and contact handles are not general application logs or durable event payload data.
 
-No recurring crawler, external ingestion worker or diplomacy scheduler is required. Expiry/review-needed status may be derived at read time; it does not automatically mutate relationship state.
+No recurring crawler, external ingestion worker or diplomacy scheduler is required. Expiry/review-needed status is derived at read time and does not automatically mutate relationship state.
 
 ## 12. Testing requirements
 
@@ -373,7 +378,7 @@ Acceptance includes:
 - identity/matching tests proving stable game alliance ID is the only automatic match key;
 - feature tests for tracking, observations, diplomacy, contacts and intelligence views;
 - authorization tests for `alliance.view` and `kingdoms.manage`;
-- tenant-isolation tests across every submitted object identifier;
+- tenant-isolation tests across submitted object identifiers and shared neutral references;
 - same-current-Kingdom and Alliance-Kingdom-drift tests;
 - append-history and observation retry/idempotency tests;
 - diplomacy transition and expiry/no-auto-transition regression tests;
@@ -386,7 +391,7 @@ Acceptance includes:
 
 ## 13. Acceptance criteria
 
-`KINGDOMS-003` is complete only when all of the following are true:
+All acceptance criteria are satisfied:
 
 1. An Alliance can track a neutral game-side alliance reference in its current Kingdom without creating or granting access to a platform Alliance.
 2. Stable game alliance ID is the only automatic identity-match key; tag/name alone never merges identities.
@@ -400,7 +405,9 @@ Acceptance includes:
 10. Derived intelligence remains descriptive and data-quality aware; no threat score, punitive ranking, automated diplomacy recommendation or automatic transfer behavior is introduced.
 11. Privileged changes are password-confirmed, authorized, audited and durably represented through internal outbox events without private payload leakage.
 12. No public Kingdoms/diplomacy API or generic external webhook exposure is introduced.
-13. Security, accessibility, migration, query-shape, operations and whole-increment acceptance gates pass on the complete stack.
-14. Current capability documentation is updated from Planned to Implemented only after the acceptance gate passes.
+13. Security, accessibility, migration, query-shape, operations and whole-increment acceptance gates passed on the complete stack.
+14. Current capability documentation has been promoted to Accepted only after the acceptance gate passed.
 
-Real production cutover remains a separate approval decision and is not implied by repository/product acceptance.
+Exact validated implementation SHA: `068c4086744f71d33453734f1f1b05fe1430cbff`. Protected Dependency Review `31430279647`, CodeQL `31430279652`, and CI `31430279638` all succeeded; the full suite passed 359 tests / 4,824 assertions.
+
+`KINGDOMS-003` is **Accepted** for repository/product purposes. Real production cutover remains a separate approval decision and is not implied by repository/product acceptance.
