@@ -23,6 +23,7 @@ final class KingdomAllianceQuery
                     ->orderByDesc('captured_at')
                     ->orderByDesc('id')
                     ->limit(1),
+                'diplomacy:id,alliance_id,tracked_kingdom_alliance_id,current_state,effective_at,review_at,expires_at',
             ])
             ->orderBy('state')
             ->orderByDesc('created_at')
