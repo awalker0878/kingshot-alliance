@@ -1,17 +1,14 @@
 # Kingdoms domain
 
-`Kingdoms` is the canonical owner for approved Kingshot game-world reference, roster history/intelligence, transfer planning, and the in-progress game-side alliance intelligence/diplomacy capability.
+`Kingdoms` is the canonical owner for approved Kingshot game-world reference, roster history/intelligence, transfer planning, and accepted game-side alliance intelligence/diplomacy capabilities.
 
 ## Product status
 
 Accepted product increments:
 
-- [`KINGDOMS-001` — Kingdoms roster intelligence](../../../docs/product/kingdoms-roster-intelligence-increment.md), with evidence in the [KINGDOMS-001 exit report](../../../docs/product/kingdoms-roster-intelligence-exit-report.md); and
-- [`KINGDOMS-002` — Transfer planning](../../../docs/product/kingdoms-transfer-planning-increment.md), with evidence in the [KINGDOMS-002 exit report](../../../docs/product/kingdoms-transfer-planning-exit-report.md).
-
-Approved in-progress product increment:
-
-- [`KINGDOMS-003` — Kingdom/alliance intelligence and diplomacy](../../../docs/product/kingdoms-alliance-intelligence-increment.md).
+- [`KINGDOMS-001` — Kingdoms roster intelligence](../../../docs/product/kingdoms-roster-intelligence-increment.md), with evidence in the [KINGDOMS-001 exit report](../../../docs/product/kingdoms-roster-intelligence-exit-report.md);
+- [`KINGDOMS-002` — Transfer planning](../../../docs/product/kingdoms-transfer-planning-increment.md), with evidence in the [KINGDOMS-002 exit report](../../../docs/product/kingdoms-transfer-planning-exit-report.md); and
+- [`KINGDOMS-003` — Kingdom/alliance intelligence and diplomacy](../../../docs/product/kingdoms-alliance-intelligence-increment.md), with evidence in the [KINGDOMS-003 exit report](../../../docs/product/kingdoms-alliance-intelligence-exit-report.md).
 
 `KINGDOMS-003` delivery status:
 
@@ -21,9 +18,9 @@ Approved in-progress product increment:
 - Slice C1 / `K3-P3` — explicit diplomacy/NAP lifecycle: **Validated**;
 - Slice C2 / `K3-P4` — manager-private diplomacy contacts: **Validated**;
 - Slice D / `K3-P5` — descriptive alliance intelligence dashboard/trends: **Validated**; and
-- `K3-P6` — whole-increment hardening/acceptance: **Remaining**.
+- `K3-P6` — whole-increment hardening/acceptance: **Accepted**.
 
-Slice D validated runtime: `a9d2e22ea1c710bc72f4dc8824a70e15dda04e75`. `KINGDOMS-003` is still **In progress**, not whole-increment Accepted, and does not approve production cutover.
+Exact whole-increment validated implementation SHA: `068c4086744f71d33453734f1f1b05fe1430cbff`. Repository/product acceptance does not approve production cutover.
 
 ## Domain identity and tenancy
 
@@ -56,7 +53,7 @@ The accepted `KINGDOMS-001` / `KINGDOMS-002` runtime owns:
 
 Coordinator assignment remains workflow responsibility only and never grants authorization.
 
-## `KINGDOMS-003` runtime ownership through Slice D
+## Accepted `KINGDOMS-003` ownership
 
 ### Tracking foundation
 
@@ -95,7 +92,7 @@ Ordinary member payloads contain no contact IDs/detail. Private contact text is 
 
 ### Descriptive alliance intelligence
 
-`KingdomAllianceIntelligence` is a read-only Alliance-scoped projection over accepted tracking/observation/diplomacy/contact facts. It adds no migration, persistent score, mutation, audit event or outbox event.
+`KingdomAllianceIntelligence` is a read-only Alliance-scoped projection over accepted tracking/observation/diplomacy/contact facts. It adds no persistent score, mutation, audit event or outbox event.
 
 It provides:
 
@@ -112,16 +109,16 @@ It provides:
 
 Trend selection never interpolates. If a supported baseline/value is missing, the corresponding trend is missing/insufficient history rather than estimated. Recorded zero remains zero.
 
-Default ordering is neutral name order. Fixed factual sorting may be used for navigation, but Slice D calculates no threat, target, desirability, combat, punitive or composite score and generates no recommendation or automatic diplomacy/transfer action.
+Default ordering is neutral name order. Fixed factual sorting may be used for navigation, but the accepted dashboard calculates no threat, target, desirability, combat, punitive or composite score and generates no recommendation or automatic diplomacy/transfer action.
 
-The validated realistic-volume gate models 120 tracked alliances, 600 observations, 120 diplomacy relationships and 60 contacts with the manager projection capped at 10 SELECT statements.
+The accepted realistic-volume gate models 120 tracked alliances, 600 observations, 120 diplomacy relationships and 60 contacts with the manager projection capped at 10 SELECT statements.
 
 ## Authorization and privacy
 
 - ordinary safe Kingdoms reads use `alliance.view`;
 - Kingdoms mutations and manager-private workspaces use `kingdoms.manage`;
 - privileged mutations require recent password confirmation; and
-- Slice D's intelligence dashboard is read-only, so `kingdoms.manage` only gates aggregate contact diagnostics/manager links rather than the member-safe dashboard itself.
+- the intelligence dashboard is read-only, so `kingdoms.manage` only gates aggregate contact diagnostics/manager links rather than the member-safe dashboard itself.
 
 Policy/permission authorization remains authoritative. Controllers do not use role-name authorization shortcuts.
 
@@ -131,7 +128,7 @@ Global neutral identity is never an authorization boundary, including when multi
 
 Internal Kingdoms durability events are not external webhook contracts. `alliance.kingdom_updated` and all `kingdoms.*` event families remain excluded from generic webhook fan-out until a separately approved integration contract defines a public schema.
 
-No public Kingdoms API route/scope is part of K1/K2 or the current K3 sliced runtime.
+No public Kingdoms API route/scope is part of accepted K1/K2/K3 runtime.
 
 ## Living contracts
 
@@ -147,16 +144,18 @@ No public Kingdoms API route/scope is part of K1/K2 or the current K3 sliced run
 - [`docs/operations/kingdoms-alliance-intelligence.md`](../../../docs/operations/kingdoms-alliance-intelligence.md)
 - [`docs/security/kingdoms-roster-intelligence-security-review.md`](../../../docs/security/kingdoms-roster-intelligence-security-review.md)
 - [`docs/security/kingdoms-transfer-planning-security-review.md`](../../../docs/security/kingdoms-transfer-planning-security-review.md)
+- [`docs/security/kingdoms-alliance-intelligence-security-review.md`](../../../docs/security/kingdoms-alliance-intelligence-security-review.md)
 - [`docs/security/kingdoms-alliance-intelligence-p0-security-review.md`](../../../docs/security/kingdoms-alliance-intelligence-p0-security-review.md)
 - [`docs/security/kingdoms-alliance-tracking-security-review.md`](../../../docs/security/kingdoms-alliance-tracking-security-review.md)
 - [`docs/security/kingdoms-alliance-observation-security-review.md`](../../../docs/security/kingdoms-alliance-observation-security-review.md)
 - [`docs/security/kingdoms-alliance-diplomacy-security-review.md`](../../../docs/security/kingdoms-alliance-diplomacy-security-review.md)
 - [`docs/security/kingdoms-alliance-diplomacy-contact-security-review.md`](../../../docs/security/kingdoms-alliance-diplomacy-contact-security-review.md)
 - [`docs/security/kingdoms-alliance-intelligence-dashboard-security-review.md`](../../../docs/security/kingdoms-alliance-intelligence-dashboard-security-review.md)
-- [`docs/product/kingdoms-alliance-intelligence-slice-d-validation.md`](../../../docs/product/kingdoms-alliance-intelligence-slice-d-validation.md)
+- [`docs/product/kingdoms-alliance-intelligence-exit-report.md`](../../../docs/product/kingdoms-alliance-intelligence-exit-report.md)
+- [`docs/product/kingdoms-alliance-intelligence-accessibility.md`](../../../docs/product/kingdoms-alliance-intelligence-accessibility.md)
 
 ## Explicit K3 boundaries
 
-`KINGDOMS-003` through validated Slice D does **not** add player/contact identity linkage, phone/address/credential storage, cross-tenant shared intelligence, automated game-data ingestion, scraping/OCR/bots, public Kingdoms APIs/webhooks, threat/ranking/scoring, combat prediction, punitive/strategic recommendations, automated negotiation, automatic expiry transitions, automated diplomacy, or automatic transfer behavior.
+Accepted `KINGDOMS-003` does **not** add player/contact identity linkage, phone/address/credential storage, cross-tenant shared intelligence, automated game-data ingestion, scraping/OCR/bots, public Kingdoms APIs/webhooks, threat/ranking/scoring, combat prediction, punitive/strategic recommendations, automated negotiation, automatic expiry transitions, automated diplomacy, or automatic transfer behavior.
 
-`KINGDOMS-001` and `KINGDOMS-002` are **Accepted** repository/product capabilities. `KINGDOMS-003` remains **In progress** until `K3-P6` whole-increment acceptance. Real production cutover remains separately **not yet approved**.
+`KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are **Accepted** repository/product capabilities. Real production cutover remains separately **not yet approved**.
