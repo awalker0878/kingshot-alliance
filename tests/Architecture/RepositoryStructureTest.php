@@ -34,6 +34,30 @@ final class RepositoryStructureTest extends TestCase
         }
     }
 
+    public function test_domain_documentation_directories_match_canonical_code_domains(): void
+    {
+        $codeDomains = array_map(
+            fn (string $domain): string => $this->kebabCase($domain),
+            $this->directories($this->root().'/app/Domain'),
+        );
+        $documentationDomains = $this->directories($this->root().'/docs/domains');
+
+        sort($codeDomains);
+
+        self::assertSame(
+            $codeDomains,
+            $documentationDomains,
+            'Every app/Domain/<Domain> must have exactly one docs/domains/<domain>/ directory, and every docs domain directory must map to a code domain.',
+        );
+
+        foreach ($documentationDomains as $domain) {
+            self::assertFileExists(
+                $this->root().'/docs/domains/'.$domain.'/README.md',
+                sprintf('Missing canonical domain documentation index: docs/domains/%s/README.md', $domain),
+            );
+        }
+    }
+
     public function test_documentation_filenames_are_predictable(): void
     {
         $invalid = [];
@@ -213,6 +237,15 @@ final class RepositoryStructureTest extends TestCase
         sort($directories);
 
         return $directories;
+    }
+
+    private function kebabCase(string $value): string
+    {
+        $kebab = preg_replace('/(?<!^)[A-Z]/', '-$0', $value);
+
+        self::assertIsString($kebab);
+
+        return strtolower($kebab);
     }
 
     private function relativePath(string $path): string
