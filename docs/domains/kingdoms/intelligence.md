@@ -147,13 +147,13 @@ No public Kingdoms intelligence API/webhook contract is accepted.
 
 The `K1-P6` regression seeds 150 tracked players with 450 snapshots and asserts a fixed bounded SELECT-query budget. This protects query shape/N+1 behavior; it is not a production capacity benchmark.
 
-See [Kingdoms roster intelligence operations](../../operations/kingdoms-roster-intelligence.md).
+See [Kingdoms roster intelligence operations](operations/kingdoms-roster-intelligence.md).
 
 ## 11. Tests and validation
 
 Accepted validation covers exact arithmetic, missing-vs-zero semantics, freshness, movement/linkage, bounded 7/30-day trends, comparable counts, member/manager privacy, tenant isolation, and realistic-volume query shape.
 
-See the [KINGDOMS-001 exit report](../../product/kingdoms-roster-intelligence-exit-report.md).
+See the [KINGDOMS-001 exit report](product/kingdoms-roster-intelligence-exit-report.md).
 
 ## 12. Related documentation
 
@@ -161,4 +161,4 @@ See the [KINGDOMS-001 exit report](../../product/kingdoms-roster-intelligence-ex
 - [Roster](roster.md)
 - [Snapshots](snapshots.md)
 - [Controlled CSV migration](csv-migration.md)
-- [KINGDOMS-001 security review](../../security/kingdoms-roster-intelligence-security-review.md)
+- [KINGDOMS-001 security review](security/kingdoms-roster-intelligence-security-review.md)
