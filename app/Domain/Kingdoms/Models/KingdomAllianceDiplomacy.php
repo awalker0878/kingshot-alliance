@@ -37,6 +37,8 @@ final class KingdomAllianceDiplomacy extends Model
 
     protected $keyType = 'string';
 
+    protected $table = 'kingdom_alliance_diplomacy_relationships';
+
     protected $fillable = [
         'alliance_id',
         'tracked_kingdom_alliance_id',
