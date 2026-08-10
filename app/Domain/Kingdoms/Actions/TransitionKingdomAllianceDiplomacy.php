@@ -104,7 +104,9 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 ->where('tracked_kingdom_alliance_id', $tracking->id)
                 ->lockForUpdate()
                 ->first();
-            $from = $relationship?->current_state ?? KingdomAllianceDiplomacyState::Unknown;
+            $from = $relationship instanceof KingdomAllianceDiplomacy
+                ? $relationship->current_state
+                : KingdomAllianceDiplomacyState::Unknown;
 
             if ($relationship instanceof KingdomAllianceDiplomacy
                 && $relationship->current_state === $target
