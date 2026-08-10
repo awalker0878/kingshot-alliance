@@ -2,11 +2,9 @@
 
 [← Documentation home](../README.md)
 
-Kingshot Alliance is an enterprise modular monolith organized by explicit business domains. The canonical physical repository structure is defined by the [implementation plan](../product/implementation-plan.md) and ADR 0008; approved post-program scope is recorded through named product increments under `../product/`.
+Kingshot Alliance is an enterprise modular monolith organized by explicit business domains. The canonical physical repository structure is defined by the [implementation plan](../product/implementation-plan.md), [documentation standard](../product/documentation-standard.md), and ADR 0008; approved post-program capability is recorded through named product increments under `../product/`.
 
 ## Current architecture view
-
-This section is a living system map for the current Phase 0–6-complete runtime plus implemented post-program increments. It summarizes accepted decisions and current implementation boundaries; the numbered ADRs remain the durable record of why those decisions were made. Approved roadmap scope is called out separately and must not be confused with runtime capability.
 
 ```text
 Browser / API client
@@ -18,7 +16,7 @@ Browser / API client
   Laravel application
   - request/trace correlation
   - authentication / MFA / password confirmation
-  - active-alliance tenant context
+  - active-Alliance tenant context
   - policy / permission checks
         |
         +--------------------------+
@@ -52,80 +50,82 @@ Business domains             Platform/foundation domains
 
 ### Runtime topology
 
-The deployable application uses one immutable image for the web/application, Horizon worker, scheduler, and one-shot migration roles. The standard staging topology runs:
+The deployable application uses one immutable image for web/application, Horizon worker, scheduler, and one-shot migration roles. Standard hosted topology uses Nginx, PHP-FPM, PostgreSQL, Redis, Horizon, `schedule:work`, and private local/S3-compatible storage. Production Content media requires durable S3-backed storage.
 
-- Nginx as the HTTP entry point;
-- PHP-FPM for the Laravel application;
-- PostgreSQL as the hosted relational system of record;
-- Redis for hosted cache, encrypted sessions, and queues;
-- Horizon for queue workers;
-- `schedule:work` for recurring/background coordination; and
-- private local or S3-compatible storage, with production content media requiring durable S3-backed storage.
-
-See [Runtime configuration reference](../operations/configuration-reference.md), [Background processing](../operations/background-processing.md), and the [deployment runbook](../operations/runbooks/deployment.md) for the executable operating contract.
+See [Runtime configuration](../operations/configuration-reference.md), [Background processing](../operations/background-processing.md), and the [deployment runbook](../operations/runbooks/deployment.md).
 
 ### Domain ownership
 
-Runtime PHP is domain-first under `app/Domain/<Domain>`. The canonical roots are:
+Runtime PHP is domain-first under `app/Domain/<Domain>`. Canonical roots are:
 
 `Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, and `Recruitment`.
 
-`Kingdoms` owns the complete `KINGDOMS-001` implementation boundary: global first-class `Kingdom` references; global neutral `KingdomPlayer` identity scoped to a Kingdom; alliance-owned roster entries, append-only snapshots and CSV-import provenance; and derived roster intelligence. `Alliances` continues to own the Alliance aggregate and its foreign-key relationship to Kingdom. `Memberships` owns application membership even when a roster entry optionally links to it. `Content` does not own Kingdom mutation.
+Living documentation mirrors those roots one-to-one under `docs/domains/<domain>/README.md`. See the [domain index](../domains/README.md), [repository structure audit](../product/repository-structure-audit.md), and [domain boundary audit](../product/domain-boundary-audit.md).
 
-The global-reference/tenant-observation split is intentional. Sharing a Kingdom or neutral game-player identity never grants cross-alliance access to roster state, private notes, membership links, snapshots, imports, exports or metrics. See the living [Kingdoms guide](../domains/kingdoms.md) and [KINGDOMS-001 implementation plan](../product/kingdoms-roster-intelligence-implementation-plan.md).
+Key ownership boundaries:
 
-Identity is global. Alliance-scoped business behavior activates an explicit alliance context and requires an active membership before tenant data is accessed. Platform administration is intentionally cross-tenant and does not reuse alliance roles as its authorization model. These boundaries follow ADR 0002 and the living [identity/tenancy/membership](../domains/identity-tenancy-and-membership.md) and [platform administration](../domains/platform-scale-and-administration.md) contracts.
+- [Identity](../domains/identity/README.md) owns global User/authentication/MFA assurance.
+- [Alliances](../domains/alliances/README.md) owns the Alliance aggregate and active tenant context.
+- [Memberships](../domains/memberships/README.md) owns membership/invitation lifecycle.
+- [Authorization](../domains/authorization/README.md) owns roles/permissions/permission evaluation.
+- [Audit](../domains/audit/README.md) owns attributable audit evidence.
+- [Content](../domains/content/README.md) owns authored/public/member Content and media.
+- [Events](../domains/events/README.md) owns Event schedules/occurrences/registration/Event attendance.
+- [Rallies](../domains/rallies/README.md) owns Rally guidance/formations/groups/assignments/Rally participation.
+- [Notifications](../domains/notifications/README.md) owns durable Event-reminder and scheduled-report due-time coordination.
+- [Recruitment](../domains/recruitment/README.md) owns candidate/application/onboarding/retention workflow.
+- [Contributions](../domains/contributions/README.md) owns contribution/calculation/reporting/export state.
+- [Integrations](../domains/integrations/README.md) owns API credentials/read contracts and webhook subscription/delivery/signing/retry state.
+- [Platform](../domains/platform/README.md) owns cross-tenant administration/lifecycle/entitlements/retention and transactional-outbox infrastructure.
+- [Kingdoms](../domains/kingdoms/README.md) owns accepted Kingdom/player/game-Alliance references plus Alliance-owned roster/history/intelligence/transfer/diplomacy workflows.
+
+Cross-domain collaboration should use intentional actions, queries, services, value objects, enums, or events rather than persistence reach-through.
+
+### Tenancy and Kingdoms reference boundaries
+
+Identity is global. Alliance-scoped behavior activates explicit Alliance context and requires active membership before tenant data is accessed. Platform administration is cross-tenant and does not reuse Alliance roles.
+
+Kingdoms uses a deliberate global-reference/tenant-observation split. Sharing a `Kingdom`, `KingdomPlayer`, or `KingdomAlliance` reference never grants cross-Alliance access to roster state, notes, membership links, snapshots, imports, transfer plans, observations, diplomacy, contacts, or derived intelligence.
+
+Stable game identifiers scoped to one Kingdom are the only automatic neutral identity keys; names/tags/handles never auto-merge identity.
 
 ### Synchronous and asynchronous boundaries
 
-Normal HTTP requests execute synchronously inside the modular monolith and persist through domain-owned models/services. Cross-domain collaboration should use intentional actions, queries, services, value objects, or events rather than persistence reach-through.
+Normal HTTP requests execute synchronously inside the modular monolith and persist through domain-owned actions/services/models.
 
-The transactional outbox is the durable asynchronous boundary for domain events that must survive the originating transaction. The scheduler publishes eligible outbox messages, and listeners coordinate downstream effects such as reminder state, recruitment conversion state, and webhook creation. Webhook HTTP delivery itself runs through Horizon's `integrations` queue so external retries cannot consume all core application worker capacity.
+Platform owns the transactional outbox as the durable asynchronous boundary. The scheduler publishes eligible outbox messages; listeners coordinate downstream effects; webhook HTTP delivery runs through the isolated `integrations` queue.
 
-Kingdom association, roster, snapshot and committed-import mutations use the same transaction + audit + outbox pattern, but `KINGDOMS-001` adds no Kingdoms-specific scheduler or queue. Its durable outbox messages are internal events for this increment: `alliance.kingdom_updated` and `kingdoms.*` are explicitly excluded from external webhook fan-out until a future approved integration contract exposes them.
+Internal durable event publication does not automatically create a public webhook contract. `alliance.kingdom_updated` and all `kingdoms.*` events remain excluded from generic external webhook fan-out.
 
-See [ADR 0004](0004-queues-and-transactional-outbox.md), [Notifications](../domains/notifications.md), [Integrations](../domains/integrations.md), [Kingdoms](../domains/kingdoms.md), [Kingdoms operations](../operations/kingdoms-roster-intelligence.md), and [Background processing](../operations/background-processing.md).
+See [ADR 0004](0004-queues-and-transactional-outbox.md), [Notifications](../domains/notifications/README.md), [Integrations](../domains/integrations/README.md), [Kingdoms](../domains/kingdoms/README.md), and [Background processing](../operations/background-processing.md).
 
 ### Data and storage boundaries
 
-- **PostgreSQL** owns relational application state and tenant-scoped business records, plus global neutral reference records such as Kingdom and KingdomPlayer.
-- **Kingdoms tenant data** stores alliance-owned roster entries, append-only player snapshots, CSV import previews/resolutions/results and the provenance needed to derive current roster intelligence.
-- **Redis** owns hosted cache, encrypted session state, queue transport, and Horizon coordination.
-- **Private object/file storage** owns content media and generated operational artifacts where applicable; production content media requires S3-backed storage.
-- **Audit records** persist security/business audit events with request/trace correlation when created in an HTTP context.
-- **Transactional outbox records** persist durable asynchronous work before publication.
+- **PostgreSQL** — relational application state, tenant business records, and global neutral Kingdoms references.
+- **Redis** — hosted cache, encrypted sessions, queues, and Horizon coordination.
+- **Private object/file storage** — Content media/generated artifacts where applicable.
+- **Audit** — attributable security/business evidence.
+- **Transactional outbox** — durable asynchronous work before publication.
 
-Tenant isolation is enforced as an architectural property, not merely a naming convention. Tenant-bound cache/storage keys and cross-domain queries must preserve alliance identity explicitly.
-
-A global Kingdom or KingdomPlayer reference does not create a cross-alliance tenant boundary. Roster entries, notes, snapshots, imports, exports and derived metrics remain alliance-scoped. Snapshot history is append-oriented; current/stale/missing and 7/30-day trends are derived from recorded history rather than maintained as a second mutable source of truth.
+Tenant isolation is architectural: tenant identity must flow through queries, jobs, notifications, logs, cache keys, exports, and storage paths.
 
 ### Trust and integration boundaries
 
-External API access uses alliance-bound read-only credentials and fixed scopes. Outbound webhooks are signed and retried, but deployment infrastructure must still enforce egress/SSRF controls; application URL validation alone is not a production network boundary.
+External API access uses Alliance-bound read-only credentials and fixed scopes. Outbound webhooks are signed/retried. Application URL validation is not a production network boundary; hosted infrastructure must separately enforce egress/SSRF controls.
 
-The existing read-only alliance API retains its `kingdom` response field, now derived from the first-class Kingdom relationship. This is API representation compatibility and does not preserve the removed free-form persistence model. There are no public Kingdoms roster/snapshot/intelligence API routes or scopes in `KINGDOMS-001`.
+The read-only Alliance API's `kingdom` field derives from the first-class Kingdom relation. No public Kingdoms roster/snapshot/intelligence/transfer/diplomacy API route/scope or public `kingdoms.*` webhook contract is accepted.
 
-The generic webhook subsystem supports wildcard event selection, so internal Kingdoms durability events require an explicit exposure boundary. `K1-P6` enforces that boundary by refusing external webhook fan-out for `alliance.kingdom_updated` and all `kingdoms.*` event types. External Kingdoms events therefore require a future explicit contract change rather than becoming public accidentally through outbox publication.
+Privileged first-party access combines verified identity, MFA where required, recent password confirmation for sensitive actions, tenant context, and policy/permission checks. Identity assurance never replaces authorization.
 
-Privileged web access uses verified identity, MFA where required, recent password confirmation for sensitive actions, and policy/permission checks. Platform administration has its own grant model and stronger cross-tenant access requirements. Alliance Kingdom association uses `alliance.manage`; roster/snapshot/import management uses `kingdoms.manage`, provisioned to built-in Owner, Leader and Officer roles. Ordinary roster/history/aggregate-intelligence reads use `alliance.view`.
+### Observability and production boundary
 
-See the [security baseline](../security/security-baseline.md), [Integrations](../domains/integrations.md), [Kingdoms](../domains/kingdoms.md), [whole-increment Kingdoms security review](../security/kingdoms-roster-intelligence-security-review.md), and [production launch security review](../security/production-launch-security-review.md).
+Current runtime provides JSON stderr logging, request IDs, W3C trace correlation, liveness/readiness endpoints, Horizon/outbox/webhook visibility, and repository-controlled launch-health signals.
 
-### Observability and health
+The repository does not currently configure an OpenTelemetry exporter. Laravel Pulse remains a foundation with hosted recording disabled until its schema/access policy is introduced.
 
-The current runtime provides JSON stderr logging, UUID request IDs, W3C trace correlation, request completion/failure logs, audit correlation, `/up` liveness, `/health/ready` database/cache readiness, Horizon queue visibility, and repository-controlled launch-health counters.
+Repository automation proves code/test quality, immutable image construction, staging boot, migrations, health checks, backup/restore tooling, and image scanning. It does **not** prove real production ingress/TLS, egress enforcement, alert ownership, capacity, operator identity, support coverage, managed dependency configuration, or production-managed key/media recovery.
 
-`KINGDOMS-001` adds no separate health endpoint or telemetry backend. Import records preserve preview/error/result evidence, snapshots preserve actor/import provenance, and intelligence exposes data-quality/comparable-player counts so operators can distinguish missing history from zero values. See [Kingdoms operations](../operations/kingdoms-roster-intelligence.md).
-
-The repository does **not** currently configure an OpenTelemetry exporter or inject release/tenant metadata into every log record. Laravel Pulse is present as a foundation but hosted configuration requires Pulse recording to remain disabled until its schema and access policy are introduced.
-
-See [ADR 0006](0006-observability-and-correlation.md) and [Observability](../operations/observability.md).
-
-### Deployment and production boundary
-
-Repository automation proves code/test quality, immutable image construction, staging boot, migrations, health checks, backup/restore tooling, and image scanning. It does not prove real production ingress/TLS, egress enforcement, alert ownership, capacity, operator identity, support coverage, managed dependency configuration, or recovery of production-managed keys/media.
-
-Repository production hardening is accepted; a real production cutover remains **not yet approved**. Acceptance of `KINGDOMS-001` is a repository/product decision and does not change that production decision. The authoritative decision remains [production launch approval](../product/production-launch-approval.md).
+Repository production hardening is accepted; real production cutover remains **not yet approved**. See [production launch approval](../product/production-launch-approval.md).
 
 ## Decision records
 
@@ -142,11 +142,11 @@ Use [the ADR template](adr-template.md) for new material decisions.
 
 ## ADR lifecycle
 
-Use an ADR for a material architecture decision whose rationale and consequences should survive individual PRs. Prefer updating operational/domain documentation for implementation detail that does not change architecture.
+Use an ADR for a material architecture decision whose rationale/consequences should survive individual PRs. If a decision replaces an older ADR, mark the older record superseded rather than silently rewriting historical rationale.
 
-A new ADR should clearly identify its status and relationship to earlier decisions. If a decision replaces an older ADR, mark the older record superseded rather than silently rewriting the historical rationale. The implementation plan remains authoritative for the completed Phase 0–6 baseline and canonical repository groups; approved product-increment scopes may extend product scope after that baseline. An ADR may refine the architecture but must not silently expand product scope.
+An ADR may refine architecture but must not silently expand product scope. The implementation plan remains authoritative for the completed baseline; approved named product increments extend product scope explicitly.
 
-## Canonical source structure
+## Canonical source/documentation structure
 
 ```text
 app/
@@ -165,13 +165,31 @@ app/
     Platform/
     Rallies/
     Recruitment/
+
 docs/
   adr/
   domains/
+    README.md
+    alliances/README.md
+    audit/README.md
+    authorization/README.md
+    content/README.md
+    contributions/README.md
+    events/README.md
+    identity/README.md
+    integrations/README.md
+    kingdoms/README.md
+    memberships/README.md
+    notifications/README.md
+    platform/README.md
+    rallies/README.md
+    recruitment/README.md
   operations/
   product/
   security/
+
 resources/js/
+
 tests/
   Architecture/
   Feature/
@@ -181,8 +199,4 @@ tests/
   Unit/
 ```
 
-Runtime PHP is owned by a canonical `app/Domain/<Domain>` module. Internal organization such as `Actions`, `Queries`, `Services`, `Models`, `Http`, `Enums`, and `ValueObjects` lives inside the owning domain rather than in parallel top-level application layers.
-
-Domains should communicate through intentional public actions, queries, services, value objects, or events. A cross-domain dependency must be part of the other domain's supported contract rather than an accidental dependency on its persistence internals.
-
-Architecture documentation must not introduce additional top-level `app/`, `docs/`, or `tests/` groupings that conflict with the baseline implementation plan, approved increment scope, and repository-structure tests.
+Runtime PHP is owned by a canonical `app/Domain/<Domain>` module. Capability docs live inside the matching documentation domain directory. Architecture documentation must not introduce parallel top-level source/docs/test groupings that conflict with the implementation plan, documentation standard, or architecture tests.
