@@ -185,7 +185,7 @@ The workflow introduces no scheduler/background importer and no public API/webho
 
 Import records preserve preview/error/result evidence and provenance. Operators can distinguish parse rejection, ambiguity, drift, committed state, and snapshot creation without inspecting private data across tenants.
 
-See [Kingdoms roster intelligence operations](../../operations/kingdoms-roster-intelligence.md).
+See [Kingdoms roster intelligence operations](operations/kingdoms-roster-intelligence.md).
 
 ## 11. Tests and validation
 
@@ -204,7 +204,7 @@ Accepted validation covers:
 - 500-row/1-MiB parser boundaries; and
 - full end-to-end Kingdoms acceptance.
 
-See the [KINGDOMS-001 exit report](../../product/kingdoms-roster-intelligence-exit-report.md).
+See the [KINGDOMS-001 exit report](product/kingdoms-roster-intelligence-exit-report.md).
 
 ## 12. Related documentation
 
@@ -212,4 +212,4 @@ See the [KINGDOMS-001 exit report](../../product/kingdoms-roster-intelligence-ex
 - [Roster](roster.md)
 - [Snapshots](snapshots.md)
 - [Roster intelligence](intelligence.md)
-- [KINGDOMS-001 security review](../../security/kingdoms-roster-intelligence-security-review.md)
+- [KINGDOMS-001 security review](security/kingdoms-roster-intelligence-security-review.md)
