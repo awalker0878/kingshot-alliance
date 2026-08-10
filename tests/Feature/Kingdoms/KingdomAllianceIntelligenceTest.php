@@ -152,7 +152,7 @@ final class KingdomAllianceIntelligenceTest extends TestCase
             'updated_by_user_id' => $owner->id,
         ]);
 
-        $session = $this->session($alliance);
+        $session = $this->allianceSession($alliance);
         $managerResponse = $this->actingAs($owner)->withSession($session)
             ->get('/alliance/kingdom-alliances/intelligence')
             ->assertOk()
@@ -192,7 +192,7 @@ final class KingdomAllianceIntelligenceTest extends TestCase
         $this->observation($allianceA, $current, 1, 100, 10, 'tenant-a-current');
         $this->observation($allianceB, $otherTenant, 1, 999, 99, 'tenant-b-current');
 
-        $response = $this->actingAs($ownerA)->withSession($this->session($allianceA))
+        $response = $this->actingAs($ownerA)->withSession($this->allianceSession($allianceA))
             ->get('/alliance/kingdom-alliances/intelligence?tracking=active&freshness=missing&sort=power&direction=desc')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -278,7 +278,7 @@ final class KingdomAllianceIntelligenceTest extends TestCase
     }
 
     /** @return array<string, mixed> */
-    private function session(Alliance $alliance): array
+    private function allianceSession(Alliance $alliance): array
     {
         return [(string) config('identity.active_alliance_session_key') => $alliance->id];
     }
