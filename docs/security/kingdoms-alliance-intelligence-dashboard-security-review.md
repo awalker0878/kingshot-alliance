@@ -1,7 +1,7 @@
 # KINGDOMS-003 Slice D intelligence dashboard security review
 
 **Scope:** `KINGDOMS-003` Slice D / `K3-P5`  
-**Status:** Candidate review — protected validation pending
+**Status:** Validated against runtime `a9d2e22ea1c710bc72f4dc8824a70e15dda04e75`
 
 ## Review objective
 
@@ -111,13 +111,13 @@ Headline operational summaries intentionally count active tracking only.
 
 The projection is batched and bounded. It does not eager-load unbounded observation/contact history.
 
-The Slice D performance test models 120 tracked alliances, 600 observations, 120 diplomacy relationships and 60 contacts, with a manager-dashboard budget of no more than 10 SELECT statements.
+The validated Slice D performance test models 120 tracked alliances, 600 observations, 120 diplomacy relationships and 60 contacts, with a manager-dashboard budget of no more than 10 SELECT statements.
 
 This gate protects against an N+1 path that could otherwise be amplified by a large tenant dataset.
 
-## Security regression requirements
+## Security regression evidence
 
-Protected validation must retain tests proving:
+Protected validation on runtime `a9d2e22ea1c710bc72f4dc8824a70e15dda04e75` retained tests proving:
 
 - cross-tenant aggregate isolation;
 - invalidated/future observation exclusion;
@@ -130,6 +130,10 @@ Protected validation must retain tests proving:
 - absence of public Kingdoms API/webhook exposure; and
 - realistic-volume bounded query count.
 
-## Candidate conclusion
+Dependency Review `31414124893`, CodeQL `31414124920` and CI `31414124902` all passed. The complete CI included 353 tests / 4,452 assertions, static analysis, frontend quality/build, immutable-image staging, backup/restore and vulnerability scanning.
 
-The Slice D design is acceptable for protected validation because it remains a tenant-scoped, read-only, descriptive projection over already-authorized K3 facts. `KINGDOMS-003` remains In progress until `K3-P6` whole-increment hardening and acceptance.
+## Conclusion
+
+Slice D / `K3-P5` is **Validated** as a tenant-scoped, read-only, descriptive projection over already-authorized K3 facts.
+
+`KINGDOMS-003` remains **In progress** until `K3-P6` whole-increment hardening and acceptance. This review does not approve production cutover.
