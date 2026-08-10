@@ -27,7 +27,7 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_manager_can_create_update_and_exact_retry_contact_idempotently(): void
+    public function test_manager_can_create_update_and_exact_update_retry_contact_idempotently(): void
     {
         [$owner, $alliance, $session] = $this->ownerAlliance('Contact Save', 'contact-save', 6401);
         $tracking = $this->track($owner, $alliance, $session, 'Contact Target', 'contact-target-6401');
@@ -38,8 +38,10 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
             "/alliance/kingdom-alliances/{$tracking->id}/diplomacy/contacts",
             $payload,
         )->assertRedirect();
-        $this->withSession($session)->post(
-            "/alliance/kingdom-alliances/{$tracking->id}/diplomacy/contacts",
+        $contact = KingdomAllianceDiplomacyContact::query()->sole();
+
+        $this->withSession($session)->patch(
+            "/alliance/kingdom-alliances/{$tracking->id}/diplomacy/contacts/{$contact->id}",
             $payload,
         )->assertRedirect();
 
@@ -49,7 +51,6 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
             $this->eventCount('audit_events', 'event', 'kingdoms.diplomacy_contact_saved', $alliance->id),
         );
 
-        $contact = KingdomAllianceDiplomacyContact::query()->sole();
         $payload['game_role'] = 'R4 diplomat';
         $this->withSession($session)->patch(
             "/alliance/kingdom-alliances/{$tracking->id}/diplomacy/contacts/{$contact->id}",
