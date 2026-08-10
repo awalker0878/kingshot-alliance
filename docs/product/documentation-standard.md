@@ -618,9 +618,11 @@ Do not remove a migration-source document until:
 
 ### DOCS-P0 — Standard and structural anchors
 
-- approve this standard;
+**Status on this branch:** Implemented candidate.
+
+- define this standard;
 - update the implementation plan repository structure;
-- create all 14 `docs/domains/<domain>/README.md` roots;
+- create all 14 `docs/domains/<domain>/README.md` roots; and
 - add CI enforcement for the code-domain ↔ docs-domain mapping.
 
 ### DOCS-P1 — Populate canonical domain contracts
@@ -664,7 +666,7 @@ Extend architecture tests to enforce:
 
 `tests/Architecture/RepositoryStructureTest.php` is the initial documentation-structure gate.
 
-At DOCS-P0 it must enforce:
+At DOCS-P0 it enforces:
 
 1. `docs/` contains only the five approved top-level groups;
 2. every `app/Domain/<CanonicalDomain>` has exactly one `docs/domains/<domain>/README.md` root;
