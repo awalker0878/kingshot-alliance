@@ -146,7 +146,7 @@ No snapshot-specific scheduler/worker exists. `kingdoms.*` events remain interna
 
 Operators can use source, capture time, actor/import provenance (where authorized), freshness state, and audit/outbox evidence to distinguish missing history from delivery/input failures.
 
-See [Kingdoms roster intelligence operations](../../operations/kingdoms-roster-intelligence.md).
+See [Kingdoms roster intelligence operations](operations/kingdoms-roster-intelligence.md).
 
 ## 11. Tests and validation
 
@@ -161,7 +161,7 @@ Accepted validation covers:
 - tenant isolation; and
 - manual/CSV provenance sharing one history model.
 
-See the [KINGDOMS-001 exit report](../../product/kingdoms-roster-intelligence-exit-report.md).
+See the [KINGDOMS-001 exit report](product/kingdoms-roster-intelligence-exit-report.md).
 
 ## 12. Related documentation
 
@@ -169,4 +169,4 @@ See the [KINGDOMS-001 exit report](../../product/kingdoms-roster-intelligence-ex
 - [Roster](roster.md)
 - [Roster intelligence](intelligence.md)
 - [Controlled CSV migration](csv-migration.md)
-- [KINGDOMS-001 security review](../../security/kingdoms-roster-intelligence-security-review.md)
+- [KINGDOMS-001 security review](security/kingdoms-roster-intelligence-security-review.md)
