@@ -9,7 +9,8 @@ This directory owns security requirements, threat models, and launch-security ev
 - [Security baseline](security-baseline.md) — cross-cutting requirements for authentication, authorization, tenancy, data handling, transport, secrets, dependencies, audit, and operational security.
 - [KINGDOMS-001 whole-increment security review](kingdoms-roster-intelligence-security-review.md) — accepted cross-slice review for global reference identity, tenant-owned roster/history/import/intelligence, identity ambiguity, CSV/export safety, authorization, internal outbox events and public integration boundaries.
 - [KINGDOMS-002 whole-increment security review](kingdoms-transfer-planning-security-review.md) — accepted cross-slice review for transfer tenancy, coordinator privilege confusion, incoming identity ambiguity, destinations/home-Kingdom drift, readiness/blocker privacy, explicit completion/idempotency, roster integrity, abuse boundaries and API/webhook non-exposure.
-- [KINGDOMS-003 K3-P0 security review](kingdoms-alliance-intelligence-p0-security-review.md) — pre-runtime identity, tenancy, diplomacy-state, contact-privacy, history/correction, abuse and integration-boundary contract for alliance intelligence/diplomacy.
+- [KINGDOMS-003 whole-increment security review](kingdoms-alliance-intelligence-security-review.md) — accepted cross-slice review for neutral game-alliance identity, tenant-owned observations/diplomacy/contacts/intelligence, historical integrity, private-data controls, drift, abuse/scoring boundaries and API/webhook non-exposure.
+- [KINGDOMS-003 K3-P0 security review](kingdoms-alliance-intelligence-p0-security-review.md) — retained pre-runtime identity, tenancy, diplomacy-state, contact-privacy, history/correction, abuse and integration-boundary contract for alliance intelligence/diplomacy.
 - [Kingdoms foundation security review](kingdoms-foundation-security-review.md) — `KINGDOMS-001` Slice A evidence.
 - [Kingdoms roster security review](kingdoms-roster-security-review.md) — `KINGDOMS-001` Slice B evidence.
 - [Kingdoms snapshot security review](kingdoms-snapshot-security-review.md) — `KINGDOMS-001` Slice C1 evidence.
@@ -19,7 +20,7 @@ This directory owns security requirements, threat models, and launch-security ev
 - [Production launch security review](production-launch-security-review.md) — repository-controlled launch-security review and external controls that remain operational responsibilities.
 - [Production launch approval](../product/production-launch-approval.md) — authoritative real-production go/no-go record.
 
-Slice reviews record risk introduced in individual implementation slices. Whole-increment reviews are the authoritative combined acceptance evidence surfaces for `K1-P6` and `K2-P6`. `KINGDOMS-003` currently has a locked `K3-P0` pre-runtime security contract; its whole-increment review is not created until `K3-P6` acceptance work.
+Slice reviews record risk introduced in individual implementation slices. Whole-increment reviews are the authoritative combined acceptance evidence surfaces for accepted post-program Kingdoms increments. The K3-P0 review remains historical design evidence beneath the accepted `KINGDOMS-003` whole-increment review.
 
 ## Phase threat models
 
