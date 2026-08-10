@@ -122,6 +122,12 @@ function submitTransition(): void {
       </div>
       <div class="flex flex-wrap gap-3">
         <Link
+          class="rounded-lg border border-cyan-800 px-4 py-2 text-sm font-semibold text-cyan-300"
+          :href="`/alliance/kingdom-alliances/${tracking.id}/diplomacy/contacts`"
+        >
+          Diplomacy contacts
+        </Link>
+        <Link
           class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200"
           :href="`/alliance/kingdom-alliances/${tracking.id}/history`"
         >
