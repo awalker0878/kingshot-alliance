@@ -20,11 +20,11 @@ Kingdoms owns approved Kingshot game-world reference identity and Alliance-owned
 - Alliance-owned transfer planning and explicit roster handoff; and
 - Alliance-owned game-side Alliance tracking, factual observations, explicit diplomacy, manager-private contacts, and descriptive Alliance intelligence.
 
-Accepted increments:
+Accepted increment evidence is domain-owned:
 
-- [`KINGDOMS-001` — roster intelligence](../../product/kingdoms-roster-intelligence-increment.md);
-- [`KINGDOMS-002` — transfer planning](../../product/kingdoms-transfer-planning-increment.md); and
-- [`KINGDOMS-003` — Alliance intelligence and diplomacy](../../product/kingdoms-alliance-intelligence-increment.md).
+- [`KINGDOMS-001` — roster intelligence](product/kingdoms-roster-intelligence-increment.md);
+- [`KINGDOMS-002` — transfer planning](product/kingdoms-transfer-planning-increment.md); and
+- [`KINGDOMS-003` — Alliance intelligence and diplomacy](product/kingdoms-alliance-intelligence-increment.md).
 
 ## 2. Scope
 
@@ -204,15 +204,17 @@ It adds no Kingdoms-specific crawler, scraper, OCR pipeline, game-data ingestion
 
 Kingdoms contains high-value Alliance operational intelligence. Manager-private notes, blocker detail, diplomacy terms/rationale, contacts, actor provenance, and import-management data must not leak into ordinary member, other-tenant, audit/outbox, or public integration payloads beyond explicitly approved safe identifiers.
 
-See the accepted K1/K2/K3 security reviews under `docs/security/`.
+Domain-specific review evidence is indexed under [Kingdoms security](security/README.md). Repository-wide security requirements remain in the [security baseline](../../security/security-baseline.md).
 
 ## 14. Observability and operations
 
-Accepted operations guidance covers roster intelligence, transfer planning, and Alliance intelligence. Historical/provenance fields and data-quality indicators are designed to distinguish missing/stale/invalidated facts from zero/current values.
+Accepted Kingdoms operating guidance is domain-owned and consumes the repository-wide deployment/observability/recovery platform:
 
-- [Roster intelligence operations](../../operations/kingdoms-roster-intelligence.md)
-- [Transfer planning operations](../../operations/kingdoms-transfer-planning.md)
-- [Alliance intelligence operations](../../operations/kingdoms-alliance-intelligence.md)
+- [Roster intelligence operations](operations/kingdoms-roster-intelligence.md)
+- [Transfer planning operations](operations/kingdoms-transfer-planning.md)
+- [Alliance intelligence operations](operations/kingdoms-alliance-intelligence.md)
+
+Historical/provenance fields and data-quality indicators are designed to distinguish missing/stale/invalidated facts from zero/current values.
 
 ## 15. Testing and architecture enforcement
 
@@ -250,6 +252,8 @@ The accepted runtime does not implement:
 
 ## 17. Capability documents
 
+Current capability contracts:
+
 - [Roster](roster.md)
 - [Player snapshots](snapshots.md)
 - [Roster intelligence](intelligence.md)
@@ -257,13 +261,22 @@ The accepted runtime does not implement:
 - [Transfer planning](transfer-planning.md)
 - [Alliance intelligence and diplomacy](alliance-intelligence.md)
 
+Domain-owned evidence and operations:
+
+- [Product and acceptance evidence](product/README.md)
+- [Security evidence](security/README.md)
+- [Operations](operations/README.md)
+
 ## 18. Related documentation
 
-- [KINGDOMS-001 exit report](../../product/kingdoms-roster-intelligence-exit-report.md)
-- [KINGDOMS-002 exit report](../../product/kingdoms-transfer-planning-exit-report.md)
-- [KINGDOMS-003 exit report](../../product/kingdoms-alliance-intelligence-exit-report.md)
+- [KINGDOMS-001 exit report](product/kingdoms-roster-intelligence-exit-report.md)
+- [KINGDOMS-002 exit report](product/kingdoms-transfer-planning-exit-report.md)
+- [KINGDOMS-003 exit report](product/kingdoms-alliance-intelligence-exit-report.md)
 - [Alliances domain](../alliances/README.md)
 - [Memberships domain](../memberships/README.md)
 - [Authorization domain](../authorization/README.md)
 - [Integrations domain](../integrations/README.md)
+- [Program product documentation](../../product/README.md)
+- [Repository security documentation](../../security/README.md)
+- [Shared operations documentation](../../operations/README.md)
 - [`app/Domain/Kingdoms/README.md`](../../../app/Domain/Kingdoms/README.md)
