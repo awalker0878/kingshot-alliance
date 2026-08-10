@@ -3,7 +3,7 @@
 [← Domain documentation](README.md)
 
 **Scope:** `KINGDOMS-003`  
-**Current delivery:** Slice D / `K3-P5` candidate — tracking, observations, explicit diplomacy, manager-private contacts, and descriptive alliance intelligence
+**Current delivery:** **Accepted** — tracking, observations, explicit diplomacy, manager-private contacts, descriptive alliance intelligence, and whole-increment hardening
 
 ## Purpose
 
@@ -14,8 +14,9 @@
 - Slice C1 / `K3-P3` added explicit manager-maintained diplomacy state and transition history.
 - Slice C2 / `K3-P4` added a minimal manager-private handle-based diplomacy contact directory.
 - Slice D / `K3-P5` composes those accepted facts into read-only descriptive summaries and bounded trends.
+- `K3-P6` validated the complete tenant/privacy/history/rollback/query/accessibility/API-webhook contract and accepted the increment.
 
-Threat/ranking/scoring, automated recommendations, automated negotiation, automated game-data ingestion, cross-tenant intelligence sharing and public Kingdoms API/webhook contracts remain outside the runtime increment.
+Threat/ranking/scoring, automated recommendations, automated negotiation, automated game-data ingestion, cross-tenant intelligence sharing and public Kingdoms API/webhook contracts remain outside the accepted runtime increment.
 
 ## Identity and tenancy
 
@@ -66,7 +67,7 @@ Contacts remain manager-private coordination records with only display name, opt
 
 Contacts have no `KingdomPlayer`, user, membership, role or permission link. Equal names or handles do not prove identity and never trigger automatic merge/link behavior.
 
-Slice D exposes only aggregate contact diagnostics to managers:
+The intelligence dashboard exposes only aggregate contact diagnostics to managers:
 
 - count of active contacts per tracked alliance;
 - count of active contacts whose verification is due; and
@@ -139,15 +140,15 @@ Summary cards describe the complete active tracked population and are not recomp
 
 The dashboard requires `alliance.view` under the active Alliance context.
 
-`kingdoms.manage` is used only to decide whether manager-private aggregate contact diagnostics and manager workspace links are included. No recent-password confirmation is required because Slice D is read-only and creates no privileged mutation path.
+`kingdoms.manage` is used only to decide whether manager-private aggregate contact diagnostics and manager workspace links are included. No recent-password confirmation is required because the dashboard is read-only and creates no privileged mutation path.
 
 Every projection query begins with the active Alliance ID before tracking/observation/contact selection. Sharing a global neutral `KingdomAlliance` never grants access to another tenant's observations or derived intelligence.
 
-Historical/archived or Kingdom-drifted tracking may be read when selected, with `contextCurrent=false`; Slice D never retargets or repairs historical context.
+Historical/archived or Kingdom-drifted tracking may be read when selected, with `contextCurrent=false`; the dashboard never retargets or repairs historical context.
 
 ## Query and performance contract
 
-Slice D uses batched tenant-first queries rather than one query per tracked alliance:
+The dashboard uses batched tenant-first queries rather than one query per tracked alliance:
 
 - tracked alliances plus bounded eager-loaded neutral/Kingdom/diplomacy relations;
 - one latest accepted-observation projection query;
@@ -156,13 +157,27 @@ Slice D uses batched tenant-first queries rather than one query per tracked alli
 - one 30-day baseline query; and
 - one manager-only contact aggregate query.
 
-The Slice D performance gate models 120 tracked game-side alliances, 600 accepted observations, 120 diplomacy relationships and 60 contacts. The manager projection must remain at or below 10 SELECT statements.
+The accepted performance gate models 120 tracked game-side alliances, 600 accepted observations, 120 diplomacy relationships and 60 contacts. The manager projection remains at or below 10 SELECT statements.
 
-No Slice D migration is required; the accepted tenant-first observation/contact indexes support the projection shape.
+No Slice D migration is required; accepted tenant-first observation/contact indexes support the projection shape.
+
+## Whole-increment acceptance contract
+
+`K3-P6` additionally proves:
+
+- two platform Alliances may share a neutral stable-ID `KingdomAlliance` without sharing tenant-owned intelligence;
+- a complete observation correction preserves the original and drives only accepted facts into the dashboard;
+- private tracking/correction/diplomacy/contact strings stay out of member/other-tenant payloads and K3 audit/outbox payloads;
+- observation, diplomacy and contact mutations fail closed after Alliance-Kingdom drift while authorized history remains readable;
+- K3 migrations roll back cleanly to the accepted `KINGDOMS-002` baseline and reapply in dependency order;
+- representative K3 events remain excluded from wildcard external webhook fanout; and
+- the public API contains no K3 Kingdom-alliance/diplomacy contract.
+
+Exact whole-increment validated implementation SHA: `068c4086744f71d33453734f1f1b05fe1430cbff`.
 
 ## Explicit non-behavior
 
-Slice D does not:
+Accepted K3 does not:
 
 - infer diplomacy from power, members, observations, trends or contacts;
 - auto-transition diplomacy on review/expiry;
@@ -176,6 +191,8 @@ Slice D does not:
 - create a public Kingdoms API or webhook schema; or
 - emit new `kingdoms.*` events for dashboard reads.
 
-## Remaining increment work
+## Acceptance status
 
-`K3-P6` remains the whole-increment hardening and acceptance gate. Slice D validation alone does not mark `KINGDOMS-003` Accepted and does not approve production cutover.
+`KINGDOMS-003` is **Accepted** for repository/product purposes. See the [exit report](../product/kingdoms-alliance-intelligence-exit-report.md), [whole-increment security review](../security/kingdoms-alliance-intelligence-security-review.md), and [accessibility review](../product/kingdoms-alliance-intelligence-accessibility.md).
+
+Real production cutover remains separately **not yet approved**.
