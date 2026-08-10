@@ -54,7 +54,7 @@ return new class extends Migration
             $table->text('terms')->nullable();
             $table->text('rationale')->nullable();
             $table->foreignId('actor_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestampTz('created_at')->useCurrent();
+            $table->timestampTz('created_at', 6)->useCurrent();
 
             $table->index(
                 ['alliance_id', 'tracked_kingdom_alliance_id', 'created_at'],
