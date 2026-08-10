@@ -11,7 +11,7 @@
     "build": "vite build",
     "dev": "vite",
     "format": "prettier --write resources/",
-    "format:check": "prettier --write resources/js/pages/Alliance/KingdomAllianceIntelligence.vue && cat resources/js/pages/Alliance/KingdomAllianceIntelligence.vue && exit 1",
+    "format:check": "prettier --check resources/",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",
