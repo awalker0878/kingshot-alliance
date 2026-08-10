@@ -1,6 +1,8 @@
 # Kingdoms domain
 
-`Kingdoms` is the canonical owner for approved Kingshot game-world reference, roster-history, migration, roster-intelligence, transfer-planning, and approved alliance-intelligence/diplomacy work.
+`Kingdoms` is the canonical owner for approved Kingshot game-world reference, roster history/intelligence, transfer planning, and the in-progress game-side alliance intelligence/diplomacy capability.
+
+## Product status
 
 Accepted product increments:
 
@@ -9,58 +11,70 @@ Accepted product increments:
 
 Approved in-progress product increment:
 
-- [`KINGDOMS-003` — Kingdom/alliance intelligence and diplomacy](../../../docs/product/kingdoms-alliance-intelligence-increment.md), with `K3-P0` locked, Slice A / `K3-P1` validated, Slice B / `K3-P2` validated, Slice C1 / `K3-P3` fully protected-green, and Slice C2 / `K3-P4` currently adding manager-private diplomacy contacts.
+- [`KINGDOMS-003` — Kingdom/alliance intelligence and diplomacy](../../../docs/product/kingdoms-alliance-intelligence-increment.md).
 
-## Accepted runtime ownership
+`KINGDOMS-003` delivery status:
 
-The accepted K1/K2 runtime owns:
+- `K3-P0` — design/security contract lock: **Complete**;
+- Slice A / `K3-P1` — neutral game-side alliance identity + tenant tracking: **Validated**;
+- Slice B / `K3-P2` — append-oriented alliance observations: **Validated**;
+- Slice C1 / `K3-P3` — explicit diplomacy/NAP lifecycle: **Validated**;
+- Slice C2 / `K3-P4` — manager-private diplomacy contacts: **Validated**;
+- Slice D / `K3-P5` — descriptive alliance intelligence dashboard/trends: **Validated**; and
+- `K3-P6` — whole-increment hardening/acceptance: **Remaining**.
 
-- global first-class `Kingdom` references and lifecycle state;
-- canonical Alliance→Kingdom resolution/association while Alliances retains ownership of the Alliance aggregate;
-- global neutral `KingdomPlayer` identity scoped to a Kingdom;
-- alliance-owned `AllianceRosterEntry` state, optional same-alliance membership linkage and private manager notes;
-- append-only alliance-scoped `PlayerSnapshot` history with manual/CSV provenance;
-- current/stale/missing latest-observation projection;
-- exact roster totals/average/median, linkage/movement quality indicators and bounded 7/30-day trends;
-- strict dry-run/confirm `kingdoms-roster.v1` CSV migration with explicit ambiguity resolution and idempotent confirmation;
-- member/management roster exports with private-field gating and spreadsheet-formula neutralization;
-- alliance-owned transfer plans with captured home-Kingdom lifecycle;
-- incoming/outgoing/staying transfer participants and destination intent;
-- alliance-owned transfer groups and same-alliance coordinator references;
-- manual readiness transitions, blocker history and coordination summaries; and
-- explicit idempotent transfer completion with accepted roster handoff.
+Slice D validated runtime: `a9d2e22ea1c710bc72f4dc8824a70e15dda04e75`. `KINGDOMS-003` is still **In progress**, not whole-increment Accepted, and does not approve production cutover.
 
-`kingdoms.manage` protects roster/snapshot/import/transfer management and manager-only data; built-in Owner, Leader and Officer roles receive it. Ordinary roster/history/intelligence/transfer reads use `alliance.view`. Alliance→Kingdom association remains an `alliance.manage` operation. Privileged mutations require recent password confirmation under the accepted Kingdoms controls.
+## Domain identity and tenancy
 
-## `KINGDOMS-003` current sliced ownership
+A platform `Alliance` remains the tenant and authorization principal.
 
-### Slice A / `K3-P1` — validated
+Global neutral references include:
 
-Slice A introduced global neutral `KingdomAlliance` reference identity, tenant-owned `TrackedKingdomAlliance`, captured Kingdom context, active/archive tracking lifecycle, stable-game-ID-only automatic resolution, member/manager tracking views and attributable internal durability evidence.
+- `Kingdom` — game-world Kingdom reference;
+- `KingdomPlayer` — neutral player identity scoped to a Kingdom; and
+- `KingdomAlliance` — neutral game-side alliance identity scoped to a Kingdom.
 
-A platform `Alliance` remains the tenant/authorization principal. `KingdomAlliance` never grants authentication, membership, role or permission. Name/tag collisions never auto-merge identity.
+Global neutral references never grant tenant access. Alliance-owned roster history, transfer plans, game-side alliance tracking, observations, diplomacy, contacts, private notes and derived intelligence remain scoped to the active platform Alliance.
 
-### Slice B / `K3-P2` — validated
+Stable game identifiers are the only automatic neutral identity-resolution keys. Player/alliance display names, tags and diplomacy-contact handles never auto-merge or auto-link identity.
 
-Slice B introduced tenant-owned `KingdomAllianceObservation` factual history with:
+## Accepted K1/K2 ownership
 
-- observed name/tag;
-- optional power/member count;
-- capture time;
-- manual source and actor provenance;
-- deterministic exact-retry idempotency;
-- correction by append plus original invalidation; and
-- current/stale/missing projection using the existing 30-day Kingdoms threshold.
+The accepted `KINGDOMS-001` / `KINGDOMS-002` runtime owns:
 
-Missing values remain distinct from zero. Invalidated rows remain history but are excluded from member/latest projection. Private correction/invalidation reasons are manager-only and excluded from audit/outbox metadata.
+- global Kingdom and KingdomPlayer references;
+- canonical Alliance→Kingdom association;
+- alliance-owned roster entries and append-only snapshots;
+- current/stale/missing roster observation projection;
+- exact roster totals/average/median and bounded 7/30-day roster trends;
+- strict dry-run/confirm CSV roster migration;
+- member/manager exports with private-field gating and spreadsheet-formula neutralization;
+- alliance-owned transfer plans, participants and groups;
+- manual readiness and blocker history; and
+- explicit idempotent per-participant transfer completion with accepted roster handoff.
 
-Observations remain facts only and never infer diplomacy.
+Coordinator assignment remains workflow responsibility only and never grants authorization.
 
-### Slice C1 / `K3-P3` — protected-green dependency
+## `KINGDOMS-003` runtime ownership through Slice D
 
-Slice C1 adds one alliance-owned `KingdomAllianceDiplomacy` current relationship per tracked game-side alliance plus append-oriented `KingdomAllianceDiplomacyTransition` history.
+### Tracking foundation
 
-The state vocabulary is fixed to exactly:
+`KingdomAlliance` is a global neutral game-side alliance reference. `TrackedKingdomAlliance` is an Alliance-owned relationship to that neutral reference and captures Kingdom context.
+
+Tracking is active/archive lifecycle only. A stable game alliance ID is the only automatic resolution key. Name/tag collisions never auto-merge references. Alliance-Kingdom drift preserves historical reads while normal mutations fail closed.
+
+### Observation history
+
+`KingdomAllianceObservation` is Alliance-owned factual history containing observed name/tag, optional power/member count, capture time, provenance, deterministic retry idempotency, correction linkage and invalidation evidence.
+
+Missing values remain distinct from zero. Invalidated rows remain historical but are excluded from accepted current/trend projections. Observations never infer diplomacy.
+
+### Explicit diplomacy
+
+`KingdomAllianceDiplomacy` stores one current Alliance-owned relationship per tracked game-side alliance, with append-oriented `KingdomAllianceDiplomacyTransition` history.
+
+The state vocabulary is exactly:
 
 - `unknown`;
 - `neutral`;
@@ -69,70 +83,55 @@ The state vocabulary is fixed to exactly:
 - `ally`; and
 - `rival`.
 
-Diplomacy changes only through an explicit manager action. Any current state may be explicitly changed to any other locked state. A same-state request with changed effective/review/expiry/terms/rationale metadata is still material and appends history; an exact repeat of the current normalized meaning is idempotent.
+Diplomacy changes only through explicit manager action. Review/expiry timestamps are advisory and only derive a human-review indicator; they never automatically change state. Private terms/rationale and actor history remain manager-private.
 
-Current relationship state stores effective time, optional review/expiry times, manager-private terms/rationale and last transition attribution. Every material change snapshots those values into append-oriented transition history.
+### Manager-private diplomacy contacts
 
-Review/expiry dates are advisory only. Passing them sets a derived review-due indicator at read time and never mutates relationship state. There is no diplomacy scheduler or observation/transfer/combat hook that changes diplomacy automatically.
+`KingdomAllianceDiplomacyContact` stores minimal Alliance-owned coordination data: display name, optional game-side role, approved handle channel, handle, active/inactive lifecycle, optional last-verification time, private notes and actor/lifecycle provenance.
 
-Ordinary members receive only the current diplomacy label and review-due indicator on the tracked-alliance list. The dedicated diplomacy workspace, actor/history data, terms and rationale require `kingdoms.manage`. Transition mutations also require recent password confirmation.
+Contacts do not link to `KingdomPlayer`, `User`, `AllianceMembership`, roles or permissions. Duplicate names/handles remain distinct. Contact assignment cannot create an account, membership or authorization. Normal lifecycle deactivates rather than destructively deletes history.
 
-Private terms/rationale are excluded from audit/outbox metadata. Material changes emit only internal `kingdoms.diplomacy_transitioned` evidence.
+Ordinary member payloads contain no contact IDs/detail. Private contact text is excluded from audit/outbox metadata.
 
-If Alliance Kingdom context drifts or tracking is archived, diplomacy history remains manager-readable but new transitions fail closed. History is never silently retargeted.
+### Descriptive alliance intelligence
 
-### Slice C2 / `K3-P4` — candidate
+`KingdomAllianceIntelligence` is a read-only Alliance-scoped projection over accepted tracking/observation/diplomacy/contact facts. It adds no migration, persistent score, mutation, audit event or outbox event.
 
-Slice C2 adds tenant-owned `KingdomAllianceDiplomacyContact` coordination records for an Alliance's tracked game-side alliance.
+It provides:
 
-Contact data is intentionally minimal and manager-private:
+- active tracked-alliance count;
+- current/stale/missing observation counts;
+- explicit diplomacy-state counts;
+- relationships whose review/expiry time requires human review;
+- latest accepted power/member/capture facts;
+- immediately-prior factual change;
+- bounded 7-day change using a 7–14-day baseline window;
+- bounded 30-day change using a 30–60-day baseline window;
+- observation age/freshness; and
+- manager-only aggregate contact availability/verification diagnostics.
 
-- display name;
-- optional game-side role/title;
-- handle-based channel type (`in_game`, `discord`, or explicitly labelled other handle/channel);
-- handle/identifier;
-- active/inactive state;
-- optional last-verified time;
-- manager-private notes; and
-- actor/lifecycle provenance.
+Trend selection never interpolates. If a supported baseline/value is missing, the corresponding trend is missing/insufficient history rather than estimated. Recorded zero remains zero.
 
-Contacts do not link to `KingdomPlayer`, `User`, `AllianceMembership`, roles or permissions. Display names and handles have no uniqueness constraint and never auto-merge or auto-link identity. Contact assignment cannot grant authorization.
+Default ordering is neutral name order. Fixed factual sorting may be used for navigation, but Slice D calculates no threat, target, desirability, combat, punitive or composite score and generates no recommendation or automatic diplomacy/transfer action.
 
-The contact workspace requires `kingdoms.manage`; create/update/deactivate additionally require recent password confirmation. Submitted tracking/contact IDs are re-resolved under the active Alliance and current Kingdom context before mutation.
+The validated realistic-volume gate models 120 tracked alliances, 600 observations, 120 diplomacy relationships and 60 contacts with the manager projection capped at 10 SELECT statements.
 
-Normal lifecycle preserves history: active contacts may be edited, exact active-update retries are idempotent, deactivation is idempotent, and inactive contacts remain readable rather than being destructively deleted or rewritten.
+## Authorization and privacy
 
-Ordinary member payloads contain no contact IDs, names, handles, notes, verification data or actor/lifecycle provenance. Private contact text is excluded from audit/outbox payloads. Contact changes never infer or transition diplomacy state.
+- ordinary safe Kingdoms reads use `alliance.view`;
+- Kingdoms mutations and manager-private workspaces use `kingdoms.manage`;
+- privileged mutations require recent password confirmation; and
+- Slice D's intelligence dashboard is read-only, so `kingdoms.manage` only gates aggregate contact diagnostics/manager links rather than the member-safe dashboard itself.
 
-Material changes emit only internal `kingdoms.diplomacy_contact_saved` and `kingdoms.diplomacy_contact_deactivated` evidence.
+Policy/permission authorization remains authoritative. Controllers do not use role-name authorization shortcuts.
 
-## `KINGDOMS-002` accepted transfer contract
+Global neutral identity is never an authorization boundary, including when multiple tenants reference the same KingdomPlayer or KingdomAlliance.
 
-Transfer planning is alliance-owned even when participants reference global Kingdom/KingdomPlayer identity.
+## Integration boundary
 
-- A plan captures the Alliance home Kingdom and supports `draft`, `open`, `locked`, `closed`, `cancelled` lifecycle states.
-- Participant direction is explicit: `incoming`, `outgoing`, `staying`.
-- Incoming destination is the captured plan home Kingdom; outgoing may target another active Kingdom; staying has no transfer destination.
-- Transfer groups are coordination cohorts; coordinator assignment never grants authorization.
-- Readiness is manual and explainable. `confirmed` remains planning-only until a separate completion action is taken.
-- Private notes/blocker detail/richer handoff provenance are manager-only.
-- Completion is per participant, explicit and idempotent, and occurs only in the locked-plan phase.
-- Incoming completion reuses accepted roster create/link behavior; existing roster selection is explicit and never display-name-only.
-- Outgoing completion reuses accepted `MarkRosterEntryLeft` behavior.
-- Staying completion records the outcome without changing roster lifecycle state.
-- Completion preserves neutral identity and snapshot history and never fabricates a player observation.
-- A locked plan cannot close until every non-withdrawn participant has explicit completion.
-- Home-Kingdom drift and cross-tenant submitted identifiers fail closed.
+Internal Kingdoms durability events are not external webhook contracts. `alliance.kingdom_updated` and all `kingdoms.*` event families remain excluded from generic webhook fan-out until a separately approved integration contract defines a public schema.
 
-Coordinator assignment remains workflow responsibility only. It never grants `kingdoms.manage`, bypasses policy authorization, or changes membership permissions.
-
-## Tenant and integration boundaries
-
-Global Kingdom/player/game-alliance identity is never an authorization boundary. Alliance-owned roster history, K3 tracking relationships, observation history, diplomacy current/history/private terms/rationale, diplomacy contacts, imports, metrics, transfer plans and private notes remain tenant-scoped even when two platform Alliances share neutral references.
-
-Internal Kingdoms durability events are not external webhook contracts. `alliance.kingdom_updated` and all `kingdoms.*` event families remain excluded from generic webhook fan-out until a separately approved integration contract exposes them.
-
-No public Kingdoms API route/scope is part of the accepted or current K3 sliced runtime.
+No public Kingdoms API route/scope is part of K1/K2 or the current K3 sliced runtime.
 
 ## Living contracts
 
@@ -153,13 +152,11 @@ No public Kingdoms API route/scope is part of the accepted or current K3 sliced 
 - [`docs/security/kingdoms-alliance-observation-security-review.md`](../../../docs/security/kingdoms-alliance-observation-security-review.md)
 - [`docs/security/kingdoms-alliance-diplomacy-security-review.md`](../../../docs/security/kingdoms-alliance-diplomacy-security-review.md)
 - [`docs/security/kingdoms-alliance-diplomacy-contact-security-review.md`](../../../docs/security/kingdoms-alliance-diplomacy-contact-security-review.md)
+- [`docs/security/kingdoms-alliance-intelligence-dashboard-security-review.md`](../../../docs/security/kingdoms-alliance-intelligence-dashboard-security-review.md)
+- [`docs/product/kingdoms-alliance-intelligence-slice-d-validation.md`](../../../docs/product/kingdoms-alliance-intelligence-slice-d-validation.md)
 
-Slice-specific Kingdoms security/validation records remain implementation evidence; whole-increment K3 acceptance is deferred to `K3-P6`.
+## Explicit K3 boundaries
 
-## Explicit boundaries
+`KINGDOMS-003` through validated Slice D does **not** add player/contact identity linkage, phone/address/credential storage, cross-tenant shared intelligence, automated game-data ingestion, scraping/OCR/bots, public Kingdoms APIs/webhooks, threat/ranking/scoring, combat prediction, punitive/strategic recommendations, automated negotiation, automatic expiry transitions, automated diplomacy, or automatic transfer behavior.
 
-Accepted `KINGDOMS-002` does **not** implement transfer-resource/pass optimization, inferred eligibility/readiness, automated stay/leave decisions, player/destination rankings, bulk completion, automated in-game transfer execution, marketplace/public advertising, diplomacy/NAP intelligence, public Kingdoms API/webhook schemas, cross-alliance transfer visibility/rankings, automated scoring/recommendations, or automated game-data ingestion.
-
-`KINGDOMS-003` through Slice C2 adds neutral game-side alliance tracking, factual observation history, explicit human-maintained diplomacy state/history, and manager-private handle-based diplomacy contacts only. It does **not** add player/contact identity linkage, phone/address/credential storage, threat/ranking/scoring, combat prediction, automated recommendations, automated negotiation, automatic expiry transitions, game-data scraping/OCR/bots, cross-tenant shared intelligence, public Kingdoms API/webhooks, or automatic transfer behavior.
-
-`KINGDOMS-001` and `KINGDOMS-002` are **Accepted** repository/product capabilities. `KINGDOMS-003` is **In progress** and is not whole-increment Accepted until `K3-P6`. A real production cutover remains separately **not yet approved**.
+`KINGDOMS-001` and `KINGDOMS-002` are **Accepted** repository/product capabilities. `KINGDOMS-003` remains **In progress** until `K3-P6` whole-increment acceptance. Real production cutover remains separately **not yet approved**.
