@@ -2,95 +2,103 @@
 
 [← Documentation home](../README.md)
 
-This directory owns the current business/domain contracts for runtime code under `app/Domain/<CanonicalDomain>`.
+This directory owns current business/domain contracts for runtime code under `app/Domain/<CanonicalDomain>`.
 
-The normative documentation structure, naming, format, and migration rules are defined by the [repository documentation standard](../product/documentation-standard.md).
+The normative structure, naming, format, migration, and CI rules are defined by the [repository documentation standard](../product/documentation-standard.md).
 
 ## Canonical rule
 
-Every canonical code domain must have exactly one predictable living anchor:
+Every canonical code domain has exactly one matching documentation root:
 
 ```text
 app/Domain/<CanonicalDomain>/README.md
-docs/domains/<canonical-domain-kebab>.md
+docs/domains/<canonical-domain-kebab>/README.md
 ```
 
-The code-local README is a concise developer navigation surface. The `/docs` file is the full living domain contract. Large domains may add detail documents named `<domain>-<capability>.md`, but those documents never replace the canonical `<domain>.md` anchor.
+The code-local README is concise developer navigation. The matching `/docs` directory is the canonical domain documentation root. Large domains may add capability files inside their own directory, for example `docs/domains/kingdoms/roster.md`.
 
-## Canonical domain coverage
+The relationship is enforced bidirectionally in `tests/Architecture/RepositoryStructureTest.php`: a code domain without a docs domain is invalid, and a docs domain without a code domain is invalid.
 
-The repository has 14 canonical runtime domains.
+## Canonical domain roots
 
-| Code domain | Canonical living document | Current migration state |
+| Code domain | Documentation root | Current documentation state |
 | --- | --- | --- |
-| `Alliances` | `alliances.md` | Missing; content currently spans broader identity/tenancy/admin guides |
-| `Audit` | `audit.md` | Missing |
-| `Authorization` | `authorization.md` | Missing; currently covered inside `identity-tenancy-and-membership.md` |
-| `Content` | `content.md` | Missing canonical name; migrate `content-management.md` |
-| `Contributions` | `contributions.md` | Missing canonical name; migrate `contributions-and-reporting.md` |
-| `Events` | `events.md` | Missing; split from `events-and-rallies.md` |
-| `Identity` | `identity.md` | Missing; split from `identity-tenancy-and-membership.md` |
-| `Integrations` | [integrations.md](integrations.md) | Canonical anchor present |
-| `Kingdoms` | [kingdoms.md](kingdoms.md) | Canonical anchor present |
-| `Memberships` | `memberships.md` | Missing; split from `identity-tenancy-and-membership.md` |
-| `Notifications` | [notifications.md](notifications.md) | Canonical anchor present |
-| `Platform` | `platform.md` | Missing canonical name; migrate `platform-scale-and-administration.md` |
-| `Rallies` | `rallies.md` | Missing; split from `events-and-rallies.md` |
-| `Recruitment` | [recruitment.md](recruitment.md) | Canonical anchor present |
+| `Alliances` | [alliances/](alliances/README.md) | Root established; detailed contract migration pending |
+| `Audit` | [audit/](audit/README.md) | Root established; detailed contract migration pending |
+| `Authorization` | [authorization/](authorization/README.md) | Root established; detailed contract migration pending |
+| `Content` | [content/](content/README.md) | Root established; migrate `content-management.md` |
+| `Contributions` | [contributions/](contributions/README.md) | Root established; migrate `contributions-and-reporting.md` |
+| `Events` | [events/](events/README.md) | Root established; split from `events-and-rallies.md` |
+| `Identity` | [identity/](identity/README.md) | Root established; split from combined identity/tenancy guide |
+| `Integrations` | [integrations/](integrations/README.md) | Root established; migrate existing `integrations.md` |
+| `Kingdoms` | [kingdoms/](kingdoms/README.md) | Root established; migrate root and capability guides |
+| `Memberships` | [memberships/](memberships/README.md) | Root established; split from combined identity/tenancy guide |
+| `Notifications` | [notifications/](notifications/README.md) | Root established; migrate existing `notifications.md` |
+| `Platform` | [platform/](platform/README.md) | Root established; migrate `platform-scale-and-administration.md` |
+| `Rallies` | [rallies/](rallies/README.md) | Root established; split from `events-and-rallies.md` |
+| `Recruitment` | [recruitment/](recruitment/README.md) | Root established; migrate existing `recruitment.md` |
 
-The missing paths above describe the **target inventory** under `DOCS-P1`; they must not be linked as if they already exist until they are created and populated.
+## Capability-document rule
+
+Capability documents live beneath the owning domain:
+
+```text
+docs/domains/<domain>/README.md
+docs/domains/<domain>/<capability>.md
+```
+
+The domain folder already establishes ownership, so capability filenames do not repeat the domain prefix.
+
+Example target for Kingdoms:
+
+```text
+docs/domains/kingdoms/
+  README.md
+  roster.md
+  snapshots.md
+  intelligence.md
+  csv-migration.md
+  transfer-planning.md
+  alliance-intelligence.md
+```
+
+Do not create one document per class, controller, action, query, table, or enum. Use a capability document when the capability has a meaningful independent lifecycle, authorization/privacy boundary, persistence/query contract, integration contract, or enough complexity that the root README becomes difficult to navigate.
 
 ## Current migration-source guides
 
-These existing guides remain usable until their canonical replacements are complete:
+The following flat guides remain valid migration sources until `DOCS-P1`/`DOCS-P2` moves their authoritative content into the domain folders:
 
-- [Identity, tenancy, and membership](identity-tenancy-and-membership.md) — migration source for `identity.md`, `alliances.md`, `memberships.md`, and `authorization.md`.
-- [Content management](content-management.md) — migration source for `content.md`.
-- [Events and rallies](events-and-rallies.md) — migration source for `events.md` and `rallies.md`.
-- [Contributions and reporting](contributions-and-reporting.md) — migration source for `contributions.md`.
-- [Platform scale and administration](platform-scale-and-administration.md) — migration source for `platform.md`.
+- [Identity, tenancy, and membership](identity-tenancy-and-membership.md)
+- [Content management](content-management.md)
+- [Events and rallies](events-and-rallies.md)
+- [Contributions and reporting](contributions-and-reporting.md)
+- [Integrations](integrations.md)
+- [Kingdoms](kingdoms.md)
+- [Kingdoms roster](kingdoms-roster.md)
+- [Kingdoms player snapshots](kingdoms-snapshots.md)
+- [Kingdoms roster intelligence](kingdoms-intelligence.md)
+- [Kingdoms controlled CSV migration](kingdoms-csv-migration.md)
+- [Kingdoms transfer planning](kingdoms-transfer-planning.md)
+- [Kingdoms alliance intelligence](kingdoms-alliance-intelligence.md)
+- [Notifications](notifications.md)
+- [Platform scale and administration](platform-scale-and-administration.md)
+- [Recruitment](recruitment.md)
 
-After the canonical documents contain the full current contracts and repository links have moved, these competing broad guides should be removed rather than preserved indefinitely as redirect/stub documentation.
-
-## Canonical and capability guides already in use
-
-### Integrations
-
-- [Integrations](integrations.md) — API credential/authentication contract, read-only API endpoints, webhook signing/delivery contract, and integration boundaries.
-
-### Notifications
-
-- [Notifications](notifications.md) — event-reminder delivery state, scheduled-report coordination, idempotency, scheduler flow, and recovery.
-
-### Recruitment
-
-- [Recruitment](recruitment.md) — application modes, candidate pipeline, review, decisions, conversion, metrics, and retention.
-
-### Kingdoms
-
-The `Kingdoms` anchor is intentionally decomposed into domain-prefixed capability contracts:
-
-- [Kingdoms](kingdoms.md) — canonical Kingdoms ownership map and cross-capability boundary.
-- [Kingdoms roster](kingdoms-roster.md) — game-player identity, alliance-owned roster, membership linkage, authorization, filtering, data minimization, and tenant isolation.
-- [Kingdoms player snapshots](kingdoms-snapshots.md) — append-only observations, idempotency, latest projection, freshness, history visibility, and provenance.
-- [Kingdoms roster intelligence](kingdoms-intelligence.md) — exact aggregates, data-quality indicators, bounded trends, movement/linkage summaries, and manager comparison boundary.
-- [Kingdoms controlled CSV migration](kingdoms-csv-migration.md) — schema, dry-run classification, identity resolution, atomic/idempotent confirmation, provenance, and export safety.
-- [Kingdoms transfer planning](kingdoms-transfer-planning.md) — transfer cycles, participants, destinations, groups/coordinators, readiness/blockers, completion/handoff, and tenant/privacy boundaries.
-- [Kingdoms alliance intelligence](kingdoms-alliance-intelligence.md) — neutral game-alliance tracking, factual observations/history, explicit diplomacy, private contacts, and descriptive intelligence.
+Do not remove a migration source until its content has been moved, all repository links have been updated, code-local READMEs point to the new root, and documentation architecture tests pass.
 
 ## Architecture evidence
 
 - [Repository/domain structure audit](repository-structure-audit.md) — physical-layout evidence.
 - [Domain boundary audit](domain-boundary-audit.md) — semantic ownership and intentional cross-domain contract evidence.
 
-Audits are evidence records. They do not replace canonical living domain documents and must be refreshed when their audited assumptions become stale.
+These are evidence records, not canonical domain roots. They remain root-level historical/current evidence during the documentation migration.
 
-## Domain document standard
+## Standard domain format
 
-Every canonical `docs/domains/<domain>.md` follows the required section order in the [documentation standard](../product/documentation-standard.md):
+After `DOCS-P1`, every `docs/domains/<domain>/README.md` uses the exact living-domain section order defined in the [documentation standard](../product/documentation-standard.md):
 
 1. Purpose and ownership.
-2. Scope and non-scope.
+2. Scope.
 3. Domain model.
 4. Core invariants.
 5. Lifecycles and workflows.
@@ -105,22 +113,20 @@ Every canonical `docs/domains/<domain>.md` follows the required section order in
 14. Observability and operations.
 15. Testing and architecture enforcement.
 16. Explicit non-capabilities.
-17. Related documentation.
-
-A section may state `Not applicable` with a reason; important contract areas should not silently disappear simply because a particular domain does not use them.
+17. Capability documents.
+18. Related documentation.
 
 ## Boundary rules
 
-- A canonical guide describes behavior owned by its matching code domain.
+- A domain root describes behavior owned by its matching code domain.
 - Cross-domain collaboration references intentional public actions, queries, services, value objects, enums, or events rather than persistence reach-through.
-- Combined user workflows do not justify combining independent code-domain ownership into one canonical file.
-- Product scope/status belongs in `../product/`; threat/security evidence belongs in `../security/`; operational procedures belong in `../operations/`; architecture rationale belongs in `../adr/`.
-- Capability documents use `<domain>-<capability>.md` and are linked from the canonical domain anchor.
-- Do not create one Markdown document per model, controller, route, table, action, or query.
+- Combined user workflows do not justify combining independent code-domain ownership into one canonical root.
+- Product scope/status belongs in `../product/`; security evidence in `../security/`; operational procedures in `../operations/`; architecture rationale in `../adr/`.
+- Capability documents stay inside the owning domain directory.
 - Code/tests remain authoritative for exact runtime behavior; documentation drift is a defect to fix, not a compatibility state to preserve.
 
 ## Updating domain documentation
 
-When domain behavior changes materially, update the matching canonical domain contract together with affected code-local README, security, operations, ADR, capability/status, accessibility, or acceptance evidence as required.
+When domain behavior changes materially, update the matching domain root together with affected capability docs, code-local README, security, operations, ADR, capability/status, accessibility, and acceptance evidence as required.
 
-The target end state is deterministic: from a code path `app/Domain/<Domain>`, a contributor can derive the canonical living document path without searching the repository.
+The target state is deterministic: a contributor can derive the documentation path directly from `app/Domain/<Domain>` without repository search or tribal knowledge.
