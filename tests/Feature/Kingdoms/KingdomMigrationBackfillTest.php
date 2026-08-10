@@ -34,6 +34,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         $kingdomAllianceMigration = require database_path('migrations/2026_08_09_140000_create_kingdom_alliance_tracking.php');
         $kingdomAllianceObservationMigration = require database_path('migrations/2026_08_09_150000_create_kingdom_alliance_observations.php');
         $kingdomAllianceDiplomacyMigration = require database_path('migrations/2026_08_10_090000_create_kingdom_alliance_diplomacy.php');
+        $kingdomAllianceContactMigration = require database_path('migrations/2026_08_10_100000_create_kingdom_alliance_diplomacy_contacts.php');
         self::assertInstanceOf(Migration::class, $kingdomMigration);
         self::assertInstanceOf(Migration::class, $rosterMigration);
         self::assertInstanceOf(Migration::class, $snapshotMigration);
@@ -46,9 +47,11 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertInstanceOf(Migration::class, $kingdomAllianceMigration);
         self::assertInstanceOf(Migration::class, $kingdomAllianceObservationMigration);
         self::assertInstanceOf(Migration::class, $kingdomAllianceDiplomacyMigration);
+        self::assertInstanceOf(Migration::class, $kingdomAllianceContactMigration);
 
         // Exercise the full Kingdoms dependency order from newest tenant workflow to
         // the first-class Kingdom reference it ultimately depends on.
+        $kingdomAllianceContactMigration->down();
         $kingdomAllianceDiplomacyMigration->down();
         $kingdomAllianceObservationMigration->down();
         $kingdomAllianceMigration->down();
@@ -80,6 +83,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         $kingdomAllianceMigration->up();
         $kingdomAllianceObservationMigration->up();
         $kingdomAllianceDiplomacyMigration->up();
+        $kingdomAllianceContactMigration->up();
 
         self::assertFalse(Schema::hasColumn('alliances', 'kingdom'));
         self::assertTrue(Schema::hasColumn('alliances', 'kingdom_id'));
@@ -98,6 +102,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertTrue(Schema::hasTable('kingdom_alliance_observations'));
         self::assertTrue(Schema::hasTable('kingdom_alliance_diplomacy_relationships'));
         self::assertTrue(Schema::hasTable('kingdom_alliance_diplomacy_transitions'));
+        self::assertTrue(Schema::hasTable('kingdom_alliance_diplomacy_contacts'));
         self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'idempotency_key'));
         self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'corrects_observation_id'));
         self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'invalidated_at'));
@@ -106,6 +111,11 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertTrue(Schema::hasColumn('kingdom_alliance_diplomacy_relationships', 'expires_at'));
         self::assertTrue(Schema::hasColumn('kingdom_alliance_diplomacy_transitions', 'from_state'));
         self::assertTrue(Schema::hasColumn('kingdom_alliance_diplomacy_transitions', 'to_state'));
+        self::assertTrue(Schema::hasColumn('kingdom_alliance_diplomacy_contacts', 'channel_type'));
+        self::assertTrue(Schema::hasColumn('kingdom_alliance_diplomacy_contacts', 'handle'));
+        self::assertTrue(Schema::hasColumn('kingdom_alliance_diplomacy_contacts', 'state'));
+        self::assertTrue(Schema::hasColumn('kingdom_alliance_diplomacy_contacts', 'last_verified_at'));
+        self::assertTrue(Schema::hasColumn('kingdom_alliance_diplomacy_contacts', 'manager_notes'));
         self::assertTrue(Schema::hasColumn('transfer_participants', 'transfer_group_id'));
         self::assertTrue(Schema::hasColumn('transfer_participants', 'readiness_state'));
         self::assertTrue(Schema::hasColumn('player_snapshots', 'roster_import_id'));
