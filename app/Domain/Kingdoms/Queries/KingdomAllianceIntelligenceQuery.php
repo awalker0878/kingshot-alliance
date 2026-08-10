@@ -8,6 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyContact;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 
@@ -76,11 +77,11 @@ final class KingdomAllianceIntelligenceQuery
             ->whereNull('invalidated_at')
             ->where('captured_at', '<=', $asOf)
             ->whereRaw(
-                'kingdom_alliance_observations.id = (select previous.id from kingdom_alliance_observations as previous '
-                .'where previous.alliance_id = kingdom_alliance_observations.alliance_id '
-                .'and previous.tracked_kingdom_alliance_id = kingdom_alliance_observations.tracked_kingdom_alliance_id '
-                .'and previous.invalidated_at is null and previous.captured_at <= ? '
-                .'order by previous.captured_at desc, previous.id desc offset 1 limit 1)',
+                'kingdom_alliance_observations.id = (select prior.id from kingdom_alliance_observations as prior '
+                .'where prior.alliance_id = kingdom_alliance_observations.alliance_id '
+                .'and prior.tracked_kingdom_alliance_id = kingdom_alliance_observations.tracked_kingdom_alliance_id '
+                .'and prior.invalidated_at is null and prior.captured_at <= ? '
+                .'order by prior.captured_at desc, prior.id desc offset 1 limit 1)',
                 [$asOf],
             )
             ->get();
@@ -158,13 +159,16 @@ final class KingdomAllianceIntelligenceQuery
         foreach ($rows as $row) {
             $trackingId = (string) $row->getAttribute('tracked_kingdom_alliance_id');
             $latestVerifiedAt = $row->getAttribute('latest_verified_at');
+            $latestVerifiedIso = match (true) {
+                $latestVerifiedAt instanceof DateTimeInterface => Carbon::instance($latestVerifiedAt)->toIso8601String(),
+                is_string($latestVerifiedAt) => Carbon::parse($latestVerifiedAt)->toIso8601String(),
+                default => null,
+            };
 
             $diagnostics[$trackingId] = [
                 'active' => (int) $row->getAttribute('active_contact_count'),
                 'verificationDue' => (int) $row->getAttribute('verification_due_count'),
-                'latestVerifiedAt' => is_string($latestVerifiedAt)
-                    ? Carbon::parse($latestVerifiedAt)->toIso8601String()
-                    : null,
+                'latestVerifiedAt' => $latestVerifiedIso,
             ];
         }
 
