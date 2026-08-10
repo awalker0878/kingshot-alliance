@@ -3,13 +3,17 @@
 [← Domain documentation](README.md)
 
 **Scope:** `KINGDOMS-003`  
-**Current delivery:** Slice B / `K3-P2` candidate — neutral alliance tracking plus append-oriented factual observations
+**Current delivery:** Slice C1 / `K3-P3` candidate — validated tracking/observations plus explicit diplomacy/NAP lifecycle and transition history
 
 ## Purpose
 
-`KINGDOMS-003` extends the Kingdoms domain with alliance-owned intelligence and diplomacy workflows for other game-side alliances. Slice A established neutral game-side alliance identity and tenant-owned tracking. Slice B adds append-oriented factual observation history only.
+`KINGDOMS-003` extends the Kingdoms domain with alliance-owned intelligence and diplomacy workflows for other game-side alliances.
 
-Diplomacy/NAP state, contacts, threat/ranking/scoring, automated recommendations, automated game-data ingestion, cross-tenant intelligence sharing and public Kingdoms API/webhook contracts remain outside the current runtime slice.
+- Slice A / `K3-P1` established neutral game-side alliance identity and tenant-owned tracking.
+- Slice B / `K3-P2` added validated append-oriented factual observation history.
+- Slice C1 / `K3-P3` adds explicit manager-maintained diplomacy state and append-oriented transition history.
+
+Diplomacy contacts, threat/ranking/scoring, automated recommendations, automated game-data ingestion, cross-tenant intelligence sharing and public Kingdoms API/webhook contracts remain outside the current runtime slice.
 
 ## Identity and tenancy
 
@@ -19,126 +23,168 @@ Diplomacy/NAP state, contacts, threat/ranking/scoring, automated recommendations
 
 `TrackedKingdomAlliance` is the tenant-owned relationship between one platform Alliance and one neutral `KingdomAlliance`. It captures Kingdom context and owns manager-private tracking notes.
 
-`KingdomAllianceObservation` is tenant-owned factual history. Every observation stores both the owning Alliance and tracked/neutral references so reads and mutations can be re-resolved under the active tenant. Sharing a neutral `KingdomAlliance` does not share observation history, actor provenance, invalidation detail or manager-private correction reasons.
+`KingdomAllianceObservation`, `KingdomAllianceDiplomacy`, and `KingdomAllianceDiplomacyTransition` are tenant-owned. Sharing a neutral `KingdomAlliance` does not share observation history, diplomacy state/history, private terms/rationale, actor provenance, or later contact data.
 
 The only automatic neutral identity key remains an approved stable `game_alliance_id` scoped to one Kingdom. Name/tag never auto-merge identity.
 
 ## Observation contract
 
-An observation records:
+Slice B remains authoritative for factual observations:
 
-- Alliance ownership;
-- tracked and neutral game-side alliance references;
-- accepting actor provenance;
-- observed name and optional tag;
-- optional power;
-- optional member count;
-- capture timestamp;
-- source (`manual` in `K3-P2`);
-- deterministic SHA-256 idempotency key;
-- optional correction link to an earlier observation;
-- explicit invalidation time/actor; and
-- optional manager-private invalidation/correction reason.
+- observed name/tag;
+- optional power/member count;
+- capture time;
+- manual source and actor provenance;
+- deterministic exact-retry idempotency;
+- correction by append plus original invalidation; and
+- current/stale/missing projection using the accepted 30-day threshold.
 
-Power is optional, non-negative and bounded to the signed 64-bit range. It is serialized to browser clients as a decimal string to avoid JavaScript precision loss. Member count is optional, non-negative and bounded by the first-party validation contract. Missing power/member count remains distinct from zero.
+Observations are facts only. They never infer or automatically change diplomacy state.
 
-Capture time may not be more than five minutes in the future.
+## Diplomacy state vocabulary
 
-## Append-oriented history and idempotency
+The Slice C1 vocabulary is fixed to exactly:
 
-Normal observation recording never edits or deletes historical observations.
+- `unknown`;
+- `neutral`;
+- `friendly`;
+- `nap`;
+- `ally`; and
+- `rival`.
 
-The deterministic idempotency key covers the Alliance, tracking/reference identity, observed fields, canonical power/member values, canonical capture time, source and optional corrected-observation ID. An exact retry returns the existing observation and emits no duplicate audit/outbox event.
+No additional state is introduced by this slice.
 
-Changing capture time or factual values creates a legitimate new observation.
+The member-safe default is `unknown` when no explicit relationship row exists. A manager may explicitly record any of the six states, including `unknown` when they need to record review metadata or private rationale without asserting another relationship state.
 
-A correction is explicit:
+## Current relationship and transition history
 
-1. append the replacement observation;
-2. link it to the accepted observation being corrected;
-3. invalidate the original in the same transaction; and
-4. preserve the original row, actor, values and capture time.
+`kingdom_alliance_diplomacy_relationships` stores one current relationship per Alliance + tracked alliance. It contains:
 
-Standalone invalidation also preserves the row. Repeating invalidation is idempotent.
+- current state;
+- effective time;
+- optional review time;
+- optional expiry time;
+- manager-private terms;
+- manager-private rationale; and
+- last transition actor attribution.
 
-Private correction/invalidation reasons are not copied into member payloads, audit metadata or outbox payloads.
+`kingdom_alliance_diplomacy_transitions` is append-oriented history. Each material change snapshots:
 
-## Latest accepted projection
+- prior state;
+- new state;
+- effective/review/expiry times;
+- terms/rationale at that transition;
+- actor; and
+- recorded time.
 
-Historical observations remain the source of truth.
+Historical transition rows are not edited when the current relationship changes.
 
-The latest accepted observation is selected by:
+## Explicit-only transitions and idempotency
 
-1. greatest `captured_at`; then
-2. greatest observation ULID as deterministic tie-breaker.
+Diplomacy changes only through the explicit manager transition action.
 
-Insertion order therefore does not override capture time. Invalidated observations are excluded from latest/freshness projections.
+Any current state may be explicitly changed to any other locked state. There is no inferred transition matrix based on power, attacks, transfer state, observations, dates, or contacts.
 
-Accepted observed name/tag may update the neutral reference current display identity only through the observation action. The action reprojects from the latest accepted observation for that neutral reference so an older observation inserted later does not overwrite newer factual identity.
+An exact repeat of the current state plus the same effective/review/expiry dates and normalized terms/rationale is idempotent: the current relationship is returned without appending a transition or duplicating audit/outbox evidence.
 
-## Freshness
+A same-state request with changed metadata is material and appends a new transition. This preserves the prior terms/rationale/date snapshot instead of silently overwriting history.
 
-Slice B intentionally reuses the accepted Kingdoms snapshot threshold: **30 days**.
+## Effective, review and expiry times
 
-- **current** — latest accepted observation was captured within the last 30 days;
-- **stale** — accepted history exists but the latest accepted observation is older than 30 days;
-- **missing** — no accepted observation exists.
+Effective time records the human-maintained effective meaning of the current relationship.
 
-Freshness is a data-quality indicator only. It is not a strength, risk, desirability or diplomacy score.
+Review and expiry times are advisory planning metadata only:
+
+- review/expiry may not precede effective time;
+- when both exist, review may not be later than expiry;
+- reaching either review or expiry time does not mutate current state; and
+- `needs_review` is derived at read time when either due time has arrived.
+
+No scheduler or background transition process exists for diplomacy.
 
 ## Read and privacy surfaces
 
-The tracked-alliance list projects only the latest accepted observation per tracking row. The history page is bounded to the latest **250** observations ordered by capture time.
+The ordinary tracked-alliance list remains `alliance.view` and exposes only member-safe diplomacy data:
 
-Members with `alliance.view` receive:
+- current diplomacy label; and
+- review-due indicator.
 
-- safe tracked-alliance identity/context;
-- current/stale/missing freshness;
-- latest accepted observed name/tag/power/member count/capture/source; and
-- accepted historical factual rows.
+Members do not receive:
 
-Members do not receive observation IDs, actor identity, invalidation metadata or private reasons.
+- diplomacy relationship IDs;
+- transition IDs/history;
+- effective/review/expiry timestamps from the manager workflow;
+- actor attribution;
+- private terms; or
+- private rationale.
 
-Managers with `kingdoms.manage` receive the additional IDs/provenance/invalidation detail needed for correction and invalidation workflows.
+The dedicated diplomacy workspace is `kingdoms.manage` only. It shows current relationship metadata and bounded transition history capped at the latest **250** rows.
 
-## Kingdom drift
+## Kingdom drift and tracking lifecycle
 
 Tracking captures `kingdom_id` when created. If the platform Alliance later changes Kingdom:
 
-- tracking and observation history remain readable;
-- recording/correcting/invalidating observations fails closed;
-- captured Kingdom/history is never silently retargeted; and
+- tracking, observation history, and diplomacy history remain readable to authorized users;
+- normal diplomacy mutation fails closed;
+- current/history rows are never silently retargeted to the new Kingdom; and
 - Slice A archival remains the stale-context recovery action.
+
+Archiving a tracking record also preserves its diplomacy relationship/history. Archived tracking is read-only for new diplomacy transitions.
 
 ## Authorization
 
-- safe list/history reads: `alliance.view`;
-- record/correct/invalidate observation: `kingdoms.manage`;
-- all observation mutations require recent password confirmation;
-- submitted tracking/observation IDs are re-resolved under the active Alliance;
-- no role-name controller checks or coordinator-derived permissions are introduced.
+- safe tracked-alliance list/history reads: `alliance.view`;
+- diplomacy workspace read: `kingdoms.manage`;
+- diplomacy transition: `kingdoms.manage` + recent password confirmation;
+- submitted tracking IDs are re-resolved under the active Alliance;
+- neutral reference and captured Kingdom context are revalidated under row locks before mutation; and
+- no role-name controller checks or contact/coordinator-derived permissions are introduced.
 
 ## Audit and outbox
 
-Material observation changes emit attributable internal durability evidence:
+Every material transition emits attributable internal durability evidence using:
 
-- `kingdoms.alliance_intelligence_observation_recorded`;
-- `kingdoms.alliance_intelligence_observation_corrected`; and
-- `kingdoms.alliance_intelligence_observation_invalidated`.
+- `kingdoms.diplomacy_transitioned`.
 
-Exact retries and repeated invalidation do not emit duplicate events. Existing Integration rules keep all `kingdoms.*` events out of generic external webhook fan-out.
+Event metadata may contain relationship/transition/tracking/reference IDs, state changes, and non-private dates.
+
+Private terms and rationale are deliberately excluded from audit/outbox metadata. Existing Integration rules keep all `kingdoms.*` events out of generic external webhook fan-out.
+
+Idempotent exact repeats emit no duplicate event.
 
 ## Persistence and indexes
 
-`kingdom_alliance_observations` is tenant-owned and uses tenant-first indexes for tracking history/latest selection plus a unique Alliance + idempotency-key constraint. Neutral-reference/capture indexing supports deterministic current display projection without moving tenant history onto the global reference.
+Current K3 tables are:
 
-The Slice A tables remain unchanged and deliberately contain no observation columns.
+- `kingdom_alliances`;
+- `tracked_kingdom_alliances`;
+- `kingdom_alliance_observations`;
+- `kingdom_alliance_diplomacy_relationships`; and
+- `kingdom_alliance_diplomacy_transitions`.
+
+The current relationship has one Alliance + tracking unique constraint. Tenant-first state/review/expiry indexes support future bounded descriptive queries without creating a ranking or scheduler contract. Transition history uses tenant/tracking and relationship/time indexes.
+
+Slice C1 adds no contact, `KingdomPlayer` contact link, threat/rank/score, recommendation, ingestion, scraping/OCR/bot, public API, or webhook schema fields.
+
+## Explicit non-behavior
+
+Slice C1 does not:
+
+- infer relationship state from observations, attacks, power, member count, transfer state, or contact data;
+- auto-transition on review/expiry;
+- rank alliances or calculate threat/desirability scores;
+- predict combat outcomes;
+- recommend diplomacy actions;
+- create/send negotiation messages;
+- change transfer destination/readiness/completion;
+- add diplomacy contacts or public contact data;
+- ingest game data automatically; or
+- expose K3 data through public API/webhooks.
 
 ## Deferred slices
 
-- `K3-P3` — explicit diplomacy/NAP lifecycle;
 - `K3-P4` — manager-private diplomacy contacts;
 - `K3-P5` — descriptive intelligence views/trends;
 - `K3-P6` — whole-increment hardening and acceptance.
 
-No later-slice schema or runtime behavior is introduced by `K3-P2`.
+No later-slice schema or runtime behavior is introduced by `K3-P3`.
