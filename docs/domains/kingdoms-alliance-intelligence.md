@@ -3,18 +3,19 @@
 [← Domain documentation](README.md)
 
 **Scope:** `KINGDOMS-003`  
-**Current delivery:** Slice C2 / `K3-P4` candidate — tracking, observations, explicit diplomacy lifecycle, and manager-private diplomacy contacts
+**Current delivery:** Slice D / `K3-P5` candidate — tracking, observations, explicit diplomacy, manager-private contacts, and descriptive alliance intelligence
 
 ## Purpose
 
 `KINGDOMS-003` extends the Kingdoms domain with alliance-owned intelligence and diplomacy workflows for other game-side alliances.
 
 - Slice A / `K3-P1` established neutral game-side alliance identity and tenant-owned tracking.
-- Slice B / `K3-P2` added validated append-oriented factual observation history.
-- Slice C1 / `K3-P3` added explicit manager-maintained diplomacy state and append-oriented transition history.
-- Slice C2 / `K3-P4` adds a minimal manager-private handle-based diplomacy contact directory.
+- Slice B / `K3-P2` added append-oriented factual observation history.
+- Slice C1 / `K3-P3` added explicit manager-maintained diplomacy state and transition history.
+- Slice C2 / `K3-P4` added a minimal manager-private handle-based diplomacy contact directory.
+- Slice D / `K3-P5` composes those accepted facts into read-only descriptive summaries and bounded trends.
 
-Threat/ranking/scoring, automated recommendations, automated negotiation, automated game-data ingestion, cross-tenant intelligence sharing and public Kingdoms API/webhook contracts remain outside the current runtime slice.
+Threat/ranking/scoring, automated recommendations, automated negotiation, automated game-data ingestion, cross-tenant intelligence sharing and public Kingdoms API/webhook contracts remain outside the runtime increment.
 
 ## Identity and tenancy
 
@@ -24,15 +25,13 @@ Threat/ranking/scoring, automated recommendations, automated negotiation, automa
 
 `TrackedKingdomAlliance` is the tenant-owned relationship between one platform Alliance and one neutral `KingdomAlliance`. It captures Kingdom context and owns manager-private tracking notes.
 
-`KingdomAllianceObservation`, `KingdomAllianceDiplomacy`, `KingdomAllianceDiplomacyTransition`, and `KingdomAllianceDiplomacyContact` are tenant-owned. Sharing a neutral `KingdomAlliance` does not share observations, diplomacy state/history, private terms/rationale, contacts, handles, notes or actor provenance.
+`KingdomAllianceObservation`, `KingdomAllianceDiplomacy`, `KingdomAllianceDiplomacyTransition`, and `KingdomAllianceDiplomacyContact` are tenant-owned. Sharing a neutral `KingdomAlliance` never shares tenant observations, diplomacy, contacts, terms, notes, actor provenance, or derived tenant intelligence.
 
-The only automatic neutral alliance identity key remains an approved stable `game_alliance_id` scoped to one Kingdom. Name/tag never auto-merge identity.
-
-Diplomacy contact display names and handles are coordination labels only. They are not identity keys and never create, merge, or link a `KingdomPlayer`, platform `User`, or `AllianceMembership`.
+The only automatic neutral alliance identity key remains an approved stable `game_alliance_id` scoped to one Kingdom. Names, tags and contact handles never auto-merge identity.
 
 ## Observation contract
 
-Slice B remains authoritative for factual observations:
+Accepted observations remain factual, append-oriented history containing:
 
 - observed name/tag;
 - optional power/member count;
@@ -42,11 +41,13 @@ Slice B remains authoritative for factual observations:
 - correction by append plus original invalidation; and
 - current/stale/missing projection using the accepted 30-day threshold.
 
-Observations are facts only. They never infer or automatically change diplomacy state.
+Invalidated observations remain historical but are excluded from intelligence projections. Observations captured after the dashboard `asOf` time are also excluded from that projection.
 
-## Diplomacy state vocabulary
+Missing values remain missing. A recorded power/member value of zero remains zero and is never treated as missing.
 
-The Slice C1 vocabulary remains fixed to exactly:
+## Diplomacy contract
+
+The diplomacy vocabulary remains exactly:
 
 - `unknown`;
 - `neutral`;
@@ -55,180 +56,126 @@ The Slice C1 vocabulary remains fixed to exactly:
 - `ally`; and
 - `rival`.
 
-Slice C2 adds no diplomacy state.
+Diplomacy changes only through explicit manager transitions. Review and expiry timestamps are advisory; reaching either timestamp creates only a derived human-review indicator and never changes state automatically.
 
-The member-safe default is `unknown` when no explicit relationship row exists. A manager may explicitly record any of the six states, including `unknown` when they need to record review metadata or private rationale without asserting another relationship state.
+Private terms, rationale, transition actors and internal relationship IDs remain outside member intelligence payloads.
 
-## Current relationship and transition history
+## Diplomacy contacts
 
-`kingdom_alliance_diplomacy_relationships` stores one current relationship per Alliance + tracked alliance. It contains:
+Contacts remain manager-private coordination records with only display name, optional game-side role, approved handle channel, handle, active/inactive lifecycle, last-verification time, private notes, and actor/lifecycle provenance.
 
-- current state;
-- effective time;
-- optional review time;
-- optional expiry time;
-- manager-private terms;
-- manager-private rationale; and
-- last transition actor attribution.
+Contacts have no `KingdomPlayer`, user, membership, role or permission link. Equal names or handles do not prove identity and never trigger automatic merge/link behavior.
 
-`kingdom_alliance_diplomacy_transitions` is append-oriented history. Each material change snapshots prior/new state, dates, terms/rationale, actor and recorded time.
+Slice D exposes only aggregate contact diagnostics to managers:
 
-Historical transition rows are not edited when the current relationship changes.
+- count of active contacts per tracked alliance;
+- count of active contacts whose verification is due; and
+- latest active-contact verification timestamp.
 
-## Explicit-only transitions and idempotency
+Verification is due when an active contact has never been verified or its last verification is older than 30 days at the dashboard `asOf` time. The dashboard never includes contact display names, roles, channels, handles or manager notes.
 
-Diplomacy changes only through the explicit manager transition action.
+Ordinary members receive no contact diagnostics, contact IDs, contact URLs or contact detail.
 
-Any current state may be explicitly changed to any other locked state. There is no inferred transition matrix based on power, attacks, transfer state, observations, dates, or contacts.
+## Descriptive intelligence contract
 
-An exact repeat of the current state plus the same effective/review/expiry dates and normalized terms/rationale is idempotent. A same-state request with changed metadata is material and appends history.
+`KingdomAllianceIntelligence` is a read-only projection. It adds no persistence and emits no audit/outbox event because it performs no business mutation.
 
-Review and expiry times remain advisory planning metadata only. Reaching either date never mutates current state.
+For the active tracked-alliance population it provides:
 
-## Diplomacy contact contract
+- active tracked-alliance count;
+- current/stale/missing observation counts;
+- diplomacy-state counts;
+- relationship-review-due count; and
+- manager-only aggregate contact diagnostics.
 
-`kingdom_alliance_diplomacy_contacts` stores manager-private coordination contacts under one Alliance + tracked game-side alliance + neutral reference.
+For each displayed tracked alliance it provides member-safe factual detail:
 
-Allowed contact data is intentionally minimal:
+- current neutral name/tag and tracking state;
+- Kingdom and current/historical context indicator;
+- latest accepted power/member count and capture time;
+- observation freshness and age;
+- immediately-prior accepted-observation change;
+- bounded 7-day power/member change;
+- bounded 30-day power/member change; and
+- current explicit diplomacy state plus review/expiry metadata safe for the member view.
 
-- display name;
-- optional game-side role/title;
-- approved handle-based channel type;
-- handle/identifier;
-- active/inactive state;
-- optional last-verified time;
-- manager-private notes;
-- creation/update actor provenance; and
-- deactivation actor/time provenance.
+Managers additionally receive links to the existing diplomacy/contact workspaces and aggregate contact diagnostics. Private terms, rationale, contact text and actor provenance are not copied into the intelligence payload.
 
-Approved channel values are:
+## Trend selection rules
 
-- `in_game`;
-- `discord`; and
-- `other_handle` for another explicitly labelled handle/channel.
+Trend selection is deterministic and non-interpolating.
 
-The schema intentionally has no:
+At an `asOf` time:
 
-- `kingdom_player_id`;
-- membership/role/permission link;
-- phone number or home-address field;
-- credential/password/recovery-secret field;
-- name/handle uniqueness constraint; or
-- future scoring/ranking/recommendation field.
+1. **Current** is the latest accepted observation captured at or before `asOf`.
+2. **Prior change** compares current with the immediately preceding accepted observation.
+3. **7-day baseline** is the closest accepted observation at or before `asOf - 7 days`, but no older than `asOf - 14 days`.
+4. **30-day baseline** is the closest accepted observation at or before `asOf - 30 days`, but no older than `asOf - 60 days`.
+5. A point newer than the target is never substituted as the baseline.
+6. History older than the bounded window is ignored for that trend.
+7. If either endpoint lacks a factual power/member value, that metric's change is missing rather than estimated.
+8. If no supported baseline exists, the trend is `Insufficient history`; no interpolation or extrapolation occurs.
 
-Duplicate display names and handles are allowed because equality is not proof of identity.
+These rules deliberately match the existing Kingdoms roster-intelligence baseline convention.
 
-## Contact lifecycle and idempotency
+## Filtering and ordering
 
-Contacts use an explicit active/inactive lifecycle.
+The default dashboard view is:
 
-- new contacts start active;
-- active contacts may be edited;
-- an exact active-contact update retry with identical normalized business fields is a no-op;
-- deactivation marks the record inactive and captures actor/time;
-- repeated deactivation is idempotent; and
-- inactive contacts remain manager-readable history and are not edited or destructively deleted.
+- active tracking only;
+- all freshness states;
+- all diplomacy states;
+- name ascending.
 
-If coordination resumes after deactivation, a manager creates a new active contact instead of rewriting the preserved inactive record.
+Filters may select tracking state, observation freshness and diplomacy state.
 
-Contact creation intentionally does not deduplicate two separate new submissions by name or handle; doing so would turn weak contact labels into identity keys.
+Users may factually sort by name, tag, latest power, latest member count, observation age or diplomacy state. Sorting is operational navigation only. It must never be labelled or interpreted as best/worst, threat, target, desirability or strategic priority.
 
-## Contact non-behavior
+Null/missing sort values remain distinct and sort after supported values. The dashboard calculates no composite score.
 
-Creating, editing, verifying, or deactivating contacts never:
+Summary cards describe the complete active tracked population and are not recomputed from the row filters; filters only narrow the detail rows. This prevents a filtered detail view from silently changing the meaning of the headline operational counts.
 
-- changes diplomacy state;
-- infers NAP/ally/rival status;
-- changes review/expiry metadata;
-- creates or links `KingdomPlayer` identity;
-- creates a platform account or membership;
-- grants `kingdoms.manage` or any other permission;
-- changes transfer destination/readiness/completion;
-- calculates threat/desirability/combat/ranking scores;
-- recommends diplomacy action; or
-- sends automated negotiation messages.
+## Authorization and privacy
 
-## Read and privacy surfaces
+The dashboard requires `alliance.view` under the active Alliance context.
 
-The ordinary tracked-alliance list remains `alliance.view` and exposes only member-safe diplomacy data:
+`kingdoms.manage` is used only to decide whether manager-private aggregate contact diagnostics and manager workspace links are included. No recent-password confirmation is required because Slice D is read-only and creates no privileged mutation path.
 
-- current diplomacy label; and
-- review-due indicator.
+Every projection query begins with the active Alliance ID before tracking/observation/contact selection. Sharing a global neutral `KingdomAlliance` never grants access to another tenant's observations or derived intelligence.
 
-Ordinary members do not receive relationship/transition IDs, manager workflow dates, actor attribution, private terms/rationale, or any contact data.
+Historical/archived or Kingdom-drifted tracking may be read when selected, with `contextCurrent=false`; Slice D never retargets or repairs historical context.
 
-The diplomacy workspace and diplomacy contact workspace require `kingdoms.manage`.
+## Query and performance contract
 
-The contact workspace may expose to managers only the coordination fields and lifecycle provenance needed to manage contacts. It is bounded to the latest **250** ordered records for one tracked alliance.
+Slice D uses batched tenant-first queries rather than one query per tracked alliance:
 
-The first-party contact UI explicitly tells managers not to store phone numbers, home addresses, passwords, recovery material or unrelated private secrets.
+- tracked alliances plus bounded eager-loaded neutral/Kingdom/diplomacy relations;
+- one latest accepted-observation projection query;
+- one prior accepted-observation projection query;
+- one 7-day baseline query;
+- one 30-day baseline query; and
+- one manager-only contact aggregate query.
 
-## Kingdom drift and tracking lifecycle
+The Slice D performance gate models 120 tracked game-side alliances, 600 accepted observations, 120 diplomacy relationships and 60 contacts. The manager projection must remain at or below 10 SELECT statements.
 
-Tracking captures `kingdom_id` when created. If the platform Alliance later changes Kingdom:
-
-- tracking, observation, diplomacy and contact history remain readable to authorized users;
-- normal diplomacy/contact mutation fails closed;
-- historical rows are never silently retargeted; and
-- Slice A archival remains the stale-context recovery action.
-
-Archiving tracking also preserves diplomacy/contact history and makes new diplomacy/contact mutation fail closed.
-
-## Authorization
-
-- safe tracked-alliance list/history reads: `alliance.view`;
-- diplomacy/contact workspace read: `kingdoms.manage`;
-- diplomacy transition: `kingdoms.manage` + recent password confirmation;
-- contact create/update/deactivate: `kingdoms.manage` + recent password confirmation;
-- submitted tracking/contact IDs are re-resolved under the active Alliance;
-- neutral reference and captured Kingdom context are revalidated under row locks before mutation; and
-- no role-name, coordinator, or contact-derived permission shortcut is introduced.
-
-## Audit and outbox
-
-Material diplomacy events remain internal:
-
-- `kingdoms.diplomacy_transitioned`;
-- `kingdoms.diplomacy_contact_saved`; and
-- `kingdoms.diplomacy_contact_deactivated`.
-
-Private relationship terms/rationale and private contact display/role/channel/handle/note text are excluded from audit/outbox metadata. Contact event metadata is limited to bounded IDs, lifecycle state/times, verification time and create/update classification.
-
-Existing Integration rules keep all `kingdoms.*` events out of generic external webhook fan-out.
-
-## Persistence and indexes
-
-Current K3 tables are:
-
-- `kingdom_alliances`;
-- `tracked_kingdom_alliances`;
-- `kingdom_alliance_observations`;
-- `kingdom_alliance_diplomacy_relationships`;
-- `kingdom_alliance_diplomacy_transitions`; and
-- `kingdom_alliance_diplomacy_contacts`.
-
-Contact indexes are tenant-first for tracked-alliance/state listing and last-verification lookup. No contact uniqueness constraint implies identity.
-
-Slice C2 adds no scoring/ranking/recommendation, ingestion, scraping/OCR/bot, public API, webhook schema, automated negotiation, or automatic transfer fields.
+No Slice D migration is required; the accepted tenant-first observation/contact indexes support the projection shape.
 
 ## Explicit non-behavior
 
-Through Slice C2, K3 does not:
+Slice D does not:
 
-- infer relationship state from observations, contacts, attacks, power, member count or transfer state;
-- auto-transition on review/expiry;
-- rank alliances or calculate threat/desirability scores;
-- predict combat outcomes;
-- recommend diplomacy actions;
+- infer diplomacy from power, members, observations, trends or contacts;
+- auto-transition diplomacy on review/expiry;
+- calculate threat, desirability, target, combat or composite scores;
+- rank alliances as best/worst or strategic targets;
+- recommend diplomacy, punishment, attack or transfer actions;
+- execute diplomacy or transfer actions;
 - create/send negotiation messages;
-- expose contacts to ordinary members or other tenants;
-- treat contact names/handles as player/account identity;
-- ingest game data automatically; or
-- expose K3 data through public API/webhooks.
+- expose manager-private contact text or diplomacy terms/rationale;
+- ingest/scrape/OCR game data;
+- create a public Kingdoms API or webhook schema; or
+- emit new `kingdoms.*` events for dashboard reads.
 
-## Deferred slices
+## Remaining increment work
 
-- `K3-P5` — descriptive intelligence views/trends;
-- `K3-P6` — whole-increment hardening and acceptance.
-
-No later-slice schema or runtime behavior is introduced by `K3-P4`.
+`K3-P6` remains the whole-increment hardening and acceptance gate. Slice D validation alone does not mark `KINGDOMS-003` Accepted and does not approve production cutover.
