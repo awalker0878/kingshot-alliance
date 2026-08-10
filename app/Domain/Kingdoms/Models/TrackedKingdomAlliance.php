@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -22,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property-read Alliance $alliance
  * @property-read KingdomAlliance $kingdomAlliance
  * @property-read Kingdom $kingdom
+ * @property-read KingdomAllianceDiplomacy|null $diplomacy
  */
 final class TrackedKingdomAlliance extends Model
 {
@@ -70,5 +72,11 @@ final class TrackedKingdomAlliance extends Model
     public function observations(): HasMany
     {
         return $this->hasMany(KingdomAllianceObservation::class, 'tracked_kingdom_alliance_id');
+    }
+
+    /** @return HasOne<KingdomAllianceDiplomacy, $this> */
+    public function diplomacy(): HasOne
+    {
+        return $this->hasOne(KingdomAllianceDiplomacy::class, 'tracked_kingdom_alliance_id');
     }
 }
