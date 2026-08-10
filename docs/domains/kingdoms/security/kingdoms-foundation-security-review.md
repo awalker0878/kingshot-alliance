@@ -4,7 +4,7 @@
 
 **Scope:** `KINGDOMS-001` Slice A / `K1-P1`  
 **Status:** Current implementation review  
-**Runtime contract:** [Kingdoms](../domains/kingdoms/README.md)
+**Runtime contract:** [Kingdoms](../README.md)
 
 This review covers the first-class Kingdom reference and Alliance→Kingdom association introduced by Slice A. It does not claim review of later game-player, roster, snapshot, intelligence or CSV capabilities; those require additional review in their owning phases.
 
