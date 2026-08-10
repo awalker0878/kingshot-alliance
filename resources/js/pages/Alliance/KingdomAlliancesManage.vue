@@ -173,7 +173,9 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="tracked-alliance-notes">Manager notes</label>
+          <label class="block text-sm font-medium" for="tracked-alliance-notes"
+            >Manager notes</label
+          >
           <textarea
             id="tracked-alliance-notes"
             v-model="createForm.manager_notes"
@@ -298,7 +300,9 @@ function archiveTracking(entry: TrackingRow): void {
 
       <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="saveEdit">
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-name">Alliance name</label>
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-name"
+            >Alliance name</label
+          >
           <input
             id="edit-tracked-alliance-name"
             v-model="editForm.current_name"
@@ -313,7 +317,9 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-tag">Alliance tag</label>
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-tag"
+            >Alliance tag</label
+          >
           <input
             id="edit-tracked-alliance-tag"
             v-model="editForm.current_tag"
@@ -340,7 +346,9 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-notes">Manager notes</label>
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-notes"
+            >Manager notes</label
+          >
           <textarea
             id="edit-tracked-alliance-notes"
             v-model="editForm.manager_notes"
