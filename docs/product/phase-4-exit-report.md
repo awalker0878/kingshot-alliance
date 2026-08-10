@@ -64,7 +64,7 @@ Replace informal recruitment tracking with a tenant-safe, auditable pipeline tha
 ### Operations and documentation
 
 - [Phase 4 operations](../operations/phase-4-operations.md) documents public/private runtime surfaces, scheduled retention, outbox behavior, health/alert implications, backup/recovery, deployment/rollback, and incident triage.
-- The [Recruitment guide](../domains/recruitment.md) documents recruiter workflows, public application boundaries, question management, pipeline stages, duplicate handling, decisions/onboarding, metrics, retention, security rules, and troubleshooting.
+- The current [Recruitment domain contract](../domains/recruitment/README.md) documents recruiter workflows, public application boundaries, question management, pipeline stages, duplicate handling, decisions/onboarding, metrics, retention, security rules, and troubleshooting.
 - Temporary implementation/formatting workflows were removed before acceptance.
 
 ## Protected-workflow evidence
