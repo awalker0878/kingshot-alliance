@@ -64,6 +64,12 @@ function stateLabel(value: string): string {
       </div>
       <div class="flex flex-wrap gap-3">
         <Link
+          class="rounded-lg border border-cyan-800 px-4 py-2 text-sm font-semibold text-cyan-300"
+          href="/alliance/kingdom-alliances/intelligence"
+        >
+          Intelligence overview
+        </Link>
+        <Link
           v-if="canManage"
           class="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950"
           href="/alliance/kingdom-alliances/manage"
