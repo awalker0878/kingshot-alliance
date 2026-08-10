@@ -2,18 +2,19 @@
 
 [← Kingdoms alliance intelligence and diplomacy product increment](kingdoms-alliance-intelligence-increment.md)
 
-**Status:** Approved scope — runtime implementation **In progress**; `K3-P0` Complete; `K3-P1` and `K3-P2` Validated  
+**Status:** Approved scope — implementation **Accepted**; `K3-P0` Complete; `K3-P1`–`K3-P5` Validated; `K3-P6` Accepted  
 **Scope ID:** `KINGDOMS-003`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Accepted `KINGDOMS-001` and `KINGDOMS-002` implementations  
 **K3-P0 decisions:** [KINGDOMS-003 K3-P0 design decisions](kingdoms-alliance-intelligence-p0-decisions.md)  
+**Acceptance:** [KINGDOMS-003 exit report](kingdoms-alliance-intelligence-exit-report.md)  
 **Important:** These are implementation phases inside `KINGDOMS-003`; they are not a continuation of historical program phase numbering.
 
 ## 1. Purpose
 
 This plan sequences the approved `KINGDOMS-003` Kingdom/alliance intelligence and diplomacy scope into independently reviewable slices while preserving one whole-increment acceptance boundary.
 
-The implementation must preserve the platform rules established by the accepted Kingdoms increments:
+The implementation preserves the platform rules established by the accepted Kingdoms increments:
 
 - domain-first runtime ownership under `app/Domain/<Domain>`;
 - explicit active-Alliance tenancy for tenant-owned observations/workflows;
@@ -42,12 +43,12 @@ The implementation must preserve the platform rules established by the accepted 
 | `K3-P0` | **Complete** | Identity, tenancy, diplomacy-state, privacy and history contracts locked | Pre-runtime contract gate |
 | `K3-P1` | **Validated** | Neutral game-side alliance identity and alliance-owned tracking foundation | Slice A |
 | `K3-P2` | **Validated** | Append-oriented alliance observations and historical facts | Slice B |
-| `K3-P3` | Planned | Explicit diplomacy/NAP lifecycle and transition history | Slice C1 |
-| `K3-P4` | Planned | Manager-private diplomacy contacts | Slice C2 |
-| `K3-P5` | Planned | Alliance intelligence dashboard and derived descriptive trends | Slice D |
-| `K3-P6` | Planned | Whole-increment hardening and acceptance | Whole increment |
+| `K3-P3` | **Validated** | Explicit diplomacy/NAP lifecycle and transition history | Slice C1 |
+| `K3-P4` | **Validated** | Manager-private diplomacy contacts | Slice C2 |
+| `K3-P5` | **Validated** | Alliance intelligence dashboard and derived descriptive trends | Slice D |
+| `K3-P6` | **Accepted** | Whole-increment hardening, security/accessibility/rollback/query/integration review and acceptance evidence | Whole increment |
 
-`KINGDOMS-003` runtime implementation is **In progress**. Slice A / `K3-P1` and Slice B / `K3-P2` are validated; diplomacy/NAP, contacts and derived intelligence remain later slices. The whole increment must not be described as Accepted before `K3-P6` passes and its evidence is recorded.
+`KINGDOMS-003` is **Accepted** for repository/product purposes. Exact whole-increment validated implementation SHA: `068c4086744f71d33453734f1f1b05fe1430cbff`. Real production cutover remains a separate approval decision.
 
 ## 3. `K3-P0` — Design and contract lock — Complete
 
@@ -92,7 +93,7 @@ The locked design cannot:
 - introduce ranking/threat-score behavior; or
 - accidentally expose `kingdoms.*` intelligence/diplomacy events through public webhooks/API.
 
-No future-slice schema or UI placeholders are added in `K3-P0`.
+No future-slice schema or UI placeholders were added in `K3-P0`.
 
 ## 4. `K3-P1` / Slice A — External alliance identity and tracking foundation — Validated
 
@@ -167,15 +168,9 @@ Validated coverage includes:
 - complete Kingdoms migration rollback/reapply tests; and
 - accessibility/public-API/future-slice architecture guards.
 
-Slice A is complete: neutral game-side identity and tenant tracking exist without observations, diplomacy or contacts hidden in the schema.
-
-### Validation
-
 Exact validated runtime SHA: `f57b81a7550b9a5cb94a2ae233e31da5805c8b55`.
 
 The [Slice A validation record](kingdoms-alliance-intelligence-slice-a-validation.md) records successful Dependency Review, CodeQL and full CI, including frontend checks/build, PostgreSQL migrations, Pint, PHPStan, 314 tests / 3661 assertions, immutable-image staging, backup/restore and image scanning.
-
-`K3-P1` is **Validated**.
 
 ## 5. `K3-P2` / Slice B — Observations and historical facts — Validated
 
@@ -284,9 +279,7 @@ Exact validated runtime SHA: `bf064075971ce0f81bd800b5ce0c5c88c9c1010c`.
 
 The [Slice B validation record](kingdoms-alliance-intelligence-slice-b-validation.md) records successful Dependency Review `31342802384`, CodeQL `31342802370` and CI `31342802361`, including frontend quality/build, PostgreSQL migrations, Pint 459 files, PHPStan 329 files / 0 errors, 323 tests / 3851 assertions, immutable-image staging, backup/restore and image scanning.
 
-`K3-P2` is **Validated**. Explicit diplomacy/NAP lifecycle remains `K3-P3`.
-
-## 6. `K3-P3` / Slice C1 — Diplomacy and NAP lifecycle
+## 6. `K3-P3` / Slice C1 — Diplomacy and NAP lifecycle — Validated
 
 ### Objective
 
@@ -294,7 +287,7 @@ Represent current diplomacy as explicit manager-maintained state with historical
 
 ### Persistence
 
-Add alliance/tracking-scoped diplomacy state plus append-oriented transition history.
+Alliance/tracking-scoped diplomacy state plus append-oriented transition history is implemented.
 
 The locked state vocabulary is:
 
@@ -305,50 +298,30 @@ The locked state vocabulary is:
 - `ally`; and
 - `rival`.
 
-Do not add additional states without an explicit scope update and clear workflow requirement.
-
-Current relationship state may store:
-
-- current state;
-- effective time;
-- optional review/expiry time;
-- manager-private terms/rationale only where required; and
-- last transition attribution.
-
-Transition history stores prior/new state and actor/effective timestamps without destructive overwrite.
+Current relationship state stores current state, effective time, optional review/expiry time, manager-private terms/rationale where supplied, and last transition attribution. Transition history preserves state/metadata snapshots without destructive overwrite.
 
 ### Domain behavior
 
 - explicit manager transition only;
 - any current state may transition explicitly to any other locked state;
-- repeat of the already-current transition with the same effective meaning is idempotent;
+- repeat of the already-current transition with the same normalized meaning is idempotent;
+- same-state material metadata change appends history;
 - expiry/review time does not automatically transition state;
-- derived `needs_review` may be calculated from time/state;
-- observations, attacks, power changes, transfer state and contact data never auto-transition diplomacy;
-- changing/archiving tracking retains relationship history; and
-- current-Kingdom drift fails closed for normal mutations.
+- derived `needs_review` is calculated at read time;
+- observations, power changes, transfer state and contact data never auto-transition diplomacy; and
+- current-Kingdom drift fails closed for normal mutations while retaining history.
 
-### UI
+### Authorization/privacy
 
-Member-safe current diplomacy label/review indicator may be visible under `alliance.view`.
+Member-safe current diplomacy label/review indicator is visible under `alliance.view`. The manager workspace exposes transitions/history/private terms/rationale under `kingdoms.manage`; mutations require recent password confirmation.
 
-Manager workspace exposes transition controls, history and private terms/rationale under `kingdoms.manage` plus recent password confirmation.
+Private terms/rationale are excluded from audit/outbox metadata and the event remains internal-only.
 
-### Tests and exit criteria
+### Validation
 
-- transition-state tests;
-- no-auto-transition-on-expiry tests;
-- no-observation-to-diplomacy inference tests;
-- private terms/rationale leakage tests;
-- transition history/actor tests;
-- tenant/object-ID tampering tests;
-- Kingdom drift tests;
-- idempotency/audit/outbox tests; and
-- accessibility validation of state/history controls.
+Slice C1 validation is recorded in [KINGDOMS-003 Slice C1 validation](kingdoms-alliance-intelligence-slice-c1-validation.md). It passed transition, expiry/no-auto-transition, privacy, history, tenancy, drift, idempotency, accessibility, static-analysis and protected CI gates.
 
-Slice C1 is complete when diplomacy is human-maintained and historically explainable.
-
-## 7. `K3-P4` / Slice C2 — Diplomacy contacts
+## 7. `K3-P4` / Slice C2 — Diplomacy contacts — Validated
 
 ### Objective
 
@@ -356,51 +329,41 @@ Give authorized managers a minimal private coordination directory without creati
 
 ### Persistence
 
-Add alliance/tracking-scoped contacts with only the data required by the initial workflow:
+Alliance/tracking-scoped contacts contain only the data required by the approved workflow:
 
 - display name;
-- game-side role/title;
-- approved contact channel/type;
+- optional game-side role/title;
+- approved handle-based channel/type;
 - handle/identifier;
 - active/inactive state;
 - last-verified time;
 - manager-private notes; and
-- actor/provenance where required.
+- actor/lifecycle provenance.
 
-Do not add phone/address/private-secret fields.
-
-`K3-P0` explicitly defers `KingdomPlayer` linkage for diplomacy contacts. A handle/display name never links a player automatically, and Slice C2 does not add a player foreign key merely for future convenience.
+No phone/address/private-secret fields or player/user/membership/role/permission foreign keys exist.
 
 ### Domain behavior
 
-- create/update/deactivate contact under same Alliance/tracked-alliance context;
+- create/update/deactivate contact under the same Alliance/tracked-alliance context;
 - revalidate current Kingdom context for privileged changes;
+- exact identical active saves are idempotent;
+- inactive contacts remain historical/readable;
 - contact assignment grants no platform permission;
 - contact identity does not create `User` or `AllianceMembership` rows;
-- do not treat a contact handle as game-player identity;
-- contact deletion should preserve material history where audit/coordination evidence requires it; prefer inactive/archived state to destructive erasure for normal lifecycle.
+- contact handle is never treated as game-player identity; and
+- normal lifecycle deactivates rather than destructively deletes.
 
 ### Privacy
 
-Initial contact details are manager-private. Ordinary member payloads must not include handles, notes, verification metadata or internal contact IDs.
+Contact details are manager-private. Ordinary member payloads do not include handles, notes, verification metadata or internal contact IDs. Audit/outbox metadata does not copy private contact text.
 
-Structured logs/audit/outbox metadata must not copy private handle/note text.
+### Validation
 
-### Tests and exit criteria
+Exact validated runtime SHA: `c8b414d9023d837913fdc46908c55e109d59b386`.
 
-- cross-tenant contact-ID tampering tests;
-- manager-only visibility tests;
-- contact-does-not-grant-permission regression tests;
-- no-user/membership creation regression tests;
-- no-name/handle player auto-link tests;
-- password-confirmation tests;
-- inactive/history preservation tests;
-- private payload/log/event safety tests; and
-- accessible contact-management controls.
+The [Slice C2 validation record](kingdoms-alliance-intelligence-slice-c2-validation.md) records successful tenancy, non-identity/non-authorization, privacy, lifecycle, password, accessibility and protected pipeline gates.
 
-Slice C2 is complete when contacts support diplomacy coordination without becoming authentication/identity/public-directory data.
-
-## 8. `K3-P5` / Slice D — Intelligence dashboard and derived trends
+## 8. `K3-P5` / Slice D — Intelligence dashboard and derived trends — Validated
 
 ### Objective
 
@@ -408,111 +371,106 @@ Compose tracked identity, observation quality/history and diplomacy state into u
 
 ### Derived intelligence
 
-Provide alliance-scoped summaries such as:
+The accepted read-only dashboard provides:
 
 - number of active tracked game-side alliances;
 - current/stale/missing observation counts;
 - latest name/tag/power/member count per tracked alliance;
-- prior-observation change;
-- bounded 7-day and 30-day power/member change where sufficient history exists;
+- immediately prior accepted-observation change;
+- bounded 7-day power/member change using a 7–14-day baseline window;
+- bounded 30-day power/member change using a 30–60-day baseline window;
 - current diplomacy-state counts;
 - relationships requiring human review because review/expiry time has arrived;
-- manager-only contact availability/verification diagnostics; and
+- manager-only aggregate contact availability/verification diagnostics; and
 - observation age/data-quality indicators.
 
-Missing data remains distinct from zero. Trends use documented bounded historical selection rules and do not interpolate unsupported precision.
+Missing data remains distinct from zero. Trends do not interpolate unsupported precision.
 
 ### Presentation rules
 
-- default ordering is neutral (for example name/tag);
-- user-selected factual sorting may be offered for operational navigation but must not be presented as a “best/worst”, “threat”, “target” or desirability ranking;
+- default ordering is neutral name order;
+- user-selected factual sorting is operational navigation and is not presented as a best/worst, threat, target or desirability ranking;
 - no composite score is calculated;
-- no alliance/player punishment recommendation is generated;
+- no alliance/player punishment recommendation is generated; and
 - no diplomacy or transfer action is automatically suggested or executed from the metrics.
 
 ### Query/index hardening
 
-Use tenant-first indexes and bounded eager/aggregate queries. Validate realistic Kingdom intelligence volume rather than participant-loop queries.
+The realistic-volume gate models 120 tracked alliances, 600 observations, 120 diplomacy relationships and 60 contacts. The manager projection is capped at **10 SELECT statements**.
 
-The initial performance gate should model a realistic Kingdom with enough tracked alliances and observation history to expose N+1/unbounded-history regressions; exact volume/budget is locked during implementation from repository query shape.
+### Validation
 
-### UI
+Exact validated runtime SHA: `a9d2e22ea1c710bc72f4dc8824a70e15dda04e75`.
 
-Provide:
+The [Slice D validation record](kingdoms-alliance-intelligence-slice-d-validation.md) records successful Dependency Review, CodeQL, frontend, migrations, Pint 481 files, PHPStan 345/345 with zero errors, 353 tests / 4,452 assertions, immutable image, staging, backup/restore and image scanning.
 
-- member-safe intelligence overview;
-- filters for state/freshness/tracking state;
-- bounded observation history detail;
-- manager diplomacy history/contact detail; and
-- explicit data-quality/freshness language.
-
-### Tests and exit criteria
-
-- trend/window/missing-data tests;
-- anti-ranking/threat-score architecture tests;
-- no-auto-recommendation tests;
-- member/manager field-split tests;
-- cross-tenant aggregate isolation tests;
-- realistic-volume query-count/performance tests;
-- accessibility validation of filters/tables/history/status; and
-- operations diagnostics review.
-
-Slice D is complete when the accepted observations/diplomacy can be understood operationally without becoming an automated competitive decision engine.
-
-## 9. `K3-P6` — Whole-increment hardening and acceptance
+## 9. `K3-P6` — Whole-increment hardening and acceptance — Accepted
 
 ### Objective
 
 Validate the complete `KINGDOMS-003` contract end to end and produce acceptance evidence.
 
-### Required review
+### Completed review
 
-- full Kingdoms domain-boundary review including platform `Alliance` versus neutral `KingdomAlliance` identity;
-- active-Alliance tenancy/object-ID isolation review across tracking, observations, diplomacy and contacts;
-- tag/name collision and stable-ID identity review;
-- private notes/terms/contact-handle review;
-- abuse review confirming no threat ranking, punitive scoring or automated diplomacy recommendation;
-- accessibility review of tracking, observations/history, diplomacy, contacts and intelligence surfaces;
-- migration rollback/reapply validation from the accepted `KINGDOMS-002` baseline;
-- realistic-volume query/index review;
-- observation idempotency/history integrity review;
-- Alliance-Kingdom drift/reconciliation review;
-- operations/observability review;
-- API/webhook review confirming intelligence/diplomacy events remain internal;
-- current capability matrix and Kingdoms product/domain index updates from Planned to Implemented only after acceptance; and
-- dedicated `KINGDOMS-003` exit report with exact validated SHA/protected-check evidence.
+Whole-increment hardening validates:
 
-### Acceptance gate
+- platform `Alliance` versus neutral `KingdomAlliance` identity boundaries;
+- active-Alliance tenancy/object-ID isolation across tracking, observations, diplomacy and contacts;
+- stable-ID identity and name/tag collision behavior;
+- private tracking/correction/diplomacy/contact data boundaries;
+- absence of threat ranking, punitive scoring and automated diplomacy recommendations;
+- accessibility across tracking, observations/history, diplomacy, contacts and intelligence;
+- K3-only migration rollback/reapply to the accepted `KINGDOMS-002` baseline;
+- realistic-volume query/index behavior;
+- observation correction/idempotency/history integrity;
+- Alliance-Kingdom drift/read-only history/archive recovery;
+- operations/observability contracts;
+- internal-only K3 event behavior even for wildcard webhook subscriptions; and
+- no public K3 API contract.
 
-The complete stack must pass the repository's protected quality/security pipeline, including:
+A dedicated end-to-end acceptance workflow spans neutral identity/tracking → observations/correction → diplomacy → contacts → member/manager dashboard → tenant isolation → private payload safety → Kingdom drift → archival recovery.
 
-- frontend quality/build;
-- PHP quality/static analysis/tests;
-- PostgreSQL migrations;
-- dependency/security analysis;
-- CodeQL;
-- immutable-image build;
-- staging validation;
-- backup/restore; and
-- image scanning where those controls remain part of the repository gate.
+### Acceptance evidence
 
-`KINGDOMS-003` remains In progress/Candidate until the exact final whole-increment evidence is recorded. Repository/product acceptance does not itself approve real production cutover.
+Exact validated implementation SHA:
+
+`068c4086744f71d33453734f1f1b05fe1430cbff`
+
+Protected checks:
+
+- Dependency Review `31430279647` — success;
+- CodeQL `31430279652` — success;
+- CI `31430279638` — success;
+- Pint — 483 files;
+- PHPStan/Larastan — 345/345, zero errors;
+- ParaTest/PHPUnit — 359 tests / 4,824 assertions;
+- frontend quality/type/build — success;
+- PostgreSQL migrations — success;
+- immutable production image — success;
+- ephemeral staging — success;
+- backup/restore — success;
+- image scan — success; and
+- cleanup — success.
+
+See the [KINGDOMS-003 exit report](kingdoms-alliance-intelligence-exit-report.md), [whole-increment security review](../security/kingdoms-alliance-intelligence-security-review.md), and [accessibility review](kingdoms-alliance-intelligence-accessibility.md).
+
+`KINGDOMS-003` is **Accepted** for repository/product purposes. Repository/product acceptance does not itself approve real production cutover.
 
 ## 10. Pull-request sequencing
 
-Dependency order:
+Completed dependency order:
 
-1. **`K3-P0` — Design/security contract lock** (documentation-only prerequisite).
+1. **`K3-P0` — Design/security contract lock** — Complete.
 2. **Slice A / `K3-P1` — External alliance identity and tracking foundation** — Validated.
 3. **Slice B / `K3-P2` — Observations and historical facts** — Validated.
-4. **Slice C1 / `K3-P3` — Diplomacy and NAP lifecycle**.
-5. **Slice C2 / `K3-P4` — Diplomacy contacts**.
-6. **Slice D / `K3-P5` — Intelligence dashboard and derived trends**.
-7. **`K3-P6` — Whole-increment hardening, audits, documentation and acceptance record**.
+4. **Slice C1 / `K3-P3` — Diplomacy and NAP lifecycle** — Validated.
+5. **Slice C2 / `K3-P4` — Diplomacy contacts** — Validated.
+6. **Slice D / `K3-P5` — Intelligence dashboard and derived trends** — Validated.
+7. **`K3-P6` — Whole-increment hardening, audits, documentation and acceptance record** — Accepted.
 
-Each runtime slice must remain independently migratable/testable and must not add compatibility shims or dormant future-schema fields solely to simplify later slices.
+Each runtime slice remains independently migratable/testable and the accepted increment adds no compatibility shims or dormant future-schema fields solely for deferred capabilities.
 
-## 11. Suggested branch naming
+## 11. Branch naming used
 
 - `agent/kingdoms-003-p0`
 - `agent/kingdoms-003-slice-a`
@@ -522,4 +480,4 @@ Each runtime slice must remain independently migratable/testable and must not ad
 - `agent/kingdoms-003-slice-d`
 - `agent/kingdoms-003-acceptance`
 
-The planning branch may be merged independently before Slice A begins so approved scope remains distinct from implementation evidence. The P0 branch may be stacked on planning and establishes the final contract that Slice A inherited.
+Historical planning/P0 branches remain implementation evidence. The accepted whole-increment product record is the K3 exit report and exact validated implementation SHA above.
