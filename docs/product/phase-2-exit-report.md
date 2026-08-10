@@ -17,7 +17,7 @@ Give each alliance a usable public identity and a controlled internal informatio
 - Alliance home notices plus an explicit Phase 3-owned upcoming-activities slot without introducing event-domain tables early.
 - Private tenant-prefixed media upload with MIME/size enforcement, scanner contract, baseline signature screening, SHA-256 checksums, branding attachment controls, and archive lifecycle.
 - Content/profile/media audit records and transactional outbox events using the Phase 1 at-least-once publisher.
-- Manager-facing content console and the [content management guide](../domains/content-management.md) so authorized alliance leadership can operate the public/content surface without developer assistance.
+- Manager-facing content console and the current [Content domain contract](../domains/content/README.md) so authorized alliance leadership can operate the public/content surface without developer assistance.
 
 ## Security and tenant-boundary evidence
 
