@@ -3,16 +3,19 @@
 [← Operations documentation](README.md)
 
 **Scope:** `KINGDOMS-003`  
-**Current delivery:** Slice C2 / `K3-P4` candidate
+**Current delivery:** Slice D / `K3-P5` candidate
 
 ## Runtime ownership
 
-Slices A through C2 are synchronous first-party web workflows using PostgreSQL, the existing audit recorder and transactional outbox. They introduce no Kingdoms scheduler, queue worker, crawler, scraper, OCR process, bot, diplomacy timer, automated negotiation process or automated game-data ingestion process.
+Slices A through D are synchronous first-party web workflows using PostgreSQL and existing Kingdoms domain services. Slice D adds a read-only descriptive projection only.
+
+There is no Kingdoms scheduler, crawler, scraper, OCR process, bot, diplomacy timer, automated negotiation process, automated game-data ingestion process, scoring worker or recommendation engine.
 
 Routes:
 
 - member-safe tracked alliance list: `/alliance/kingdom-alliances`;
 - manager tracking workspace: `/alliance/kingdom-alliances/manage`;
+- member/manager descriptive intelligence: `/alliance/kingdom-alliances/intelligence`;
 - member/manager observation history: `/alliance/kingdom-alliances/{tracking}/history`;
 - manager diplomacy workspace: `/alliance/kingdom-alliances/{tracking}/diplomacy`;
 - manager contact workspace: `/alliance/kingdom-alliances/{tracking}/diplomacy/contacts`;
@@ -20,11 +23,11 @@ Routes:
 - password-confirmed diplomacy transitions under `/alliance/kingdom-alliances/{tracking}/diplomacy/transitions`; and
 - password-confirmed contact create/update/deactivate under `/alliance/kingdom-alliances/{tracking}/diplomacy/contacts`.
 
-There is intentionally no contact delete route.
+The intelligence route is read-only and requires `alliance.view`. It does not use recent-password confirmation because it cannot mutate state.
 
 ## Expected durable state
 
-Operators may diagnose current K3 state through:
+Operators may diagnose K3 state through:
 
 - `kingdom_alliances` neutral identity rows;
 - `tracked_kingdom_alliances` tenant tracking rows;
@@ -35,144 +38,151 @@ Operators may diagnose current K3 state through:
 - `audit_events`; and
 - `outbox_messages`.
 
-## Observation behavior
+Slice D creates no new table, cache, materialized view, audit event or outbox event. Dashboard values are derived on read from accepted tenant state.
 
-Observation history remains append-oriented. Exact retry uses deterministic SHA-256 identity, latest accepted projection uses greatest capture time then observation ULID, and invalidated rows remain historical while being excluded from member/latest projection.
+## Intelligence projection semantics
 
-Do not directly update/delete observation facts to repair history; use the accepted correction/invalidation actions.
+At dashboard `asOf` time:
 
-## Diplomacy transitions
+- current observation = latest accepted observation captured at or before `asOf`;
+- invalidated observations are excluded;
+- observations after `asOf` are excluded;
+- prior comparison = immediately preceding accepted observation;
+- 7-day baseline = closest accepted observation at or before `asOf - 7 days`, no older than `asOf - 14 days`;
+- 30-day baseline = closest accepted observation at or before `asOf - 30 days`, no older than `asOf - 60 days`;
+- unsupported history is not interpolated/extrapolated;
+- missing power/member values remain missing; recorded zero remains zero; and
+- current/stale/missing freshness uses the existing 30-day Kingdoms threshold.
 
-Diplomacy is explicit human-maintained state. Valid states remain:
+For power/member trend endpoints, a missing value for one metric makes that metric's change missing without discarding another supported metric from the same observation pair.
 
-`unknown`, `neutral`, `friendly`, `nap`, `ally`, and `rival`.
+## Headline summaries and filters
 
-A transition request updates the current relationship and appends a transition snapshot in one transaction. Exact current-meaning retries are idempotent; same-state metadata changes are material and intentionally append history.
+Headline summaries describe the complete **active tracked-alliance** population:
 
-Review and expiry are advisory only. There is no scheduled state mutation.
+- active tracked count;
+- observation current/stale/missing counts;
+- diplomacy-state counts; and
+- relationships whose review or expiry date has arrived.
 
-## Diplomacy contacts
+For managers, headline diagnostics additionally include:
 
-Contacts are manager-private coordination records, not player/account identity.
+- active tracked alliances with at least one active contact; and
+- active tracked alliances with at least one active contact requiring verification.
 
-Allowed channels are handle-based:
+Contact verification is due when `last_verified_at` is null or older than 30 days at `asOf`.
 
-- `in_game`;
-- `discord`; and
-- `other_handle`.
+Row filters do **not** redefine these headline counts. Filters narrow the table only. Supported row filters are tracking state, freshness and diplomacy state.
 
-Normal lifecycle:
+Default detail order is active tracking, name ascending. Factual sorting may use name, tag, latest power, latest member count, observation age or diplomacy state. Treat this as navigation only; do not describe it in operations/support material as ranking, threat order, priority targets, best/worst alliances or recommendations.
 
-1. create an active contact;
-2. update the active contact when coordination metadata changes;
-3. optionally update factual last-verification time;
-4. deactivate when the contact is no longer current; and
-5. preserve inactive rows as manager-readable history.
+## Privacy diagnostics
 
-An exact active-contact update retry is a no-op. Repeated deactivation is also a no-op.
+Member-safe intelligence may include:
 
-Do not deduplicate new contacts solely because display names or handles match. Those values are not identity keys and duplicate values may legitimately represent separate records.
+- neutral alliance name/tag;
+- tracking/current-Kingdom context;
+- latest accepted power/member/capture time;
+- freshness/age;
+- factual prior/7-day/30-day changes;
+- explicit diplomacy state; and
+- advisory review/expiry timing.
 
-Inactive contacts are not edited. If coordination later resumes, create a new active contact rather than rewriting historical inactive data.
+Member payloads do not include:
 
-## Contact data-handling rules
+- manager tracking notes;
+- observation actor/private correction/invalidation text;
+- diplomacy terms/rationale or actor attribution;
+- contact IDs, names, roles, channels, handles, notes or verification diagnostics; or
+- manager workspace URLs.
 
-The contact UI and operational contract allow handles only. Do not store:
+Manager intelligence may include contact **counts**, verification-due count and latest active verification time, plus links to the existing private workspaces. It still does not copy contact display name, role, channel, handle or manager notes into the dashboard payload.
 
-- phone numbers;
-- home addresses;
-- passwords or credentials;
-- recovery material/secrets; or
-- unrelated private personal data.
+Do not copy private contact/diplomacy text into logs, metrics labels, support tickets, audit metadata or outbox messages while diagnosing the dashboard.
 
-Do not manually add `KingdomPlayer`, membership, user, role, or permission linkage to a contact row. That would violate the K3 identity and authorization boundary.
+## Query and performance diagnostics
+
+The dashboard query shape is intentionally batched:
+
+1. tenant tracking query with bounded eager loads for neutral reference, Kingdom and current diplomacy;
+2. latest accepted observation projection;
+3. prior accepted observation projection;
+4. 7-day baseline projection;
+5. 30-day baseline projection; and
+6. manager-only contact aggregate projection.
+
+The correlated observation projections select at most one accepted row per tracked alliance for each semantic point. They do not load each alliance's unbounded history into PHP.
+
+Slice D's realistic-volume gate uses:
+
+- 120 tracked alliances;
+- 600 accepted observations (five per tracking record);
+- 120 diplomacy relationships; and
+- 60 active contacts.
+
+The manager projection must complete with **no more than 10 SELECT statements**. An increased query count that scales with tracked alliance count is an N+1 regression and should block the slice.
+
+Existing observation indexes are tenant/tracking-first and cover capture/acceptance selection. Existing contact indexes cover tenant/tracking/state and tenant verification-time diagnostics. Slice D intentionally adds no migration.
 
 ## Failure modes and recovery
 
-### Alliance has no current Kingdom
+### Missing history
 
-Tracking creation fails. Configure the Alliance Kingdom through the accepted Alliance-setting workflow before retrying.
+`Insufficient history` is a valid result. Do not backfill a fabricated trend, carry forward a newer point, or widen the bounded window manually just to populate the dashboard.
 
-### Stable ID conflict
+### Missing value versus zero
 
-Assigning a stable game alliance ID that already belongs to another neutral reference in the same Kingdom fails closed. Do not repair this by rewriting IDs directly in PostgreSQL.
+A null power/member value means the observation did not support that fact. Zero is a real recorded value. Do not normalize null to zero in SQL, PHP, exports or UI.
+
+### Stale observation
+
+Stale means the latest accepted observation is older than 30 days. Record a new factual observation through the normal manager workflow if current data becomes available. Do not modify capture timestamps to make history appear fresh.
+
+### Review due
+
+A relationship is review-due when review or expiry time has arrived. This is advisory only. A manager must explicitly decide whether any diplomacy transition is appropriate; never update state directly because the dashboard flags review.
+
+### Contact verification due
+
+Verification due means an active contact is unverified or older than the 30-day verification threshold. Managers may update contact verification through the contact workflow after actual verification. Do not infer that the contact is invalid or deactivate it automatically.
 
 ### Alliance Kingdom changed
 
-Historical tracking, observation, diplomacy and contact history remain readable, but normal tracking/observation/diplomacy/contact mutations fail because captured Kingdom context no longer equals the Alliance current Kingdom.
+Historical rows remain readable and show historical Kingdom context. The dashboard does not retarget tracking/observations/diplomacy/contacts after drift.
 
-Archive stale tracking if appropriate, then deliberately establish tracking under the new current Kingdom. Do not rewrite captured Kingdom or historical foreign keys to make old history appear current.
+### Cross-tenant discrepancy
 
-### Archived tracking
+All aggregate queries are Alliance-scoped. If two platform Alliances track the same neutral `KingdomAlliance`, their derived metrics can legitimately differ because observations/diplomacy/contacts are tenant-owned. Do not reconcile them by copying another tenant's rows.
 
-Diplomacy/contact history remains manager-readable. New transitions and contact mutations are rejected. Do not reactivate history by editing the archived row directly.
+## Audit and outbox
 
-### Invalid diplomacy dates
+Dashboard reads emit no new business events. Existing mutation events remain internal `kingdoms.*` events and stay excluded from generic external webhook fan-out.
 
-Review and expiry cannot precede effective time, and review cannot be later than expiry when both are supplied.
+If audit/outbox records appear during a dashboard-only request, investigate the underlying request path; Slice D itself should perform no mutation.
 
-### Future contact verification time
+## Migration and rollback
 
-`last_verified_at` cannot be in the future. Correct the factual verification time and retry rather than bypassing validation.
-
-### Duplicate contact values
-
-Two new records may intentionally share the same display name or handle. Do not merge/delete one solely because those labels match.
-
-### Inactive contact edit attempted
-
-Inactive rows are preserved history and reject edit. Create a new active record if the coordination relationship resumes.
-
-### Outbox publication failure
-
-The business transaction remains committed with an unpublished outbox row. Recover through the existing `outbox:publish` workflow; do not recreate the business mutation solely to publish its event.
-
-## Privacy and diagnostics
-
-Manager tracking notes, observation correction/invalidation reasons, diplomacy terms/rationale, and all diplomacy contact detail are private tenant data.
-
-Do not copy contact display names, roles, channels, handles or manager notes into logs, tickets, metrics labels, audit metadata or outbox payloads.
-
-Structured contact diagnostics should use bounded identifiers/state only, such as Alliance ID, tracked record ID, neutral reference ID, contact ID, active/inactive state, lifecycle timestamps, verification timestamp and event type.
-
-Member-facing tracked-alliance payloads deliberately expose no contact data or internal contact IDs.
-
-## Audit/outbox expectations
-
-Material diplomacy/contact changes emit only internal Kingdoms evidence:
-
-- `kingdoms.diplomacy_transitioned`;
-- `kingdoms.diplomacy_contact_saved`;
-- `kingdoms.diplomacy_contact_deactivated`.
-
-Contact event payloads exclude display name, role, channel, handle and notes. Existing Integration policy excludes all `kingdoms.*` events from generic external webhook fan-out.
-
-## Migration/rollback
-
-Current K3 migrations:
+Current K3 migrations remain:
 
 1. `2026_08_09_140000_create_kingdom_alliance_tracking.php`;
 2. `2026_08_09_150000_create_kingdom_alliance_observations.php`;
 3. `2026_08_10_090000_create_kingdom_alliance_diplomacy.php`;
 4. `2026_08_10_100000_create_kingdom_alliance_diplomacy_contacts.php`.
 
-Rollback order is the reverse: contacts first, diplomacy transitions/current relationship second, observations third, then tracking/neutral references, followed by the accepted K2/K1 chain.
-
-The C2 migration has no compatibility shim and no player/membership/permission-link, scoring/ranking/recommendation, ingestion or public-integration placeholders.
+Slice D adds no schema. Rollback order therefore remains contacts → diplomacy → observations → tracking, followed by the accepted K2/K1 chain.
 
 ## Stop conditions
 
-Escalate instead of applying manual data fixes when recovery would require:
+Escalate instead of applying manual fixes when recovery would require:
 
-- changing a stable game alliance ID already assigned to a neutral reference;
-- merging references solely because names/tags match;
-- merging contacts solely because names/handles match;
-- linking a contact to player/user/membership identity without a separately approved contract;
-- changing another tenant's tracking, observation, diplomacy or contact row;
+- widening trend windows or fabricating/interpolating missing history;
+- converting missing values to zero;
+- using trends to calculate threat/desirability/composite scores;
+- treating factual sorting as target/best/worst ranking;
+- generating automated diplomacy, attack, punishment or transfer recommendations;
+- changing diplomacy automatically because review/expiry or trend data changed;
+- exposing private contact/diplomacy text to members/logs/outbox;
+- aggregating another tenant's observations because the neutral reference is shared;
 - rewriting captured Kingdom context after drift;
-- editing/deleting append-oriented observation/diplomacy history;
-- destructively deleting or rewriting inactive contact history;
-- changing diplomacy automatically because review/expiry/contact data changed;
-- exposing private relationship/contact data to ordinary members/logs/outbox;
-- adding phone/address/credential data to the contact workflow; or
-- bypassing `kingdoms.manage` / password confirmation.
+- adding a public intelligence API/webhook without separate approval; or
+- adding a scheduler/ingestion/bot path to keep the dashboard populated.
