@@ -3,11 +3,11 @@
 [← Operations documentation](README.md)
 
 **Scope:** `KINGDOMS-003`  
-**Current delivery:** Slice C1 / `K3-P3` candidate
+**Current delivery:** Slice C2 / `K3-P4` candidate
 
 ## Runtime ownership
 
-Slices A through C1 are synchronous first-party web workflows using PostgreSQL, the existing audit recorder and transactional outbox. They introduce no Kingdoms scheduler, queue worker, crawler, scraper, OCR process, bot, diplomacy timer or automated game-data ingestion process.
+Slices A through C2 are synchronous first-party web workflows using PostgreSQL, the existing audit recorder and transactional outbox. They introduce no Kingdoms scheduler, queue worker, crawler, scraper, OCR process, bot, diplomacy timer, automated negotiation process or automated game-data ingestion process.
 
 Routes:
 
@@ -15,8 +15,12 @@ Routes:
 - manager tracking workspace: `/alliance/kingdom-alliances/manage`;
 - member/manager observation history: `/alliance/kingdom-alliances/{tracking}/history`;
 - manager diplomacy workspace: `/alliance/kingdom-alliances/{tracking}/diplomacy`;
-- password-confirmed observation mutations under `/alliance/kingdom-alliances/{tracking}/observations`; and
-- password-confirmed diplomacy transitions under `/alliance/kingdom-alliances/{tracking}/diplomacy/transitions`.
+- manager contact workspace: `/alliance/kingdom-alliances/{tracking}/diplomacy/contacts`;
+- password-confirmed observation mutations under `/alliance/kingdom-alliances/{tracking}/observations`;
+- password-confirmed diplomacy transitions under `/alliance/kingdom-alliances/{tracking}/diplomacy/transitions`; and
+- password-confirmed contact create/update/deactivate under `/alliance/kingdom-alliances/{tracking}/diplomacy/contacts`.
+
+There is intentionally no contact delete route.
 
 ## Expected durable state
 
@@ -27,6 +31,7 @@ Operators may diagnose current K3 state through:
 - `kingdom_alliance_observations` tenant factual history;
 - `kingdom_alliance_diplomacy_relationships` tenant current relationship state;
 - `kingdom_alliance_diplomacy_transitions` append-oriented relationship history;
+- `kingdom_alliance_diplomacy_contacts` tenant manager-private coordination contacts;
 - `audit_events`; and
 - `outbox_messages`.
 
@@ -38,23 +43,49 @@ Do not directly update/delete observation facts to repair history; use the accep
 
 ## Diplomacy transitions
 
-Diplomacy is explicit human-maintained state. The only valid states are:
+Diplomacy is explicit human-maintained state. Valid states remain:
 
 `unknown`, `neutral`, `friendly`, `nap`, `ally`, and `rival`.
 
-A transition request updates the one current relationship row and appends a transition snapshot in the same transaction. The tracking row is the serialization point for relationship creation/change, preventing concurrent duplicate creation under the unique Alliance + tracking constraint.
+A transition request updates the current relationship and appends a transition snapshot in one transaction. Exact current-meaning retries are idempotent; same-state metadata changes are material and intentionally append history.
 
-An exact repeat of the current state/effective/review/expiry/terms/rationale meaning is idempotent and creates no new transition/audit/outbox evidence.
+Review and expiry are advisory only. There is no scheduled state mutation.
 
-A same-state request with changed metadata is a material update and intentionally appends a new transition. Do not collapse those rows as duplicates.
+## Diplomacy contacts
 
-## Review and expiry
+Contacts are manager-private coordination records, not player/account identity.
 
-Review and expiry times are advisory only. `needs_review` is derived during reads when either configured time is due.
+Allowed channels are handle-based:
 
-There is no scheduled diplomacy mutation. If a relationship is still `nap` after expiry, that is expected until an authorized manager explicitly records a new state.
+- `in_game`;
+- `discord`; and
+- `other_handle`.
 
-When diagnosing an overdue relationship, do not manually modify `current_state` based only on timestamps.
+Normal lifecycle:
+
+1. create an active contact;
+2. update the active contact when coordination metadata changes;
+3. optionally update factual last-verification time;
+4. deactivate when the contact is no longer current; and
+5. preserve inactive rows as manager-readable history.
+
+An exact active-contact update retry is a no-op. Repeated deactivation is also a no-op.
+
+Do not deduplicate new contacts solely because display names or handles match. Those values are not identity keys and duplicate values may legitimately represent separate records.
+
+Inactive contacts are not edited. If coordination later resumes, create a new active contact rather than rewriting historical inactive data.
+
+## Contact data-handling rules
+
+The contact UI and operational contract allow handles only. Do not store:
+
+- phone numbers;
+- home addresses;
+- passwords or credentials;
+- recovery material/secrets; or
+- unrelated private personal data.
+
+Do not manually add `KingdomPlayer`, membership, user, role, or permission linkage to a contact row. That would violate the K3 identity and authorization boundary.
 
 ## Failure modes and recovery
 
@@ -68,21 +99,29 @@ Assigning a stable game alliance ID that already belongs to another neutral refe
 
 ### Alliance Kingdom changed
 
-Historical tracking, observation history and diplomacy history remain readable, but normal tracking/observation/diplomacy mutations fail because captured Kingdom context no longer equals the Alliance current Kingdom.
+Historical tracking, observation, diplomacy and contact history remain readable, but normal tracking/observation/diplomacy/contact mutations fail because captured Kingdom context no longer equals the Alliance current Kingdom.
 
-Archive stale tracking if appropriate, then deliberately establish tracking under the new current Kingdom. Do not rewrite `tracked_kingdom_alliances.kingdom_id`, observation foreign keys or diplomacy foreign keys to make old history appear current.
+Archive stale tracking if appropriate, then deliberately establish tracking under the new current Kingdom. Do not rewrite captured Kingdom or historical foreign keys to make old history appear current.
 
 ### Archived tracking
 
-Diplomacy history remains manager-readable. New diplomacy transitions are rejected. Do not reactivate history by editing the archived row directly.
+Diplomacy/contact history remains manager-readable. New transitions and contact mutations are rejected. Do not reactivate history by editing the archived row directly.
 
 ### Invalid diplomacy dates
 
-Review and expiry times cannot precede the relationship effective time, and review cannot be later than expiry when both are supplied. Correct the intended planning dates and retry; do not bypass the validation in PostgreSQL.
+Review and expiry cannot precede effective time, and review cannot be later than expiry when both are supplied.
 
-### Duplicate diplomacy submission
+### Future contact verification time
 
-If the submitted state and all normalized relationship metadata already match the current relationship, the action returns the existing row without adding history or durability evidence. This is expected idempotent behavior.
+`last_verified_at` cannot be in the future. Correct the factual verification time and retry rather than bypassing validation.
+
+### Duplicate contact values
+
+Two new records may intentionally share the same display name or handle. Do not merge/delete one solely because those labels match.
+
+### Inactive contact edit attempted
+
+Inactive rows are preserved history and reject edit. Create a new active record if the coordination relationship resumes.
 
 ### Outbox publication failure
 
@@ -90,17 +129,23 @@ The business transaction remains committed with an unpublished outbox row. Recov
 
 ## Privacy and diagnostics
 
-Manager tracking notes, observation correction/invalidation reasons, diplomacy terms and diplomacy rationale are private tenant data. Do not copy them into logs, tickets, metrics labels, audit metadata or outbox payloads.
+Manager tracking notes, observation correction/invalidation reasons, diplomacy terms/rationale, and all diplomacy contact detail are private tenant data.
 
-Structured diagnostics should use bounded identifiers/state such as Alliance ID, tracked record ID, neutral reference ID, observation/relationship/transition IDs, captured Kingdom ID, diplomacy from/to state, effective/review/expiry timestamps, freshness/review-due state and event type.
+Do not copy contact display names, roles, channels, handles or manager notes into logs, tickets, metrics labels, audit metadata or outbox payloads.
 
-Member-facing tracked-alliance payloads deliberately expose only the current diplomacy label and review-due indicator. Transition IDs/history, actor attribution, manager-private terms/rationale and manager route URLs are omitted.
+Structured contact diagnostics should use bounded identifiers/state only, such as Alliance ID, tracked record ID, neutral reference ID, contact ID, active/inactive state, lifecycle timestamps, verification timestamp and event type.
+
+Member-facing tracked-alliance payloads deliberately expose no contact data or internal contact IDs.
 
 ## Audit/outbox expectations
 
-Material diplomacy changes emit `kingdoms.diplomacy_transitioned` to audit and internal outbox evidence. The payload excludes terms/rationale.
+Material diplomacy/contact changes emit only internal Kingdoms evidence:
 
-Existing Integration policy excludes all `kingdoms.*` events from generic external webhook fan-out. C1 adds no public API or webhook contract.
+- `kingdoms.diplomacy_transitioned`;
+- `kingdoms.diplomacy_contact_saved`;
+- `kingdoms.diplomacy_contact_deactivated`.
+
+Contact event payloads exclude display name, role, channel, handle and notes. Existing Integration policy excludes all `kingdoms.*` events from generic external webhook fan-out.
 
 ## Migration/rollback
 
@@ -108,11 +153,12 @@ Current K3 migrations:
 
 1. `2026_08_09_140000_create_kingdom_alliance_tracking.php`;
 2. `2026_08_09_150000_create_kingdom_alliance_observations.php`;
-3. `2026_08_10_090000_create_kingdom_alliance_diplomacy.php`.
+3. `2026_08_10_090000_create_kingdom_alliance_diplomacy.php`;
+4. `2026_08_10_100000_create_kingdom_alliance_diplomacy_contacts.php`.
 
-Rollback order is the reverse: diplomacy transitions/current relationship first, observations second, then tracking/neutral references, followed by the accepted K2/K1 chain.
+Rollback order is the reverse: contacts first, diplomacy transitions/current relationship second, observations third, then tracking/neutral references, followed by the accepted K2/K1 chain.
 
-The C1 migration has no compatibility shim and no contact/player-link/scoring/ingestion/public-integration placeholders.
+The C2 migration has no compatibility shim and no player/membership/permission-link, scoring/ranking/recommendation, ingestion or public-integration placeholders.
 
 ## Stop conditions
 
@@ -120,11 +166,13 @@ Escalate instead of applying manual data fixes when recovery would require:
 
 - changing a stable game alliance ID already assigned to a neutral reference;
 - merging references solely because names/tags match;
-- changing another tenant's tracking, observation or diplomacy row;
+- merging contacts solely because names/handles match;
+- linking a contact to player/user/membership identity without a separately approved contract;
+- changing another tenant's tracking, observation, diplomacy or contact row;
 - rewriting captured Kingdom context after drift;
-- editing/deleting append-oriented observation or diplomacy transition history;
-- changing diplomacy automatically because review/expiry passed;
-- inferring diplomacy from power, observations, combat or transfer state;
-- exposing manager notes, observation reasons, diplomacy terms/rationale or actors to ordinary members/logs/outbox;
-- adding contact/identity/authorization shortcuts through diplomacy; or
+- editing/deleting append-oriented observation/diplomacy history;
+- destructively deleting or rewriting inactive contact history;
+- changing diplomacy automatically because review/expiry/contact data changed;
+- exposing private relationship/contact data to ordinary members/logs/outbox;
+- adding phone/address/credential data to the contact workflow; or
 - bypassing `kingdoms.manage` / password confirmation.
