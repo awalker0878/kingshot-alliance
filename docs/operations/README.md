@@ -2,19 +2,18 @@
 
 [← Documentation home](../README.md)
 
-This directory contains the living operating model, production/release controls, recovery runbooks, and historical phase-specific evidence.
+This directory owns the **shared repository/runtime operating model**: configuration, background processing, observability, deployment/release controls, recovery runbooks, and historical phase-wide operating evidence.
 
-## Start here — living operations
+Operating guides that primarily diagnose one code-domain capability live with that owning domain under `docs/domains/<domain>/operations/` and consume these shared runbooks rather than defining a separate platform.
 
-Operators should use these documents for the current Phase 0–6-complete runtime and accepted post-program increments rather than reconstructing today's behavior from historical phase records:
+## Start here — shared living operations
 
 - [Background processing](background-processing.md) — scheduler commands, Horizon queues, outbox processing, idempotency, failure signals, and safe catch-up/recovery.
 - [Runtime configuration reference](configuration-reference.md) — application, PostgreSQL, Redis/session/queue, storage, mail, security/proxy, Horizon, launch-threshold, and deployment-host settings.
 - [Observability](observability.md) — liveness/readiness, request/trace correlation, JSON logs, audit correlation, Horizon, outbox/webhook signals, release identity, alert categories, and evidence boundaries.
-- [Kingdoms roster intelligence operations](kingdoms-roster-intelligence.md) — `KINGDOMS-001` persisted state, CSV diagnostics, snapshot/history behavior, intelligence query/index boundary, migration order and internal-only outbox contract.
-- [Kingdoms transfer planning operations](kingdoms-transfer-planning.md) — `KINGDOMS-002` transfer lifecycle, readiness/blocker diagnosis, explicit completion/roster handoff, idempotency, query-shape, migration order and internal-only event boundary.
+- [Kingdoms operations](../domains/kingdoms/operations/README.md) — domain-specific roster intelligence, transfer planning, and Alliance-intelligence diagnostics for accepted K1–K3 behavior.
 
-These are living operational contracts. Update them in the same PR when runtime behavior, configuration, scheduler cadence, queue ownership, health checks, or observability semantics change.
+These shared living contracts are updated when runtime configuration, scheduler cadence, queue ownership, health checks, observability, deployment, or recovery semantics change.
 
 ## Core runbooks
 
@@ -24,29 +23,29 @@ These are living operational contracts. Update them in the same PR when runtime 
 - [Backup and restore](runbooks/backup-restore.md)
 - [Incident response](runbooks/incident-response.md)
 
-Runbooks belong under `operations/runbooks/`; do not create a parallel top-level `docs/runbooks/` directory.
+Runbooks stay under `operations/runbooks/`; do not create a parallel top-level `docs/runbooks/` directory.
 
 A practical operator path is:
 
-1. use the [configuration reference](configuration-reference.md) to establish a valid runtime;
-2. deploy using the [deployment runbook](runbooks/deployment.md);
-3. verify application/dependency signals using [observability](observability.md);
-4. verify scheduler, outbox, and queues using [background processing](background-processing.md); and
-5. use the rollback, backup/restore, or incident-response runbook when a stop/recovery condition is reached.
+1. establish valid runtime configuration;
+2. deploy using the deployment runbook;
+3. validate shared health/telemetry using observability;
+4. verify scheduler/outbox/queues using background processing; and
+5. use rollback, backup/restore, or incident response when a stop/recovery condition is reached.
 
-For accepted Kingdoms incidents, use the relevant [roster intelligence](kingdoms-roster-intelligence.md) or [transfer planning](kingdoms-transfer-planning.md) guide together with shared runbooks rather than inventing a separate deployment path.
+Domain-specific guides add domain diagnosis/state semantics to this path; they do not replace it.
 
 ## Production and release
 
 - [Production launch runbook](production-launch-runbook.md) — pre-cutover evidence, launch sequence, validation, and stop conditions.
 - [Release checklist](release-checklist.md) — required evidence from build through production closeout.
-- [Branch protection](branch-protection.md) — recommended repository protection and required-check governance.
+- [Branch protection](branch-protection.md) — repository protection and required-check governance.
 
-The authoritative real-production decision is maintained in [`../product/production-launch-approval.md`](../product/production-launch-approval.md). Operational documents can describe how to prove a control, but must not mark a production control approved on their own.
+The authoritative real-production decision is maintained in [production launch approval](../product/production-launch-approval.md). Operational docs can explain how to prove a control but cannot approve production on their own.
 
 ## Historical phase operating evidence
 
-Phase-specific documents remain useful as evidence of what was introduced/tested during the implementation program. They are not the primary source for the current combined operating model.
+Phase-specific records remain here where they document the overall original program/runtime evolution rather than one current domain contract.
 
 Operations guides:
 
@@ -66,20 +65,34 @@ Migration/rollback records:
 - [Phase 5 migration and rollback](phase-5-migration-rollback.md)
 - [Phase 6 migration and rollback](phase-6-migration-rollback.md)
 
-There is no separate Phase 1 operations guide or Phase 3 migration/rollback document in the repository. The index lists the files that actually exist rather than implying continuous ranges.
+Read “next phase”, “before Phase N”, and similar wording in these files as historical phase-gate context.
 
-Read “next phase”, “before Phase N”, and similar language in historical files as phase-gate context. The current program state is summarized in [`../README.md`](../README.md) and the accepted/current product records under [`../product/`](../product/README.md).
+## Domain-specific operations
+
+Canonical pattern:
+
+```text
+docs/domains/<domain>/operations/
+  README.md
+  <capability>.md
+```
+
+Current example:
+
+- [Kingdoms operations](../domains/kingdoms/operations/README.md)
+
+A domain-specific guide should document persisted state, normal operating flow, domain-specific diagnostics, idempotency/recovery, performance/query constraints, privacy/safety, and evidence while linking back to shared deployment/observability/recovery material here.
 
 ## Operational documentation rules
 
-- A living operations guide or runbook must be executable by an operator who did not write the feature.
-- Include prerequisites, safety/stop conditions, commands or actions, validation, rollback/recovery, and evidence to retain where applicable.
-- Prefer immutable identifiers such as release SHA, image digest, backup identifier, or change/incident record ID.
+- A living operations guide/runbook must be executable by an operator who did not write the feature.
+- Include prerequisites, safety/stop conditions, actions/commands, validation, rollback/recovery, and evidence to retain where applicable.
+- Prefer immutable identifiers such as release SHA, image digest, backup ID, or change/incident record ID.
 - Never commit production credentials, secret values, private recovery material, or sensitive incident payloads.
-- Distinguish a tested procedure from a completed real-world control. CI recovery demonstrations do not prove production recovery unless the production evidence record says so.
-- When runtime behavior changes, update the corresponding living guide/runbook and release/rollback implications in the same PR.
-- Phase-specific records should remain historical evidence; do not keep extending them to describe current cross-phase behavior when a living guide owns that contract.
+- Distinguish a tested procedure from a completed real-world control. CI recovery demonstrations do not prove production recovery unless production evidence says so.
+- When runtime behavior changes, update the owning domain guide plus any affected shared runbook/configuration contract in the same change.
+- Historical phase records remain evidence; do not keep extending them to describe current domain behavior when a living domain guide owns it.
 
 ## Launch evidence boundary
 
-Repository automation can prove code quality, migrations, image construction, staging boot, backup/restore tooling, image scanning, health endpoints, configuration validation, scheduler definitions, and queue configuration. It cannot prove real HTTPS/ingress configuration, network egress enforcement, capacity, production log retention, alert ownership, production dependencies, operator identities, on-call coverage, or actual recovery of production-managed keys/media. Those remain external go/no-go evidence.
+Repository automation can prove code quality, migrations, image construction, staging boot, backup/restore tooling, image scanning, health endpoints, configuration validation, scheduler definitions, and queue configuration. It cannot prove real HTTPS/ingress, network egress enforcement, capacity, production log retention, alert ownership, production dependencies, operator identities, on-call coverage, or actual recovery of production-managed keys/media. Those remain external go/no-go evidence.
