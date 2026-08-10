@@ -62,15 +62,15 @@ Support impersonation is intentionally not implemented because the implementatio
 
 ## Documentation
 
-- `docs/domains/platform-scale-and-administration.md`
-- `docs/domains/integrations.md`
-- `docs/operations/phase-6-operations.md`
-- `docs/operations/phase-6-database-maintenance.md`
-- `docs/operations/phase-6-migration-rollback.md`
-- `docs/operations/phase-6-disaster-recovery-exercise.md`
-- `docs/security/phase-6-threat-model.md`
-- `docs/product/phase-6-accessibility.md`
-- `docs/product/phase-6-launch-readiness.md`
+- [Platform domain](../domains/platform/README.md)
+- [Integrations domain](../domains/integrations/README.md)
+- [Phase 6 operations](../operations/phase-6-operations.md)
+- [Phase 6 database maintenance](../operations/phase-6-database-maintenance.md)
+- [Phase 6 migration and rollback](../operations/phase-6-migration-rollback.md)
+- [Phase 6 disaster-recovery exercise](../operations/phase-6-disaster-recovery-exercise.md)
+- [Phase 6 threat model](../security/phase-6-threat-model.md)
+- [Phase 6 accessibility review](phase-6-accessibility.md)
+- [Phase 6 launch readiness](phase-6-launch-readiness.md)
 
 ## Final gate
 
