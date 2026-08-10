@@ -170,7 +170,9 @@ function submitTransition(): void {
           </div>
           <div>
             <dt class="text-slate-500">Last changed by</dt>
-            <dd class="mt-1 text-slate-300">{{ current.lastActorName ?? 'No explicit transition yet' }}</dd>
+            <dd class="mt-1 text-slate-300">
+              {{ current.lastActorName ?? 'No explicit transition yet' }}
+            </dd>
           </div>
         </dl>
       </div>
@@ -192,7 +194,9 @@ function submitTransition(): void {
 
         <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="submitTransition">
           <div>
-            <label class="block text-sm font-medium" for="diplomacy-state">Relationship state</label>
+            <label class="block text-sm font-medium" for="diplomacy-state"
+              >Relationship state</label
+            >
             <select
               id="diplomacy-state"
               v-model="form.state"
@@ -209,7 +213,9 @@ function submitTransition(): void {
           </div>
 
           <div>
-            <label class="block text-sm font-medium" for="diplomacy-effective">Effective time</label>
+            <label class="block text-sm font-medium" for="diplomacy-effective"
+              >Effective time</label
+            >
             <input
               id="diplomacy-effective"
               v-model="form.effective_at"
@@ -232,7 +238,9 @@ function submitTransition(): void {
               :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
               type="datetime-local"
             />
-            <p class="mt-1 text-xs text-slate-500">Advisory only; reaching this time never changes state.</p>
+            <p class="mt-1 text-xs text-slate-500">
+              Advisory only; reaching this time never changes state.
+            </p>
             <p v-if="form.errors.review_at" class="mt-1 text-sm text-rose-300">
               {{ form.errors.review_at }}
             </p>
@@ -247,7 +255,9 @@ function submitTransition(): void {
               :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
               type="datetime-local"
             />
-            <p class="mt-1 text-xs text-slate-500">Advisory only; expiry creates a review indicator.</p>
+            <p class="mt-1 text-xs text-slate-500">
+              Advisory only; expiry creates a review indicator.
+            </p>
             <p v-if="form.errors.expires_at" class="mt-1 text-sm text-rose-300">
               {{ form.errors.expires_at }}
             </p>
@@ -262,14 +272,18 @@ function submitTransition(): void {
               :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
               maxlength="5000"
             />
-            <p class="mt-1 text-xs text-slate-500">Manager-private; excluded from audit/outbox payloads.</p>
+            <p class="mt-1 text-xs text-slate-500">
+              Manager-private; excluded from audit/outbox payloads.
+            </p>
             <p v-if="form.errors.terms" class="mt-1 text-sm text-rose-300">
               {{ form.errors.terms }}
             </p>
           </div>
 
           <div>
-            <label class="block text-sm font-medium" for="diplomacy-rationale">Private rationale</label>
+            <label class="block text-sm font-medium" for="diplomacy-rationale"
+              >Private rationale</label
+            >
             <textarea
               id="diplomacy-rationale"
               v-model="form.rationale"
@@ -277,7 +291,9 @@ function submitTransition(): void {
               :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
               maxlength="5000"
             />
-            <p class="mt-1 text-xs text-slate-500">Manager-private explanation for the explicit decision.</p>
+            <p class="mt-1 text-xs text-slate-500">
+              Manager-private explanation for the explicit decision.
+            </p>
             <p v-if="form.errors.rationale" class="mt-1 text-sm text-rose-300">
               {{ form.errors.rationale }}
             </p>
@@ -304,8 +320,8 @@ function submitTransition(): void {
         <div>
           <h2 class="text-xl font-semibold">Transition history</h2>
           <p class="mt-1 text-sm text-slate-400">
-            Append-oriented manager history. State, dates, terms, rationale, actor, and recorded time
-            are preserved for each material change.
+            Append-oriented manager history. State, dates, terms, rationale, actor, and recorded
+            time are preserved for each material change.
           </p>
         </div>
         <p class="text-sm text-slate-500">Up to {{ historyLimit }} most recent transitions</p>
@@ -328,18 +344,24 @@ function submitTransition(): void {
               </td>
               <td class="px-3 py-4 text-slate-300">
                 <p>Effective {{ formatDate(transition.effectiveAt) }}</p>
-                <p class="mt-1 text-xs text-slate-500">Review {{ formatDate(transition.reviewAt) }}</p>
-                <p class="mt-1 text-xs text-slate-500">Expiry {{ formatDate(transition.expiresAt) }}</p>
+                <p class="mt-1 text-xs text-slate-500">
+                  Review {{ formatDate(transition.reviewAt) }}
+                </p>
+                <p class="mt-1 text-xs text-slate-500">
+                  Expiry {{ formatDate(transition.expiresAt) }}
+                </p>
               </td>
               <td class="px-3 py-4 text-slate-300">
                 <p class="whitespace-pre-wrap">{{ transition.terms ?? 'No terms recorded' }}</p>
-                <p class="mt-2 whitespace-pre-wrap text-xs text-slate-500">
+                <p class="mt-2 text-xs whitespace-pre-wrap text-slate-500">
                   {{ transition.rationale ?? 'No rationale recorded' }}
                 </p>
               </td>
               <td class="px-3 py-4 text-slate-300">
                 <p>{{ transition.actorName ?? 'Former/deleted user' }}</p>
-                <p class="mt-1 text-xs text-slate-500">Recorded {{ formatDate(transition.recordedAt) }}</p>
+                <p class="mt-1 text-xs text-slate-500">
+                  Recorded {{ formatDate(transition.recordedAt) }}
+                </p>
               </td>
             </tr>
           </tbody>
