@@ -4,7 +4,7 @@
 
 This directory owns current business/domain contracts for runtime code under `app/Domain/<CanonicalDomain>`.
 
-The normative structure, naming, format, migration, and CI rules are defined by the [repository documentation standard](../product/documentation-standard.md).
+The normative structure, naming, format, and CI rules are defined by the [repository documentation standard](../product/documentation-standard.md).
 
 ## Canonical rule
 
@@ -15,89 +15,74 @@ app/Domain/<CanonicalDomain>/README.md
 docs/domains/<canonical-domain-kebab>/README.md
 ```
 
-The code-local README is concise developer navigation. The matching `/docs` directory is the canonical domain documentation root. Large domains may add capability files inside their own directory, for example `docs/domains/kingdoms/roster.md`.
+The code-local README is concise developer navigation. The matching `/docs` directory is the canonical living domain contract. Capability documents live inside the owning domain directory.
 
-The relationship is enforced bidirectionally in `tests/Architecture/RepositoryStructureTest.php`: a code domain without a docs domain is invalid, and a docs domain without a code domain is invalid.
+`README.md` is the **only** Markdown file permitted directly under `docs/domains/`.
+
+The relationship is enforced bidirectionally by `tests/Architecture/RepositoryStructureTest.php`: code domains and documentation-domain directories must match after canonical normalization, every documentation-domain directory must contain `README.md`, and flat root-level domain Markdown files are rejected.
 
 ## Canonical domain roots
 
-| Code domain | Documentation root | Current documentation state |
+| Code domain | Canonical living contract | Primary ownership |
 | --- | --- | --- |
-| `Alliances` | [alliances/](alliances/README.md) | Root established; detailed contract migration pending |
-| `Audit` | [audit/](audit/README.md) | Root established; detailed contract migration pending |
-| `Authorization` | [authorization/](authorization/README.md) | Root established; detailed contract migration pending |
-| `Content` | [content/](content/README.md) | Root established; migrate `content-management.md` |
-| `Contributions` | [contributions/](contributions/README.md) | Root established; migrate `contributions-and-reporting.md` |
-| `Events` | [events/](events/README.md) | Root established; split from `events-and-rallies.md` |
-| `Identity` | [identity/](identity/README.md) | Root established; split from combined identity/tenancy guide |
-| `Integrations` | [integrations/](integrations/README.md) | Root established; migrate existing `integrations.md` |
-| `Kingdoms` | [kingdoms/](kingdoms/README.md) | Root established; migrate root and capability guides |
-| `Memberships` | [memberships/](memberships/README.md) | Root established; split from combined identity/tenancy guide |
-| `Notifications` | [notifications/](notifications/README.md) | Root established; migrate existing `notifications.md` |
-| `Platform` | [platform/](platform/README.md) | Root established; migrate `platform-scale-and-administration.md` |
-| `Rallies` | [rallies/](rallies/README.md) | Root established; split from `events-and-rallies.md` |
-| `Recruitment` | [recruitment/](recruitment/README.md) | Root established; migrate existing `recruitment.md` |
+| `Alliances` | [alliances/](alliances/README.md) | Alliance aggregate/settings and active-Alliance tenant context. |
+| `Audit` | [audit/](audit/README.md) | Attributable security/business audit-event recording. |
+| `Authorization` | [authorization/](authorization/README.md) | Alliance roles, permissions, role assignment, permission evaluation. |
+| `Content` | [content/](content/README.md) | Authored content, publication/visibility, revisions, media. |
+| `Contributions` | [contributions/](contributions/README.md) | Contribution records/calculations/corrections/reporting/exports. |
+| `Events` | [events/](events/README.md) | Event schedules/occurrences/registration/waitlist/attendance/calendar/export. |
+| `Identity` | [identity/](identity/README.md) | Global User identity, authentication, verification, password/session, MFA. |
+| `Integrations` | [integrations/](integrations/README.md) | Read-only API credentials/contracts and signed webhook delivery. |
+| `Kingdoms` | [kingdoms/](kingdoms/README.md) | Kingdom/player/game-Alliance references, roster/history/intelligence, transfer, diplomacy. |
+| `Memberships` | [memberships/](memberships/README.md) | Alliance membership and invitation lifecycle. |
+| `Notifications` | [notifications/](notifications/README.md) | Durable Event-reminder and scheduled-report delivery coordination. |
+| `Platform` | [platform/](platform/README.md) | Cross-tenant administration, lifecycle, entitlements, retention, outbox infrastructure. |
+| `Rallies` | [rallies/](rallies/README.md) | Rally guidance, formations, groups, assignments, Rally participation. |
+| `Recruitment` | [recruitment/](recruitment/README.md) | Application intake, candidate pipeline, decisions, onboarding, retention. |
 
-The folders above are now the canonical structural anchors. During `DOCS-P1`/`DOCS-P2`, their transitional index content is replaced by the full living contracts and capability files while the old flat files are retired.
+## Capability documents
 
-## Capability-document rule
+A capability document is created only when a domain root would otherwise become difficult to navigate or the capability has its own meaningful lifecycle, authorization/privacy, persistence/query, integration, or operational contract.
 
-Capability documents live beneath the owning domain:
+Capability files use:
 
 ```text
-docs/domains/<domain>/README.md
 docs/domains/<domain>/<capability>.md
 ```
 
-The domain folder already establishes ownership, so capability filenames do not repeat the domain prefix.
+The folder already identifies the owner, so capability filenames do not repeat the domain name.
 
-Example target for Kingdoms:
+### Kingdoms capabilities
 
-```text
-docs/domains/kingdoms/
-  README.md
-  roster.md
-  snapshots.md
-  intelligence.md
-  csv-migration.md
-  transfer-planning.md
-  alliance-intelligence.md
-```
+`Kingdoms` currently has the accepted deep-dive capability set:
 
-Do not create one document per class, controller, action, query, table, or enum. Use a capability document when the capability has a meaningful independent lifecycle, authorization/privacy boundary, persistence/query contract, integration contract, or enough complexity that the root README becomes difficult to navigate.
+- [Roster](kingdoms/roster.md) — neutral player identity and Alliance-owned roster state.
+- [Player snapshots](kingdoms/snapshots.md) — append-oriented player observation history and freshness.
+- [Roster intelligence](kingdoms/intelligence.md) — exact aggregates, data quality, linkage/movement, bounded trends.
+- [Controlled CSV migration](kingdoms/csv-migration.md) — strict dry-run/confirm roster migration/export contract.
+- [Transfer planning](kingdoms/transfer-planning.md) — transfer cycles, participants, groups, readiness/blockers, explicit completion/handoff.
+- [Alliance intelligence and diplomacy](kingdoms/alliance-intelligence.md) — tracked game-side Alliances, observations, explicit diplomacy, private contacts, descriptive intelligence.
 
-## Current migration-source guides
+## Boundary rules
 
-The following flat guides remain valid migration sources until `DOCS-P1`/`DOCS-P2` moves their authoritative content into the domain folders:
-
-- [Identity, tenancy, and membership](identity-tenancy-and-membership.md)
-- [Content management](content-management.md)
-- [Events and rallies](events-and-rallies.md)
-- [Contributions and reporting](contributions-and-reporting.md)
-- [Integrations](integrations.md)
-- [Kingdoms](kingdoms.md)
-- [Kingdoms roster](kingdoms-roster.md)
-- [Kingdoms player snapshots](kingdoms-snapshots.md)
-- [Kingdoms roster intelligence](kingdoms-intelligence.md)
-- [Kingdoms controlled CSV migration](kingdoms-csv-migration.md)
-- [Kingdoms transfer planning](kingdoms-transfer-planning.md)
-- [Kingdoms alliance intelligence](kingdoms-alliance-intelligence.md)
-- [Notifications](notifications.md)
-- [Platform scale and administration](platform-scale-and-administration.md)
-- [Recruitment](recruitment.md)
-
-Do not remove a migration source until its content has been moved, all repository links have been updated, code-local READMEs point to the new root, and documentation architecture tests pass.
+- A domain root describes behavior owned by its matching code domain.
+- Cross-domain collaboration uses intentional public actions, queries, services, value objects, enums, or events rather than persistence reach-through.
+- Combined user workflows do not justify combining independent code-domain ownership into one canonical file.
+- Product scope/status/evidence belongs in `../product/`; security evidence in `../security/`; operational procedures in `../operations/`; architecture rationale in `../adr/`.
+- Capability documents remain inside the owning domain directory.
+- Do not create one document per class, controller, route, table, action, query, enum, or value object.
+- Code/tests remain authoritative for exact runtime behavior; documentation drift is a defect to fix.
 
 ## Architecture evidence
 
-- [Repository/domain structure audit](repository-structure-audit.md) — physical-layout evidence.
-- [Domain boundary audit](domain-boundary-audit.md) — semantic ownership and intentional cross-domain contract evidence.
+Cross-domain/repository architecture audits are product/program evidence rather than living domain contracts:
 
-These are evidence records, not canonical domain roots. They remain root-level historical/current evidence during the documentation migration.
+- [Repository structure audit](../product/repository-structure-audit.md)
+- [Domain boundary audit](../product/domain-boundary-audit.md)
 
 ## Standard domain format
 
-After `DOCS-P1`, every `docs/domains/<domain>/README.md` uses the exact living-domain section order defined in the [documentation standard](../product/documentation-standard.md):
+Every `docs/domains/<domain>/README.md` follows the living-domain section order in the [documentation standard](../product/documentation-standard.md):
 
 1. Purpose and ownership.
 2. Scope.
@@ -118,17 +103,10 @@ After `DOCS-P1`, every `docs/domains/<domain>/README.md` uses the exact living-d
 17. Capability documents.
 18. Related documentation.
 
-## Boundary rules
-
-- A domain root describes behavior owned by its matching code domain.
-- Cross-domain collaboration references intentional public actions, queries, services, value objects, enums, or events rather than persistence reach-through.
-- Combined user workflows do not justify combining independent code-domain ownership into one canonical root.
-- Product scope/status belongs in `../product/`; security evidence in `../security/`; operational procedures in `../operations/`; architecture rationale in `../adr/`.
-- Capability documents stay inside the owning domain directory.
-- Code/tests remain authoritative for exact runtime behavior; documentation drift is a defect to fix, not a compatibility state to preserve.
+Capability files use the standard 12-section capability-contract format defined in the same standard.
 
 ## Updating domain documentation
 
-When domain behavior changes materially, update the matching domain root together with affected capability docs, code-local README, security, operations, ADR, capability/status, accessibility, and acceptance evidence as required.
+When behavior changes materially, update the matching domain root and any affected capability documents together with code-local README, tests, security/operations docs, ADRs, capability/status records, accessibility evidence, and acceptance evidence as applicable.
 
-The target state is deterministic: a contributor can derive the documentation path directly from `app/Domain/<Domain>` without repository search or tribal knowledge.
+The structure is intentionally deterministic: a contributor can derive the canonical documentation path directly from `app/Domain/<Domain>` without repository search or tribal knowledge.
