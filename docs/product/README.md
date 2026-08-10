@@ -2,50 +2,58 @@
 
 [← Documentation home](../README.md)
 
-This directory owns the completed Phase 0–6 baseline, approved post-program product increments, current capability/status navigation, increment/phase acceptance, accessibility evidence, alignment audits, and production-readiness/approval state.
+This directory owns the completed Phase 0–6 baseline, approved post-program product increments, current capability/status navigation, architecture/documentation governance evidence, increment/phase acceptance, accessibility evidence, and production-readiness/approval state.
 
 ## Authoritative current records
 
-- [Implementation plan](implementation-plan.md) — approved Phase 0–6 program baseline, phase boundaries, cross-cutting requirements, canonical repository structure, and program definition of done.
-- [Kingdoms roster intelligence increment](kingdoms-roster-intelligence-increment.md) — **Approved scope / Accepted implementation** for first-class Kingdoms, neutral game-player identity, alliance rosters, snapshots, imports/exports, and roster intelligence.
-- [KINGDOMS-001 implementation plan](kingdoms-roster-intelligence-implementation-plan.md) — gated sequence `K1-P0` through `K1-P6`; implementation slices and whole-increment hardening are complete.
-- [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md) — **Accepted** whole-increment domain/security/accessibility/migration/query/operations/API-webhook review and protected evidence record.
-- [KINGDOMS-001 accessibility review](kingdoms-roster-intelligence-accessibility.md) — accepted repository accessibility evidence for the complete first-party workflow.
-- [Kingdoms transfer planning increment](kingdoms-transfer-planning-increment.md) — **Approved scope / Accepted implementation** for alliance-owned transfer cycles, incoming/outgoing/staying participants, destinations, groups, coordinators, readiness/blockers, and explicit roster handoff.
-- [KINGDOMS-002 implementation plan](kingdoms-transfer-planning-implementation-plan.md) — completed gated sequence `K2-P0` through `K2-P6`.
-- [KINGDOMS-002 exit report](kingdoms-transfer-planning-exit-report.md) — **Accepted** whole-increment domain/security/accessibility/migration/query/operations/API-webhook review and protected evidence record.
-- [KINGDOMS-002 accessibility review](kingdoms-transfer-planning-accessibility.md) — accepted repository/source-level accessibility evidence for the complete transfer-planning workflow.
-- [Kingdoms alliance intelligence and diplomacy increment](kingdoms-alliance-intelligence-increment.md) — **Approved scope / Accepted implementation** for neutral game-side alliance references, alliance-owned observations, diplomacy/NAP history, private contacts, and descriptive intelligence.
-- [KINGDOMS-003 implementation plan](kingdoms-alliance-intelligence-implementation-plan.md) — completed gated sequence `K3-P0` through `K3-P6`.
-- [KINGDOMS-003 exit report](kingdoms-alliance-intelligence-exit-report.md) — **Accepted** whole-increment domain/security/accessibility/migration/query/operations/API-webhook review and exact protected evidence record.
-- [KINGDOMS-003 accessibility review](kingdoms-alliance-intelligence-accessibility.md) — accepted repository/source-level accessibility evidence for the complete first-party alliance-intelligence/diplomacy workflow.
-- [KINGDOMS-003 K3-P0 decisions](kingdoms-alliance-intelligence-p0-decisions.md) — locked identity, tenancy, diplomacy-state, observation-correction, privacy/history, event and migration decisions governing runtime slices.
-- [KINGDOMS-003 Slice A validation](kingdoms-alliance-intelligence-slice-a-validation.md) — **Validated** neutral `KingdomAlliance` identity and alliance-owned tracking foundation, with exact protected/runtime evidence.
-- [KINGDOMS-003 Slice B validation](kingdoms-alliance-intelligence-slice-b-validation.md) — **Validated** append-oriented factual observations, correction/invalidation history and current/stale/missing projection, with exact protected/runtime evidence.
-- [KINGDOMS-003 Slice C1 validation](kingdoms-alliance-intelligence-slice-c1-validation.md) — **Validated** explicit human-maintained diplomacy/NAP lifecycle and transition history.
-- [KINGDOMS-003 Slice C2 validation](kingdoms-alliance-intelligence-slice-c2-validation.md) — **Validated** manager-private handle-based diplomacy contacts without identity/authorization linkage.
-- [KINGDOMS-003 Slice D validation](kingdoms-alliance-intelligence-slice-d-validation.md) — **Validated** read-only descriptive alliance intelligence, bounded trend windows, privacy split, realistic-volume query gate, and exact protected/runtime evidence.
-- [Current capability matrix](current-capability-matrix.md) — present-tense navigation across implemented capabilities, accepted increments, living contracts, and explicit non-capabilities/boundaries.
-- [Definition of done](definition-of-done.md) — repository-level completion expectations used with the baseline plan and approved product increments.
-- [Production hardening exit report](production-hardening-exit-report.md) — **Accepted** repository-controlled post-Phase-6 hardening evidence.
-- [Production launch approval](production-launch-approval.md) — **Not yet approved** for a real production cutover until required deployment/external-control evidence is recorded.
-- [Phase 6 launch readiness](phase-6-launch-readiness.md) — historical Phase 6 launch-control expectations feeding the post-phase hardening/approval process.
+- [Implementation plan](implementation-plan.md) — approved Phase 0–6 baseline, canonical repository structure, delivery governance, and program definition of done.
+- [Documentation standard](documentation-standard.md) — **Current** normative docs structure, naming, standard formats, one-domain/one-folder rule, migration record, and CI contract.
+- [Current capability matrix](current-capability-matrix.md) — present-tense implemented capabilities and explicit non-capabilities/boundaries.
+- [Definition of done](definition-of-done.md) — repository-level completion expectations.
+- [Repository structure audit](repository-structure-audit.md) — current physical repository/docs structure evidence and historical refactor context.
+- [Domain boundary audit](domain-boundary-audit.md) — current semantic ownership/cross-domain contract evidence.
+- [Production hardening exit report](production-hardening-exit-report.md) — **Accepted** repository-controlled hardening evidence.
+- [Production launch approval](production-launch-approval.md) — **Not yet approved** for real production cutover until required external/deployment evidence is recorded.
+- [Phase 6 launch readiness](phase-6-launch-readiness.md) — historical Phase 6 launch-control expectations feeding current production approval.
 
-Use the capability matrix to answer what exists now. Use the implementation plan for the completed Phase 0–6 baseline and an approved increment scope for post-program product work. Use increment implementation plans for gated delivery and increment exit records for final repository/product acceptance evidence. Use production launch approval to answer whether a real production cutover is authorized.
+Use the capability matrix to answer what exists now. Use the implementation plan for the completed baseline and approved increment scopes for post-program scope. Use living domain folders under [`../domains/`](../domains/README.md) for current business/runtime contracts. Use production launch approval to answer whether real cutover is authorized.
 
-## Approved post-program roadmap increments
-
-The Phase 0–6 program remains closed. New product work is approved as a named product increment with its own stable scope ID, acceptance criteria, implementation plan, and exit record rather than extending the historical phase sequence.
+## Accepted post-program Kingdoms increments
 
 | Scope ID | Increment | Status | Outcome |
 | --- | --- | --- | --- |
-| `KINGDOMS-001` | [Kingdoms roster intelligence](kingdoms-roster-intelligence-increment.md) | **Accepted** | First-class Kingdom/game-player model, alliance roster management, historical snapshots, controlled CSV migration/export, and roster intelligence. |
-| `KINGDOMS-002` | [Kingdoms transfer planning](kingdoms-transfer-planning-increment.md) | **Accepted** | Alliance-owned transfer cycles with incoming/outgoing/staying intent, destinations, groups/coordinators, manual readiness/blockers, and explicit roster handoff. |
-| `KINGDOMS-003` | [Kingdom/alliance intelligence and diplomacy](kingdoms-alliance-intelligence-increment.md) | **Accepted** | Neutral game-side alliance identity/tracking, factual observations/history, explicit diplomacy/NAP lifecycle, manager-private contacts, and descriptive alliance intelligence under whole-increment tenancy/privacy/security/query controls. |
+| `KINGDOMS-001` | [Kingdoms roster intelligence](kingdoms-roster-intelligence-increment.md) | **Accepted** | First-class Kingdom/game-player model, Alliance-owned roster, snapshots, controlled CSV migration/export, descriptive roster intelligence. |
+| `KINGDOMS-002` | [Kingdoms transfer planning](kingdoms-transfer-planning-increment.md) | **Accepted** | Alliance-owned transfer cycles, participant intent/destinations, groups/coordinators, manual readiness/blockers, explicit roster handoff. |
+| `KINGDOMS-003` | [Kingdom/Alliance intelligence and diplomacy](kingdoms-alliance-intelligence-increment.md) | **Accepted** | Neutral game-Alliance identity/tracking, factual observations/history, explicit diplomacy/NAP lifecycle, manager-private contacts, descriptive intelligence. |
 
-Implementation sequences: [KINGDOMS-001](kingdoms-roster-intelligence-implementation-plan.md), [KINGDOMS-002](kingdoms-transfer-planning-implementation-plan.md), and [KINGDOMS-003](kingdoms-alliance-intelligence-implementation-plan.md). Acceptance evidence is recorded in the [KINGDOMS-001 exit report](kingdoms-roster-intelligence-exit-report.md), [KINGDOMS-002 exit report](kingdoms-transfer-planning-exit-report.md), and [KINGDOMS-003 exit report](kingdoms-alliance-intelligence-exit-report.md). Current whole-increment runtime detail remains in the Kingdoms living domain guides.
+### KINGDOMS-001 records
 
-An approved increment scope is an explicit post-program plan addendum. It may extend product scope without reopening or renumbering the completed Phase 0–6 program. Candidate follow-on increments listed inside an approved scope are not themselves approved until they receive their own scope record.
+- [Implementation plan](kingdoms-roster-intelligence-implementation-plan.md)
+- [Exit report](kingdoms-roster-intelligence-exit-report.md)
+- [Accessibility review](kingdoms-roster-intelligence-accessibility.md)
+- Living domain contracts: [Kingdoms](../domains/kingdoms/README.md), [Roster](../domains/kingdoms/roster.md), [Snapshots](../domains/kingdoms/snapshots.md), [Intelligence](../domains/kingdoms/intelligence.md), [CSV migration](../domains/kingdoms/csv-migration.md)
+
+### KINGDOMS-002 records
+
+- [Implementation plan](kingdoms-transfer-planning-implementation-plan.md)
+- [Exit report](kingdoms-transfer-planning-exit-report.md)
+- [Accessibility review](kingdoms-transfer-planning-accessibility.md)
+- Living domain contract: [Transfer planning](../domains/kingdoms/transfer-planning.md)
+
+### KINGDOMS-003 records
+
+- [Implementation plan](kingdoms-alliance-intelligence-implementation-plan.md)
+- [K3-P0 decisions](kingdoms-alliance-intelligence-p0-decisions.md)
+- [Slice A validation](kingdoms-alliance-intelligence-slice-a-validation.md)
+- [Slice B validation](kingdoms-alliance-intelligence-slice-b-validation.md)
+- [Slice C1 validation](kingdoms-alliance-intelligence-slice-c1-validation.md)
+- [Slice C2 validation](kingdoms-alliance-intelligence-slice-c2-validation.md)
+- [Slice D validation](kingdoms-alliance-intelligence-slice-d-validation.md)
+- [Accessibility review](kingdoms-alliance-intelligence-accessibility.md)
+- [Exit report](kingdoms-alliance-intelligence-exit-report.md)
+- Living domain contract: [Alliance intelligence and diplomacy](../domains/kingdoms/alliance-intelligence.md)
+
+Candidate follow-ons named inside accepted scopes—such as automated game-data ingestion or opt-in shared Kingdom intelligence—are not themselves approved until they receive an explicit scope/acceptance process.
 
 ## Phase acceptance history
 
@@ -59,19 +67,10 @@ The baseline implementation plan ends at Phase 6. Accepted delivery evidence is 
 - [Phase 5 exit report](phase-5-exit-report.md)
 - [Phase 6 exit report](phase-6-exit-report.md)
 
-These are historical acceptance records. They preserve the evidence/context of their phase even when later product increments are implemented. Do not infer the current roadmap from old “next phase” wording, and do not repurpose phase exit reports as release notes or a user-facing changelog.
+These are historical acceptance records. Navigation/path maintenance is allowed; do not rewrite old evidence to make it sound like a current changelog.
 
 ## Supporting product evidence
 
-- [KINGDOMS-001 accessibility review](kingdoms-roster-intelligence-accessibility.md)
-- [KINGDOMS-002 accessibility review](kingdoms-transfer-planning-accessibility.md)
-- [KINGDOMS-003 accessibility review](kingdoms-alliance-intelligence-accessibility.md)
-- [KINGDOMS-003 K3-P0 decisions](kingdoms-alliance-intelligence-p0-decisions.md)
-- [KINGDOMS-003 Slice A validation](kingdoms-alliance-intelligence-slice-a-validation.md)
-- [KINGDOMS-003 Slice B validation](kingdoms-alliance-intelligence-slice-b-validation.md)
-- [KINGDOMS-003 Slice C1 validation](kingdoms-alliance-intelligence-slice-c1-validation.md)
-- [KINGDOMS-003 Slice C2 validation](kingdoms-alliance-intelligence-slice-c2-validation.md)
-- [KINGDOMS-003 Slice D validation](kingdoms-alliance-intelligence-slice-d-validation.md)
 - [Phase 3 scope](phase-3-scope.md)
 - [Phases 1–4 alignment audit](phases-1-4-alignment-audit.md)
 - [Phase 1 accessibility review](phase-1-accessibility-review.md)
@@ -81,31 +80,47 @@ These are historical acceptance records. They preserve the evidence/context of t
 - [Phase 5 accessibility](phase-5-accessibility.md)
 - [Phase 6 accessibility](phase-6-accessibility.md)
 
-Use the current capability matrix and current acceptance/launch records for present-tense status; use the implementation plan plus approved increment scopes for product scope; use increment implementation plans for delivery sequencing; use supporting documents to understand specific evidence and historical gates.
+Use current capability/launch records for present-tense status; use historical phase/increment records for the evidence they were created to preserve.
 
 ## Status vocabulary
 
 Use status terms consistently:
 
-- **Planned** — approved scope exists but runtime implementation has not started; pre-runtime design/contract gates may already be complete.
-- **In progress** — runtime implementation/evidence is being produced and may contain validated slices without whole-increment acceptance.
-- **Candidate** — implementation is complete enough for final protected validation but has not passed the gate.
-- **Accepted** — the defined repository/product gate passed and its evidence was recorded.
-- **Approved** — an accountable owner explicitly approved a scope or external/production decision; approval does not imply implementation is complete.
-- **Not yet approved / Pending** — required evidence or accountable approval is still outstanding.
+- **Planned** — approved scope exists but runtime implementation has not started; design gates may already be complete.
+- **In progress** — runtime implementation/evidence is being produced.
+- **Candidate** — implementation is complete enough for final protected validation but gate not yet passed.
+- **Validated** — defined slice/evidence gate passed on the recorded implementation.
+- **Accepted** — repository/product completion gate passed and evidence recorded.
+- **Approved** — an accountable owner explicitly approved scope or external/production decision; approval does not imply implementation is complete.
+- **Not yet approved / Pending** — required evidence/accountable approval remains outstanding.
 
-Do not use **Accepted** and **Approved** interchangeably. `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are Approved scopes with Accepted implementations. Repository production hardening is Accepted while real production launch remains Not yet approved.
+Do not use **Accepted** and **Approved** interchangeably. K1–K3 are Approved scopes with Accepted implementations. Repository production hardening is Accepted while real production launch remains Not yet approved.
+
+## Documentation architecture
+
+The code/document relationship is deterministic:
+
+```text
+app/Domain/<Domain>/
+        ↕
+docs/domains/<domain>/README.md
+```
+
+Capability files stay inside the owning domain folder. `docs/domains/README.md` is the only Markdown file directly under `docs/domains/`. The structure is enforced by `tests/Architecture/RepositoryStructureTest.php` in normal CI.
+
+The former flat domain guides were fully migrated and removed; the authoritative mapping/history is recorded in the [documentation standard](documentation-standard.md).
 
 ## Updating program state
 
 When a post-program increment is proposed or delivered:
 
-1. Create or update a named product increment scope with a stable ID, ownership, boundaries, dependencies, security/operational requirements, acceptance criteria, and explicit deferrals.
-2. Create a gated implementation plan when the increment is large enough to require multiple independently reviewable delivery stages.
-3. Do not create a new numbered program phase unless the baseline implementation plan itself is deliberately reopened and re-approved.
-4. Update the capability matrix and indexes so implemented slices, approved remaining work, and unapproved candidates are clearly distinguished.
-5. When implementation closes, create an increment-specific exit/acceptance record with the exact validated head and protected-check evidence.
-6. Preserve historical phase reports rather than rewriting old evidence to sound current.
-7. Record deferred work explicitly without partially implementing or documenting it as present capability.
+1. Create/update a named increment scope with stable ID, ownership, boundaries, dependencies, security/operational requirements, acceptance criteria, and explicit deferrals.
+2. Create a gated implementation plan when multiple independently reviewable stages are required.
+3. Do not create a new numbered program phase unless the baseline implementation plan itself is deliberately reopened/re-approved.
+4. Update the capability matrix and living domain folders so implemented slices, accepted work, and unapproved candidates remain distinguishable.
+5. When implementation closes, create an increment-specific exit/acceptance record with exact validated head/protected evidence.
+6. Preserve historical phase reports rather than rewriting them into current-state prose.
+7. Record deferred work explicitly without partially documenting it as present capability.
+8. Keep documentation aligned with the [documentation standard](documentation-standard.md) and required architecture CI rules.
 
-There is no Phase 7 in the current baseline. `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted post-program product increments. They are not a continuation of phase numbering. Real production cutover remains separately governed and is not implied by increment acceptance.
+There is no Phase 7 in the current baseline. `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted post-program increments, not continuation of phase numbering. Real production cutover remains separately governed.
