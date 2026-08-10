@@ -208,7 +208,7 @@ Dashboard reads create no audit/outbox event. There is no K3 ingestion scheduler
 
 Operators can distinguish current/stale/missing observations, invalidated corrections, human-review-due diplomacy, context-current versus historical tracking, and manager-only aggregate contact verification state without exposing private contact text.
 
-See [Kingdoms Alliance intelligence operations](../../operations/kingdoms-alliance-intelligence.md).
+See [Kingdoms Alliance intelligence operations](operations/kingdoms-alliance-intelligence.md).
 
 ## 11. Tests and validation
 
@@ -224,12 +224,12 @@ Whole-increment acceptance proves:
 
 Exact whole-increment validated implementation SHA: `068c4086744f71d33453734f1f1b05fe1430cbff`.
 
-See the [KINGDOMS-003 exit report](../../product/kingdoms-alliance-intelligence-exit-report.md), [security review](../../security/kingdoms-alliance-intelligence-security-review.md), and [accessibility review](../../product/kingdoms-alliance-intelligence-accessibility.md).
+See the [KINGDOMS-003 exit report](product/kingdoms-alliance-intelligence-exit-report.md), [security review](security/kingdoms-alliance-intelligence-security-review.md), and [accessibility review](product/kingdoms-alliance-intelligence-accessibility.md).
 
 ## 12. Related documentation
 
 - [Kingdoms domain](README.md)
 - [Roster](roster.md)
 - [Transfer planning](transfer-planning.md)
-- [KINGDOMS-003 implementation plan](../../product/kingdoms-alliance-intelligence-implementation-plan.md)
-- [KINGDOMS-003 exit report](../../product/kingdoms-alliance-intelligence-exit-report.md)
+- [KINGDOMS-003 implementation plan](product/kingdoms-alliance-intelligence-implementation-plan.md)
+- [KINGDOMS-003 exit report](product/kingdoms-alliance-intelligence-exit-report.md)
