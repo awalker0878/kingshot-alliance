@@ -140,6 +140,12 @@ final class IntegrationManagementTest extends TestCase
             'kingdoms.player_snapshot_recorded',
             'kingdoms.transfer_plan_opened',
             'kingdoms.transfer_participant_completed',
+            'kingdoms.alliance_intelligence_tracking_started',
+            'kingdoms.alliance_intelligence_observation_recorded',
+            'kingdoms.alliance_intelligence_observation_corrected',
+            'kingdoms.diplomacy_transitioned',
+            'kingdoms.diplomacy_contact_saved',
+            'kingdoms.diplomacy_contact_deactivated',
         ] as $index => $eventType) {
             $event = new OutboxPublished(
                 messageId: sprintf('01K00000000000000000000%03d', $index),
