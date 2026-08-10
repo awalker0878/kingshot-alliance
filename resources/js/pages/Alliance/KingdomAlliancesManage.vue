@@ -13,6 +13,9 @@ type TrackingRow = {
   referenceStatus: string;
   managerNotes: string | null;
   archivedAt: string | null;
+  diplomacyState: string;
+  diplomacyNeedsReview: boolean;
+  diplomacyUrl: string;
 };
 
 defineProps<{
@@ -41,6 +44,11 @@ const editForm = useForm({
 
 function trackingError(errors: object): string | undefined {
   return (errors as Record<string, string | undefined>).tracking;
+}
+
+function stateLabel(value: string): string {
+  if (value === 'nap') return 'NAP';
+  return value.charAt(0).toUpperCase() + value.slice(1).replaceAll('_', ' ');
 }
 
 function createTracking(): void {
@@ -165,9 +173,7 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="tracked-alliance-notes"
-            >Manager notes</label
-          >
+          <label class="block text-sm font-medium" for="tracked-alliance-notes">Manager notes</label>
           <textarea
             id="tracked-alliance-notes"
             v-model="createForm.manager_notes"
@@ -200,7 +206,7 @@ function archiveTracking(entry: TrackingRow): void {
         <h2 class="text-xl font-semibold">Tracking records</h2>
         <p class="mt-1 text-sm text-slate-400">
           Historical Kingdom context is retained. Drifted records may be archived but cannot be
-          edited.
+          edited. Diplomacy is a separate explicit manager-maintained workflow.
         </p>
       </div>
 
@@ -211,6 +217,7 @@ function archiveTracking(entry: TrackingRow): void {
               <th class="px-3 py-3 font-semibold">Alliance</th>
               <th class="px-3 py-3 font-semibold">Stable ID</th>
               <th class="px-3 py-3 font-semibold">Kingdom</th>
+              <th class="px-3 py-3 font-semibold">Diplomacy</th>
               <th class="px-3 py-3 font-semibold">State</th>
               <th class="px-3 py-3 font-semibold">Actions</th>
             </tr>
@@ -231,9 +238,24 @@ function archiveTracking(entry: TrackingRow): void {
                   Historical
                 </span>
               </td>
+              <td class="px-3 py-4 text-slate-300">
+                <span class="font-semibold">{{ stateLabel(entry.diplomacyState) }}</span>
+                <span
+                  v-if="entry.diplomacyNeedsReview"
+                  class="ml-2 rounded-full bg-amber-950 px-2 py-1 text-xs font-semibold text-amber-300"
+                >
+                  Review due
+                </span>
+              </td>
               <td class="px-3 py-4 text-slate-300">{{ entry.state }}</td>
               <td class="px-3 py-4">
                 <div class="flex flex-wrap gap-2">
+                  <Link
+                    class="rounded-lg border border-cyan-800 px-3 py-2 text-xs font-semibold text-cyan-300"
+                    :href="entry.diplomacyUrl"
+                  >
+                    Diplomacy
+                  </Link>
                   <button
                     v-if="entry.state === 'active' && entry.contextCurrent"
                     class="rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold"
@@ -276,9 +298,7 @@ function archiveTracking(entry: TrackingRow): void {
 
       <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="saveEdit">
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-name"
-            >Alliance name</label
-          >
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-name">Alliance name</label>
           <input
             id="edit-tracked-alliance-name"
             v-model="editForm.current_name"
@@ -293,9 +313,7 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-tag"
-            >Alliance tag</label
-          >
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-tag">Alliance tag</label>
           <input
             id="edit-tracked-alliance-tag"
             v-model="editForm.current_tag"
@@ -322,9 +340,7 @@ function archiveTracking(entry: TrackingRow): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="edit-tracked-alliance-notes"
-            >Manager notes</label
-          >
+          <label class="block text-sm font-medium" for="edit-tracked-alliance-notes">Manager notes</label>
           <textarea
             id="edit-tracked-alliance-notes"
             v-model="editForm.manager_notes"
