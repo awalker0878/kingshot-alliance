@@ -170,9 +170,7 @@ function deactivateContact(contact: Contact): void {
       </div>
     </header>
 
-    <div
-      class="mt-8 rounded-xl border border-amber-900 bg-amber-950/30 p-4 text-sm text-amber-100"
-    >
+    <div class="mt-8 rounded-xl border border-amber-900 bg-amber-950/30 p-4 text-sm text-amber-100">
       Store handles only. Do not put phone numbers, home addresses, passwords, recovery material, or
       other private secrets in this directory. Handles and notes stay manager-private and are not
       copied into audit/outbox payloads.
@@ -188,7 +186,9 @@ function deactivateContact(contact: Contact): void {
     </div>
 
     <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-      <h2 class="text-xl font-semibold">{{ editingId === null ? 'Add contact' : 'Edit contact' }}</h2>
+      <h2 class="text-xl font-semibold">
+        {{ editingId === null ? 'Add contact' : 'Edit contact' }}
+      </h2>
       <p class="mt-1 text-sm text-slate-400">
         Display names and handles are coordination labels only. They never auto-link a Kingdom
         player or platform account.
@@ -212,7 +212,9 @@ function deactivateContact(contact: Contact): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="contact-game-role">Game-side role/title</label>
+          <label class="block text-sm font-medium" for="contact-game-role"
+            >Game-side role/title</label
+          >
           <input
             id="contact-game-role"
             v-model="form.game_role"
