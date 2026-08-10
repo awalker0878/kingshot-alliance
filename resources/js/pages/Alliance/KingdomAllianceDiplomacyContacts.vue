@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
- type Contact = {
+type Contact = {
   id: string;
   displayName: string;
   gameRole: string | null;
@@ -37,7 +38,7 @@ const props = defineProps<{
   contacts: Contact[];
 }>();
 
-let editingId: string | null = null;
+const editingId = ref<string | null>(null);
 
 function toLocalInput(value: string | null): string {
   if (value === null) return '';
@@ -76,7 +77,7 @@ function contactError(): string | undefined {
 }
 
 function resetForm(): void {
-  editingId = null;
+  editingId.value = null;
   form.reset();
   form.channel_type = props.channels[0]?.value ?? 'in_game';
   form.clearErrors();
@@ -85,7 +86,7 @@ function resetForm(): void {
 function beginEdit(contact: Contact): void {
   if (contact.state !== 'active') return;
 
-  editingId = contact.id;
+  editingId.value = contact.id;
   form.display_name = contact.displayName;
   form.game_role = contact.gameRole ?? '';
   form.channel_type = contact.channelType;
@@ -108,13 +109,13 @@ function submitContact(): void {
     onSuccess: () => resetForm(),
   };
 
-  if (editingId === null) {
+  if (editingId.value === null) {
     request.post(`/alliance/kingdom-alliances/${props.tracking.id}/diplomacy/contacts`, options);
     return;
   }
 
   request.patch(
-    `/alliance/kingdom-alliances/${props.tracking.id}/diplomacy/contacts/${editingId}`,
+    `/alliance/kingdom-alliances/${props.tracking.id}/diplomacy/contacts/${editingId.value}`,
     options,
   );
 }
@@ -267,14 +268,18 @@ function deactivateContact(contact: Contact): void {
             :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
             type="datetime-local"
           />
-          <p class="mt-1 text-xs text-slate-500">Optional factual verification time; future values are rejected.</p>
+          <p class="mt-1 text-xs text-slate-500">
+            Optional factual verification time; future values are rejected.
+          </p>
           <p v-if="form.errors.last_verified_at" class="mt-1 text-sm text-rose-300">
             {{ form.errors.last_verified_at }}
           </p>
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="contact-manager-notes">Private manager notes</label>
+          <label class="block text-sm font-medium" for="contact-manager-notes">
+            Private manager notes
+          </label>
           <textarea
             id="contact-manager-notes"
             v-model="form.manager_notes"
@@ -336,7 +341,9 @@ function deactivateContact(contact: Contact): void {
             <tr v-for="contact in contacts" :key="contact.id">
               <td class="px-3 py-4 text-slate-200">
                 <p class="font-semibold">{{ contact.displayName }}</p>
-                <p class="mt-1 text-xs text-slate-500">{{ contact.gameRole ?? 'No role recorded' }}</p>
+                <p class="mt-1 text-xs text-slate-500">
+                  {{ contact.gameRole ?? 'No role recorded' }}
+                </p>
               </td>
               <td class="px-3 py-4 text-slate-300">
                 <p>{{ channelLabel(contact.channelType) }}</p>
@@ -348,13 +355,16 @@ function deactivateContact(contact: Contact): void {
               </td>
               <td class="px-3 py-4 text-slate-300">
                 <p class="font-semibold">{{ contact.state }}</p>
-                <p class="mt-1 text-xs text-slate-500">Updated {{ formatDate(contact.updatedAt) }}</p>
+                <p class="mt-1 text-xs text-slate-500">
+                  Updated {{ formatDate(contact.updatedAt) }}
+                </p>
                 <p v-if="contact.deactivatedAt" class="mt-1 text-xs text-slate-500">
                   Deactivated {{ formatDate(contact.deactivatedAt) }} by
                   {{ contact.deactivatedByName ?? 'former/deleted user' }}
                 </p>
                 <p v-else class="mt-1 text-xs text-slate-500">
-                  Last manager {{ contact.updatedByName ?? contact.createdByName ?? 'former/deleted user' }}
+                  Last manager
+                  {{ contact.updatedByName ?? contact.createdByName ?? 'former/deleted user' }}
                 </p>
               </td>
               <td class="px-3 py-4">
