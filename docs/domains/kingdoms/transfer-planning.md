@@ -179,18 +179,18 @@ Structured diagnostics may identify safe IDs/state/invariant context but must no
 
 Whole-increment query acceptance models **150 participants**, **20 transfer groups**, readiness history, blockers, and completion projections with bounded SELECT count.
 
-See [Kingdoms transfer planning operations](../../operations/kingdoms-transfer-planning.md).
+See [Kingdoms transfer planning operations](operations/kingdoms-transfer-planning.md).
 
 ## 11. Tests and validation
 
 Accepted `K2-P6` evidence covers tenant scope, plan lifecycle/home-Kingdom drift, participant directions/destinations, group/coordinator rules, readiness/blockers, explicit completion, incoming/outgoing/staying roster handoff, idempotency, privacy split, rollback/reapply, query shape, and external API/webhook non-exposure.
 
-See the [KINGDOMS-002 exit report](../../product/kingdoms-transfer-planning-exit-report.md) and [security review](../../security/kingdoms-transfer-planning-security-review.md).
+See the [KINGDOMS-002 exit report](product/kingdoms-transfer-planning-exit-report.md) and [security review](security/kingdoms-transfer-planning-security-review.md).
 
 ## 12. Related documentation
 
 - [Kingdoms domain](README.md)
 - [Roster](roster.md)
 - [Snapshots](snapshots.md)
-- [KINGDOMS-002 implementation plan](../../product/kingdoms-transfer-planning-implementation-plan.md)
-- [KINGDOMS-002 exit report](../../product/kingdoms-transfer-planning-exit-report.md)
+- [KINGDOMS-002 implementation plan](product/kingdoms-transfer-planning-implementation-plan.md)
+- [KINGDOMS-002 exit report](product/kingdoms-transfer-planning-exit-report.md)
