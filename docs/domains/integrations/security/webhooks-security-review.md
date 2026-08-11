@@ -70,7 +70,7 @@ Invalid endpoint, oversize payload, revoked subscription, ineligible event, or e
 
 Tests cover tenant/source matching, wildcard + eligibility behavior, exact-body signature verification, protected signing material, payload bounds, endpoint safety checks, idempotent delivery identity, retry/recovery/exhaustion, revocation, and explicit Kingdoms/internal-event exclusions.
 
-Shared policy: [Security baseline](../../../../security/security-baseline.md). Historical source: [Phase 6 threat model](../../../../security/phase-6-threat-model.md).
+Shared policy: [Security baseline](../../../security/security-baseline.md). Historical source: [Phase 6 threat model](../../../security/phase-6-threat-model.md).
 
 ## 10. Residual risks and external controls
 
