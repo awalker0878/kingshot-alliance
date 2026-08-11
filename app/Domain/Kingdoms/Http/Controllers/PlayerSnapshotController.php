@@ -109,7 +109,14 @@ final class PlayerSnapshotController extends Controller
         ];
 
         if ($includeActor) {
-            $row['actorName'] = (string) $snapshot->actor->name;
+            $row['actorName'] = $snapshot->actor?->name;
+            $row['sourceSubscriptionId'] = $snapshot->source_subscription_id;
+            $row['sourceBatchId'] = $snapshot->source_batch_id;
+            $row['sourceAdapterKey'] = $snapshot->source_adapter_key;
+            $row['sourceAdapterVersion'] = $snapshot->source_adapter_version;
+            $row['sourceRecordId'] = $snapshot->source_record_id;
+            $row['sourceIdentityHash'] = $snapshot->source_identity_hash;
+            $row['sourcePayloadHash'] = $snapshot->source_payload_hash;
         }
 
         return $row;

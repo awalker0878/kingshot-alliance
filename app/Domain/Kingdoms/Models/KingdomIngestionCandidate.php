@@ -27,6 +27,9 @@ use Illuminate\Support\Carbon;
  * @property KingdomIngestionCandidateState $state
  * @property string|null $quarantine_code
  * @property string|null $rejection_code
+ * @property string|null $promoted_record_type
+ * @property string|null $promoted_record_id
+ * @property Carbon|null $promoted_at
  * @property-read KingdomIngestionSubscription $subscription
  * @property-read KingdomIngestionBatch $batch
  * @property-read Alliance $alliance
@@ -55,6 +58,9 @@ final class KingdomIngestionCandidate extends Model
         'state',
         'quarantine_code',
         'rejection_code',
+        'promoted_record_type',
+        'promoted_record_id',
+        'promoted_at',
     ];
 
     protected function casts(): array
@@ -63,6 +69,7 @@ final class KingdomIngestionCandidate extends Model
             'target_kind' => KingdomIngestionTargetKind::class,
             'state' => KingdomIngestionCandidateState::class,
             'captured_at' => 'datetime',
+            'promoted_at' => 'datetime',
             'normalized_payload' => 'array',
         ];
     }
