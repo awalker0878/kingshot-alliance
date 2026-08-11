@@ -75,7 +75,10 @@ function createSubscription(): void {
 }
 
 function transition(subscription: SubscriptionRow, state: 'active' | 'paused' | 'disabled'): void {
-  if (state === 'disabled' && !window.confirm(`Disable automated ingestion for ${subscription.adapterLabel}?`)) {
+  if (
+    state === 'disabled' &&
+    !window.confirm(`Disable automated ingestion for ${subscription.adapterLabel}?`)
+  ) {
     return;
   }
 
@@ -87,7 +90,11 @@ function transition(subscription: SubscriptionRow, state: 'active' | 'paused' | 
 }
 
 function rejectCandidate(candidate: CandidateRow): void {
-  if (!window.confirm('Reject this quarantined ingestion candidate? The promoted Kingdoms history is not affected.')) {
+  if (
+    !window.confirm(
+      'Reject this quarantined ingestion candidate? The promoted Kingdoms history is not affected.',
+    )
+  ) {
     return;
   }
 
@@ -135,7 +142,10 @@ function label(value: string): string {
         headers, cookies, or source credentials here.
       </p>
 
-      <form class="mt-6 grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end" @submit.prevent="createSubscription">
+      <form
+        class="mt-6 grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
+        @submit.prevent="createSubscription"
+      >
         <div>
           <label class="block text-sm font-medium" for="ingestion-adapter">Source adapter</label>
           <select
@@ -252,7 +262,9 @@ function label(value: string): string {
           </tbody>
         </table>
       </div>
-      <p v-else class="mt-6 text-sm text-slate-500">No automated-ingestion subscriptions configured.</p>
+      <p v-else class="mt-6 text-sm text-slate-500">
+        No automated-ingestion subscriptions configured.
+      </p>
     </section>
 
     <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
@@ -279,7 +291,9 @@ function label(value: string): string {
             <tr v-for="candidate in candidates" :key="candidate.id">
               <td class="px-3 py-4 text-slate-300">{{ candidate.adapterKey }}</td>
               <td class="px-3 py-4 text-slate-300">{{ label(candidate.targetKind) }}</td>
-              <td class="px-3 py-4 text-slate-300">{{ candidate.stableGameId ?? 'Missing' }}</td>
+              <td class="px-3 py-4 text-slate-300">
+                {{ candidate.stableGameId ?? 'Missing' }}
+              </td>
               <td class="px-3 py-4 text-slate-300">{{ candidate.capturedAt }}</td>
               <td class="px-3 py-4 text-slate-300">
                 {{ label(candidate.state) }}
