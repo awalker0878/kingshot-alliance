@@ -111,7 +111,10 @@ final class KingdomIngestionFoundationTest extends TestCase
     public function test_subscription_mutations_require_recent_password_confirmation(): void
     {
         [$owner, $alliance] = $this->ownerAlliance('K4 Password', 'k4-password', 6403);
-        $activeSession = [(string) config('identity.active_alliance_session_key') => $alliance->id];
+        $activeSession = [
+            (string) config('identity.active_alliance_session_key') => $alliance->id,
+            'auth.password_confirmed_at' => 0,
+        ];
 
         $this->actingAs($owner)->withSession($activeSession)
             ->post('/alliance/kingdom-ingestion/subscriptions', ['adapter_key' => 'fixture.game'])

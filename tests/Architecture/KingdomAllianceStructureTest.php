@@ -305,7 +305,7 @@ final class KingdomAllianceStructureTest extends TestCase
         }
     }
 
-    public function test_slice_d_routes_add_read_only_intelligence_without_delete_or_automation_contracts(): void
+    public function test_slice_d_routes_keep_k3_intelligence_free_of_delete_or_automation_contracts(): void
     {
         $routes = file_get_contents(dirname(__DIR__, 2).'/routes/kingdoms.php');
         self::assertIsString($routes);
@@ -319,13 +319,13 @@ final class KingdomAllianceStructureTest extends TestCase
         self::assertStringContainsString('/diplomacy/contacts', $routes);
         self::assertStringContainsString('/deactivate', $routes);
         self::assertStringNotContainsString('/diplomacy/contacts/{contact}/delete', $routes);
+        self::assertStringNotContainsString('/alliance/kingdom-alliances/ingestion', $routes);
 
         foreach ([
             'threat-score',
             'recommendation',
             'auto-diplomacy',
             'auto-transfer',
-            'ingestion',
         ] as $futureContract) {
             self::assertStringNotContainsString($futureContract, $routes);
         }
