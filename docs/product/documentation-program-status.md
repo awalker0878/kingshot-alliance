@@ -9,12 +9,14 @@
 ## Current control state
 
 **Current phase:** `DCP-P3` — Operations, reliability, and recovery completeness  
-**Gate status:** Not started — blocked only until this final evidence/status head passes protected validation  
+**Gate status:** Candidate — 100% required content implemented; protected validation pending  
 **Control decision on next `continue`:** Finish current phase
 
-DCP-P2 has completed its frozen security/privacy/data-protection inventory and passed protected validation on corrected evidence head `eea41be6bf45820a7f3ab06f57cc24703e7d2b8e`. This ledger advances to P3 in the final evidence/status chain.
+DCP-P2 is fully closed. Its final accepted evidence/status head `35121bf732f75c72351a7c232548f3e78fb1c8ff` passed protected Dependency Review `31505325682`, CodeQL `31505325673`, and CI `31505325711` including frontend, PHP/documentation architecture tests, immutable image, staging, backup/restore and image scan.
 
-Under the hard gate, P2 closure and P3 authority become final only after this resulting branch head also passes protected Dependency Review, CodeQL, and the complete CI workflow. Until then, no P3 implementation work begins.
+DCP-P3 has now implemented its frozen operations/reliability/recovery inventory: 14/14 living domain operations profiles, 6/6 new focused living operations runbooks, the existing three Kingdoms K1–K3 operations guides retained/indexed, shared/domain navigation normalized, recovery/rollback references completed, and deterministic P3 architecture enforcement added.
+
+P3 remains active until protected validation passes on the exact candidate/evidence head and the final exit/status evidence head also passes. P4 is blocked until that hard gate closes.
 
 ## Phase ledger
 
@@ -22,8 +24,8 @@ Under the hard gate, P2 closure and P3 authority become final only after this re
 | --- | --- | --- | --- |
 | `DCP-P0` | Governance and continuation controls | Complete | Program plan, completeness standard, status ledger and navigation established. |
 | `DCP-P1` | Domain contract and code-ownership completeness | Complete | 14 domain maps, 14 canonical contracts, 19 material capability contracts, P1 CI enforcement, and protected validation complete. See [P1 exit report](domain-contract-completeness-exit-report.md). |
-| `DCP-P2` | Security, privacy, and data-protection completeness | Complete | 14 domain security profiles, 9 new focused living security reviews, normalized Kingdoms security evidence, P2 CI enforcement, and corrected protected validation complete. See [P2 exit report](security-completeness-exit-report.md). |
-| `DCP-P3` | Operations, reliability, and recovery completeness | Not started | **Current phase after final-head validation.** Establish operations standard/inventory and remain in P3 until its full gate closes. |
+| `DCP-P2` | Security, privacy, and data-protection completeness | Complete | 14 domain security profiles, 9 new focused reviews, normalized Kingdoms security evidence, P2 CI enforcement, and protected candidate/final-head validation complete. See [P2 exit report](security-completeness-exit-report.md). |
+| `DCP-P3` | Operations, reliability, and recovery completeness | Candidate | **Current phase.** 100% frozen content inventory implemented; protected candidate/final exit recording remain. See [P3 exit report](operations-completeness-exit-report.md). |
 | `DCP-P4` | Interfaces, events, and integrations completeness | Not started | Blocked by `DCP-P3`. |
 | `DCP-P5` | Testing, evidence, and traceability completeness | Not started | Blocked by `DCP-P4`. |
 | `DCP-P6` | Architecture and program-governance consolidation | Not started | Blocked by `DCP-P5`. |
@@ -31,14 +33,9 @@ Under the hard gate, P2 closure and P3 authority become final only after this re
 
 ## DCP-P1 accepted evidence
 
-- [Domain contract standard](domain-contract-standard.md)
-- [Completed domain coverage matrix](domain-coverage-matrix.md)
-- [DCP-P1 exit report](domain-contract-completeness-exit-report.md)
-- P1 structural/metadata/heading/capability inventory checks in `tests/Architecture/RepositoryStructureTest.php`
-
 Validated P1 candidate head: `be4a87734b44fa09643b6e8e5066283b5ed4fece`.
 
-Protected P1 candidate runs:
+Protected candidate runs:
 
 - Dependency Review `31500031422` — success.
 - CodeQL `31500031623` — success.
@@ -48,67 +45,66 @@ Final accepted P1 evidence/status head: `60357543256478aa8ef8c26f67e27631df8c5ba
 
 ## DCP-P2 accepted evidence
 
-- [Security documentation standard](security-documentation-standard.md)
-- [Completed security coverage matrix](security-coverage-matrix.md)
-- [DCP-P2 exit report](security-completeness-exit-report.md)
-- 14 living `docs/domains/<domain>/security/README.md` profiles
-- 9 required new focused living security reviews
-- normalized Kingdoms living security profile with its existing K1–K3 review set
-- P2 profile/focused-review/inventory/placement checks in `tests/Architecture/RepositoryStructureTest.php`
-
 Corrected P2 content candidate: `645c943e59439840d3563452d97612eb17d63b10`.
 
-The initial P2 evidence head `50beb0f49b77b5321722cfa337b6334f47a8e126` passed Dependency Review and CodeQL but CI run `31503644300` failed only the local Markdown-link gate because the new focused reviews pointed one level too high at shared security evidence. The links were corrected without changing security semantics.
+Corrected candidate evidence head: `eea41be6bf45820a7f3ab06f57cc24703e7d2b8e`.
 
-Corrected validated P2 evidence head: `eea41be6bf45820a7f3ab06f57cc24703e7d2b8e`.
-
-Protected P2 validation:
+Protected candidate runs:
 
 - Dependency Review `31504587302` — success.
 - CodeQL `31504587346` — success.
-- CI `31504587198` — success, including:
-  - frontend quality/build;
-  - PostgreSQL migrations;
-  - Pint 483 files;
-  - PHPStan/Larastan 345/345, 0 errors;
-  - ParaTest/PHPUnit 369 tests / 6,908 assertions;
-  - immutable production-image build;
-  - ephemeral staging deployment;
-  - backup/restore demonstration; and
-  - image vulnerability scan.
+- CI `31504587198` — success, including Pint 483 files, PHPStan 345/345 with 0 errors, 369 tests / 6,908 assertions, immutable image build, staging, backup/restore, and image scan.
 
-The final evidence/status branch head containing this ledger advancement must also pass protected validation before the P2→P3 transition is considered authoritative.
+Final accepted P2 evidence/status head: `35121bf732f75c72351a7c232548f3e78fb1c8ff`.
 
-## DCP-P2 coverage summary
+Protected final-head runs:
 
-The completed P2 inventory covers all 14 canonical domains. Focused living reviews cover:
+- Dependency Review `31505325682` — success.
+- CodeQL `31505325673` — success.
+- CI `31505325711` — success, including frontend, PHP/documentation architecture tests, immutable image, staging, backup/restore, and scan.
 
-- Alliances tenant context;
-- Content private media;
-- Identity MFA/recovery;
-- Integrations read-only API;
-- Integrations outbound webhooks;
-- Membership invitations;
-- Platform lifecycle/retention;
-- Platform transactional outbox; and
-- Recruitment application intake.
+## DCP-P3 candidate evidence
 
-Audit, Authorization, Contributions, Events, Notifications, and Rallies were explicitly reviewed as profile-only domains. Kingdoms retains its accepted domain-owned security review set instead of receiving cosmetic duplicate reviews.
+- [Operations documentation standard](operations-documentation-standard.md)
+- [Frozen operations coverage matrix](operations-coverage-matrix.md)
+- [DCP-P3 exit report](operations-completeness-exit-report.md)
+- 14 living `docs/domains/<domain>/operations/README.md` profiles
+- 6 required new focused living operations runbooks
+- normalized Kingdoms living operations profile with three accepted K1–K3 guides retained
+- shared operations/domain navigation to all profiles
+- P3 structural/metadata/heading/frozen-inventory checks in `tests/Architecture/OperationsDocumentationTest.php`
 
-Shared `docs/security/security-baseline.md` remains the cross-domain current baseline. Domain profiles explain local application and distinguish repository-proven controls from production/runtime evidence the repository cannot establish.
+P3 content candidate recorded by the exit report: `55dd2d29cb1c45dd3c01e9e42f6b57a8a9118c3d`.
 
-## DCP-P3 entry conditions
+### Frozen focused P3 runbooks
 
-After the final P2 evidence/status head is protected-green, the next `continue` must begin `DCP-P3` by:
+- Content — `scheduled-publishing-and-media.md`
+- Integrations — `webhook-delivery.md`
+- Notifications — `scheduled-delivery.md`
+- Platform — `transactional-outbox.md`
+- Platform — `lifecycle-retention.md`
+- Recruitment — `retention-and-anonymization.md`
 
-1. adopting a focused operations-documentation standard;
-2. freezing a repository-wide operations/reliability/recovery inventory grounded in code, scheduler/queue/container/database/storage behavior, existing runbooks and recovery evidence;
-3. determining which domains require dedicated living operational profiles or focused runbooks;
-4. normalizing shared versus domain-owned operational documentation;
-5. adding deterministic high-signal P3 CI enforcement; and
-6. remaining in P3 until 100% of that frozen inventory plus protected candidate/final-head validation is complete.
+Alliances, Audit, Authorization, Contributions, Events, Identity, Memberships and Rallies are complete profile-only domains. Kingdoms retains its accepted roster-intelligence, transfer-planning and Alliance-intelligence operating guides.
 
-P4 remains blocked throughout P3.
+## P3 operational coverage summary
+
+The living operations set now covers, where applicable:
+
+- persistent runtime state and ownership;
+- hosted/runtime configuration dependencies;
+- scheduler, Horizon/queue and transactional-outbox participation;
+- implemented health/observability/diagnostic signals;
+- failure-mode diagnosis;
+- safe retry, replay, reconciliation and catch-up;
+- database/private-media/secret/external-recipient recovery-set boundaries;
+- application rollback versus database migration/restore semantics;
+- capacity/query/performance assumptions and regression-versus-capacity evidence boundaries;
+- external dependency degradation behavior;
+- safe operator actions, prohibited shortcuts and escalation stop conditions; and
+- evidence identifiers/operators should retain.
+
+Shared `docs/operations/` remains authoritative for runtime topology/configuration, background processing, health/observability, deployment, backup/restore, rollback, incident response and production launch controls. Domain-specific operating semantics stay under their code-owning domain.
 
 ## `continue` procedure
 
