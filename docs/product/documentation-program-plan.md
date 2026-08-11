@@ -9,362 +9,161 @@
 
 ## 1. Objective
 
-The Documentation Completion Program turns the repository's completed documentation-ownership migration into a fully governed, comprehensive, maintainable documentation system.
+The Documentation Completion Program turns the domain-first documentation ownership model into a complete, governed, maintainable documentation system.
 
-The existing structure is the baseline:
+The baseline remains:
 
 - code ownership determines domain documentation ownership;
-- `docs/domains/<domain>/` owns domain contracts and domain-specific product/security/operations evidence;
-- top-level product/security/operations documentation remains cross-domain/program-wide; and
-- `docs/adr/` owns durable architecture decisions.
+- `docs/domains/<domain>/` owns current domain contracts and domain-specific evidence;
+- top-level product/security/operations documentation remains cross-domain/program-wide;
+- `docs/adr/` owns durable architecture decisions and the current system architecture entry point; and
+- code/tests remain authoritative for exact implemented runtime behavior.
 
-This program does not repeat that migration. It progressively proves that documentation is complete, consistent, navigable, and enforceable across every code domain and shared program concern.
+DCP does not create a parallel product phase sequence. Product Phase 0–6 and accepted post-baseline increments retain their own historical evidence. `DCP-P0` through `DCP-P7` are documentation-governance phases.
 
 ## 2. Program gate
 
-Every phase is hard-gated by [Documentation completeness standard](documentation-completeness-standard.md).
+Every DCP phase is hard-gated by [Documentation completeness standard](documentation-completeness-standard.md).
 
-A phase advances only when **100% of its required documentation inventory is complete** and all exit criteria pass.
+A phase advances only when:
 
-The command **`continue`** controls progress:
+1. its required inventory is frozen;
+2. 100% of required content is complete;
+3. current navigation/source-of-truth rules are satisfied;
+4. applicable architecture/documentation validation passes on an exact candidate head;
+5. exact protected Dependency Review, CodeQL, and complete CI pass where required; and
+6. the resulting final evidence/status transition head independently passes the protected gate before the next phase becomes authoritative.
 
-- if the current phase is incomplete, `continue` means finish the current phase;
-- if the current phase is complete, `continue` means record completion, move to the next phase, and begin it;
-- no phase may be skipped; and
-- no later phase may be used to excuse required current-phase gaps.
+The user command `continue` means exactly one of:
 
-Current phase is recorded in [Documentation program status](documentation-program-status.md).
+- finish the current incomplete phase; or
+- advance only because the current phase is fully complete.
+
+It never skips a gate. Current control state is recorded in [Documentation program status](documentation-program-status.md).
 
 ## 3. Program standards catalog
 
-The repository begins the program with:
+Base standards:
 
-- `documentation-standard.md` — structure, ownership, naming, base formats, and source-of-truth rules;
-- `documentation-completeness-standard.md` — completion/phase-gate rules.
+- [Repository documentation standard](documentation-standard.md) — structure, ownership, naming, base formats, and source-of-truth rules;
+- [Documentation completeness standard](documentation-completeness-standard.md) — document/coverage/phase completion and exact-gate rules.
 
-Later phases introduce focused standards rather than continuously expanding one monolithic document:
+Specialized standards:
 
 | Standard | Primary phase | Purpose |
 | --- | --- | --- |
-| `domain-contract-standard.md` | `DCP-P1` | Required depth, code maps, capability splitting, cross-domain contracts, domain inventories. |
-| `security-documentation-standard.md` | `DCP-P2` | Security/privacy/trust-boundary/data-protection documentation requirements. |
-| `operations-documentation-standard.md` | `DCP-P3` | Runtime state, diagnostics, observability, recovery, capacity, migration/rollback requirements. |
-| `interface-documentation-standard.md` | `DCP-P4` | HTTP/UI/API/events/jobs/commands/import/export/integration contract documentation. |
-| `testing-evidence-documentation-standard.md` | `DCP-P5` | Test traceability, evidence identity, performance/migration/accessibility validation and retention. |
-| `architecture-governance-standard.md` | `DCP-P6` | ADR, cross-domain dependency, glossary, current-state and shared-governance documentation rules. |
-| `documentation-maintenance-standard.md` | `DCP-P7` | Change-time documentation obligations, drift detection, CI enforcement, review and archival lifecycle. |
+| [`domain-contract-standard.md`](domain-contract-standard.md) | `DCP-P1` | Domain/code maps, living contract depth, capability splitting, cross-domain contracts. |
+| [`security-documentation-standard.md`](security-documentation-standard.md) | `DCP-P2` | Security/privacy/trust/data-protection documentation. |
+| [`operations-documentation-standard.md`](operations-documentation-standard.md) | `DCP-P3` | Runtime state, diagnostics, recovery, replay, capacity, migration/rollback. |
+| [`interface-documentation-standard.md`](interface-documentation-standard.md) | `DCP-P4` | HTTP/UI/API/events/jobs/commands/files/import/export/integration contracts. |
+| [`testing-evidence-standard.md`](testing-evidence-standard.md) | `DCP-P5` | Validation maps, evidence identity, performance/migration/accessibility traceability and retention. |
+| [`architecture-governance-standard.md`](architecture-governance-standard.md) | `DCP-P6` | ADR lifecycle, cross-domain dependencies, glossary, current architecture and shared governance. |
+| [`documentation-maintenance-standard.md`](documentation-maintenance-standard.md) | `DCP-P7` | Change-time obligations, drift prevention, CI enforcement, review and archival lifecycle. |
 
-Standards are program-wide and remain under `docs/product/`. Domain-specific documentation created under those standards remains under its owning domain.
+Standards are program-wide under `docs/product/`; documents created under them remain with their actual owner.
 
 ## 4. Phase model
 
 ### `DCP-P0` — Governance and continuation controls
 
-**Goal:** Establish the documentation completion program and deterministic phase gate.
+**Goal:** establish program plan, completeness rules, status ledger, navigation, and deterministic `continue` semantics.
 
-Required outputs:
-
-- this program plan;
-- `documentation-completeness-standard.md`;
-- `documentation-program-status.md`;
-- product-index navigation to the program;
-- existing documentation standard aligned to the phased-program model; and
-- clear `continue` semantics.
-
-Exit criteria:
-
-- program phases and ordering are unambiguous;
-- completion criteria are normative;
-- current phase is discoverable from one status record;
-- `continue` behavior is deterministic; and
-- program files are linked from product governance navigation.
-
-**Outcome:** After `DCP-P0`, all future documentation work is phase-gated.
-
----
+**Exit:** program controls are unambiguous and discoverable.
 
 ### `DCP-P1` — Domain contract and code-ownership completeness
 
-**Goal:** Prove every code domain is completely documented as a living business/runtime contract.
+**Goal:** prove every canonical code domain has a complete code-local map, living domain contract, and all material capability contracts.
 
-Create/adopt:
-
-- `domain-contract-standard.md`;
-- a domain coverage inventory/matrix; and
-- any CI checks needed to validate required domain metadata/sections.
-
-Required work across all canonical domains:
-
-- validate all 14 `app/Domain/<Domain>/README.md` developer maps;
-- validate all 14 `docs/domains/<domain>/README.md` living contracts;
-- map owned code areas and public contracts without line-by-line duplication;
-- identify all material capabilities requiring separate capability documents;
-- split overloaded domain READMEs when capability complexity warrants it;
-- document domain model, invariants, lifecycle, state semantics, authorization/tenancy, persistence, failure/idempotency/concurrency, and non-capabilities;
-- make consumed and exposed cross-domain contracts explicit; and
-- remove orphan/duplicate domain documentation.
-
-Exit gate:
-
-- 14/14 code-local domain READMEs complete;
-- 14/14 canonical domain contracts complete;
-- 100% of material capability-document inventory complete;
-- no undocumented code domain or ownerless domain document;
-- required links/indexes resolve; and
-- phase validation passes.
-
-No security/operations/interface gap discovered here may be silently ignored: it must either be completed when required by the domain contract or entered into the exact owning later-phase inventory.
-
----
+**Exit:** 14/14 code-local READMEs, 14/14 canonical domain contracts, complete material-capability inventory, owner/link validation, and protected phase evidence.
 
 ### `DCP-P2` — Security, privacy, and data-protection completeness
 
-**Goal:** Make security/privacy documentation complete for every domain and shared platform boundary.
+**Goal:** complete applicable security/privacy/trust/retention/abuse documentation for every domain while keeping shared security genuinely cross-domain.
 
-Create/adopt:
-
-- `security-documentation-standard.md`;
-- domain/security coverage inventory; and
-- security-documentation validation rules where practical.
-
-Required coverage:
-
-- assets and sensitive data;
-- data ownership/classification and privacy boundaries;
-- authentication/authorization/tenant isolation;
-- trust boundaries;
-- integrity and abuse cases;
-- secret/credential handling;
-- external/integration threats;
-- destructive/high-risk operations;
-- auditability/evidence expectations;
-- retention/deletion/anonymization where applicable;
-- residual risks/non-capabilities; and
-- links to dedicated domain security reviews where complexity warrants them.
-
-Top-level `docs/security/` must remain general/shared and must not absorb domain-specific implementation detail.
-
-Exit gate:
-
-- 100% of domains have complete applicable security/privacy coverage;
-- every dedicated security review required by the inventory is complete;
-- shared security baseline and domain security docs agree;
-- no domain-specific security evidence is misplaced at the program root; and
-- all security documentation validation passes.
-
----
+**Exit:** 14/14 domain security profiles, all required focused reviews, correct evidence placement, and protected phase evidence.
 
 ### `DCP-P3` — Operations, reliability, and recovery completeness
 
-**Goal:** Document how the implemented system is safely operated and recovered, from shared runtime through domain-specific failure behavior.
+**Goal:** document persisted/async runtime state, diagnostics, replay/reconciliation, backup/recovery, rollback, capacity, degradation, and operator safety.
 
-Create/adopt:
-
-- `operations-documentation-standard.md`;
-- operations/reliability coverage inventory.
-
-Required coverage where applicable:
-
-- persistent runtime state;
-- configuration dependencies;
-- scheduler/jobs/queues/outbox behavior;
-- normal operational flow;
-- logs/metrics/health/diagnostics;
-- failure modes and diagnosis;
-- replay/idempotency/reconciliation;
-- backup/restore and recovery dependencies;
-- migration/rollback semantics;
-- capacity/query/performance assumptions and gates;
-- external-service degradation behavior;
-- safe operator actions and stop conditions; and
-- evidence operators should retain.
-
-Top-level `docs/operations/` remains shared runtime/runbook material; domain-specific operational semantics live under the owning domain.
-
-Exit gate:
-
-- every stateful/async/integration-heavy domain has complete applicable operations documentation;
-- all required domain operations guides exist;
-- shared and domain runbooks do not conflict or duplicate authority;
-- recovery/rollback references are complete; and
-- operations documentation validation passes.
-
----
+**Exit:** complete domain operations profiles/focused runbooks, consistent shared operations, and protected phase evidence.
 
 ### `DCP-P4` — Interfaces, events, and integrations completeness
 
-**Goal:** Make every material boundary into or out of a domain discoverable and documented.
+**Goal:** make every material browser/API/CLI/job/event/webhook/file/import/export/external boundary discoverable with an owner and contract-level documentation.
 
-Create/adopt:
-
-- `interface-documentation-standard.md`;
-- interface/integration coverage inventory.
-
-Inventory and document as applicable:
-
-- HTTP routes and controllers as public/member/manager/admin surfaces;
-- UI/workspace entry points and authorization expectations;
-- public/internal API contracts;
-- commands/CLI surfaces;
-- jobs/scheduled work;
-- domain events and outbox contracts;
-- external webhooks;
-- import/export formats;
-- file/media boundaries;
-- external service dependencies;
-- versioning/compatibility constraints;
-- error/failure behavior; and
-- which domain owns each contract.
-
-The goal is contract-level discoverability, not generated endpoint dumps or one document per controller.
-
-Exit gate:
-
-- 100% of material interfaces/integrations in the inventory have an owner and complete contract documentation;
-- cross-domain producers/consumers agree;
-- public versus internal boundaries are explicit;
-- undocumented externally observable behavior is eliminated; and
-- interface validation passes.
-
----
+**Exit:** complete domain interface profiles/focused or reused compatibility contracts, public/internal boundaries explicit, and protected phase evidence.
 
 ### `DCP-P5` — Testing, evidence, and traceability completeness
 
-**Goal:** Make it possible to trace important documented claims and invariants to validation without turning living docs into test logs.
+**Goal:** make critical documented claims traceable to suitable executable/operational/immutable evidence without turning living docs into test logs.
 
-Create/adopt:
-
-- `testing-evidence-documentation-standard.md`;
-- traceability/evidence inventory.
-
-Required coverage:
-
-- domain invariants mapped to relevant architecture/unit/feature/integration/tenant/performance tests at an appropriate level;
-- security/privacy assertions linked to validation evidence;
-- migration rollback/reapply evidence where material;
-- accessibility evidence where applicable;
-- performance/query acceptance evidence where applicable;
-- accepted increment/phase evidence clearly distinguished from current contracts;
-- exact SHA/check-run identity rules for immutable acceptance records;
-- evidence retention and supersession rules; and
-- no stale accepted evidence presented as current runtime truth.
-
-Exit gate:
-
-- all critical domain/program invariants have discoverable validation coverage;
-- every required evidence class follows the standard;
-- accepted evidence records have sufficient immutable identity;
-- living docs and historical evidence are consistently separated; and
-- traceability validation passes.
-
----
+**Exit:** complete domain validation maps, exact six-suite evidence taxonomy, immutable acceptance identity rules, historical evidence audit/hardening, and protected phase evidence.
 
 ### `DCP-P6` — Architecture and program-governance consolidation
 
-**Goal:** Make the repository understandable at system level after domain-level completeness is proven.
+**Goal:** make the complete documented system understandable at repository level after domain completeness is proven.
 
-Create/adopt:
-
-- `architecture-governance-standard.md`;
-- current cross-domain dependency map;
-- shared terminology/glossary rules where useful; and
-- refreshed program audits/status navigation.
-
-Required work:
-
-- verify ADR index and decision lifecycle;
-- document current domain dependency direction and supported contracts;
-- reconcile repository/domain architecture audits with current code;
-- consolidate duplicated program narrative;
-- ensure product/security/operations top-level docs remain genuinely cross-domain;
-- refresh capability/status navigation;
-- define terminology where ambiguity exists across domains; and
-- identify obsolete historical narrative without rewriting accepted evidence.
-
-Exit gate:
-
-- architecture/program docs accurately describe the complete documented system;
-- cross-domain dependencies are discoverable and consistent with domain contracts;
-- ADR/current-state boundaries are clear;
-- no misplaced domain implementation detail remains in shared program areas; and
-- governance documentation validation passes.
-
----
+**Exit:** current ADR lifecycle/index, 14-domain dependency map, shared glossary, current audits/capability/navigation, shared ownership reconciliation, architecture-governance enforcement, and protected candidate/final evidence.
 
 ### `DCP-P7` — Maintenance automation and final acceptance
 
-**Goal:** Prevent documentation completeness from degrading after the program finishes.
+**Goal:** prevent documentation completeness from degrading after the program finishes.
 
-Create/adopt:
+Required outputs:
 
-- `documentation-maintenance-standard.md`;
-- final automated documentation architecture/completeness gates; and
+- [Documentation maintenance standard](documentation-maintenance-standard.md);
+- final maintenance/final-acceptance inventory;
+- normal change-time governance wired into documentation standard and Definition of Done;
+- final deterministic architecture/completeness automation over stable P1–P7 rules; and
 - final Documentation Completion Program exit evidence.
 
-Candidate automation/enforcement:
+Final automation should protect stable signals such as metadata/status/index consistency, code/docs/profile parity, ownership/path rules, local links, standards indexing, evidence placement, ADR lifecycle, current architecture navigation, and final maintenance governance.
 
-- required metadata/heading checks by document type;
-- code-domain/docs-domain parity;
-- domain README/code-local README link parity;
-- local-link validation;
-- index/navigation validation;
-- filename/path ownership rules;
-- domain-specific evidence placement rules;
-- stale/invalid status vocabulary checks;
-- optional coverage manifests for domain/security/operations/interfaces where robust and maintainable; and
-- change-time reminders/tests when code ownership or public contracts materially change.
+It must not parse every implementation detail, infer ownership from raw import counts, compare historical evidence against current totals, or require documentation churn for harmless refactors.
 
-The final gate must prefer deterministic high-signal checks over brittle rules that force meaningless documentation churn.
+**Exit:** every prior phase remains complete, all standards are current/indexed/non-conflicting, maintenance workflow is defined, final architecture/link/completeness automation passes, exact protected candidate/final evidence is recorded, and the final DCP exit record marks the program Complete.
 
-Exit gate:
-
-- every prior phase remains complete under final validation;
-- all program standards are indexed/current/non-conflicting;
-- maintenance workflow is defined;
-- CI protects the stable rules worth automating;
-- final documentation architecture/link/completeness checks pass; and
-- final DCP exit record marks the program complete.
-
-After `DCP-P7`, future documentation work returns to normal change-driven maintenance under the standards created by this program.
+There is no `DCP-P8`. After P7, future documentation work is normal change-driven maintenance under the standards created by DCP.
 
 ## 5. Phase execution rules
 
 For every phase:
 
-1. Read current status and phase scope.
-2. Build/freeze an explicit inventory before claiming coverage complete.
-3. Create or update the phase's normative standard before mass-normalizing documents against it.
-4. Work through the inventory systematically.
-5. Treat newly discovered required scope as current-phase work unless it clearly belongs to a later phase by design.
-6. Maintain indexes and source-of-truth links as documents change.
-7. Run applicable automated checks throughout the phase.
-8. Before exit, perform a complete inventory review rather than relying only on files changed in the latest PR.
-9. Record exit evidence.
-10. Advance only through the `continue` rule.
+1. read current status and phase scope;
+2. freeze an explicit inventory before claiming coverage complete;
+3. adopt the phase standard before broad normalization;
+4. complete the whole frozen inventory;
+5. route newly discovered required work to the actual owning phase/standard rather than ignoring it;
+6. maintain indexes and source-of-truth links as documents change;
+7. run applicable automated checks throughout;
+8. perform a full inventory review before exit rather than reviewing only recently changed files;
+9. record immutable exit evidence; and
+10. advance only through the exact protected `continue` gate.
 
-## 6. What `continue` should report
+## 6. `continue` reporting
 
-Each `continue` response should make the control decision explicit:
+Each `continue` decision should identify:
 
-- **Current phase:** `<id> — <name>`
-- **Gate status:** `Incomplete`, `Candidate`, or `Complete`
-- **Decision:** `Finish current phase` or `Advance to <next phase>`
-- **Remaining/current work:** concise list of concrete required items
-- **Validation:** what was checked and what still must pass
+- current phase;
+- gate status;
+- finish-versus-advance decision;
+- concrete remaining/current work; and
+- validation already passed versus still required.
 
-If the phase is incomplete, work continues there immediately. If complete, status is advanced and work begins on the next phase in the same continuation workflow where practical.
+When P7 is fully complete, future `continue` requests no longer advance a DCP phase; documentation changes follow [Documentation maintenance standard](documentation-maintenance-standard.md).
 
 ## 7. Program end state
 
-The Documentation Completion Program is done only when:
+DCP is complete only when:
 
-- every code domain has complete living contracts and capability documentation;
+- every code domain has complete living contracts/capability documentation;
 - security/privacy coverage is complete;
 - operations/recovery coverage is complete;
 - interfaces/integrations are complete;
-- test/evidence traceability is complete;
-- system-level architecture/program navigation is complete;
-- specialized documentation standards are current and indexed; and
-- CI/maintenance governance prevents material structural drift.
+- testing/evidence traceability is complete;
+- system-level architecture/governance navigation is complete;
+- specialized standards are current and indexed; and
+- CI plus maintenance governance protects the stable rules worth automating.
 
-The result is not merely a well-organized `/docs` directory. It is a documented system whose ownership, behavior, risks, operating model, interfaces, validation, and architecture can be navigated deterministically from code domain to program level.
+The resulting repository can be navigated deterministically from code owner to business contract, security/operations/interfaces/testing evidence, cross-domain architecture, historical acceptance, and production decision boundary.
