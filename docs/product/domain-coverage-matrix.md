@@ -3,13 +3,13 @@
 [← Documentation Completion Program](documentation-program-plan.md)
 
 **Document type:** DCP phase coverage inventory  
-**Status:** Current  
+**Status:** Complete  
 **Phase:** `DCP-P1` — Domain contract and code-ownership completeness  
-**Inventory state:** Frozen — 100% required content implemented; protected validation pending
+**Inventory state:** Frozen — 100% required coverage complete and protected candidate validation passed
 
 ## 1. Purpose
 
-This is the authoritative `DCP-P1` inventory. It records every canonical code domain, the code areas reviewed at module/category level, the material capability-document decision, and the phase completion state.
+This is the authoritative completed `DCP-P1` inventory. It records every canonical code domain, the code areas reviewed at module/category level, the material capability-document decision, and the final phase coverage state.
 
 A domain is not complete merely because its root README exists. Required capability documents identified here are part of the P1 gate.
 
@@ -23,20 +23,20 @@ A domain is not complete merely because its root README exists. Required capabil
 
 | Domain | Code areas / material responsibilities reviewed | P1 capability decision | Required capability contracts | P1 status |
 | --- | --- | --- | --- | --- |
-| Alliances | Alliance aggregate, creation/settings actions, active-Alliance context service/middleware, tenant-context snapshot, first-party Alliance surfaces | Split | `tenant-context.md` | Candidate |
-| Audit | Audit event model, recorder service, attributable tenant/actor evidence | Root | None | Candidate |
-| Authorization | permission vocabulary, built-in roles/ranks, role assignment/removal, permission evaluation | Root | None | Candidate |
-| Content | content/category/revision state, publication/scheduling, private media lifecycle, public/member presentation | Split | `media.md` | Candidate |
-| Contributions | categories/records/calculation provenance, correction/reversal, Events reconciliation, quality/reporting/export/schedules | Split | `event-reconciliation.md` | Candidate |
-| Events | Event/template/occurrence scheduling, recurrence, registration/capacity/waitlist, attendance, calendar/export boundary | Split | `registration-and-attendance.md` | Candidate |
-| Identity | global User/authentication, verification/password/session assurance, TOTP MFA and recovery codes | Split | `mfa-and-recovery.md` | Candidate |
-| Integrations | Alliance-bound API credentials/read API, webhook subscriptions/signing/delivery/retries | Split | `api.md`, `webhooks.md` | Candidate |
-| Kingdoms | neutral Kingdom/player/game-Alliance identity, roster/snapshots/intelligence/import, transfer planning, Alliance intelligence/diplomacy | Existing split | `roster.md`, `snapshots.md`, `intelligence.md`, `csv-migration.md`, `transfer-planning.md`, `alliance-intelligence.md` | Candidate |
-| Memberships | membership lifecycle, invitation bearer-token lifecycle, management/leave/Owner safety, Recruitment handoff | Split | `invitations.md` | Candidate |
-| Notifications | Event reminder materialization/delivery state, scheduled Contribution-report due-time coordination | Split | `event-reminders.md`, `scheduled-report-coordination.md` | Candidate |
-| Platform | platform-admin/lifecycle, plans/settings/flags, legal hold/deletion/retention, usage/export orchestration, shared outbox | Split | `lifecycle-and-retention.md`, `transactional-outbox.md` | Candidate |
-| Rallies | guidance, saved/recommended formations, groups/assignments/standby, Rally participation linked to Event occurrences | Root | None | Candidate |
-| Recruitment | public/invitation-only intake, questions, private candidate pipeline/decision/onboarding/retention | Split | `application-intake.md` | Candidate |
+| Alliances | Alliance aggregate, creation/settings actions, active-Alliance context service/middleware, tenant-context snapshot, first-party Alliance surfaces | Split | `tenant-context.md` | Complete |
+| Audit | Audit event model, recorder service, attributable tenant/actor evidence | Root | None | Complete |
+| Authorization | permission vocabulary, built-in roles/ranks, role assignment/removal, permission evaluation | Root | None | Complete |
+| Content | content/category/revision state, publication/scheduling, private media lifecycle, public/member presentation | Split | `media.md` | Complete |
+| Contributions | categories/records/calculation provenance, correction/reversal, Events reconciliation, quality/reporting/export/schedules | Split | `event-reconciliation.md` | Complete |
+| Events | Event/template/occurrence scheduling, recurrence, registration/capacity/waitlist, attendance, calendar/export boundary | Split | `registration-and-attendance.md` | Complete |
+| Identity | global User/authentication, verification/password/session assurance, TOTP MFA and recovery codes | Split | `mfa-and-recovery.md` | Complete |
+| Integrations | Alliance-bound API credentials/read API, webhook subscriptions/signing/delivery/retries | Split | `api.md`, `webhooks.md` | Complete |
+| Kingdoms | neutral Kingdom/player/game-Alliance identity, roster/snapshots/intelligence/import, transfer planning, Alliance intelligence/diplomacy | Existing split | `roster.md`, `snapshots.md`, `intelligence.md`, `csv-migration.md`, `transfer-planning.md`, `alliance-intelligence.md` | Complete |
+| Memberships | membership lifecycle, invitation bearer-token lifecycle, management/leave/Owner safety, Recruitment handoff | Split | `invitations.md` | Complete |
+| Notifications | Event reminder materialization/delivery state, scheduled Contribution-report due-time coordination | Split | `event-reminders.md`, `scheduled-report-coordination.md` | Complete |
+| Platform | platform-admin/lifecycle, plans/settings/flags, legal hold/deletion/retention, usage/export orchestration, shared outbox | Split | `lifecycle-and-retention.md`, `transactional-outbox.md` | Complete |
+| Rallies | guidance, saved/recommended formations, groups/assignments/standby, Rally participation linked to Event occurrences | Root | None | Complete |
+| Recruitment | public/invitation-only intake, questions, private candidate pipeline/decision/onboarding/retention | Split | `application-intake.md` | Complete |
 
 ## 4. Why these splits are required
 
@@ -116,7 +116,7 @@ P1 requires each root/capability contract to state its applicable security, oper
 - `DCP-P4` — interfaces/events/integrations; and
 - `DCP-P5` — testing/evidence/traceability.
 
-These later phases may add documents, but they may not be used to excuse a missing P1 ownership, lifecycle, invariant, persistence, tenancy, failure, or cross-domain contract.
+These later phases may add documents, but they may not be used to reopen or excuse a missing P1 ownership, lifecycle, invariant, persistence, tenancy, failure, or cross-domain contract.
 
 ## 8. P1 exit checklist
 
@@ -126,7 +126,13 @@ These later phases may add documents, but they may not be used to excuse a missi
 - [x] Kingdoms code-local evidence paths are corrected.
 - [x] All domain roots index their required capability files.
 - [x] P1 structural metadata/heading/inventory CI is active.
-- [ ] Protected CI confirms local documentation links and P1 architecture rules on the exact candidate head.
-- [ ] P1 exit validation/evidence is finalized after protected validation.
+- [x] Protected candidate validation confirmed local documentation links and P1 architecture rules on `be4a87734b44fa09643b6e8e5066283b5ed4fece`.
+- [x] P1 exit validation/evidence is recorded in [DCP-P1 exit report](domain-contract-completeness-exit-report.md).
 
-The phase remains **Candidate**, not Complete, until the final two protected-validation items pass.
+Protected candidate runs:
+
+- Dependency Review `31500031422` — success.
+- CodeQL `31500031623` — success.
+- CI `31500031488` — success, including 483 Pint files, PHPStan 345/345 with 0 errors, 365 tests / 6,136 assertions, immutable image build, staging, backup/restore, and image scan.
+
+DCP-P1 is complete. Later phase work is additive specialization, not unfinished P1 scope.
