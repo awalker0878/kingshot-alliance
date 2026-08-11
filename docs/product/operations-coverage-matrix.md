@@ -5,7 +5,7 @@
 **Document type:** DCP phase coverage inventory  
 **Status:** Current  
 **Phase:** `DCP-P3` — Operations, reliability, and recovery completeness  
-**Inventory state:** Frozen — implementation in progress
+**Inventory state:** Frozen — 100% required content implemented; protected validation pending
 
 ## 1. Purpose
 
@@ -33,20 +33,20 @@ Historical Phase 1–6 operations, migration/rollback, maintenance and disaster-
 
 | Domain | Primary operational concerns | P3 decision | Required focused living runbooks | Existing focused evidence | Status |
 | --- | --- | --- | --- | --- | --- |
-| Alliances | Alliance lifecycle/context, request-time tenant resolution, session/Redis dependency, tenant snapshot propagation | Profile only | None | Phase 1 operations/migration evidence | In progress |
-| Audit | append-oriented audit evidence, attribution/correlation, retention/redaction coordination | Profile only | None | Phase 1/6 evidence | In progress |
-| Authorization | tenant RBAC state, hierarchy/last-Owner integrity, synchronous assignment/removal | Profile only | None | Phase 1 evidence | In progress |
-| Content | scheduled publishing, private media/object storage, scanner/storage degradation, branding eligibility | Focused runbook | `scheduled-publishing-and-media.md` | Phase 2 operations/migration evidence | In progress |
-| Contributions | contribution/report state, Event reconciliation, scheduled report source data/provenance | Profile only | None | Phase 5 operations/migration evidence | In progress |
-| Events | recurrence, occurrences, registration/waitlist/attendance concurrency, reminder source state | Profile only | None | Phase 3 operations evidence | In progress |
-| Identity | account/MFA/recovery/session state, APP_KEY and Redis/session dependency, verification/auth failure behavior | Profile only | None | Phase 1/6 evidence | In progress |
-| Integrations | read API credentials plus durable webhook fan-out, Redis/Horizon, DNS/HTTP/egress degradation and retries | Focused runbook | `webhook-delivery.md` | Phase 6 operations evidence | In progress |
-| Kingdoms | roster/snapshot/import intelligence, transfer planning, Alliance intelligence/diplomacy | Existing review set | Existing 3 accepted operations guides | K1–K3 domain operations guides | In progress |
-| Memberships | membership/invitation lifecycle, TTL, email delivery dependency, transactional acceptance/reactivation | Profile only | None | Phase 1 evidence | In progress |
-| Notifications | recurring reminder/report materialization/queueing, deterministic delivery/run identities, outbox handoff | Focused runbook | `scheduled-delivery.md` | Phase 3/5/6 evidence | In progress |
-| Platform | transactional outbox, config/launch checks, usage snapshots, account deletion, retention/legal hold/export orchestration | Focused runbooks | `transactional-outbox.md`, `lifecycle-retention.md` | Phase 6 operations/DR/database maintenance evidence | In progress |
-| Rallies | Alliance-private coordination state, assignment/participation integrity, synchronous requests | Profile only | None | Phase 3 operations evidence | In progress |
-| Recruitment | public/private intake persistence plus scheduled expired-candidate anonymization and conversion follow-on | Focused runbook | `retention-and-anonymization.md` | Phase 4 operations/migration evidence | In progress |
+| Alliances | Alliance lifecycle/context, request-time tenant resolution, session/Redis dependency, tenant snapshot propagation | Profile only | None | Phase 1 operations/migration evidence | Candidate |
+| Audit | append-oriented audit evidence, attribution/correlation, retention/redaction coordination | Profile only | None | Phase 1/6 evidence | Candidate |
+| Authorization | tenant RBAC state, hierarchy/last-Owner integrity, synchronous assignment/removal | Profile only | None | Phase 1 evidence | Candidate |
+| Content | scheduled publishing, private media/object storage, scanner/storage degradation, branding eligibility | Focused runbook | `scheduled-publishing-and-media.md` | Phase 2 operations/migration evidence | Candidate |
+| Contributions | contribution/report state, Event reconciliation, scheduled report source data/provenance | Profile only | None | Phase 5 operations/migration evidence | Candidate |
+| Events | recurrence, occurrences, registration/waitlist/attendance concurrency, reminder source state | Profile only | None | Phase 3 operations evidence | Candidate |
+| Identity | account/MFA/recovery/session state, APP_KEY and Redis/session dependency, verification/auth failure behavior | Profile only | None | Phase 1/6 evidence | Candidate |
+| Integrations | read API credentials plus durable webhook fan-out, Redis/Horizon, DNS/HTTP/egress degradation and retries | Focused runbook | `webhook-delivery.md` | Phase 6 operations evidence | Candidate |
+| Kingdoms | roster/snapshot/import intelligence, transfer planning, Alliance intelligence/diplomacy | Existing review set | Existing 3 accepted operations guides | K1–K3 domain operations guides | Candidate |
+| Memberships | membership/invitation lifecycle, TTL, email delivery dependency, transactional acceptance/reactivation | Profile only | None | Phase 1 evidence | Candidate |
+| Notifications | recurring reminder/report materialization/queueing, deterministic delivery/run identities, outbox handoff | Focused runbook | `scheduled-delivery.md` | Phase 3/5/6 evidence | Candidate |
+| Platform | transactional outbox, config/launch checks, usage snapshots, account deletion, retention/legal hold/export orchestration | Focused runbooks | `transactional-outbox.md`, `lifecycle-retention.md` | Phase 6 operations/DR/database maintenance evidence | Candidate |
+| Rallies | Alliance-private coordination state, assignment/participation integrity, synchronous requests | Profile only | None | Phase 3 operations evidence | Candidate |
+| Recruitment | public/private intake persistence plus scheduled expired-candidate anonymization and conversion follow-on | Focused runbook | `retention-and-anonymization.md` | Phase 4 operations/migration evidence | Candidate |
 
 ## 4. Mandatory profile result
 
@@ -56,7 +56,7 @@ P3 requires exactly one current living operations profile for each canonical dom
 docs/domains/<domain>/operations/README.md
 ```
 
-All 14 profiles follow `operations-documentation-standard.md` and link to the owning domain plus shared operations index.
+All 14 profiles now follow `operations-documentation-standard.md`, link to the owning domain plus shared operations index, and document runtime shape, persistent state, configuration/dependencies, background processing, diagnostics, failure/recovery/replay, backup/rollback, capacity, degradation, stop conditions and evidence.
 
 ## 5. Focused-runbook rationale
 
@@ -86,19 +86,15 @@ Recruitment has daily scheduled anonymization of eligible unsuccessful candidate
 
 ## 6. Profile-only rationale
 
-Alliances, Audit, Authorization, Contributions, Events, Identity, Memberships and Rallies have meaningful persisted operational state but no independently complex queue/destructive/external-recovery lifecycle beyond what can be made executable in one domain profile plus shared runbooks.
+Alliances, Audit, Authorization, Contributions, Events, Identity, Memberships and Rallies have meaningful persisted operational state but no independently complex queue/destructive/external-recovery lifecycle beyond what is executable in one domain profile plus shared runbooks.
 
 Contributions and Events participate in scheduled workflows, but the recurring coordination/recovery machinery is owned operationally by Notifications; their profiles document source-state/provenance and point to the Notifications runbook rather than duplicating authority.
 
 ## 7. Existing Kingdoms operations set
 
-Kingdoms already has accepted domain-owned operations guides for:
+Kingdoms already has accepted domain-owned operations guides for roster intelligence, transfer planning, and Alliance intelligence.
 
-- roster intelligence;
-- transfer planning; and
-- Alliance intelligence.
-
-P3 keeps those accepted guides and normalizes `docs/domains/kingdoms/operations/README.md` into the mandatory current domain profile while retaining the three guides as indexed focused evidence. Their historical accepted format is not rewritten merely to match the new focused-runbook template.
+P3 normalized `docs/domains/kingdoms/operations/README.md` into the mandatory current domain profile while retaining and indexing those three accepted guides. Their accepted format is preserved rather than cosmetically rewritten into the new focused-runbook template.
 
 ## 8. Shared versus domain authority
 
@@ -106,30 +102,47 @@ Shared `docs/operations/` owns runtime topology, config validation, health/obser
 
 Domain profiles/runbooks own domain state semantics, domain-specific healthy progression, failure diagnosis, replay/reconciliation safety, recovery verification, performance/query boundaries and prohibited operator shortcuts.
 
-When a domain guide needs backup/restore or deployment, it links to the shared runbook and adds only domain-specific verification.
+The shared and domain indexes now expose this split directly and link all 14 domain profiles.
 
 ## 9. Recovery/rollback reference completeness
 
-Every domain profile must state:
+Every domain profile now states:
 
 - whether its state is fully PostgreSQL-backed or also depends on private object storage/secrets/external recipient state;
 - whether normal recovery is safe rerun, durable replay, reconciliation, image rollback, database restore or operator escalation;
-- whether schema reversal is supported only in test/development versus production-safe;
-- what representative domain state must be verified after restore/rollback; and
-- what actions are prohibited because they would fabricate success, destroy evidence or violate authorization/privacy/legal-hold constraints.
+- applicable schema/data rollback cautions;
+- representative domain state to verify after restore/rollback; and
+- prohibited actions that would fabricate success, destroy evidence or violate authorization/privacy/legal-hold constraints.
 
-## 10. P3 exit checklist
+The focused runbooks make the executable catch-up/replay/retention paths explicit for the high-complexity P3 boundaries.
+
+## 10. P3 CI enforcement
+
+`tests/Architecture/OperationsDocumentationTest.php` enforces:
+
+- exactly 14 canonical code domains and one living operations profile for each;
+- required profile metadata and 12-section order;
+- owning-domain and shared-operations links;
+- the exact frozen six-runbook P3 inventory;
+- focused-runbook indexing, metadata and 10-section order;
+- retention/indexing of the three accepted Kingdoms operations guides;
+- no migration of the new domain-specific runbooks into top-level `docs/operations/`; and
+- shared operations navigation to the standard, matrix and every domain profile.
+
+The existing repository-wide local Markdown-link test remains the link-integrity gate.
+
+## 11. P3 exit checklist
 
 - [x] Operations documentation standard adopted.
 - [x] Repository-wide operations/reliability/recovery inventory frozen.
-- [ ] 14/14 living domain operations profiles implemented.
-- [ ] 6/6 new focused living operations runbooks implemented.
-- [ ] Kingdoms profile normalized and existing 3 accepted guides retained/indexed.
-- [ ] Shared operations index and domain navigation complete/non-conflicting.
-- [ ] Recovery/rollback references complete across all profiles/runbooks.
-- [ ] P3 structural/metadata/heading/frozen-inventory CI enforcement active.
+- [x] 14/14 living domain operations profiles implemented.
+- [x] 6/6 new focused living operations runbooks implemented.
+- [x] Kingdoms profile normalized and existing 3 accepted guides retained/indexed.
+- [x] Shared operations index and domain navigation complete/non-conflicting.
+- [x] Recovery/rollback references complete across all profiles/runbooks.
+- [x] P3 structural/metadata/heading/frozen-inventory CI enforcement active.
 - [ ] Local Markdown-link validation passes with all new operational links.
 - [ ] Protected candidate validation passes on the exact P3 evidence head.
 - [ ] P3 exit/status evidence finalized and final head protected-green.
 
-Until every item is checked, the correct `continue` decision is **finish DCP-P3**.
+The phase is **Candidate**, not Complete. Until the remaining validation/evidence items pass, the correct `continue` decision is **finish DCP-P3**.
