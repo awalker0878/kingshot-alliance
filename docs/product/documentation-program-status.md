@@ -8,30 +8,35 @@
 
 ## Current control state
 
-**Current phase:** `DCP-P6` — Architecture and program-governance consolidation  
-**Gate status:** Candidate — 100% frozen content inventory implemented; protected candidate validation pending  
-**Control decision on next `continue`:** Finish current phase
+**Current phase:** `DCP-P7` — Maintenance automation and final acceptance  
+**Gate status:** Selected — P6 content/candidate complete; exact P6 final evidence/status head must be protected-green before P7 implementation begins  
+**Control decision on next `continue`:** If this exact head is protected-green, begin/finish P7; otherwise remain at the P6 final gate
 
-DCP-P5 is fully closed. Its final transition head `983b662bac8873ba2eb71ccec8a6c9e5d1331923` passed protected Dependency Review `31516665602`, CodeQL `31516665615`, and CI `31516665593`.
+DCP-P6 completed its frozen architecture/program-governance inventory and candidate protected gate. The P6→P7 transition recorded by this ledger becomes authoritative only when the exact final branch head produced by the P6 acceptance evidence/status writes independently passes protected Dependency Review, CodeQL, and complete CI.
 
-DCP-P6 has completed its frozen content inventory: architecture/governance standard, 14-domain dependency map, shared glossary, ADR lifecycle/index, refreshed current architecture audits, refreshed capability/docs/product navigation, shared top-level ownership audit, historical/obsolete narrative classification, and deterministic P6 architecture enforcement.
+P6 content candidate: `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf`.  
+Validated P6 candidate/evidence head: `b2d63ffceea50658c989a569a44ad98fc47db75a`.
 
-P6 content candidate: `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf`. The [P6 exit report](architecture-governance-completeness-exit-report.md) and [coverage matrix](architecture-governance-coverage-matrix.md) record the frozen scope. The exact candidate/evidence head containing these control records must pass protected Dependency Review, CodeQL, and complete CI before P6 can be finalized.
+Protected P6 candidate validation:
 
-P7 remains blocked until the P6 candidate gate and subsequent final evidence/status exact-head gate both pass.
+- Dependency Review `31518789039` — success;
+- CodeQL `31518789038` — success;
+- CI `31518789030` — success, including frontend quality/build, PostgreSQL migrations, **487 Pint files**, PHPStan/Larastan **345/345 with 0 errors**, **395 tests / 9,104 assertions**, P6/prior documentation architecture and link checks, immutable production image, staging, backup/restore, and image scan.
+
+P7 implementation remains blocked until this exact final transition head is protected-green.
 
 ## Phase ledger
 
 | Phase | Name | Status | Exit decision |
 | --- | --- | --- | --- |
 | `DCP-P0` | Governance and continuation controls | Complete | Program controls established. |
-| `DCP-P1` | Domain contract and code-ownership completeness | Complete | 14 domain maps/contracts, material capability coverage, P1 enforcement/protected validation complete. |
-| `DCP-P2` | Security, privacy, and data-protection completeness | Complete | 14 security profiles, focused reviews, ownership normalization, P2 protected gates complete. |
-| `DCP-P3` | Operations, reliability, and recovery completeness | Complete | 14 operations profiles, focused runbooks, P3 protected gates complete. |
-| `DCP-P4` | Interfaces, events, and integrations completeness | Complete | 14 interface profiles, focused/reused contracts, complete boundary inventory, P4 protected gates complete. |
-| `DCP-P5` | Testing, evidence, and traceability completeness | Complete | 14 testing/evidence profiles, six-suite traceability, historical identity hardening, P5 protected gates complete. |
-| `DCP-P6` | Architecture and program-governance consolidation | Candidate | **Current phase.** 100% frozen content inventory implemented; candidate/final protected gates remain. |
-| `DCP-P7` | Maintenance automation and final acceptance | Not started | Blocked by `DCP-P6`. |
+| `DCP-P1` | Domain contract and code-ownership completeness | Complete | Domain maps/contracts, material capability coverage, enforcement/protected validation complete. |
+| `DCP-P2` | Security, privacy, and data-protection completeness | Complete | Domain security profiles/focused reviews/ownership/protected validation complete. |
+| `DCP-P3` | Operations, reliability, and recovery completeness | Complete | Domain operations profiles/focused runbooks/protected validation complete. |
+| `DCP-P4` | Interfaces, events, and integrations completeness | Complete | Interface profiles/contracts/boundary inventory/protected validation complete. |
+| `DCP-P5` | Testing, evidence, and traceability completeness | Complete | Testing/evidence profiles, six-suite traceability, historical identity hardening, protected validation complete. |
+| `DCP-P6` | Architecture and program-governance consolidation | Complete | Architecture standard, 14-domain dependency map, glossary, ADR lifecycle, current audits/navigation, ownership consolidation, enforcement and candidate validation complete. Final transition subject to this exact-head protected gate. |
+| `DCP-P7` | Maintenance automation and final acceptance | Selected | **Next/final phase.** Do not implement until the exact P6 final evidence/status head is protected-green. |
 
 ## Accepted DCP transition evidence
 
@@ -39,53 +44,54 @@ P7 remains blocked until the P6 candidate gate and subsequent final evidence/sta
 - P2 final accepted head `35121bf732f75c72351a7c232548f3e78fb1c8ff` — DR `31505325682`, CodeQL `31505325673`, CI `31505325711` success.
 - P3 authoritative transition head `986cb6e0c2cb0cb6d5b84fe6fafdd1159e899171` — DR `31509458853`, CodeQL `31509458770`, CI `31509458758` success.
 - P4 final evidence/status head `286847006544d1af2e4dbf2f0211c5f28ad2cb33` — DR `31513724817`, CodeQL `31513724836`, CI `31513724840` success.
-- P5 content candidate `e49b4c88d7156101a9d9f8351fe8ba42f83a9632`.
 - P5 candidate/evidence head `221d8bda2d68a8ffe72ca00845d53656b7e0ab32` — DR `31515787801`, CodeQL `31515787822`, CI `31515787790` success.
 - P5 final transition head `983b662bac8873ba2eb71ccec8a6c9e5d1331923` — DR `31516665602`, CodeQL `31516665615`, CI `31516665593` success.
+- P6 content candidate `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf`.
+- P6 candidate/evidence head `b2d63ffceea50658c989a569a44ad98fc47db75a` — DR `31518789039`, CodeQL `31518789038`, CI `31518789030` success.
 
-## DCP-P6 candidate evidence
+## DCP-P6 accepted result
 
-P6 evidence includes:
+P6 established:
 
 - [Architecture and program-governance standard](architecture-governance-standard.md);
 - [Architecture/governance coverage matrix](architecture-governance-coverage-matrix.md);
 - [DCP-P6 exit report](architecture-governance-completeness-exit-report.md);
-- [Cross-domain dependency map](cross-domain-dependency-map.md) with all 14 canonical code domains;
+- [Cross-domain dependency map](cross-domain-dependency-map.md) with all 14 canonical domains;
 - [Shared glossary](glossary.md);
 - normalized [ADR/current architecture index](../adr/README.md) and ADR template lifecycle;
-- refreshed [current capability matrix](current-capability-matrix.md);
-- refreshed [repository structure audit](repository-structure-audit.md);
-- refreshed [domain boundary audit](domain-boundary-audit.md);
-- refreshed repository/product navigation; and
+- refreshed current capability, repository structure audit, domain boundary audit, docs/product navigation;
+- confirmation that top-level product/security/operations need no further domain-specific relocation; and
 - `tests/Architecture/ArchitectureGovernanceDocumentationTest.php`.
 
-### Frozen architecture decisions
+Existing ADR 0001–0008 remain Accepted. P6 introduced no new runtime architecture decision and did not rewrite/delete accepted historical evidence.
 
-- Existing ADR 0001–0008 remain Accepted; P6 introduces no new runtime architecture decision.
-- ADR lifecycle states are exactly Proposed, Accepted, Superseded, Rejected.
-- Dependency direction means consumer → owning supported contract; raw import counts are not architecture truth.
-- Intentional bidirectional workflow collaboration is valid when business/persistence ownership remains explicit.
-- No additional domain-specific relocation is required from top-level product/security/operations.
-- Historical phase/increment/DCP evidence remains historical; P6 does not rewrite accepted evidence into current narrative.
-- Real production approval remains separate from repository-controlled architecture/hardening acceptance.
+## Final P6 transition gate
 
-## P6 validation gate
+Before P7 implementation begins, the exact branch head containing the accepted P6 exit/matrix/status transition must pass:
 
-Before P6 becomes Complete:
+1. protected Dependency Review;
+2. protected CodeQL; and
+3. complete CI, including frontend, PHP/documentation architecture/link tests, immutable image, staging, backup/restore, and scan.
 
-1. protected Dependency Review must pass on the exact candidate/evidence head;
-2. protected CodeQL must pass;
-3. complete CI must pass, including P6 architecture/governance assertions and repository-wide Markdown-link validation;
-4. immutable image, staging, backup/restore, and image scan must pass where included by CI;
-5. exact candidate workflow identities must be recorded in final P6 evidence/status records; and
-6. the resulting final P6 evidence/status head must independently pass the same protected gate before P7 becomes authoritative.
+If any check fails, P6 remains the effective current phase and only the final-gate defect may be repaired. If all checks pass, P6 is fully closed and P7 becomes authoritative **without another P6 transition commit**.
+
+## P7 frozen intent
+
+P7 is the final documentation-program phase. Its required scope is maintenance rather than another broad documentation rewrite:
+
+- adopt `documentation-maintenance-standard.md`;
+- define change-time documentation obligations and review/archival lifecycle;
+- add final automated high-signal completeness/architecture gates over stable P1–P6 rules;
+- validate metadata/status vocabulary, code/docs/profile parity, links/navigation, path/ownership/evidence placement, standards indexing, and durable change obligations;
+- avoid brittle implementation-detail parsing or meaningless documentation churn; and
+- produce final DCP exit evidence proving every prior phase remains complete.
 
 ## `continue` procedure
 
-1. Treat P6 as authoritative until both protected gates close.
-2. If candidate validation exposes a P6 defect, repair only that defect and repeat candidate validation.
-3. If the candidate gate passes, finalize P6 exit/status evidence and select P7 conditionally on the exact final-head gate.
-4. Only a protected-green final transition head makes P7 authoritative.
-5. Never advance around incomplete required documentation or protected evidence.
+1. Verify the exact final P6 evidence/status head is protected-green.
+2. If not, remain in P6 and repair only the final-gate defect.
+3. If green, treat P7 as authoritative and freeze its maintenance/final-acceptance inventory before implementation.
+4. Finish all P7 content/enforcement and its protected final acceptance gate; there is no later DCP phase.
+5. Never advance around an incomplete protected gate.
 
 The detailed definition of `Complete` is normative in [Documentation completeness standard](documentation-completeness-standard.md).
