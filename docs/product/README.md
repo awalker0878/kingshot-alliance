@@ -2,21 +2,22 @@
 
 [← Documentation home](../README.md)
 
-This directory owns **repository-wide product/program governance**: completed baseline scope, DCP standards/status/evidence, current capability and architecture navigation, architecture audits, historical phase-wide acceptance, repository production hardening, and the separate real-production approval state.
+This directory owns **repository-wide product/program governance**: completed baseline scope, Documentation Completion Program standards/status/evidence, current capability and architecture navigation, architecture audits, historical phase-wide acceptance, repository-controlled production hardening, and the separate real-production approval state.
 
 Domain-specific current behavior and domain-owned acceptance evidence belong under `docs/domains/<domain>/`.
 
 ## Authoritative current records
 
-### Baseline and DCP control
+### Baseline and program control
 
-- [Implementation plan](implementation-plan.md) — accepted Phase 0–6 baseline and canonical repository structure.
-- [Documentation standard](documentation-standard.md) — documentation ownership/structure/naming/source-of-truth rules.
-- [Documentation completeness standard](documentation-completeness-standard.md) — hard DCP completion/`continue` gate.
-- [Documentation Completion Program](documentation-program-plan.md) — DCP-P0 through P7 roadmap.
-- [Documentation program status](documentation-program-status.md) — authoritative current DCP phase.
+- [Implementation plan](implementation-plan.md) — accepted product Phase 0–6 baseline and canonical repository architecture.
+- [Repository documentation standard](documentation-standard.md) — ownership, structure, naming, source-of-truth and stable CI rules.
+- [Documentation completeness standard](documentation-completeness-standard.md) — DCP completion/exact-gate semantics.
+- [Documentation Completion Program](documentation-program-plan.md) — P0–P7 roadmap and final maintenance end state.
+- [Documentation program status](documentation-program-status.md) — authoritative current DCP control state.
+- [Definition of Done](definition-of-done.md) — normal accepted-change checklist.
 
-### DCP standards and evidence
+### DCP standards, inventories, and evidence
 
 - P1: [Domain contract standard](domain-contract-standard.md) · [coverage](domain-coverage-matrix.md) · [exit](domain-contract-completeness-exit-report.md)
 - P2: [Security standard](security-documentation-standard.md) · [coverage](security-coverage-matrix.md) · [exit](security-completeness-exit-report.md)
@@ -24,6 +25,7 @@ Domain-specific current behavior and domain-owned acceptance evidence belong und
 - P4: [Interface standard](interface-documentation-standard.md) · [coverage](interface-coverage-matrix.md) · [exit](interface-completeness-exit-report.md)
 - P5: [Testing/evidence standard](testing-evidence-standard.md) · [coverage](testing-evidence-coverage-matrix.md) · [exit](testing-evidence-completeness-exit-report.md)
 - P6: [Architecture/governance standard](architecture-governance-standard.md) · [coverage](architecture-governance-coverage-matrix.md) · [exit](architecture-governance-completeness-exit-report.md)
+- P7: [Documentation maintenance standard](documentation-maintenance-standard.md) · [coverage](documentation-maintenance-coverage-matrix.md) · [final DCP exit](documentation-completion-program-exit-report.md)
 
 ### Current system/product navigation
 
@@ -39,32 +41,34 @@ Domain-specific current behavior and domain-owned acceptance evidence belong und
 
 ### Production boundary
 
-- [Production hardening exit report](production-hardening-exit-report.md) — **Accepted** repository-controlled hardening.
-- [Production launch approval](production-launch-approval.md) — **Not yet approved** for real production cutover until required external evidence exists.
+- [Production hardening exit report](production-hardening-exit-report.md) — **Accepted** repository-controlled hardening evidence.
+- [Production launch approval](production-launch-approval.md) — **Not yet approved** for real production cutover until required external infrastructure/operator evidence exists.
 - [Phase 6 launch readiness](phase-6-launch-readiness.md) — historical launch-control expectations feeding the current approval process.
 
 ## Documentation Completion Program state
 
-DCP-P0 through P5 are complete. P5 final transition head `983b662bac8873ba2eb71ccec8a6c9e5d1331923` passed DR `31516665602`, CodeQL `31516665615`, and CI `31516665593`.
+DCP-P0 through P6 are fully closed.
 
-DCP-P6 content candidate `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf` was promoted to exact candidate/evidence head `b2d63ffceea50658c989a569a44ad98fc47db75a`, which passed:
+P6 content candidate `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf` produced validated candidate/evidence head `b2d63ffceea50658c989a569a44ad98fc47db75a`, which passed DR `31518789039`, CodeQL `31518789038`, and CI `31518789030`.
 
-- Dependency Review `31518789039`;
-- CodeQL `31518789038`; and
-- CI `31518789030`, including 487 Pint files, PHPStan/Larastan 345/345 with 0 errors, 395 tests / 9,104 assertions, immutable image, staging, backup/restore, and image scan.
+P6 final evidence/status transition head `1b3e86ea4a698fbac917337672bef356e8b178b1` independently passed DR `31519423839`, CodeQL `31519423835`, and CI `31519423818`, including frontend/PHP/documentation checks, immutable image, staging, backup/restore, and image scan.
 
-P6 candidate acceptance is complete. **DCP-P7 — Maintenance automation and final acceptance** is selected only after the exact P6 final evidence/status head created by this transition independently passes the same protected gate. Do not begin P7 implementation on an unvalidated P6 transition head.
+That closes P6 and makes **DCP-P7 — Maintenance automation and final acceptance** authoritative.
+
+P7 is governed by the [documentation maintenance standard](documentation-maintenance-standard.md) and frozen [maintenance/final-acceptance matrix](documentation-maintenance-coverage-matrix.md). P7 defines change-driven obligations and final aggregate automation rather than adding another domain-content layer.
+
+There is no P8. After P7's exact protected candidate and final evidence/status gates close, future documentation work is normal change-driven maintenance under the current standards and Definition of Done.
 
 ## Shared versus domain-owned authority
 
-Top-level shared/program areas:
+Top-level shared/program areas remain:
 
-- `product/` — program scope/governance/current-state/architecture audits/historical phase acceptance/production decisions/DCP;
+- `product/` — program scope/governance/status/current architecture/audits/historical phase-wide acceptance/production decisions/DCP;
 - `security/` — shared baseline, historical phase-wide threat evidence, production security boundary;
 - `operations/` — shared runtime/configuration/observability/deployment/recovery/runbooks and historical phase-wide operating evidence;
-- `adr/` — durable architecture decisions and current architecture index.
+- `adr/` — current architecture index and durable architecture decisions.
 
-Domain-owned current material:
+Domain-owned current material remains deterministic:
 
 ```text
 docs/domains/<domain>/README.md
@@ -74,54 +78,32 @@ docs/domains/<domain>/interfaces/README.md
 docs/domains/<domain>/testing/README.md
 ```
 
-Domain-specific capability and product/acceptance evidence also stay under the owner when required. Cross-domain summaries may mention many domains but must link rather than absorb deep owner detail.
-
-P6's shared ownership audit found no additional domain-file relocation is required.
+Domain-specific capability and product/acceptance evidence also stay with the owner when required. P6 confirmed no additional shared→domain relocation was necessary.
 
 ## Historical program acceptance
 
-Phase-wide historical evidence remains here because it records the original cross-program delivery sequence:
+Historical product Phase 0–6 evidence remains here as program history. Accepted post-baseline Kingdoms evidence remains domain-owned at [Kingdoms product evidence](../domains/kingdoms/product/README.md).
 
-- [Phase 0 exit](phase-0-exit-report.md)
-- [Phase 1 exit](phase-1-exit-report.md)
-- [Phase 2 exit](phase-2-exit-report.md)
-- [Phase 3 exit](phase-3-exit-report.md)
-- [Phase 4 exit](phase-4-exit-report.md)
-- [Phase 5 exit](phase-5-exit-report.md) — P5-hardened with recovered final-head workflow identity.
-- [Phase 6 exit](phase-6-exit-report.md) — P5-hardened with recovered implementation/final workflow identities.
-
-Accessibility and other phase-wide acceptance artifacts remain historical. Do not rewrite their test counts or old "next phase" wording into current runtime truth.
-
-Accepted post-baseline Kingdoms evidence is domain-owned at [Kingdoms product evidence](../domains/kingdoms/product/README.md).
+Historical test counts, SHAs, workflow IDs, old phase-next-step wording, and accepted rationale remain historical. Current living standards/contracts/navigation evolve separately.
 
 ## Status vocabulary
 
-Shared product/release status:
+- DCP/documentation work: `Not started`, `In progress`, `Blocked`, `Candidate`, `Complete`.
+- ADR lifecycle: `Proposed`, `Accepted`, `Superseded`, `Rejected`.
+- Product/release state: `Planned`, `In progress`, `Candidate`, `Validated`, `Accepted`, `Approved`, `Not implemented`, `Not yet approved` / `Pending` as applicable.
 
-- **Planned** — approved scope exists; implementation not started.
-- **In progress** — implementation/evidence is being produced.
-- **Candidate** — content/implementation is complete for a gate; protected acceptance pending.
-- **Validated** — a defined gate passed on the recorded revision.
-- **Accepted** — repository/product completion gate passed and immutable evidence is retained.
-- **Approved** — accountable scope/external decision explicitly approved; distinct from Accepted.
-- **Not implemented** — no accepted runtime capability exists.
-- **Not yet approved / Pending** — accountable/external evidence remains outstanding.
+Do not use **Accepted** and **Approved** interchangeably. See [Shared glossary](glossary.md).
 
-DCP documentation-work states are `Not started`, `In progress`, `Blocked`, `Candidate`, and `Complete` under the completeness standard.
+## Normal maintenance after DCP
 
-ADR lifecycle states are `Proposed`, `Accepted`, `Superseded`, and `Rejected` under the P6 architecture/governance standard.
+For every material change:
 
-See [glossary](glossary.md) for system-wide terminology.
+1. identify the owning domain/shared area;
+2. apply the [documentation maintenance standard](documentation-maintenance-standard.md) to determine affected living documents/evidence/navigation;
+3. update only contracts actually changed by the work;
+4. preserve historical acceptance/decision evidence;
+5. update ADR/dependency/capability/audit/glossary surfaces only when their system-level meaning changes;
+6. keep repository acceptance separate from real-production approval; and
+7. require protected documentation architecture/maintenance checks on the exact final head.
 
-## Updating program state
-
-1. Keep cross-program baseline/governance/status/current architecture/historical acceptance here.
-2. Keep current domain behavior and domain-owned evidence with its code owner.
-3. Update [current capability](current-capability-matrix.md) when capability or explicit non-capability changes.
-4. Update [cross-domain dependencies](cross-domain-dependency-map.md) when supported owner direction changes materially.
-5. Use ADRs for durable architecture decisions; preserve superseded rationale.
-6. Keep historical evidence identity/counts historical.
-7. Keep repository acceptance separate from real-production approval.
-8. Never advance the DCP around an incomplete frozen inventory or protected exact-head gate.
-
-There is no product Phase 7 in the accepted baseline. `DCP-P0` through `DCP-P7` are documentation-governance phase IDs and are separate from product Phase 0–6.
+A harmless internal refactor does not require artificial prose churn when no documented contract changed.
