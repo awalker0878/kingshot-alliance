@@ -134,8 +134,7 @@ final readonly class StageKingdomIngestionCandidate
         KingdomIngestionSubscription $subscription,
         KingdomIngestionBatch $batch,
         Alliance $alliance,
-    ): void
-    {
+    ): void {
         if ($subscription->state !== KingdomIngestionSubscriptionState::Active) {
             throw ValidationException::withMessages(['subscription' => 'The ingestion subscription is not active.']);
         }

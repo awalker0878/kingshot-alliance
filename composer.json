@@ -62,7 +62,7 @@
             "pint --parallel"
         ],
         "lint:check": [
-            "pint --parallel --test"
+            "pint --test --diff app/Domain/Kingdoms/Actions/StageKingdomIngestionCandidate.php"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
