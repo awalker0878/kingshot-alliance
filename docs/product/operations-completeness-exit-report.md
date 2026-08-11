@@ -4,14 +4,14 @@
 
 **Document type:** DCP phase exit report  
 **Phase:** `DCP-P3` — Operations, reliability, and recovery completeness  
-**Status:** Candidate — protected validation pending  
-**Content candidate SHA:** `55dd2d29cb1c45dd3c01e9e42f6b57a8a9118c3d`
+**Status:** Candidate — corrected protected validation pending  
+**Content candidate SHA:** `b6f4aa9ca929ff75fef48344423eee7891210d26`
 
 ## 1. Outcome
 
-The DCP-P3 operations/reliability/recovery content inventory is fully implemented and ready for protected validation.
+The DCP-P3 operations/reliability/recovery content inventory is fully implemented and ready for corrected protected validation.
 
-P3 does not advance to DCP-P4 until the exact candidate/evidence head passes protected Dependency Review, CodeQL, and the complete CI workflow, and the resulting final exit/status head also passes the same protected gate.
+P3 does not advance to DCP-P4 until the exact corrected candidate/evidence head passes protected Dependency Review, CodeQL, and the complete CI workflow, and the resulting final exit/status head also passes the same protected gate.
 
 ## 2. Standard adopted
 
@@ -133,11 +133,15 @@ Those later phases may deepen discoverability/evidence but cannot be used to exc
 
 ## 12. Validation gate
 
+The initial P3 evidence head `9f03f918daa16d63cfbac538b57755289677d35d` passed Dependency Review `31507721516` and CodeQL `31507721523`, while CI `31507721345` failed before the architecture assertions on a single Pint `no_unused_imports` issue in the newly added `tests/Architecture/OperationsDocumentationTest.php`. Frontend quality/build and PostgreSQL migrations were green; the container/staging/recovery job was skipped because the PHP gate failed.
+
+The unused iterator imports were removed without changing P3 documentation or validation semantics. The corrected P3 content candidate is `b6f4aa9ca929ff75fef48344423eee7891210d26`.
+
 Before this report becomes Complete:
 
-- protected Dependency Review must pass;
-- protected CodeQL must pass;
-- the main CI workflow must pass, including the new P3 architecture tests and repository-wide Markdown-link validation;
+- corrected protected Dependency Review must pass;
+- corrected protected CodeQL must pass;
+- the main CI workflow must pass, including Pint, the new P3 architecture tests and repository-wide Markdown-link validation;
 - immutable image, staging, backup/restore and image-scan gates must pass where included by CI;
 - exact validated head/check identifiers must be recorded; and
 - the DCP status ledger must mark P3 Complete and select P4 as current.
