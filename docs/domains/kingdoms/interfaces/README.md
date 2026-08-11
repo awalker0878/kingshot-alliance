@@ -6,96 +6,70 @@
 **Status:** Current  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 manager ingestion control plane, and internal-only `kingdoms.*` event contracts  
-**P4 inventory decision:** Accepted Kingdoms capability set reused; K4-P1 extends the living profile without creating a separate frozen-P4 focused contract
+**Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 manager control plane, internal K4 promotion services, and internal-only `kingdoms.*` events  
+**P4 inventory decision:** Accepted Kingdoms capability set reused; K4-P2 extends the living profile without creating a separate frozen-P4 focused contract
 
 ## 1. Boundary purpose and ownership
 
-Kingdoms owns first-party workflows around neutral game identity, roster/history/intelligence, CSV migration/export, transfer planning, game-Alliance tracking/observations/diplomacy/contacts/intelligence, and the K4 generic ingestion control plane.
-
-The external boundary remains narrow: there is no public Kingdoms API, public Kingdoms webhook event family, or public inbound ingestion endpoint.
+Kingdoms owns neutral game identity plus Alliance-owned roster/history/intelligence, migration, transfer, diplomacy/intelligence, and K4 ingestion workflows. K4-P2 adds an internal player-snapshot promotion service; it does not create a public source or machine interface.
 
 ## 2. Surface inventory
 
-`routes/kingdoms.php` exposes authenticated/verified active-Alliance workspaces for settings; roster/history/intelligence/import/export; tracked game Alliances/intelligence/history/diplomacy/contacts; transfers/readiness/completion; and K4 manager ingestion status/control.
+Existing authenticated K1–K4 first-party routes remain unchanged from K4-P1. K4-P2 adds **no HTTP route** for candidate promotion, arbitrary source payloads, credentials, external callbacks, or public machine use.
 
-K4-P1 routes are:
-
-- `GET /alliance/kingdom-ingestion/manage`;
-- password-confirmed `POST /alliance/kingdom-ingestion/subscriptions`;
-- password-confirmed `PATCH /alliance/kingdom-ingestion/subscriptions/{subscription}/state`;
-- password-confirmed `POST /alliance/kingdom-ingestion/subscriptions/{subscription}/candidates/{candidate}/reject`.
-
-There is no HTTP route to define an endpoint/credential, stage arbitrary source payloads, start/complete batches, promote candidates, or receive external callbacks.
+The manager ingestion routes remain status/control, subscription creation/state transition, and quarantined-candidate rejection under `/alliance/kingdom-ingestion`.
 
 ## 3. Callers, authorization and tenancy
 
-Member-safe K1–K3 reads use `alliance.view`; K1–K4 management uses `kingdoms.manage` plus recent password confirmation for mutations; Alliance→Kingdom setting uses `alliance.manage`.
+Human reads/mutations retain `alliance.view`, `kingdoms.manage`, `alliance.manage`, active-Alliance context, and password-confirm requirements. Internal promotion accepts only tenant-owned subscription/candidate identifiers and re-resolves batch/alliance/current-Kingdom context before mutation.
 
-Tenant-owned identifiers are re-resolved beneath active Alliance/plan/tracking/subscription boundaries. K4 adapter/source/cursor/candidate identity does not grant authorization.
+Neutral game identity, adapter identity, source record identity, and candidate state never grant tenant authority.
 
 ## 4. Input and validation contracts
 
-Stable game IDs remain the only automatic neutral identity keys. Display names/tags/handles/source labels are not match keys.
+Stable game IDs remain the only automatic identity keys. K4-P2 accepts only a normalized `player_snapshot` candidate whose bounded fields were staged through the registered adapter contract.
 
-K4 subscription creation accepts only a bounded adapter key that must already resolve in `KingdomIngestionAdapterRegistry`. State transitions accept the enum lifecycle. Internal normalized candidates accept only target-specific approved keys/bounds for `player_snapshot` or `alliance_observation`; missing stable identity quarantines.
-
-The existing CSV contract remains `kingdoms-roster.v1`; transfer/diplomacy/observation inputs retain their accepted contracts.
+Promotion rechecks adapter key/version/target support and resolves the stable player ID in the captured Kingdom. Names/tags/handles/source labels are never target match keys.
 
 ## 5. Output and disclosure contracts
 
-K4 manager UI returns safe Alliance/Kingdom, adapter key/version/label, subscription status/health, recent batch status/counts/failure code, and recent candidate target/IDs/timing/state/reason.
+Ordinary member snapshot history continues to expose observation values, capture time, and source only. Manager history may additionally expose bounded machine provenance for ingestion-origin snapshots.
 
-It does **not** serialize candidate normalized payload bodies, arbitrary external raw responses, source credentials/headers/cookies, tenant-entered URLs, or public machine credentials. Existing member-vs-manager K1–K3 disclosure rules remain unchanged.
-
-No `/api/v1` Kingdoms roster/snapshot/transfer/diplomacy/ingestion scope exists.
+Candidate normalized payload bodies, source credentials, arbitrary raw responses, and public machine credentials remain excluded. No `/api/v1` Kingdoms ingestion/snapshot scope exists.
 
 ## 6. Internal actions, queries and services
 
-Supported K4-P1 internal contracts include adapter registry definitions; subscription create/transition; batch start/complete; normalized candidate staging; candidate rejection; and Alliance-scoped ingestion query projections.
+K4 now includes the P1 adapter/subscription/batch/candidate services plus `PromoteKingdomIngestionPlayerSnapshot`, which delegates accepted facts to `RecordPlayerSnapshot` with explicit machine provenance and no fabricated User actor.
 
-These are application/domain contracts, not public source APIs. [Automated game-data ingestion](../automated-ingestion.md) defines their lifecycle/invariants.
-
-Existing K1–K3 internal contracts remain documented by [Roster](../roster.md), [Snapshots](../snapshots.md), [Roster intelligence](../intelligence.md), [CSV migration](../csv-migration.md), [Transfer planning](../transfer-planning.md), and [Alliance intelligence](../alliance-intelligence.md).
+K4-P2 never invokes roster creation. Unknown/ambiguous/out-of-context targets quarantine.
 
 ## 7. Events, outbox and cross-domain consumers
 
-Material Kingdoms mutations produce Audit/Platform outbox evidence. External exclusion remains enforced: `alliance.kingdom_updated` and every `kingdoms.*` event are rejected by Integrations webhook fan-out before subscription matching.
-
-K4 adds internal `kingdoms.ingestion_*` events with bounded IDs/state/count/hash metadata. Internal event names are not public compatibility promises; their external ineligibility is the enforced contract.
+Newly accepted machine snapshots reuse internal `kingdoms.player_snapshot_recorded`; candidate promotion adds internal `kingdoms.ingestion_candidate_promoted`. Both carry bounded identifiers/provenance. Every `kingdoms.*` event remains externally ineligible through Integrations webhook fan-out.
 
 ## 8. Commands, jobs and scheduled work
 
-K4-P1 adds **no background processing** command/job/schedule. There is no source poller, crawler, scraper, OCR worker, bot, queue partition, cursor loop, retry worker, or replay worker.
-
-Internal batch/candidate actions intentionally exist before K4-P4 so later background work can depend on a tested domain contract rather than write tables directly.
+K4-P2 adds no command, queue job, scheduler, source poller, crawler, scraper, OCR worker, bot, cursor loop, retry worker, or replay worker. Those remain K4-P4 concerns.
 
 ## 9. Files, imports, exports and external dependencies
 
-The material file contract remains the controlled roster CSV flow. K4-P1 adds no file upload/download contract.
-
-Production `config/kingdoms.php` has an empty `ingestion_adapters` list, so K4 currently has no accepted external game-data service dependency or source credential.
+Controlled roster CSV remains the only material Kingdoms file contract. K4-P2 adds no new import/export or external dependency. Production adapter configuration remains empty.
 
 ## 10. Failure, idempotency, versioning and compatibility
 
-K4 adapter key/version is captured on subscriptions/batches and changed/missing versions fail closed. Source-window uniqueness and deterministic candidate identity protect exact retries. Completed batch outcomes cannot be rewritten to another result. Alliance-Kingdom drift blocks new work/re-activation rather than retargeting history.
-
-A concrete adapter's source schema/version/cursor behavior becomes compatibility-relevant only after separate source approval.
+Promotion exact retry resolves the same candidate/snapshot. Later distinct capture time remains append history. Source adapter version is rechecked at promotion time; missing/changed versions quarantine. Candidate/business-history coupling is by bounded provenance/record identity, not a retention-coupling FK.
 
 ## 11. Explicit non-capabilities
 
-Kingdoms currently does not provide public API/webhook ingestion; arbitrary manager URLs/headers/credentials; scraping/OCR/bots; real game-data acquisition; K4 scheduler/worker; automatic candidate promotion; auto roster/tracking/transfer/diplomacy; cross-Alliance sharing; or scoring/ranking/recommendations.
+No real game-data source, scheduler/worker, public API/webhook ingestion, arbitrary manager URLs/credentials, scraping/OCR/bots, roster auto-enrollment, game-Alliance observation promotion, transfer/diplomacy automation, cross-Alliance sharing, scoring/ranking, or recommendations are approved by P2.
 
 ## 12. Focused contracts, evidence and related documentation
 
 - [Automated ingestion](../automated-ingestion.md)
-- [K4 Slice A validation](../product/kingdoms-automated-ingestion-slice-a-validation.md)
-- [K4 Slice A security review](../security/kingdoms-automated-ingestion-foundation-security-review.md)
+- [Player snapshots](../snapshots.md)
+- [K4 Slice B validation](../product/kingdoms-automated-ingestion-slice-b-validation.md)
+- [K4 Slice B security review](../security/kingdoms-automated-ingestion-player-promotion-security-review.md)
 - [K4 operations](../operations/kingdoms-automated-ingestion.md)
-- [Kingdoms domain](../README.md)
-- [Kingdoms security](../security/README.md)
-- [Kingdoms operations](../operations/README.md)
-- [Integrations interfaces](../../integrations/interfaces/README.md)
 - [Integrations webhooks](../../integrations/webhooks.md)
 - [Interface documentation standard](../../../product/interface-documentation-standard.md)
 - [P4 interface coverage matrix](../../../product/interface-coverage-matrix.md)
