@@ -2,11 +2,15 @@
 
 [← Product and program documentation](README.md)
 
-**Status:** Current
+**Document type:** Current product/system navigation  
+**Status:** Current  
+**Architecture governance:** `DCP-P6`
 
-This matrix is the repository-wide navigation surface for implemented capability and explicit non-capability. It identifies the owning domain and points readers to the canonical living contract. Detailed scope, slice validation, security, accessibility, operations, and acceptance evidence stays with the owning domain.
+This matrix is the repository-wide navigation surface for implemented capability and explicit non-capability. It identifies primary ownership and points to canonical living contracts; it is not a replacement for domain specifications.
 
-Code and tests remain authoritative for exact implemented behavior. The [implementation plan](implementation-plan.md) remains authoritative for the completed Phase 0–6 baseline. A real production cutover remains **not yet approved**; see [production launch approval](production-launch-approval.md).
+System context: [Current architecture / ADR index](../adr/README.md) · [Cross-domain dependency map](cross-domain-dependency-map.md) · [Shared glossary](glossary.md) · [Domain boundary audit](domain-boundary-audit.md)
+
+Code and tests remain authoritative for exact runtime. The [implementation plan](implementation-plan.md) remains authoritative for the completed Phase 0–6 baseline. A real production cutover remains **not yet approved** under [Production launch approval](production-launch-approval.md).
 
 ## Implemented capabilities
 
@@ -27,7 +31,7 @@ Code and tests remain authoritative for exact implemented behavior. The [impleme
 | Read-only Alliance API credentials and Alliance/Events/Contributions API reads | Implemented | Integrations | [Integrations](../domains/integrations/README.md) |
 | Signed outbound webhooks with retries for externally eligible events | Implemented | Integrations | [Integrations](../domains/integrations/README.md) |
 | Cross-tenant administration, Alliance lifecycle, plans/entitlements, legal holds, retention, usage and outbox infrastructure | Implemented | Platform | [Platform](../domains/platform/README.md) |
-| First-class Kingdom reference and Alliance→Kingdom association | Accepted (`KINGDOMS-001`) | Kingdoms + Alliances | [Kingdoms](../domains/kingdoms/README.md) |
+| First-class Kingdom reference and Alliance→Kingdom association | Accepted (`KINGDOMS-001`) | Kingdoms + Alliances | [Kingdoms](../domains/kingdoms/README.md), [Alliances](../domains/alliances/README.md) |
 | Neutral Kingshot player identity and Alliance-owned roster | Accepted (`KINGDOMS-001`) | Kingdoms | [Roster](../domains/kingdoms/roster.md) |
 | Append-oriented player snapshots and current/stale/missing projection | Accepted (`KINGDOMS-001`) | Kingdoms | [Snapshots](../domains/kingdoms/snapshots.md) |
 | Exact roster aggregates, data-quality/linkage/movement metrics and bounded 7/30-day trends | Accepted (`KINGDOMS-001`) | Kingdoms | [Roster intelligence](../domains/kingdoms/intelligence.md) |
@@ -37,49 +41,51 @@ Code and tests remain authoritative for exact implemented behavior. The [impleme
 | Neutral game-side Alliance identity/tracking and factual observations/corrections | Accepted (`KINGDOMS-003`) | Kingdoms | [Alliance intelligence and diplomacy](../domains/kingdoms/alliance-intelligence.md) |
 | Explicit human-maintained diplomacy/NAP history and manager-private contacts | Accepted (`KINGDOMS-003`) | Kingdoms | [Alliance intelligence and diplomacy](../domains/kingdoms/alliance-intelligence.md) |
 | Descriptive game-Alliance intelligence and bounded factual trends | Accepted (`KINGDOMS-003`) | Kingdoms | [Alliance intelligence and diplomacy](../domains/kingdoms/alliance-intelligence.md) |
-| Scheduled/background processing, transactional outbox, health/readiness and request/trace correlation | Implemented | Platform + feature domains | [Background processing](../operations/background-processing.md), [Observability](../operations/observability.md) |
-| Immutable-image deployment, staging validation, backup/restore tooling and rollback procedures | Implemented repository controls | Operations | [Operations](../operations/README.md) |
+| Scheduled/background processing, transactional outbox, health/readiness and request/trace correlation | Implemented | Platform + source/consumer domains | [Background processing](../operations/background-processing.md), [Observability](../operations/observability.md) |
+| Immutable-image deployment, staging validation, backup/restore tooling and rollback procedures | Implemented repository controls | Shared Operations | [Operations](../operations/README.md) |
 
 ## Accepted domain increments
 
-Detailed K1–K3 evidence is owned by the Kingdoms domain rather than this program directory:
+Detailed K1–K3 evidence is Kingdoms-owned:
 
 | Scope | Status | Domain evidence |
 | --- | --- | --- |
-| `KINGDOMS-001` — roster intelligence | **Accepted** | [Kingdoms product evidence](../domains/kingdoms/product/README.md), [security evidence](../domains/kingdoms/security/README.md), [operations](../domains/kingdoms/operations/README.md) |
-| `KINGDOMS-002` — transfer planning | **Accepted** | [Kingdoms product evidence](../domains/kingdoms/product/README.md), [security evidence](../domains/kingdoms/security/README.md), [operations](../domains/kingdoms/operations/README.md) |
-| `KINGDOMS-003` — Alliance intelligence and diplomacy | **Accepted** | [Kingdoms product evidence](../domains/kingdoms/product/README.md), [security evidence](../domains/kingdoms/security/README.md), [operations](../domains/kingdoms/operations/README.md) |
+| `KINGDOMS-001` — roster intelligence | **Accepted** | [Product evidence](../domains/kingdoms/product/README.md), [security](../domains/kingdoms/security/README.md), [operations](../domains/kingdoms/operations/README.md), [testing](../domains/kingdoms/testing/README.md) |
+| `KINGDOMS-002` — transfer planning | **Accepted** | [Product evidence](../domains/kingdoms/product/README.md), [security](../domains/kingdoms/security/README.md), [operations](../domains/kingdoms/operations/README.md), [testing](../domains/kingdoms/testing/README.md) |
+| `KINGDOMS-003` — Alliance intelligence and diplomacy | **Accepted** | [Product evidence](../domains/kingdoms/product/README.md), [security](../domains/kingdoms/security/README.md), [operations](../domains/kingdoms/operations/README.md), [testing](../domains/kingdoms/testing/README.md) |
 
 ## Explicit current boundaries
 
 | Area | Current state | Meaning |
 | --- | --- | --- |
-| Global `Kingdom`, `KingdomPlayer`, `KingdomAlliance` identity | Neutral reference data | Shared reference identity never grants cross-Alliance access to tenant-owned roster, history, transfer, diplomacy, contacts, notes, or intelligence. |
+| Global `Kingdom`, `KingdomPlayer`, `KingdomAlliance` identity | Neutral reference data | Shared reference identity never grants cross-Alliance access to tenant-owned roster/history/transfer/diplomacy/contacts/notes/intelligence. |
+| Platform `Alliance` versus game-side `KingdomAlliance` | Distinct concepts | `Alliance` is the application tenant; `KingdomAlliance` is a neutral Kingdoms reference. See [glossary](glossary.md). |
 | Legacy free-form Alliance Kingdom storage | Removed | Alliance persistence uses `kingdom_id`; display/API representation derives from the canonical relation. |
 | Kingdoms external API | **Not approved / not implemented** | `/api/v1` remains limited to documented Alliance/Events/Contributions reads; no roster/snapshot/intelligence/transfer/diplomacy route/scope exists. |
 | Kingdoms external webhooks | **Not approved / not implemented** | `alliance.kingdom_updated` and all `kingdoms.*` events remain internal and excluded from generic webhook fan-out. |
 | Automated Kingshot game-data ingestion | **Not approved / not implemented** | No scraping, OCR, bots, automated game ingestion, or undocumented/unapproved APIs. |
 | Cross-Alliance/shared Kingdom intelligence | **Not approved / not implemented** | Accepted Kingdoms intelligence remains tenant-owned. |
 | Transfer marketplace, inferred eligibility/resource optimization or automatic execution | **Not approved / not implemented** | Transfer planning is explicit human coordination only. |
-| Alliance/player threat/desirability/punitive scoring or automated recommendations | **Not approved / not implemented** | Accepted intelligence is descriptive and factual. |
-| Payment processing/billing | **Not implemented** | Plans/entitlements exist without a payment-processing workflow. |
-| Support impersonation | **Not implemented** | Platform administrators do not receive impersonation capability. |
-| Generic email/SMS/push notification provider | **Not implemented as Notifications transport** | Notifications coordinates persisted in-app reminder/report-request work. |
-| Centralized public webhook event schema registry/version | **Not currently implemented** | Integrations defines the envelope/signature and explicit event eligibility; producers own event-specific payload semantics. |
+| Alliance/player threat/desirability/punitive scoring or automated recommendations | **Not approved / not implemented** | Accepted intelligence is descriptive/factual. |
+| Payment processing/billing | **Not implemented** | Plans/entitlements exist without payment-processing workflow. |
+| Support impersonation | **Not implemented** | Platform administrators receive no impersonation capability. |
+| Generic email/SMS/push provider owned by Notifications | **Not implemented** | Notifications coordinates persisted in-app reminder/report-request work rather than generic transport. |
+| Centralized public webhook event schema registry/version | **Not currently implemented** | Integrations defines envelope/signature/eligibility; producers own event-specific payload semantics. |
 | Laravel Pulse recording | **Disabled** | Foundation exists; hosted recording remains disabled until schema/access policy is introduced. |
-| OpenTelemetry exporter | **Not configured in-repository** | Request/trace correlation exists without a repository-configured OTEL exporter. |
-| Real production launch | **Not yet approved** | Repository hardening and accepted domain increments do not prove external production infrastructure/operator controls. |
+| OpenTelemetry exporter | **Not configured in-repository** | Request/trace correlation exists without repository-configured OTEL export. |
+| Repository-controlled production hardening | **Accepted** | CI/build/staging/recovery/scan controls are demonstrated in repository evidence. |
+| Real production launch | **Not yet approved** | Repository evidence does not prove deployed ingress/egress/secrets/operators/alerts/capacity/managed dependency recovery. |
 
-## Documentation ownership
+## Architecture and ownership navigation
 
-Current code/domain documentation is deterministic:
+Use the narrowest owner:
 
-```text
-app/Domain/<Domain>/
-        ↕
-docs/domains/<domain>/README.md
-```
+- [Current architecture and ADR index](../adr/README.md) — system shape and durable decisions.
+- [Cross-domain dependency map](cross-domain-dependency-map.md) — consumer→owner supported collaboration.
+- [Shared glossary](glossary.md) — terminology whose ambiguity changes system meaning.
+- [Domain index](../domains/README.md) — current domain contracts plus security/operations/interfaces/testing profiles.
+- [Repository structure audit](repository-structure-audit.md) — physical conformance evidence.
+- [Domain boundary audit](domain-boundary-audit.md) — semantic ownership evidence.
+- [Security](../security/README.md) and [Operations](../operations/README.md) — shared cross-domain policy/runtime.
 
-Domain-specific product/security/operations evidence may be nested under that owning domain. Top-level [`product/`](README.md), [`security/`](../security/README.md), and [`operations/`](../operations/README.md) remain program/shared areas.
-
-For architecture, use the [ADR/current architecture view](../adr/README.md). For the exact documentation ownership rules, use the [documentation standard](documentation-standard.md).
+Domain-specific product/security/operations/interface/testing evidence belongs under the owning `docs/domains/<domain>/` tree. Top-level product/security/operations material stays cross-domain/program-wide.
