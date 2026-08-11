@@ -9,23 +9,32 @@
 ## Current control state
 
 **Current phase:** `DCP-P1` — Domain contract and code-ownership completeness  
-**Gate status:** Not started  
+**Gate status:** Candidate — 100% required content implemented; protected validation pending  
 **Control decision on next `continue`:** Finish current phase
 
-`DCP-P0` established the program governance artifacts and continuation rule. The next documentation execution work begins with the full domain-contract/code-ownership completeness audit.
+DCP-P1 has completed its frozen documentation inventory: 14/14 code-local domain maps, 14/14 canonical domain contracts, and 19/19 material capability contracts. It remains in P1 until the protected checks pass on the candidate/evidence head and the exit gate is recorded Complete.
 
 ## Phase ledger
 
 | Phase | Name | Status | Exit decision |
 | --- | --- | --- | --- |
 | `DCP-P0` | Governance and continuation controls | Complete | Program plan, completeness standard, status ledger and navigation established. |
-| `DCP-P1` | Domain contract and code-ownership completeness | Not started | Active phase. Must reach 100% required domain/capability coverage before advancement. |
+| `DCP-P1` | Domain contract and code-ownership completeness | Candidate | 100% frozen content inventory implemented. Protected validation and final exit recording remain. See [P1 exit report](domain-contract-completeness-exit-report.md). |
 | `DCP-P2` | Security, privacy, and data-protection completeness | Not started | Blocked by `DCP-P1`. |
 | `DCP-P3` | Operations, reliability, and recovery completeness | Not started | Blocked by `DCP-P2`. |
 | `DCP-P4` | Interfaces, events, and integrations completeness | Not started | Blocked by `DCP-P3`. |
 | `DCP-P5` | Testing, evidence, and traceability completeness | Not started | Blocked by `DCP-P4`. |
 | `DCP-P6` | Architecture and program-governance consolidation | Not started | Blocked by `DCP-P5`. |
 | `DCP-P7` | Maintenance automation and final acceptance | Not started | Blocked by `DCP-P6`. |
+
+## DCP-P1 candidate evidence
+
+- [Domain contract standard](domain-contract-standard.md)
+- [Frozen domain coverage matrix](domain-coverage-matrix.md)
+- [DCP-P1 exit report](domain-contract-completeness-exit-report.md)
+- P1 structural/metadata/heading/capability inventory checks in `tests/Architecture/RepositoryStructureTest.php`
+
+The P1 content candidate recorded by the exit report is `d94e1fd5740d0ddfd90bab9cc99c3670d7c03bfb`. Later commits in the candidate evidence chain add only the exit/status records required by the gate.
 
 ## `continue` procedure
 
