@@ -67,7 +67,7 @@ Logs/telemetry may record safe outcome/status/correlation fields but never secre
 
 Verification includes enrollment/confirmation, password-confirmation prerequisite, RFC-compatible TOTP success/failure, challenge throttling/session behavior, one-time recovery consumption, recovery rotation, secret exclusion from serialization/log/audit paths, and separation from Alliance/Platform authorization.
 
-Historical source: [Phase 1 threat model](../../../../security/phase-1-threat-model.md). Shared controls: [Security baseline](../../../../security/security-baseline.md).
+Historical source: [Phase 1 threat model](../../../security/phase-1-threat-model.md). Shared controls: [Security baseline](../../../security/security-baseline.md).
 
 ## 10. Residual risks and external controls
 
