@@ -4,14 +4,15 @@
 
 **Document type:** DCP phase exit report  
 **Phase:** `DCP-P2` — Security, privacy, and data-protection completeness  
-**Status:** Candidate — protected validation pending  
-**Content candidate SHA:** `645c943e59439840d3563452d97612eb17d63b10`
+**Status:** Complete — final evidence/status head pending protected validation  
+**Content candidate SHA:** `645c943e59439840d3563452d97612eb17d63b10`  
+**Validated evidence SHA:** `eea41be6bf45820a7f3ab06f57cc24703e7d2b8e`
 
 ## 1. Outcome
 
-The DCP-P2 security/privacy/data-protection content inventory is fully implemented and is ready for protected validation.
+The DCP-P2 security/privacy/data-protection inventory is complete and passed protected validation on the corrected evidence head.
 
-P2 does not advance to DCP-P3 until the exact candidate/evidence head passes the repository's protected checks and the authoritative status ledger records the gate Complete.
+The program ledger may advance to `DCP-P3` in the final evidence/status commit chain, but that resulting final head must itself pass protected checks before P2 closure is authoritative under the Documentation Completion Program hard gate.
 
 ## 2. Standard adopted
 
@@ -27,9 +28,9 @@ DCP-P2 introduced [Security documentation standard](security-documentation-stand
 
 ## 3. Frozen inventory result
 
-The [Security coverage matrix](security-coverage-matrix.md) covers all 14 canonical domains.
+The completed [Security coverage matrix](security-coverage-matrix.md) covers all 14 canonical domains.
 
-Coverage implemented:
+Coverage accepted:
 
 - **14/14** living domain security profiles;
 - **9/9** new focused living capability security reviews required by the frozen P2 inventory; and
@@ -67,7 +68,7 @@ Historical Phase 1–6 threat models remain historical evidence for when control
 
 ## 7. Privacy and data-protection completeness
 
-P2 now explicitly documents, where applicable:
+P2 explicitly documents, where applicable:
 
 - public versus member/tenant/private/manager/cross-tenant data classes;
 - applicant/account/member/private operational data boundaries;
@@ -96,7 +97,7 @@ Explicit non-capabilities prevent game/reference identity, workflow responsibili
 
 ## 9. Security navigation and ownership
 
-Security navigation now exposes:
+Security navigation exposes:
 
 - the shared baseline and DCP-P2 standard/inventory from `docs/security/README.md`;
 - all 14 living security profiles from the shared security and domain indexes; and
@@ -106,7 +107,7 @@ Domain-specific current security behavior remains under `docs/domains/<domain>/s
 
 ## 10. CI enforcement
 
-`tests/Architecture/RepositoryStructureTest.php` now additionally verifies:
+`tests/Architecture/RepositoryStructureTest.php` verifies:
 
 - every one of the 14 code domains has a matching living `docs/domains/<domain>/security/README.md`;
 - profile metadata and the required 12 security-profile sections appear in order;
@@ -118,7 +119,26 @@ Domain-specific current security behavior remains under `docs/domains/<domain>/s
 
 Existing filename, documentation ownership, local Markdown link, P1 contract/capability, and Kingdoms evidence-placement checks remain active.
 
-## 11. Deferred work is phase-owned, not a P2 gap
+## 11. Validation history and accepted evidence
+
+The first P2 evidence head, `50beb0f49b77b5321722cfa337b6334f47a8e126`, passed Dependency Review and CodeQL but CI run `31503644300` failed only on local Markdown-link integrity. The nine new focused reviews referenced the shared security directory one level too high (`../../../../security/...` instead of `../../../security/...`). Pint, PHPStan, frontend, and migrations were green on that run.
+
+All affected baseline/threat-model links were corrected without changing security semantics. The corrected content candidate became `645c943e59439840d3563452d97612eb17d63b10`, and the corrected evidence head `eea41be6bf45820a7f3ab06f57cc24703e7d2b8e` passed all protected checks:
+
+- Dependency Review `31504587302` — success;
+- CodeQL `31504587346` — success;
+- CI `31504587198` — success;
+  - frontend quality/build — success;
+  - PostgreSQL migrations — success;
+  - Pint — 483 files;
+  - PHPStan/Larastan — 345/345, 0 errors;
+  - ParaTest/PHPUnit — 369 tests / 6,908 assertions;
+  - immutable production-image build — success;
+  - ephemeral staging deployment — success;
+  - backup/restore demonstration — success; and
+  - image vulnerability scan — success.
+
+## 12. Deferred work is phase-owned, not a P2 gap
 
 P2 documents security/privacy/data-protection behavior at current contract depth. Deeper concerns remain intentionally sequenced into:
 
@@ -130,19 +150,6 @@ P2 documents security/privacy/data-protection behavior at current contract depth
 
 Those phases may deepen evidence but cannot be used to reopen or excuse a missing P2 tenant/privacy/secret/trust/destructive-operation/security non-capability.
 
-## 12. Validation gate
+## 13. Final hard gate
 
-The first P2 evidence head, `50beb0f49b77b5321722cfa337b6334f47a8e126`, passed Dependency Review and CodeQL but failed CI run `31503644300` only on local Markdown-link integrity. The nine new focused reviews referenced the shared security directory one level too high (`../../../../security/...` instead of `../../../security/...`). Pint, PHPStan, frontend, and migrations were green on that run.
-
-All affected baseline/threat-model links were corrected without changing security semantics. The corrected content candidate is `645c943e59439840d3563452d97612eb17d63b10`.
-
-Before this report becomes Complete:
-
-- protected Dependency Review must pass;
-- protected CodeQL must pass;
-- the main CI workflow must pass, including P2 architecture/link tests;
-- immutable image, staging, recovery and image-scan gates must pass where included by protected CI;
-- the exact validated head/check identifiers must be recorded; and
-- the DCP status ledger must mark P2 Complete and select P3 as the current phase.
-
-Until then, the correct `continue` decision remains **finish DCP-P2**.
+The P2 content and corrected evidence candidate are accepted. This report and the program status ledger now form the final evidence/status chain. That final branch head must pass protected Dependency Review, CodeQL, and the complete CI workflow before `DCP-P2` is treated as authoritatively closed and `DCP-P3` becomes the operative phase for the next `continue`.
