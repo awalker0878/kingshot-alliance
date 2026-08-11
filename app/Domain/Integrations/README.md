@@ -1,9 +1,29 @@
 # Integrations domain
 
-Phase 6 activates the `Integrations` domain for tenant-scoped machine access and outbound delivery.
+## Purpose
 
-It owns API credentials, API credential authentication, webhook subscriptions, delivery records, signing, retry jobs, endpoint policy, and the read-only `/api/v1` foundation. API credentials are scoped to exactly one alliance and store only a SHA-256 secret verifier after the one-time token response. Webhook signing secrets are encrypted at rest because the application must recover them to create HMAC signatures.
+Owns Alliance-bound read-only API credentials/contracts plus outbound signed webhook subscriptions, delivery state, endpoint policy, retries, and integration-specific machine-access boundaries.
 
-Integration work runs on the dedicated `integrations` queue. Outbox fan-out is idempotent by subscription/message pair, synchronous payloads are bounded to 256 KiB, retries use bounded backoff, and exhausted deliveries become failed records rather than looping forever.
+## Owned code
 
-This domain does not own alliance authorization, plans, quotas, tenant lifecycle, audit storage, or the transactional outbox. Those remain in their canonical domains.
+Runtime code in this module owns API credential authentication/scopes, `/api/v1` read surfaces, webhook subscriptions/signing/delivery records, endpoint validation, retry jobs, and the dedicated `integrations` queue behavior.
+
+## Public contracts
+
+- fixed read scopes for Alliance, Events, and Contributions API reads;
+- Alliance-bound credential authentication;
+- stable signed webhook envelope/signature behavior for explicitly externally eligible events; and
+- bounded/idempotent retry/delivery diagnostics.
+
+Internal outbox publication does not automatically create a public webhook contract; current Kingdoms events remain explicitly excluded.
+
+## Dependencies
+
+- `Alliances`, `Events`, `Contributions` — business data represented read-only.
+- `Platform` — lifecycle, availability/entitlement controls, queue/outbox infrastructure.
+- `Authorization` / `Identity` — first-party integration management authorization/assurance.
+- producer domains — event-specific payload semantics.
+
+## Canonical documentation
+
+- [`docs/domains/integrations/`](../../../docs/domains/integrations/README.md)

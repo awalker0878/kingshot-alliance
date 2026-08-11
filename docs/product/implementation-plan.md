@@ -83,6 +83,7 @@ The baseline architecture is an enterprise modular monolith rather than prematur
 - UTC storage for time values with explicit user and alliance time zones.
 - Accessible, responsive, keyboard-operable interfaces.
 - Secure defaults, minimal privileges, and complete auditability for privileged actions.
+- Canonical domain documentation mirrors code ownership: every `app/Domain/<Domain>` root has exactly one matching `docs/domains/<domain>/README.md` root, with capability documents kept inside that domain directory.
 
 ## 5. Program workstreams
 
@@ -125,6 +126,7 @@ Every phase follows the same lifecycle:
 - Database migration and rollback strategy are tested.
 - Logging, metrics, traces, health checks, and alert implications are documented.
 - User and technical documentation are updated.
+- Documentation architecture tests pass, including exact `app/Domain/<Domain>` ↔ `docs/domains/<domain>/README.md` parity.
 - Staging deployment and operational smoke tests succeed.
 - Product owner accepts the phase exit report.
 
@@ -435,6 +437,8 @@ Prepare the product to operate reliably for many alliances and support controlle
 
 ### Recommended repository structure
 
+The domain-first source layout and domain documentation layout are intentionally parallel. The canonical domain set must remain identical in both trees.
+
 ```text
 app/
   Domain/
@@ -452,13 +456,45 @@ app/
     Platform/
     Rallies/
     Recruitment/
+
 docs/
   adr/
   domains/
+    README.md
+    alliances/
+      README.md
+    audit/
+      README.md
+    authorization/
+      README.md
+    content/
+      README.md
+    contributions/
+      README.md
+    events/
+      README.md
+    identity/
+      README.md
+    integrations/
+      README.md
+    kingdoms/
+      README.md
+    memberships/
+      README.md
+    notifications/
+      README.md
+    platform/
+      README.md
+    rallies/
+      README.md
+    recruitment/
+      README.md
   operations/
   product/
   security/
+
 resources/js/
+
 tests/
   Architecture/
   Feature/
@@ -467,6 +503,12 @@ tests/
   TenantIsolation/
   Unit/
 ```
+
+Each `docs/domains/<domain>/README.md` is the canonical domain documentation entry point. Additional living capability documents stay inside the owning domain directory and use capability-only lowercase kebab-case names, for example `docs/domains/kingdoms/roster.md` and `docs/domains/events/recurrence.md`.
+
+`tests/Architecture/RepositoryStructureTest.php` must enforce bidirectional parity between the first-level directories under `app/Domain/` and `docs/domains/`, after applying the canonical lowercase kebab-case mapping, and must require `README.md` in every documentation domain directory.
+
+The detailed documentation format and migration rules are defined by the [repository documentation standard](documentation-standard.md).
 
 ### Backlog organization
 
@@ -573,7 +615,8 @@ A feature or phase is done only when:
 - Security, accessibility, privacy, and operational impacts are addressed.
 - Logs, metrics, traces, alerts, and support diagnostics are sufficient.
 - Migrations, deployment, rollback, backup, and recovery implications are documented and tested as applicable.
-- User help, domain documentation, ADRs, and release notes are current.
+- User help, canonical domain documentation, ADRs, and release notes are current.
+- Every canonical code domain still has its matching `docs/domains/<domain>/README.md`, and documentation architecture tests pass.
 - The feature is successfully deployed and validated in staging.
 - Deferred enhancements are recorded without partially implementing them.
 

@@ -63,7 +63,7 @@ Deliver the platform's primary operational value: tenant-safe event scheduling, 
 ### Operations and documentation
 
 - [Phase 3 operations](../operations/phase-3-operations.md) documents scheduler commands, reminder lifecycle, retry/backoff fields, registration concurrency, UTC/local-time behavior, exports, audit/outbox correlation, health/metrics/alert implications, backup/recovery, rollback, and incident triage.
-- The [Events and Rallies guide](../domains/events-and-rallies.md) documents member and coordinator workflows, reminders, formations, rally coordination, exports, time-zone behavior, troubleshooting, and the tenant/security boundary.
+- The current [Events domain contract](../domains/events/README.md) and [Rallies domain contract](../domains/rallies/README.md) document member/coordinator Event and Rally workflows, reminders, formations, coordination, exports, time-zone behavior, troubleshooting, and tenant/security boundaries.
 - Phase 3 uses the existing audit recorder and transactional outbox for privileged business transitions and asynchronous delivery observability.
 
 ## Protected-workflow evidence

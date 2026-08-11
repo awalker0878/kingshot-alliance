@@ -74,7 +74,7 @@ Final protected validation on the accepted implementation head passed:
 
 ## Documentation
 
-- [Contributions and reporting](../domains/contributions-and-reporting.md)
+- [Contributions domain](../domains/contributions/README.md)
 - [Phase 5 operations](../operations/phase-5-operations.md)
 - [Phase 5 migration and rollback](../operations/phase-5-migration-rollback.md)
 - [Phase 5 threat model](../security/phase-5-threat-model.md)
@@ -87,3 +87,21 @@ Phase 5 is **Accepted**. The implementation head passed the complete protected p
 This acceptance update is documentation-only and must itself pass the repository's protected checks before merge.
 
 Phase 6 platform scale/administration work is not included and must not begin as part of this phase.
+
+## P5 traceability hardening — recovered immutable identity
+
+This section was added during `DCP-P5` to strengthen historical traceability only. It does **not** change the Phase 5 accepted scope, behavior, or decision above.
+
+The historical Phase 5 pull request is PR #18 (`agent/phase-5-contributions-reporting`). GitHub records its final accepted branch head as:
+
+`c30aaab0ee3b03c65f27042a2700540bdebbf9c4`
+
+Protected workflows on that exact final head completed successfully:
+
+- Dependency Review `31219686800` — **success**;
+- CodeQL `31219686802` — **success**; and
+- CI `31219686960` — **success**.
+
+The CI result is the immutable run identity corresponding to the already-recorded Phase 5 acceptance claims above, including the backend/frontend gate, PostgreSQL migrations, tenant/migration coverage, immutable image, staging, backup/restore and image scan.
+
+These run identifiers were recovered directly from GitHub history during P5; no historical test count or acceptance claim was recomputed or replaced.

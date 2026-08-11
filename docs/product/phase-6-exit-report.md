@@ -62,18 +62,48 @@ Support impersonation is intentionally not implemented because the implementatio
 
 ## Documentation
 
-- `docs/domains/platform-scale-and-administration.md`
-- `docs/domains/integrations.md`
-- `docs/operations/phase-6-operations.md`
-- `docs/operations/phase-6-database-maintenance.md`
-- `docs/operations/phase-6-migration-rollback.md`
-- `docs/operations/phase-6-disaster-recovery-exercise.md`
-- `docs/security/phase-6-threat-model.md`
-- `docs/product/phase-6-accessibility.md`
-- `docs/product/phase-6-launch-readiness.md`
+- [Platform domain](../domains/platform/README.md)
+- [Integrations domain](../domains/integrations/README.md)
+- [Phase 6 operations](../operations/phase-6-operations.md)
+- [Phase 6 database maintenance](../operations/phase-6-database-maintenance.md)
+- [Phase 6 migration and rollback](../operations/phase-6-migration-rollback.md)
+- [Phase 6 disaster-recovery exercise](../operations/phase-6-disaster-recovery-exercise.md)
+- [Phase 6 threat model](../security/phase-6-threat-model.md)
+- [Phase 6 accessibility review](phase-6-accessibility.md)
+- [Phase 6 launch readiness](phase-6-launch-readiness.md)
 
 ## Final gate
 
 Phase 6 is accepted for merge. The protected validation run on code head `d1969889ffa044cd7690f263ba9ef70c63a425cb` passed PostgreSQL migration, PHP formatting/static analysis, the complete backend/frontend suites, Dependency Review, CodeQL, immutable production-image build, ephemeral staging deployment including `/platform` controller resolution, backup/restore, and image scanning. Review hygiene was also clean: no review submissions, inline review threads, or PR comments remained, and temporary diagnostic artifacts were removed.
 
 The merge head must retain the same protected green state after this documentation finalization commit; any regression reopens the Phase 6 gate.
+
+## P5 traceability hardening — recovered immutable identity
+
+This section was added during `DCP-P5` to strengthen historical traceability only. It does **not** alter Phase 6 scope or its accepted decision.
+
+### Validated implementation head
+
+Exact code head already named above:
+
+`d1969889ffa044cd7690f263ba9ef70c63a425cb`
+
+GitHub records these protected runs on that exact implementation head:
+
+- Dependency Review `31235514849` — **success**;
+- CodeQL `31235514858` — **success**; and
+- CI `31235514843` — **success**.
+
+### Final Phase 6 PR head
+
+Historical PR #19 (`agent/phase-6-platform-scale-administration`) finalized Phase 6 at:
+
+`35979623d8231ee56b8fbcb75301e7e0732df0ca`
+
+That exact final head independently passed:
+
+- Dependency Review `31252682835` — **success**;
+- CodeQL `31252682836` — **success**; and
+- CI `31252682853` — **success**.
+
+These identifiers were recovered directly from GitHub history during P5. They preserve the existing historical distinction between the validated implementation head and the final documentation/status head; no Phase 6 behavior or acceptance result was recomputed.
