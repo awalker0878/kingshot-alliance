@@ -5,7 +5,7 @@
 **Document type:** DCP phase exit report  
 **Phase:** `DCP-P2` — Security, privacy, and data-protection completeness  
 **Status:** Candidate — protected validation pending  
-**Content candidate SHA:** `e877c3b485b9937a24ddc8fcd3cae3381aa9fa47`
+**Content candidate SHA:** `645c943e59439840d3563452d97612eb17d63b10`
 
 ## 1. Outcome
 
@@ -131,6 +131,10 @@ P2 documents security/privacy/data-protection behavior at current contract depth
 Those phases may deepen evidence but cannot be used to reopen or excuse a missing P2 tenant/privacy/secret/trust/destructive-operation/security non-capability.
 
 ## 12. Validation gate
+
+The first P2 evidence head, `50beb0f49b77b5321722cfa337b6334f47a8e126`, passed Dependency Review and CodeQL but failed CI run `31503644300` only on local Markdown-link integrity. The nine new focused reviews referenced the shared security directory one level too high (`../../../../security/...` instead of `../../../security/...`). Pint, PHPStan, frontend, and migrations were green on that run.
+
+All affected baseline/threat-model links were corrected without changing security semantics. The corrected content candidate is `645c943e59439840d3563452d97612eb17d63b10`.
 
 Before this report becomes Complete:
 
