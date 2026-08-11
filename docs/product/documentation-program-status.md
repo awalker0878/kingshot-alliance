@@ -9,21 +9,14 @@
 ## Current control state
 
 **Current phase:** `DCP-P5` — Testing, evidence, and traceability completeness  
-**Gate status:** Selected — DCP-P4 content/candidate complete; this exact P4 final evidence/status head must be protected-green before P5 implementation begins  
-**Control decision on next `continue`:** If this exact head is protected-green, begin/finish P5; otherwise remain at the P4 final gate
+**Gate status:** Candidate — 100% frozen content inventory implemented; protected candidate validation pending  
+**Control decision on next `continue`:** Finish current phase
 
-DCP-P4 has completed its frozen interface/event/integration inventory and its exact protected candidate gate. The final P4 transition recorded by this ledger is effective only when the exact resulting branch head independently passes protected Dependency Review, CodeQL, and complete CI.
+DCP-P4 is fully closed. Its final evidence/status head `286847006544d1af2e4dbf2f0211c5f28ad2cb33` passed protected Dependency Review `31513724817`, CodeQL `31513724836`, and CI `31513724840`, including frontend, PHP/documentation checks, immutable image, staging, backup/restore and image scan.
 
-P4 content candidate: `3ebd2ec3a25432baa636840911995be1a451f9c2`.  
-Validated P4 candidate/evidence head: `66b2ca498ac89e550d3e718b174e07172e7409bd`.
+DCP-P5 has completed its frozen content inventory: 14/14 living domain testing/evidence profiles, the six canonical PHPUnit suites and repository quality/protected-workflow evidence classes mapped, Phase 0–6/Kingdoms/DCP acceptance evidence audited, historical Phase 5/6 immutable identities hardened from recovered GitHub evidence, canonical navigation normalized, and deterministic P5 architecture enforcement added.
 
-Protected candidate validation passed:
-
-- Dependency Review `31512996437` — success;
-- CodeQL `31512996420` — success; and
-- CI `31512996421` — success, including frontend, PostgreSQL migrations, 485 Pint files, PHPStan/Larastan 345/345 with 0 errors, 381 tests / 8,290 assertions, P4 architecture/interface/route-inventory assertions, repository Markdown-link validation, immutable image build, ephemeral staging, backup/restore and image scan.
-
-P5 implementation remains blocked until this final transition head is protected-green. Green candidate checks alone are not sufficient to skip the final evidence-head rule.
+P5 content candidate is `e49b4c88d7156101a9d9f8351fe8ba42f83a9632`. The exact candidate/evidence head containing this ledger and [P5 exit report](testing-evidence-completeness-exit-report.md) must pass protected Dependency Review, CodeQL, and complete CI before P5 can be finalized. P6 remains blocked.
 
 ## Phase ledger
 
@@ -33,134 +26,101 @@ P5 implementation remains blocked until this final transition head is protected-
 | `DCP-P1` | Domain contract and code-ownership completeness | Complete | 14 domain maps, 14 canonical contracts, 19 material capability contracts, P1 CI enforcement, and protected validation complete. See [P1 exit report](domain-contract-completeness-exit-report.md). |
 | `DCP-P2` | Security, privacy, and data-protection completeness | Complete | 14 domain security profiles, 9 new focused reviews, normalized Kingdoms security evidence, P2 CI enforcement, and protected candidate/final-head validation complete. See [P2 exit report](security-completeness-exit-report.md). |
 | `DCP-P3` | Operations, reliability, and recovery completeness | Complete | 14 operations profiles, 6 new focused runbooks, 3 retained Kingdoms guides, P3 CI enforcement, corrected candidate and final-head protected validation complete. See [P3 exit report](operations-completeness-exit-report.md). |
-| `DCP-P4` | Interfaces, events, and integrations completeness | Complete | 14 interface profiles, 2 new focused contracts, accepted contract reuse, route/bootstrap/command/outbox/API/webhook/file inventory, P4 CI enforcement and protected candidate validation complete. Final transition subject to this exact-head protected gate. See [P4 exit report](interface-completeness-exit-report.md). |
-| `DCP-P5` | Testing, evidence, and traceability completeness | Selected | **Next phase.** Do not implement until the exact P4 final evidence/status head is protected-green. |
+| `DCP-P4` | Interfaces, events, and integrations completeness | Complete | 14 interface profiles, 2 new focused contracts, accepted contract reuse, complete boundary inventory, P4 CI enforcement and protected candidate/final-head validation complete. See [P4 exit report](interface-completeness-exit-report.md). |
+| `DCP-P5` | Testing, evidence, and traceability completeness | Candidate | **Current phase.** 100% frozen content inventory implemented; protected candidate/final-head validation remains. See [P5 exit report](testing-evidence-completeness-exit-report.md). |
 | `DCP-P6` | Architecture and program-governance consolidation | Not started | Blocked by `DCP-P5`. |
 | `DCP-P7` | Maintenance automation and final acceptance | Not started | Blocked by `DCP-P6`. |
 
-## DCP-P1 accepted evidence
+## Accepted DCP transition evidence
 
-Validated P1 candidate head: `be4a87734b44fa09643b6e8e5066283b5ed4fece`.
+### DCP-P1
 
-Protected candidate runs:
+- validated candidate head `be4a87734b44fa09643b6e8e5066283b5ed4fece`;
+- protected candidate DR `31500031422`, CodeQL `31500031623`, CI `31500031488` — success;
+- final accepted evidence/status head `60357543256478aa8ef8c26f67e27631df8c5ba4`, protected-green.
 
-- Dependency Review `31500031422` — success.
-- CodeQL `31500031623` — success.
-- CI `31500031488` — success, including 483 Pint files, PHPStan 345/345 with 0 errors, 365 tests / 6,136 assertions, immutable image build, staging, backup/restore, and image scan.
+### DCP-P2
 
-Final accepted P1 evidence/status head: `60357543256478aa8ef8c26f67e27631df8c5ba4`, also protected-green.
+- corrected content candidate `645c943e59439840d3563452d97612eb17d63b10`;
+- corrected candidate evidence head `eea41be6bf45820a7f3ab06f57cc24703e7d2b8e`;
+- protected candidate DR `31504587302`, CodeQL `31504587346`, CI `31504587198` — success;
+- final accepted head `35121bf732f75c72351a7c232548f3e78fb1c8ff` with DR `31505325682`, CodeQL `31505325673`, CI `31505325711` — success.
 
-## DCP-P2 accepted evidence
+### DCP-P3
 
-Corrected P2 content candidate: `645c943e59439840d3563452d97612eb17d63b10`.
+- corrected content candidate `b6f4aa9ca929ff75fef48344423eee7891210d26`;
+- corrected candidate evidence head `a67f93706eff4285a229df1f6ce057f2be3b5adc` with DR `31508211709`, CodeQL `31508211738`, CI `31508211931` — success;
+- after the documented status-file cleanup/revalidation path, clean transition head `986cb6e0c2cb0cb6d5b84fe6fafdd1159e899171` passed DR `31509458853`, CodeQL `31509458770`, CI `31509458758` and is the authoritative P3→P4 transition evidence.
 
-Corrected candidate evidence head: `eea41be6bf45820a7f3ab06f57cc24703e7d2b8e`.
+### DCP-P4
 
-Protected candidate runs:
+- content candidate `3ebd2ec3a25432baa636840911995be1a451f9c2`;
+- candidate/evidence head `66b2ca498ac89e550d3e718b174e07172e7409bd` passed DR `31512996437`, CodeQL `31512996420`, CI `31512996421`, including 485 Pint files, PHPStan/Larastan 345/345 with 0 errors, 381 tests / 8,290 assertions, interface/route/link checks, immutable image, staging, backup/restore and scan;
+- final evidence/status head `286847006544d1af2e4dbf2f0211c5f28ad2cb33` passed DR `31513724817`, CodeQL `31513724836`, CI `31513724840`.
 
-- Dependency Review `31504587302` — success.
-- CodeQL `31504587346` — success.
-- CI `31504587198` — success, including Pint 483 files, PHPStan 345/345 with 0 errors, 369 tests / 6,908 assertions, immutable image build, staging, backup/restore, and image scan.
+## DCP-P5 candidate evidence
 
-Final accepted P2 evidence/status head: `35121bf732f75c72351a7c232548f3e78fb1c8ff`.
+P5 evidence currently includes:
 
-Protected final-head runs:
+- [Testing and evidence standard](testing-evidence-standard.md);
+- [Testing and evidence coverage matrix](testing-evidence-coverage-matrix.md);
+- [DCP-P5 exit report](testing-evidence-completeness-exit-report.md);
+- 14 living `docs/domains/<domain>/testing/README.md` profiles;
+- canonical domain/product navigation to P5 profiles/governance;
+- `tests/Architecture/TestingEvidenceDocumentationTest.php`; and
+- historical Phase 5/6 exit-report traceability hardening using recovered immutable GitHub SHA/run identities.
 
-- Dependency Review `31505325682` — success.
-- CodeQL `31505325673` — success.
-- CI `31505325711` — success, including frontend, PHP/documentation architecture tests, immutable image, staging, backup/restore, and scan.
+P5 content candidate: `e49b4c88d7156101a9d9f8351fe8ba42f83a9632`.
 
-## DCP-P3 accepted evidence
+### Canonical executable evidence baseline
 
-Corrected P3 content candidate: `b6f4aa9ca929ff75fef48344423eee7891210d26`.
+P5 maps exactly six PHPUnit suites from `phpunit.xml`:
 
-Initial P3 evidence head `9f03f918daa16d63cfbac538b57755289677d35d` passed Dependency Review `31507721516` and CodeQL `31507721523`; CI `31507721345` exposed only unused imports in the new P3 architecture test. The imports were removed without semantic change.
+- `Architecture` → `tests/Architecture`;
+- `Feature` → `tests/Feature`;
+- `Integration` → `tests/Integration`;
+- `Performance` → `tests/Performance`;
+- `TenantIsolation` → `tests/TenantIsolation`;
+- `Unit` → `tests/Unit`.
 
-Corrected P3 candidate evidence head: `a67f93706eff4285a229df1f6ce057f2be3b5adc`.
+Repository quality/protected evidence classes include `composer check`, `npm run check`, Dependency Review, CodeQL, CI PostgreSQL migrations, immutable production-image build, ephemeral staging, backup/restore and image scan.
 
-Protected corrected-candidate runs:
+### Historical evidence hardening
 
-- Dependency Review `31508211709` — success.
-- CodeQL `31508211738` — success.
-- CI `31508211931` — success, including 484 Pint files, PHPStan 345/345 with 0 errors, 375 tests / 7,628 assertions, P3 architecture/link checks, immutable image, staging, backup/restore and image scan.
+Phase 5 exit evidence now retains final PR #18 head `c30aaab0ee3b03c65f27042a2700540bdebbf9c4` with DR `31219686800`, CodeQL `31219686802`, CI `31219686960`.
 
-The final P3 evidence/status state was protected-green at `fee400288908ea052c08ffec9e47a4602806fc56` under Dependency Review `31508943768`, CodeQL `31508943769`, and CI `31508943778`.
+Phase 6 exit evidence now retains implementation head `d1969889ffa044cd7690f263ba9ef70c63a425cb` with DR `31235514849`, CodeQL `31235514858`, CI `31235514843`, plus final PR #19 head `35979623d8231ee56b8fbcb75301e7e0732df0ca` with DR `31252682835`, CodeQL `31252682836`, CI `31252682853`.
 
-After the status file was accidentally overwritten during PR-metadata cleanup, its intended content was restored and the branch reset to clean restored head `986cb6e0c2cb0cb6d5b84fe6fafdd1159e899171`, which independently passed Dependency Review `31509458853`, CodeQL `31509458770`, and CI `31509458758`. That is the authoritative P3→P4 transition evidence.
+These changes are factual traceability hardening only; historical accepted scope, behavior and test counts were not recomputed.
 
-## DCP-P4 accepted candidate evidence
+### P5 evidence rules now explicit
 
-P4 introduced:
+- living current validation maps are separate from immutable historical exit records;
+- a branch name, PR number or prose saying “CI passed” is not sufficient immutable acceptance identity;
+- migration rollback/reapply, database backup/restore, and domain recovery-set evidence are distinct claims;
+- frontend quality is not automatically accessibility certification;
+- numeric performance/SLA/query claims require executable accepted evidence; and
+- historical test counts/check IDs remain historical rather than becoming current repository totals.
 
-- [Interface documentation standard](interface-documentation-standard.md);
-- [Interface coverage matrix](interface-coverage-matrix.md);
-- [DCP-P4 exit report](interface-completeness-exit-report.md);
-- 14 living `docs/domains/<domain>/interfaces/README.md` profiles;
-- 2 new focused interface contracts;
-- accepted P1 capability-contract reuse indexed from owning profiles;
-- canonical domain/product navigation; and
-- `tests/Architecture/InterfaceDocumentationTest.php`.
+## P5 validation gate
 
-P4 content candidate: `3ebd2ec3a25432baa636840911995be1a451f9c2`.
+Before P5 becomes Complete:
 
-Validated candidate/evidence head: `66b2ca498ac89e550d3e718b174e07172e7409bd`.
-
-Protected candidate runs:
-
-- Dependency Review `31512996437` — success;
-- CodeQL `31512996420` — success;
-- CI `31512996421` — success:
-  - frontend quality/build — success;
-  - PostgreSQL migrations — success;
-  - Pint — **485 files**;
-  - PHPStan/Larastan — **345/345, 0 errors**;
-  - ParaTest/PHPUnit — **381 tests / 8,290 assertions**;
-  - P4 profile/focused/reuse/route/bootstrap assertions — success;
-  - repository-wide local Markdown-link validation — success;
-  - immutable image build — success;
-  - ephemeral staging — success;
-  - backup/restore — success; and
-  - image scan — success.
-
-### P4 accepted content scope
-
-- 14/14 interface profiles.
-- New focused contracts:
-  - Contributions — `interfaces/report-exports.md`;
-  - Events — `interfaces/calendar-exports.md`.
-- Reused accepted contracts:
-  - Content `media.md`;
-  - Contributions `event-reconciliation.md`;
-  - Events `registration-and-attendance.md`;
-  - Identity `mfa-and-recovery.md`;
-  - Integrations `api.md`, `webhooks.md`;
-  - Kingdoms `csv-migration.md` plus accepted Kingdoms capability set;
-  - Memberships `invitations.md`;
-  - Platform `lifecycle-and-retention.md`, `transactional-outbox.md`;
-  - Recruitment `application-intake.md`.
-
-Key interface boundaries remain explicit: Kingdoms has no public API/webhook; wildcard webhooks cannot bypass Kingdoms external exclusion; Event calendar files are authenticated rather than public bearer feeds; Contributions manager exports are distinct from external API JSON; and Rallies retains semantic ownership despite Event-controller adapters.
-
-## Final P4 transition gate
-
-This ledger is the last repository-content change required to record P4 completion and select P5.
-
-Before P5 implementation begins, the exact branch head produced by this update must pass:
-
-1. protected Dependency Review;
-2. protected CodeQL; and
-3. complete CI, including frontend, PHP/documentation architecture/link tests, immutable image, staging, backup/restore, and image scan.
-
-If any of those checks fail, P4 remains the effective current phase and only the final-gate defect may be repaired. If all pass, P4 is fully closed and P5 becomes authoritative without another repository-content transition commit.
+1. protected Dependency Review must pass on the exact candidate/evidence head;
+2. protected CodeQL must pass;
+3. complete CI must pass, including the P5 architecture/traceability assertions and repository-wide Markdown-link validation;
+4. immutable image, staging, backup/restore and image scan must pass where included;
+5. exact candidate validation identifiers must be recorded in the P5 exit/status evidence; and
+6. the resulting final P5 evidence/status head must independently pass the same protected gate before P6 becomes authoritative.
 
 ## `continue` procedure
 
 On `continue`:
 
-1. Verify the exact final P4 evidence/status head is protected-green.
-2. If it is not, remain in P4 and repair only the final-gate defect.
-3. If it is green, treat P5 as authoritative and evaluate P5 against the [Documentation completeness standard](documentation-completeness-standard.md) and [program plan](documentation-program-plan.md).
-4. Freeze the P5 testing/evidence/traceability inventory before broad implementation.
-5. Never advance around an incomplete protected gate.
+1. Treat P5 as authoritative until both protected gates close.
+2. If candidate validation exposes a P5 defect, remain in P5 and repair only that defect.
+3. If the candidate gate passes, finalize P5 exit/status evidence and select P6 conditionally on the exact final-head gate.
+4. Only when that final head is fully protected-green may P6 implementation begin.
+5. Never advance around incomplete required documentation or protected evidence.
 
 The detailed definition of `Complete` is normative in [Documentation completeness standard](documentation-completeness-standard.md).
