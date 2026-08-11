@@ -5,17 +5,17 @@
 **Document type:** DCP phase coverage inventory  
 **Status:** Current  
 **Phase:** `DCP-P4` — Interfaces, events, and integrations completeness  
-**Inventory state:** Frozen — 100% required content implemented; protected validation pending
+**Inventory state:** Frozen — 100% content and candidate validation complete; final evidence-head validation pending
 
 ## 1. Purpose
 
 This is the authoritative DCP-P4 code-backed inventory. It freezes the material boundaries that must remain discoverable and owned: HTTP/UI/API surfaces, internal cross-domain contracts, outbox/event consumers, custom commands/jobs/scheduled work, file/import/export boundaries, external integrations, and significant non-capabilities.
 
-The governing format and ownership rules are in [Interface documentation standard](interface-documentation-standard.md).
+The governing format and ownership rules are in [Interface documentation standard](interface-documentation-standard.md). Candidate acceptance evidence is in [P4 exit report](interface-completeness-exit-report.md).
 
 ## 2. Executable route and bootstrap inventory
 
-P4 inspected the complete repository routing bootstrap. The executable route sources represented by the living interface profiles are:
+The executable route sources represented by the living interface profiles are:
 
 - `routes/web.php` — public, Identity, Alliance/member/manager, Content, Events/Rallies, Memberships, Recruitment surfaces;
 - `routes/api.php` — Integrations-owned `/api/v1` external machine reads;
@@ -27,15 +27,11 @@ P4 inspected the complete repository routing bootstrap. The executable route sou
 - `routes/console.php` — custom CLI plus scheduler definitions; and
 - `bootstrap/app.php` — route mounting, `/health/ready`, middleware aliases, request context, metrics, and security headers.
 
-Framework `/up` health routing is shared runtime infrastructure. `/health/ready` is the repository-controlled Platform readiness surface.
+Framework `/up` remains shared runtime infrastructure. `/health/ready` is the repository-controlled Platform readiness surface.
 
 ## 3. External machine contracts
 
-### Read-only API
-
 Integrations owns the only accepted external machine API family: `/api/v1`, rate-limited at 60 requests/minute by API credential identity where available.
-
-Accepted endpoints/scopes:
 
 | Method/path | Required scope | Represented owner | Contract owner |
 | --- | --- | --- | --- |
@@ -43,17 +39,11 @@ Accepted endpoints/scopes:
 | `GET /api/v1/events` | `events:read` | Events | Integrations |
 | `GET /api/v1/contributions` | `contributions:read` | Contributions | Integrations |
 
-The API is read-only. Credential tenant context is derived from the Alliance-bound machine credential; there is no caller-selected tenant identifier.
+The API is read-only and derives tenant context from the Alliance-bound credential.
 
-### Outbound webhooks
-
-Integrations owns the outbound signed HTTPS webhook contract. Source event meaning remains producer-domain owned; Platform owns outbox durability.
-
-Externally eligible outbox events use the Integrations envelope/signature/delivery contract. `alliance.kingdom_updated` and all `kingdoms.*` event families are explicitly external-ineligible even for wildcard subscriptions.
+Integrations also owns outbound signed HTTPS webhooks. Producer domains own event meaning; Platform owns outbox durability. `alliance.kingdom_updated` and every `kingdoms.*` event remain external-ineligible even for wildcard subscriptions.
 
 ## 4. Custom command and scheduled-work inventory
-
-The current custom CLI contracts in `routes/console.php` are:
 
 | Command | Owning boundary | Scheduled |
 | --- | --- | --- |
@@ -72,136 +62,128 @@ The current custom CLI contracts in `routes/console.php` are:
 | `recruitment:purge-expired {--limit=100}` | Recruitment retention/anonymization | Daily 03:15 (`--limit=250`) |
 | `outbox:publish {--limit=100}` | Platform transactional outbox | Every minute |
 
-Framework queue-batch/failed-job pruning remains shared Operations authority and is not a new domain interface contract.
+Framework queue pruning remains shared Operations authority.
 
 ## 5. Outbox/event consumer inventory
 
-Platform owns `OutboxPublished` and durable outbox publication. Producer domains own each recorded business event type.
-
-Current registered internal consumers of `OutboxPublished` are:
+Platform owns `OutboxPublished` and durable publication. Current registered internal consumers are:
 
 - Notifications → `MarkEventReminderPublished`;
 - Recruitment → `MarkRecruitmentCandidateJoined`; and
 - Integrations → `QueueWebhookDeliveries`.
 
-Integrations applies the independent external-webhook eligibility filter after outbox publication. Therefore internal publication, internal consumption, and external delivery are three distinct contracts.
+Internal publication, internal consumption, and external webhook delivery remain separate contracts.
 
 ## 6. Frozen domain inventory
 
 | Domain | Material P4 boundaries | P4 focused-contract decision | Status |
 | --- | --- | --- | --- |
-| Alliances | Alliance create/activate/overview; active tenant-context resolver consumed by feature domains; Alliance facts represented by Integrations | Profile only | Candidate |
-| Audit | internal `AuditRecorder` append/evidence contract consumed by feature domains; no direct HTTP/API | Profile only | Candidate |
-| Authorization | internal permission/rank/evaluation/role-assignment contracts; role routes mediated through Memberships | Profile only | Candidate |
-| Content | public Alliance/content/branding reads; member/manage workspace; publication; private media/storage/scanner; scheduled publication | Reuse `content/media.md` | Candidate |
-| Contributions | member/manager records/reporting; Events reconciliation; read-only API representation; privileged CSV/SpreadsheetML exports; scheduled-report source contract | `interfaces/report-exports.md`; reuse `event-reconciliation.md` | Candidate |
-| Events | member calendar/detail/registration; manager coordination; Rally adapter surfaces; read-only API representation; authenticated CSV/ICS | `interfaces/calendar-exports.md`; reuse `registration-and-attendance.md` | Candidate |
-| Identity | registration/login/logout/reset/verification/profile/session/password confirmation/MFA/account deletion; assurance consumed by domains | Reuse `mfa-and-recovery.md` | Candidate |
-| Integrations | first-party credential/webhook administration; `/api/v1`; bearer scopes; outbound signed webhooks; integrations queue | Reuse `api.md`, `webhooks.md` | Candidate |
-| Kingdoms | authenticated roster/history/intelligence/import/export, transfer and diplomacy workspaces; strict CSV; internal-only Kingdoms events | Reuse `csv-migration.md` plus accepted Kingdoms capability set | Candidate |
-| Memberships | manager membership/invitation administration; 64-hex bearer invitation show/accept; role-adapter routes | Reuse `invitations.md` | Candidate |
-| Notifications | no direct HTTP; reminder/report scheduler actions; outbox handoff and `OutboxPublished` consumer | Profile only | Candidate |
-| Platform | `/health/ready`; high-privilege `/platform`; Horizon/admin/CLI; lifecycle/export; shared outbox event infrastructure | Reuse `lifecycle-and-retention.md`, `transactional-outbox.md` | Candidate |
-| Rallies | member formation and manager guidance/group/assignment/participation surfaces mediated by Event controllers; internal Rally actions/models | Profile only | Candidate |
-| Recruitment | public/invitation application intake; private manager pipeline; Membership onboarding handoff; retention command; outbox consumer | Reuse `application-intake.md` | Candidate |
+| Alliances | Alliance create/activate/overview; active tenant context; Alliance facts represented by Integrations | Profile only | Complete |
+| Audit | internal `AuditRecorder`; no direct HTTP/API | Profile only | Complete |
+| Authorization | permission/rank/evaluation/role assignment; Memberships route adapters | Profile only | Complete |
+| Content | public/member/manage content, branding/media, scheduled publication | Reuse `media.md` | Complete |
+| Contributions | records/reporting, Events reconciliation, API projection, privileged exports | `interfaces/report-exports.md`; reuse `event-reconciliation.md` | Complete |
+| Events | calendar/detail/registration, Rally adapters, API projection, authenticated CSV/ICS | `interfaces/calendar-exports.md`; reuse `registration-and-attendance.md` | Complete |
+| Identity | auth/reset/verification/profile/session/password-confirm/MFA/account deletion | Reuse `mfa-and-recovery.md` | Complete |
+| Integrations | credential/webhook admin, `/api/v1`, bearer scopes, outbound webhooks | Reuse `api.md`, `webhooks.md` | Complete |
+| Kingdoms | roster/history/intelligence/import/export/transfer/diplomacy; internal-only events | Reuse `csv-migration.md` plus accepted Kingdoms set | Complete |
+| Memberships | membership/invitation admin; 64-hex invitation show/accept; role adapters | Reuse `invitations.md` | Complete |
+| Notifications | internal reminder/report scheduler actions, outbox handoff/consumer | Profile only | Complete |
+| Platform | `/health/ready`, `/platform`, Horizon/admin/CLI, lifecycle/export/outbox | Reuse `lifecycle-and-retention.md`, `transactional-outbox.md` | Complete |
+| Rallies | formations/guidance/groups/assignments/participation through Event adapters | Profile only | Complete |
+| Recruitment | public/invited intake, private pipeline, Membership handoff, retention/outbox consumer | Reuse `application-intake.md` | Complete |
 
-## 7. Required new focused P4 contracts
+## 7. New focused P4 contracts
 
-P4 adds exactly two **new** focused interface contracts because the existing P1 capability set did not fully isolate these compatibility-sensitive output formats:
+Exactly two new focused contracts are required and complete:
 
-1. [Contributions report exports](../domains/contributions/interfaces/report-exports.md)
-   - privileged CSV and SpreadsheetML export contract;
-   - `phase5.v1` report-version semantics;
-   - exact columns, MIME/filename/response evidence headers; and
-   - export-run/checksum/audit behavior.
-2. [Events calendar exports](../domains/events/interfaces/calendar-exports.md)
-   - authenticated upcoming-event CSV contract;
-   - authenticated iCalendar response contract;
-   - UTC/UID/calendar metadata semantics; and
-   - explicit absence of a public long-lived calendar bearer token.
+1. [Contributions report exports](../domains/contributions/interfaces/report-exports.md) — `phase5.v1`, CSV/SpreadsheetML, exact fields/headers/evidence semantics.
+2. [Events calendar exports](../domains/events/interfaces/calendar-exports.md) — authenticated CSV/iCalendar, UTC/UID/calendar metadata, no public bearer feed.
 
 ## 8. Accepted capability contracts reused by P4
-
-P4 intentionally reuses these current living contracts rather than creating duplicate interface documents:
 
 - Content — `docs/domains/content/media.md`;
 - Contributions — `docs/domains/contributions/event-reconciliation.md`;
 - Events — `docs/domains/events/registration-and-attendance.md`;
 - Identity — `docs/domains/identity/mfa-and-recovery.md`;
 - Integrations — `docs/domains/integrations/api.md`, `docs/domains/integrations/webhooks.md`;
-- Kingdoms — `docs/domains/kingdoms/csv-migration.md` and the accepted roster/snapshot/intelligence/transfer/Alliance-intelligence capability set;
+- Kingdoms — `docs/domains/kingdoms/csv-migration.md` and accepted Kingdoms capability set;
 - Memberships — `docs/domains/memberships/invitations.md`;
 - Platform — `docs/domains/platform/lifecycle-and-retention.md`, `docs/domains/platform/transactional-outbox.md`; and
 - Recruitment — `docs/domains/recruitment/application-intake.md`.
 
-Every owning interface profile now indexes the applicable reused contract explicitly.
+Every owning interface profile indexes its reused contracts.
 
 ## 9. File/import/export inventory
 
 Material file boundaries are:
 
-- Content private media upload/screening/storage/public-branding presentation — Content `media.md`;
-- Events authenticated upcoming-occurrence CSV — Events focused interface contract;
-- Events authenticated ICS — Events focused interface contract;
-- Contributions privileged CSV — Contributions focused interface contract;
-- Contributions privileged SpreadsheetML XML served as `.xls` — Contributions focused interface contract;
-- Kingdoms `kingdoms-roster.v1` CSV import preview/commit and member/management export — Kingdoms `csv-migration.md`;
-- Platform administrator Alliance JSON export — Platform lifecycle/retention profile/capability contract.
+- Content private media upload/screening/storage/public-branding presentation;
+- Events authenticated upcoming-occurrence CSV and ICS;
+- Contributions privileged CSV and SpreadsheetML XML served as `.xls`;
+- Kingdoms `kingdoms-roster.v1` CSV preview/commit and member/management export; and
+- Platform administrator Alliance JSON export.
 
 There is no accepted public Recruitment candidate export or public Kingdoms data export/API.
 
 ## 10. Significant token/signature/version contracts
 
-P4 preserves these implementation-backed compatibility/security boundaries:
-
-- Membership invitation route tokens: 64 hexadecimal characters; acceptance remains authenticated/email-bound under `invitations.md`.
-- Recruitment invitation-mode application tokens: 64 hexadecimal characters, hashed at rest, unused and unexpired.
-- API credentials: one-time `ks_live_<12 hex>.<64 hex>` bearer format, fixed read scopes, hashed verifier persistence.
+- Membership invitation route tokens: 64 hexadecimal characters, authenticated/email-bound acceptance.
+- Recruitment invitation application tokens: 64 hexadecimal characters, hashed, unused/unexpired.
+- API credentials: `ks_live_<12 hex>.<64 hex>`, fixed read scopes, hashed verifier.
 - Webhook signatures: HMAC-SHA256 over `<unix timestamp>.<exact JSON body>` with `X-Kingshot-*` headers.
-- Kingdoms CSV schema: `kingdoms-roster.v1`, exact header order, UTF-8/no-NUL, 1 MiB, 500-row maximum.
+- Kingdoms CSV: `kingdoms-roster.v1`, exact header order, UTF-8/no-NUL, 1 MiB, 500 rows.
 - Contributions report version: `phase5.v1`.
-- Events ICS: stable `PRODID`, occurrence-based UID, UTC DTSTART/DTEND representation.
+- Events ICS: stable `PRODID`, occurrence-based UID, UTC DTSTART/DTEND.
 
-## 11. Public/member/manager/admin boundary summary
+## 11. Caller boundary summary
 
-- **Anonymous/public:** home, approved public Content/branding, Recruitment intake, invitation landing page; authentication/account-recovery entry points where designed for guests.
-- **First-party member:** active-Alliance overview/content/events/roster/etc. according to owning permissions and safe payloads.
-- **First-party manager:** owning-domain management mutations plus recent password confirmation where required.
-- **Platform administrator:** separate verified/MFA-backed grant plus password confirmation for `/platform`; not derived from Alliance roles.
+- **Anonymous/public:** approved public Content/branding, Recruitment intake, invitation landing, guest Identity entry points.
+- **First-party member:** active-Alliance member-safe feature surfaces.
+- **First-party manager:** owning-domain privileged mutations plus password confirmation where required.
+- **Platform administrator:** distinct verified/MFA-backed Platform grant; not Alliance-role derived.
 - **External machine:** Integrations bearer API only.
 - **Outbound external:** Integrations webhooks only.
-- **Internal:** supported actions/queries/services/outbox events consumed between domains.
+- **Internal:** supported actions/queries/services/outbox events between domains.
 
-## 12. Explicit repository-wide non-capabilities relevant to P4
+## 12. Explicit repository-wide non-capabilities
 
-Current runtime does **not** provide:
+Current runtime does not provide:
 
-- public/write Kingdoms API or Kingdoms webhook contracts;
-- generic exposure of all outbox events as webhooks;
-- a write API for Alliance/Events/Contributions;
-- OAuth or user-delegated external API tokens;
-- anonymous/public Event calendar subscription tokens;
+- public/write Kingdoms API or Kingdoms webhooks;
+- generic exposure of every outbox event;
+- Alliance/Events/Contributions write API;
+- OAuth/user-delegated external API tokens;
+- anonymous/public Event calendar tokens;
 - public Recruitment candidate management/export API;
-- support impersonation through Platform administration;
-- automated Kingshot scraping/OCR/bot/game-ingestion interfaces; or
-- an interface by which CI automatically approves real production cutover.
+- Platform support impersonation;
+- automated Kingshot scraping/OCR/bot/game ingestion; or
+- CI-driven real-production approval.
 
 ## 13. P4 structural enforcement
 
-`tests/Architecture/InterfaceDocumentationTest.php` now enforces:
+`tests/Architecture/InterfaceDocumentationTest.php` enforces:
 
 - 14/14 code-domain/interface-profile parity;
 - current profile metadata and 12-section order;
 - exact two-new-focused-contract inventory;
 - focused-contract metadata and 10-section order;
-- required reuse links to accepted capability contracts;
+- required reuse links;
 - executable `routes/*.php` coverage in this matrix;
-- bootstrap route/health inventory coverage; and
-- domain-index navigation to all interface profiles.
+- `bootstrap/app.php` and `/health/ready`; and
+- domain-index navigation.
 
-The existing repository architecture suite continues to enforce Markdown-link integrity, documentation naming/ownership, canonical domain structure, security/operations profiles and prior accepted DCP gates.
+Existing architecture tests continue to enforce repository-wide Markdown links and P1–P3 documentation gates.
 
-## 14. P4 exit checklist
+## 14. Protected candidate evidence
+
+Candidate/evidence head `66b2ca498ac89e550d3e718b174e07172e7409bd` passed:
+
+- Dependency Review `31512996437` — success;
+- CodeQL `31512996420` — success;
+- CI `31512996421` — success, including 485 Pint files, PHPStan 345/345 with 0 errors, 381 tests / 8,290 assertions, immutable image, staging, backup/restore, and image scan.
+
+## 15. P4 exit checklist
 
 - [x] Interface documentation standard adopted.
 - [x] Code-backed route/bootstrap inventory frozen.
@@ -210,11 +192,11 @@ The existing repository architecture suite continues to enforce Markdown-link in
 - [x] File/import/export/external-machine inventory frozen.
 - [x] 14/14 living domain interface profiles implemented.
 - [x] 2/2 new focused P4 interface contracts implemented.
-- [x] Reused accepted focused capability contracts indexed from owning profiles.
+- [x] Reused accepted focused capability contracts indexed.
 - [x] Domain/product navigation normalized.
 - [x] P4 architecture enforcement active.
-- [x] Complete frozen-inventory ownership review completed; repository link validation is part of protected CI.
-- [ ] Exact P4 candidate/evidence head passes protected Dependency Review, CodeQL and complete CI.
-- [ ] P4 exit/status evidence finalized and exact final head protected-green.
+- [x] Complete frozen-inventory ownership review completed.
+- [x] Exact P4 candidate/evidence head passed protected Dependency Review, CodeQL and complete CI.
+- [ ] Exact final P4 exit/status evidence head protected-green.
 
-The content inventory is **Candidate**, not Complete. P5 remains blocked until protected candidate/final-head validation closes the gate.
+P4 content and candidate validation are complete. P5 remains blocked until the final evidence/status head passes the same protected gate.
