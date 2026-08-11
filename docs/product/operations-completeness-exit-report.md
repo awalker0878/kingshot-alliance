@@ -4,14 +4,15 @@
 
 **Document type:** DCP phase exit report  
 **Phase:** `DCP-P3` — Operations, reliability, and recovery completeness  
-**Status:** Candidate — corrected protected validation pending  
-**Content candidate SHA:** `b6f4aa9ca929ff75fef48344423eee7891210d26`
+**Status:** Complete transition prepared — final evidence-head protected validation required  
+**Corrected content candidate SHA:** `b6f4aa9ca929ff75fef48344423eee7891210d26`  
+**Validated candidate evidence head:** `a67f93706eff4285a229df1f6ce057f2be3b5adc`
 
 ## 1. Outcome
 
-The DCP-P3 operations/reliability/recovery content inventory is fully implemented and ready for corrected protected validation.
+The DCP-P3 operations/reliability/recovery inventory is fully implemented and the corrected candidate evidence head passed the complete protected validation gate.
 
-P3 does not advance to DCP-P4 until the exact corrected candidate/evidence head passes protected Dependency Review, CodeQL, and the complete CI workflow, and the resulting final exit/status head also passes the same protected gate.
+This report and the program ledger now record the P3-complete/P4-current transition. That transition becomes authoritative only when the exact branch head containing these final evidence/status records also passes protected Dependency Review, CodeQL and complete CI. No additional branch mutation is required after that exact-head success.
 
 ## 2. Standard adopted
 
@@ -30,7 +31,7 @@ P3 introduced [Operations documentation standard](operations-documentation-stand
 
 The [Operations coverage matrix](operations-coverage-matrix.md) covers all 14 canonical domains.
 
-Implemented coverage:
+Accepted coverage:
 
 - **14/14** living domain operations profiles;
 - **6/6** new focused living operations runbooks required by the frozen P3 inventory; and
@@ -51,7 +52,7 @@ Alliances, Audit, Authorization, Contributions, Events, Identity, Memberships an
 
 ## 5. Kingdoms operations normalization
 
-`docs/domains/kingdoms/operations/README.md` is now the mandatory current P3 operations profile.
+`docs/domains/kingdoms/operations/README.md` is the mandatory current P3 operations profile.
 
 It retains the accepted domain-owned guides for roster intelligence, transfer planning and Alliance intelligence instead of cosmetically rewriting their accepted formats. The profile makes current shared-runtime dependencies, synchronous/no-ingestion runtime shape, recovery/reconciliation rules, query-performance evidence boundary and prohibited automation shortcuts explicit.
 
@@ -69,7 +70,7 @@ Domain profiles consume these shared contracts and add only domain-owned persist
 
 ## 7. Recovery and rollback completeness
 
-Every domain profile now identifies:
+Every domain profile identifies:
 
 - the persistent state it owns;
 - configuration/runtime dependencies;
@@ -101,7 +102,7 @@ P3 makes the following repository-wide distinctions explicit:
 
 ## 9. Navigation and ownership
 
-Navigation now exposes:
+Navigation exposes:
 
 - P3 standard/matrix from product governance;
 - all 14 operations profiles from the shared operations index and domain index;
@@ -112,7 +113,7 @@ Domain-specific living operations documentation remains under `docs/domains/<dom
 
 ## 10. CI enforcement
 
-`tests/Architecture/OperationsDocumentationTest.php` now verifies:
+`tests/Architecture/OperationsDocumentationTest.php` verifies:
 
 - exactly 14 canonical code domains and 14 matching operations profiles;
 - profile metadata and required 12-section ordering;
@@ -125,25 +126,33 @@ Domain-specific living operations documentation remains under `docs/domains/<dom
 
 Existing repository architecture tests still enforce filename/ownership rules and local Markdown-link integrity.
 
-## 11. Deferred work is phase-owned, not a P3 gap
+## 11. Validation history and accepted candidate
 
-P3 deliberately does not inventory every public/internal interface/event/job contract at P4 depth, map every documentation assertion to immutable tests/evidence at P5 depth, or consolidate all system-level architecture/governance at P6 depth.
+The initial P3 evidence head `9f03f918daa16d63cfbac538b57755289677d35d` passed Dependency Review `31507721516` and CodeQL `31507721523`, while CI `31507721345` failed before semantic assertions on a single Pint `no_unused_imports` issue in the newly added `tests/Architecture/OperationsDocumentationTest.php`. Frontend quality/build and PostgreSQL migrations were green; the container/staging/recovery job was skipped because the PHP gate failed.
 
-Those later phases may deepen discoverability/evidence but cannot be used to excuse missing current operational diagnosis, recovery, rollback, capacity, degradation or operator-safety semantics.
+The four unused iterator imports were removed without changing P3 documentation or validation semantics. Corrected content candidate `b6f4aa9ca929ff75fef48344423eee7891210d26` was then recorded into candidate evidence head `a67f93706eff4285a229df1f6ce057f2be3b5adc`.
 
-## 12. Validation gate
+That corrected candidate evidence head passed:
 
-The initial P3 evidence head `9f03f918daa16d63cfbac538b57755289677d35d` passed Dependency Review `31507721516` and CodeQL `31507721523`, while CI `31507721345` failed before the architecture assertions on a single Pint `no_unused_imports` issue in the newly added `tests/Architecture/OperationsDocumentationTest.php`. Frontend quality/build and PostgreSQL migrations were green; the container/staging/recovery job was skipped because the PHP gate failed.
+- Dependency Review `31508211709` — success;
+- CodeQL `31508211738` — success; and
+- CI `31508211931` — success, including:
+  - frontend quality/build;
+  - PostgreSQL migrations;
+  - Pint — **484 files**;
+  - PHPStan/Larastan — **345/345, 0 errors**;
+  - ParaTest/PHPUnit — **375 tests / 7,628 assertions**;
+  - P3 architecture/profile/runbook inventory assertions;
+  - repository-wide local Markdown-link validation;
+  - immutable production-image build;
+  - ephemeral staging deployment;
+  - backup/restore demonstration; and
+  - image scan.
 
-The unused iterator imports were removed without changing P3 documentation or validation semantics. The corrected P3 content candidate is `b6f4aa9ca929ff75fef48344423eee7891210d26`.
+## 12. Exit decision
 
-Before this report becomes Complete:
+DCP-P3 satisfies its content, ownership, operations/recovery, navigation, CI-enforcement and corrected candidate-validation requirements.
 
-- corrected protected Dependency Review must pass;
-- corrected protected CodeQL must pass;
-- the main CI workflow must pass, including Pint, the new P3 architecture tests and repository-wide Markdown-link validation;
-- immutable image, staging, backup/restore and image-scan gates must pass where included by CI;
-- exact validated head/check identifiers must be recorded; and
-- the DCP status ledger must mark P3 Complete and select P4 as current.
+The final P3 exit/status transition is intentionally validated as the exact branch head containing this report and the program-ledger change. This prevents a self-referential evidence cycle in which writing a commit hash would create another commit requiring another hash.
 
-Until then, the correct `continue` decision remains **finish DCP-P3**.
+If that exact final head passes protected Dependency Review, CodeQL and complete CI, **DCP-P3 is closed and DCP-P4 — Interfaces, events, and integrations completeness becomes authoritative**. If any final-head check fails, P3 remains active and only the exposed P3/evidence defect may be corrected before another final-head attempt.
