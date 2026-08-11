@@ -70,7 +70,7 @@ Operators diagnose using mode, access status/expiry/use, question configuration,
 
 Tests cover open/closed state, public versus invitation-only mode, active question rendering/required validation, invitation expiry/single-use/email restriction, repeated consumption, historical answer preservation, private pipeline non-exposure, Alliance isolation, and no membership creation from submission.
 
-Shared policy: [Security baseline](../../../../security/security-baseline.md). Historical source: [Phase 4 threat model](../../../../security/phase-4-threat-model.md).
+Shared policy: [Security baseline](../../../security/security-baseline.md). Historical source: [Phase 4 threat model](../../../security/phase-4-threat-model.md).
 
 ## 10. Residual risks and external controls
 
