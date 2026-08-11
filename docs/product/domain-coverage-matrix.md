@@ -5,7 +5,7 @@
 **Document type:** DCP phase coverage inventory  
 **Status:** Current  
 **Phase:** `DCP-P1` — Domain contract and code-ownership completeness  
-**Inventory state:** Frozen for P1 implementation
+**Inventory state:** Frozen — 100% required content implemented; protected validation pending
 
 ## 1. Purpose
 
@@ -23,20 +23,20 @@ A domain is not complete merely because its root README exists. Required capabil
 
 | Domain | Code areas / material responsibilities reviewed | P1 capability decision | Required capability contracts | P1 status |
 | --- | --- | --- | --- | --- |
-| Alliances | Alliance aggregate, creation/settings actions, active-Alliance context service/middleware, tenant-context snapshot, first-party Alliance surfaces | Split | `tenant-context.md` | In progress |
+| Alliances | Alliance aggregate, creation/settings actions, active-Alliance context service/middleware, tenant-context snapshot, first-party Alliance surfaces | Split | `tenant-context.md` | Candidate |
 | Audit | Audit event model, recorder service, attributable tenant/actor evidence | Root | None | Candidate |
 | Authorization | permission vocabulary, built-in roles/ranks, role assignment/removal, permission evaluation | Root | None | Candidate |
-| Content | content/category/revision state, publication/scheduling, private media lifecycle, public/member presentation | Split | `media.md` | In progress |
-| Contributions | categories/records/calculation provenance, correction/reversal, Events reconciliation, quality/reporting/export/schedules | Split | `event-reconciliation.md` | In progress |
-| Events | Event/template/occurrence scheduling, recurrence, registration/capacity/waitlist, attendance, calendar/export boundary | Split | `registration-and-attendance.md` | In progress |
-| Identity | global User/authentication, verification/password/session assurance, TOTP MFA and recovery codes | Split | `mfa-and-recovery.md` | In progress |
-| Integrations | Alliance-bound API credentials/read API, webhook subscriptions/signing/delivery/retries | Split | `api.md`, `webhooks.md` | In progress |
-| Kingdoms | neutral Kingdom/player/game-Alliance identity, roster/snapshots/intelligence/import, transfer planning, Alliance intelligence/diplomacy | Existing split | `roster.md`, `snapshots.md`, `intelligence.md`, `csv-migration.md`, `transfer-planning.md`, `alliance-intelligence.md` | Candidate; code-local evidence paths need correction |
-| Memberships | membership lifecycle, invitation bearer-token lifecycle, management/leave/Owner safety, Recruitment handoff | Split | `invitations.md` | In progress |
-| Notifications | Event reminder materialization/delivery state, scheduled Contribution-report due-time coordination | Split | `event-reminders.md`, `scheduled-report-coordination.md` | In progress |
-| Platform | platform-admin/lifecycle, plans/settings/flags, legal hold/deletion/retention, usage/export orchestration, shared outbox | Split | `lifecycle-and-retention.md`, `transactional-outbox.md` | In progress |
+| Content | content/category/revision state, publication/scheduling, private media lifecycle, public/member presentation | Split | `media.md` | Candidate |
+| Contributions | categories/records/calculation provenance, correction/reversal, Events reconciliation, quality/reporting/export/schedules | Split | `event-reconciliation.md` | Candidate |
+| Events | Event/template/occurrence scheduling, recurrence, registration/capacity/waitlist, attendance, calendar/export boundary | Split | `registration-and-attendance.md` | Candidate |
+| Identity | global User/authentication, verification/password/session assurance, TOTP MFA and recovery codes | Split | `mfa-and-recovery.md` | Candidate |
+| Integrations | Alliance-bound API credentials/read API, webhook subscriptions/signing/delivery/retries | Split | `api.md`, `webhooks.md` | Candidate |
+| Kingdoms | neutral Kingdom/player/game-Alliance identity, roster/snapshots/intelligence/import, transfer planning, Alliance intelligence/diplomacy | Existing split | `roster.md`, `snapshots.md`, `intelligence.md`, `csv-migration.md`, `transfer-planning.md`, `alliance-intelligence.md` | Candidate |
+| Memberships | membership lifecycle, invitation bearer-token lifecycle, management/leave/Owner safety, Recruitment handoff | Split | `invitations.md` | Candidate |
+| Notifications | Event reminder materialization/delivery state, scheduled Contribution-report due-time coordination | Split | `event-reminders.md`, `scheduled-report-coordination.md` | Candidate |
+| Platform | platform-admin/lifecycle, plans/settings/flags, legal hold/deletion/retention, usage/export orchestration, shared outbox | Split | `lifecycle-and-retention.md`, `transactional-outbox.md` | Candidate |
 | Rallies | guidance, saved/recommended formations, groups/assignments/standby, Rally participation linked to Event occurrences | Root | None | Candidate |
-| Recruitment | public/invitation-only intake, questions, private candidate pipeline/decision/onboarding/retention | Split | `application-intake.md` | In progress |
+| Recruitment | public/invitation-only intake, questions, private candidate pipeline/decision/onboarding/retention | Split | `application-intake.md` | Candidate |
 
 ## 4. Why these splits are required
 
@@ -105,7 +105,7 @@ Kingdoms already has the P1 depth required by this program:
 - [Transfer planning](../domains/kingdoms/transfer-planning.md)
 - [Alliance intelligence and diplomacy](../domains/kingdoms/alliance-intelligence.md)
 
-P1 still requires correction of stale ownership/navigation text in the code-local Kingdoms README so it points at the domain-owned product/security/operations evidence.
+The code-local Kingdoms README now points at the domain-owned product/security/operations evidence, matching the repository ownership standard.
 
 ## 7. Later-phase inventory handoff
 
@@ -120,15 +120,13 @@ These later phases may add documents, but they may not be used to excuse a missi
 
 ## 8. P1 exit checklist
 
-Before this inventory may be marked complete:
+- [x] 14/14 code-local domain READMEs satisfy `domain-contract-standard.md`.
+- [x] 14/14 canonical domain READMEs satisfy `domain-contract-standard.md`.
+- [x] All 19 required material capability contracts exist and are complete (13 new + 6 existing Kingdoms contracts).
+- [x] Kingdoms code-local evidence paths are corrected.
+- [x] All domain roots index their required capability files.
+- [x] P1 structural metadata/heading/inventory CI is active.
+- [ ] Protected CI confirms local documentation links and P1 architecture rules on the exact candidate head.
+- [ ] P1 exit validation/evidence is finalized after protected validation.
 
-- [ ] 14/14 code-local domain READMEs satisfy `domain-contract-standard.md`.
-- [ ] 14/14 canonical domain READMEs satisfy `domain-contract-standard.md`.
-- [ ] every required capability contract in this inventory exists and is complete.
-- [ ] Kingdoms code-local evidence paths are corrected.
-- [ ] all domain roots index their required capability files.
-- [ ] P1 structural metadata/heading CI is active.
-- [ ] local documentation links resolve.
-- [ ] P1 exit validation/evidence is recorded on the exact candidate head.
-
-The phase remains incomplete until every item above is satisfied.
+The phase remains **Candidate**, not Complete, until the final two protected-validation items pass.
