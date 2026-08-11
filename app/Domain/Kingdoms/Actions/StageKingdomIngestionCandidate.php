@@ -49,7 +49,7 @@ final readonly class StageKingdomIngestionCandidate
             $capturedAt = $this->capturedAt($normalized['captured_at'] ?? null);
             $payload = $normalized['payload'] ?? null;
 
-            if (! is_array($payload)) {
+            if (is_array($payload) === false) {
                 throw ValidationException::withMessages([
                     'payload' => 'The source adapter must return a normalized payload object.',
                 ]);
@@ -177,7 +177,7 @@ final readonly class StageKingdomIngestionCandidate
             ? $value
             : (is_string($value) ? KingdomIngestionTargetKind::tryFrom($value) : null);
 
-        if ($kind === null || ! in_array($kind, $adapter->supportedTargetKinds(), true)) {
+        if ($kind === null || in_array($kind, $adapter->supportedTargetKinds(), true) === false) {
             throw ValidationException::withMessages([
                 'target_kind' => 'The source adapter returned an unsupported ingestion target kind.',
             ]);
@@ -188,7 +188,7 @@ final readonly class StageKingdomIngestionCandidate
 
     private function capturedAt(mixed $value): Carbon
     {
-        if (! is_string($value) || trim($value) === '') {
+        if (is_string($value) === false || trim($value) === '') {
             throw ValidationException::withMessages(['captured_at' => 'A source capture time is required.']);
         }
 
@@ -258,7 +258,7 @@ final readonly class StageKingdomIngestionCandidate
     private function assertOnlyKeys(array $payload, array $allowed): void
     {
         foreach (array_keys($payload) as $key) {
-            if (! is_string($key) || ! in_array($key, $allowed, true)) {
+            if (is_string($key) === false || in_array($key, $allowed, true) === false) {
                 throw ValidationException::withMessages([
                     'payload' => 'The source payload contains a field that is not approved for this target kind.',
                 ]);
@@ -268,7 +268,7 @@ final readonly class StageKingdomIngestionCandidate
 
     private function requiredText(mixed $value, int $max, string $field): string
     {
-        if (! is_string($value)) {
+        if (is_string($value) === false) {
             throw ValidationException::withMessages([$field => 'The normalized source field must be text.']);
         }
 
@@ -286,7 +286,7 @@ final readonly class StageKingdomIngestionCandidate
             return null;
         }
 
-        if (! is_string($value)) {
+        if (is_string($value) === false) {
             throw ValidationException::withMessages([$field => 'The normalized source field must be text.']);
         }
 
@@ -308,7 +308,7 @@ final readonly class StageKingdomIngestionCandidate
             return null;
         }
 
-        if (! is_string($value) && ! is_int($value)) {
+        if (is_string($value) === false && is_int($value) === false) {
             throw ValidationException::withMessages(['power' => 'Normalized power must be an unsigned integer value.']);
         }
 
@@ -339,7 +339,7 @@ final readonly class StageKingdomIngestionCandidate
             $value = (int) $value;
         }
 
-        if (! is_int($value) || $value < 0 || $value > 1000000) {
+        if (is_int($value) === false || $value < 0 || $value > 1000000) {
             throw ValidationException::withMessages([
                 'member_count' => 'Normalized member count must be between 0 and 1,000,000.',
             ]);
