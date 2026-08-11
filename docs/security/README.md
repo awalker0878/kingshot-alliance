@@ -2,16 +2,39 @@
 
 [← Documentation home](../README.md)
 
-This directory owns **repository-wide security policy and program evidence**: the shared security baseline, phase-wide threat history, and production-launch security boundary. Security reviews that primarily protect one code/domain capability live with that owning domain under `docs/domains/<domain>/security/`.
+This directory owns **repository-wide security policy and program evidence**: the shared security baseline, phase-wide historical threat history, and production-launch security boundary. Living security/privacy behavior that primarily belongs to one code domain lives with that owner under `docs/domains/<domain>/security/`.
 
 Security documentation supplements—not replaces—authorization in code, tenant-isolation tests, infrastructure controls, operations, and accountable production evidence.
 
 ## Start here
 
-- [Security baseline](security-baseline.md) — cross-cutting requirements for authentication, authorization, tenancy, data handling, transport, secrets, dependencies, audit, integrations, and operational security.
+- [Security baseline](security-baseline.md) — current cross-cutting requirements for authentication, authorization, tenancy, data handling, transport, secrets, dependencies, audit, integrations, and operational security.
+- [Security documentation standard](../product/security-documentation-standard.md) — DCP-P2 normative structure/ownership/completeness requirements for domain security profiles and focused living reviews.
+- [Security coverage matrix](../product/security-coverage-matrix.md) — frozen DCP-P2 repository-wide domain/focused-review inventory.
+- [Domain documentation index](../domains/README.md) — deterministic navigation to every code domain and its living security profile.
 - [Production launch security review](production-launch-security-review.md) — repository-controlled launch-security review plus external controls that remain production responsibilities.
 - [Production launch approval](../product/production-launch-approval.md) — authoritative real-production go/no-go record.
-- [Kingdoms security evidence](../domains/kingdoms/security/README.md) — `KINGDOMS-001` through `KINGDOMS-003` domain-specific security reviews.
+
+## Current living domain security profiles
+
+Every canonical code domain has one current security/privacy profile:
+
+- [Alliances](../domains/alliances/security/README.md)
+- [Audit](../domains/audit/security/README.md)
+- [Authorization](../domains/authorization/security/README.md)
+- [Content](../domains/content/security/README.md)
+- [Contributions](../domains/contributions/security/README.md)
+- [Events](../domains/events/security/README.md)
+- [Identity](../domains/identity/security/README.md)
+- [Integrations](../domains/integrations/security/README.md)
+- [Kingdoms](../domains/kingdoms/security/README.md)
+- [Memberships](../domains/memberships/security/README.md)
+- [Notifications](../domains/notifications/security/README.md)
+- [Platform](../domains/platform/security/README.md)
+- [Rallies](../domains/rallies/security/README.md)
+- [Recruitment](../domains/recruitment/security/README.md)
+
+The owning profile is the current map for assets, trust boundaries, tenant/privacy behavior, secrets, abuse cases, destructive operations, evidence, residual risks, and required focused reviews. Use the owning domain contract for complete business/runtime semantics and the shared baseline for cross-domain policy.
 
 ## Historical phase threat models
 
@@ -24,11 +47,11 @@ Phase threat models remain here because they capture the cross-domain risks intr
 - [Phase 5 threat model](phase-5-threat-model.md) — Contribution records, calculations, corrections, exports, and reporting.
 - [Phase 6 threat model](phase-6-threat-model.md) — Platform administration, tenant lifecycle, API/webhook access, retention, and scale.
 
-These are historical program evidence. Current domain-specific feature work should use the owning domain's current security-review area rather than extending an old phase threat model into a substitute living contract.
+These are **historical evidence**, not the current source of truth for domain-owned behavior. Current feature/domain security behavior is documented in the owning domain security profile and living focused reviews. Historical threat models remain useful for when/why controls were introduced and for preserved phase-exit evidence.
 
 ## Domain-specific security evidence
 
-Canonical pattern:
+Canonical living pattern:
 
 ```text
 docs/domains/<domain>/security/
@@ -36,13 +59,11 @@ docs/domains/<domain>/security/
   <capability>-security-review.md
 ```
 
-Domain-specific security evidence should cover the assets/trust boundaries, tenant/authorization/privacy/integrity/integration threats, controls, verification, residual risks, and external evidence requirements for that domain.
+Every `security/README.md` is mandatory. A focused living review exists only when the [security documentation standard](../product/security-documentation-standard.md) identifies an independently high-risk capability, such as tenant-boundary establishment, secret/bearer credential lifecycle, private untrusted file storage, anonymous/external network exposure, destructive/privacy orchestration, or shared replay-sensitive infrastructure.
 
-Current example:
+Kingdoms also retains its accepted K1–K3 security review set beneath its [living security profile](../domains/kingdoms/security/README.md). Those increment reviews remain accepted evidence and are not cosmetically rewritten into the newer P2 focused-review format.
 
-- [Kingdoms security evidence](../domains/kingdoms/security/README.md) — foundation, roster, snapshots, CSV, transfer planning/completion, game-Alliance tracking/observations, diplomacy/contacts, descriptive intelligence, and whole-increment reviews.
-
-Top-level `docs/security/` should not become a flat inventory of security reviews owned by individual code domains.
+Top-level `docs/security/` must not become a flat inventory of security reviews owned by individual code domains.
 
 ## Security documentation rules
 
@@ -59,7 +80,8 @@ Top-level `docs/security/` should not become a flat inventory of security review
 For a material change:
 
 1. Update the shared security baseline only when a cross-program rule changes.
-2. Update/create the owning domain's security review when the risk belongs primarily to that domain.
-3. Keep phase threat models historical unless the change truly concerns the historical program record.
-4. Update related domain contracts, ADRs, operations, tests, and acceptance evidence in the same change where applicable.
-5. Keep the production security/approval boundary explicit for controls that repository CI cannot prove.
+2. Update the owning domain's living security profile whenever its security/privacy boundary changes.
+3. Update/create a focused living review when the capability crosses the review threshold in the security documentation standard.
+4. Keep phase/increment threat reviews historical unless the change truly concerns the historical record.
+5. Update related domain contracts, ADRs, operations, tests, and acceptance evidence in the same change where applicable.
+6. Keep the production security/approval boundary explicit for controls that repository CI cannot prove.
