@@ -6,11 +6,16 @@ This directory is the canonical documentation entry point for the Kingshot Allia
 
 The baseline implementation plan ends at **Phase 6**. Phases 0–6 and repository-controlled production hardening are complete and accepted. `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted post-program domain increments. A real production cutover remains **not yet approved** until the external infrastructure/operational evidence required by [production launch approval](product/production-launch-approval.md) is recorded.
 
+Documentation completeness now continues through the separate [Documentation Completion Program](product/documentation-program-plan.md). The active documentation phase is recorded in [Documentation program status](product/documentation-program-status.md); the `continue` command may advance only after the current phase satisfies the [documentation completeness standard](product/documentation-completeness-standard.md).
+
 Start with:
 
 - [Current capability matrix](product/current-capability-matrix.md) — present-tense implemented capabilities and explicit boundaries.
 - [Domain documentation](domains/README.md) — canonical one-folder-per-code-domain contracts and domain-owned evidence.
 - [Documentation standard](product/documentation-standard.md) — required ownership, structure, naming, formats, and CI enforcement.
+- [Documentation completeness standard](product/documentation-completeness-standard.md) — hard definition of document, coverage, and phase completion.
+- [Documentation Completion Program](product/documentation-program-plan.md) — phased roadmap for completing domain, security, operations, interface, evidence, architecture, and maintenance documentation.
+- [Documentation program status](product/documentation-program-status.md) — authoritative current documentation phase and next `continue` decision.
 - [Architecture decisions/current architecture](adr/README.md) — current system map and accepted ADRs.
 - [Implementation plan](product/implementation-plan.md) — authoritative completed Phase 0–6 baseline and canonical repository structure.
 - [Production launch approval](product/production-launch-approval.md) — authoritative real-production go/no-go record.
@@ -98,7 +103,7 @@ A green CI/staging/recovery demonstration or accepted domain increment does not 
 | [`adr/`](adr/README.md) | Current architecture view and durable architecture decisions. |
 | [`domains/`](domains/README.md) | Current code/domain behavior and ownership plus domain-specific product/security/operations evidence. |
 | [`operations/`](operations/README.md) | Shared runtime operations, configuration, deployment, observability, recovery, and runbooks. |
-| [`product/`](product/README.md) | Program baseline/status/governance, architecture audits, historical phase-wide evidence, hardening and launch approval. |
+| [`product/`](product/README.md) | Program baseline/status/governance, documentation standards/program, architecture audits, historical phase-wide evidence, hardening and launch approval. |
 | [`security/`](security/README.md) | Shared security baseline, phase-wide threat history, and production-launch security evidence. |
 
 These five directories are the only canonical top-level documentation groups. Do not add parallel `docs/wiki/`, `docs/architecture/`, or top-level `docs/runbooks/` trees.
@@ -142,6 +147,7 @@ Code and tests remain authoritative for exact implemented runtime behavior. Docu
 ## Documentation conventions
 
 - Follow the [documentation standard](product/documentation-standard.md).
+- Documentation-program work also follows the [completeness standard](product/documentation-completeness-standard.md), [DCP roadmap](product/documentation-program-plan.md), and [current status ledger](product/documentation-program-status.md).
 - Use lowercase kebab-case for descriptive Markdown filenames; `README.md` is the directory-index exception and numbered ADR names remain accepted.
 - Use repository-relative Markdown links for navigation.
 - Prefer one authoritative contract over duplicated explanations.
@@ -154,5 +160,7 @@ Code and tests remain authoritative for exact implemented runtime behavior. Docu
 ## Historical delivery and future work
 
 For historical Phase 0–6 program delivery, use the [product index](product/README.md). For accepted post-program domain work, follow the owning domain's product evidence, living contracts, security evidence, operations, and exit records.
+
+For ongoing documentation completion, use the DCP status ledger. `DCP-P0` through `DCP-P7` are documentation-governance phases and are separate from the completed Phase 0–6 product implementation program. `continue` may move the DCP forward only after the active phase is fully complete.
 
 Release notes and end-user onboarding remain separate from acceptance evidence.
