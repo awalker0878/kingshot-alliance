@@ -68,7 +68,7 @@ The current default documented maximum is 8192 KiB unless runtime configuration 
 
 Tests cover MIME/size bounds, tenant-specific ownership, scanner acceptance/rejection, cross-tenant rejection, private storage, branding eligibility, and attached-asset archival safety.
 
-Historical source: [Phase 2 threat model](../../../../security/phase-2-threat-model.md). Shared policy: [Security baseline](../../../../security/security-baseline.md).
+Historical source: [Phase 2 threat model](../../../security/phase-2-threat-model.md). Shared policy: [Security baseline](../../../security/security-baseline.md).
 
 ## 10. Residual risks and external controls
 
