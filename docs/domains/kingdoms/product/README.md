@@ -41,12 +41,13 @@ Accepted records are domain-owned historical/product evidence. Planning records 
 
 ## KINGDOMS-004 — automated game-data ingestion — planning only
 
-`KINGDOMS-004` has no runtime implementation yet. The planning/P0 records define an approved-source, tenant-scoped, stable-ID-only ingestion boundary before any schema, worker, scheduler, or source adapter is introduced.
+`KINGDOMS-004` has no runtime implementation yet. Its P0 records define the planning boundary before any runtime implementation.
 
 - [Planning scope](kingdoms-automated-ingestion-increment.md)
 - [Implementation plan](kingdoms-automated-ingestion-implementation-plan.md)
 - [K4-P0 decisions](kingdoms-automated-ingestion-p0-decisions.md)
 - [K4-P0 security/privacy review](../security/kingdoms-automated-ingestion-p0-security-review.md)
+- [K4-P0 exit report](kingdoms-automated-ingestion-p0-exit-report.md)
 
 ## Related evidence
 
