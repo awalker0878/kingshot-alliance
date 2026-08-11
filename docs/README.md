@@ -6,7 +6,9 @@ This directory is the canonical documentation entry point for the Kingshot Allia
 
 The product implementation baseline ends at **Phase 6**. Product Phases 0–6, repository-controlled production hardening, and accepted `KINGDOMS-001` through `KINGDOMS-003` increments are complete. Real production cutover remains **not yet approved** until the external infrastructure/operator evidence required by [production launch approval](product/production-launch-approval.md) is recorded.
 
-The Documentation Completion Program has reached its final phase, **DCP-P7 — Maintenance automation and final acceptance**. Current phase/gate evidence is in [Documentation program status](product/documentation-program-status.md). Normal post-program documentation obligations are defined by the [Documentation maintenance standard](product/documentation-maintenance-standard.md).
+The Documentation Completion Program has completed its P0–P7 content and candidate acceptance. The recorded Complete state becomes authoritative when the exact final evidence/status transition head independently passes protected Dependency Review, CodeQL, and complete CI. Current evidence is in [Documentation program status](product/documentation-program-status.md) and the [final DCP exit report](product/documentation-completion-program-exit-report.md).
+
+There is no `DCP-P8`. After the final protected gate, normal documentation work follows the [Documentation maintenance standard](product/documentation-maintenance-standard.md) and [Definition of Done](product/definition-of-done.md).
 
 ## Start here
 
@@ -16,7 +18,7 @@ The Documentation Completion Program has reached its final phase, **DCP-P7 — M
 - [Current capability matrix](product/current-capability-matrix.md) — implemented capability and explicit current boundaries.
 - [Domain documentation](domains/README.md) — canonical domain contracts and domain-owned evidence.
 - [Product/program documentation](product/README.md) — baseline, DCP standards/evidence, architecture audits, historical acceptance, production decisions.
-- [Documentation maintenance standard](product/documentation-maintenance-standard.md) — what documentation changes when a material code/product/architecture/operations/security/interface/evidence contract changes.
+- [Documentation maintenance standard](product/documentation-maintenance-standard.md) — change-driven documentation obligations.
 - [Definition of Done](product/definition-of-done.md) — normal accepted-change checklist.
 - [Shared operations](operations/README.md) — runtime configuration, background processing, observability, deployment, recovery, release guidance.
 - [Shared security](security/README.md) — cross-program security baseline, historical threat evidence, production security boundary.
@@ -44,7 +46,7 @@ docs/domains/<domain>/testing/README.md
 
 Domain-specific capability contracts and product/acceptance evidence also live beneath the owner where required.
 
-Top-level groups remain deliberately shared/system-level:
+Top-level groups remain shared/system-level:
 
 - `adr/` — current architecture index and durable decisions;
 - `product/` — cross-program scope/governance/status/current-state/audits/DCP/historical phase-wide evidence/production decisions;
@@ -113,7 +115,7 @@ Historical evidence remains historical. Do not silently turn old phase language/
 
 - Follow the [Repository documentation standard](product/documentation-standard.md).
 - Follow the [Documentation maintenance standard](product/documentation-maintenance-standard.md) for normal change-driven updates.
-- Follow the [Documentation completeness standard](product/documentation-completeness-standard.md) for DCP or any future explicit completeness gate.
+- Follow the [Documentation completeness standard](product/documentation-completeness-standard.md) for any future explicit completeness gate.
 - Use lowercase kebab-case for descriptive Markdown filenames; `README.md` and numbered ADR filenames are accepted exceptions.
 - Prefer one authoritative owner plus links over duplicated explanation.
 - Preserve accepted historical evidence identity.
@@ -124,4 +126,4 @@ Historical evidence remains historical. Do not silently turn old phase language/
 
 Historical product Phase 0–6 evidence is indexed under [product/program documentation](product/README.md). Accepted post-baseline Kingdoms work is indexed under the [Kingdoms domain](domains/kingdoms/README.md).
 
-`DCP-P0` through `DCP-P7` are documentation-governance phases, separate from product Phase 0–6. There is no `DCP-P8`; after P7's protected final acceptance gate, future documentation work follows the maintenance standard and Definition of Done.
+`DCP-P0` through `DCP-P7` are documentation-governance phases, separate from product Phase 0–6. There is no `DCP-P8`; after the final exact-head protected gate, `continue` no longer advances a documentation phase and normal maintenance rules apply.
