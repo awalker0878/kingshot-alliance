@@ -13,8 +13,8 @@ Domain-specific current behavior and domain-owned acceptance evidence belong und
 - [Implementation plan](implementation-plan.md) — accepted product Phase 0–6 baseline and canonical repository architecture.
 - [Repository documentation standard](documentation-standard.md) — ownership, structure, naming, source-of-truth and stable CI rules.
 - [Documentation completeness standard](documentation-completeness-standard.md) — DCP completion/exact-gate semantics.
-- [Documentation Completion Program](documentation-program-plan.md) — P0–P7 roadmap and final maintenance end state.
-- [Documentation program status](documentation-program-status.md) — authoritative current DCP control state.
+- [Documentation Completion Program](documentation-program-plan.md) — P0–P7 roadmap and post-program maintenance state.
+- [Documentation program status](documentation-program-status.md) — authoritative final DCP control/evidence state.
 - [Definition of Done](definition-of-done.md) — normal accepted-change checklist.
 
 ### DCP standards, inventories, and evidence
@@ -43,21 +43,20 @@ Domain-specific current behavior and domain-owned acceptance evidence belong und
 
 - [Production hardening exit report](production-hardening-exit-report.md) — **Accepted** repository-controlled hardening evidence.
 - [Production launch approval](production-launch-approval.md) — **Not yet approved** for real production cutover until required external infrastructure/operator evidence exists.
-- [Phase 6 launch readiness](phase-6-launch-readiness.md) — historical launch-control expectations feeding the current approval process.
 
 ## Documentation Completion Program state
 
-DCP-P0 through P6 are fully closed.
+DCP-P0 through P6 are fully closed. P7 content candidate `4c3091f8ae92ee450ff3a9ee23df65ab4f193636` produced exact candidate/evidence head `9676eadc618c2892d05fcf12bf4529c8781a12f7`, which passed:
 
-P6 content candidate `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf` produced validated candidate/evidence head `b2d63ffceea50658c989a569a44ad98fc47db75a`, which passed DR `31518789039`, CodeQL `31518789038`, and CI `31518789030`.
+- Dependency Review `31520665029`;
+- CodeQL `31520665079`; and
+- CI `31520665030`, including **488 Pint files**, PHPStan/Larastan **345/345 with 0 errors**, **401 tests / 9,312 assertions**, all P1–P7 documentation/maintenance checks, immutable image, staging, backup/restore, and image scan.
 
-P6 final evidence/status transition head `1b3e86ea4a698fbac917337672bef356e8b178b1` independently passed DR `31519423839`, CodeQL `31519423835`, and CI `31519423818`, including frontend/PHP/documentation checks, immutable image, staging, backup/restore, and image scan.
+P7 candidate acceptance is complete. The program is recorded as **Complete subject only to the exact final evidence/status transition head passing its independent protected gate**. When that head is green, the recorded Complete state becomes authoritative without another DCP content commit.
 
-That closes P6 and makes **DCP-P7 — Maintenance automation and final acceptance** authoritative.
+There is no `DCP-P8`. After the final protected gate, all future documentation work is normal change-driven maintenance under the [documentation maintenance standard](documentation-maintenance-standard.md) and [Definition of Done](definition-of-done.md).
 
-P7 is governed by the [documentation maintenance standard](documentation-maintenance-standard.md) and frozen [maintenance/final-acceptance matrix](documentation-maintenance-coverage-matrix.md). P7 defines change-driven obligations and final aggregate automation rather than adding another domain-content layer.
-
-There is no P8. After P7's exact protected candidate and final evidence/status gates close, future documentation work is normal change-driven maintenance under the current standards and Definition of Done.
+DCP completion does not approve real production launch; production remains **not yet approved** under the separate production decision record.
 
 ## Shared versus domain-owned authority
 
@@ -78,29 +77,19 @@ docs/domains/<domain>/interfaces/README.md
 docs/domains/<domain>/testing/README.md
 ```
 
-Domain-specific capability and product/acceptance evidence also stay with the owner when required. P6 confirmed no additional shared→domain relocation was necessary.
+Domain-specific capability and product/acceptance evidence stay with the owner when required.
 
 ## Historical program acceptance
 
-Historical product Phase 0–6 evidence remains here as program history. Accepted post-baseline Kingdoms evidence remains domain-owned at [Kingdoms product evidence](../domains/kingdoms/product/README.md).
-
-Historical test counts, SHAs, workflow IDs, old phase-next-step wording, and accepted rationale remain historical. Current living standards/contracts/navigation evolve separately.
-
-## Status vocabulary
-
-- DCP/documentation work: `Not started`, `In progress`, `Blocked`, `Candidate`, `Complete`.
-- ADR lifecycle: `Proposed`, `Accepted`, `Superseded`, `Rejected`.
-- Product/release state: `Planned`, `In progress`, `Candidate`, `Validated`, `Accepted`, `Approved`, `Not implemented`, `Not yet approved` / `Pending` as applicable.
-
-Do not use **Accepted** and **Approved** interchangeably. See [Shared glossary](glossary.md).
+Historical product Phase 0–6, accepted Kingdoms increment, and DCP phase evidence retain their recorded SHAs, workflow IDs, test counts, rationale, and context. Current living standards/contracts/navigation evolve separately.
 
 ## Normal maintenance after DCP
 
 For every material change:
 
 1. identify the owning domain/shared area;
-2. apply the [documentation maintenance standard](documentation-maintenance-standard.md) to determine affected living documents/evidence/navigation;
-3. update only contracts actually changed by the work;
+2. apply the [documentation maintenance standard](documentation-maintenance-standard.md);
+3. update only contracts/profiles/evidence/navigation whose documented meaning changed;
 4. preserve historical acceptance/decision evidence;
 5. update ADR/dependency/capability/audit/glossary surfaces only when their system-level meaning changes;
 6. keep repository acceptance separate from real-production approval; and
