@@ -5,13 +5,14 @@
 **Document type:** DCP phase coverage inventory  
 **Status:** Current  
 **Phase:** `DCP-P6` — Architecture and program-governance consolidation  
-**Inventory state:** Frozen — 100% required content implemented; candidate evidence preparation in progress
+**Inventory state:** Candidate — 100% required content implemented; protected validation pending  
+**Content candidate SHA:** `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf`
 
 ## 1. Purpose
 
 This is the authoritative P6 completion inventory. P6 consolidates system-level architecture/governance after P1–P5 established complete domain, security, operations, interface, and testing/evidence ownership.
 
-The governing rules are in [Architecture and program-governance standard](architecture-governance-standard.md).
+The governing rules are in [Architecture and program-governance standard](architecture-governance-standard.md). Candidate acceptance evidence is recorded in the [P6 exit report](architecture-governance-completeness-exit-report.md).
 
 ## 2. Required P6 living artifacts
 
@@ -27,7 +28,7 @@ The governing rules are in [Architecture and program-governance standard](archit
 | `docs/product/README.md` | authoritative program navigation | Complete |
 | `docs/README.md` | repository documentation navigation | Complete |
 | `documentation-program-status.md` | P6 current control state | Complete |
-| P6 exit report | immutable P6 scope/validation record | Candidate preparation |
+| [P6 exit report](architecture-governance-completeness-exit-report.md) | immutable P6 scope/validation record | Complete; protected validation pending |
 | P6 architecture test | deterministic high-signal governance checks | Complete |
 
 No per-domain P6 profile is required. P6 consumes the already-complete P1–P5 domain profile families.
@@ -142,7 +143,8 @@ Existing repository architecture checks continue local Markdown-link, domain par
 - [x] Product/docs navigation refreshed.
 - [x] P6 architecture enforcement active.
 - [x] Complete P6 content/ownership inventory review completed.
+- [x] P6 exit report created and content candidate `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf` recorded.
 - [ ] Exact P6 candidate/evidence head protected-green.
 - [ ] P6 final evidence/status head protected-green.
 
-P6 content is complete. P7 remains blocked until both protected gates close.
+P6 is **Candidate**. P7 remains blocked until both protected gates close.
