@@ -54,4 +54,4 @@ Safe actions are validating Event/provenance state, rerunning supported reconcil
 
 ## 12. Evidence, focused runbooks and related documentation
 
-Retain contribution/report schedule/run IDs, source Event IDs, due/report-version identity, request/trace IDs, before/after status counts and release SHA. No focused P3 Contributions runbook is required; scheduled operations are covered by [Notifications scheduled delivery](../notifications/operations/scheduled-delivery.md). See [background processing](../../../operations/background-processing.md) and the [Contributions security profile](../security/README.md).
+Retain contribution/report schedule/run IDs, source Event IDs, due/report-version identity, request/trace IDs, before/after status counts and release SHA. No focused P3 Contributions runbook is required; scheduled operations are covered by [Notifications scheduled delivery](../../notifications/operations/scheduled-delivery.md). See [background processing](../../../operations/background-processing.md) and the [Contributions security profile](../security/README.md).
