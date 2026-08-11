@@ -2,9 +2,9 @@
 
 [← Kingdoms domain](../README.md)
 
-This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility, and acceptance evidence for the accepted post-program increments `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003`.
+This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility, and acceptance evidence for the accepted post-program increments `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003`, plus explicit planning evidence for `KINGDOMS-004`.
 
-These records are domain-owned historical/product evidence. They preserve exact scope IDs, slice identities, validated SHAs, acceptance results, and deferred boundaries. They are not the canonical current runtime contract; use the [Kingdoms domain](../README.md) and capability documents for present behavior.
+Accepted records are domain-owned historical/product evidence. Planning records are clearly labeled and do not make unimplemented behavior part of the living runtime contract. Use the [Kingdoms domain](../README.md) and capability documents for present behavior.
 
 ## KINGDOMS-001 — roster intelligence
 
@@ -38,6 +38,15 @@ These records are domain-owned historical/product evidence. They preserve exact 
 - [Slice D validation](kingdoms-alliance-intelligence-slice-d-validation.md)
 - [Accessibility](kingdoms-alliance-intelligence-accessibility.md)
 - [Exit report](kingdoms-alliance-intelligence-exit-report.md)
+
+## KINGDOMS-004 — automated game-data ingestion — planning only
+
+`KINGDOMS-004` has no runtime implementation yet. The planning/P0 records define an approved-source, tenant-scoped, stable-ID-only ingestion boundary before any schema, worker, scheduler, or source adapter is introduced.
+
+- [Planning scope](kingdoms-automated-ingestion-increment.md)
+- [Implementation plan](kingdoms-automated-ingestion-implementation-plan.md)
+- [K4-P0 decisions](kingdoms-automated-ingestion-p0-decisions.md)
+- [K4-P0 security/privacy review](../security/kingdoms-automated-ingestion-p0-security-review.md)
 
 ## Related evidence
 
