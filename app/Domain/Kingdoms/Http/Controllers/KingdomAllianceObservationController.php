@@ -153,6 +153,13 @@ final class KingdomAllianceObservationController extends Controller
             $row['invalidatedAt'] = $observation->invalidated_at?->toIso8601String();
             $row['invalidatedByName'] = $observation->invalidatedBy?->name;
             $row['invalidationReason'] = $observation->invalidation_reason;
+            $row['sourceSubscriptionId'] = $observation->source_subscription_id;
+            $row['sourceBatchId'] = $observation->source_batch_id;
+            $row['sourceAdapterKey'] = $observation->source_adapter_key;
+            $row['sourceAdapterVersion'] = $observation->source_adapter_version;
+            $row['sourceRecordId'] = $observation->source_record_id;
+            $row['sourceIdentityHash'] = $observation->source_identity_hash;
+            $row['sourcePayloadHash'] = $observation->source_payload_hash;
         }
 
         return $row;
