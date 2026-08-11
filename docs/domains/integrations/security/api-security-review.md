@@ -67,7 +67,7 @@ The API does not fall back to a browser's active tenant or grant write operation
 
 Tests cover verifier/non-recoverable secret handling, revocation/expiry, fixed scopes, credential-derived tenancy, inactive/disabled Alliance behavior, rate limits, row bounds, Contributions state filtering, and absence of Kingdoms/write scopes.
 
-Shared policy: [Security baseline](../../../../security/security-baseline.md). Historical source: [Phase 6 threat model](../../../../security/phase-6-threat-model.md).
+Shared policy: [Security baseline](../../../security/security-baseline.md). Historical source: [Phase 6 threat model](../../../security/phase-6-threat-model.md).
 
 ## 10. Residual risks and external controls
 
