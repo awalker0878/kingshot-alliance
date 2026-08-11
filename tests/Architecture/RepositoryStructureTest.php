@@ -131,7 +131,7 @@ final class RepositoryStructureTest extends TestCase
             self::assertIsArray($entries);
 
             foreach ($entries as $entry) {
-                if ($entry === 'README.md' || ! str_ends_with($entry, '.md') || ! is_file($root.'/'.$entry)) {
+                if ($entry === 'README.md' || str_ends_with($entry, '.md') === false || is_file($root.'/'.$entry) === false) {
                     continue;
                 }
 
@@ -366,7 +366,7 @@ final class RepositoryStructureTest extends TestCase
      */
     private function assertHeadingsAppearInOrder(string $contents, array $headings, string $path): void
     {
-        $lastPosition = -1;
+        $lastPosition = null;
 
         foreach ($headings as $heading) {
             $position = strpos($contents, $heading);
@@ -375,11 +375,14 @@ final class RepositoryStructureTest extends TestCase
                 $position,
                 sprintf('Missing required heading "%s" in %s', $heading, $this->relativePath($path)),
             );
-            self::assertGreaterThan(
-                $lastPosition,
-                $position,
-                sprintf('Required headings are out of order in %s', $this->relativePath($path)),
-            );
+
+            if ($lastPosition !== null) {
+                self::assertGreaterThan(
+                    $lastPosition,
+                    $position,
+                    sprintf('Required headings are out of order in %s', $this->relativePath($path)),
+                );
+            }
 
             $lastPosition = $position;
         }
