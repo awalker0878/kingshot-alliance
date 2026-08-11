@@ -26,7 +26,8 @@ Domain-specific product scopes, implementation plans, slice validations, accessi
 - [Interface coverage matrix](interface-coverage-matrix.md) — completed DCP-P4 code-backed inventory across all 14 domains, route/bootstrap sources, commands/scheduler, outbox consumers, machine contracts and file boundaries.
 - [DCP-P4 exit report](interface-completeness-exit-report.md) — accepted P4 scope and protected candidate/final-head evidence.
 - [Testing and evidence standard](testing-evidence-standard.md) — DCP-P5 requirements for domain validation maps, executable suite/evidence classes, immutable acceptance identity, retention/supersession and historical evidence hardening.
-- [Testing and evidence coverage matrix](testing-evidence-coverage-matrix.md) — frozen DCP-P5 inventory of 14 domain validation maps, six PHPUnit suites, protected workflow classes, historical Phase 0–6/Kingdoms evidence and traceability gaps/hardening.
+- [Testing and evidence coverage matrix](testing-evidence-coverage-matrix.md) — frozen DCP-P5 inventory of 14 domain validation maps, six PHPUnit suites, protected workflow classes and historical Phase 0–6/Kingdoms evidence.
+- [DCP-P5 exit report](testing-evidence-completeness-exit-report.md) — P5 candidate scope, historical traceability hardening, and protected-validation evidence record.
 - [Current capability matrix](current-capability-matrix.md) — present-tense implemented capabilities and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations.
 - [Repository structure audit](repository-structure-audit.md) — physical repository/documentation structure evidence.
@@ -49,7 +50,7 @@ The normative completion definition is [Documentation completeness standard](doc
 - DCP-P2 is complete under the [Security documentation standard](security-documentation-standard.md), [Security coverage matrix](security-coverage-matrix.md), and [P2 exit report](security-completeness-exit-report.md).
 - DCP-P3 is complete under the [Operations documentation standard](operations-documentation-standard.md), [Operations coverage matrix](operations-coverage-matrix.md), and [P3 exit report](operations-completeness-exit-report.md).
 - DCP-P4 is complete under the [Interface documentation standard](interface-documentation-standard.md), [Interface coverage matrix](interface-coverage-matrix.md), and [P4 exit report](interface-completeness-exit-report.md). Final P4 evidence/status head `286847006544d1af2e4dbf2f0211c5f28ad2cb33` passed protected Dependency Review `31513724817`, CodeQL `31513724836`, and CI `31513724840`.
-- DCP-P5 is **current** under the [Testing and evidence standard](testing-evidence-standard.md), frozen [Testing and evidence coverage matrix](testing-evidence-coverage-matrix.md), and [program status ledger](documentation-program-status.md).
+- DCP-P5 is **current** under the [Testing and evidence standard](testing-evidence-standard.md), frozen [Testing and evidence coverage matrix](testing-evidence-coverage-matrix.md), [P5 exit report](testing-evidence-completeness-exit-report.md), and [program status ledger](documentation-program-status.md).
 
 P6 remains blocked until P5 reaches complete coverage and passes both exact-head protected gates.
 
