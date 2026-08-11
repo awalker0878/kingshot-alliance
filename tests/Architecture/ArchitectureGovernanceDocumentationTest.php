@@ -69,7 +69,8 @@ final class ArchitectureGovernanceDocumentationTest extends TestCase
         self::assertSame($domains, $documented);
 
         foreach ($domains as $domain) {
-            self::assertStringContainsString('app/Domain/'.$domain.'/README.md', $this->read('docs/product/architecture-governance-coverage-matrix.md').$this->read('docs/product/cross-domain-dependency-map.md'));
+            self::assertFileExists($this->root().'/app/Domain/'.$domain.'/README.md');
+            self::assertFileExists($this->root().'/docs/domains/'.$this->kebab($domain).'/README.md');
         }
     }
 
@@ -148,6 +149,11 @@ final class ArchitectureGovernanceDocumentationTest extends TestCase
         sort($domains);
 
         return $domains;
+    }
+
+    private function kebab(string $name): string
+    {
+        return strtolower((string) preg_replace('/(?<!^)[A-Z]/', '-$0', $name));
     }
 
     private function read(string $path): string
