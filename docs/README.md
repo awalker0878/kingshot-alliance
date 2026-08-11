@@ -4,27 +4,25 @@ This directory is the canonical documentation entry point for the Kingshot Allia
 
 ## Current program state
 
-The baseline implementation plan ends at **Phase 6**. Phases 0–6 and repository-controlled production hardening are complete and accepted. `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted post-program domain increments. A real production cutover remains **not yet approved** until the external infrastructure/operational evidence required by [production launch approval](product/production-launch-approval.md) is recorded.
+The product implementation baseline ends at **Phase 6**. Phases 0–6, repository-controlled production hardening, and accepted `KINGDOMS-001` through `KINGDOMS-003` domain increments are complete. Real production cutover remains **not yet approved** until the external infrastructure/operator evidence required by [production launch approval](product/production-launch-approval.md) is recorded.
 
-Documentation completeness now continues through the separate [Documentation Completion Program](product/documentation-program-plan.md). The active documentation phase is recorded in [Documentation program status](product/documentation-program-status.md); the `continue` command may advance only after the current phase satisfies the [documentation completeness standard](product/documentation-completeness-standard.md).
+Documentation completeness is governed separately by the [Documentation Completion Program](product/documentation-program-plan.md). The authoritative active phase and `continue` decision are in [Documentation program status](product/documentation-program-status.md).
 
-Start with:
+## Start here
 
-- [Current capability matrix](product/current-capability-matrix.md) — present-tense implemented capabilities and explicit boundaries.
+- [Current architecture and ADR index](adr/README.md) — system-level architecture plus durable decision lifecycle.
+- [Cross-domain dependency map](product/cross-domain-dependency-map.md) — current consumer→owner supported collaboration across all 14 domains.
+- [Shared glossary](product/glossary.md) — terminology whose ambiguity changes tenancy, ownership, integrations, evidence, or status meaning.
+- [Current capability matrix](product/current-capability-matrix.md) — implemented capability and explicit current boundaries.
 - [Domain documentation](domains/README.md) — canonical one-folder-per-code-domain contracts and domain-owned evidence.
-- [Documentation standard](product/documentation-standard.md) — required ownership, structure, naming, formats, and CI enforcement.
-- [Documentation completeness standard](product/documentation-completeness-standard.md) — hard definition of document, coverage, and phase completion.
-- [Documentation Completion Program](product/documentation-program-plan.md) — phased roadmap for completing domain, security, operations, interface, evidence, architecture, and maintenance documentation.
-- [Documentation program status](product/documentation-program-status.md) — authoritative current documentation phase and next `continue` decision.
-- [Architecture decisions/current architecture](adr/README.md) — current system map and accepted ADRs.
-- [Implementation plan](product/implementation-plan.md) — authoritative completed Phase 0–6 baseline and canonical repository structure.
-- [Production launch approval](product/production-launch-approval.md) — authoritative real-production go/no-go record.
-- [Shared operations](operations/README.md) — runtime configuration, background processing, observability, deployment, recovery, and release guidance.
-- [Shared security](security/README.md) — repository-wide security baseline, historical phase threat evidence, and production-launch security boundary.
+- [Product/program documentation](product/README.md) — implementation baseline, DCP governance, architecture audits, historical acceptance, production decisions.
+- [Shared operations](operations/README.md) — runtime configuration, background processing, observability, deployment, recovery, release guidance.
+- [Shared security](security/README.md) — cross-program security baseline, historical threat evidence, production security boundary.
+- [Production launch approval](product/production-launch-approval.md) — real-production go/no-go authority.
 
 ## Ownership model
 
-Documentation follows code ownership.
+Documentation follows code ownership:
 
 ```text
 app/Domain/<Domain>/
@@ -32,135 +30,94 @@ app/Domain/<Domain>/
 docs/domains/<domain>/README.md
 ```
 
-A domain folder owns its living business/runtime contract and may also own domain-specific:
+Each canonical domain owns its current business/runtime contract plus the applicable specialized P1–P5 profile families:
 
-- capability contracts;
-- product scope/implementation/validation/accessibility/acceptance evidence;
-- security reviews; and
-- operational diagnostics.
+```text
+docs/domains/<domain>/README.md
+docs/domains/<domain>/security/README.md
+docs/domains/<domain>/operations/README.md
+docs/domains/<domain>/interfaces/README.md
+docs/domains/<domain>/testing/README.md
+```
 
-Top-level `product/`, `security/`, and `operations/` are deliberately broader:
+Domain-specific capability contracts and product/acceptance evidence also live beneath the owner when required.
 
-- `product/` — program baseline, current status/governance, architecture audits, historical phase-wide evidence, hardening and production approval;
-- `security/` — shared security policy, historical phase-wide threat models and production-launch security evidence;
-- `operations/` — shared runtime configuration, scheduler/queues/outbox, observability, deployment/release/recovery runbooks and phase-wide operating evidence.
+Top-level groups are deliberately shared/system-level:
 
-This keeps implementation documentation next to the code/business owner while preventing the shared folders from becoming flat inventories of every domain's files.
+- `adr/` — current architecture index and durable decisions;
+- `product/` — cross-program scope/governance/status/current-state navigation, architecture audits, historical phase-wide evidence, DCP standards/evidence, production decisions;
+- `security/` — shared security policy, historical phase-wide threat models, production-launch security boundary;
+- `operations/` — shared runtime/configuration/observability/deployment/recovery/runbooks and historical phase-wide operating evidence.
+
+No parallel `docs/architecture/`, `docs/wiki/`, top-level `docs/runbooks/`, or flat domain living-document tree is canonical.
 
 ## Reader paths
 
-### Developer
+### Developer / architect
 
-1. Read the [architecture view](adr/README.md).
-2. Use the [capability matrix](product/current-capability-matrix.md) to distinguish current capability from explicit non-capability.
-3. Open the owning canonical domain folder under [`domains/`](domains/README.md).
-4. Read that domain's capability/product/security/operations evidence when changing domain-owned behavior.
-5. Read top-level product/security/operations only for program-wide or shared-platform constraints.
-6. Update code, tests, living docs, affected domain evidence, and program status together when behavior materially changes.
-
-For a material architecture decision, add/update an ADR rather than silently redefining architecture in feature documentation.
-
-### Alliance/operator
-
-Use the relevant living domain contract:
-
-- [Alliances](domains/alliances/README.md) — Alliance aggregate/settings and active-Alliance context.
-- [Identity](domains/identity/README.md) — authentication, verified email, password/session security, and MFA.
-- [Memberships](domains/memberships/README.md) — membership/invitation lifecycle.
-- [Authorization](domains/authorization/README.md) — roles, permissions, and RBAC.
-- [Content](domains/content/README.md) — public/member content, revisions, publication, and media.
-- [Events](domains/events/README.md) — scheduling, recurrence, registration, attendance, CSV/ICS behavior.
-- [Rallies](domains/rallies/README.md) — guidance, formations, groups, assignments, and Rally participation.
-- [Recruitment](domains/recruitment/README.md) — application/candidate/onboarding/retention workflow.
-- [Contributions](domains/contributions/README.md) — contribution records/calculations/reporting/exports.
-- [Notifications](domains/notifications/README.md) — durable reminder/report-request coordination.
-- [Integrations](domains/integrations/README.md) — read-only API and signed webhooks.
-- [Kingdoms](domains/kingdoms/README.md) — accepted K1–K3 Kingdom/player/roster/transfer/Alliance-intelligence capabilities and their product/security/operations evidence.
-- [Platform](domains/platform/README.md) — cross-tenant platform administration/lifecycle/entitlements/retention.
+1. Read [current architecture](adr/README.md).
+2. Use the [dependency map](product/cross-domain-dependency-map.md) to identify supported owner direction.
+3. Use the [capability matrix](product/current-capability-matrix.md) to distinguish implemented/accepted behavior from explicit non-capability.
+4. Open the owning domain under [domains](domains/README.md).
+5. Read the applicable security/operations/interfaces/testing profile before changing a material boundary.
+6. For a durable architecture decision, use an ADR rather than silently redefining architecture in feature documentation.
 
 ### Security reviewer
 
-1. Start with the shared [security baseline](security/security-baseline.md).
-2. Read the [architecture view](adr/README.md).
-3. Open the owning domain contract and its domain-local `security/` evidence when reviewing a domain-specific capability.
-4. For Kingdoms, use [Kingdoms security evidence](domains/kingdoms/security/README.md).
-5. Use the [production launch security review](security/production-launch-security-review.md) and [production launch approval](product/production-launch-approval.md) for repository evidence versus still-external production controls.
+1. Start with [shared security](security/README.md).
+2. Read [current architecture](adr/README.md) and [dependency map](product/cross-domain-dependency-map.md).
+3. Open the owning domain's `security/` profile/reviews.
+4. Use [production launch approval](product/production-launch-approval.md) for repository evidence versus still-external production controls.
 
 ### Production operator
 
-1. Start with the shared [operations index](operations/README.md).
-2. Review [runtime configuration](operations/configuration-reference.md), [observability](operations/observability.md), and [background processing](operations/background-processing.md).
-3. Use the owning domain's `operations/` area for domain-specific state/diagnosis; for Kingdoms see [Kingdoms operations](domains/kingdoms/operations/README.md).
-4. Use the shared [deployment](operations/runbooks/deployment.md), [rollback](operations/runbooks/rollback.md), [backup/restore](operations/runbooks/backup-restore.md), and [incident response](operations/runbooks/incident-response.md) runbooks.
+1. Start with [shared operations](operations/README.md).
+2. Review runtime configuration, observability, and background processing.
+3. Use the owning domain's `operations/` profile for domain-specific state/diagnosis.
+4. Follow shared deployment/rollback/backup/incident runbooks.
 5. Check [production launch approval](product/production-launch-approval.md) before treating the service as production-approved.
 
-A green CI/staging/recovery demonstration or accepted domain increment does not by itself approve production infrastructure or operations.
+A green CI/staging/recovery gate or accepted domain increment does not by itself prove real production infrastructure/operator controls.
 
 ## Documentation map
 
 | Area | Purpose |
 | --- | --- |
-| [`adr/`](adr/README.md) | Current architecture view and durable architecture decisions. |
-| [`domains/`](domains/README.md) | Current code/domain behavior and ownership plus domain-specific product/security/operations evidence. |
-| [`operations/`](operations/README.md) | Shared runtime operations, configuration, deployment, observability, recovery, and runbooks. |
-| [`product/`](product/README.md) | Program baseline/status/governance, documentation standards/program, architecture audits, historical phase-wide evidence, hardening and launch approval. |
-| [`security/`](security/README.md) | Shared security baseline, phase-wide threat history, and production-launch security evidence. |
+| [`adr/`](adr/README.md) | Current system architecture and durable architecture decisions. |
+| [`domains/`](domains/README.md) | Current code/domain ownership, behavior, security, operations, interfaces, testing/evidence, and domain-specific acceptance. |
+| [`operations/`](operations/README.md) | Shared runtime operations, configuration, deployment, observability, recovery, runbooks, historical operating evidence. |
+| [`product/`](product/README.md) | Program baseline/status/governance, DCP standards/evidence, dependency/glossary/current capability navigation, architecture audits, historical acceptance, production decision records. |
+| [`security/`](security/README.md) | Shared security baseline, historical threat evidence, production-launch security boundary. |
 
-These five directories are the only canonical top-level documentation groups. Do not add parallel `docs/wiki/`, `docs/architecture/`, or top-level `docs/runbooks/` trees.
-
-## Domain documentation rule
-
-Every canonical code domain has exactly one matching documentation root. `docs/domains/README.md` is the only Markdown file directly under `docs/domains/`; all domain material belongs inside one of the domain directories.
-
-For example:
-
-```text
-docs/domains/kingdoms/
-  README.md
-  roster.md
-  snapshots.md
-  intelligence.md
-  csv-migration.md
-  transfer-planning.md
-  alliance-intelligence.md
-  product/
-  security/
-  operations/
-```
-
-The parity, no-flat-file, local-link, naming, and Kingdoms evidence-ownership rules are enforced by `tests/Architecture/RepositoryStructureTest.php` in protected CI.
+These five directories are the only canonical top-level documentation groups.
 
 ## Source-of-truth rules
 
-When documents overlap:
+Use the narrowest owner:
 
-1. `product/implementation-plan.md` defines the completed baseline and canonical repository architecture.
-2. Accepted ADRs define material architecture decisions.
-3. Approved domain-owned increment scopes authorize post-baseline domain capability.
-4. Current status records such as `product/current-capability-matrix.md` and `product/production-launch-approval.md` define present capability/go-no-go state.
-5. Domain READMEs/capability documents define current business/runtime contracts.
-6. Shared/domain security and operations documents define current security/operating requirements.
-7. Validation, accessibility, security-review, audit, phase and exit records are evidence for the work they describe.
+1. accepted implementation-plan baseline and approved named scopes define approved product scope;
+2. accepted ADRs define durable architecture decisions;
+3. code/tests define exact implemented runtime structure/behavior;
+4. living domain contracts define current business/runtime ownership;
+5. specialized domain profiles define current security/operations/interfaces/testing views;
+6. system-level capability/dependency/audit navigation summarizes without overriding owners;
+7. accepted phase/increment/DCP records prove historical acceptance at their recorded revision.
 
-Code and tests remain authoritative for exact implemented runtime behavior. Documentation drift is a defect to correct, not a compatibility state to preserve.
+Historical evidence remains historical. Do not silently turn old phase language/test counts into current runtime truth.
 
 ## Documentation conventions
 
 - Follow the [documentation standard](product/documentation-standard.md).
-- Documentation-program work also follows the [completeness standard](product/documentation-completeness-standard.md), [DCP roadmap](product/documentation-program-plan.md), and [current status ledger](product/documentation-program-status.md).
-- Use lowercase kebab-case for descriptive Markdown filenames; `README.md` is the directory-index exception and numbered ADR names remain accepted.
-- Use repository-relative Markdown links for navigation.
-- Prefer one authoritative contract over duplicated explanations.
-- Put domain-specific product/security/operations material under the owning domain.
-- Keep only program/shared content in top-level product/security/operations.
-- Preserve accepted historical evidence identities and exact evidence where possible when relocating it.
-- Record real evidence identifiers; do not mark external production controls complete because CI passed.
+- Follow the [documentation completeness standard](product/documentation-completeness-standard.md) for DCP work.
+- P6 system-level work follows the [architecture and program-governance standard](product/architecture-governance-standard.md).
+- Use lowercase kebab-case for descriptive Markdown filenames; `README.md` and numbered ADR filenames are accepted exceptions.
+- Prefer one authoritative owner plus links over duplicated explanation.
+- Preserve accepted historical evidence identity.
+- Keep repository acceptance separate from real-production approval.
 - Never commit secrets, credentials, recovery material, private endpoint details, or sensitive production incident payloads.
 
-## Historical delivery and future work
+## Program history and continuation
 
-For historical Phase 0–6 program delivery, use the [product index](product/README.md). For accepted post-program domain work, follow the owning domain's product evidence, living contracts, security evidence, operations, and exit records.
+Historical Phase 0–6 evidence is indexed under [product/program documentation](product/README.md). Accepted post-baseline Kingdoms work is indexed under the [Kingdoms domain](domains/kingdoms/README.md).
 
-For ongoing documentation completion, use the DCP status ledger. `DCP-P0` through `DCP-P7` are documentation-governance phases and are separate from the completed Phase 0–6 product implementation program. `continue` may move the DCP forward only after the active phase is fully complete.
-
-Release notes and end-user onboarding remain separate from acceptance evidence.
+`DCP-P0` through `DCP-P7` are documentation-governance phases, separate from product Phase 0–6. `continue` may advance the DCP only after the active phase reaches its exact protected completion gate.
