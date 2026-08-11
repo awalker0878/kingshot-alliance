@@ -5,247 +5,100 @@
 **Document type:** Living domain contract  
 **Status:** Current  
 **Code owner:** `app/Domain/Notifications`  
-**Primary authorization boundary:** inherited active-Alliance/member eligibility from source workflow; management configuration remains in owning feature domains
+**Primary authorization boundary:** source-domain authorization/eligibility; tenant/member identity remains explicit in persisted coordination state
 
 ## 1. Purpose and ownership
 
-Notifications owns durable notification-delivery coordination that should not live inside the feature domain originating the message.
+Notifications owns durable due-time coordination that should not live inside the source feature domain.
 
-The current implementation covers:
-
-- in-app Event reminder materialization and delivery state; and
-- scheduled Contribution-report request coordination through the transactional outbox.
-
-Events remains authoritative for Event schedules, occurrences, registrations, and attendance. Contributions remains authoritative for report schedules, report versions, and report-run semantics. Notifications owns when those facts produce a durable delivery/request and how repeated scheduler execution remains safe.
-
-The current implementation does **not** define a generic email, SMS, push, or third-party messaging provider.
+The current runtime has two independent capabilities: Event reminder delivery coordination and scheduled Contribution-report request coordination. Notifications does not own generic email/SMS/push/webhook transport.
 
 ## 2. Scope
 
-### In scope
+In scope: durable Event reminder state, scheduler materialization/queueing/catch-up, scheduled Contribution report due-time coordination, deterministic request identity, and shared outbox interaction.
 
-- `EventReminderRule` and `EventReminderDelivery` state;
-- deterministic Event reminder materialization;
-- due reminder queueing and eligibility recheck;
-- scheduled Contribution report due-time coordination;
-- scheduler commands/limits/locking relevant to those workflows;
-- idempotency and catch-up/recovery; and
-- interaction with the shared transactional outbox.
-
-### Out of scope
-
-- Event schedule/registration/attendance ownership;
-- Contribution report semantics/schedule persistence ownership;
-- generic email/SMS/push transport;
-- webhook transport, which belongs to Integrations; and
-- external-provider delivery claims.
+Out of scope: Events/Contributions source-state ownership, generic messaging providers, and webhook transport.
 
 ## 3. Domain model
 
-### Event reminder rules and deliveries
+The domain intentionally separates:
 
-Notifications owns `EventReminderRule` and `EventReminderDelivery`. Events owns the occurrence and registration facts used to determine eligibility.
-
-A reminder delivery is unique for the combination of:
-
-- Alliance;
-- occurrence;
-- reminder rule; and
-- membership.
-
-`due_at` equals occurrence start minus the rule's configured `minutes_before_start`.
-
-Delivery states are:
-
-| State | Meaning |
-| --- | --- |
-| `pending` | Materialized and waiting for `due_at`. |
-| `queued` | A durable `event.reminder.requested` outbox message exists. |
-| `sent` | The outbox message was published and the in-app reminder is considered delivered. |
-| `cancelled` | The member is no longer eligible when the reminder becomes due. |
-
-A `sent` reminder means durable in-app/outbox delivery completed; it does not claim delivery through an external email/SMS/push provider.
-
-### Scheduled Contribution report coordination
-
-Contribution schedules/runs belong to Contributions. Notifications coordinates the due occurrence and deterministic request identity derived from schedule ID, due timestamp, and report version.
+- [Event reminders](event-reminders.md) — reminder rules/deliveries and `pending`/`queued`/`sent`/`cancelled` lifecycle.
+- [Scheduled Contribution report coordination](scheduled-report-coordination.md) — deterministic due schedule occurrence and durable report request.
 
 ## 4. Core invariants
 
-1. Reminder materialization is deterministic per Alliance/occurrence/rule/membership.
-2. Reminder outbox creation is deterministic per delivery.
-3. Contribution report-run/request creation is deterministic per schedule/due-time/report-version.
-4. Scheduler execution is at-least-once and must remain safe to rerun.
-5. Outbox publication is at-least-once; consumers remain idempotent.
-6. Reminder eligibility is rechecked before due delivery is queued.
-7. A cancelled/ineligible registration never receives a newly queued reminder merely because an earlier delivery record exists.
-8. Tenant identity is explicit in delivery/request/outbox state and is never inferred from process-global state.
-9. The `integrations` queue is not the Notifications delivery mechanism.
+1. Source feature domains remain authoritative for the facts/configuration that trigger notification work.
+2. Scheduler execution is at-least-once and safe to rerun.
+3. Persisted coordination state carries explicit Alliance/member/source identity.
+4. Deterministic identities prevent routine duplicate logical work.
+5. Shared outbox publication is at-least-once; downstream handling remains idempotent.
+6. Notifications is not generic external message transport.
 
 ## 5. Lifecycles and workflows
 
-### Materialize Event reminders
+Event reminder materialization/due queueing/publication completion is defined in [event-reminders.md](event-reminders.md).
 
-`events:sync-reminders` scans future scheduled occurrences. For each enabled rule and eligible registration in `registered` or `waitlisted`, Notifications creates at most one deterministic delivery.
+Contribution report schedule due-time selection/request identity/next-due advancement is defined in [scheduled-report-coordination.md](scheduled-report-coordination.md).
 
-Repeated materialization does not create duplicate deliveries.
-
-### Queue due reminders
-
-`events:queue-reminders` claims due `pending` deliveries in due-time order. PostgreSQL uses `FOR UPDATE SKIP LOCKED` so concurrent scheduler workers do not claim the same row.
-
-Before queueing, Notifications rechecks the Events registration. If no longer `registered`/`waitlisted`, the delivery becomes `cancelled` and no reminder outbox message is created.
-
-For an eligible delivery, Notifications creates `event.reminder.requested` with a deterministic key and moves the delivery to `queued`.
-
-When Platform publishes that outbox event, `MarkEventReminderPublished` moves the queued delivery to `sent` and records `sent_at`.
-
-### Queue scheduled Contribution reports
-
-`contributions:queue-reports` selects enabled schedules whose `next_due_at` has arrived. PostgreSQL uses `FOR UPDATE SKIP LOCKED` so concurrent workers do not advance the same occurrence.
-
-For each due occurrence, Notifications:
-
-1. derives deterministic SHA-256 identity from schedule ID, due timestamp, and report version;
-2. creates/reuses the corresponding `ContributionReportRun` in `queued` state;
-3. creates/reuses `contribution.report.requested` outbox state;
-4. records recipient membership, report version, and `as_of`; and
-5. advances `next_due_at` in the schedule's configured time zone.
-
-Supported cadences are `daily`, `weekly`, and `monthly`; monthly advancement uses no-overflow calendar arithmetic.
+Both are designed for safe catch-up after scheduler/outbox interruption.
 
 ## 6. Authorization and tenancy
 
-Notifications is primarily a coordination domain: source-domain authorization determines who may configure Events reminders or Contribution report schedules.
-
-Every persisted reminder/report request carries the owning Alliance ID and the membership/source identifiers necessary to perform only the intended tenant-scoped work.
-
-Member-facing reminder reads must resolve under active Alliance/membership context. Cross-domain source rows are queried with their Alliance context.
+Source domains decide who may configure Event reminders or report schedules. Notifications coordinates persisted authorized state and keeps tenant/member identity explicit. Member-facing reminder reads resolve under active Alliance/membership context.
 
 ## 7. Cross-domain contracts
 
-### Consumes
+Consumes Events occurrence/registration/reminder context, Contributions report schedule/version/run semantics, Platform transactional outbox/scheduler infrastructure, and Alliances/Memberships identity.
 
-- **Events** — occurrences, registrations, attendance, and reminder configuration context.
-- **Contributions** — report schedules, report versions, report-run semantics.
-- **Platform** — transactional outbox and publisher.
-- **Alliances/Memberships** — tenant/member identity used by delivery state.
-
-### Exposes
-
-- durable reminder delivery state and due-time coordination to Events UI/workflows; and
-- durable scheduled-report request coordination to Contributions.
-
-Webhook transport remains owned by Integrations.
+Exposes durable reminder status to Events and scheduled report-request coordination to Contributions.
 
 ## 8. Persistence and data ownership
 
-Notifications owns reminder rule/delivery state. Contributions continues to own Contribution report schedules/runs even when Notifications coordinates due-time requests.
-
-Due records remain persisted across scheduler interruption so catch-up does not depend on recreating source business actions.
+Notifications owns Event reminder rule/delivery state. Contributions retains ownership of report schedules/versions/runs even when Notifications coordinates due time.
 
 ## 9. Events, outbox and integrations
 
-Current workflows use scheduler + PostgreSQL + transactional outbox.
-
-- `event.reminder.requested` is the durable Event-reminder request event.
-- `contribution.report.requested` is the durable scheduled-report request event.
-- `outbox:publish --limit=100` is required for queued requests to progress through the shared durable boundary.
-
-Integrations may independently fan externally eligible tenant outbox events into webhooks, but webhook transport is not owned by Notifications.
+Current coordination uses scheduler + PostgreSQL + Platform outbox. Webhook transport is Integrations-owned and does not become Notifications responsibility because an outbox event exists.
 
 ## 10. HTTP, UI and API surfaces
 
-Recent sent in-app reminders appear on the Events page with Event name, local start time, delivery time, and direct Event link.
-
-Notifications does not expose a generic public notification API or provider-management surface.
+Recent sent in-app reminders may be presented by Events. Notifications has no generic public notification/provider API.
 
 ## 11. Background processing
 
-The scheduler runs these current coordination commands every minute:
-
-| Command | Purpose | Scheduler protection |
-| --- | --- | --- |
-| `events:sync-reminders --limit=250` | Materialize deliveries for future scheduled occurrences. | `onOneServer()`, `withoutOverlapping(10)` |
-| `events:queue-reminders --limit=100` | Queue due Event reminders through the outbox. | `onOneServer()`, `withoutOverlapping(10)` |
-| `contributions:queue-reports --limit=50` | Queue due Contribution-report requests. | `onOneServer()`, `withoutOverlapping(10)` |
-
-`outbox:publish --limit=100` also runs every minute.
-
-Command-level limits remain bounded in code even if a larger value is supplied. Operators should use documented defaults unless deliberately draining backlog.
+The current scheduler invokes bounded Event reminder and Contribution report coordination commands plus the shared outbox publisher. Detailed state/concurrency belongs in the capability files.
 
 ## 12. Failure, idempotency and concurrency
 
-### Reminder remains `pending`
-
-Verify `due_at`, registration eligibility, and `events:queue-reminders` execution.
-
-### Reminder is `queued` but not `sent`
-
-Inspect the matching `event.reminder.requested` outbox message. Delivery becomes sent only after the Platform publisher emits the matching publication event.
-
-### Scheduled report did not queue
-
-Verify schedule enabled state, `next_due_at`, cadence/time zone, command execution, and whether the deterministic report-run identity already exists.
-
-### Scheduler interruption
-
-Restore the scheduler and rerun the bounded command. The workflows are designed for catch-up; persisted due state plus idempotency prevents routine duplication.
-
-### Outbox backlog
-
-Repair the outbox publisher rather than replaying the originating Event/registration/Contribution action solely to force delivery.
+Both capabilities use deterministic identities and concurrency-safe due claiming. Persisted due/unpublished state enables catch-up without replaying source business actions. See the capability contracts for exact semantics.
 
 ## 13. Security and privacy
 
-Payloads and routine logs should contain only identifiers/information necessary for downstream work. Sensitive candidate data, secrets, private notes, or unrelated member data do not belong in reminder/report payloads.
-
-Tenant identity must never be inferred from hidden global process state.
+Payloads/logs contain only information needed for downstream coordination; unrelated private candidate/member data and secrets are excluded. Tenant identity is never inferred from hidden global process state.
 
 ## 14. Observability and operations
 
-Operators should be able to inspect:
-
-- delivery state (`pending`/`queued`/`sent`/`cancelled`);
-- `due_at`/`sent_at`;
-- scheduler command execution;
-- outbox publication/error state; and
-- Contribution schedule/run identity.
-
-See [Background processing](../../operations/background-processing.md) and [Observability](../../operations/observability.md).
+Diagnose source eligibility/configuration, persisted coordination state, scheduler execution, and outbox publication separately. See [Background processing](../../operations/background-processing.md).
 
 ## 15. Testing and architecture enforcement
 
-Tests should protect:
-
-- deterministic reminder materialization;
-- duplicate scheduler execution;
-- due eligibility recheck/cancellation;
-- PostgreSQL concurrent claiming behavior;
-- report-request idempotency and cadence advancement;
-- scheduler catch-up; and
-- the ownership boundaries with Events, Contributions, Platform, and Integrations.
+Tests protect deterministic identities, repeated scheduler execution, concurrent due claiming, catch-up, tenant isolation, and ownership boundaries with Events/Contributions/Platform/Integrations.
 
 ## 16. Explicit non-capabilities
 
-Notifications does not currently provide:
-
-- generic email delivery;
-- SMS delivery;
-- push-provider delivery;
-- a third-party messaging-provider abstraction; or
-- webhook transport.
+Notifications does not provide generic email, SMS, push-provider, third-party messaging abstraction, or webhook transport.
 
 ## 17. Capability documents
 
-No separate Notifications capability files are required at present.
+- [Event reminders](event-reminders.md)
+- [Scheduled Contribution report coordination](scheduled-report-coordination.md)
 
 ## 18. Related documentation
 
-- [Events domain](../events/README.md)
-- [Contributions domain](../contributions/README.md)
-- [Platform domain](../platform/README.md)
-- [Integrations domain](../integrations/README.md)
+- [Events](../events/README.md)
+- [Contributions](../contributions/README.md)
+- [Platform](../platform/README.md)
+- [Integrations](../integrations/README.md)
 - [Background processing](../../operations/background-processing.md)
-- [Security baseline](../../security/security-baseline.md)
 - [`app/Domain/Notifications/README.md`](../../../app/Domain/Notifications/README.md)
