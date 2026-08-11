@@ -4,7 +4,7 @@
 
 This directory owns **repository-wide product and program governance**: the completed baseline plan, current capability/status navigation, documentation/architecture governance, phase-wide historical acceptance evidence, production hardening, and real-production approval state.
 
-Domain-specific product scopes, implementation plans, slice validations, accessibility records, security reviews and operations guides belong with the code-owning domain under `docs/domains/<domain>/`.
+Domain-specific product scopes, implementation plans, slice validations, accessibility records, security reviews, operations guides, and interface contracts belong with the code-owning domain under `docs/domains/<domain>/`.
 
 ## Authoritative current records
 
@@ -20,7 +20,10 @@ Domain-specific product scopes, implementation plans, slice validations, accessi
 - [Security coverage matrix](security-coverage-matrix.md) — completed DCP-P2 inventory covering all 14 domains and required focused reviews.
 - [DCP-P2 exit report](security-completeness-exit-report.md) — accepted P2 scope, defect/correction history and protected validation evidence.
 - [Operations documentation standard](operations-documentation-standard.md) — DCP-P3 requirements for domain operations profiles, focused runbooks, recovery/replay/rollback, diagnostics, capacity and P3 CI.
-- [Operations coverage matrix](operations-coverage-matrix.md) — frozen DCP-P3 inventory of all 14 domain operations profiles plus the required focused runbook set.
+- [Operations coverage matrix](operations-coverage-matrix.md) — completed DCP-P3 inventory of all 14 domain operations profiles plus required focused runbooks.
+- [DCP-P3 exit report](operations-completeness-exit-report.md) — accepted P3 scope, correction history and protected validation evidence.
+- [Interface documentation standard](interface-documentation-standard.md) — DCP-P4 requirements for domain interface profiles, focused/reused contracts, APIs/webhooks/events/commands/files/versioning and P4 CI.
+- [Interface coverage matrix](interface-coverage-matrix.md) — frozen DCP-P4 code-backed inventory across all 14 domains, route/bootstrap sources, commands/scheduler, outbox consumers, machine contracts and file boundaries.
 - [Current capability matrix](current-capability-matrix.md) — present-tense implemented capabilities and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations.
 - [Repository structure audit](repository-structure-audit.md) — physical repository/documentation structure evidence.
@@ -29,7 +32,7 @@ Domain-specific product scopes, implementation plans, slice validations, accessi
 - [Production launch approval](production-launch-approval.md) — **Not yet approved** for real production cutover until required external/deployment evidence is recorded.
 - [Phase 6 launch readiness](phase-6-launch-readiness.md) — historical launch-control expectations feeding the current production-approval process.
 
-Use the [domain index](../domains/README.md) for current business/runtime ownership and domain-specific product/security/operations material. Shared runtime/runbook authority is indexed under [operations documentation](../operations/README.md).
+Use the [domain index](../domains/README.md) for current business/runtime ownership and domain-specific product/security/operations/interface material. Shared runtime/runbook authority is indexed under [operations documentation](../operations/README.md).
 
 ## Documentation Completion Program
 
@@ -39,11 +42,12 @@ The DCP is sequential and hard-gated. Every phase must reach 100% required docum
 
 The normative completion definition is [Documentation completeness standard](documentation-completeness-standard.md). Specialized standards are introduced phase-by-phase instead of continuously expanding one monolithic documentation standard.
 
-- DCP-P1 is complete under the [Domain contract standard](domain-contract-standard.md) and [Domain coverage matrix](domain-coverage-matrix.md).
+- DCP-P1 is complete under the [Domain contract standard](domain-contract-standard.md), [Domain coverage matrix](domain-coverage-matrix.md), and [P1 exit report](domain-contract-completeness-exit-report.md).
 - DCP-P2 is complete under the [Security documentation standard](security-documentation-standard.md), [Security coverage matrix](security-coverage-matrix.md), and [P2 exit report](security-completeness-exit-report.md).
-- DCP-P3 is current under the [Operations documentation standard](operations-documentation-standard.md) and frozen [Operations coverage matrix](operations-coverage-matrix.md).
+- DCP-P3 is complete under the [Operations documentation standard](operations-documentation-standard.md), [Operations coverage matrix](operations-coverage-matrix.md), and [P3 exit report](operations-completeness-exit-report.md).
+- DCP-P4 is current under the [Interface documentation standard](interface-documentation-standard.md), frozen [Interface coverage matrix](interface-coverage-matrix.md), and [program status ledger](documentation-program-status.md).
 
-Later phases create their focused standards only when that phase becomes active.
+P5 remains blocked until P4 reaches complete inventory coverage and passes both exact-head protected gates.
 
 ## Historical program acceptance
 
@@ -72,7 +76,7 @@ These are historical acceptance/program records. Navigation/path maintenance is 
 
 ## Domain-specific product evidence
 
-A product record moves under its owning domain when its scope, implementation sequence, validation, accessibility, acceptance, security or operations evidence is primarily about that domain's code/business contract.
+A product record moves under its owning domain when its scope, implementation sequence, validation, accessibility, acceptance, security/operations/interface references, or acceptance evidence is primarily about that domain's code/business contract.
 
 Canonical pattern:
 
@@ -109,7 +113,7 @@ The DCP uses its own documentation-work states (`Not started`, `In progress`, `B
 When product work changes:
 
 1. Keep cross-program baseline/governance/status records here.
-2. Put domain-specific scope, implementation, validation, security/operations references, accessibility, and acceptance evidence under the owning domain.
+2. Put domain-specific scope, implementation, validation, security/operations/interface references, accessibility, and acceptance evidence under the owning domain.
 3. Update the [current capability matrix](current-capability-matrix.md) with present-tense status and links to the owning domain.
 4. Preserve historical phase-wide evidence rather than extending it as current feature documentation.
 5. Keep real production approval separate from repository/product acceptance.
