@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Architecture;
 
-use FilesystemIterator;
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use SplFileInfo;
 
 final class OperationsDocumentationTest extends TestCase
 {
