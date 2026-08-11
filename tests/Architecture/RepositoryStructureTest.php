@@ -291,7 +291,7 @@ final class RepositoryStructureTest extends TestCase
             preg_match_all('/\]\((?!https?:\/\/|mailto:)([^)#\s]+\.md)(?:#[^)]+)?\)/', $contents, $matches);
 
             foreach ($matches[1] ?? [] as $target) {
-                if (! is_string($target)) {
+                if (is_string($target) === false) {
                     continue;
                 }
 
@@ -301,7 +301,7 @@ final class RepositoryStructureTest extends TestCase
 
                 $resolved = dirname($path).'/'.rawurldecode($target);
 
-                if (! is_file($resolved)) {
+                if (is_file($resolved) === false) {
                     $broken[] = sprintf('%s -> %s', $this->relativePath($path), $target);
                 }
             }
@@ -399,7 +399,7 @@ final class RepositoryStructureTest extends TestCase
         );
 
         foreach ($iterator as $file) {
-            if (! $file instanceof SplFileInfo || ! $file->isFile() || $file->getExtension() !== 'md') {
+            if (($file instanceof SplFileInfo) === false || $file->isFile() === false || $file->getExtension() !== 'md') {
                 continue;
             }
 
