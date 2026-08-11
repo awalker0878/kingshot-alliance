@@ -207,7 +207,10 @@ final readonly class StageKingdomIngestionCandidate
         return $capturedAt;
     }
 
-    /** @param array<string|int, mixed> $payload @return array<string, mixed> */
+    /**
+     * @param array<string|int, mixed> $payload
+     * @return array<string, mixed>
+     */
     private function canonicalPayload(KingdomIngestionTargetKind $kind, array $payload): array
     {
         return match ($kind) {
@@ -216,7 +219,10 @@ final readonly class StageKingdomIngestionCandidate
         };
     }
 
-    /** @param array<string|int, mixed> $payload @return array<string, mixed> */
+    /**
+     * @param array<string|int, mixed> $payload
+     * @return array<string, mixed>
+     */
     private function playerPayload(array $payload): array
     {
         $this->assertOnlyKeys($payload, ['observed_name', 'power', 'progression_level', 'observed_alliance_tag']);
@@ -229,7 +235,10 @@ final readonly class StageKingdomIngestionCandidate
         ];
     }
 
-    /** @param array<string|int, mixed> $payload @return array<string, mixed> */
+    /**
+     * @param array<string|int, mixed> $payload
+     * @return array<string, mixed>
+     */
     private function alliancePayload(array $payload): array
     {
         $this->assertOnlyKeys($payload, ['observed_name', 'observed_tag', 'power', 'member_count']);
@@ -242,7 +251,10 @@ final readonly class StageKingdomIngestionCandidate
         ];
     }
 
-    /** @param array<string|int, mixed> $payload @param list<string> $allowed */
+    /**
+     * @param array<string|int, mixed> $payload
+     * @param list<string> $allowed
+     */
     private function assertOnlyKeys(array $payload, array $allowed): void
     {
         foreach (array_keys($payload) as $key) {

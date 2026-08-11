@@ -88,7 +88,11 @@ final readonly class CompleteKingdomIngestionBatch
 
     private function failureCode(?string $value): ?string
     {
-        $value = $value === null ? null : trim($value);
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim($value);
         if ($value === '') {
             return null;
         }

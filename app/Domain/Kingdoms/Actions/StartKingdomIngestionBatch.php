@@ -95,7 +95,11 @@ final readonly class StartKingdomIngestionBatch
 
     private function nullableIdentifier(?string $value, int $max, string $field): ?string
     {
-        $value = $value === null ? null : trim($value);
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim($value);
         if ($value === '') {
             return null;
         }

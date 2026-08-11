@@ -264,14 +264,16 @@ function label(value: string): string {
           </tbody>
         </table>
       </div>
-      <p v-else class="mt-6 text-sm text-slate-500">No automated-ingestion subscriptions configured.</p>
+      <p v-else class="mt-6 text-sm text-slate-500">
+        No automated-ingestion subscriptions configured.
+      </p>
     </section>
 
     <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
       <h2 class="text-xl font-semibold">Recent staged candidates</h2>
       <p class="mt-1 text-sm text-slate-400">
-        Only bounded provenance/status is displayed here. Raw source responses and source secrets are
-        not retained as candidate data.
+        Only bounded provenance/status is displayed here. Raw source responses and source secrets
+        are not retained as candidate data.
       </p>
 
       <div v-if="candidates.length" class="mt-6 overflow-x-auto">
