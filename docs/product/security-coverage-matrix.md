@@ -5,13 +5,13 @@
 **Document type:** DCP phase coverage inventory  
 **Status:** Current  
 **Phase:** `DCP-P2` — Security, privacy, and data-protection completeness  
-**Inventory state:** Frozen — 100% required content implemented; protected validation pending
+**Inventory state:** Frozen — Complete
 
 ## 1. Purpose
 
-This is the authoritative `DCP-P2` inventory. It records every canonical code domain, the security/privacy/data-protection concerns reviewed, whether a focused living security review is required, the historical/current evidence used to establish the boundary, and the P2 completion state.
+This is the authoritative completed `DCP-P2` inventory. It records every canonical code domain, the security/privacy/data-protection concerns reviewed, whether a focused living security review is required, the historical/current evidence used to establish the boundary, and the accepted P2 completion state.
 
-A domain is not P2-complete merely because its root contract has a `Security and privacy` section. Every domain has a current `security/README.md` profile following [Security documentation standard](security-documentation-standard.md), and every focused review required by this frozen inventory is implemented.
+A domain is not P2-complete merely because its root contract has a `Security and privacy` section. Every domain has a current `security/README.md` profile following [Security documentation standard](security-documentation-standard.md), and every focused review required by this frozen inventory is implemented and protected-validated.
 
 ## 2. Focused-review decision key
 
@@ -23,20 +23,20 @@ A domain is not P2-complete merely because its root contract has a `Security and
 
 | Domain | Security/privacy concerns reviewed | P2 decision | Required living focused reviews | Primary source/evidence | P2 status |
 | --- | --- | --- | --- | --- | --- |
-| Alliances | tenant principal, active-Alliance selection/revalidation, tenant snapshot propagation, Alliance creation/settings, Kingdom association | Focused review | `tenant-context-security-review.md` | Phase 1 threat model; tenant-context contract; shared baseline | Candidate |
-| Audit | privileged-event attribution, metadata minimization, tenant/actor correlation, retained evidence, secret exclusion | Profile only | None | Phase 1 threat model; Audit contract; shared baseline | Candidate |
-| Authorization | permission vocabulary, tenant-specific RBAC, role assignment/removal, hierarchy/last-Owner safety, Platform separation | Profile only | None | Phase 1 threat model; Authorization contract; shared baseline | Candidate |
-| Content | public/member visibility, revision history, authoring privilege, private media, upload/scanner/storage boundary | Focused review | `media-security-review.md` | Phase 2 threat model; Content/media contracts; shared baseline | Candidate |
-| Contributions | manager/member reporting, subjective/private evidence, corrections/reversals, exports, derived Event facts | Profile only | None | Phase 5 threat model; Contributions contracts; shared baseline | Candidate |
-| Events | private registration/attendance, authenticated CSV/ICS, recurrence integrity, capacity/waitlist concurrency | Profile only | None | Phase 3 threat model; Events contracts; shared baseline | Candidate |
-| Identity | global account authentication, password/session assurance, verification, TOTP MFA, recovery-code secrecy/replay | Focused review | `mfa-and-recovery-security-review.md` | Phase 1 threat model; Identity/MFA contracts; shared baseline | Candidate |
-| Integrations | Alliance-bound API credentials/scopes, external read API, webhook signing/delivery, endpoint/egress safety | Focused review | `api-security-review.md`, `webhooks-security-review.md` | Phase 6 threat model; Integrations capability contracts; shared baseline | Candidate |
-| Kingdoms | neutral game identity, roster/snapshots/import, transfer planning, private diplomacy/contact data, descriptive intelligence | Existing review set | Existing Kingdoms security reviews indexed by `security/README.md` | K1–K3 security reviews; Kingdoms contracts; shared baseline | Candidate |
-| Memberships | membership lifecycle/hierarchy, role strip/restore, bearer invitation issue/revoke/resend/acceptance, Recruitment handoff | Focused review | `invitations-security-review.md` | Phase 1 threat model; Memberships/invitations contracts; shared baseline | Candidate |
-| Notifications | tenant/member coordination state, Event reminder eligibility, scheduled report identities, outbox payload minimization | Profile only | None | Phase 3/5/6 evidence; Notifications contracts; shared baseline | Candidate |
-| Platform | cross-tenant administrator grant, MFA/password assurance, legal hold, deletion/restoration/anonymization/export, shared outbox | Focused review | `lifecycle-and-retention-security-review.md`, `transactional-outbox-security-review.md` | Phase 6 threat model; Platform capability contracts; shared baseline | Candidate |
-| Rallies | Alliance-private guidance/formations/groups/assignments/participation, active-member assignment, no game automation | Profile only | None | Phase 3 threat model; Rallies contract; shared baseline | Candidate |
-| Recruitment | anonymous/invitation-only intake, candidate PII/private notes, duplicate merge, recruiter access, retention/anonymization | Focused review | `application-intake-security-review.md` | Phase 4 threat model; Recruitment/intake contracts; shared baseline | Candidate |
+| Alliances | tenant principal, active-Alliance selection/revalidation, tenant snapshot propagation, Alliance creation/settings, Kingdom association | Focused review | `tenant-context-security-review.md` | Phase 1 threat model; tenant-context contract; shared baseline | Complete |
+| Audit | privileged-event attribution, metadata minimization, tenant/actor correlation, retained evidence, secret exclusion | Profile only | None | Phase 1 threat model; Audit contract; shared baseline | Complete |
+| Authorization | permission vocabulary, tenant-specific RBAC, role assignment/removal, hierarchy/last-Owner safety, Platform separation | Profile only | None | Phase 1 threat model; Authorization contract; shared baseline | Complete |
+| Content | public/member visibility, revision history, authoring privilege, private media, upload/scanner/storage boundary | Focused review | `media-security-review.md` | Phase 2 threat model; Content/media contracts; shared baseline | Complete |
+| Contributions | manager/member reporting, subjective/private evidence, corrections/reversals, exports, derived Event facts | Profile only | None | Phase 5 threat model; Contributions contracts; shared baseline | Complete |
+| Events | private registration/attendance, authenticated CSV/ICS, recurrence integrity, capacity/waitlist concurrency | Profile only | None | Phase 3 threat model; Events contracts; shared baseline | Complete |
+| Identity | global account authentication, password/session assurance, verification, TOTP MFA, recovery-code secrecy/replay | Focused review | `mfa-and-recovery-security-review.md` | Phase 1 threat model; Identity/MFA contracts; shared baseline | Complete |
+| Integrations | Alliance-bound API credentials/scopes, external read API, webhook signing/delivery, endpoint/egress safety | Focused review | `api-security-review.md`, `webhooks-security-review.md` | Phase 6 threat model; Integrations capability contracts; shared baseline | Complete |
+| Kingdoms | neutral game identity, roster/snapshots/import, transfer planning, private diplomacy/contact data, descriptive intelligence | Existing review set | Existing Kingdoms security reviews indexed by `security/README.md` | K1–K3 security reviews; Kingdoms contracts; shared baseline | Complete |
+| Memberships | membership lifecycle/hierarchy, role strip/restore, bearer invitation issue/revoke/resend/acceptance, Recruitment handoff | Focused review | `invitations-security-review.md` | Phase 1 threat model; Memberships/invitations contracts; shared baseline | Complete |
+| Notifications | tenant/member coordination state, Event reminder eligibility, scheduled report identities, outbox payload minimization | Profile only | None | Phase 3/5/6 evidence; Notifications contracts; shared baseline | Complete |
+| Platform | cross-tenant administrator grant, MFA/password assurance, legal hold, deletion/restoration/anonymization/export, shared outbox | Focused review | `lifecycle-and-retention-security-review.md`, `transactional-outbox-security-review.md` | Phase 6 threat model; Platform capability contracts; shared baseline | Complete |
+| Rallies | Alliance-private guidance/formations/groups/assignments/participation, active-member assignment, no game automation | Profile only | None | Phase 3 threat model; Rallies contract; shared baseline | Complete |
+| Recruitment | anonymous/invitation-only intake, candidate PII/private notes, duplicate merge, recruiter access, retention/anonymization | Focused review | `application-intake-security-review.md` | Phase 4 threat model; Recruitment/intake contracts; shared baseline | Complete |
 
 ## 4. Focused review rationale
 
@@ -98,7 +98,7 @@ Rallies is an authenticated Alliance-private coordination feature with no accept
 
 Kingdoms already has domain-owned reviews for foundation, roster, snapshots, CSV migration, descriptive intelligence, transfer planning/completion, game-Alliance tracking/observations/diplomacy/contacts/dashboard, and whole-increment security acceptance.
 
-P2 does not cosmetically rewrite those accepted reviews. `docs/domains/kingdoms/security/README.md` is now the mandatory living profile and retains the accepted review set as indexed historical/current domain evidence.
+P2 does not cosmetically rewrite those accepted reviews. `docs/domains/kingdoms/security/README.md` is the mandatory living profile and retains the accepted review set as indexed historical/current domain evidence.
 
 ## 7. Shared baseline reconciliation
 
@@ -119,9 +119,15 @@ A historical statement superseded by current code/docs remains history, not curr
 - [x] Kingdoms security profile is normalized and indexes its existing domain review set.
 - [x] Shared security baseline and living domain security documentation agree.
 - [x] Applicable secret/credential, privacy, retention/deletion/anonymization, trust-boundary, abuse, destructive-operation, and residual-risk requirements are explicit.
-- [x] Domain/shared security navigation is complete; local-link integrity is covered by repository architecture validation.
+- [x] Domain/shared security navigation is complete and local-link integrity is protected by repository architecture validation.
 - [x] P2 structural/metadata/heading/frozen-inventory CI is active.
-- [ ] Protected validation passes on the exact P2 candidate/evidence head.
-- [ ] P2 exit/status evidence is finalized after protected validation and the final evidence head also passes protected validation.
+- [x] Protected validation passed on corrected P2 evidence head `eea41be6bf45820a7f3ab06f57cc24703e7d2b8e`.
+- [x] P2 exit/status evidence is finalized for final-head protected validation.
 
-The phase is **Candidate**, not Complete, until the final two protected-validation items pass.
+Candidate validation evidence:
+
+- Dependency Review `31504587302` — success.
+- CodeQL `31504587346` — success.
+- CI `31504587198` — success, including frontend, migrations, Pint 483 files, PHPStan 345/345 with 0 errors, 369 tests / 6,908 assertions, immutable image build, staging, backup/restore, and image scan.
+
+The frozen P2 content inventory is **Complete**. Program-level phase closure becomes authoritative only after the final evidence/status head also passes protected validation under the Documentation Completion Program hard gate.
