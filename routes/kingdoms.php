@@ -7,6 +7,7 @@ use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyContactControll
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceIntelligenceController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceObservationController;
+use App\Domain\Kingdoms\Http\Controllers\KingdomIngestionController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
 use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
 use App\Domain\Kingdoms\Http\Controllers\RosterController;
@@ -61,6 +62,9 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         [KingdomAllianceDiplomacyContactController::class, 'show'],
     )->name('alliance.kingdom-alliances.diplomacy.contacts.show');
 
+    Route::get('/alliance/kingdom-ingestion/manage', [KingdomIngestionController::class, 'manage'])
+        ->name('alliance.kingdom-ingestion.manage');
+
     Route::get('/alliance/transfers', [TransferPlanController::class, 'index'])
         ->name('alliance.transfers.index');
     Route::get('/alliance/transfers/manage', [TransferPlanController::class, 'manage'])
@@ -112,6 +116,17 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             '/alliance/kingdom-alliances/{tracking}/diplomacy/contacts/{contact}/deactivate',
             [KingdomAllianceDiplomacyContactController::class, 'deactivate'],
         )->name('alliance.kingdom-alliances.diplomacy.contacts.deactivate');
+
+        Route::post('/alliance/kingdom-ingestion/subscriptions', [KingdomIngestionController::class, 'store'])
+            ->name('alliance.kingdom-ingestion.subscriptions.store');
+        Route::patch(
+            '/alliance/kingdom-ingestion/subscriptions/{subscription}/state',
+            [KingdomIngestionController::class, 'transition'],
+        )->name('alliance.kingdom-ingestion.subscriptions.state');
+        Route::post(
+            '/alliance/kingdom-ingestion/subscriptions/{subscription}/candidates/{candidate}/reject',
+            [KingdomIngestionController::class, 'rejectCandidate'],
+        )->name('alliance.kingdom-ingestion.candidates.reject');
 
         Route::post('/alliance/transfers', [TransferPlanController::class, 'store'])
             ->name('alliance.transfers.store');

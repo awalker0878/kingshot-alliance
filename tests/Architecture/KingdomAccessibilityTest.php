@@ -25,6 +25,7 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAllianceDiplomacy.vue',
             'KingdomAllianceDiplomacyContacts.vue',
             'KingdomAllianceIntelligence.vue',
+            'KingdomIngestionManage.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
@@ -53,6 +54,7 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAllianceDiplomacy.vue',
             'KingdomAllianceDiplomacyContacts.vue',
             'KingdomAllianceIntelligence.vue',
+            'KingdomIngestionManage.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
             'TransferCompletionManage.vue',
@@ -121,6 +123,11 @@ final class KingdomAccessibilityTest extends TestCase
         ] as $accessibilityContract) {
             self::assertStringContainsString($accessibilityContract, $intelligence);
         }
+
+        $ingestion = file_get_contents($root.'KingdomIngestionManage.vue');
+        self::assertIsString($ingestion);
+        self::assertStringContainsString('for="ingestion-adapter"', $ingestion);
+        self::assertStringContainsString('<caption class="sr-only">', $ingestion);
     }
 
     public function test_transfer_readiness_and_completion_controls_keep_programmatic_context(): void
@@ -157,6 +164,7 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAllianceDiplomacy.vue',
             'KingdomAllianceDiplomacyContacts.vue',
             'KingdomAllianceIntelligence.vue',
+            'KingdomIngestionManage.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
         ] as $page) {
