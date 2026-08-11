@@ -32,7 +32,7 @@ This matrix identifies implemented capability, primary ownership, and explicit c
 | K4 generic ingestion control plane: allowlist, subscriptions, batches, candidates, quarantine/rejection/status | K4-P1 Complete | Kingdoms | [Automated ingestion](../domains/kingdoms/automated-ingestion.md) |
 | K4 player observation promotion to existing roster relations | K4-P2 Complete | Kingdoms | [Automated ingestion](../domains/kingdoms/automated-ingestion.md) |
 | K4 game-Alliance factual observation promotion to existing active tracking | K4-P3 Complete | Kingdoms | [Automated ingestion](../domains/kingdoms/automated-ingestion.md) |
-| K4 generic scheduler/cursor/retry/circuit/replay around approved adapters | P4 runtime validated; evidence-head gate pending | Kingdoms + shared Platform queue runtime | [Automated ingestion](../domains/kingdoms/automated-ingestion.md) |
+| K4 generic scheduler/cursor/retry/circuit/replay around approved adapters | K4-P4 Complete | Kingdoms + shared Platform queue runtime | [Automated ingestion](../domains/kingdoms/automated-ingestion.md) |
 | Shared scheduled/background processing, transactional outbox, health/readiness, request/trace correlation | Implemented shared runtime | Platform + source/consumer domains | [Background processing](../operations/background-processing.md) |
 | Immutable-image deployment/staging/backup-restore/rollback controls | Implemented repository controls | Shared Operations | [Operations](../operations/README.md) |
 
@@ -43,7 +43,7 @@ This matrix identifies implemented capability, primary ownership, and explicit c
 | `KINGDOMS-001` — roster intelligence | **Accepted** | [Kingdoms product](../domains/kingdoms/product/README.md) |
 | `KINGDOMS-002` — transfer planning | **Accepted** | [Kingdoms product](../domains/kingdoms/product/README.md) |
 | `KINGDOMS-003` — Alliance intelligence/diplomacy | **Accepted** | [Kingdoms product](../domains/kingdoms/product/README.md) |
-| `KINGDOMS-004` — automated game-data ingestion | **In progress** — P0–P3 Complete; P4 runtime validated/evidence gate pending; P5+ gated | [K4 plan](../domains/kingdoms/product/kingdoms-automated-ingestion-implementation-plan.md) |
+| `KINGDOMS-004` — automated game-data ingestion | **In progress** — P0–P4 Complete; P5 Current/selected pending transition-head validation; P6 gated | [K4 plan](../domains/kingdoms/product/kingdoms-automated-ingestion-implementation-plan.md) |
 
 ## Explicit current boundaries
 
@@ -56,8 +56,8 @@ This matrix identifies implemented capability, primary ownership, and explicit c
 | K4 production adapter allowlist | **Empty** | Generic control/promotion/scheduler mechanics exist, but no real source runs in default production state. |
 | Real automated external Kingshot acquisition | **Not approved / not configured** | Generic acquisition interface exists; no approved production endpoint/credential/provider adapter is configured. |
 | K4 player/game-Alliance observation promotion | **Implemented for existing owning-Alliance relationships only** | No name/tag matching or auto roster/tracking creation/reactivation; machine K3 correction/invalidation remains unavailable. |
-| K4 scheduler/cursor/retry/replay | **Generic P4 runtime validated** | Dedicated bounded queue/scheduler exists but has no real production source until separate approval. |
-| K4 operational retention/metrics/source-revocation hardening | **Not complete** | K4-P5 owns pruning, review, alerts/capacity evidence and source-revocation procedures. |
+| K4 scheduler/cursor/retry/replay | **K4-P4 Complete** | Dedicated bounded queue/scheduler/cursor/replay exists but has no real production source until separate approval. |
+| K4 operational retention/metrics/source-revocation hardening | **Current P5 work** | P5 owns pruning, review, alerts/capacity evidence and source-revocation procedures. |
 | Cross-Alliance/shared Kingdom intelligence | **Not approved / not implemented** | Tenant intelligence remains private; `KINGDOMS-005` is separate. |
 | Transfer automation / automatic diplomacy / scoring recommendations | **Not approved / not implemented** | Human workflows remain authoritative. |
 | Real production launch | **Not yet approved** | Repository evidence does not prove deployed source authorization, ingress/egress/secrets/operators/alerts/capacity/managed dependency recovery. |
@@ -66,7 +66,9 @@ This matrix identifies implemented capability, primary ownership, and explicit c
 
 Exact K4-P4 runtime candidate `27855f79ba128b35edea7f82b2f6381fbf810363` passed Dependency Review `31545866277`, CodeQL `31545866288`, and CI `31545866249`, including Pint 523, PHPStan 371/371 zero errors, 423 tests / 9,697 assertions, frontend/build, immutable image, staging, backup/restore and scan.
 
-The evidence/status head containing [Slice D validation](../domains/kingdoms/product/kingdoms-automated-ingestion-slice-d-validation.md) must independently pass the same protected gate before K4-P5 starts.
+Repaired containing evidence head `3bf795e12a99a98c5ad71e570744743056cedd14` independently passed Dependency Review `31547224197`, CodeQL `31547224301`, and CI `31547224414`, including the complete frontend/PHP/documentation/container/staging/backup/scan chain. P4 is Complete.
+
+The transition/status head selecting K4-P5 must independently pass the same protected gate before Slice E runtime is written.
 
 ## Architecture and ownership navigation
 

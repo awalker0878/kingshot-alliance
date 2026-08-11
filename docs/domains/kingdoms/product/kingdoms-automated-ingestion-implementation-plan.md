@@ -2,7 +2,7 @@
 
 [← Kingdoms automated game-data ingestion product increment](kingdoms-automated-ingestion-increment.md)
 
-**Status:** In progress — `K4-P0`–`K4-P3` Complete; `K4-P4` runtime validated and Complete when this containing evidence head is protected-green; `K4-P5` then becomes Current  
+**Status:** In progress — `K4-P0`–`K4-P4` Complete; `K4-P5` Current / selected pending exact transition-head validation  
 **Scope ID:** `KINGDOMS-004`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Accepted `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` implementations  
@@ -26,8 +26,8 @@ Sequence controlled machine ingestion into independently validated slices while 
 | `K4-P1` | **Complete** | Allowlisted generic control plane: subscriptions, batches, candidates, quarantine/rejection, manager controls | Slice A |
 | `K4-P2` | **Complete** | Existing-roster stable-player-ID promotion through shared snapshot action | Slice B |
 | `K4-P3` | **Complete** | Existing-active-tracking stable-game-Alliance-ID factual observation promotion through K3 action | Slice C |
-| `K4-P4` | **Complete when containing evidence head is green** | Generic scheduler/cursor/retry/replay/concurrency around accepted staging/promotions | Slice D |
-| `K4-P5` | Blocked by P4 | Operations/review/retention/source-revocation hardening | Slice E |
+| `K4-P4` | **Complete** | Generic scheduler/cursor/retry/replay/concurrency around accepted staging/promotions | Slice D |
+| `K4-P5` | **Current / selected pending transition-head validation** | Operations/review/retention/source-revocation hardening | Slice E |
 | `K4-P6` | Blocked by P5 | Whole-increment acceptance | Whole increment |
 
 ## 3. `K4-P0` — Contract lock — Complete
@@ -52,23 +52,25 @@ P3 resolves pending `alliance_observation` candidates by stable game-Alliance ID
 
 Runtime candidate `8186af9fd7276a20889ca3a25b80172c6fe824d9` and containing evidence head `5335f64602269c1a5680d5d84013b0de739413bf` passed protected gates.
 
-## 7. `K4-P4` / Slice D — Scheduler, cursor, retry and replay
+## 7. `K4-P4` / Slice D — Scheduler, cursor, retry and replay — Complete
 
-P4 adds generic acquisition scheduling only after both promotion paths are accepted. It provides transactional due claims, an isolated `kingdoms-ingestion` Horizon queue, bounded adapter poll/page contracts, unique/overlap-protected jobs, opaque cursor progression, bounded retries/backoff/circuit state, retry-exhaustion batch finalization and password-confirmed quarantined-candidate replay.
+P4 added generic acquisition scheduling after both promotion paths were accepted: transactional due claims, isolated `kingdoms-ingestion` Horizon queue, bounded adapter poll/page contracts, unique/overlap-protected jobs, opaque cursor progression, bounded retries/backoff/circuit state, retry-exhaustion batch finalization and password-confirmed quarantined-candidate replay.
 
 P4 invokes the accepted staging/P2/P3 promotion contracts rather than directly writing canonical history. Source-window/candidate/promoted-record idempotency remains authoritative under at-least-once delivery.
 
 Runtime candidate `27855f79ba128b35edea7f82b2f6381fbf810363` passed DR `31545866277`, CodeQL `31545866288`, CI `31545866249`: Pint 523, PHPStan 371/371 zero errors, 423 tests / 9,697 assertions, frontend/build, migrations, immutable image, staging, backup/restore and scan.
 
-P4 becomes authoritative Complete only after the containing evidence head with [Slice D validation](kingdoms-automated-ingestion-slice-d-validation.md) and updated living contracts independently passes the same protected gate.
+The first evidence head exposed only documentation-navigation drift. Repaired containing evidence head `3bf795e12a99a98c5ad71e570744743056cedd14` then independently passed DR `31547224197`, CodeQL `31547224301`, and CI `31547224414`, including the full container/staging/recovery/scan chain.
 
 A concrete networked adapter still requires separate source approval including authorization/terms, DNS/redirect/private-address/TLS/egress controls, secret handling, schema/version policy, rate limits, cursor semantics and revocation behavior. Production adapter config remains empty.
 
 ## 8. `K4-P5` / Slice E — Operations, review and retention hardening
 
-After the P4 evidence gate, complete operational review, source-revocation procedures, operational batch/candidate retention/pruning, metrics/alerts, capacity/performance evidence and recovery/runbook hardening. Pruning must preserve promoted K1/K3 canonical history/provenance.
+P5 completes operational review, source-revocation procedures, operational batch/candidate/subscription-state retention/pruning, metrics/alerts, capacity/performance evidence and recovery/runbook hardening. Pruning must preserve promoted K1/K3 canonical history/provenance.
 
 P5 does not itself approve a concrete source. Where real-source-specific controls cannot be repository-proven with an empty allowlist, record them as source-enablement prerequisites rather than inventing production evidence.
+
+P5 implementation may begin only after the exact transition/status head that records P4 Complete / P5 Current passes Dependency Review, CodeQL and full CI.
 
 ## 9. `K4-P6` — Whole-increment acceptance
 
@@ -80,4 +82,4 @@ Repository acceptance still does not itself approve real production source/cutov
 
 On `continue`, read PR #54/current successor state and this plan. Stay in the current K4 gate until its implementation **and containing evidence/status head** are protected-green. Do not start a later slice to compensate for a current-slice defect.
 
-For this evidence head, `K4-P5` becomes authorized only if the exact head containing the P4 validation/living documentation passes Dependency Review, CodeQL and full CI. Otherwise remain in P4 and repair the evidence defect.
+For this transition, `K4-P5` becomes writable only if the exact head containing the P4 Complete / P5 Current status passes Dependency Review, CodeQL and full CI. Otherwise remain at the P4 transition and repair only the status/evidence defect.

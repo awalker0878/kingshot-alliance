@@ -2,9 +2,10 @@
 
 [← KINGDOMS-004 implementation plan](kingdoms-automated-ingestion-implementation-plan.md)
 
-**Status:** Candidate acceptance — complete only when the containing evidence head is protected-green  
+**Status:** Complete  
 **Scope:** `K4-P4` / Slice D — scheduler, cursor, retry, replay and concurrency  
-**Runtime candidate:** `27855f79ba128b35edea7f82b2f6381fbf810363`
+**Runtime candidate:** `27855f79ba128b35edea7f82b2f6381fbf810363`  
+**Accepted evidence head:** `3bf795e12a99a98c5ad71e570744743056cedd14`
 
 ## Delivered behavior
 
@@ -79,8 +80,16 @@ Final runtime candidate `27855f79ba128b35edea7f82b2f6381fbf810363` passed:
 - backup/restore demonstration — success;
 - image scan — success.
 
+The first containing evidence head `fa6bb4683b8183440acc6da271873c16d8e90dc5` correctly failed the documentation architecture gate because the rewritten Kingdoms interface/testing profiles omitted frozen DCP navigation anchors. Runtime evidence remained unchanged. The docs-only repair restored those anchors at `3bf795e12a99a98c5ad71e570744743056cedd14`.
+
+Accepted evidence head `3bf795e12a99a98c5ad71e570744743056cedd14` independently passed:
+
+- Dependency Review `31547224197` — success;
+- CodeQL `31547224301` — success;
+- CI `31547224414` — success, including frontend, PHP/documentation architecture, immutable image, staging, backup/restore and image scan.
+
 ## Gate decision
 
-`K4-P4` becomes authoritative **Complete only if the containing evidence head that includes this record and the updated living contracts independently passes Dependency Review, CodeQL and full CI**.
+`K4-P4` is **Complete**. Both the runtime candidate and the repaired containing evidence head passed the full protected gate.
 
-Until that second gate is green, `K4-P5` remains blocked. After it is green, P5 may begin operations/review/retention/source-revocation hardening. A concrete source/network/credential approval remains a separate decision even after P4 acceptance.
+`K4-P5` / Slice E is now selected, subject to the exact transition/status head that records this decision also passing Dependency Review, CodeQL and full CI. P5 may harden operations/review/retention/source-revocation, but a concrete source/network/credential approval remains a separate decision.
