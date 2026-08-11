@@ -272,7 +272,10 @@ function label(value: string): string {
                     {{ subscription.latestBatch.recordsStaged }} staged ·
                     {{ subscription.latestBatch.recordsQuarantined }} quarantined
                   </p>
-                  <p v-if="subscription.latestBatch.failureCode" class="mt-1 text-xs text-amber-300">
+                  <p
+                    v-if="subscription.latestBatch.failureCode"
+                    class="mt-1 text-xs text-amber-300"
+                  >
                     {{ label(subscription.latestBatch.failureCode) }}
                   </p>
                 </template>
