@@ -5,51 +5,49 @@
 **Document type:** DCP phase coverage inventory  
 **Status:** Current  
 **Phase:** `DCP-P7` — Maintenance automation and final acceptance  
-**Inventory state:** Frozen — 100% required content implemented; candidate evidence preparation in progress
+**Inventory state:** Candidate — 100% required content implemented; protected validation pending  
+**Content candidate SHA:** `4c3091f8ae92ee450ff3a9ee23df65ab4f193636`
 
 ## 1. Purpose
 
-This is the authoritative final DCP inventory. P7 does not create another domain-content layer; it proves P1–P6 completeness remains protected by stable change-driven maintenance rules and deterministic CI.
+This is the authoritative final DCP inventory. P7 proves P1–P6 completeness remains protected by stable change-driven maintenance rules and deterministic CI rather than creating another domain-content layer.
 
-The governing rules are in [Documentation maintenance standard](documentation-maintenance-standard.md).
+Governing rules: [Documentation maintenance standard](documentation-maintenance-standard.md). Final evidence: [DCP final exit report](documentation-completion-program-exit-report.md).
 
 ## 2. Required P7 artifacts
 
-| Artifact/work item | Required purpose | Status |
-| --- | --- | --- |
-| `documentation-maintenance-standard.md` | change-time obligations, evidence/status/navigation/archival/automation lifecycle | Complete |
-| this coverage matrix | frozen final maintenance/final-acceptance inventory | Complete |
-| `documentation-program-plan.md` | standards catalog uses actual current filenames and final P7 model | Complete |
-| `documentation-standard.md` | normal maintenance links to P7 standard | Complete |
-| `definition-of-done.md` | change-time maintenance obligations integrated into normal acceptance | Complete |
-| `docs/README.md` | maintenance governance exposed from repository docs entry point | Complete |
-| `docs/product/README.md` | P7 standard/matrix/final-exit and post-program maintenance indexed | Complete |
-| `documentation-program-status.md` | P6 final acceptance identity + current P7 state | Complete |
-| final DCP exit report | records P0–P7 completion and exact protected evidence | Candidate evidence preparation |
-| final maintenance architecture test | aggregates stable P1–P7 invariants without brittle implementation parsing | Complete |
-| complete final inventory review | prior standards/matrices/exits/current navigation present/non-conflicting | Complete |
+| Artifact/work item | Status |
+| --- | --- |
+| `documentation-maintenance-standard.md` | Complete |
+| this coverage matrix | Complete |
+| `documentation-program-plan.md` standards catalog/final phase model | Complete |
+| `documentation-standard.md` maintenance integration | Complete |
+| `definition-of-done.md` change-time maintenance integration | Complete |
+| `docs/README.md` maintenance navigation | Complete |
+| `docs/product/README.md` P7/final evidence navigation | Complete |
+| `documentation-program-status.md` P6 final identity + P7 control | Complete |
+| `documentation-completion-program-exit-report.md` | Complete; protected validation pending |
+| `tests/Architecture/DocumentationMaintenanceTest.php` | Complete |
+| complete P0–P7 inventory review | Complete |
 
 ## 3. Stable automation result
 
-The final maintenance gate plus existing P1–P6 suites protect:
+The final gate plus existing P1–P6 architecture suites protect:
 
 - exactly five top-level documentation groups;
-- canonical code-domain/docs-domain parity for all 14 domains;
-- code-local README and canonical domain contract per code domain;
-- required P1–P5 specialized domain profiles;
-- code-local README → canonical documentation linkage;
+- 14/14 code-domain/docs-domain parity;
+- code-local README + canonical domain contract per domain;
+- P1–P5 security/operations/interfaces/testing profile parity;
+- code-local canonical documentation links;
 - local Markdown link integrity;
-- no flat living Markdown under `docs/domains/` except `README.md`;
-- filename/path rules and accepted exceptions;
-- domain-specific evidence placement boundaries;
-- ADR index/status lifecycle;
+- no flat domain living Markdown except the domains index;
+- filename/path/evidence-placement rules;
+- ADR lifecycle/index integrity;
 - P6 dependency/glossary/current-audit navigation;
-- every specialized DCP standard P1–P7 indexed by its actual filename;
-- every prior DCP standard/coverage/exit artifact discoverable;
-- current maintenance standard and Definition of Done navigation agreement; and
-- final DCP status/exit separation from real-production approval.
-
-Existing P1–P6 tests remain active. `tests/Architecture/DocumentationMaintenanceTest.php` adds only cross-standard/final-program consistency.
+- all specialized P1–P7 standards indexed by canonical filename;
+- all P1–P7 standard/coverage/exit governance discoverable;
+- maintenance/Definition-of-Done navigation agreement; and
+- DCP completion separated from real-production approval.
 
 ## 4. Standards catalog result
 
@@ -63,82 +61,37 @@ Existing P1–P6 tests remain active. `tests/Architecture/DocumentationMaintenan
 | P6 | `architecture-governance-standard.md` | Yes |
 | P7 | `documentation-maintenance-standard.md` | Yes |
 
-P7 corrected the stale program-plan P5 filename `testing-evidence-documentation-standard.md` to the actual canonical `testing-evidence-standard.md` and converted the catalog to direct links.
+P7 corrected the stale P5 program-plan filename `testing-evidence-documentation-standard.md` to `testing-evidence-standard.md`.
 
-## 5. Change-time obligation result
+## 5. Change/evidence/archival result
 
-The maintenance standard covers material changes to:
+The maintenance standard now covers all material domain, security/privacy, operations, interface/integration, validation/evidence, architecture, product/status, shared runtime/security/production, and documentation-structure changes.
 
-- domain ownership/model/invariants/lifecycle/contracts;
-- security/privacy/tenancy/authentication/authorization/destructive behavior;
-- persistent/async/runtime/diagnostic/recovery/rollback/capacity behavior;
-- HTTP/UI/API/CLI/event/job/webhook/import/export/media/external integrations;
-- validation/evidence/performance/migration/accessibility acceptance;
-- durable architecture/ADR/dependency/shared terminology;
-- product capability/status/named increments;
-- shared runtime/security/production controls; and
-- documentation structure/ownership/standards.
+It preserves living-current versus historical evidence semantics, distinct DCP/ADR/product status vocabularies, Accepted versus Approved, and repository hardening versus real-production approval.
 
-Documentation work is impact-driven rather than file-count-driven.
+Stale material is classified as Current, Historical evidence, Superseded, or Obsolete duplicate. Current documents are reviewed when material changes affect them rather than through forced calendar rewrites.
 
-## 6. Evidence and status lifecycle result
+## 6. Non-brittle automation boundary
 
-Final maintenance preserves:
+Final automation does **not** parse every method/class/import, infer ownership from raw dependency counts, require prose churn for harmless refactors, compare historical evidence to current test totals, or require one document per route/controller/test/class.
 
-- living documentation updated with current accepted behavior;
-- historical acceptance/decision evidence retained at its recorded identity;
-- historical test counts/run IDs kept historical;
-- DCP status vocabulary distinct from ADR and product/release vocabulary;
-- Accepted distinct from Approved; and
-- repository hardening/acceptance distinct from real-production launch approval.
+## 7. Prior-phase preservation review
 
-## 7. Review and archival result
+The final inventory retains P1–P7 standards/coverage/exit governance, all 14 domain roots/P1–P5 profiles, ADR/current architecture, dependency map, glossary, current capability/audits, shared security/operations, and production launch approval as a distinct not-yet-approved decision.
 
-Current documentation is reviewed when a material change affects it rather than through mandatory calendar rewrites. Stale material is classified as Current, Historical evidence, Superseded, or Obsolete duplicate. Unique historical evidence is preserved; obsolete duplicate living narrative may be removed; current primary-document moves update owning indexes/links.
-
-## 8. Non-brittle automation boundary
-
-Final automation explicitly does not:
-
-- parse every implementation method/class/import;
-- infer ownership from raw dependency counts;
-- require prose churn for harmless internal refactors;
-- compare historical evidence to current test totals; or
-- require one document per route/controller/test/class.
-
-This boundary is normative and tested through the maintenance-standard contract.
-
-## 9. Prior-phase preservation review
-
-The final review confirms the repository retains the complete governance chain:
-
-- P1 domain standard/coverage/exit;
-- P2 security standard/coverage/exit;
-- P3 operations standard/coverage/exit;
-- P4 interface standard/coverage/exit;
-- P5 testing/evidence standard/coverage/exit;
-- P6 architecture/governance standard/coverage/exit;
-- P7 maintenance standard/coverage/final DCP exit path;
-- all 14 domain roots and P1–P5 living profile families;
-- ADR/current architecture, dependency map, glossary, current capability matrix, and current audits;
-- shared security/operations navigation; and
-- production launch approval as a distinct external decision that remains not yet approved.
-
-P1–P6 exact protected transition evidence remains recorded in their status/exit records rather than copied into living domain documentation.
-
-## 10. P7 exit checklist
+## 8. P7 exit checklist
 
 - [x] Maintenance standard adopted.
 - [x] Final maintenance/final-acceptance inventory frozen.
-- [x] Program plan standards catalog corrected and P7 maintenance wording reconciled.
-- [x] Repository documentation standard points to maintenance standard.
-- [x] Definition of Done points to change-time maintenance obligations.
-- [x] Repository/product navigation indexes P7 maintenance/final evidence.
-- [x] P6 final protected identity recorded in current status.
+- [x] Program plan standards catalog corrected.
+- [x] Repository documentation standard linked to maintenance.
+- [x] Definition of Done linked to change-time obligations.
+- [x] Repository/product navigation updated.
+- [x] P6 final protected identity recorded.
 - [x] Final maintenance architecture test active.
 - [x] Complete P0–P7 inventory review complete.
-- [ ] Final DCP exit report created with exact content candidate identity.
+- [x] Final DCP exit report created with content candidate `4c3091f8ae92ee450ff3a9ee23df65ab4f193636`.
 - [ ] Exact P7 candidate/evidence head protected-green.
 - [ ] Exact final DCP evidence/status head protected-green.
 
-P7 content is complete. There is no P8. After both final protected gates close, future documentation work becomes normal change-driven maintenance under the standards created by DCP.
+P7 is **Candidate**. There is no P8. After both protected gates close, future documentation work is normal change-driven maintenance.
