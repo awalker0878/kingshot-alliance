@@ -71,7 +71,7 @@ final class DocumentationMaintenanceTest extends TestCase
 
         $status = $this->read('docs/product/documentation-program-status.md');
         self::assertStringContainsString('DCP-P7', $status);
-        self::assertStringContainsString('no `DCP-P8`', strtolower($status));
+        self::assertStringContainsString('no `dcp-p8`', strtolower($status));
     }
 
     public function test_prior_dcp_phase_governance_remains_discoverable(): void
