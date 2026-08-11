@@ -134,8 +134,7 @@ final readonly class StageKingdomIngestionCandidate
         KingdomIngestionSubscription $subscription,
         KingdomIngestionBatch $batch,
         Alliance $alliance,
-    ): void
-    {
+    ): void {
         if ($subscription->state !== KingdomIngestionSubscriptionState::Active) {
             throw ValidationException::withMessages(['subscription' => 'The ingestion subscription is not active.']);
         }
@@ -209,7 +208,7 @@ final readonly class StageKingdomIngestionCandidate
     }
 
     /**
-     * @param array<string|int, mixed> $payload
+     * @param  array<string|int, mixed>  $payload
      * @return array<string, mixed>
      */
     private function canonicalPayload(KingdomIngestionTargetKind $kind, array $payload): array
@@ -221,7 +220,7 @@ final readonly class StageKingdomIngestionCandidate
     }
 
     /**
-     * @param array<string|int, mixed> $payload
+     * @param  array<string|int, mixed>  $payload
      * @return array<string, mixed>
      */
     private function playerPayload(array $payload): array
@@ -237,7 +236,7 @@ final readonly class StageKingdomIngestionCandidate
     }
 
     /**
-     * @param array<string|int, mixed> $payload
+     * @param  array<string|int, mixed>  $payload
      * @return array<string, mixed>
      */
     private function alliancePayload(array $payload): array
@@ -253,8 +252,8 @@ final readonly class StageKingdomIngestionCandidate
     }
 
     /**
-     * @param array<string|int, mixed> $payload
-     * @param list<string> $allowed
+     * @param  array<string|int, mixed>  $payload
+     * @param  list<string>  $allowed
      */
     private function assertOnlyKeys(array $payload, array $allowed): void
     {
