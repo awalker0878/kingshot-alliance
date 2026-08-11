@@ -2,24 +2,20 @@
 
 [← Product and program documentation](README.md)
 
-**Document type:** Repository architecture evidence  
-**Status:** Current migration audit — final validated SHA to be recorded after protected checks  
-**Prior runtime audited at:** `b908407b68f2567ebcd5b9e43ebf1d842844b20a`  
-**Prior audit date:** 2026-08-08
+**Document type:** Current repository architecture evidence  
+**Status:** Current  
+**P6 baseline audited from:** P5 final transition `983b662bac8873ba2eb71ccec8a6c9e5d1331923`  
+**Audit refresh:** `DCP-P6`
 
 ## Purpose
 
-This document records the repository's canonical physical structure after the completed Phase 0–6 domain-first refactor, accepted Kingdoms increments, repository-controlled production hardening, and the domain-documentation folder migration.
+This audit records current physical repository/documentation structure after the accepted Phase 0–6 domain-first refactor, Kingdoms K1–K3 increments, production hardening, and DCP P1–P5 documentation completion.
 
-It preserves the intent and evidence of the earlier `docs/domains/repository-structure-audit.md` while updating assumptions that became stale: Kingdoms now owns accepted runtime PHP and `docs/domains/` now mirrors `app/Domain/` one-for-one with domain folders rather than flat living guides.
-
-Normative sources remain the [implementation plan](implementation-plan.md), [documentation standard](documentation-standard.md), accepted ADRs, and architecture tests. This audit records conformance evidence; it does not create a second architecture definition.
+Normative owners remain the [implementation plan](implementation-plan.md), [documentation standard](documentation-standard.md), accepted [ADRs](../adr/README.md), [architecture-governance standard](architecture-governance-standard.md), and architecture tests. This file is conformance evidence, not a parallel architecture definition.
 
 ## Canonical application structure
 
-Runtime PHP is owned under `app/Domain/<CanonicalDomain>`.
-
-Canonical roots are:
+Runtime PHP is owned under `app/Domain/<CanonicalDomain>` with exactly:
 
 - `Alliances`
 - `Audit`
@@ -36,15 +32,13 @@ Canonical roots are:
 - `Rallies`
 - `Recruitment`
 
-All canonical roots are present. Unlike the 2026-08-08 pre-Kingdoms runtime audit, `Kingdoms` now owns accepted runtime PHP for `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003`.
+Former layer-first roots `app/Application`, `app/Http`, `app/Infrastructure`, `app/Models`, `app/Providers`, and catch-all `app/Domain/Shared` are not part of the accepted architecture.
 
-Former layer-first roots `app/Application`, `app/Http`, `app/Infrastructure`, `app/Models`, `app/Providers`, and catch-all `app/Domain/Shared` are not part of the accepted structure.
-
-These application ownership invariants are enforced by the Architecture test suite, including `tests/Architecture/DomainStructureTest.php` and Kingdoms-specific structure tests.
+Kingdoms is a full runtime domain through accepted `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003`; the pre-Kingdoms documentation-only state is historical only.
 
 ## Canonical documentation structure
 
-`docs/` contains exactly five approved top-level documentation groups:
+`docs/` has exactly five approved top-level groups:
 
 ```text
 docs/
@@ -55,51 +49,48 @@ docs/
   security/
 ```
 
-Each group has `README.md` navigation.
+Each group owns a distinct concern and has `README.md` navigation.
 
-`docs/domains/` now has this deterministic structure:
+`docs/domains/` mirrors code ownership one-for-one:
 
 ```text
 docs/domains/
   README.md
-  alliances/README.md
-  audit/README.md
-  authorization/README.md
-  content/README.md
-  contributions/README.md
-  events/README.md
-  identity/README.md
-  integrations/README.md
-  kingdoms/README.md
-  memberships/README.md
-  notifications/README.md
-  platform/README.md
-  rallies/README.md
-  recruitment/README.md
+  alliances/
+  audit/
+  authorization/
+  content/
+  contributions/
+  events/
+  identity/
+  integrations/
+  kingdoms/
+  memberships/
+  notifications/
+  platform/
+  rallies/
+  recruitment/
 ```
 
-Capability documents live inside the owning domain folder. For example:
+The root `docs/domains/README.md` is the only Markdown file directly under `docs/domains/`; living capability/evidence files are nested beneath their owner.
+
+Every canonical domain now has five deterministic living profile paths where applicable to P1–P5 governance:
 
 ```text
-docs/domains/kingdoms/
-  README.md
-  roster.md
-  snapshots.md
-  intelligence.md
-  csv-migration.md
-  transfer-planning.md
-  alliance-intelligence.md
+docs/domains/<domain>/README.md
+docs/domains/<domain>/security/README.md
+docs/domains/<domain>/operations/README.md
+docs/domains/<domain>/interfaces/README.md
+docs/domains/<domain>/testing/README.md
 ```
 
-There are no canonical flat living-domain contracts directly under `docs/domains/`. The root `README.md` is the only Markdown root file after migration.
+Domain-specific product/acceptance evidence may additionally live under `docs/domains/<domain>/product/`.
 
-Parallel legacy structures such as `docs/architecture/`, top-level `docs/runbooks/`, or flat phase documents at `docs/` root remain prohibited.
-
-These documentation invariants are enforced by `tests/Architecture/RepositoryStructureTest.php`.
+Parallel legacy structures such as `docs/architecture/`, top-level `docs/runbooks/`, flat domain living files, or layer-first runtime roots remain prohibited.
 
 ## Code-to-documentation parity
 
-The domain mapping is bidirectional:
+The canonical mapping is bidirectional:
 
 ```text
 app/Domain/<Domain>/
@@ -109,15 +100,14 @@ docs/domains/<domain>/README.md
 
 After lowercase/kebab normalization:
 
-- every first-level code domain must have one docs-domain folder;
-- every docs-domain folder must correspond to one code domain; and
-- every docs-domain folder must contain `README.md`.
-
-Adding a code domain without docs, or docs without code, is an architecture-test failure.
+- every code domain has one docs-domain directory;
+- every docs-domain directory maps to one code domain;
+- every docs-domain directory has its living contract; and
+- P1–P5 architecture tests protect required specialized profile parity.
 
 ## Canonical test structure
 
-Accepted test roots remain:
+Accepted test roots are exactly:
 
 ```text
 tests/
@@ -129,53 +119,61 @@ tests/
   Unit/
 ```
 
-Architecture/repository tests protect physical layout while feature, integration, performance, tenant-isolation, and unit suites validate runtime behavior.
+Architecture tests protect ownership/structure/documentation rules; other suites validate runtime behavior and evidence classes.
 
 ## Current structural assertions
 
-The repository is expected to satisfy these architecture-level conditions:
+The current repository is expected to satisfy:
 
-1. Every implementation-plan domain directory exists.
-2. Runtime PHP under `app/` is owned by a canonical domain.
-3. Layer-first legacy application directories are absent.
-4. `app/Domain/Shared` is absent.
-5. Accepted Kingdoms runtime remains under `app/Domain/Kingdoms`.
-6. Phase 6 Integrations runtime remains under `app/Domain/Integrations`.
-7. Documentation uses only the five top-level groups and every group has a navigation index.
-8. `docs/domains/*` directory names match normalized `app/Domain/*` roots exactly.
-9. Every docs-domain directory contains `README.md`.
-10. No flat living Markdown file remains directly under `docs/domains/` other than `README.md`.
-11. Capability filenames use lowercase kebab-case inside the owning domain folder.
-12. Local Markdown links resolve.
-13. Tests use only the six canonical test groups.
+1. all 14 implementation-plan/domain roots exist;
+2. runtime PHP under `app/` is domain-owned;
+3. layer-first legacy application directories are absent;
+4. `app/Domain/Shared` is absent;
+5. Kingdoms runtime remains under `app/Domain/Kingdoms`;
+6. Integrations runtime remains under `app/Domain/Integrations`;
+7. documentation uses only the five top-level groups and each has navigation;
+8. `docs/domains/*` directory names match normalized `app/Domain/*` roots exactly;
+9. each domain has its required P1–P5 living profile set;
+10. no flat living domain Markdown remains at the `docs/domains/` root;
+11. living filenames follow the repository naming rules;
+12. local Markdown links resolve;
+13. tests use only the six canonical test groups; and
+14. current architecture/governance surfaces remain under `docs/adr/` and `docs/product/`, not in a new parallel architecture tree.
 
-## Preserved 2026-08-08 audit context
+## Shared documentation ownership result
 
-The prior audit established these important facts after the original domain-first refactor:
+P6 confirms the shared roots remain correctly scoped:
 
-- runtime PHP belonged under canonical domain roots rather than layer-first `app/Application`, `app/Http`, `app/Infrastructure`, `app/Models`, or `app/Providers`;
-- `app/Domain/Shared` was prohibited;
-- documentation used the five canonical top-level groups;
-- tests used the six canonical test groups; and
-- structure was enforced by `DomainStructureTest`, `DomainBoundaryTest`, and `RepositoryStructureTest`.
+- `docs/product/` — cross-program governance/current-state navigation, architecture audits, historical phase-wide acceptance, production decisions, DCP standards/evidence;
+- `docs/security/` — shared security baseline, historical phase-wide threat evidence, production security boundary;
+- `docs/operations/` — shared runtime/deployment/observability/recovery/runbooks and historical phase-wide operating evidence;
+- `docs/adr/` — durable architecture decisions and current system architecture index.
 
-At that time Kingdoms was intentionally documentation-only and domain documentation was flat. Those two statements are historical context, not current architecture: K1–K3 subsequently implemented Kingdoms runtime, and this migration replaced flat domain guides with mirrored folders.
+No additional domain-specific relocation is required by P6. Domain-owned living detail remains beneath `docs/domains/<domain>/`.
+
+## Preserved historical context
+
+The 2026-08-08 audit established the original domain-first structure before Kingdoms runtime existed and before domain documentation moved from flat guides into mirrored folders. Those facts remain useful historical context but are not current architecture.
+
+P6 does not rewrite accepted historical evidence; it replaces migration-era **current audit status** with this current system view.
 
 ## Validation and maintenance
 
-Primary automated evidence is:
+Primary executable evidence includes:
 
 - `tests/Architecture/DomainStructureTest.php`;
 - `tests/Architecture/DomainBoundaryTest.php`;
 - `tests/Architecture/RepositoryStructureTest.php`;
-- Kingdoms-specific Architecture structure/acceptance tests; and
-- the protected CI workflow that runs the architecture suite and documentation-link checks.
+- P1–P5 documentation architecture suites;
+- Kingdoms structure/acceptance architecture tests; and
+- P6 architecture-governance validation.
 
 When physical structure changes intentionally:
 
-1. update the implementation plan/documentation standard or applicable ADR first;
-2. change architecture tests with the implementation;
-3. migrate/update all affected documentation links in the same change; and
-4. refresh this audit against the exact validated source commit.
+1. change the applicable plan/standard/ADR first;
+2. change architecture tests with implementation;
+3. migrate affected documentation/navigation in the same change;
+4. update the [cross-domain dependency map](cross-domain-dependency-map.md) if ownership direction changes; and
+5. refresh this audit against an exact protected-green revision.
 
-Do not preserve obsolete directories, duplicate documentation trees, redirect/stub compatibility files, or stale flat guides merely to keep historical paths working. Code/tests remain authoritative for implemented runtime structure.
+Do not preserve obsolete duplicate directories, redirect/stub compatibility files, or stale living guides solely to maintain historical paths.
