@@ -66,7 +66,7 @@ No recovery path permits manual tenant override or database editing to bypass me
 
 Required verification includes multi-Alliance switching, no-selection behavior, inactive/missing membership clearing, inactive Alliance denial, cross-Alliance route/query isolation, tenant propagation to queued/export/cache/storage work, request cleanup, and role/permission separation.
 
-Historical security source: [Phase 1 threat model](../../../../security/phase-1-threat-model.md). Current shared controls: [Security baseline](../../../../security/security-baseline.md).
+Historical security source: [Phase 1 threat model](../../../security/phase-1-threat-model.md). Current shared controls: [Security baseline](../../../security/security-baseline.md).
 
 ## 10. Residual risks and external controls
 
