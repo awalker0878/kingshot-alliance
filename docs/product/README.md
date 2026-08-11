@@ -14,7 +14,10 @@ Domain-specific product scopes, implementation plans, slice validations, accessi
 - [Documentation Completion Program](documentation-program-plan.md) — phased DCP-P0 through DCP-P7 roadmap for domain, security, operations, interface, evidence, architecture, and maintenance completeness.
 - [Documentation program status](documentation-program-status.md) — authoritative current DCP phase and continuation decision.
 - [Domain contract standard](domain-contract-standard.md) — DCP-P1 requirements for code-local maps, canonical domain contracts, capability splitting, code-area review, and P1 CI.
-- [Domain coverage matrix](domain-coverage-matrix.md) — frozen DCP-P1 inventory of all 14 domains and every required material capability contract.
+- [Domain coverage matrix](domain-coverage-matrix.md) — completed DCP-P1 inventory of all 14 domains and every required material capability contract.
+- [DCP-P1 exit report](domain-contract-completeness-exit-report.md) — accepted P1 scope and protected validation evidence.
+- [Security documentation standard](security-documentation-standard.md) — DCP-P2 requirements for shared security policy, domain security profiles, focused living security reviews, privacy/data-protection boundaries, and P2 CI.
+- [Security coverage matrix](security-coverage-matrix.md) — frozen DCP-P2 inventory covering all 14 domains and the required focused security-review set.
 - [Current capability matrix](current-capability-matrix.md) — present-tense implemented capabilities and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations.
 - [Repository structure audit](repository-structure-audit.md) — physical repository/documentation structure evidence.
@@ -23,7 +26,7 @@ Domain-specific product scopes, implementation plans, slice validations, accessi
 - [Production launch approval](production-launch-approval.md) — **Not yet approved** for real production cutover until required external/deployment evidence is recorded.
 - [Phase 6 launch readiness](phase-6-launch-readiness.md) — historical launch-control expectations feeding the current production-approval process.
 
-Use the [domain index](../domains/README.md) for current business/runtime ownership and domain-specific delivery evidence. In particular, all `KINGDOMS-001` through `KINGDOMS-003` product/acceptance records now live under the [Kingdoms product evidence index](../domains/kingdoms/product/README.md).
+Use the [domain index](../domains/README.md) for current business/runtime ownership and domain-specific delivery/security/operations evidence. In particular, all `KINGDOMS-001` through `KINGDOMS-003` product/acceptance records remain under the [Kingdoms product evidence index](../domains/kingdoms/product/README.md), with current security navigation under the [Kingdoms security profile](../domains/kingdoms/security/README.md).
 
 ## Documentation Completion Program
 
@@ -33,7 +36,7 @@ The DCP is sequential and hard-gated. Every phase must reach 100% required docum
 
 The normative completion definition is [Documentation completeness standard](documentation-completeness-standard.md). Specialized standards are introduced phase-by-phase instead of continuously expanding one monolithic documentation standard.
 
-Current DCP-P1 execution uses the [Domain contract standard](domain-contract-standard.md) and [Domain coverage matrix](domain-coverage-matrix.md). Later phases create their own focused standards only when that phase becomes active.
+DCP-P1 is complete under the [Domain contract standard](domain-contract-standard.md) and [Domain coverage matrix](domain-coverage-matrix.md). Current DCP-P2 execution uses the [Security documentation standard](security-documentation-standard.md) and [Security coverage matrix](security-coverage-matrix.md). Later phases create their focused standards only when that phase becomes active.
 
 ## Historical program acceptance
 
@@ -105,6 +108,6 @@ When product work changes:
 5. Keep real production approval separate from repository/product acceptance.
 6. Follow the [documentation standard](documentation-standard.md) and protected architecture/link checks.
 7. For Documentation Completion Program work, follow the [current DCP status](documentation-program-status.md) and do not advance a phase until [documentation completeness](documentation-completeness-standard.md) is satisfied.
-8. During DCP-P1, keep the [domain coverage matrix](domain-coverage-matrix.md) synchronized with actual required capability contracts and the [domain contract standard](domain-contract-standard.md).
+8. Keep the active phase's frozen coverage matrix synchronized with actual required artifacts and its focused normative standard.
 
 There is no Phase 7 in the current baseline. Accepted post-program increments are domain-owned evidence, not continuation of the historical phase numbering. `DCP-P0` through `DCP-P7` are documentation-governance phase IDs and are separate from the historical product implementation phases.
