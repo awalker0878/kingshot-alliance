@@ -70,7 +70,7 @@ Operators must not bypass failures with direct SQL deletes, hold removal, or man
 
 Tests cover Platform-admin assurance, lifecycle transition rules, active-tenant/API gating, legal-hold blocking, delete/restore deadlines, same-Alliance ownership transfer, account-deletion eligibility/anonymization, retention behavior, export tenant scope/redaction/bounds/evidence, and Audit/outbox attribution.
 
-Shared policy: [Security baseline](../../../../security/security-baseline.md). Historical source: [Phase 6 threat model](../../../../security/phase-6-threat-model.md).
+Shared policy: [Security baseline](../../../security/security-baseline.md). Historical source: [Phase 6 threat model](../../../security/phase-6-threat-model.md).
 
 ## 10. Residual risks and external controls
 
