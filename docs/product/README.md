@@ -4,7 +4,7 @@
 
 This directory owns **repository-wide product and program governance**: the completed baseline plan, current capability/status navigation, documentation/architecture governance, phase-wide historical acceptance evidence, production hardening, and real-production approval state.
 
-Domain-specific product scopes, implementation plans, slice validations, accessibility records, security reviews, operations guides, and interface contracts belong with the code-owning domain under `docs/domains/<domain>/`.
+Domain-specific product scopes, implementation plans, slice validations, accessibility records, security reviews, operations guides, interface contracts, and living testing/evidence profiles belong with the code-owning domain under `docs/domains/<domain>/`.
 
 ## Authoritative current records
 
@@ -24,7 +24,9 @@ Domain-specific product scopes, implementation plans, slice validations, accessi
 - [DCP-P3 exit report](operations-completeness-exit-report.md) — accepted P3 scope, correction history and protected validation evidence.
 - [Interface documentation standard](interface-documentation-standard.md) — DCP-P4 requirements for domain interface profiles, focused/reused contracts, APIs/webhooks/events/commands/files/versioning and P4 CI.
 - [Interface coverage matrix](interface-coverage-matrix.md) — completed DCP-P4 code-backed inventory across all 14 domains, route/bootstrap sources, commands/scheduler, outbox consumers, machine contracts and file boundaries.
-- [DCP-P4 exit report](interface-completeness-exit-report.md) — accepted P4 candidate scope and protected validation evidence; final transition remains subject to the exact-head gate recorded in the status ledger.
+- [DCP-P4 exit report](interface-completeness-exit-report.md) — accepted P4 scope and protected candidate/final-head evidence.
+- [Testing and evidence standard](testing-evidence-standard.md) — DCP-P5 requirements for domain validation maps, executable suite/evidence classes, immutable acceptance identity, retention/supersession and historical evidence hardening.
+- [Testing and evidence coverage matrix](testing-evidence-coverage-matrix.md) — frozen DCP-P5 inventory of 14 domain validation maps, six PHPUnit suites, protected workflow classes, historical Phase 0–6/Kingdoms evidence and traceability gaps/hardening.
 - [Current capability matrix](current-capability-matrix.md) — present-tense implemented capabilities and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations.
 - [Repository structure audit](repository-structure-audit.md) — physical repository/documentation structure evidence.
@@ -33,7 +35,7 @@ Domain-specific product scopes, implementation plans, slice validations, accessi
 - [Production launch approval](production-launch-approval.md) — **Not yet approved** for real production cutover until required external/deployment evidence is recorded.
 - [Phase 6 launch readiness](phase-6-launch-readiness.md) — historical launch-control expectations feeding the current production-approval process.
 
-Use the [domain index](../domains/README.md) for current business/runtime ownership and domain-specific product/security/operations/interface material. Shared runtime/runbook authority is indexed under [operations documentation](../operations/README.md).
+Use the [domain index](../domains/README.md) for current business/runtime ownership and domain-specific product/security/operations/interface/testing material. Shared runtime/runbook authority is indexed under [operations documentation](../operations/README.md).
 
 ## Documentation Completion Program
 
@@ -46,10 +48,10 @@ The normative completion definition is [Documentation completeness standard](doc
 - DCP-P1 is complete under the [Domain contract standard](domain-contract-standard.md), [Domain coverage matrix](domain-coverage-matrix.md), and [P1 exit report](domain-contract-completeness-exit-report.md).
 - DCP-P2 is complete under the [Security documentation standard](security-documentation-standard.md), [Security coverage matrix](security-coverage-matrix.md), and [P2 exit report](security-completeness-exit-report.md).
 - DCP-P3 is complete under the [Operations documentation standard](operations-documentation-standard.md), [Operations coverage matrix](operations-coverage-matrix.md), and [P3 exit report](operations-completeness-exit-report.md).
-- DCP-P4 content and candidate validation are complete under the [Interface documentation standard](interface-documentation-standard.md), [Interface coverage matrix](interface-coverage-matrix.md), and [P4 exit report](interface-completeness-exit-report.md).
-- DCP-P5 is the selected next phase **only after the exact P4 final evidence/status head passes protected validation**, as governed by the [program status ledger](documentation-program-status.md).
+- DCP-P4 is complete under the [Interface documentation standard](interface-documentation-standard.md), [Interface coverage matrix](interface-coverage-matrix.md), and [P4 exit report](interface-completeness-exit-report.md). Final P4 evidence/status head `286847006544d1af2e4dbf2f0211c5f28ad2cb33` passed protected Dependency Review `31513724817`, CodeQL `31513724836`, and CI `31513724840`.
+- DCP-P5 is **current** under the [Testing and evidence standard](testing-evidence-standard.md), frozen [Testing and evidence coverage matrix](testing-evidence-coverage-matrix.md), and [program status ledger](documentation-program-status.md).
 
-Do not begin P5 implementation on an unvalidated P4 final head.
+P6 remains blocked until P5 reaches complete coverage and passes both exact-head protected gates.
 
 ## Historical program acceptance
 
@@ -60,8 +62,8 @@ The baseline implementation plan ends at Phase 6. Phase-wide accepted delivery e
 - [Phase 2 exit report](phase-2-exit-report.md)
 - [Phase 3 exit report](phase-3-exit-report.md)
 - [Phase 4 exit report](phase-4-exit-report.md)
-- [Phase 5 exit report](phase-5-exit-report.md)
-- [Phase 6 exit report](phase-6-exit-report.md)
+- [Phase 5 exit report](phase-5-exit-report.md) — P5-hardened with recovered exact final-head/protected-run identity.
+- [Phase 6 exit report](phase-6-exit-report.md) — P5-hardened with recovered implementation/final-head protected-run identity.
 
 Supporting phase-wide program evidence includes:
 
@@ -74,11 +76,11 @@ Supporting phase-wide program evidence includes:
 - [Phase 5 accessibility](phase-5-accessibility.md)
 - [Phase 6 accessibility](phase-6-accessibility.md)
 
-These are historical acceptance/program records. Navigation/path maintenance is appropriate; do not rewrite them into current feature documentation.
+These are historical acceptance/program records. Navigation/path/factual traceability maintenance is appropriate; do not rewrite them into current feature documentation or silently update historical test counts.
 
 ## Domain-specific product evidence
 
-A product record moves under its owning domain when its scope, implementation sequence, validation, accessibility, security/operations/interface references, or acceptance evidence is primarily about that domain's code/business contract.
+A product record moves under its owning domain when its scope, implementation sequence, validation, accessibility, security/operations/interface/testing references, or acceptance evidence is primarily about that domain's code/business contract.
 
 Canonical pattern:
 
@@ -115,12 +117,13 @@ The DCP uses its own documentation-work states (`Not started`, `In progress`, `B
 When product work changes:
 
 1. Keep cross-program baseline/governance/status records here.
-2. Put domain-specific scope, implementation, validation, security/operations/interface references, accessibility, and acceptance evidence under the owning domain.
+2. Put domain-specific scope, implementation, validation, security/operations/interface/testing references, accessibility, and acceptance evidence under the owning domain.
 3. Update the [current capability matrix](current-capability-matrix.md) with present-tense status and links to the owning domain.
 4. Preserve historical phase-wide evidence rather than extending it as current feature documentation.
 5. Keep real production approval separate from repository/product acceptance.
 6. Follow the [documentation standard](documentation-standard.md) and protected architecture/link checks.
 7. For Documentation Completion Program work, follow the [current DCP status](documentation-program-status.md) and do not advance a phase until [documentation completeness](documentation-completeness-standard.md) is satisfied.
 8. Keep the active phase's frozen coverage matrix synchronized with actual required artifacts and its focused normative standard.
+9. Keep current living validation maps separate from immutable historical acceptance evidence; historical SHA/run/test counts do not become current values merely because the repository evolves.
 
 There is no Phase 7 in the current baseline. Accepted post-program increments are domain-owned evidence, not continuation of the historical phase numbering. `DCP-P0` through `DCP-P7` are documentation-governance phase IDs and are separate from the historical product implementation phases.
