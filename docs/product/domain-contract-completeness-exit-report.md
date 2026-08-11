@@ -4,14 +4,15 @@
 
 **Document type:** DCP phase exit report  
 **Phase:** `DCP-P1` — Domain contract and code-ownership completeness  
-**Status:** Candidate — protected validation pending  
-**Content candidate SHA:** `d94e1fd5740d0ddfd90bab9cc99c3670d7c03bfb`
+**Status:** Complete  
+**Content candidate SHA:** `d94e1fd5740d0ddfd90bab9cc99c3670d7c03bfb`  
+**Validated candidate SHA:** `be4a87734b44fa09643b6e8e5066283b5ed4fece`
 
 ## 1. Outcome
 
-The DCP-P1 content inventory is fully implemented and is ready for protected validation.
+DCP-P1 is complete. The frozen domain/code-ownership documentation inventory reached 100% required coverage and passed the repository's protected validation on the recorded candidate head.
 
-P1 does not advance to DCP-P2 until the exact candidate/evidence head passes the repository's protected checks and the authoritative status ledger records the gate complete.
+The Documentation Completion Program may therefore advance to `DCP-P2 — Security, privacy, and data-protection completeness`.
 
 ## 2. Standard adopted
 
@@ -30,7 +31,7 @@ DCP-P1 introduced [Domain contract documentation standard](domain-contract-stand
 
 The [Domain documentation coverage matrix](domain-coverage-matrix.md) covers all 14 canonical domains.
 
-Coverage implemented:
+Final coverage:
 
 - **14/14** code-local `app/Domain/<Domain>/README.md` maps;
 - **14/14** canonical `docs/domains/<domain>/README.md` contracts; and
@@ -65,7 +66,7 @@ This removes the prior contradiction where several large roots stated that no se
 
 ## 6. Developer navigation correction
 
-`app/Domain/Kingdoms/README.md` was corrected to point Kingdoms-specific product, security, and operations evidence to:
+`app/Domain/Kingdoms/README.md` now points Kingdoms-specific product, security, and operations evidence to:
 
 - `docs/domains/kingdoms/product/`;
 - `docs/domains/kingdoms/security/`; and
@@ -75,20 +76,20 @@ It no longer implies that domain-specific evidence remains in the top-level shar
 
 ## 7. CI enforcement
 
-`tests/Architecture/RepositoryStructureTest.php` now additionally verifies:
+`tests/Architecture/RepositoryStructureTest.php` now verifies:
 
 - every code domain has a code-local README with the standard heading order;
 - every code-local README links its matching canonical domain root;
 - every canonical domain README has required metadata and all 18 standard sections in order;
 - every direct living capability document has required metadata and the 12-section semantic structure;
 - all 19 frozen P1 capability contracts exist; and
-- the existing repository documentation parity, naming, ownership, and Markdown-link gates remain active.
+- existing repository documentation parity, naming, ownership, and Markdown-link gates remain active.
 
-The CI deliberately validates semantic numbered capability structure rather than forcing cosmetic punctuation changes in existing accepted Kingdoms living contracts.
+The CI validates semantic numbered capability structure rather than forcing cosmetic punctuation changes in existing accepted Kingdoms living contracts.
 
 ## 8. Ownership and contract completeness
 
-P1 contracts now explicitly cover, where applicable:
+P1 contracts explicitly cover, where applicable:
 
 - domain ownership and non-ownership;
 - entity/state vocabulary;
@@ -103,7 +104,27 @@ P1 contracts now explicitly cover, where applicable:
 - explicit non-capabilities; and
 - links to deeper capability/security/operations/evidence records.
 
-## 9. Deferred work is phase-owned, not a P1 gap
+## 9. Protected validation evidence
+
+Candidate head `be4a87734b44fa09643b6e8e5066283b5ed4fece` passed:
+
+- Dependency Review `31500031422` — success;
+- CodeQL `31500031623` — success; and
+- CI `31500031488` — success.
+
+The successful CI included:
+
+- frontend quality/build;
+- PostgreSQL migrations;
+- Pint — **483 files**;
+- PHPStan/Larastan — **345/345, 0 errors**;
+- ParaTest/PHPUnit — **365 tests / 6,136 assertions**;
+- immutable production-image build;
+- ephemeral staging deployment;
+- backup/restore demonstration; and
+- image vulnerability scan.
+
+## 10. Deferred work is phase-owned, not a P1 gap
 
 P1 establishes security, operations, interface, and testing boundaries at contract depth. Deeper normalization remains intentionally sequenced into:
 
@@ -114,16 +135,10 @@ P1 establishes security, operations, interface, and testing boundaries at contra
 - `DCP-P6` — architecture/program-governance consolidation; and
 - `DCP-P7` — maintenance automation/final acceptance.
 
-Those later phases cannot be used to reopen or excuse P1 ownership/lifecycle/invariant/persistence/tenancy/failure gaps.
+Those later phases may deepen the documentation but do not represent unfinished P1 ownership/lifecycle/invariant/persistence/tenancy/failure scope.
 
-## 10. Validation gate
+## 11. Exit decision
 
-Before this report becomes Complete:
+All DCP-P1 required content and candidate validation criteria are satisfied. The program status ledger advances to DCP-P2.
 
-- protected Dependency Review must pass;
-- protected CodeQL must pass;
-- the main CI workflow must pass, including the P1 architecture/link tests;
-- the exact validated head/check identifiers must be recorded in the PR/status evidence; and
-- the DCP status ledger must mark P1 Complete and select P2 as the current phase.
-
-Until then, the correct `continue` decision remains **finish DCP-P1**.
+Because this accepted exit/status evidence itself changes the branch head, the final evidence head must also pass protected repository validation before the P1 closure is treated as immutable repository evidence.
