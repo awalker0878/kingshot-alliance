@@ -4,20 +4,23 @@
 
 This directory owns **repository-wide product and program governance**: the completed baseline plan, current capability/status navigation, documentation/architecture governance, phase-wide historical acceptance evidence, production hardening, and real-production approval state.
 
-Domain-specific product scopes, implementation plans, slice validations, accessibility records, and increment exit evidence belong with the code-owning domain under `docs/domains/<domain>/`.
+Domain-specific product scopes, implementation plans, slice validations, accessibility records, security reviews and operations guides belong with the code-owning domain under `docs/domains/<domain>/`.
 
 ## Authoritative current records
 
 - [Implementation plan](implementation-plan.md) — approved Phase 0–6 baseline, canonical repository structure, delivery governance, and program definition of done.
 - [Documentation standard](documentation-standard.md) — normative repository documentation ownership, structure, naming, standard formats, and CI contract.
 - [Documentation completeness standard](documentation-completeness-standard.md) — normative definition of document, coverage, and phase completion plus the hard `continue` gate.
-- [Documentation Completion Program](documentation-program-plan.md) — phased DCP-P0 through DCP-P7 roadmap for domain, security, operations, interface, evidence, architecture, and maintenance completeness.
+- [Documentation Completion Program](documentation-program-plan.md) — phased DCP-P0 through DCP-P7 roadmap.
 - [Documentation program status](documentation-program-status.md) — authoritative current DCP phase and continuation decision.
-- [Domain contract standard](domain-contract-standard.md) — DCP-P1 requirements for code-local maps, canonical domain contracts, capability splitting, code-area review, and P1 CI.
-- [Domain coverage matrix](domain-coverage-matrix.md) — completed DCP-P1 inventory of all 14 domains and every required material capability contract.
+- [Domain contract standard](domain-contract-standard.md) — DCP-P1 requirements for code-local maps, canonical domain contracts, capability splitting and P1 CI.
+- [Domain coverage matrix](domain-coverage-matrix.md) — completed DCP-P1 inventory of all 14 domains and required material capability contracts.
 - [DCP-P1 exit report](domain-contract-completeness-exit-report.md) — accepted P1 scope and protected validation evidence.
-- [Security documentation standard](security-documentation-standard.md) — DCP-P2 requirements for shared security policy, domain security profiles, focused living security reviews, privacy/data-protection boundaries, and P2 CI.
-- [Security coverage matrix](security-coverage-matrix.md) — frozen DCP-P2 inventory covering all 14 domains and the required focused security-review set.
+- [Security documentation standard](security-documentation-standard.md) — DCP-P2 requirements for shared security policy, domain security profiles, focused reviews and P2 CI.
+- [Security coverage matrix](security-coverage-matrix.md) — completed DCP-P2 inventory covering all 14 domains and required focused reviews.
+- [DCP-P2 exit report](security-completeness-exit-report.md) — accepted P2 scope, defect/correction history and protected validation evidence.
+- [Operations documentation standard](operations-documentation-standard.md) — DCP-P3 requirements for domain operations profiles, focused runbooks, recovery/replay/rollback, diagnostics, capacity and P3 CI.
+- [Operations coverage matrix](operations-coverage-matrix.md) — frozen DCP-P3 inventory of all 14 domain operations profiles plus the required focused runbook set.
 - [Current capability matrix](current-capability-matrix.md) — present-tense implemented capabilities and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations.
 - [Repository structure audit](repository-structure-audit.md) — physical repository/documentation structure evidence.
@@ -26,7 +29,7 @@ Domain-specific product scopes, implementation plans, slice validations, accessi
 - [Production launch approval](production-launch-approval.md) — **Not yet approved** for real production cutover until required external/deployment evidence is recorded.
 - [Phase 6 launch readiness](phase-6-launch-readiness.md) — historical launch-control expectations feeding the current production-approval process.
 
-Use the [domain index](../domains/README.md) for current business/runtime ownership and domain-specific delivery/security/operations evidence. In particular, all `KINGDOMS-001` through `KINGDOMS-003` product/acceptance records remain under the [Kingdoms product evidence index](../domains/kingdoms/product/README.md), with current security navigation under the [Kingdoms security profile](../domains/kingdoms/security/README.md).
+Use the [domain index](../domains/README.md) for current business/runtime ownership and domain-specific product/security/operations material. Shared runtime/runbook authority is indexed under [operations documentation](../operations/README.md).
 
 ## Documentation Completion Program
 
@@ -36,7 +39,11 @@ The DCP is sequential and hard-gated. Every phase must reach 100% required docum
 
 The normative completion definition is [Documentation completeness standard](documentation-completeness-standard.md). Specialized standards are introduced phase-by-phase instead of continuously expanding one monolithic documentation standard.
 
-DCP-P1 is complete under the [Domain contract standard](domain-contract-standard.md) and [Domain coverage matrix](domain-coverage-matrix.md). Current DCP-P2 execution uses the [Security documentation standard](security-documentation-standard.md) and [Security coverage matrix](security-coverage-matrix.md). Later phases create their focused standards only when that phase becomes active.
+- DCP-P1 is complete under the [Domain contract standard](domain-contract-standard.md) and [Domain coverage matrix](domain-coverage-matrix.md).
+- DCP-P2 is complete under the [Security documentation standard](security-documentation-standard.md), [Security coverage matrix](security-coverage-matrix.md), and [P2 exit report](security-completeness-exit-report.md).
+- DCP-P3 is current under the [Operations documentation standard](operations-documentation-standard.md) and frozen [Operations coverage matrix](operations-coverage-matrix.md).
+
+Later phases create their focused standards only when that phase becomes active.
 
 ## Historical program acceptance
 
@@ -65,7 +72,7 @@ These are historical acceptance/program records. Navigation/path maintenance is 
 
 ## Domain-specific product evidence
 
-A product record moves under its owning domain when its scope, implementation sequence, validation, accessibility, or acceptance evidence is primarily about that domain's code/business contract.
+A product record moves under its owning domain when its scope, implementation sequence, validation, accessibility, acceptance, security or operations evidence is primarily about that domain's code/business contract.
 
 Canonical pattern:
 
