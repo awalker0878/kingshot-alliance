@@ -6,7 +6,8 @@
 **Status:** Current  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 manager ingestion control plane, and internal-only `kingdoms.*` event contracts
+**Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 manager ingestion control plane, and internal-only `kingdoms.*` event contracts  
+**P4 inventory decision:** Accepted Kingdoms capability set reused; K4-P1 extends the living profile without creating a separate frozen-P4 focused contract
 
 ## 1. Boundary purpose and ownership
 
@@ -92,6 +93,9 @@ Kingdoms currently does not provide public API/webhook ingestion; arbitrary mana
 - [K4 Slice A security review](../security/kingdoms-automated-ingestion-foundation-security-review.md)
 - [K4 operations](../operations/kingdoms-automated-ingestion.md)
 - [Kingdoms domain](../README.md)
+- [Kingdoms security](../security/README.md)
+- [Kingdoms operations](../operations/README.md)
 - [Integrations interfaces](../../integrations/interfaces/README.md)
 - [Integrations webhooks](../../integrations/webhooks.md)
 - [Interface documentation standard](../../../product/interface-documentation-standard.md)
+- [P4 interface coverage matrix](../../../product/interface-coverage-matrix.md)

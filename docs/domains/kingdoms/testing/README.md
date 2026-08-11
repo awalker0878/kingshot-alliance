@@ -6,7 +6,8 @@
 **Status:** Current  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary validation boundary:** Neutral identity, tenant-owned Kingdoms workflows, K4 ingestion-control isolation/idempotency, realistic-volume query bounds, and explicit public/automation non-capabilities
+**Primary validation boundary:** Neutral identity, tenant-owned Kingdoms workflows, K4 ingestion-control isolation/idempotency, realistic-volume query bounds, and explicit public/automation non-capabilities  
+**P5 evidence decision:** Living suite map retains the frozen DCP-P5 evidence contract while adding governed K4 slice evidence
 
 ## 1. Critical claims and validation ownership
 
@@ -62,7 +63,7 @@ K4-P1 adds no production source throughput/capacity benchmark. P4/P5 must add re
 
 The Kingdom accessibility architecture suite now includes `KingdomIngestionManage.vue`, requiring main landmark/primary heading/native controls/labels/table overflow semantics. `npm run check` on the validated candidate passed ESLint, Prettier, Vue/TypeScript and production build.
 
-## 10. Historical and current evidence
+## 10. Historical accepted evidence
 
 Whole accepted increments:
 
@@ -82,4 +83,16 @@ Temporary diagnostic PR #55 was closed without merge; standard composer/npm chec
 
 Current K4 validation does not prove a real source/network, source credentials, scheduler/worker/cursor/retry loop, candidate promotion, production rate/capacity/retention, or production cutover. Those are explicit later gates, not silently missing test coverage.
 
-Related: [Automated ingestion](../automated-ingestion.md), [Slice A validation](../product/kingdoms-automated-ingestion-slice-a-validation.md), [Security review](../security/kingdoms-automated-ingestion-foundation-security-review.md), [Operations](../operations/kingdoms-automated-ingestion.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md).
+Related documentation:
+
+- [Kingdoms domain](../README.md)
+- [Kingdoms security](../security/README.md)
+- [Kingdoms operations](../operations/README.md)
+- [Kingdoms interfaces](../interfaces/README.md)
+- [Kingdoms product evidence](../product/README.md)
+- [Automated ingestion](../automated-ingestion.md)
+- [K4 Slice A validation](../product/kingdoms-automated-ingestion-slice-a-validation.md)
+- [K4 Slice A security review](../security/kingdoms-automated-ingestion-foundation-security-review.md)
+- [K4 automated-ingestion operations](../operations/kingdoms-automated-ingestion.md)
+- [Testing/evidence standard](../../../product/testing-evidence-standard.md)
+- [P5 evidence matrix](../../../product/testing-evidence-coverage-matrix.md)
