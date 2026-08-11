@@ -23,8 +23,8 @@ Domain-specific product scopes, implementation plans, slice validations, accessi
 - [Operations coverage matrix](operations-coverage-matrix.md) — completed DCP-P3 inventory of all 14 domain operations profiles plus required focused runbooks.
 - [DCP-P3 exit report](operations-completeness-exit-report.md) — accepted P3 scope, correction history and protected validation evidence.
 - [Interface documentation standard](interface-documentation-standard.md) — DCP-P4 requirements for domain interface profiles, focused/reused contracts, APIs/webhooks/events/commands/files/versioning and P4 CI.
-- [Interface coverage matrix](interface-coverage-matrix.md) — frozen DCP-P4 code-backed inventory across all 14 domains, route/bootstrap sources, commands/scheduler, outbox consumers, machine contracts and file boundaries.
-- [DCP-P4 exit report](interface-completeness-exit-report.md) — P4 candidate scope and protected-validation evidence record.
+- [Interface coverage matrix](interface-coverage-matrix.md) — completed DCP-P4 code-backed inventory across all 14 domains, route/bootstrap sources, commands/scheduler, outbox consumers, machine contracts and file boundaries.
+- [DCP-P4 exit report](interface-completeness-exit-report.md) — accepted P4 candidate scope and protected validation evidence; final transition remains subject to the exact-head gate recorded in the status ledger.
 - [Current capability matrix](current-capability-matrix.md) — present-tense implemented capabilities and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations.
 - [Repository structure audit](repository-structure-audit.md) — physical repository/documentation structure evidence.
@@ -46,9 +46,10 @@ The normative completion definition is [Documentation completeness standard](doc
 - DCP-P1 is complete under the [Domain contract standard](domain-contract-standard.md), [Domain coverage matrix](domain-coverage-matrix.md), and [P1 exit report](domain-contract-completeness-exit-report.md).
 - DCP-P2 is complete under the [Security documentation standard](security-documentation-standard.md), [Security coverage matrix](security-coverage-matrix.md), and [P2 exit report](security-completeness-exit-report.md).
 - DCP-P3 is complete under the [Operations documentation standard](operations-documentation-standard.md), [Operations coverage matrix](operations-coverage-matrix.md), and [P3 exit report](operations-completeness-exit-report.md).
-- DCP-P4 is current under the [Interface documentation standard](interface-documentation-standard.md), frozen [Interface coverage matrix](interface-coverage-matrix.md), [P4 exit report](interface-completeness-exit-report.md), and [program status ledger](documentation-program-status.md).
+- DCP-P4 content and candidate validation are complete under the [Interface documentation standard](interface-documentation-standard.md), [Interface coverage matrix](interface-coverage-matrix.md), and [P4 exit report](interface-completeness-exit-report.md).
+- DCP-P5 is the selected next phase **only after the exact P4 final evidence/status head passes protected validation**, as governed by the [program status ledger](documentation-program-status.md).
 
-P5 remains blocked until P4 reaches complete inventory coverage and passes both exact-head protected gates.
+Do not begin P5 implementation on an unvalidated P4 final head.
 
 ## Historical program acceptance
 
