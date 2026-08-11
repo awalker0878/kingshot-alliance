@@ -8,13 +8,13 @@
 
 ## Current control state
 
-**Current phase:** `DCP-P2` — Security, privacy, and data-protection completeness  
-**Gate status:** Candidate — 100% required content implemented; protected validation pending  
+**Current phase:** `DCP-P3` — Operations, reliability, and recovery completeness  
+**Gate status:** Not started — blocked only until this final evidence/status head passes protected validation  
 **Control decision on next `continue`:** Finish current phase
 
-DCP-P1 remains Complete with its accepted domain-contract evidence. DCP-P2 has implemented its frozen content inventory: 14/14 living domain security profiles, 9/9 new focused living capability security reviews, and the existing Kingdoms K1–K3 review set retained/indexed by the normalized Kingdoms security profile.
+DCP-P2 has completed its frozen security/privacy/data-protection inventory and passed protected validation on corrected evidence head `eea41be6bf45820a7f3ab06f57cc24703e7d2b8e`. This ledger advances to P3 in the final evidence/status chain.
 
-P2 remains active until protected validation passes on the exact corrected candidate/evidence head and the final exit/status evidence head also passes. No P3 work may begin before that hard gate closes.
+Under the hard gate, P2 closure and P3 authority become final only after this resulting branch head also passes protected Dependency Review, CodeQL, and the complete CI workflow. Until then, no P3 implementation work begins.
 
 ## Phase ledger
 
@@ -22,8 +22,8 @@ P2 remains active until protected validation passes on the exact corrected candi
 | --- | --- | --- | --- |
 | `DCP-P0` | Governance and continuation controls | Complete | Program plan, completeness standard, status ledger and navigation established. |
 | `DCP-P1` | Domain contract and code-ownership completeness | Complete | 14 domain maps, 14 canonical contracts, 19 material capability contracts, P1 CI enforcement, and protected validation complete. See [P1 exit report](domain-contract-completeness-exit-report.md). |
-| `DCP-P2` | Security, privacy, and data-protection completeness | Candidate | **Current phase.** 100% frozen content inventory implemented; corrected protected validation/final exit recording remain. See [P2 exit report](security-completeness-exit-report.md). |
-| `DCP-P3` | Operations, reliability, and recovery completeness | Not started | Blocked by `DCP-P2`. |
+| `DCP-P2` | Security, privacy, and data-protection completeness | Complete | 14 domain security profiles, 9 new focused living security reviews, normalized Kingdoms security evidence, P2 CI enforcement, and corrected protected validation complete. See [P2 exit report](security-completeness-exit-report.md). |
+| `DCP-P3` | Operations, reliability, and recovery completeness | Not started | **Current phase after final-head validation.** Establish operations standard/inventory and remain in P3 until its full gate closes. |
 | `DCP-P4` | Interfaces, events, and integrations completeness | Not started | Blocked by `DCP-P3`. |
 | `DCP-P5` | Testing, evidence, and traceability completeness | Not started | Blocked by `DCP-P4`. |
 | `DCP-P6` | Architecture and program-governance consolidation | Not started | Blocked by `DCP-P5`. |
@@ -46,10 +46,10 @@ Protected P1 candidate runs:
 
 Final accepted P1 evidence/status head: `60357543256478aa8ef8c26f67e27631df8c5ba4`, also protected-green.
 
-## DCP-P2 candidate evidence
+## DCP-P2 accepted evidence
 
 - [Security documentation standard](security-documentation-standard.md)
-- [Frozen security coverage matrix](security-coverage-matrix.md)
+- [Completed security coverage matrix](security-coverage-matrix.md)
 - [DCP-P2 exit report](security-completeness-exit-report.md)
 - 14 living `docs/domains/<domain>/security/README.md` profiles
 - 9 required new focused living security reviews
@@ -58,11 +58,30 @@ Final accepted P1 evidence/status head: `60357543256478aa8ef8c26f67e27631df8c5ba
 
 Corrected P2 content candidate: `645c943e59439840d3563452d97612eb17d63b10`.
 
-The initial P2 evidence head `50beb0f49b77b5321722cfa337b6334f47a8e126` passed Dependency Review and CodeQL but CI run `31503644300` failed only the repository local Markdown-link gate because the nine focused reviews pointed at the shared security directory one level too high. Pint, PHPStan, frontend, and migrations were green. Those evidence links were corrected without changing security semantics; protected validation is now required on the corrected evidence chain.
+The initial P2 evidence head `50beb0f49b77b5321722cfa337b6334f47a8e126` passed Dependency Review and CodeQL but CI run `31503644300` failed only the local Markdown-link gate because the new focused reviews pointed one level too high at shared security evidence. The links were corrected without changing security semantics.
+
+Corrected validated P2 evidence head: `eea41be6bf45820a7f3ab06f57cc24703e7d2b8e`.
+
+Protected P2 validation:
+
+- Dependency Review `31504587302` — success.
+- CodeQL `31504587346` — success.
+- CI `31504587198` — success, including:
+  - frontend quality/build;
+  - PostgreSQL migrations;
+  - Pint 483 files;
+  - PHPStan/Larastan 345/345, 0 errors;
+  - ParaTest/PHPUnit 369 tests / 6,908 assertions;
+  - immutable production-image build;
+  - ephemeral staging deployment;
+  - backup/restore demonstration; and
+  - image vulnerability scan.
+
+The final evidence/status branch head containing this ledger advancement must also pass protected validation before the P2→P3 transition is considered authoritative.
 
 ## DCP-P2 coverage summary
 
-The frozen P2 inventory covers all 14 canonical domains. Focused living reviews are required for:
+The completed P2 inventory covers all 14 canonical domains. Focused living reviews cover:
 
 - Alliances tenant context;
 - Content private media;
@@ -77,6 +96,19 @@ The frozen P2 inventory covers all 14 canonical domains. Focused living reviews 
 Audit, Authorization, Contributions, Events, Notifications, and Rallies were explicitly reviewed as profile-only domains. Kingdoms retains its accepted domain-owned security review set instead of receiving cosmetic duplicate reviews.
 
 Shared `docs/security/security-baseline.md` remains the cross-domain current baseline. Domain profiles explain local application and distinguish repository-proven controls from production/runtime evidence the repository cannot establish.
+
+## DCP-P3 entry conditions
+
+After the final P2 evidence/status head is protected-green, the next `continue` must begin `DCP-P3` by:
+
+1. adopting a focused operations-documentation standard;
+2. freezing a repository-wide operations/reliability/recovery inventory grounded in code, scheduler/queue/container/database/storage behavior, existing runbooks and recovery evidence;
+3. determining which domains require dedicated living operational profiles or focused runbooks;
+4. normalizing shared versus domain-owned operational documentation;
+5. adding deterministic high-signal P3 CI enforcement; and
+6. remaining in P3 until 100% of that frozen inventory plus protected candidate/final-head validation is complete.
+
+P4 remains blocked throughout P3.
 
 ## `continue` procedure
 
