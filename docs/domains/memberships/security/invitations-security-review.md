@@ -70,7 +70,7 @@ Operators diagnose using safe invitation ID/status/expiry/email-normalization/me
 
 Tests cover protected verifier persistence, issue/expiry/revoke/resend/acceptance, same-email serialization, active-member duplicate rejection, email normalization/mismatch, capacity/lifecycle checks, transactional membership activation/reactivation, role restoration, and Recruitment handoff.
 
-Shared policy: [Security baseline](../../../../security/security-baseline.md). Historical source: [Phase 1 threat model](../../../../security/phase-1-threat-model.md).
+Shared policy: [Security baseline](../../../security/security-baseline.md). Historical source: [Phase 1 threat model](../../../security/phase-1-threat-model.md).
 
 ## 10. Residual risks and external controls
 
