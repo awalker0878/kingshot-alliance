@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Services;
 
+use App\Domain\Kingdoms\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Domain\Kingdoms\Contracts\KingdomIngestionAdapter;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
 use Illuminate\Contracts\Container\Container;
@@ -12,9 +13,22 @@ use LogicException;
 
 final readonly class KingdomIngestionAdapterRegistry
 {
+    public const MIN_POLL_INTERVAL_SECONDS = 60;
+
+    public const MAX_POLL_INTERVAL_SECONDS = 86400;
+
     public function __construct(private Container $container) {}
 
-    /** @return list<array{key: string, version: string, label: string, targetKinds: list<string>}> */
+    /**
+     * @return list<array{
+     *   key: string,
+     *   version: string,
+     *   label: string,
+     *   targetKinds: list<string>,
+     *   acquisitionEnabled: bool,
+     *   pollIntervalSeconds: int|null
+     * }>
+     */
     public function definitions(): array
     {
         $definitions = [];
@@ -28,13 +42,17 @@ final readonly class KingdomIngestionAdapterRegistry
                     static fn (KingdomIngestionTargetKind $kind): string => $kind->value,
                     $adapter->supportedTargetKinds(),
                 ),
+                'acquisitionEnabled' => $adapter instanceof KingdomIngestionAcquisitionAdapter,
+                'pollIntervalSeconds' => $adapter instanceof KingdomIngestionAcquisitionAdapter
+                    ? $adapter->pollIntervalSeconds()
+                    : null,
             ];
         }
 
         return $definitions;
     }
 
-    public function require(string $key): KingdomIngestionAdapter
+    public function find(string $key): ?KingdomIngestionAdapter
     {
         foreach ($this->adapters() as $adapter) {
             if ($adapter->key() === $key) {
@@ -42,8 +60,37 @@ final readonly class KingdomIngestionAdapterRegistry
             }
         }
 
+        return null;
+    }
+
+    public function require(string $key): KingdomIngestionAdapter
+    {
+        $adapter = $this->find($key);
+        if ($adapter instanceof KingdomIngestionAdapter) {
+            return $adapter;
+        }
+
         throw ValidationException::withMessages([
             'adapter_key' => 'That automated-ingestion source adapter is not approved.',
+        ]);
+    }
+
+    public function acquisition(string $key): ?KingdomIngestionAcquisitionAdapter
+    {
+        $adapter = $this->find($key);
+
+        return $adapter instanceof KingdomIngestionAcquisitionAdapter ? $adapter : null;
+    }
+
+    public function requireAcquisition(string $key): KingdomIngestionAcquisitionAdapter
+    {
+        $adapter = $this->acquisition($key);
+        if ($adapter instanceof KingdomIngestionAcquisitionAdapter) {
+            return $adapter;
+        }
+
+        throw ValidationException::withMessages([
+            'adapter_key' => 'That automated-ingestion source adapter is not approved for scheduled acquisition.',
         ]);
     }
 
@@ -102,6 +149,13 @@ final readonly class KingdomIngestionAdapterRegistry
         foreach ($kinds as $kind) {
             if (! $kind instanceof KingdomIngestionTargetKind) {
                 throw new LogicException('Kingdom ingestion adapter target kinds must use the canonical enum.');
+            }
+        }
+
+        if ($adapter instanceof KingdomIngestionAcquisitionAdapter) {
+            $interval = $adapter->pollIntervalSeconds();
+            if ($interval < self::MIN_POLL_INTERVAL_SECONDS || $interval > self::MAX_POLL_INTERVAL_SECONDS) {
+                throw new LogicException('Kingdom ingestion acquisition intervals must be between 60 and 86,400 seconds.');
             }
         }
     }

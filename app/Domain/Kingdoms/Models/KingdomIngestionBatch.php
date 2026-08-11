@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string $adapter_key
  * @property string $adapter_version
  * @property string|null $source_cursor
+ * @property string|null $next_source_cursor
  * @property string|null $source_window_id
  * @property KingdomIngestionBatchState $state
  * @property int $records_received
@@ -47,6 +48,7 @@ final class KingdomIngestionBatch extends Model
         'adapter_key',
         'adapter_version',
         'source_cursor',
+        'next_source_cursor',
         'source_window_id',
         'state',
         'records_received',

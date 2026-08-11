@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Content\Actions\PublishScheduledContent;
 use App\Domain\Identity\Models\User;
 use App\Domain\Integrations\Actions\QueueDueWebhookDeliveries;
+use App\Domain\Kingdoms\Actions\QueueDueKingdomIngestionSubscriptions;
 use App\Domain\Notifications\Actions\QueueDueContributionReports;
 use App\Domain\Notifications\Actions\QueueDueEventReminders;
 use App\Domain\Notifications\Actions\SyncUpcomingEventReminders;
@@ -107,6 +108,13 @@ Artisan::command('integrations:queue-webhooks {--limit=100}', function (QueueDue
     return 0;
 })->purpose('Recover and queue due webhook deliveries');
 
+Artisan::command('kingdoms:queue-ingestion {--limit=100}', function (QueueDueKingdomIngestionSubscriptions $queue): int {
+    $queued = $queue->handle(max(1, min(500, (int) $this->option('limit'))));
+    $this->info(sprintf('Queued %d due Kingdom ingestion subscription(s).', $queued));
+
+    return 0;
+})->purpose('Queue due approved Kingdom ingestion subscriptions');
+
 Artisan::command('content:publish-scheduled {--limit=100}', function (PublishScheduledContent $publisher): int {
     $limit = max(1, min(500, (int) $this->option('limit')));
     $published = $publisher->handle($limit);
@@ -161,6 +169,7 @@ Schedule::command('events:queue-reminders --limit=100')->everyMinute()->onOneSer
 Schedule::command('contributions:queue-reports --limit=50')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('outbox:publish --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('integrations:queue-webhooks --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('kingdoms:queue-ingestion --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('platform:process-account-deletions --limit=100')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('platform:capture-usage --limit=2000')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('platform:enforce-retention')->dailyAt('03:45')->onOneServer()->withoutOverlapping(60);

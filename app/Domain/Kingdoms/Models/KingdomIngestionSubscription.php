@@ -20,8 +20,13 @@ use Illuminate\Support\Carbon;
  * @property string $adapter_version
  * @property KingdomIngestionSubscriptionState $state
  * @property string|null $source_cursor
+ * @property Carbon|null $next_run_at
+ * @property Carbon|null $last_claimed_at
  * @property Carbon|null $last_succeeded_at
  * @property Carbon|null $last_failed_at
+ * @property int $consecutive_failures
+ * @property Carbon|null $circuit_open_until
+ * @property string|null $last_failure_code
  * @property Carbon|null $blocked_at
  * @property string|null $blocked_reason
  * @property-read Alliance $alliance
@@ -43,8 +48,13 @@ final class KingdomIngestionSubscription extends Model
         'adapter_version',
         'state',
         'source_cursor',
+        'next_run_at',
+        'last_claimed_at',
         'last_succeeded_at',
         'last_failed_at',
+        'consecutive_failures',
+        'circuit_open_until',
+        'last_failure_code',
         'blocked_at',
         'blocked_reason',
     ];
@@ -53,8 +63,12 @@ final class KingdomIngestionSubscription extends Model
     {
         return [
             'state' => KingdomIngestionSubscriptionState::class,
+            'next_run_at' => 'datetime',
+            'last_claimed_at' => 'datetime',
             'last_succeeded_at' => 'datetime',
             'last_failed_at' => 'datetime',
+            'consecutive_failures' => 'integer',
+            'circuit_open_until' => 'datetime',
             'blocked_at' => 'datetime',
         ];
     }

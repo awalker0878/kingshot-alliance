@@ -127,6 +127,10 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             '/alliance/kingdom-ingestion/subscriptions/{subscription}/candidates/{candidate}/reject',
             [KingdomIngestionController::class, 'rejectCandidate'],
         )->name('alliance.kingdom-ingestion.candidates.reject');
+        Route::post(
+            '/alliance/kingdom-ingestion/subscriptions/{subscription}/candidates/{candidate}/replay',
+            [KingdomIngestionController::class, 'replayCandidate'],
+        )->name('alliance.kingdom-ingestion.candidates.replay');
 
         Route::post('/alliance/transfers', [TransferPlanController::class, 'store'])
             ->name('alliance.transfers.store');

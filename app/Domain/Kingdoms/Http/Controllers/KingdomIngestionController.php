@@ -11,6 +11,7 @@ use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\CreateKingdomIngestionSubscription;
 use App\Domain\Kingdoms\Actions\RejectKingdomIngestionCandidate;
+use App\Domain\Kingdoms\Actions\ReplayKingdomIngestionCandidate;
 use App\Domain\Kingdoms\Actions\TransitionKingdomIngestionSubscription;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
@@ -114,6 +115,18 @@ final class KingdomIngestionController extends Controller
         return back()->with('status', 'kingdom-ingestion-candidate-rejected');
     }
 
+    public function replayCandidate(
+        Request $request,
+        AllianceContext $context,
+        ReplayKingdomIngestionCandidate $replay,
+        string $subscription,
+        string $candidate,
+    ): RedirectResponse {
+        $replay->handle($context->alliance(), $this->user($request), $subscription, $candidate);
+
+        return back()->with('status', 'kingdom-ingestion-candidate-replayed');
+    }
+
     /** @return array{id: string, name: string, kingdom: string|null} */
     private function allianceSummary(Alliance $alliance): array
     {
@@ -142,8 +155,13 @@ final class KingdomIngestionController extends Controller
             'kingdom' => (string) $subscription->kingdom->number,
             'contextCurrent' => $alliance->kingdom_id !== null && $alliance->kingdom_id === $subscription->kingdom_id,
             'sourceCursor' => $subscription->source_cursor,
+            'nextRunAt' => $subscription->next_run_at?->toIso8601String(),
+            'lastClaimedAt' => $subscription->last_claimed_at?->toIso8601String(),
             'lastSucceededAt' => $subscription->last_succeeded_at?->toIso8601String(),
             'lastFailedAt' => $subscription->last_failed_at?->toIso8601String(),
+            'consecutiveFailures' => $subscription->consecutive_failures,
+            'circuitOpenUntil' => $subscription->circuit_open_until?->toIso8601String(),
+            'lastFailureCode' => $subscription->last_failure_code,
             'blockedAt' => $subscription->blocked_at?->toIso8601String(),
             'blockedReason' => $subscription->blocked_reason,
             'pendingCandidates' => (int) $subscription->getAttribute('pending_candidates_count'),
@@ -159,6 +177,7 @@ final class KingdomIngestionController extends Controller
                 'recordsQuarantined' => $latest->records_quarantined,
                 'recordsRejected' => $latest->records_rejected,
                 'failureCode' => $latest->failure_code,
+                'nextSourceCursor' => $latest->next_source_cursor,
             ],
         ];
     }

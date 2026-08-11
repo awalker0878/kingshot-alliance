@@ -9,6 +9,7 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
@@ -61,6 +62,7 @@ final readonly class CreateKingdomIngestionSubscription
                 'adapter_key' => $adapter->key(),
                 'adapter_version' => $adapter->version(),
                 'state' => KingdomIngestionSubscriptionState::Active,
+                'next_run_at' => $adapter instanceof KingdomIngestionAcquisitionAdapter ? now() : null,
             ]);
 
             $metadata = [
@@ -69,6 +71,7 @@ final readonly class CreateKingdomIngestionSubscription
                 'adapter_key' => $subscription->adapter_key,
                 'adapter_version' => $subscription->adapter_version,
                 'state' => $subscription->state->value,
+                'acquisition_enabled' => $adapter instanceof KingdomIngestionAcquisitionAdapter,
             ];
 
             $event = 'kingdoms.ingestion_subscription_created';

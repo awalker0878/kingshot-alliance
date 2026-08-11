@@ -9,6 +9,7 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
@@ -46,6 +47,7 @@ final readonly class TransitionKingdomIngestionSubscription
                 return $subscription->load('kingdom');
             }
 
+            $nextRunAt = $subscription->next_run_at;
             if ($target === KingdomIngestionSubscriptionState::Active) {
                 $lockedAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
                 if ($lockedAlliance->kingdom_id === null || $lockedAlliance->kingdom_id !== $subscription->kingdom_id) {
@@ -60,13 +62,19 @@ final readonly class TransitionKingdomIngestionSubscription
                         'state' => 'The configured source adapter version is no longer approved for activation.',
                     ]);
                 }
+
+                $nextRunAt = $adapter instanceof KingdomIngestionAcquisitionAdapter ? now() : null;
             }
 
             $from = $subscription->state;
             $subscription->forceFill([
                 'state' => $target,
+                'next_run_at' => $target === KingdomIngestionSubscriptionState::Active ? $nextRunAt : null,
+                'circuit_open_until' => $target === KingdomIngestionSubscriptionState::Active ? null : $subscription->circuit_open_until,
                 'blocked_at' => $target === KingdomIngestionSubscriptionState::Active ? null : $subscription->blocked_at,
                 'blocked_reason' => $target === KingdomIngestionSubscriptionState::Active ? null : $subscription->blocked_reason,
+                'last_failure_code' => $target === KingdomIngestionSubscriptionState::Active ? null : $subscription->last_failure_code,
+                'consecutive_failures' => $target === KingdomIngestionSubscriptionState::Active ? 0 : $subscription->consecutive_failures,
             ])->save();
 
             $metadata = [

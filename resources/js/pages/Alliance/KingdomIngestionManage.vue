@@ -6,6 +6,8 @@ type AdapterDefinition = {
   version: string;
   label: string;
   targetKinds: string[];
+  acquisitionEnabled: boolean;
+  pollIntervalSeconds: number | null;
 };
 
 type LatestBatch = {
@@ -18,6 +20,7 @@ type LatestBatch = {
   recordsQuarantined: number;
   recordsRejected: number;
   failureCode: string | null;
+  nextSourceCursor: string | null;
 };
 
 type SubscriptionRow = {
@@ -29,8 +32,13 @@ type SubscriptionRow = {
   kingdom: string;
   contextCurrent: boolean;
   sourceCursor: string | null;
+  nextRunAt: string | null;
+  lastClaimedAt: string | null;
   lastSucceededAt: string | null;
   lastFailedAt: string | null;
+  consecutiveFailures: number;
+  circuitOpenUntil: string | null;
+  lastFailureCode: string | null;
   blockedAt: string | null;
   blockedReason: string | null;
   pendingCandidates: number;
@@ -89,10 +97,26 @@ function transition(subscription: SubscriptionRow, state: 'active' | 'paused' | 
   );
 }
 
+function replayCandidate(candidate: CandidateRow): void {
+  if (
+    !window.confirm(
+      'Replay this quarantined candidate through the existing Kingdoms promotion rules?',
+    )
+  ) {
+    return;
+  }
+
+  router.post(
+    `/alliance/kingdom-ingestion/subscriptions/${candidate.subscriptionId}/candidates/${candidate.id}/replay`,
+    {},
+    { preserveScroll: true },
+  );
+}
+
 function rejectCandidate(candidate: CandidateRow): void {
   if (
     !window.confirm(
-      'Reject this quarantined ingestion candidate? The promoted Kingdoms history is not affected.',
+      'Reject this quarantined ingestion candidate? Promoted Kingdoms history is not affected.',
     )
   ) {
     return;
@@ -119,12 +143,12 @@ function label(value: string): string {
         <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
           Kingdom intelligence
         </p>
-        <h1 class="mt-2 text-3xl font-bold">Automated ingestion foundation</h1>
+        <h1 class="mt-2 text-3xl font-bold">Automated ingestion</h1>
         <p class="mt-2 max-w-3xl text-sm text-slate-400">
-          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. Only
-          repository-approved source adapters can be selected. This foundation stages and
-          quarantines normalized records; it does not yet create player snapshots or game-alliance
-          observations automatically.
+          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. Approved
+          adapters can stage and promote factual player or game-alliance observations only through
+          existing Kingdoms relationships. Production remains empty-by-default until a concrete
+          source receives separate approval.
         </p>
       </div>
       <Link
@@ -157,13 +181,15 @@ function label(value: string): string {
             <option v-if="adapters.length === 0" value="">No source adapters approved</option>
             <option v-for="adapter in adapters" :key="adapter.key" :value="adapter.key">
               {{ adapter.label }} · {{ adapter.version }}
+              {{ adapter.acquisitionEnabled ? '· scheduled' : '· manual pipeline only' }}
             </option>
           </select>
           <p v-if="createForm.errors.adapter_key" class="mt-1 text-sm text-rose-300" role="alert">
             {{ createForm.errors.adapter_key }}
           </p>
           <p v-else class="mt-1 text-xs text-slate-500">
-            Production remains empty-by-default until a concrete source receives separate approval.
+            Scheduled adapters use repository-defined bounded polling; managers cannot change the
+            destination or frequency.
           </p>
         </div>
         <button
@@ -179,20 +205,22 @@ function label(value: string): string {
     <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
       <h2 class="text-xl font-semibold">Subscriptions</h2>
       <p class="mt-1 text-sm text-slate-400">
-        A captured Kingdom never silently follows a later Alliance Kingdom change. Historical state
-        remains visible while new automated work fails closed.
+        A captured Kingdom never silently follows a later Alliance Kingdom change. Scheduler claims,
+        bounded failure state, and circuit timing are visible without exposing source responses or
+        secrets.
       </p>
 
       <div v-if="subscriptions.length" class="mt-6 overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
           <caption class="sr-only">
-            Automated ingestion subscriptions and health
+            Automated ingestion subscriptions, scheduling, and health
           </caption>
           <thead class="text-xs tracking-wide text-slate-400 uppercase">
             <tr>
               <th class="px-3 py-3 font-semibold">Adapter</th>
               <th class="px-3 py-3 font-semibold">Kingdom</th>
               <th class="px-3 py-3 font-semibold">State</th>
+              <th class="px-3 py-3 font-semibold">Scheduling</th>
               <th class="px-3 py-3 font-semibold">Candidates</th>
               <th class="px-3 py-3 font-semibold">Latest batch</th>
               <th class="px-3 py-3 font-semibold">Actions</th>
@@ -215,7 +243,23 @@ function label(value: string): string {
                   Historical
                 </span>
               </td>
-              <td class="px-3 py-4 text-slate-300">{{ label(subscription.state) }}</td>
+              <td class="px-3 py-4 text-slate-300">
+                <p>{{ label(subscription.state) }}</p>
+                <p v-if="subscription.lastFailureCode" class="mt-1 text-xs text-amber-300">
+                  {{ label(subscription.lastFailureCode) }} · {{ subscription.consecutiveFailures }}
+                  failure(s)
+                </p>
+              </td>
+              <td class="px-3 py-4 text-slate-300">
+                <p v-if="subscription.nextRunAt">Next: {{ subscription.nextRunAt }}</p>
+                <p v-else class="text-slate-500">Not scheduled</p>
+                <p v-if="subscription.circuitOpenUntil" class="mt-1 text-xs text-amber-300">
+                  Circuit until {{ subscription.circuitOpenUntil }}
+                </p>
+                <p v-else-if="subscription.lastClaimedAt" class="mt-1 text-xs text-slate-500">
+                  Last claimed {{ subscription.lastClaimedAt }}
+                </p>
+              </td>
               <td class="px-3 py-4 text-slate-300">
                 {{ subscription.pendingCandidates }} pending ·
                 {{ subscription.quarantinedCandidates }} quarantined ·
@@ -227,6 +271,9 @@ function label(value: string): string {
                   <p class="mt-1 text-xs text-slate-500">
                     {{ subscription.latestBatch.recordsStaged }} staged ·
                     {{ subscription.latestBatch.recordsQuarantined }} quarantined
+                  </p>
+                  <p v-if="subscription.latestBatch.failureCode" class="mt-1 text-xs text-amber-300">
+                    {{ label(subscription.latestBatch.failureCode) }}
                   </p>
                 </template>
                 <span v-else class="text-slate-500">No batches yet</span>
@@ -270,10 +317,10 @@ function label(value: string): string {
     </section>
 
     <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-      <h2 class="text-xl font-semibold">Recent staged candidates</h2>
+      <h2 class="text-xl font-semibold">Recent candidates</h2>
       <p class="mt-1 text-sm text-slate-400">
         Only bounded provenance/status is displayed here. Raw source responses and source secrets
-        are not retained as candidate data.
+        are not retained as candidate data. Replay re-runs the existing stable-ID and tenant checks.
       </p>
 
       <div v-if="candidates.length" class="mt-6 overflow-x-auto">
@@ -288,7 +335,7 @@ function label(value: string): string {
               <th class="px-3 py-3 font-semibold">Stable game ID</th>
               <th class="px-3 py-3 font-semibold">Captured</th>
               <th class="px-3 py-3 font-semibold">State</th>
-              <th class="px-3 py-3 font-semibold">Action</th>
+              <th class="px-3 py-3 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800">
@@ -306,14 +353,22 @@ function label(value: string): string {
                 </span>
               </td>
               <td class="px-3 py-4">
-                <button
-                  v-if="candidate.state === 'quarantined'"
-                  class="rounded border border-rose-800 px-3 py-1.5 text-xs font-semibold text-rose-300"
-                  type="button"
-                  @click="rejectCandidate(candidate)"
-                >
-                  Reject
-                </button>
+                <div v-if="candidate.state === 'quarantined'" class="flex flex-wrap gap-2">
+                  <button
+                    class="rounded border border-cyan-700 px-3 py-1.5 text-xs font-semibold text-cyan-300"
+                    type="button"
+                    @click="replayCandidate(candidate)"
+                  >
+                    Replay
+                  </button>
+                  <button
+                    class="rounded border border-rose-800 px-3 py-1.5 text-xs font-semibold text-rose-300"
+                    type="button"
+                    @click="rejectCandidate(candidate)"
+                  >
+                    Reject
+                  </button>
+                </div>
                 <span v-else class="text-xs text-slate-500">No manager action</span>
               </td>
             </tr>
