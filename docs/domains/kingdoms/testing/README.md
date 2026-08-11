@@ -6,90 +6,80 @@
 **Status:** Current  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary validation boundary:** Neutral game identity, tenant-owned roster/snapshots/import/transfer/diplomacy state, realistic-volume query bounds, and explicit no-public-API/webhook/automation boundaries  
-**P5 evidence decision:** Living suite map with accepted KINGDOMS-001/002/003 validation, accessibility, migration and performance evidence reused
+**Primary validation boundary:** Neutral identity, tenant-owned Kingdoms workflows, K4 ingestion-control isolation/idempotency, realistic-volume query bounds, and explicit public/automation non-capabilities
 
 ## 1. Critical claims and validation ownership
 
-Kingdoms validation must prove separation among application identity, Alliance membership and neutral game identity; Alliance ownership of roster/snapshots/imports/transfers/tracking/observations/diplomacy/contacts; stable-ID-only automatic identity matching; append-oriented history; explicit human-controlled transfer/diplomacy transitions; member/manager disclosure separation; and the absence of public API/webhook/ingestion/scoring automation.
+Kingdoms validation proves identity/membership/game-reference separation; Alliance ownership of all tenant workflows; stable-ID-only automatic identity; append history; explicit human transfer/diplomacy behavior; disclosure boundaries; and current K4 source/secret/quarantine/no-promotion limits.
 
 ## 2. Executable suite mapping
 
-All six PHPUnit evidence classes are material: `Architecture`, `Feature`, `Integration`, `Performance`, `TenantIsolation`, and `Unit`.
+All six PHPUnit groups remain material: Architecture, Feature, Integration, Performance, TenantIsolation, Unit. K4-P1 feature/architecture coverage is additive to accepted K1–K3 evidence.
 
-Architecture protects identity/ownership/non-capabilities; Feature protects member/manager workspaces; Integration protects persistence/outbox/cross-domain workflows; Performance protects realistic-volume query gates; TenantIsolation protects Alliance-owned state around shared neutral references; Unit protects deterministic parsers, projections, matching and value/state behavior.
+Architecture protects ownership/non-capabilities/accessibility; Feature protects manager/member workflows and K4 controls; Integration protects persistence/outbox/cross-domain contracts; Performance protects accepted realistic-volume query gates; TenantIsolation protects Alliance state around shared neutral references; Unit protects deterministic parsing/projection/value/state behavior.
 
 ## 3. Architecture and domain-boundary validation
 
-Architecture evidence protects the neutral `Kingdom`, `KingdomPlayer`, and `KingdomAlliance` reference model; tenant-owned relationships and history; no name/tag/handle automatic merge; no public Kingdoms API/scope; no wildcard webhook exposure; and no scraper/OCR/bot/automated-ingestion or scoring/recommendation placeholders.
+Architecture guards protect neutral references vs tenant state, no name/tag/handle auto-merge, no public Kingdoms API/wildcard webhook exposure, and no scoring/automatic diplomacy/transfer behavior.
 
-The current [Kingdoms domain](../README.md), security, operations and interfaces contracts remain living ownership truth.
+K4 updates the historical no-ingestion guard narrowly: K3 `/alliance/kingdom-alliances` routes still contain no ingestion sub-surface, while separately governed `/alliance/kingdom-ingestion` manager routes are permitted. Production adapter configuration remains empty and Slice A introduces no public machine/source route.
 
 ## 4. Authorization, tenancy, security and privacy validation
 
-Feature/Integration/TenantIsolation evidence covers `alliance.view` member reads, `kingdoms.manage` privileged mutations, recent password confirmation, submitted-ID re-resolution, shared neutral references without shared tenant data, manager-private notes/reasons/contacts, and Alliance-Kingdom drift behavior.
+Tests cover `alliance.view`, `kingdoms.manage`, recent password confirmation, submitted-ID re-resolution, shared-neutral-reference privacy, manager-private fields, Alliance-Kingdom drift, and K4 cross-tenant subscription/candidate tampering.
 
-[Kingdoms security](../security/README.md) and accepted K1–K3 security reviews define privacy/abuse boundaries that regression evidence must preserve.
+K4 tests additionally prove no URL/endpoint/header/credential/secret/token/cookie/raw-payload schema columns, manager-only safe status presentation, target-specific payload bounds, stable-ID quarantine, and no business observation promotion.
 
 ## 5. Feature, interface and integration validation
 
-Feature coverage spans roster/history/intelligence/import/export, transfer plans/groups/readiness/blockers/completion, game-Alliance tracking/observations/diplomacy/contacts/intelligence, and member-versus-manager payloads.
+Feature coverage spans all K1–K3 workspaces plus K4 manager adapter/subscription/batch/candidate status/control behavior. The K4 test fixture registers an adapter only inside tests; production config stays empty.
 
-Integration evidence covers Audit/Platform outbox, Alliance→Kingdom context, Membership linkage, CSV preview/commit and explicit webhook exclusion. [Kingdoms interfaces](../interfaces/README.md) remains the current interface inventory.
+Integration/Audit/outbox evidence ensures K4 human mutations and internal batch/candidate events remain tenant-correlated/internal without introducing public API/webhook eligibility.
 
 ## 6. Idempotency, concurrency and asynchronous validation
 
-Accepted evidence protects exact snapshot/observation retry idempotency, append-only correction/invalidation, CSV preview/commit identity, transfer completion idempotency, explicit readiness/blocker history and outbox retry separation.
+Accepted K1/K3 exact observation retries and transfer/import idempotency remain protected. K4 source-window uniqueness and deterministic candidate identity prove exact retry safety; completed batch outcomes are immutable.
 
-Kingdoms has no accepted autonomous scheduler/ingestion worker; shared outbox publication retries must not replay the originating Kingdoms mutation.
+K4 currently has no autonomous scheduler/ingestion worker. Later async processing must be validated separately for queue isolation, concurrency, backoff/cursor/replay and must not replay the originating business mutation incorrectly.
 
 ## 7. Persistence, migration, rollback and recovery evidence
 
-K1–K3 acceptance includes dependency-ordered migration rollback/reapply evidence. K3 specifically rolls its migrations back to the accepted K2 baseline and reapplies them while preserving K2 tables.
+The full Kingdom migration round-trip now includes `2026_08_11_190000_create_kingdom_ingestion_foundation.php` at the newest dependency boundary: K4 is rolled down before K3/K2/K1 tables and reapplied after them. Restrictive Kingdom FKs remain intact.
 
-Current CI still runs clean PostgreSQL migration and database backup/restore. Domain-specific history/drift/recovery behavior is documented in [Kingdoms operations](../operations/README.md); database recovery does not imply external game-state ingestion because none is accepted.
+CI clean PostgreSQL migration and shared backup/restore remain required. K4 restore verification must distinguish operational candidate state from canonical promoted history.
 
 ## 8. Performance, query and capacity evidence
 
-Kingdoms has explicit accepted realistic-volume performance gates:
+Accepted query gates remain:
 
-- K1: 150 tracked players / 450 snapshots with bounded current/7-day/30-day intelligence query shape;
-- K2: 150 transfer participants / 20 groups with bounded plan/group/readiness/blocker/completion projections; and
-- K3: 120 tracked game Alliances / 600 observations / 120 diplomacy relationships / 60 active contacts with the manager intelligence projection bounded to **10 or fewer SELECT statements**.
+- K1: 150 tracked players / 450 snapshots with bounded intelligence query shape;
+- K2: 150 transfer participants / 20 groups with bounded planning projections;
+- K3: 120 tracked game Alliances / 600 observations / 120 diplomacy relationships / 60 contacts with manager intelligence at ≤10 SELECTs.
 
-These are regression gates for accepted query shape, not generic service-level latency promises.
+K4-P1 adds no production source throughput/capacity benchmark. P4/P5 must add realistic batch/candidate/scheduler/storage evidence before source enablement.
 
 ## 9. Accessibility and frontend evidence
 
-Accepted K1–K3 accessibility records are indexed from [Kingdoms product evidence](../product/README.md). Source-level guards cover settings, roster, history, intelligence, CSV migration, transfer planning, tracking/observations/diplomacy/contacts and intelligence surfaces.
+The Kingdom accessibility architecture suite now includes `KingdomIngestionManage.vue`, requiring main landmark/primary heading/native controls/labels/table overflow semantics. `npm run check` on the validated candidate passed ESLint, Prettier, Vue/TypeScript and production build.
 
-Current `npm run check` remains frontend quality evidence but does not replace deployment-specific accessibility checks.
+## 10. Historical and current evidence
 
-## 10. Historical accepted evidence
+Whole accepted increments:
 
-Whole-increment immutable gates are:
+- K1 implementation `7f743507b70865692290f517cd2de494ec54abae` — DR `31288932532`, CodeQL `31288932537`, CI `31288932560`.
+- K2 implementation `64189559c66e15dc56ec31f9b340284c89c30e6c` — DR `31337595942`, CodeQL `31337595933`, CI `31337595937`.
+- K3 implementation `068c4086744f71d33453734f1f1b05fe1430cbff` — DR `31430279647`, CodeQL `31430279652`, CI `31430279638`.
 
-- `KINGDOMS-001`: implementation `7f743507b70865692290f517cd2de494ec54abae` — DR `31288932532`, CodeQL `31288932537`, CI `31288932560`; final head `9e71427e081928d9a91d986048c03ee3116bff7c` — DR `31289567298`, CodeQL `31289567296`, CI `31289567297`.
-- `KINGDOMS-002`: implementation `64189559c66e15dc56ec31f9b340284c89c30e6c` — DR `31337595942`, CodeQL `31337595933`, CI `31337595937`.
-- `KINGDOMS-003`: implementation `068c4086744f71d33453734f1f1b05fe1430cbff` — DR `31430279647`, CodeQL `31430279652`, CI `31430279638`.
-
-Detailed slice/exit/accessibility evidence is retained under [Kingdoms product evidence](../product/README.md).
+K4-P0 candidate `89a045758c449613df9d2ebbdcb0d8e0c29e3d4c` and final evidence head `ff41a7519acad7d7365669188f7e717462639367` are protected-green. K4-P1 runtime candidate `5a37731374e9fa7aef591b7b1badd9cc13603e2c` passed DR `31533284318`, CodeQL `31533284195`, CI `31533284398`: Pint 509; PHPStan 363/363 zero errors; 407 tests / 9,466 assertions; image/staging/backup/scan success.
 
 ## 11. Evidence identity, retention and supersession
 
-K1–K3 SHAs/run IDs/query counts remain immutable historical evidence. Current Kingdoms behavior follows current code/tests/living contracts and this validation map.
+Historical accepted SHAs/run IDs remain immutable evidence. Current behavior follows current code/tests/living contracts. Each K4 slice records the exact runtime candidate and validates the containing evidence/status head before continuation.
 
-Future Kingdoms increments must record exact validated/final SHAs and protected run IDs under [testing/evidence standard](../../../product/testing-evidence-standard.md), while retaining earlier accepted increment records.
+Temporary diagnostic PR #55 was closed without merge; standard composer/npm checks are restored and no diagnostic commands/sentinel files remain in the K4 runtime candidate.
 
 ## 12. Gaps, non-capabilities and related documentation
 
-No public Kingdoms API/webhook, scraping/OCR/bot/automated ingestion, automatic transfer execution, automatic diplomacy, cross-Alliance shared intelligence, or scoring/ranking/recommendation behavior is accepted. Testing explicitly protects those absences rather than treating them as missing coverage.
+Current K4 validation does not prove a real source/network, source credentials, scheduler/worker/cursor/retry loop, candidate promotion, production rate/capacity/retention, or production cutover. Those are explicit later gates, not silently missing test coverage.
 
-Related documentation:
-
-- [Kingdoms domain](../README.md)
-- [Kingdoms security](../security/README.md)
-- [Kingdoms operations](../operations/README.md)
-- [Kingdoms interfaces](../interfaces/README.md)
-- [Kingdoms product evidence](../product/README.md)
-- [P5 evidence matrix](../../../product/testing-evidence-coverage-matrix.md)
+Related: [Automated ingestion](../automated-ingestion.md), [Slice A validation](../product/kingdoms-automated-ingestion-slice-a-validation.md), [Security review](../security/kingdoms-automated-ingestion-foundation-security-review.md), [Operations](../operations/kingdoms-automated-ingestion.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md).

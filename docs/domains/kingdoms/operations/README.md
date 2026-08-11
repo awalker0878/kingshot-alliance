@@ -6,60 +6,77 @@
 **Status:** Current  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary operational boundary:** Alliance-scoped roster/snapshot/import intelligence, transfer planning, and Alliance-intelligence/diplomacy state with accepted domain-specific recovery/query evidence
+**Primary operational boundary:** Alliance-scoped roster/snapshot/import, transfer, Alliance-intelligence/diplomacy, and K4 ingestion-control state with shared deployment/recovery infrastructure
 
 ## 1. Operational purpose and runtime shape
 
-Kingdoms is synchronous Laravel/PostgreSQL functionality for accepted K1–K3 behavior. It adds no dedicated scheduler, queue worker, crawler, OCR service, bot or external game-data poller. Supported mutations record audit/outbox evidence through the shared platform contracts.
+K1–K3 are predominantly synchronous Laravel/PostgreSQL workflows with shared audit/outbox. K4-P1 adds a synchronous manager ingestion control plane plus internal batch/candidate domain actions. It adds no source poller, scheduler, queue worker/partition, crawler, scraper, OCR service, bot, replay worker, or real external game-data provider.
 
 ## 2. Persistent state and ownership
 
-Kingdoms owns global neutral Kingdom/player/game-Alliance reference state plus Alliance-owned roster entries, snapshots, imports, transfer plans/participants/groups/readiness/completion, tracked game alliances, observations, diplomacy and manager-private contacts. Global references never imply cross-Alliance sharing of tenant-owned state.
+Kingdoms owns global neutral Kingdom/player/game-Alliance references plus Alliance-owned roster/history/import, transfer, game-Alliance intelligence/diplomacy, and K4 `kingdom_ingestion_subscriptions`, `kingdom_ingestion_batches`, `kingdom_ingestion_candidates`.
+
+Global references never imply cross-Alliance access. K4 operational rows capture Alliance/Kingdom context and are not canonical promoted history.
 
 ## 3. Configuration and runtime dependencies
 
-Primary dependency is PostgreSQL plus the shared request/tenant/audit/outbox runtime. Kingdoms introduces no accepted game-data provider, scraper or ingestion configuration. Shared Redis/queue availability matters only to downstream outbox consumers, not to the synchronous source transaction itself.
+Primary dependencies are PostgreSQL plus active tenant/auth/audit/outbox infrastructure. K4 adds `config/kingdoms.php` adapter registration. Production `ingestion_adapters` is intentionally empty; no source endpoint/credential is accepted.
+
+Shared Redis/queue availability matters to downstream outbox consumers, not to current K4 acquisition because no K4 background acquisition exists.
 
 ## 4. Normal flow and background processing
 
-Roster/import, snapshot, transfer and Alliance-intelligence workflows execute synchronously under tenant/authorization rules. Descriptive intelligence is calculated from persisted observations/history. The shared outbox publisher processes committed internal events; current Kingdoms events remain internal-only and do not create a public API/webhook contract.
+Managers with `kingdoms.manage` may view K4 status, configure an already registered adapter, transition subscription state, and reject quarantined candidates; mutations require recent password confirmation.
+
+Internal batch/candidate actions support later workers, but **background processing is not implemented for K4 yet**. No external data is fetched and no candidate is automatically promoted in Slice A.
 
 ## 5. Health, observability and diagnostics
 
-Use request/trace IDs, audit/outbox IDs, Alliance/Kingdom/reference IDs, roster/snapshot freshness/counts, import checksum/status counts, transfer lifecycle/readiness/blocker state, observation/diplomacy timestamps and the accepted query-budget signals. The three focused guides below contain capability-specific diagnostics.
+Use request/trace/audit/outbox correlation plus Alliance/current/captured Kingdom, subscription adapter/version/state/health, batch state/counts/timing/failure code, candidate target/state/stable/source IDs/timing/reason. Do not log normalized payload bodies, raw source responses, credentials, headers/cookies, or private manager text.
 
 ## 6. Failure modes and diagnosis
 
-Typical failures are tenant-context drift, stale/ambiguous CSV preview, rejected import rows, stale/missing snapshot history, inconsistent transfer lifecycle/readiness, inactive/current-Kingdom drift, invalid diplomacy/contact mutation, or PostgreSQL failure. Missing observations are not zero values and stale data must remain visible rather than silently inferred.
+Existing failures include tenant drift, CSV ambiguity, stale/missing observations, transfer/diplomacy invalid state. K4 adds: no approved adapter, inactive subscription, adapter-version mismatch, Kingdom drift, duplicate source window, unsupported target/payload, missing stable identity quarantine, invalid batch transition, cross-tenant ID tampering.
+
+The expected production Slice A state is **zero approved source adapters**. That is not an outage.
 
 ## 7. Recovery, replay and reconciliation
 
-Use supported fresh preview/observation/lifecycle actions rather than editing historical rows. Exact accepted-observation retries and accepted import identities are idempotent according to the capability contracts. If tenant/current-Kingdom context changes, preserve history and re-enter through supported active-context flows instead of force-linking stale state.
+Use supported domain actions rather than editing historical/operational rows. K4 exact source-window/candidate retries should return existing identity. Disable stale subscriptions rather than rewriting captured Kingdom context. Do not guess stable IDs or manually promote candidates.
+
+K4 replay/promotion workers remain later slices; do not improvise cron/curl/scraper/bot execution around internal actions.
 
 ## 8. Backup, restore, migration and rollback
 
-Kingdoms durable state is PostgreSQL-backed and follows the shared backup/restore and immutable-image rollback procedures. K1–K3 migrations have dependency-ordered round-trip evidence for development/test. After restore, verify representative Kingdom association, roster/snapshot/import provenance, transfer state and Alliance-intelligence/diplomacy data before acceptance.
+K4 migration `2026_08_11_190000_create_kingdom_ingestion_foundation.php` creates subscription→batch→candidate dependencies and rolls them back candidate→batch→subscription. The Kingdom migration round-trip test tears K4 down before older Kingdoms tables and reapplies it after them.
+
+Shared backup/restore/immutable-image rollback applies. After restore, validate representative K1–K3 history plus K4 ownership/state/hash context and no unintended promoted observation.
 
 ## 9. Capacity, query and performance boundaries
 
-Accepted performance gates are query-count/N+1 regression evidence, not production capacity benchmarks. Roster intelligence, transfer and Alliance-intelligence views use bounded/batched query patterns at their accepted fixture volumes. Production sizing still requires accountable load/capacity evidence.
+K1–K3 retain accepted query gates. K4-P1 has no external throughput/capacity promise and no scheduler. Manager projections are bounded recent operational state; future source frequency, batch size, queue throughput, retention/storage and backpressure require P4/P5 performance evidence before real production enablement.
 
 ## 10. External-service degradation
 
-Kingdoms has no accepted external game-data dependency. Do not introduce scraping, OCR, bots or unofficial provider calls as an operational recovery shortcut. Downstream shared outbox/notification failures do not authorize replaying the originating Kingdoms mutation.
+K4 currently has no accepted external game-data dependency. Do not add scraping/OCR/bots/unapproved provider calls as an operational workaround.
+
+A later approved adapter must define timeout/rate/cursor/retry/schema-change/revocation behavior and safe secret/network boundaries before its degradation behavior becomes an operations contract.
 
 ## 11. Safe operator actions and stop conditions
 
-Safe actions are inspect persisted lifecycle/provenance, create a fresh import preview, append a later supported observation/correction, restore database/runtime health and follow the accepted domain guides. Stop if recovery would require mutating append-oriented history, auto-merging by names/tags, inferring diplomacy, exposing manager-private contacts, crossing tenants or enabling unapproved ingestion/automation.
+Safe: inspect persisted lifecycle/provenance; pause/disable supported subscription; use documented K1–K3 recovery; restore database/runtime health; verify production adapter config is intentionally empty.
+
+Stop if recovery would require unapproved source/network access, source secrets/raw-response storage, cross-tenant access, stable-ID guessing, manual observation promotion, auto roster/tracking/transfer/diplomacy, scoring/recommendation, or ad-hoc K4 background processing.
 
 ## 12. Evidence, focused runbooks and related documentation
 
-Retain release SHA, request/trace/audit/outbox IDs, affected Alliance/Kingdom/reference IDs, relevant freshness/checksum/lifecycle counts and recovery validation results.
-
-Accepted focused operations evidence retained by P3:
+Focused Kingdoms guides:
 
 - [Roster intelligence operations](kingdoms-roster-intelligence.md)
 - [Transfer planning operations](kingdoms-transfer-planning.md)
 - [Alliance intelligence operations](kingdoms-alliance-intelligence.md)
+- [Automated ingestion operations](kingdoms-automated-ingestion.md)
 
-Use these with [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), [rollback](../../../operations/runbooks/rollback.md), and the [Kingdoms security profile](../security/README.md).
+K4-P1 runtime candidate `5a37731374e9fa7aef591b7b1badd9cc13603e2c` passed DR `31533284318`, CodeQL `31533284195`, CI `31533284398`, including image/staging/backup/scan.
+
+Use with [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), [rollback](../../../operations/runbooks/rollback.md), and [Kingdoms security](../security/README.md).

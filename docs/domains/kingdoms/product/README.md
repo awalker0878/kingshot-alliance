@@ -2,9 +2,9 @@
 
 [← Kingdoms domain](../README.md)
 
-This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility, and acceptance evidence for the accepted post-program increments `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003`, plus explicit planning evidence for `KINGDOMS-004`.
+This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility, and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted. `KINGDOMS-004` is in progress: `K4-P0` is Complete and `K4-P1` / Slice A has a fully green runtime candidate; later promotion/scheduling/operations slices remain gated.
 
-Accepted records are domain-owned historical/product evidence. Planning records are clearly labeled and do not make unimplemented behavior part of the living runtime contract. Use the [Kingdoms domain](../README.md) and capability documents for present behavior.
+Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; they do not authorize real production cutover.
 
 ## KINGDOMS-001 — roster intelligence
 
@@ -39,18 +39,24 @@ Accepted records are domain-owned historical/product evidence. Planning records 
 - [Accessibility](kingdoms-alliance-intelligence-accessibility.md)
 - [Exit report](kingdoms-alliance-intelligence-exit-report.md)
 
-## KINGDOMS-004 — automated game-data ingestion — planning only
+## KINGDOMS-004 — automated game-data ingestion — in progress
 
-`KINGDOMS-004` has no runtime implementation yet. Its P0 records define the planning boundary before any runtime implementation.
+Current governed state: `K4-P0` Complete; `K4-P1` / Slice A runtime candidate validated; the containing evidence/status head must pass its second protected gate before Slice B starts. Production adapter configuration remains empty and no concrete source is approved.
 
-- [Planning scope](kingdoms-automated-ingestion-increment.md)
+- [Scope](kingdoms-automated-ingestion-increment.md)
 - [Implementation plan](kingdoms-automated-ingestion-implementation-plan.md)
 - [K4-P0 decisions](kingdoms-automated-ingestion-p0-decisions.md)
 - [K4-P0 security/privacy review](../security/kingdoms-automated-ingestion-p0-security-review.md)
 - [K4-P0 exit report](kingdoms-automated-ingestion-p0-exit-report.md)
+- [Slice A validation](kingdoms-automated-ingestion-slice-a-validation.md)
+- [Slice A security review](../security/kingdoms-automated-ingestion-foundation-security-review.md)
+- [Automated ingestion operations](../operations/kingdoms-automated-ingestion.md)
+- [Living automated-ingestion contract](../automated-ingestion.md)
 
 ## Related evidence
 
 - [Kingdoms security evidence](../security/README.md)
 - [Kingdoms operations](../operations/README.md)
+- [Kingdoms interfaces](../interfaces/README.md)
+- [Kingdoms testing/evidence](../testing/README.md)
 - [Program product documentation](../../../product/README.md)
