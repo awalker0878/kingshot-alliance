@@ -2,8 +2,8 @@
 
 [← Kingdoms operations](README.md)
 
-**Scope:** `KINGDOMS-004` through `K4-P2` / Slice B  
-**Current delivery:** Generic control plane plus existing-roster player-snapshot promotion; no concrete source or scheduler/worker
+**Scope:** `KINGDOMS-004` through `K4-P3` / Slice C  
+**Current delivery:** Generic control plane plus delegated player-snapshot and game-Alliance factual observation promotion; no concrete source or scheduler/worker
 
 ## Runtime ownership
 
@@ -11,48 +11,53 @@ K4 remains first-party Laravel/PostgreSQL under `app/Domain/Kingdoms`. Productio
 
 ## First-party surfaces
 
-The existing manager surface remains `/alliance/kingdom-ingestion/manage` with `kingdoms.manage` and recent password confirmation for human mutations. Slice B adds no public route, inbound webhook, source-credential form, manual staging endpoint, or public promotion endpoint.
+The manager surface remains `/alliance/kingdom-ingestion/manage` with `kingdoms.manage` and recent password confirmation for human mutations. P2/P3 add no public route, inbound webhook, source-credential form, manual staging endpoint, or public promotion endpoint.
 
 ## Durable state
 
-Operators may inspect subscriptions, batches, candidates, canonical player snapshots, Audit, and internal outbox evidence. Promoted candidates record safe record type/ID/time. Machine-origin snapshots record bounded subscription/batch/adapter/source-record/hash provenance and a null User actor.
+Operators may inspect subscriptions, batches, candidates, canonical player snapshots/game-Alliance observations, Audit, and internal outbox evidence. Promoted candidates record safe record type/ID/time. Machine-origin canonical history records bounded subscription/batch/adapter/source-record/hash provenance and a null User actor.
 
 Do not rewrite captured Kingdom IDs, adapter versions, stable IDs, payload/identity hashes, or promoted-record references to force recovery.
 
-## Promotion flow
+## Promotion flows
 
-Internal promotion is valid only for a pending `player_snapshot` candidate on an active/current-Kingdom subscription whose registered adapter version still matches. Stable game-player ID must resolve to one neutral player and one existing roster entry in the owning Alliance. The shared snapshot recorder performs final observation validation and persistence.
+### Player snapshots
+A pending `player_snapshot` candidate on an active/current-Kingdom subscription must resolve one neutral player and one existing roster entry in the owning Alliance before the shared snapshot recorder accepts it.
 
-No name matching or roster creation is an operational recovery mechanism.
+### Game-Alliance observations
+A pending `alliance_observation` candidate must resolve one active neutral game Alliance and one existing active tracking relation in the owning Alliance before the shared K3 observation recorder accepts it.
+
+Machine game-Alliance observations are append-only. Tracking creation/reactivation and observation correction/invalidation are not recovery mechanisms and remain human-only.
 
 ## Diagnostics
 
-Use safe Alliance/Kingdom/subscription/batch/candidate/snapshot IDs, adapter key/version, source record ID, capture time, hashes, candidate state/reason, and internal audit/outbox IDs. Do not log normalized candidate bodies, source credentials, arbitrary raw responses, or unrelated private data.
+Use safe Alliance/Kingdom/subscription/batch/candidate/promoted-record IDs, adapter key/version, source record ID, capture time, hashes, candidate state/reason, and internal audit/outbox IDs. Do not log normalized candidate bodies, source credentials, arbitrary raw responses, diplomacy/contact private text, or unrelated private data.
 
 ## Failure and recovery
 
-- `unknown_player`, `ambiguous_player_identity`, `roster_target_missing`, or `ambiguous_roster_target`: correct the legitimate roster/source relationship outside promotion; never guess identity.
-- `kingdom_context_changed` or `candidate_context_mismatch`: preserve historical rows and stop; never retarget them.
-- `source_version_unapproved`: restore only through reviewed repository/config adapter approval; never bypass by database edits.
-- `snapshot_validation_failed`: inspect safe field-level source contract and bounds; do not coerce invalid facts into history.
-- exact retry of an already promoted candidate should resolve the same snapshot.
+- player identity/roster target failures: correct legitimate source/roster data outside promotion; never guess identity or auto-enroll.
+- game-Alliance identity/tracking failures: establish/reactivate tracking only through the accepted human workflow if actually intended; never have ingestion do it.
+- `kingdom_context_changed` / context mismatch: preserve history and stop; never retarget captured rows.
+- `source_version_unapproved`: restore only through reviewed repository/config approval.
+- business-record validation failure: inspect safe normalized fact bounds; do not coerce invalid facts into history.
+- exact retry of a promoted candidate should resolve the same canonical record.
 
 ## Backup, migration and retention
 
-Migration `2026_08_11_200000_add_ingestion_provenance_to_player_snapshots.php` makes User actor nullable for legitimate machine observations, adds bounded snapshot provenance/Alliance source-identity uniqueness, and adds safe candidate promotion references.
+P2 migration adds player-snapshot machine provenance. P3 migration `2026_08_11_210000_add_ingestion_provenance_to_alliance_observations.php` adds bounded game-Alliance observation provenance and Alliance/source-identity uniqueness.
 
-Shared backup/restore procedures apply. After restore, verify candidate→snapshot correlation and that canonical promoted snapshot history survives independently of operational ingestion rows. Formal operational pruning policy remains K4-P5.
+Canonical promoted history has no FK dependency on operational K4 rows. Shared backup/restore applies; after restore, verify candidate→promoted-record correlation and continued independence of canonical history from operational candidate retention. Formal pruning remains K4-P5.
 
 ## Background processing
 
-There is still **no K4 background processing**: no scheduler, queue acquisition job, source polling, cursor advancement, retry/backoff circuit, crawler/scraper/OCR/bot, or concrete external provider call. K4-P4 owns those concerns only after both promotion paths are validated.
+There is still **no K4 background processing**: no scheduler, queue acquisition job, source polling, cursor advancement, retry/backoff circuit, crawler/scraper/OCR/bot, or concrete external provider call. K4-P4 owns those concerns only after this P3 evidence head is accepted.
 
 ## Acceptance evidence
 
-K4-P2 runtime candidate `37a7df3e0e88e2303f3c8fa74efaaed0b85fbd4f` passed Dependency Review `31538958810`, CodeQL `31538958745`, and CI `31538958920`: Pint 512 files, PHPStan 364/364 zero errors, 412 tests / 9,564 assertions, frontend/build, migrations, immutable image, ephemeral staging, backup/restore, scan, and cleanup.
+K4-P3 runtime candidate `8186af9fd7276a20889ca3a25b80172c6fe824d9` passed Dependency Review `31541291512`, CodeQL `31541291470`, and CI `31541291501`: Pint 515 files, PHPStan 365/365 zero errors, 417 tests / 9,628 assertions, frontend/build, migrations, immutable image, ephemeral staging, backup/restore, scan, and cleanup.
 
-See [Slice B validation](../product/kingdoms-automated-ingestion-slice-b-validation.md) and [Slice B security review](../security/kingdoms-automated-ingestion-player-promotion-security-review.md).
+See [Slice C validation](../product/kingdoms-automated-ingestion-slice-c-validation.md) and [Slice C security review](../security/kingdoms-automated-ingestion-alliance-promotion-security-review.md).
 
 ## Stop conditions
 
-Escalate rather than improvise when recovery would require unapproved source/network/credentials, raw-response archiving, cross-tenant access, stable-ID guessing, roster auto-creation, game-Alliance promotion before P3, transfer/diplomacy mutation, scoring/recommendation, or a scheduler/worker before P4.
+Escalate rather than improvise when recovery would require unapproved source/network/credentials, raw-response archiving, cross-tenant access, stable-ID guessing, auto roster/tracking creation/reactivation, machine K3 correction/invalidation, transfer/diplomacy/contact mutation, scoring/recommendation, or a scheduler/worker before P4.

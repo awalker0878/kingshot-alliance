@@ -2,9 +2,9 @@
 
 [← Kingdoms domain](../README.md)
 
-This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility, and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted. `KINGDOMS-004` is in progress: `K4-P0` is Complete and `K4-P1` / Slice A has a fully green runtime candidate; later promotion/scheduling/operations slices remain gated.
+This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility, and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted. `KINGDOMS-004` is in progress: `K4-P0`, `K4-P1`, and `K4-P2` are Complete; `K4-P3` has a fully green runtime candidate and becomes Complete only when its containing evidence head passes the second protected gate.
 
-Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; they do not authorize real production cutover.
+Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; they do not authorize a concrete source or production cutover.
 
 ## KINGDOMS-001 — roster intelligence
 
@@ -41,7 +41,7 @@ Use the [Kingdoms domain](../README.md) and living capability contracts for curr
 
 ## KINGDOMS-004 — automated game-data ingestion — in progress
 
-Current governed state: `K4-P0` Complete; `K4-P1` / Slice A runtime candidate validated; the containing evidence/status head must pass its second protected gate before Slice B starts. Production adapter configuration remains empty and no concrete source is approved.
+Current governed state: P0/P1/P2 Complete; P3 runtime candidate `8186af9fd7276a20889ca3a25b80172c6fe824d9` protected-green and awaiting the containing evidence-head gate. Production adapter configuration remains empty and no concrete source is approved.
 
 - [Scope](kingdoms-automated-ingestion-increment.md)
 - [Implementation plan](kingdoms-automated-ingestion-implementation-plan.md)
@@ -50,6 +50,10 @@ Current governed state: `K4-P0` Complete; `K4-P1` / Slice A runtime candidate va
 - [K4-P0 exit report](kingdoms-automated-ingestion-p0-exit-report.md)
 - [Slice A validation](kingdoms-automated-ingestion-slice-a-validation.md)
 - [Slice A security review](../security/kingdoms-automated-ingestion-foundation-security-review.md)
+- [Slice B validation](kingdoms-automated-ingestion-slice-b-validation.md)
+- [Slice B security review](../security/kingdoms-automated-ingestion-player-promotion-security-review.md)
+- [Slice C validation](kingdoms-automated-ingestion-slice-c-validation.md)
+- [Slice C security review](../security/kingdoms-automated-ingestion-alliance-promotion-security-review.md)
 - [Automated ingestion operations](../operations/kingdoms-automated-ingestion.md)
 - [Living automated-ingestion contract](../automated-ingestion.md)
 

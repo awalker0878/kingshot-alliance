@@ -3,233 +3,93 @@
 [← Kingdoms domain](README.md)
 
 **Document type:** Living capability contract  
-**Status:** Current — Accepted as `KINGDOMS-003`  
+**Status:** Current — `KINGDOMS-003` accepted; factual observation source extended by governed `KINGDOMS-004` K4-P3 machine promotion  
 **Owning domain:** `Kingdoms`
 
 ## 1. Purpose
 
-`KINGDOMS-003` extends Kingdoms with Alliance-owned intelligence and diplomacy workflows for other game-side Alliances:
+Alliance intelligence and diplomacy owns neutral game-side Alliance identity plus Alliance-owned tracking, factual observation history, explicit diplomacy/NAP state/history, minimal manager-private contacts, and descriptive intelligence.
 
-- neutral game-side Alliance identity and tenant-owned tracking;
-- append-oriented factual observation history/corrections;
-- explicit manager-maintained diplomacy/NAP state/history;
-- minimal manager-private handle-based diplomacy contacts; and
-- read-only descriptive Alliance intelligence/trends.
-
-Threat/ranking/scoring, automated recommendations/negotiation, automated game-data ingestion, cross-tenant intelligence sharing, and public Kingdoms API/webhook contracts remain outside the accepted increment.
+`KINGDOMS-003` remains the accepted business contract. K4-P3 extends only the factual observation input boundary: an approved ingestion candidate may append an observation for an already active tracked game Alliance after stable-ID/current-Kingdom/tenant checks. Tracking lifecycle, correction/invalidation, diplomacy, contacts, and decisions remain human-owned.
 
 ## 2. Scope and non-scope
 
-In scope:
+In scope: neutral `KingdomAlliance`; tenant `TrackedKingdomAlliance`; factual observation append/correction/invalidation; explicit diplomacy; manager-private contacts; descriptive intelligence; and K4-P3 delegated machine **append** observations with bounded provenance.
 
-- `KingdomAlliance` neutral identity;
-- `TrackedKingdomAlliance` tenant tracking/current context;
-- factual observation history/correction/invalidation;
-- explicit diplomacy state/transitions/review metadata;
-- manager-private diplomacy contacts;
-- descriptive factual summaries/trends/data-quality/review indicators; and
-- K3 whole-increment privacy/tenant/query/API-webhook boundaries.
-
-Out of scope:
-
-- player/contact identity linkage;
-- phone/address/credential storage;
-- cross-tenant/shared intelligence;
-- automated ingestion/scraping/OCR/bots;
-- threat/desirability/target/combat/punitive scoring;
-- automated diplomacy/negotiation/transfer actions; and
-- public Kingdoms API/webhook schemas.
+Out of scope: machine tracking creation/reactivation; machine correction/invalidation; cross-tenant/shared intelligence; source scraping/OCR/bots; threat/desirability/target scoring; automated diplomacy/negotiation/transfer; and public Kingdoms API/webhook schemas.
 
 ## 3. Model and state
 
-### Identity and tenancy
+`Alliance` remains tenant authority. `KingdomAlliance` is neutral game identity within one Kingdom; stable `game_alliance_id` is its only automatic identity key. `TrackedKingdomAlliance` is the tenant-owned relationship and lifecycle.
 
-`Alliance` is the platform tenant/authorization principal.
+`KingdomAllianceObservation` remains append-oriented tenant history. Manual observations retain User actor and optional correction/invalidation governance. `source=ingestion` uses null User actor plus bounded subscription/batch/adapter/source-record/hash provenance and cannot carry correction/invalidation instructions.
 
-`KingdomAlliance` is global neutral game-side Alliance identity belonging to one `Kingdom`; it is not a User, tenant, membership, role, or permission principal.
-
-`TrackedKingdomAlliance` is the tenant-owned relationship to a neutral `KingdomAlliance`, captures Kingdom context, and owns manager-private tracking notes.
-
-`KingdomAllianceObservation`, `KingdomAllianceDiplomacy`, `KingdomAllianceDiplomacyTransition`, and `KingdomAllianceDiplomacyContact` are tenant-owned.
-
-Stable `game_alliance_id` scoped to one Kingdom is the only automatic neutral identity key. Names, tags, and handles never auto-merge identity.
-
-### Observations
-
-Accepted observations contain observed name/tag, optional power/member count, capture time, manual source/actor provenance, exact-retry idempotency, correction linkage, invalidation evidence, and current/stale/missing projection.
-
-Invalidated observations remain historical but are excluded from accepted current/trend projections. Future-to-`asOf` observations are excluded from that projection.
-
-Missing values remain missing. Recorded zero remains zero.
-
-### Diplomacy
-
-Vocabulary is exactly:
-
-- `unknown`;
-- `neutral`;
-- `friendly`;
-- `nap`;
-- `ally`; and
-- `rival`.
-
-State changes only through explicit manager transitions. Review/expiry timestamps are advisory and derive a human-review indicator; they never auto-change state.
-
-### Contacts
-
-Manager-private contacts contain only display name, optional game-side role, approved handle channel, handle, active/inactive lifecycle, optional last-verification time, private notes, and actor/lifecycle provenance.
-
-Contacts do not link to `KingdomPlayer`, User, Membership, role, or permission. Equal names/handles do not prove identity.
-
-### Intelligence projection
-
-`KingdomAllianceIntelligence` is read-only and adds no persistence. It composes accepted tracking/observation/diplomacy/contact facts into member-safe detail plus manager-only aggregate contact diagnostics.
+Diplomacy vocabulary and contact model are unchanged from K3.
 
 ## 4. Invariants
 
-1. Sharing neutral `KingdomAlliance` never shares tenant observations/diplomacy/contacts/notes/intelligence.
+1. Neutral `KingdomAlliance` sharing never shares tenant observations/diplomacy/contacts/notes.
 2. Stable game Alliance ID within one Kingdom is the only automatic identity key.
-3. Observation history is append-oriented; correction appends replacement and invalidates original rather than rewriting it.
-4. Missing remains distinct from zero.
-5. Diplomacy is explicit human-maintained state and is never inferred from observations/power/member counts/trends/contacts.
-6. Review/expiry timestamps never auto-transition diplomacy.
-7. Contacts remain manager-private and never become User/Membership/authorization identity.
-8. Member intelligence payload excludes contact detail, private terms/rationale, actor provenance, and private notes.
-9. Intelligence is descriptive; no threat/target/desirability/composite score exists.
-10. Trend baselines are bounded/non-interpolating.
+3. Machine promotion requires an existing active owning-Alliance tracking relation; it never creates/reactivates tracking.
+4. Observation history is append-oriented.
+5. Correction appends replacement and invalidates original only through explicit human manager action.
+6. Machine observations cannot correct/invalidate prior history.
+7. Missing remains distinct from zero.
+8. Diplomacy changes only through explicit human manager transitions and is never inferred from observations.
+9. Contacts remain manager-private and never become identity/authorization.
+10. Intelligence remains descriptive; no threat/target/desirability/composite score exists.
 11. Dashboard reads emit no new audit/outbox event.
+12. All K3/K4 Kingdoms events remain external-webhook ineligible.
 
 ## 5. Workflows
 
-### Track game-side Alliance
+Managers establish/archive tracking, record/correct/invalidate observations, maintain diplomacy/contacts, and view descriptive intelligence under the accepted K3 workflows.
 
-Management establishes `TrackedKingdomAlliance` for a neutral reference in the active Alliance's current Kingdom context. Tracking supports active/archive lifecycle. Kingdom drift preserves authorized historical reads but normal mutations fail closed.
+K4-P3 machine promotion rechecks tenant/captured/current Kingdom, registered adapter version, active neutral reference, and exactly one active owning-Alliance tracking relationship. It then delegates factual `observed_name`, optional tag/power/member count, and capture time to `RecordKingdomAllianceObservation` with `source=ingestion` and bounded machine provenance.
 
-### Record/correct observation
-
-Managers append factual observations. Exact canonical retries return existing state. Correction preserves the original row, appends the corrected observation, and invalidates the original for accepted projection purposes.
-
-### Maintain diplomacy
-
-Managers explicitly transition current diplomacy state and append transition history. Review/expiry timestamps may indicate human review due but do not mutate state.
-
-Private terms/rationale and transition actor history remain manager-private.
-
-### Maintain contacts
-
-Managers add/update/deactivate minimal handle-based contacts. Normal lifecycle deactivates rather than destructively deleting history. Duplicate names/handles remain distinct.
-
-Verification is due when an active contact has never been verified or was last verified more than 30 days before dashboard `asOf`.
-
-### View descriptive intelligence
-
-For active tracked Alliances the projection provides:
-
-- active tracked-Alliance count;
-- current/stale/missing observation counts;
-- diplomacy-state counts;
-- relationship-review-due count; and
-- manager-only aggregate contact diagnostics.
-
-Per tracked Alliance, member-safe detail includes:
-
-- neutral name/tag/tracking state;
-- Kingdom/context-current indicator;
-- latest accepted power/member/capture facts;
-- freshness/age;
-- immediately-prior factual change;
-- bounded 7-day and 30-day changes;
-- current explicit diplomacy state and member-safe review/expiry metadata.
-
-Managers additionally receive existing diplomacy/contact workspace links plus aggregate contact counts/verification diagnostics, never contact text.
-
-### Trend selection
-
-At `asOf`:
-
-1. current = latest accepted observation at/before `asOf`;
-2. prior = immediately preceding accepted observation;
-3. 7-day baseline = closest at/before `asOf - 7d`, not older than `asOf - 14d`;
-4. 30-day baseline = closest at/before `asOf - 30d`, not older than `asOf - 60d`;
-5. a point newer than target is never substituted;
-6. history older than bounded window is ignored;
-7. missing endpoint fact makes that metric change missing; and
-8. unsupported baseline yields `Insufficient history`.
-
-### Filtering/order
-
-Default is active tracking, all freshness/diplomacy states, name ascending. Filters may select tracking/freshness/diplomacy. Factual sorts may use name, tag, latest power/member count, observation age, or diplomacy state.
-
-Null/missing values sort after supported values. Sorting is navigation, never best/worst/threat/target/desirability priority.
-
-Summary cards describe the complete active tracked population and are not recomputed from detail row filters.
+Exact candidate retry returns the same observation. A later distinct capture appends another observation and participates in the accepted latest/trend/neutral-current-name/tag projection. It never supplies `corrects_observation_id` or correction reason.
 
 ## 6. Authorization, tenancy and privacy
 
-Dashboard requires `alliance.view`. `kingdoms.manage` only determines inclusion of manager-private aggregate contact diagnostics and manager workspace links. No recent-password confirmation is needed for the read-only dashboard.
+Member dashboard/history reads require `alliance.view`; human mutations require `kingdoms.manage` plus recent password confirmation. Machine promotion derives authority from validated tenant-owned ingestion state only.
 
-All K3 mutations use `kingdoms.manage` plus recent password confirmation.
-
-Every projection starts with active `alliance_id`. Historical/archived/drifted tracking may be read when authorized with `contextCurrent=false`; reads never retarget history.
-
-Ordinary members receive no contact diagnostics/IDs/URLs/detail, private terms/rationale, private notes, or actor history.
+Member observation output excludes actor and machine provenance. Managers may see bounded source provenance in history. Diplomacy/contact private text remains outside machine ingestion and member output.
 
 ## 7. Persistence and query semantics
 
-Intelligence itself has no persistent score/table. It batches tenant-first queries for:
+Accepted K3 observation/correction/invalidation persistence remains authoritative. K4-P3 adds nullable machine provenance fields and Alliance/source-identity uniqueness to observations; there is no FK from canonical observation history to operational ingestion rows.
 
-- tracked Alliances + bounded neutral/Kingdom/diplomacy relations;
-- latest accepted observation;
-- prior observation;
-- 7-day baseline;
-- 30-day baseline; and
-- manager-only contact aggregates.
-
-Accepted performance gate models **120 tracked Alliances**, **600 observations**, **120 diplomacy relationships**, and **60 contacts**, with manager projection at or below **10 SELECTs**.
-
-Accepted tenant-first observation/contact indexes support this shape; Slice D required no new migration.
+Intelligence projection remains non-persistent and retains accepted current/prior/7-day/30-day selection and ≤10 SELECT manager performance gate at 120 tracked Alliances / 600 observations / 120 diplomacy relationships / 60 contacts.
 
 ## 8. Events/integrations/background processing
 
-K3 mutations create internal audit/outbox evidence with private text excluded. Representative K3 events remain excluded from wildcard external webhook fan-out.
+New machine observations reuse internal `kingdoms.alliance_intelligence_observation_recorded`; candidate promotion emits internal `kingdoms.ingestion_candidate_promoted`. Machine promotion never emits the K3 correction event because machine correction is prohibited.
 
-Dashboard reads create no audit/outbox event. There is no K3 ingestion scheduler/crawler/bot or public API/webhook schema.
+There is still no K4 scheduler/source poller/crawler/scraper/OCR/bot/public API or webhook schema.
 
 ## 9. Failure, idempotency and concurrency
 
-- Exact observation retry is idempotent.
-- Corrections preserve original history and accepted projection rules.
-- Cross-tenant IDs fail closed.
-- Kingdom drift blocks normal K3 mutations but preserves authorized historical reads.
-- Missing trend support returns insufficient/missing instead of interpolation.
-- Contact duplicate names/handles remain distinct; no automatic identity resolution.
+Exact observation/candidate retry is idempotent. Unknown/ambiguous/inactive neutral references, missing/inactive/ambiguous owning-Alliance tracking, Kingdom drift, revoked source version, and invalid candidate facts quarantine before observation mutation.
+
+Human correction semantics remain unchanged and preserve original evidence. Cross-tenant IDs/references fail closed.
 
 ## 10. Operations and observability
 
-Operators can distinguish current/stale/missing observations, invalidated corrections, human-review-due diplomacy, context-current versus historical tracking, and manager-only aggregate contact verification state without exposing private contact text.
+Operators can distinguish manual versus ingestion observation source and, for authorized manager/operator paths, correlate bounded source provenance to K4 candidate state. Do not use name/tag guessing, tracking creation/reactivation, diplomacy changes, or history invalidation as ingestion recovery.
 
-See [Kingdoms Alliance intelligence operations](operations/kingdoms-alliance-intelligence.md).
+See [Alliance intelligence operations](operations/kingdoms-alliance-intelligence.md) and [Automated ingestion operations](operations/kingdoms-automated-ingestion.md).
 
 ## 11. Tests and validation
 
-Whole-increment acceptance proves:
+K3 whole-increment acceptance remains historical evidence. K4-P3 runtime candidate `8186af9fd7276a20889ca3a25b80172c6fe824d9` passed DR `31541291512`, CodeQL `31541291470`, CI `31541291501`: Pint 515, PHPStan 365/365 zero errors, 417 tests / 9,628 assertions, image/staging/backup/scan success.
 
-- two platform Alliances may share one stable-ID neutral `KingdomAlliance` without sharing tenant intelligence;
-- correction preserves original and drives only accepted facts into projection;
-- private tracking/correction/diplomacy/contact strings stay out of member/other-tenant/audit/outbox payloads;
-- observation/diplomacy/contact mutations fail closed after Kingdom drift while history remains readable;
-- K3 migrations roll back to accepted K2 baseline/reapply in order;
-- K3 events remain excluded from wildcard external webhook fan-out; and
-- public API contains no K3 contract.
-
-Exact whole-increment validated implementation SHA: `068c4086744f71d33453734f1f1b05fe1430cbff`.
-
-See the [KINGDOMS-003 exit report](product/kingdoms-alliance-intelligence-exit-report.md), [security review](security/kingdoms-alliance-intelligence-security-review.md), and [accessibility review](product/kingdoms-alliance-intelligence-accessibility.md).
+P3 focused tests prove active-tracking stable-ID promotion, no fake User actor, bounded provenance, exact retry/later append history, cross-tenant no-auto-tracking, inactive tracking quarantine, unknown neutral reference, source revocation, and migration round-trip.
 
 ## 12. Related documentation
 
 - [Kingdoms domain](README.md)
-- [Roster](roster.md)
-- [Transfer planning](transfer-planning.md)
+- [Automated ingestion](automated-ingestion.md)
+- [K4 Slice C validation](product/kingdoms-automated-ingestion-slice-c-validation.md)
+- [K4 Slice C security review](security/kingdoms-automated-ingestion-alliance-promotion-security-review.md)
 - [KINGDOMS-003 implementation plan](product/kingdoms-alliance-intelligence-implementation-plan.md)
 - [KINGDOMS-003 exit report](product/kingdoms-alliance-intelligence-exit-report.md)
