@@ -9,14 +9,14 @@
 ## Current control state
 
 **Current phase:** `DCP-P4` — Interfaces, events, and integrations completeness  
-**Gate status:** In progress — code-backed inventory frozen; required profiles/contracts/CI still being implemented  
+**Gate status:** Candidate — 100% frozen content inventory implemented; protected candidate validation pending  
 **Control decision on next `continue`:** Finish current phase
 
 DCP-P3 is fully closed. The clean final P3 evidence/status branch head `986cb6e0c2cb0cb6d5b84fe6fafdd1159e899171` passed protected Dependency Review `31509458853`, CodeQL `31509458770`, and CI `31509458758`, including frontend, PHP/documentation checks, immutable image, staging, backup/restore, and image scan.
 
-DCP-P4 has adopted [Interface documentation standard](interface-documentation-standard.md) and frozen the code-backed [Interface coverage matrix](interface-coverage-matrix.md). The frozen content target is 14/14 living domain interface profiles plus two new focused compatibility-sensitive contracts for Contributions report exports and Events calendar exports, while complete accepted P1 capability contracts are reused instead of duplicated.
+DCP-P4 has completed its frozen content inventory: 14/14 living domain interface profiles, 2/2 new focused compatibility-sensitive contracts, all required accepted capability contracts reused/indexed, complete route/bootstrap/command/scheduler/outbox/external-machine/file boundary inventory, normalized domain/product navigation, and deterministic P4 architecture enforcement.
 
-P5 remains blocked until P4 reaches 100% inventory coverage and both its exact candidate and exact final evidence/status heads pass the full protected gate.
+P4 content candidate is `3ebd2ec3a25432baa636840911995be1a451f9c2`. The exact candidate/evidence branch head containing this ledger and [P4 exit report](interface-completeness-exit-report.md) must pass protected Dependency Review, CodeQL, and complete CI before P4 can be finalized. P5 remains blocked.
 
 ## Phase ledger
 
@@ -26,7 +26,7 @@ P5 remains blocked until P4 reaches 100% inventory coverage and both its exact c
 | `DCP-P1` | Domain contract and code-ownership completeness | Complete | 14 domain maps, 14 canonical contracts, 19 material capability contracts, P1 CI enforcement, and protected validation complete. See [P1 exit report](domain-contract-completeness-exit-report.md). |
 | `DCP-P2` | Security, privacy, and data-protection completeness | Complete | 14 domain security profiles, 9 new focused reviews, normalized Kingdoms security evidence, P2 CI enforcement, and protected candidate/final-head validation complete. See [P2 exit report](security-completeness-exit-report.md). |
 | `DCP-P3` | Operations, reliability, and recovery completeness | Complete | 14 operations profiles, 6 new focused runbooks, 3 retained Kingdoms guides, P3 CI enforcement, corrected candidate and final-head protected validation complete. See [P3 exit report](operations-completeness-exit-report.md). |
-| `DCP-P4` | Interfaces, events, and integrations completeness | In progress | **Current phase.** Standard/inventory frozen; profiles, focused contracts, navigation and P4 CI are being completed. |
+| `DCP-P4` | Interfaces, events, and integrations completeness | Candidate | **Current phase.** 100% frozen content inventory implemented; protected candidate/final-head validation remains. See [P4 exit report](interface-completeness-exit-report.md). |
 | `DCP-P5` | Testing, evidence, and traceability completeness | Not started | Blocked by `DCP-P4`. |
 | `DCP-P6` | Architecture and program-governance consolidation | Not started | Blocked by `DCP-P5`. |
 | `DCP-P7` | Maintenance automation and final acceptance | Not started | Blocked by `DCP-P6`. |
@@ -98,56 +98,63 @@ During PR-metadata cleanup the status file was accidentally overwritten; its exa
 
 That protected result is the authoritative P3→P4 transition evidence.
 
-## DCP-P4 frozen inventory
+## DCP-P4 candidate evidence
 
-P4 evidence currently includes:
+- [Interface documentation standard](interface-documentation-standard.md)
+- [Interface coverage matrix](interface-coverage-matrix.md)
+- [DCP-P4 exit report](interface-completeness-exit-report.md)
+- 14 living `docs/domains/<domain>/interfaces/README.md` profiles
+- 2 required new focused interface contracts
+- accepted P1 focused capability contracts reused/indexed by owning interface profiles
+- canonical domain/product navigation to interface profiles and P4 governance
+- P4 structural/frozen-inventory/route-source checks in `tests/Architecture/InterfaceDocumentationTest.php`
 
-- [Interface documentation standard](interface-documentation-standard.md);
-- [Interface coverage matrix](interface-coverage-matrix.md);
-- executable route/bootstrap inventory covering `routes/web.php`, `routes/api.php`, `routes/account.php`, `routes/contributions.php`, `routes/integrations.php`, `routes/kingdoms.php`, `routes/platform.php`, `routes/console.php`, and `bootstrap/app.php`;
-- custom command/scheduler inventory;
-- transactional-outbox/internal-consumer/external-webhook eligibility inventory;
-- external machine API credential/scope/endpoint inventory;
-- file/import/export/media inventory; and
-- explicit significant non-capability inventory.
+P4 content candidate: `3ebd2ec3a25432baa636840911995be1a451f9c2`.
 
-### Frozen P4 artifact target
+### New focused P4 contracts
 
-- **14/14** `docs/domains/<domain>/interfaces/README.md` living interface profiles.
-- **2/2** new focused interface contracts:
-  - Contributions — `interfaces/report-exports.md`;
-  - Events — `interfaces/calendar-exports.md`.
-- Accepted focused capability contracts reused/indexed from owning profiles:
-  - Content — `media.md`;
-  - Contributions — `event-reconciliation.md`;
-  - Events — `registration-and-attendance.md`;
-  - Identity — `mfa-and-recovery.md`;
-  - Integrations — `api.md`, `webhooks.md`;
-  - Kingdoms — `csv-migration.md` and accepted Kingdoms capability set;
-  - Memberships — `invitations.md`;
-  - Platform — `lifecycle-and-retention.md`, `transactional-outbox.md`;
-  - Recruitment — `application-intake.md`.
+- Contributions — `interfaces/report-exports.md`
+- Events — `interfaces/calendar-exports.md`
 
-### P4 public/internal boundary decisions
+### Reused accepted capability contracts
 
-- Integrations owns the only accepted external machine API and outbound webhook contracts.
-- Producer domains own business event meaning; Platform owns durable outbox publication; Integrations independently decides external webhook eligibility.
-- `alliance.kingdom_updated` and all `kingdoms.*` events remain externally excluded.
-- Kingdoms has no accepted public API/webhook contract.
-- Events CSV/ICS and Contributions report exports are authenticated/privileged first-party file contracts, not public APIs.
-- Notifications, Audit and Authorization have material internal boundaries but no direct external HTTP API.
-- Rallies owns Rally actions/state while its current first-party HTTP adapter surface is mediated through Event controllers/routes.
+- Content — `media.md`
+- Contributions — `event-reconciliation.md`
+- Events — `registration-and-attendance.md`
+- Identity — `mfa-and-recovery.md`
+- Integrations — `api.md`, `webhooks.md`
+- Kingdoms — `csv-migration.md` plus accepted Kingdoms capability set
+- Memberships — `invitations.md`
+- Platform — `lifecycle-and-retention.md`, `transactional-outbox.md`
+- Recruitment — `application-intake.md`
 
-## P4 remaining work
+## P4 interface coverage summary
 
-1. Implement all 14 living interface profiles.
-2. Implement the two frozen new focused interface contracts.
-3. Index reused accepted capability contracts from the owning profiles.
-4. Normalize domain/product navigation.
-5. Add deterministic P4 architecture enforcement.
-6. Perform a complete frozen-inventory/link review.
-7. Record P4 candidate evidence and validate the exact candidate head.
-8. If green, finalize P4 exit/status evidence, select P5, and validate the exact final head before P5 work begins.
+The living interface set now documents, where applicable:
+
+- anonymous/public, first-party member, manager, Platform-administrator, external-machine, outbound-external and internal caller classes;
+- route/workspace families and authorization/tenant derivation;
+- supported internal actions/queries/services;
+- producer-domain versus Platform-outbox versus internal-consumer versus Integrations external-eligibility ownership;
+- external API credential/scopes/version/rate/row bounds;
+- webhook subscription/envelope/signature/endpoint/idempotency/retry semantics;
+- custom commands/jobs/scheduler ownership;
+- file/import/export/media formats and compatibility-sensitive version/token/schema details;
+- failure/idempotency/versioning/compatibility behavior; and
+- significant explicit non-capabilities.
+
+Key boundaries remain explicit: Kingdoms has no public API/webhook; wildcard webhooks cannot bypass Kingdoms external exclusion; Event calendar files are authenticated rather than public bearer feeds; Contributions manager exports are distinct from external API JSON; and Rallies retains semantic ownership despite Event-controller HTTP adapters.
+
+## P4 validation gate
+
+Before P4 becomes Complete:
+
+1. protected Dependency Review must pass on the exact candidate/evidence head;
+2. protected CodeQL must pass;
+3. complete CI must pass, including the new P4 architecture suite and repository-wide Markdown-link validation;
+4. immutable image, staging, backup/restore and image scan must pass where included;
+5. exact candidate validation identifiers must be recorded in the P4 exit/status evidence; and
+6. the resulting final P4 evidence/status head must independently pass the same protected gate before P5 becomes authoritative.
 
 ## `continue` procedure
 
@@ -155,9 +162,9 @@ On `continue`:
 
 1. Treat the phase marked **Current phase** above as authoritative.
 2. Evaluate it against the [Documentation completeness standard](documentation-completeness-standard.md), [program plan](documentation-program-plan.md), [Interface documentation standard](interface-documentation-standard.md), and frozen [Interface coverage matrix](interface-coverage-matrix.md).
-3. If required P4 documentation remains incomplete, keep P4 active and finish it.
-4. If P4 is a complete candidate, run/finalize the protected candidate and exit-evidence gates.
-5. Only when P4 is fully complete may this ledger select P5.
+3. If protected candidate validation exposes a P4 defect, remain in P4 and fix only that defect.
+4. If the candidate gate passes, finalize P4 exit/status evidence and validate the exact final head.
+5. Only when that final head is fully protected-green may the ledger select P5 as authoritative.
 6. Never advance around incomplete required documentation.
 
 The detailed definition of `Complete` is normative in [Documentation completeness standard](documentation-completeness-standard.md).
