@@ -19,7 +19,6 @@ use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
