@@ -4,43 +4,44 @@
 
 This directory owns current business/domain contracts for runtime code under `app/Domain/<CanonicalDomain>`.
 
-The normative structure, naming, format, and CI rules are defined by the [repository documentation standard](../product/documentation-standard.md). Domain-contract depth is governed by the [domain contract standard](../product/domain-contract-standard.md), living security/privacy depth by the [security documentation standard](../product/security-documentation-standard.md), and living operations/recovery depth by the [operations documentation standard](../product/operations-documentation-standard.md).
+The normative structure, naming, format, and CI rules are defined by the [repository documentation standard](../product/documentation-standard.md). Domain-contract depth is governed by the [domain contract standard](../product/domain-contract-standard.md), living security/privacy depth by the [security documentation standard](../product/security-documentation-standard.md), living operations/recovery depth by the [operations documentation standard](../product/operations-documentation-standard.md), and interface/event/integration depth by the [interface documentation standard](../product/interface-documentation-standard.md).
 
 ## Canonical rule
 
-Every canonical code domain has exactly one matching documentation root plus living security and operations profiles:
+Every canonical code domain has exactly one matching living domain contract plus security, operations, and interface profiles:
 
 ```text
 app/Domain/<CanonicalDomain>/README.md
 docs/domains/<canonical-domain-kebab>/README.md
 docs/domains/<canonical-domain-kebab>/security/README.md
 docs/domains/<canonical-domain-kebab>/operations/README.md
+docs/domains/<canonical-domain-kebab>/interfaces/README.md
 ```
 
-The code-local README is concise developer navigation. The matching `/docs` directory is the canonical living domain contract. Capability documents live inside the owning domain directory. Every domain also has one living security profile and one living operations profile; focused reviews/runbooks are created only when the relevant focused standard requires them.
+The code-local README is concise developer navigation. The matching `/docs` directory is the canonical living domain contract. Capability documents live inside the owning domain directory. Every domain also has one living security profile, operations profile, and interface profile; focused reviews/runbooks/interface contracts are created only when the relevant focused standard requires them or an already accepted capability contract is explicitly reused.
 
 `README.md` is the **only** Markdown file permitted directly under `docs/domains/`.
 
-The relationship is enforced bidirectionally by `tests/Architecture/RepositoryStructureTest.php`: code domains and documentation-domain directories must match after canonical normalization, every documentation-domain directory must contain `README.md`, every code domain must have the required security and operations profiles, and flat root-level domain Markdown files are rejected.
+The code/documentation ownership relationship is enforced bidirectionally by architecture tests. Code domains and documentation-domain directories must match after canonical normalization; every documentation domain must contain its canonical root plus required profile directories; and flat root-level domain Markdown files are rejected.
 
 ## Canonical domain roots
 
-| Code domain | Canonical living contract | Living security profile | Living operations profile | Primary ownership |
-| --- | --- | --- | --- | --- |
-| `Alliances` | [alliances/](alliances/README.md) | [security](alliances/security/README.md) | [operations](alliances/operations/README.md) | Alliance aggregate/settings and active-Alliance tenant context. |
-| `Audit` | [audit/](audit/README.md) | [security](audit/security/README.md) | [operations](audit/operations/README.md) | Attributable security/business audit-event recording. |
-| `Authorization` | [authorization/](authorization/README.md) | [security](authorization/security/README.md) | [operations](authorization/operations/README.md) | Alliance roles, permissions, role assignment, permission evaluation. |
-| `Content` | [content/](content/README.md) | [security](content/security/README.md) | [operations](content/operations/README.md) | Authored content, publication/visibility, revisions, media. |
-| `Contributions` | [contributions/](contributions/README.md) | [security](contributions/security/README.md) | [operations](contributions/operations/README.md) | Contribution records/calculations/corrections/reporting/exports. |
-| `Events` | [events/](events/README.md) | [security](events/security/README.md) | [operations](events/operations/README.md) | Event schedules/occurrences/registration/waitlist/attendance/calendar/export. |
-| `Identity` | [identity/](identity/README.md) | [security](identity/security/README.md) | [operations](identity/operations/README.md) | Global User identity, authentication, verification, password/session, MFA. |
-| `Integrations` | [integrations/](integrations/README.md) | [security](integrations/security/README.md) | [operations](integrations/operations/README.md) | Read-only API credentials/contracts and signed webhook delivery. |
-| `Kingdoms` | [kingdoms/](kingdoms/README.md) | [security](kingdoms/security/README.md) | [operations](kingdoms/operations/README.md) | Kingdom/player/game-Alliance references, roster/history/intelligence, transfer, diplomacy. |
-| `Memberships` | [memberships/](memberships/README.md) | [security](memberships/security/README.md) | [operations](memberships/operations/README.md) | Alliance membership and invitation lifecycle. |
-| `Notifications` | [notifications/](notifications/README.md) | [security](notifications/security/README.md) | [operations](notifications/operations/README.md) | Durable Event-reminder and scheduled-report delivery coordination. |
-| `Platform` | [platform/](platform/README.md) | [security](platform/security/README.md) | [operations](platform/operations/README.md) | Cross-tenant administration, lifecycle, entitlements, retention, outbox infrastructure. |
-| `Rallies` | [rallies/](rallies/README.md) | [security](rallies/security/README.md) | [operations](rallies/operations/README.md) | Rally guidance, formations, groups, assignments, Rally participation. |
-| `Recruitment` | [recruitment/](recruitment/README.md) | [security](recruitment/security/README.md) | [operations](recruitment/operations/README.md) | Application intake, candidate pipeline, decisions, onboarding, retention. |
+| Code domain | Living domain contract | Security | Operations | Interfaces | Primary ownership |
+| --- | --- | --- | --- | --- | --- |
+| `Alliances` | [alliances/](alliances/README.md) | [security](alliances/security/README.md) | [operations](alliances/operations/README.md) | [interfaces](alliances/interfaces/README.md) | Alliance aggregate/settings and active-Alliance tenant context. |
+| `Audit` | [audit/](audit/README.md) | [security](audit/security/README.md) | [operations](audit/operations/README.md) | [interfaces](audit/interfaces/README.md) | Attributable security/business audit-event recording. |
+| `Authorization` | [authorization/](authorization/README.md) | [security](authorization/security/README.md) | [operations](authorization/operations/README.md) | [interfaces](authorization/interfaces/README.md) | Alliance roles, permissions, role assignment, permission evaluation. |
+| `Content` | [content/](content/README.md) | [security](content/security/README.md) | [operations](content/operations/README.md) | [interfaces](content/interfaces/README.md) | Authored content, publication/visibility, revisions, media. |
+| `Contributions` | [contributions/](contributions/README.md) | [security](contributions/security/README.md) | [operations](contributions/operations/README.md) | [interfaces](contributions/interfaces/README.md) | Contribution records/calculations/corrections/reporting/exports. |
+| `Events` | [events/](events/README.md) | [security](events/security/README.md) | [operations](events/operations/README.md) | [interfaces](events/interfaces/README.md) | Event schedules/occurrences/registration/waitlist/attendance/calendar/export. |
+| `Identity` | [identity/](identity/README.md) | [security](identity/security/README.md) | [operations](identity/operations/README.md) | [interfaces](identity/interfaces/README.md) | Global User identity, authentication, verification, password/session, MFA. |
+| `Integrations` | [integrations/](integrations/README.md) | [security](integrations/security/README.md) | [operations](integrations/operations/README.md) | [interfaces](integrations/interfaces/README.md) | Read-only API credentials/contracts and signed webhook delivery. |
+| `Kingdoms` | [kingdoms/](kingdoms/README.md) | [security](kingdoms/security/README.md) | [operations](kingdoms/operations/README.md) | [interfaces](kingdoms/interfaces/README.md) | Kingdom/player/game-Alliance references, roster/history/intelligence, transfer, diplomacy. |
+| `Memberships` | [memberships/](memberships/README.md) | [security](memberships/security/README.md) | [operations](memberships/operations/README.md) | [interfaces](memberships/interfaces/README.md) | Alliance membership and invitation lifecycle. |
+| `Notifications` | [notifications/](notifications/README.md) | [security](notifications/security/README.md) | [operations](notifications/operations/README.md) | [interfaces](notifications/interfaces/README.md) | Durable Event-reminder and scheduled-report delivery coordination. |
+| `Platform` | [platform/](platform/README.md) | [security](platform/security/README.md) | [operations](platform/operations/README.md) | [interfaces](platform/interfaces/README.md) | Cross-tenant administration, lifecycle, entitlements, retention, outbox infrastructure. |
+| `Rallies` | [rallies/](rallies/README.md) | [security](rallies/security/README.md) | [operations](rallies/operations/README.md) | [interfaces](rallies/interfaces/README.md) | Rally guidance, formations, groups, assignments, Rally participation. |
+| `Recruitment` | [recruitment/](recruitment/README.md) | [security](recruitment/security/README.md) | [operations](recruitment/operations/README.md) | [interfaces](recruitment/interfaces/README.md) | Application intake, candidate pipeline, decisions, onboarding, retention. |
 
 ## Capability documents
 
@@ -101,13 +102,38 @@ The [DCP-P3 operations coverage matrix](../product/operations-coverage-matrix.md
 
 Top-level [operations documentation](../operations/README.md) remains authoritative for shared runtime topology/configuration, scheduler/queues/outbox mechanics, observability/health, deployment, backup/restore, rollback, incident response and production launch controls. Domain guides add only domain-specific state/diagnosis/recovery semantics.
 
+## Interface profiles and focused contracts
+
+Every domain interface profile follows:
+
+```text
+docs/domains/<domain>/interfaces/README.md
+```
+
+New focused P4 interface contracts follow:
+
+```text
+docs/domains/<domain>/interfaces/<capability>.md
+```
+
+The [DCP-P4 interface coverage matrix](../product/interface-coverage-matrix.md) is the frozen inventory. It covers browser/API surfaces, supported internal actions/queries/services, outbox/event consumers, commands/jobs/scheduled work, file/import/export/media boundaries, external dependencies, versioning/compatibility, and explicit non-capabilities.
+
+P4 adds exactly two new focused contracts because existing accepted capability documents already cover the other independently deep boundaries:
+
+- [Contributions report exports](contributions/interfaces/report-exports.md)
+- [Events calendar exports](events/interfaces/calendar-exports.md)
+
+Accepted capability contracts reused by P4 remain in their original canonical locations and are explicitly linked from the owning interface profile. Reuse is preferred to cosmetic duplication when the existing contract is complete.
+
 ## Boundary rules
 
 - A domain root describes behavior owned by its matching code domain.
 - Cross-domain collaboration uses intentional public actions, queries, services, value objects, enums, or events rather than persistence reach-through.
 - Combined user workflows do not justify combining independent code-domain ownership into one canonical file.
-- Program-wide product/security/operations policy belongs in `../product/`, `../security/`, and `../operations/`; domain-specific product/security/operations evidence stays under the owning domain.
-- Capability documents, focused security reviews and focused operations runbooks remain inside the owning domain directory.
+- Program-wide product/security/operations/interface governance belongs in `../product/`, `../security/`, and `../operations/`; domain-specific living profiles/evidence stay under the owning domain.
+- Capability documents, focused security reviews, focused operations runbooks, and focused interface contracts remain inside the owning domain directory.
+- HTTP controller/route placement does not transfer semantic ownership; for example, current Event controllers adapt Rallies-owned actions while Rallies remains the state/contract owner.
+- Internal outbox publication does not automatically create an external webhook contract; producer meaning, Platform publication, internal consumers, and Integrations external eligibility remain separate.
 - Do not create one document per class, controller, route, table, action, query, enum, value object, scheduler command or queue job.
 - Code/tests remain authoritative for exact runtime behavior; documentation drift is a defect to fix.
 
@@ -120,10 +146,10 @@ Cross-domain/repository architecture audits are product/program evidence rather 
 
 ## Standard domain format
 
-Every `docs/domains/<domain>/README.md` follows the living-domain section order in the [domain contract standard](../product/domain-contract-standard.md). Capability files use its standard capability-contract format. Security profiles/focused reviews use the [security documentation standard](../product/security-documentation-standard.md). Operations profiles/focused runbooks use the [operations documentation standard](../product/operations-documentation-standard.md).
+Every `docs/domains/<domain>/README.md` follows the living-domain section order in the [domain contract standard](../product/domain-contract-standard.md). Capability files use its standard capability-contract format. Security profiles/focused reviews use the [security documentation standard](../product/security-documentation-standard.md). Operations profiles/focused runbooks use the [operations documentation standard](../product/operations-documentation-standard.md). Interface profiles/new focused contracts use the [interface documentation standard](../product/interface-documentation-standard.md).
 
 ## Updating domain documentation
 
-When behavior changes materially, update the matching domain root and any affected capability/security/operations documents together with code-local README, tests, shared operations, ADRs, capability/status records, accessibility evidence, and acceptance evidence as applicable.
+When behavior changes materially, update the matching domain root and affected capability/security/operations/interface documents together with code-local README, tests, shared operations, ADRs, capability/status records, accessibility evidence, and acceptance evidence as applicable.
 
-The structure is intentionally deterministic: a contributor can derive the canonical contract, security profile and operations profile paths directly from `app/Domain/<Domain>` without repository search or tribal knowledge.
+The structure is intentionally deterministic: a contributor can derive the canonical contract, security profile, operations profile, and interface profile paths directly from `app/Domain/<Domain>` without repository search or tribal knowledge.
