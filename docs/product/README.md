@@ -13,6 +13,8 @@ Domain-specific product scopes, implementation plans, slice validations, accessi
 - [Documentation completeness standard](documentation-completeness-standard.md) — normative definition of document, coverage, and phase completion plus the hard `continue` gate.
 - [Documentation Completion Program](documentation-program-plan.md) — phased DCP-P0 through DCP-P7 roadmap for domain, security, operations, interface, evidence, architecture, and maintenance completeness.
 - [Documentation program status](documentation-program-status.md) — authoritative current DCP phase and continuation decision.
+- [Domain contract standard](domain-contract-standard.md) — DCP-P1 requirements for code-local maps, canonical domain contracts, capability splitting, code-area review, and P1 CI.
+- [Domain coverage matrix](domain-coverage-matrix.md) — frozen DCP-P1 inventory of all 14 domains and every required material capability contract.
 - [Current capability matrix](current-capability-matrix.md) — present-tense implemented capabilities and explicit non-capabilities/boundaries.
 - [Definition of done](definition-of-done.md) — repository-level completion expectations.
 - [Repository structure audit](repository-structure-audit.md) — physical repository/documentation structure evidence.
@@ -30,6 +32,8 @@ The repository's ownership migration is complete; ongoing documentation completi
 The DCP is sequential and hard-gated. Every phase must reach 100% required documentation coverage before the next phase may start. The user command `continue` reads the [program status ledger](documentation-program-status.md): if the current phase is incomplete, work remains in that phase; only a fully complete gate advances to the next phase.
 
 The normative completion definition is [Documentation completeness standard](documentation-completeness-standard.md). Specialized standards are introduced phase-by-phase instead of continuously expanding one monolithic documentation standard.
+
+Current DCP-P1 execution uses the [Domain contract standard](domain-contract-standard.md) and [Domain coverage matrix](domain-coverage-matrix.md). Later phases create their own focused standards only when that phase becomes active.
 
 ## Historical program acceptance
 
@@ -101,5 +105,6 @@ When product work changes:
 5. Keep real production approval separate from repository/product acceptance.
 6. Follow the [documentation standard](documentation-standard.md) and protected architecture/link checks.
 7. For Documentation Completion Program work, follow the [current DCP status](documentation-program-status.md) and do not advance a phase until [documentation completeness](documentation-completeness-standard.md) is satisfied.
+8. During DCP-P1, keep the [domain coverage matrix](domain-coverage-matrix.md) synchronized with actual required capability contracts and the [domain contract standard](domain-contract-standard.md).
 
 There is no Phase 7 in the current baseline. Accepted post-program increments are domain-owned evidence, not continuation of the historical phase numbering. `DCP-P0` through `DCP-P7` are documentation-governance phase IDs and are separate from the historical product implementation phases.
