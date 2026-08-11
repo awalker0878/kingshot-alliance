@@ -361,9 +361,7 @@ final class RepositoryStructureTest extends TestCase
         );
     }
 
-    /**
-     * @param list<string> $headings
-     */
+    /** @param list<string> $headings */
     private function assertHeadingsAppearInOrder(string $contents, array $headings, string $path): void
     {
         $lastPosition = null;
@@ -388,9 +386,7 @@ final class RepositoryStructureTest extends TestCase
         }
     }
 
-    /**
-     * @return list<string>
-     */
+    /** @return list<string> */
     private function documentationFiles(): array
     {
         $files = [];
@@ -411,9 +407,7 @@ final class RepositoryStructureTest extends TestCase
         return $files;
     }
 
-    /**
-     * @return list<string>
-     */
+    /** @return list<string> */
     private function directories(string $path): array
     {
         $entries = scandir($path);
