@@ -23,7 +23,7 @@ Domain-specific current behavior and domain-owned acceptance evidence belong und
 - P3: [Operations standard](operations-documentation-standard.md) · [coverage](operations-coverage-matrix.md) · [exit](operations-completeness-exit-report.md)
 - P4: [Interface standard](interface-documentation-standard.md) · [coverage](interface-coverage-matrix.md) · [exit](interface-completeness-exit-report.md)
 - P5: [Testing/evidence standard](testing-evidence-standard.md) · [coverage](testing-evidence-coverage-matrix.md) · [exit](testing-evidence-completeness-exit-report.md)
-- P6: [Architecture/governance standard](architecture-governance-standard.md) · [coverage](architecture-governance-coverage-matrix.md) · exit evidence is produced at the P6 candidate gate.
+- P6: [Architecture/governance standard](architecture-governance-standard.md) · [coverage](architecture-governance-coverage-matrix.md) · [exit](architecture-governance-completeness-exit-report.md)
 
 ### Current system/product navigation
 
@@ -53,7 +53,7 @@ DCP-P0 through P5 are complete. P5 final transition head `983b662bac8873ba2eb71c
 
 That closes P5 and makes **DCP-P6 — Architecture and program-governance consolidation** authoritative.
 
-P6 is governed by the [architecture/governance standard](architecture-governance-standard.md) and frozen [coverage matrix](architecture-governance-coverage-matrix.md). P7 remains blocked until P6 reaches 100% inventory coverage and passes both candidate and final exact-head protected gates.
+P6 is governed by the [architecture/governance standard](architecture-governance-standard.md), frozen [coverage matrix](architecture-governance-coverage-matrix.md), and [P6 exit report](architecture-governance-completeness-exit-report.md). P6 content is complete; its protected candidate/final exact-head gates remain before P7 can start.
 
 ## Shared versus domain-owned authority
 
