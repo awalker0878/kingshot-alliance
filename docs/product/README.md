@@ -45,15 +45,15 @@ Domain-specific current behavior and domain-owned acceptance evidence belong und
 
 ## Documentation Completion Program state
 
-DCP-P0 through P5 are complete. P5 final transition head `983b662bac8873ba2eb71ccec8a6c9e5d1331923` independently passed:
+DCP-P0 through P5 are complete. P5 final transition head `983b662bac8873ba2eb71ccec8a6c9e5d1331923` passed DR `31516665602`, CodeQL `31516665615`, and CI `31516665593`.
 
-- Dependency Review `31516665602`;
-- CodeQL `31516665615`; and
-- CI `31516665593`.
+DCP-P6 content candidate `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf` was promoted to exact candidate/evidence head `b2d63ffceea50658c989a569a44ad98fc47db75a`, which passed:
 
-That closes P5 and makes **DCP-P6 — Architecture and program-governance consolidation** authoritative.
+- Dependency Review `31518789039`;
+- CodeQL `31518789038`; and
+- CI `31518789030`, including 487 Pint files, PHPStan/Larastan 345/345 with 0 errors, 395 tests / 9,104 assertions, immutable image, staging, backup/restore, and image scan.
 
-P6 is governed by the [architecture/governance standard](architecture-governance-standard.md), frozen [coverage matrix](architecture-governance-coverage-matrix.md), and [P6 exit report](architecture-governance-completeness-exit-report.md). P6 content is complete; its protected candidate/final exact-head gates remain before P7 can start.
+P6 candidate acceptance is complete. **DCP-P7 — Maintenance automation and final acceptance** is selected only after the exact P6 final evidence/status head created by this transition independently passes the same protected gate. Do not begin P7 implementation on an unvalidated P6 transition head.
 
 ## Shared versus domain-owned authority
 
