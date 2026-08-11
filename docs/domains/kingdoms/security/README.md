@@ -6,63 +6,63 @@
 **Status:** Current  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary security boundary:** Alliance-owned neutral-game workflows and K4 ingestion/promotion state, separated from tenant authorization, source secrets, public machine exposure, and decision automation
+**Primary security boundary:** Alliance-owned neutral-game workflows and K4 ingestion/promotion/scheduler state, separated from tenant authorization, source secrets, public machine exposure, and decision automation
 
 ## 1. Security purpose and scope
 
-Kingdoms protects Alliance-owned roster/history/import/intelligence, transfer/diplomacy state, tracked game-Alliance intelligence, and K4 ingestion. K4 through P3 permits delegated factual player and game-Alliance observation promotion only to existing tenant relationships.
+Kingdoms protects Alliance-owned roster/history/import/intelligence, transfer/diplomacy state, tracked game-Alliance intelligence, and K4 ingestion. K4 through P4 permits approved generic acquisition plus delegated factual player/game-Alliance observation promotion only through existing tenant relationships.
 
 ## 2. Assets and sensitive data
 
-Tenant-private assets include roster/snapshot/import provenance, transfer/diplomacy/contact data, K4 operational state, and bounded machine provenance on promoted snapshots/observations. Neutral `Kingdom`, `KingdomPlayer`, and `KingdomAlliance` identities are reference data, not authorization.
+Tenant-private assets include roster/snapshot/import provenance, transfer/diplomacy/contact data, K4 operational state, opaque source cursor/window identity, bounded scheduling/failure state, and machine provenance on promoted snapshots/observations. Neutral Kingdom/player/game-Alliance identities are reference data, not authorization.
 
-K4 accepts no source credentials, arbitrary manager URLs, or canonical raw external responses.
+K4 accepts no arbitrary manager source URL/header/cookie/credential or canonical raw external response archive.
 
 ## 3. Actors, authentication and authorization
 
-Member reads require `alliance.view`; human Kingdoms management requires `kingdoms.manage` with recent password confirmation where applicable. Machine promotion uses validated tenant-owned subscription/candidate context and never a fabricated User actor.
+Member reads require `alliance.view`; human Kingdoms management/replay requires `kingdoms.manage` with recent password confirmation where applicable. Machine acquisition/promotion uses validated tenant-owned subscription/candidate context and never a fabricated User actor.
 
 Human-only governance remains mandatory for roster/tracking lifecycle, K3 correction/invalidation, diplomacy, contacts, and transfer decisions.
 
 ## 4. Tenant and privacy boundaries
 
-Global neutral identity never shares tenant history. Player promotion must terminate at an existing owning-Alliance roster relation; game-Alliance promotion must terminate at an existing active owning-Alliance tracking relation.
+Global neutral identity never shares tenant history. Each scheduled run re-resolves owning Alliance/current Kingdom/source version before staging/promotion. Player promotion terminates at an existing owning-Alliance roster relation; game-Alliance promotion terminates at an existing active owning-Alliance tracking relation.
 
-Member history omits actor/import/machine provenance. Managers may see bounded source provenance only. Candidate normalized bodies, secrets/raw responses, diplomacy/contact private text, and unrelated manager data remain excluded.
+Manager scheduler presentation is limited to bounded source/scheduling/state/count/reason metadata. Candidate normalized bodies, secrets/raw responses, diplomacy/contact private text, and unrelated manager data remain excluded.
 
 ## 5. Trust boundaries and data flows
 
-K4 crosses operational candidate state into accepted K1/K3 canonical history. Both promotion paths recheck subscription/batch/candidate context, current Kingdom, approved adapter version, stable identity, and the owning-Alliance relationship before delegating to accepted business recorders.
+K4-P4 crosses shared scheduler/queue infrastructure into an approved acquisition adapter, then into K4 bounded staging and accepted K1/K3 promotion actions. Database locks and domain re-resolution remain authoritative even though unique/overlap queue controls reduce duplicate execution.
 
-No external network/source trust boundary exists because production adapter configuration remains empty.
+No concrete production external network/source trust boundary exists because production adapter configuration remains empty.
 
 ## 6. Threats, abuse cases and controls
 
-Controls address cross-tenant target confusion, name/tag identity guessing, automatic roster/tracking creation or reactivation, machine correction of accepted K3 history, fake-human attribution, replay multiplication, stale/revoked source context, destructive history coupling, secret leakage, and premature decision automation.
+Controls address cross-tenant target confusion, name/tag identity guessing, automatic roster/tracking creation/reactivation, machine correction, fake-human attribution, scheduler duplication, cursor rewind, replay multiplication, stale/revoked context, unbounded retry pressure, failure-detail leakage, destructive history coupling and premature decision automation.
 
-See [K4 Slice B security review](kingdoms-automated-ingestion-player-promotion-security-review.md) and [K4 Slice C security review](kingdoms-automated-ingestion-alliance-promotion-security-review.md).
+See [K4 Slice D scheduler/replay security review](kingdoms-automated-ingestion-scheduler-security-review.md).
 
 ## 7. Integrity, concurrency and idempotency
 
-K4 promotion locks relevant operational/tenant state, delegates through accepted K1/K3 recorders, records safe promoted identity, and reuses append-history/idempotency semantics. Exact retry returns the existing promoted record; later capture remains distinct history.
+Due subscription claims, context validation and cursor advancement use row locks. Jobs are unique/overlap-protected but source-window/candidate/promoted-record idempotency remains authoritative for at-least-once delivery.
 
-Machine game-Alliance observations cannot carry correction/invalidation instructions. Human K3 correction behavior remains unchanged.
+Cursor advances only after Completed/Partial batch state. Exact replay of a completed window must return the same next cursor. Machine game-Alliance observations remain append-only and cannot carry correction/invalidation instructions.
 
 ## 8. Secrets and credential handling
 
-No K4 source-secret lifecycle is implemented. Source credentials/raw responses must not enter Kingdoms tables, normalized facts, logs, audit/outbox, or support evidence. Concrete credentials remain a separate source-approval requirement.
+P4 introduces no source-secret lifecycle. Source credentials/raw responses must not enter Kingdoms tables, normalized facts, logs, audit/outbox or support evidence. A concrete credential/network path remains a separate source-approval requirement.
 
 ## 9. Destructive operations, retention and deletion
 
-Operational batches/candidates are not canonical history. Promoted K1/K3 records carry copied bounded provenance without FK dependence on operational K4 rows so future P5 pruning cannot delete accepted history. Until P5, operators must not manually prune/rewrite K4 state to force retries.
+Operational subscriptions/batches/candidates/scheduling state are not canonical history. Promoted K1/K3 records retain copied bounded provenance without FK dependence on operational K4 rows. P5 owns reviewed retention/pruning and source-revocation hardening; operators must not manually delete/rewrite K4 rows to force retries.
 
 ## 10. Auditability, observability and evidence
 
-Machine-origin observations/promotion use null actor plus bounded IDs/adapter/source/hashes in internal evidence. K4-P3 runtime candidate `8186af9fd7276a20889ca3a25b80172c6fe824d9` passed DR `31541291512`, CodeQL `31541291470`, CI `31541291501`: Pint 515; PHPStan 365/365 zero errors; 417 tests / 9,628 assertions; image/staging/backup/scan success.
+Machine-origin observations use null actor plus bounded IDs/adapter/source/hashes. Human replay creates attributable audit/internal-outbox evidence. P4 runtime candidate `27855f79ba128b35edea7f82b2f6381fbf810363` passed DR `31545866277`, CodeQL `31545866288`, CI `31545866249`: Pint 523; PHPStan 371/371 zero errors; 423 tests / 9,697 assertions; image/staging/backup/scan success.
 
 ## 11. Residual risks and explicit non-capabilities
 
-Real source correctness/permission/network/secrets/rate behavior remains unvalidated. No scheduler/worker/cursor/retry loop, public Kingdoms API/webhook, cross-Alliance sharing, automatic roster/tracking/transfer/diplomacy/contact behavior, machine K3 correction/invalidation, scoring/ranking, or recommendations are approved through P3.
+Real source correctness/permission/network/secrets/rate/schema/revocation behavior remains unvalidated. No public Kingdoms API/webhook, cross-Alliance sharing, automatic roster/tracking/transfer/diplomacy/contact behavior, machine K3 correction/invalidation, scoring/ranking or recommendations are approved.
 
 ## 12. Focused reviews and related documentation
 
@@ -76,7 +76,8 @@ Existing focused/whole-increment Kingdoms security reviews remain historical acc
 - [K4-P1 ingestion foundation security review](kingdoms-automated-ingestion-foundation-security-review.md)
 - [K4-P2 player-promotion security review](kingdoms-automated-ingestion-player-promotion-security-review.md)
 - [K4-P3 game-Alliance-promotion security review](kingdoms-automated-ingestion-alliance-promotion-security-review.md)
+- [K4-P4 scheduler/replay security review](kingdoms-automated-ingestion-scheduler-security-review.md)
 - [Living automated-ingestion contract](../automated-ingestion.md)
-- [Alliance intelligence and diplomacy](../alliance-intelligence.md)
-- [K4 Slice C validation](../product/kingdoms-automated-ingestion-slice-c-validation.md)
+- [K4 Slice D validation](../product/kingdoms-automated-ingestion-slice-d-validation.md)
+- [Automated ingestion operations](../operations/kingdoms-automated-ingestion.md)
 - [Security baseline](../../../security/security-baseline.md)

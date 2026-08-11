@@ -3,89 +3,95 @@
 [← Kingdoms domain](README.md)
 
 **Document type:** Living capability contract  
-**Status:** Current — `KINGDOMS-004` through `K4-P3` / Slice C complete when the containing evidence head is protected-green; `K4-P4` is next  
+**Status:** Current — `KINGDOMS-004` through `K4-P4` / Slice D validated when the containing evidence head is protected-green; `K4-P5` is next  
 **Owning domain:** Kingdoms
 
 ## 1. Purpose
 
-Automated game-data ingestion provides a tenant-scoped path for approved machine-readable Kingshot facts without bypassing accepted Kingdoms identity, tenancy, append-history, privacy, or human-decision boundaries.
+Automated game-data ingestion provides a tenant-scoped path for approved machine-readable Kingshot facts without bypassing accepted Kingdoms identity, tenancy, append-history, privacy or human-decision boundaries.
 
-K4-P1 established the generic subscription/batch/candidate control plane. K4-P2 added existing-roster player-snapshot promotion. K4-P3 adds existing-active-tracking game-Alliance observation promotion.
+K4-P1 established the generic subscription/batch/candidate control plane. K4-P2 added existing-roster player-snapshot promotion. K4-P3 added existing-active-tracking game-Alliance observation promotion. K4-P4 adds generic scheduled acquisition, cursor/retry/concurrency mechanics and controlled replay around those accepted contracts.
 
 ## 2. Scope and non-scope
 
-Current scope includes code/config allowlisted adapters, Alliance/current-Kingdom subscriptions, batches, bounded normalized candidates, quarantine/rejection, deterministic candidate identity, manager status/control, and delegated promotion of factual player snapshots and game-Alliance observations.
+Current scope includes code/config allowlisted adapters, Alliance/current-Kingdom subscriptions, bounded acquisition pages, batches, normalized candidates, quarantine/rejection, deterministic identities, delegated player/game-Alliance promotion, scheduler claiming, dedicated queue execution, opaque cursor advancement, bounded retry/circuit state, manager health presentation and password-confirmed replay.
 
-Still out of scope: a concrete production source, network acquisition, source credentials, scheduler/worker, automatic roster/tracking creation/reactivation, machine correction/invalidation, transfer/diplomacy/contact mutation, scoring/ranking/recommendations, cross-Alliance sharing, and public Kingdoms API/webhook exposure.
+Still out of scope: a concrete production source, production endpoint/credential, scraping/OCR/browser/game-client automation, arbitrary manager network configuration, automatic roster/tracking creation/reactivation, machine correction/invalidation, transfer/diplomacy/contact mutation, scoring/ranking/recommendations, cross-Alliance sharing, and public Kingdoms API/webhook exposure.
 
 ## 3. Model and state
 
 `KingdomIngestionSubscription`, `KingdomIngestionBatch`, and `KingdomIngestionCandidate` are Alliance-owned operational state with captured Kingdom and adapter/version context.
 
-Successful promotion records a safe promoted record type/ULID/time on the candidate. Promoted `PlayerSnapshot` and `KingdomAllianceObservation` rows store bounded immutable machine provenance: subscription ID, batch ID, adapter key/version, optional source record ID, source identity hash, and payload hash. Canonical history does not foreign-key back to operational candidate rows.
+Subscriptions additionally hold opaque source cursor, next-run/claim/success/failure/circuit state and bounded failure codes. Batches capture source-window identity plus the next cursor returned for that window. Candidates preserve deterministic source/identity/payload hashes and safe promoted-record identity.
+
+Promoted `PlayerSnapshot` and `KingdomAllianceObservation` rows store bounded immutable machine provenance without FK dependence on operational K4 rows.
 
 ## 4. Invariants
 
 1. Alliance is the tenant/authorization boundary.
 2. Captured Kingdom context is never silently retargeted after drift.
 3. Stable game IDs are the only automatic identity keys; names/tags/handles never match targets.
-4. Player promotion requires one existing neutral player and one existing owning-Alliance roster entry.
-5. Game-Alliance promotion requires one active neutral game Alliance and one existing active owning-Alliance tracking relationship.
-6. Unknown, ambiguous, inactive, stale-context, revoked-source, or invalid candidates quarantine before business mutation.
-7. Promotion never creates or reactivates roster/tracking/membership/transfer/diplomacy/contact state.
-8. Machine game-Alliance observations are append-only; correction/invalidation remains human-only.
-9. Machine promotion delegates to accepted K1/K3 record actions and uses no fabricated User actor.
-10. Exact candidate retry returns the existing promoted record; later distinct capture remains append-oriented history.
-11. Production adapter configuration remains empty.
-12. All `kingdoms.*` ingestion events remain internal and public-webhook ineligible.
+4. Player promotion requires one existing owning-Alliance roster entry; game-Alliance promotion requires one existing active owning-Alliance tracking relation.
+5. Unknown, ambiguous, inactive, stale-context, revoked-source or invalid candidates fail closed/quarantine before business mutation.
+6. Promotion never creates/reactivates roster/tracking/membership/transfer/diplomacy/contact state.
+7. Machine game-Alliance observations are append-only; correction/invalidation remains human-only.
+8. Machine promotion delegates to accepted K1/K3 record actions and uses no fabricated User actor.
+9. Scheduler/queue identity is never authorization; each run re-resolves tenant/current-Kingdom/source context.
+10. Cursor advances only after a completed/partial source window and never on failed/blocked work.
+11. Exact source-window/candidate/promoted-record retry is idempotent; later distinct capture remains append-oriented history.
+12. Failure state is bounded; raw source exception/response/secret material is not persisted as scheduler diagnostics.
+13. Production adapter configuration remains empty until separate source approval.
+14. All `kingdoms.*` ingestion events remain internal/public-webhook ineligible.
 
 ## 5. Workflows
 
-Managers may manage approved subscriptions and reject quarantined candidates under the K4-P1 control surface.
+Managers may manage approved subscriptions and reject/replay quarantined candidates under the K4 control surface; human mutations require recent password confirmation.
 
-Player promotion resolves stable game-player identity and existing owning-Alliance roster relationship before delegating to `RecordPlayerSnapshot`.
+The shared scheduler invokes `kingdoms:queue-ingestion` every minute. Due active subscriptions are claimed transactionally before a unique, overlap-protected job is dispatched to the dedicated `kingdoms-ingestion` queue.
 
-Game-Alliance promotion resolves stable game-Alliance identity and an existing active `TrackedKingdomAlliance` before delegating to `RecordKingdomAllianceObservation`. It cannot supply correction linkage or correction reason, and it never creates/reactivates tracking.
+An acquisition-capable adapter receives the subscription's opaque cursor and a maximum page size of 250. The returned source window is passed to `StartKingdomIngestionBatch`; each record is normalized/staged through `StageKingdomIngestionCandidate` and Pending candidates delegate to the accepted P2/P3 promotion actions. The batch becomes Completed or Partial, then the cursor advances under locks.
 
-If a candidate is already promoted, retry resolves the recorded canonical record. A later capture may append another factual observation even when the source record identifier is unchanged.
+Exact replay of a completed/partial source window accepts only the same stored next cursor. Manager replay resets only a quarantined candidate to Pending, records bounded human audit/outbox evidence, and re-runs the existing promotion path.
 
 ## 6. Authorization, tenancy and privacy
 
-Human management remains `kingdoms.manage` plus recent password confirmation. Machine promotion derives authority only from already-owned subscription/candidate context; neutral identity or source identity never grants tenant access.
+Human management/replay remains `kingdoms.manage` plus recent password confirmation. Machine work derives authority only from already-owned subscription/candidate context after re-resolving current Alliance/Kingdom and adapter version; neutral/source/queue identity never grants tenant access.
 
-Ordinary members continue to receive factual observation fields/capture/source only. Manager history may include bounded source provenance. Normalized candidate bodies, source secrets/raw responses, diplomacy/contact private data, and unrelated private manager data are not disclosed.
+The manager UI may expose bounded adapter/subscription/batch/candidate scheduling, cursor, counts, timing and reason codes. It does not serialize normalized candidate payloads, source secrets, headers/cookies or arbitrary raw responses.
 
 ## 7. Persistence and query semantics
 
-K4-P2 extends player snapshots with nullable machine provenance and null actor for machine origin. K4-P3 similarly extends game-Alliance observations with bounded machine provenance while preserving the accepted K3 correction/invalidation columns for manual governance only.
+P4 adds scheduler fields to subscriptions (`next_run_at`, `last_claimed_at`, bounded consecutive failure/circuit/failure-code state) and `next_source_cursor` to batches.
 
-`kingdom_ingestion_candidates` stores only safe promoted record type/ULID/timestamp. Exact machine identity is additionally unique per Alliance promoted-history table through `source_identity_hash`.
+Source-window uniqueness and deterministic candidate identities remain authoritative. Promoted-history source identity remains independently unique within the owning Alliance. Operational cursor/failure state does not replace canonical business provenance.
 
 ## 8. Events/integrations/background processing
 
-Machine player snapshots reuse internal `kingdoms.player_snapshot_recorded`; machine game-Alliance observations reuse internal `kingdoms.alliance_intelligence_observation_recorded`; candidate promotion emits internal `kingdoms.ingestion_candidate_promoted`.
+`kingdoms:queue-ingestion --limit=100` runs every minute with `onOneServer()` and `withoutOverlapping(10)`. Due work dispatches `RunKingdomIngestionSubscriptionJob` to dedicated Horizon queue `kingdoms-ingestion`.
 
-There is still no K4 scheduler, source poller, crawler, scraper, OCR worker, bot, cursor loop, retry worker, replay worker, or public machine contract.
+Jobs are unique per subscription, overlap-protected, timeout at 120 seconds, try at most five times and use bounded 60/300/900/3,600-second queue backoff. Repeated acquisition failures use bounded subscription backoff/circuit state; exhausted jobs finalize a still-pending batch as `failed/retry_exhausted`.
+
+Production has no concrete acquisition adapter, so the generic scheduler has no real source/network dependency in the default production configuration.
 
 ## 9. Failure, idempotency and concurrency
 
-Promotion fails closed/quarantines on context mismatch, Kingdom drift, source-version revocation, missing/unknown/ambiguous stable identity, missing/inactive/ambiguous tenant relationship, or shared business-record validation failure.
+Due claims, context checks and cursor advancement use database row locks. `next_run_at` advances before dispatch so duplicate scheduler ticks cannot repeatedly dispatch the same due subscription; queue uniqueness/overlap provides an additional, non-authoritative guard.
 
-Transactional locking and uniqueness protect operational state; promoted-history source identity protects exact retry. Operators must not rewrite hashes/context, create tenant relationships, or invalidate accepted history to force recovery.
+Adapter removal/version drift, Kingdom drift, circuit-open state, source-window conflict, unsupported payload, unknown/inactive target and business validation fail closed. Failure diagnostics store bounded codes such as `acquisition_failed`, `source_contract_invalid`, `processing_validation_failed`, `source_unapproved`, context codes and `retry_exhausted`, never raw exception text.
 
 ## 10. Operations and observability
 
-Operators can correlate safe Alliance/Kingdom/subscription/batch/candidate/promoted-record IDs, adapter key/version, source record ID, hashes, state/reason, capture time, and internal audit/outbox IDs. Source secrets/raw responses/private text must not enter logs or evidence.
+Operators can correlate safe Alliance/Kingdom/subscription/batch/candidate/promoted-record IDs, adapter key/version, source-window/record IDs, opaque cursor, hashes, next-run/claim/success/failure/circuit timing, state/reason codes and internal audit/outbox IDs.
 
-See [Automated ingestion operations](operations/kingdoms-automated-ingestion.md).
+The dedicated queue keeps external acquisition pressure isolated from core/default/integration queues. See [Automated ingestion operations](operations/kingdoms-automated-ingestion.md).
 
 ## 11. Tests and validation
 
-K4-P3 runtime candidate `8186af9fd7276a20889ca3a25b80172c6fe824d9` passed Dependency Review `31541291512`, CodeQL `31541291470`, and CI `31541291501`: Pint 515 files, PHPStan/Larastan 365/365 with zero errors, 417 tests / 9,628 assertions, frontend/build, PostgreSQL migrations, immutable image, ephemeral staging, backup/restore, scan, and cleanup.
+Final P4 runtime candidate `27855f79ba128b35edea7f82b2f6381fbf810363` passed Dependency Review `31545866277`, CodeQL `31545866288`, and CI `31545866249`: Pint 523 files, PHPStan/Larastan 371/371 with zero errors, 423 tests / 9,697 assertions, frontend/build, clean PostgreSQL migrations, immutable image, ephemeral staging, backup/restore and image scan.
 
-Focused P3 tests prove existing-active-tracking promotion, null machine actor/bounded provenance, exact retry, later append-history capture, manager provenance disclosure, cross-tenant no-auto-tracking, inactive-tracking quarantine, unknown-reference quarantine, source revocation, and migration round-trip.
+Focused P4 tests prove one-time due claims, mixed player/game-Alliance processing, exact completed-window replay idempotency, bounded failure/circuit state, retry-exhaustion finalization, password-confirmed manager replay and migration round-trip.
 
-See [Slice C validation](product/kingdoms-automated-ingestion-slice-c-validation.md).
+See [Slice D validation](product/kingdoms-automated-ingestion-slice-d-validation.md).
 
 ## 12. Related documentation
 
@@ -93,7 +99,8 @@ See [Slice C validation](product/kingdoms-automated-ingestion-slice-c-validation
 - [Slice A validation](product/kingdoms-automated-ingestion-slice-a-validation.md)
 - [Slice B validation](product/kingdoms-automated-ingestion-slice-b-validation.md)
 - [Slice C validation](product/kingdoms-automated-ingestion-slice-c-validation.md)
-- [Slice C security review](security/kingdoms-automated-ingestion-alliance-promotion-security-review.md)
+- [Slice D validation](product/kingdoms-automated-ingestion-slice-d-validation.md)
+- [Slice D security review](security/kingdoms-automated-ingestion-scheduler-security-review.md)
 - [Player snapshots](snapshots.md)
 - [Alliance intelligence and diplomacy](alliance-intelligence.md)
 - [Automated ingestion operations](operations/kingdoms-automated-ingestion.md)
