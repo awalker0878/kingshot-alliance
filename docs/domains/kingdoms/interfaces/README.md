@@ -11,7 +11,7 @@
 
 ## 1. Boundary purpose and ownership
 
-Kingdoms owns neutral game identity plus Alliance-owned roster/history/intelligence, migration, transfer, diplomacy/intelligence, and K4 ingestion workflows. K4-P2 adds an internal player-snapshot promotion service; it does not create a public source or machine interface.
+Kingdoms owns neutral game identity plus Alliance-owned roster/history/intelligence, controlled CSV migration, transfer planning, game-Alliance intelligence/diplomacy, and K4 ingestion workflows. K4-P2 adds an internal player-snapshot promotion service; it does not create a public source or machine interface.
 
 ## 2. Surface inventory
 
@@ -29,7 +29,7 @@ Neutral game identity, adapter identity, source record identity, and candidate s
 
 Stable game IDs remain the only automatic identity keys. K4-P2 accepts only a normalized `player_snapshot` candidate whose bounded fields were staged through the registered adapter contract.
 
-Promotion rechecks adapter key/version/target support and resolves the stable player ID in the captured Kingdom. Names/tags/handles/source labels are never target match keys.
+Promotion rechecks adapter key/version/target support and resolves the stable player ID in the captured Kingdom. Names/tags/handles/source labels are never target match keys. The accepted controlled roster file contract remains [CSV migration](../csv-migration.md).
 
 ## 5. Output and disclosure contracts
 
@@ -39,9 +39,9 @@ Candidate normalized payload bodies, source credentials, arbitrary raw responses
 
 ## 6. Internal actions, queries and services
 
-K4 now includes the P1 adapter/subscription/batch/candidate services plus `PromoteKingdomIngestionPlayerSnapshot`, which delegates accepted facts to `RecordPlayerSnapshot` with explicit machine provenance and no fabricated User actor.
+K4 includes the P1 adapter/subscription/batch/candidate services plus `PromoteKingdomIngestionPlayerSnapshot`, which delegates accepted facts to `RecordPlayerSnapshot` with explicit machine provenance and no fabricated User actor.
 
-K4-P2 never invokes roster creation. Unknown/ambiguous/out-of-context targets quarantine.
+K4-P2 never invokes roster creation. Unknown, ambiguous, revoked-source, or out-of-context targets quarantine.
 
 ## 7. Events, outbox and cross-domain consumers
 
@@ -53,11 +53,11 @@ K4-P2 adds no command, queue job, scheduler, source poller, crawler, scraper, OC
 
 ## 9. Files, imports, exports and external dependencies
 
-Controlled roster CSV remains the only material Kingdoms file contract. K4-P2 adds no new import/export or external dependency. Production adapter configuration remains empty.
+The accepted [controlled roster CSV contract](../csv-migration.md) remains the material Kingdoms file interface. K4-P2 adds no new import/export or external dependency. Production adapter configuration remains empty.
 
 ## 10. Failure, idempotency, versioning and compatibility
 
-Promotion exact retry resolves the same candidate/snapshot. Later distinct capture time remains append history. Source adapter version is rechecked at promotion time; missing/changed versions quarantine. Candidate/business-history coupling is by bounded provenance/record identity, not a retention-coupling FK.
+Promotion exact retry resolves the same candidate/snapshot. Later distinct capture time remains append history. Source adapter version is rechecked at promotion time; missing/changed versions quarantine. Candidate/business-history correlation uses bounded provenance/record identity rather than a retention-coupling FK.
 
 ## 11. Explicit non-capabilities
 
@@ -65,6 +65,8 @@ No real game-data source, scheduler/worker, public API/webhook ingestion, arbitr
 
 ## 12. Focused contracts, evidence and related documentation
 
+- [Kingdoms domain](../README.md)
+- [Controlled CSV migration](../csv-migration.md)
 - [Automated ingestion](../automated-ingestion.md)
 - [Player snapshots](../snapshots.md)
 - [K4 Slice B validation](../product/kingdoms-automated-ingestion-slice-b-validation.md)

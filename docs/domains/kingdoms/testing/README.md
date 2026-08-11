@@ -15,7 +15,7 @@ Kingdoms tests prove neutral identity is not tenant authority, automatic identit
 
 ## 2. Executable suite mapping
 
-Architecture, Feature, Integration, Performance, TenantIsolation, and Unit suites remain material. K4-P2 adds focused feature coverage while reusing existing snapshot, authorization, audit/outbox, integration-exclusion, and migration evidence.
+Architecture, Feature, Integration, Performance, TenantIsolation, and Unit suites remain material. K4-P2 adds focused feature coverage while reusing existing snapshot, authorization, audit/outbox, integration-exclusion, migration, security, and operations evidence.
 
 ## 3. Architecture and domain-boundary validation
 
@@ -25,9 +25,13 @@ Architecture guards retain no public Kingdoms API/wildcard webhook, no scoring/a
 
 P2 tests prove stable neutral player identity does not permit cross-Alliance snapshot mutation, an Alliance without the roster relation is quarantined rather than auto-enrolled, manager/member provenance disclosure remains bounded, and Alliance-Kingdom drift/source revocation fail before mutation.
 
+The living [Kingdoms security profile](../security/README.md) and focused P2 security review own the current threat/control interpretation.
+
 ## 5. Feature, interface and integration validation
 
 Focused P2 coverage validates successful existing-roster promotion, machine-origin null actor plus bounded source provenance, candidate promoted-record linkage, manager history provenance, and internal audit/outbox promotion evidence. No new HTTP promotion endpoint exists.
+
+The current first-party/public-machine boundary is recorded in [Kingdoms interfaces](../interfaces/README.md).
 
 ## 6. Idempotency, concurrency and asynchronous validation
 
@@ -37,7 +41,7 @@ Exact retry of a promoted candidate returns the same snapshot and does not dupli
 
 `2026_08_11_200000_add_ingestion_provenance_to_player_snapshots.php` is migration-tested down/up and passed clean PostgreSQL CI migration. It makes snapshot User actor nullable for machine origin, adds bounded source provenance/Alliance source-identity uniqueness, and adds safe candidate promotion references.
 
-Canonical snapshots deliberately have no FK to operational candidate/batch/subscription rows, preserving history across later operational pruning.
+Canonical snapshots deliberately have no FK to operational candidate/batch/subscription rows, preserving history across later operational pruning. Recovery/operator interpretation remains in [Kingdoms operations](../operations/README.md).
 
 ## 8. Performance, query and capacity evidence
 
@@ -61,4 +65,16 @@ Historical SHAs/run IDs remain immutable evidence. Current truth follows code/te
 
 Current validation does not prove a real source/network, credentials, scheduler/worker/cursor/retry loop, game-Alliance promotion, production throughput/retention, or cutover. Those are later gates.
 
-Related: [Automated ingestion](../automated-ingestion.md), [Player snapshots](../snapshots.md), [Slice B validation](../product/kingdoms-automated-ingestion-slice-b-validation.md), [Slice B security review](../security/kingdoms-automated-ingestion-player-promotion-security-review.md), [K4 operations](../operations/kingdoms-automated-ingestion.md), [testing/evidence standard](../../../product/testing-evidence-standard.md), [P5 evidence matrix](../../../product/testing-evidence-coverage-matrix.md).
+Related documentation:
+
+- [Kingdoms domain](../README.md)
+- [Kingdoms security](../security/README.md)
+- [Kingdoms operations](../operations/README.md)
+- [Kingdoms interfaces](../interfaces/README.md)
+- [Automated ingestion](../automated-ingestion.md)
+- [Player snapshots](../snapshots.md)
+- [Slice B validation](../product/kingdoms-automated-ingestion-slice-b-validation.md)
+- [Slice B security review](../security/kingdoms-automated-ingestion-player-promotion-security-review.md)
+- [K4 operations](../operations/kingdoms-automated-ingestion.md)
+- [Testing/evidence standard](../../../product/testing-evidence-standard.md)
+- [P5 evidence matrix](../../../product/testing-evidence-coverage-matrix.md)
