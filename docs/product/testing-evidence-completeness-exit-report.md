@@ -4,47 +4,35 @@
 
 **Document type:** DCP phase exit report  
 **Phase:** `DCP-P5` — Testing, evidence, and traceability completeness  
-**Status:** Candidate — protected validation pending  
-**Content candidate SHA:** `e49b4c88d7156101a9d9f8351fe8ba42f83a9632`
+**Status:** Complete candidate — final evidence/status head validation pending  
+**Content candidate SHA:** `e49b4c88d7156101a9d9f8351fe8ba42f83a9632`  
+**Validated candidate/evidence SHA:** `221d8bda2d68a8ffe72ca00845d53656b7e0ab32`
 
 ## 1. Outcome
 
-The DCP-P5 testing/evidence/traceability content inventory is fully implemented and ready for protected candidate validation.
+The complete DCP-P5 testing/evidence/traceability inventory is implemented and the exact candidate/evidence head passed the protected candidate gate.
 
-P5 does not advance to DCP-P6 until the exact candidate/evidence head passes protected Dependency Review, CodeQL and complete CI, and the resulting final exit/status head independently passes the same protected gate.
+P5 may be recorded as Complete and P6 selected in the final program ledger, but that transition is not authoritative until the exact resulting final evidence/status head independently passes Dependency Review, CodeQL, and complete CI.
 
 ## 2. Standard adopted
 
-P5 introduced [Testing, evidence, and traceability documentation standard](testing-evidence-standard.md), defining:
+P5 introduced [Testing, evidence, and traceability documentation standard](testing-evidence-standard.md). It separates living contracts, living validation maps, executable validation evidence, immutable historical acceptance evidence, and operational/external evidence.
 
-- five evidence classes: living contract, living validation map, executable validation evidence, immutable acceptance evidence, and operational/external evidence;
-- exactly one living `docs/domains/<domain>/testing/README.md` profile per canonical domain;
-- a deterministic 12-section validation-map format;
-- canonical PHPUnit suite taxonomy from `phpunit.xml`;
-- `composer check` and `npm run check` as backend/frontend repository quality commands;
-- protected Dependency Review, CodeQL and CI evidence classes;
-- migration/rollback/recovery evidence distinctions;
-- performance/capacity evidence only where an executable claim exists;
-- accessibility evidence separated from generic frontend quality;
-- exact SHA/check-run requirements for new immutable acceptance records;
-- historical evidence hardening rules that preserve original acceptance meaning; and
-- evidence retention/supersession rules.
+It also defines exact revision/check identity for new acceptance records, historical evidence hardening without rewriting accepted scope, evidence retention/supersession, and explicit distinctions among frontend quality/accessibility, migration rollback/recovery, and executable performance evidence.
 
 ## 3. Frozen inventory result
 
-The [Testing/evidence coverage matrix](testing-evidence-coverage-matrix.md) covers all 14 canonical domains plus the complete executable/historical evidence baseline.
-
-Implemented coverage:
+The [Testing/evidence coverage matrix](testing-evidence-coverage-matrix.md) is complete:
 
 - **14/14** living domain testing/evidence profiles;
-- all six exact PHPUnit suites represented: Architecture, Feature, Integration, Performance, TenantIsolation, Unit;
+- all six exact PHPUnit suites represented;
 - backend `composer check` and frontend `npm run check` represented;
-- Dependency Review, CodeQL and CI represented;
-- PostgreSQL migration, immutable image, staging, backup/restore and image-scan evidence represented;
-- Phase 0–6 exit/accessibility evidence audited;
-- Kingdoms K1–K3 validation/accessibility/exit evidence audited;
-- DCP P1–P4 immutable acceptance evidence audited; and
-- the two historical immutable-identity gaps repaired.
+- Dependency Review, CodeQL, and CI represented;
+- PostgreSQL migration, immutable image, staging, backup/restore, and image-scan evidence represented;
+- Phase 0–6 acceptance/accessibility evidence audited;
+- Kingdoms K1–K3 evidence audited;
+- DCP P1–P4 transition evidence audited; and
+- historical Phase 5/6 immutable-identity gaps repaired.
 
 ## 4. Living domain validation maps
 
@@ -54,13 +42,11 @@ Every canonical domain now has:
 docs/domains/<domain>/testing/README.md
 ```
 
-Each profile maps critical claims to the applicable executable evidence classes and current living contract/security/operations/interface records. Profiles explicitly state when Performance, UI/accessibility, asynchronous, or other evidence classes are not applicable instead of manufacturing false coverage.
+Each profile maps critical current claims to applicable executable evidence classes and links the owning domain, security, operations, and interface contracts. P5 intentionally does not create one document per test file or test method.
 
-P5 intentionally does **not** create one document per PHPUnit file or test method.
+## 5. Canonical executable validation baseline
 
-## 5. Executable suite and quality-gate result
-
-`phpunit.xml` currently defines exactly:
+`phpunit.xml` defines exactly:
 
 - `Architecture` → `tests/Architecture`;
 - `Feature` → `tests/Feature`;
@@ -69,108 +55,61 @@ P5 intentionally does **not** create one document per PHPUnit file or test metho
 - `TenantIsolation` → `tests/TenantIsolation`; and
 - `Unit` → `tests/Unit`.
 
-`composer check` remains the complete backend quality command: Pint test mode, PHPStan/Larastan, then ParaTest over the configured PHPUnit suites.
+`composer check` remains the canonical backend gate: Pint test mode, PHPStan/Larastan, then ParaTest. `npm run check` remains the frontend quality gate: ESLint, Prettier, Vue/TypeScript type checking, and production Vite build.
 
-`npm run check` remains the frontend quality command: ESLint, Prettier, Vue/TypeScript type checking and production Vite build.
+## 6. Security, tenancy, and privacy traceability
 
-These quality commands are executable evidence, but neither a passing frontend build nor one targeted test is by itself a phase acceptance record.
+The living testing profiles map authentication/assurance, active-Alliance context, permission/hierarchy, cross-tenant substitution, public/member/manager/Platform-admin disclosure separation, secret/token/signature boundaries, legal hold/deletion/retention, and explicit prohibited external/automation behavior to the applicable Architecture, Feature, Integration, TenantIsolation, and Unit evidence classes.
 
-## 6. Security, tenancy and privacy traceability
-
-The 14 profiles map security-sensitive claims to Architecture, Feature, Integration and TenantIsolation evidence where applicable, including:
-
-- authenticated/verified/password-confirmed/MFA assurance;
-- active Alliance context;
-- permission/hierarchy/last-Owner controls;
-- cross-tenant object substitution denial;
-- public/member/manager/Platform-admin disclosure separation;
-- invitation/application/API credential/webhook secret/token rules;
-- legal holds, deletion, retention/anonymization; and
-- explicit prohibited public/automation boundaries.
-
-Living security documents remain contract authority; executable suites are the repository proof for testable invariants.
+Living security documentation remains contract authority; executable tests are the repository proof for testable invariants.
 
 ## 7. Interface and integration traceability
 
-P5 profiles map P4 contracts to evidence without duplicating the contracts. Material examples include:
+P5 maps P4 material contracts to evidence without duplicating those contracts, including Content public/media boundaries, Contributions `phase5.v1` exports, Events CSV/iCalendar, Integrations API/webhooks, Kingdoms CSV/no-public-API/webhook boundaries, Membership/Recruitment bearer tokens, Notifications scheduler/outbox behavior, and Platform lifecycle/admin/outbox/readiness controls.
 
-- Content public/member/media disclosure;
-- Contributions `phase5.v1` CSV/SpreadsheetML exports;
-- Events authenticated CSV/iCalendar outputs;
-- Integrations API credential/scope/rate/row bounds;
-- webhook eligibility/signature/idempotency/retry;
-- Kingdoms strict CSV and no-public-API/webhook boundary;
-- Membership/Recruitment bearer token flows;
-- Notifications deterministic scheduler/outbox behavior; and
-- Platform lifecycle/export/outbox/admin/readiness controls.
+## 8. Idempotency, concurrency, and asynchronous evidence
 
-## 8. Idempotency, concurrency and asynchronous evidence
-
-Profiles identify material executable evidence for:
-
-- membership invitation and role/event repeat behavior;
-- Event registration capacity/waitlist concurrency;
-- Contributions correction/reversal and reconciliation;
-- deterministic Notifications reminder/report identities;
-- at-least-once Platform outbox consumers;
-- Integrations webhook delivery identity/backoff/terminal state;
-- Kingdoms snapshot/observation/import/transfer idempotency; and
-- Recruitment onboarding/outbox/retention reconciliation.
+Profiles identify executable evidence for invitation/member/role repeat behavior, Event registration capacity/waitlist concurrency, Contributions corrections/reconciliation, deterministic Notifications identities, at-least-once outbox consumers, Integrations delivery identity/backoff, Kingdoms snapshot/observation/import/transfer idempotency, and Recruitment onboarding/retention reconciliation.
 
 P5 does not label a workflow idempotent without an owning identity/state contract.
 
-## 9. Migration, rollback and recovery traceability
+## 9. Migration, rollback, and recovery traceability
 
-P5 explicitly distinguishes:
+P5 distinguishes:
 
-1. clean forward migrations executed on PostgreSQL by CI;
-2. accepted phase/increment domain migration rollback/reapply evidence; and
+1. clean PostgreSQL forward migration in CI;
+2. accepted domain/increment migration rollback/reapply tests; and
 3. CI database backup/restore plus immutable release/staging/readiness evidence.
 
-The profiles continue to respect P3 recovery-set distinctions: database restore does not prove Content private-media recovery, Identity key recovery, or reversal of external webhook side effects.
+P3 recovery-set distinctions remain authoritative: database restore does not prove Content private-media recovery, Identity key recovery, or reversal of already-delivered external webhooks.
 
-## 10. Performance and capacity traceability
+## 10. Performance and accessibility evidence
 
-Performance evidence is linked only where accepted executable bounds exist. Kingdoms retains its explicit realistic-volume gates, including K3's `<= 10` SELECT manager intelligence bound. Platform/Integrations retain bounded capacity/queue/API/export constraints where executable evidence exists.
+Performance evidence is linked only where an accepted executable bound exists. Kingdoms retains its realistic-volume query gates, including K3's `<= 10` SELECT manager intelligence bound. Domains without an accepted numeric threshold explicitly do not invent one.
 
-Domains without an accepted numeric threshold explicitly state that no SLA/query budget is inferred.
+Phase 1–6 and Kingdoms accessibility evidence is indexed separately. `npm run check` is frontend quality evidence, **not** accessibility certification; deployment-specific browser/device/screen-reader/branding evidence remains external where the accepted records say so.
 
-## 11. Accessibility and frontend traceability
+## 11. Historical acceptance audit
 
-P5 indexes Phase 1–6 accessibility records and Kingdoms K1–K3 accessibility evidence. Source-level accessibility guards remain executable regression evidence where implemented.
+Phase 0–4, Kingdoms K1–K3, and DCP P1–P4 already retained strong immutable identities. P5 found two recoverable historical documentation gaps in accepted Phase 5 and Phase 6 exit records and hardened only those identities.
 
-`npm run check` is recorded as frontend quality evidence, **not** accessibility certification. Deployment-specific device/browser/screen-reader/branding checks remain external where the accepted evidence says so.
+## 12. Phase 5 traceability hardening
 
-## 12. Historical acceptance evidence audit
-
-Phase 0–4 records already retained sufficient immutable identities. Kingdoms K1–K3 and DCP P1–P4 likewise retained strong whole-gate identities.
-
-The audit identified two historical traceability gaps:
-
-- accepted Phase 5 lacked exact final SHA/protected run IDs in its exit report;
-- accepted Phase 6 named its implementation SHA but omitted implementation workflow IDs and final PR-head workflow identity.
-
-Those gaps were recoverable directly from GitHub and were hardened without rewriting scope, behavior or historical test counts.
-
-## 13. Phase 5 traceability hardening
-
-[Phase 5 exit report](phase-5-exit-report.md) now appends a P5 traceability-hardening section recording final PR #18 head:
+[Phase 5 exit report](phase-5-exit-report.md) now retains final PR #18 head:
 
 `c30aaab0ee3b03c65f27042a2700540bdebbf9c4`
 
-Protected workflows on that exact head:
+Protected runs:
 
 - Dependency Review `31219686800` — success;
 - CodeQL `31219686802` — success;
 - CI `31219686960` — success.
 
-The original Phase 5 accepted scope, 163 tests / 1,395 assertions and other historical claims remain unchanged.
+The original Phase 5 scope, test counts, and acceptance decision were not recomputed or changed.
 
-## 14. Phase 6 traceability hardening
+## 13. Phase 6 traceability hardening
 
-[Phase 6 exit report](phase-6-exit-report.md) now records both historical protected gates.
-
-Implementation head:
+[Phase 6 exit report](phase-6-exit-report.md) now retains implementation head:
 
 `d1969889ffa044cd7690f263ba9ef70c63a425cb`
 
@@ -186,54 +125,47 @@ Final PR #19 head:
 - CodeQL `31252682836` — success;
 - CI `31252682853` — success.
 
-The recovered section explicitly preserves the original Phase 6 scope and acceptance decision.
+The original Phase 6 scope and acceptance decision were preserved.
 
-## 15. Evidence identity and retention result
+## 14. Evidence identity, retention, and supersession
 
-P5 establishes that a new acceptance record must identify exact validated/final revisions and protected workflow run IDs where applicable. Branch name, PR number or prose saying "CI passed" is supporting context rather than sufficient immutable identity.
+A new accepted record must retain exact validated/final revision and protected workflow run identity where applicable. Branch name, PR number, or prose that "CI passed" is supporting context rather than sufficient immutable proof.
 
-Historical counts/run IDs remain historical; living testing profiles change with current code/tests. Failed candidate runs may be retained when they explain a correction. Real production evidence remains separate from repository-controlled CI evidence.
+Historical counts/SHAs/run IDs remain historical; living validation profiles evolve with current code/tests. Real-production evidence remains separate from repository-controlled CI.
 
-## 16. Navigation and ownership
+## 15. Navigation and ownership
 
-`docs/domains/README.md` now exposes testing/evidence profiles for all 14 domains alongside domain, security, operations and interface profiles. Product navigation indexes the P5 standard/matrix and identifies P5 as current.
+`docs/domains/README.md` exposes domain, security, operations, interface, and testing/evidence profiles for all 14 domains. Product navigation indexes the P5 standard, matrix, and this exit report.
 
-The deterministic domain documentation path is now:
+## 16. CI enforcement
 
-```text
-app/Domain/<Domain>/
-docs/domains/<domain>/README.md
-docs/domains/<domain>/security/README.md
-docs/domains/<domain>/operations/README.md
-docs/domains/<domain>/interfaces/README.md
-docs/domains/<domain>/testing/README.md
-```
+`tests/Architecture/TestingEvidenceDocumentationTest.php` protects:
 
-## 17. CI enforcement
-
-`tests/Architecture/TestingEvidenceDocumentationTest.php` verifies:
-
-- 14/14 code-domain/testing-profile parity;
-- profile metadata and required 12-section order;
-- links to owning domain/security/operations/interfaces and P5 governance;
+- 14/14 testing-profile parity and required section order;
+- links to domain/security/operations/interfaces/P5 governance;
 - exact six-suite parity with `phpunit.xml`;
 - backend/frontend/protected evidence classes;
 - Phase 0–6 exit/accessibility evidence indexing;
-- Kingdoms product evidence indexing;
-- recovered Phase 5 and Phase 6 immutable SHA/run identity remains present; and
-- domain-index navigation.
+- Kingdoms evidence indexing;
+- retained recovered Phase 5/6 immutable identities; and
+- canonical domain navigation.
 
-Existing architecture tests continue repository-wide Markdown-link validation and P1–P4 documentation gates.
+Existing architecture tests continue repository-wide Markdown-link integrity and P1–P4 documentation gates.
 
-## 18. Validation gate
+## 17. Protected candidate validation
 
-Before this report becomes Complete:
+Exact candidate/evidence head `221d8bda2d68a8ffe72ca00845d53656b7e0ab32` passed:
 
-- protected Dependency Review must pass;
-- protected CodeQL must pass;
-- complete CI must pass, including Pint, PHPStan/Larastan, all PHPUnit suites, P5 architecture/traceability checks and repository-wide Markdown-link validation;
-- immutable image, staging, backup/restore and image scan must pass where included by CI;
-- exact validated candidate head/check identities must be recorded; and
-- the resulting final P5 evidence/status head must independently pass the same protected gate before P6 becomes authoritative.
+- Dependency Review `31515787801` — **success**;
+- CodeQL `31515787822` — **success**; and
+- CI `31515787790` — **success**.
 
-Until then, the correct `continue` decision remains **finish DCP-P5**.
+The complete CI chain passed frontend quality/build, PostgreSQL migration, PHP formatting/static analysis/full PHPUnit execution including the new P5 architecture/traceability checks, repository-wide Markdown-link validation, immutable production-image build, ephemeral staging, backup/restore, and image scan.
+
+No P5 defect was exposed by the protected candidate gate.
+
+## 18. Final transition gate
+
+The only remaining P5 requirement is the hard final-head rule: after this report, the matrix, product index, and status ledger record P5 completion and conditional P6 selection, that exact resulting branch head must independently pass protected Dependency Review, CodeQL, and complete CI.
+
+Until that exact final head is green, **do not begin DCP-P6 implementation**.
