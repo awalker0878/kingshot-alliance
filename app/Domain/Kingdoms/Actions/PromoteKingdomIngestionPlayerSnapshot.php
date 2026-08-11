@@ -117,11 +117,6 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
             }
 
             $player = $players->first();
-            if (! $player instanceof KingdomPlayer) {
-                $this->quarantine($candidate, $batch, 'unknown_player');
-
-                return null;
-            }
 
             $entries = AllianceRosterEntry::query()
                 ->where('alliance_id', $subscription->alliance_id)
@@ -143,11 +138,6 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
             }
 
             $entry = $entries->first();
-            if (! $entry instanceof AllianceRosterEntry) {
-                $this->quarantine($candidate, $batch, 'roster_target_missing');
-
-                return null;
-            }
 
             try {
                 $attributes = $this->snapshotAttributes($candidate);
