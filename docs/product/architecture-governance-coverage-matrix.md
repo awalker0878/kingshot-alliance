@@ -5,8 +5,9 @@
 **Document type:** DCP phase coverage inventory  
 **Status:** Current  
 **Phase:** `DCP-P6` — Architecture and program-governance consolidation  
-**Inventory state:** Candidate — 100% required content implemented; protected validation pending  
-**Content candidate SHA:** `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf`
+**Inventory state:** Complete — candidate gate passed; final transition validation pending  
+**Content candidate SHA:** `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf`  
+**Validated candidate/evidence SHA:** `b2d63ffceea50658c989a569a44ad98fc47db75a`
 
 ## 1. Purpose
 
@@ -28,7 +29,7 @@ The governing rules are in [Architecture and program-governance standard](archit
 | `docs/product/README.md` | authoritative program navigation | Complete |
 | `docs/README.md` | repository documentation navigation | Complete |
 | `documentation-program-status.md` | P6 current control state | Complete |
-| [P6 exit report](architecture-governance-completeness-exit-report.md) | immutable P6 scope/validation record | Complete; protected validation pending |
+| [P6 exit report](architecture-governance-completeness-exit-report.md) | immutable P6 scope/validation record | Complete |
 | P6 architecture test | deterministic high-signal governance checks | Complete |
 
 No per-domain P6 profile is required. P6 consumes the already-complete P1–P5 domain profile families.
@@ -46,7 +47,7 @@ No per-domain P6 profile is required. P6 consumes the already-complete P1–P5 d
 | 0007 | Testing toolchain compatibility | Accepted | Retained/indexed |
 | 0008 | Domain-first source layout | Accepted | Retained/indexed |
 
-P6 introduces no new architecture decision because consolidation does not change accepted runtime architecture. ADR lifecycle is now explicit: Proposed, Accepted, Superseded, Rejected. The ADR template defines supersession handling and the index exposes status/current authority.
+P6 introduces no new architecture decision because consolidation does not change accepted runtime architecture. ADR lifecycle is explicit: Proposed, Accepted, Superseded, Rejected.
 
 ## 4. Canonical domain dependency coverage
 
@@ -54,81 +55,45 @@ The [cross-domain dependency map](cross-domain-dependency-map.md) represents exa
 
 `Alliances`, `Audit`, `Authorization`, `Content`, `Contributions`, `Events`, `Identity`, `Integrations`, `Kingdoms`, `Memberships`, `Notifications`, `Platform`, `Rallies`, `Recruitment`.
 
-Coverage: **14/14**.
-
-Dependency notation is consumer → owning supported contract. P6 intentionally does not freeze raw import counts.
+Coverage: **14/14**. Dependency notation is consumer → owning supported contract; P6 intentionally does not freeze raw import counts.
 
 ## 5. High-risk architecture boundary coverage
 
-| Boundary | Current owner/rule | P6 surfaces |
-| --- | --- | --- |
-| global User vs Alliance access | Identity assurance + Alliances/Memberships/Authorization tenant authority | dependency map, glossary, ADR view |
-| Platform admin vs Alliance role | Platform grant distinct from Authorization Alliance role | dependency map, glossary, boundary audit |
-| tenant identity/context | Alliances owns active tenant; Memberships validates active relation | dependency map, boundary audit |
-| Content vs Recruitment availability | Recruitment owns state; Content presents only | dependency map, boundary audit |
-| Events/Rallies | Events owns occurrence/attendance; Rallies owns Rally coordination | dependency map, boundary audit |
-| Events/Notifications | Events owns source facts; Notifications owns reminder state | dependency map, boundary audit |
-| Events/Contributions | Events owns attendance; Contributions reconciles/derives | dependency map, boundary audit |
-| Contributions/Notifications | Contributions owns report semantics; Notifications coordinates due requests | dependency map, boundary audit |
-| Audit vs outbox | Audit owns attributable evidence; Platform owns asynchronous infrastructure | dependency map, glossary, boundary audit |
-| producer event vs public webhook | producer owns business semantics; Integrations owns eligibility/delivery | dependency map, glossary, ADR view |
-| Alliance vs KingdomAlliance | platform tenant vs neutral game-side reference | glossary, dependency map, capability matrix |
-| neutral Kingdoms reference vs tenant observation | shared identity grants no tenant-state access | glossary, dependency map, boundary audit |
-| repository hardening vs production approval | repository evidence cannot prove external production controls | glossary, ADR view, capability matrix |
-
-All frozen high-risk boundaries have current system-level visibility.
+All frozen high-risk boundaries have current system-level visibility: global identity versus tenant authority, Platform admin versus Alliance roles, active tenant context, Content/Recruitment ownership, Events/Rallies/Notifications/Contributions collaboration, Audit versus outbox, producer event versus public webhook, platform Alliance versus game-side KingdomAlliance, neutral Kingdoms identity versus tenant observations, and repository hardening versus real-production approval.
 
 ## 6. Shared top-level ownership audit
 
-P6 confirms:
+P6 confirms product/security/operations remain genuinely shared/program-wide and current domain-specific behavior/evidence remains under `docs/domains/<domain>/`.
 
-- `docs/product/` contains cross-program scope/governance/current-state navigation, DCP standards/evidence, architecture audits, historical phase-wide acceptance, hardening/production decisions;
-- `docs/security/` contains shared security baseline, historical phase-wide threat models, production security boundary;
-- `docs/operations/` contains shared runtime/configuration/observability/deployment/recovery/runbooks and historical phase-wide operating evidence;
-- single-domain current implementation/security/operations/interfaces/testing/product evidence remains under `docs/domains/<domain>/`.
-
-Result: **no additional domain-specific relocation is required** by P6. Earlier P1–P3 ownership migration already established the correct split.
+Result: **no additional domain-specific relocation is required** by P6.
 
 ## 7. Current-state navigation result
 
-Current paths are complete:
-
-- `docs/README.md` → current architecture, dependency map, glossary, capability matrix, domain/product/security/operations navigation;
-- `docs/adr/README.md` → all numbered ADRs, lifecycle, dependency map, glossary, current architecture context;
-- `docs/product/README.md` → P1–P6 standards/matrices/evidence plus current architecture/dependency/glossary/audits/capability navigation;
-- `current-capability-matrix.md` → ADR view, dependency map, glossary, owner contracts;
-- architecture audits → current normative owners and dependency map;
-- status ledger → exact P5 accepted transition identity and P6 control state.
+Current docs/product/ADR/capability/audit navigation is complete and links current architecture, dependency map, glossary, domain owners, shared security/operations, and production boundary.
 
 ## 8. Terminology result
 
-The [shared glossary](glossary.md) now disambiguates all frozen high-risk terms, including User/Alliance/Active Alliance/Membership/permission/Platform administrator; Kingdom/KingdomPlayer/KingdomAlliance/TrackedKingdomAlliance/neutral references; Event/Rally/reminders/contribution report requests; transactional outbox/internal versus external webhook event/API credential/idempotency; living contract/historical evidence/ADR/supported contract/persistence reach-through; repository/product/DCP status vocabulary; and repository hardening versus real production launch.
+The [shared glossary](glossary.md) covers all frozen high-risk architecture/product terms and status/release distinctions.
 
 ## 9. Historical and obsolete narrative result
 
-- Phase 0–6 and named increment/DCP acceptance records remain historical evidence.
-- Migration-era statements may remain only inside explicitly historical context.
-- `repository-structure-audit.md` and `domain-boundary-audit.md` are now current system audits and no longer carry migration-candidate status.
-- Accepted ADR rationale remains historical decision evidence if later superseded.
-- No accepted historical evidence deletion is required.
-- No obsolete duplicate living architecture tree was found or created.
+Historical evidence remains preserved; current audits no longer carry migration-candidate status; no obsolete duplicate living architecture tree or accepted historical evidence deletion was required.
 
 ## 10. P6 architecture enforcement
 
-`tests/Architecture/ArchitectureGovernanceDocumentationTest.php` verifies:
+`tests/Architecture/ArchitectureGovernanceDocumentationTest.php` protects required artifacts, ADR lifecycle/indexing, 14-domain dependency parity, glossary coverage, audit currency, shared ownership, and navigation. Existing architecture checks retain P1–P5 and local-link enforcement.
 
-- required P6 living artifacts exist;
-- every numbered ADR is indexed and uses allowed lifecycle status;
-- ADR template starts Proposed and contains supersession handling;
-- dependency inventory contains every canonical code domain exactly once and real code/doc owner paths exist;
-- glossary contains high-risk shared terms;
-- current architecture audits are Current and not migration-candidate records;
-- shared product/security/operations indexes retain program/shared ownership and domain navigation; and
-- current docs/product/capability/ADR navigation links dependency and glossary surfaces.
+## 11. Candidate validation result
 
-Existing repository architecture checks continue local Markdown-link, domain parity, ownership, P1–P5 profile, and other structural enforcement.
+Exact candidate/evidence head `b2d63ffceea50658c989a569a44ad98fc47db75a` passed:
 
-## 11. P6 exit checklist
+- Dependency Review `31518789039` — success;
+- CodeQL `31518789038` — success;
+- CI `31518789030` — success.
+
+CI included **487 Pint files**, PHPStan/Larastan **345/345 with 0 errors**, **395 tests / 9,104 assertions**, frontend build, PostgreSQL migrations, P6/prior documentation checks, immutable image, staging, backup/restore, and image scan.
+
+## 12. P6 exit checklist
 
 - [x] Architecture/program-governance standard adopted.
 - [x] 14-domain dependency inventory frozen and implemented.
@@ -144,7 +109,7 @@ Existing repository architecture checks continue local Markdown-link, domain par
 - [x] P6 architecture enforcement active.
 - [x] Complete P6 content/ownership inventory review completed.
 - [x] P6 exit report created and content candidate `3bf6b7a7479e64739c1d650bcb02ccbfba25ffdf` recorded.
-- [ ] Exact P6 candidate/evidence head protected-green.
+- [x] Exact P6 candidate/evidence head protected-green.
 - [ ] P6 final evidence/status head protected-green.
 
-P6 is **Candidate**. P7 remains blocked until both protected gates close.
+P6 candidate acceptance is complete. P7 is selected only after the exact final P6 evidence/status head passes the second protected gate.
