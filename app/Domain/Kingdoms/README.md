@@ -43,5 +43,8 @@ Stable game IDs scoped to one Kingdom are the only automatic neutral identity ke
 - [Controlled CSV migration](../../../docs/domains/kingdoms/csv-migration.md)
 - [Transfer planning](../../../docs/domains/kingdoms/transfer-planning.md)
 - [Alliance intelligence and diplomacy](../../../docs/domains/kingdoms/alliance-intelligence.md)
+- [Product and acceptance evidence](../../../docs/domains/kingdoms/product/README.md)
+- [Security evidence](../../../docs/domains/kingdoms/security/README.md)
+- [Operations](../../../docs/domains/kingdoms/operations/README.md)
 
-Acceptance evidence remains under `docs/product/` and security/operations evidence under their owning documentation groups.
+Kingdoms-specific evidence remains with the Kingdoms domain. Top-level product/security/operations documentation is reserved for program-wide/shared concerns.
