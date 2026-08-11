@@ -64,7 +64,7 @@ P4 adds safety bounds—250 records/page, poll interval 60–86,400 seconds, 120
 
 The Kingdom accessibility architecture suite includes `KingdomIngestionManage.vue`, requiring main landmark/primary heading/native controls/labels/table overflow semantics. The final P4 candidate passed ESLint, Prettier, Vue/TypeScript and production frontend build.
 
-## 10. Historical and current evidence
+## 10. Historical accepted evidence
 
 Accepted whole increments remain K1/K2/K3 with immutable evidence in their exit records. K4 completed-gate evidence includes P0 through P3 in the product index.
 
@@ -82,4 +82,4 @@ Operational K4 retention/pruning is intentionally deferred to P5; canonical prom
 
 Current K4 validation does not prove a real production source/network/credential path, provider terms/authorization, real-source rate/schema behavior, production capacity/alerts, final operational retention/pruning, or production cutover. Those are explicit later/separate gates.
 
-Related: [Automated ingestion](../automated-ingestion.md), [Slice D validation](../product/kingdoms-automated-ingestion-slice-d-validation.md), [Slice D security review](../security/kingdoms-automated-ingestion-scheduler-security-review.md), [Operations](../operations/kingdoms-automated-ingestion.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md).
+Related: [Automated ingestion](../automated-ingestion.md), [Slice D validation](../product/kingdoms-automated-ingestion-slice-d-validation.md), [Slice D security review](../security/kingdoms-automated-ingestion-scheduler-security-review.md), [Security profile](../security/README.md), [Operations profile](../operations/README.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md), [P5 testing/evidence coverage matrix](../../../product/testing-evidence-coverage-matrix.md).
