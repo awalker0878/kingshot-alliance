@@ -70,7 +70,7 @@ Operators repair publisher/consumer causes instead of manually marking rows publ
 
 Tests cover atomic business + outbox recording, rollback behavior, tenant propagation, deterministic/logical identity where required, repeated publisher execution, concurrent claim behavior, at-least-once consumer safety, failure/retry recovery, safe payload exclusions, and separation from Audit/Notifications/Integrations external eligibility.
 
-Shared policy: [Security baseline](../../../../security/security-baseline.md). Historical source: [Phase 1 threat model](../../../../security/phase-1-threat-model.md) and Phase 6 platform hardening evidence.
+Shared policy: [Security baseline](../../../security/security-baseline.md). Historical source: [Phase 1 threat model](../../../security/phase-1-threat-model.md) and Phase 6 platform hardening evidence.
 
 ## 10. Residual risks and external controls
 
