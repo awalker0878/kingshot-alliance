@@ -9,14 +9,14 @@
 ## Current control state
 
 **Current phase:** `DCP-P3` — Operations, reliability, and recovery completeness  
-**Gate status:** Candidate — 100% required content implemented; protected validation pending  
+**Gate status:** Candidate — corrected protected validation pending  
 **Control decision on next `continue`:** Finish current phase
 
 DCP-P2 is fully closed. Its final accepted evidence/status head `35121bf732f75c72351a7c232548f3e78fb1c8ff` passed protected Dependency Review `31505325682`, CodeQL `31505325673`, and CI `31505325711` including frontend, PHP/documentation architecture tests, immutable image, staging, backup/restore and image scan.
 
-DCP-P3 has now implemented its frozen operations/reliability/recovery inventory: 14/14 living domain operations profiles, 6/6 new focused living operations runbooks, the existing three Kingdoms K1–K3 operations guides retained/indexed, shared/domain navigation normalized, recovery/rollback references completed, and deterministic P3 architecture enforcement added.
+DCP-P3 has implemented its frozen operations/reliability/recovery inventory: 14/14 living domain operations profiles, 6/6 new focused living operations runbooks, the existing three Kingdoms K1–K3 operations guides retained/indexed, shared/domain navigation normalized, recovery/rollback references completed, and deterministic P3 architecture enforcement added.
 
-P3 remains active until protected validation passes on the exact candidate/evidence head and the final exit/status evidence head also passes. P4 is blocked until that hard gate closes.
+The initial P3 evidence head exposed one CI-only lint defect in the new architecture test; that defect is corrected. P3 remains active until protected validation passes on the exact corrected candidate/evidence head and the final exit/status evidence head also passes. P4 is blocked until that hard gate closes.
 
 ## Phase ledger
 
@@ -25,7 +25,7 @@ P3 remains active until protected validation passes on the exact candidate/evide
 | `DCP-P0` | Governance and continuation controls | Complete | Program plan, completeness standard, status ledger and navigation established. |
 | `DCP-P1` | Domain contract and code-ownership completeness | Complete | 14 domain maps, 14 canonical contracts, 19 material capability contracts, P1 CI enforcement, and protected validation complete. See [P1 exit report](domain-contract-completeness-exit-report.md). |
 | `DCP-P2` | Security, privacy, and data-protection completeness | Complete | 14 domain security profiles, 9 new focused reviews, normalized Kingdoms security evidence, P2 CI enforcement, and protected candidate/final-head validation complete. See [P2 exit report](security-completeness-exit-report.md). |
-| `DCP-P3` | Operations, reliability, and recovery completeness | Candidate | **Current phase.** 100% frozen content inventory implemented; protected candidate/final exit recording remain. See [P3 exit report](operations-completeness-exit-report.md). |
+| `DCP-P3` | Operations, reliability, and recovery completeness | Candidate | **Current phase.** 100% frozen content inventory implemented; corrected protected candidate/final exit recording remain. See [P3 exit report](operations-completeness-exit-report.md). |
 | `DCP-P4` | Interfaces, events, and integrations completeness | Not started | Blocked by `DCP-P3`. |
 | `DCP-P5` | Testing, evidence, and traceability completeness | Not started | Blocked by `DCP-P4`. |
 | `DCP-P6` | Architecture and program-governance consolidation | Not started | Blocked by `DCP-P5`. |
@@ -74,7 +74,9 @@ Protected final-head runs:
 - shared operations/domain navigation to all profiles
 - P3 structural/metadata/heading/frozen-inventory checks in `tests/Architecture/OperationsDocumentationTest.php`
 
-P3 content candidate recorded by the exit report: `55dd2d29cb1c45dd3c01e9e42f6b57a8a9118c3d`.
+Corrected P3 content candidate: `b6f4aa9ca929ff75fef48344423eee7891210d26`.
+
+The initial P3 evidence head `9f03f918daa16d63cfbac538b57755289677d35d` passed Dependency Review `31507721516` and CodeQL `31507721523`. CI `31507721345` failed only Pint's `no_unused_imports` check on four unused iterator imports in the newly added operations-documentation architecture test. Frontend quality/build and PostgreSQL migrations were green; the container/staging/recovery job was skipped after the PHP gate failure. The unused imports were removed without changing P3 documentation or test semantics.
 
 ### Frozen focused P3 runbooks
 
