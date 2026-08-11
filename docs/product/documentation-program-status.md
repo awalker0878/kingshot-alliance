@@ -12,9 +12,9 @@
 **Gate status:** Candidate — 100% required content implemented; protected validation pending  
 **Control decision on next `continue`:** Finish current phase
 
-DCP-P1 remains Complete with its accepted domain-contract evidence. DCP-P2 has now implemented its frozen content inventory: 14/14 living domain security profiles, 9/9 new focused living capability security reviews, and the existing Kingdoms K1–K3 review set retained/indexed by the normalized Kingdoms security profile.
+DCP-P1 remains Complete with its accepted domain-contract evidence. DCP-P2 has implemented its frozen content inventory: 14/14 living domain security profiles, 9/9 new focused living capability security reviews, and the existing Kingdoms K1–K3 review set retained/indexed by the normalized Kingdoms security profile.
 
-P2 remains active until protected validation passes on the exact candidate/evidence head and the final exit/status evidence head also passes. No P3 work may begin before that hard gate closes.
+P2 remains active until protected validation passes on the exact corrected candidate/evidence head and the final exit/status evidence head also passes. No P3 work may begin before that hard gate closes.
 
 ## Phase ledger
 
@@ -22,7 +22,7 @@ P2 remains active until protected validation passes on the exact candidate/evide
 | --- | --- | --- | --- |
 | `DCP-P0` | Governance and continuation controls | Complete | Program plan, completeness standard, status ledger and navigation established. |
 | `DCP-P1` | Domain contract and code-ownership completeness | Complete | 14 domain maps, 14 canonical contracts, 19 material capability contracts, P1 CI enforcement, and protected validation complete. See [P1 exit report](domain-contract-completeness-exit-report.md). |
-| `DCP-P2` | Security, privacy, and data-protection completeness | Candidate | **Current phase.** 100% frozen content inventory implemented; protected validation/final exit recording remain. See [P2 exit report](security-completeness-exit-report.md). |
+| `DCP-P2` | Security, privacy, and data-protection completeness | Candidate | **Current phase.** 100% frozen content inventory implemented; corrected protected validation/final exit recording remain. See [P2 exit report](security-completeness-exit-report.md). |
 | `DCP-P3` | Operations, reliability, and recovery completeness | Not started | Blocked by `DCP-P2`. |
 | `DCP-P4` | Interfaces, events, and integrations completeness | Not started | Blocked by `DCP-P3`. |
 | `DCP-P5` | Testing, evidence, and traceability completeness | Not started | Blocked by `DCP-P4`. |
@@ -56,7 +56,9 @@ Final accepted P1 evidence/status head: `60357543256478aa8ef8c26f67e27631df8c5ba
 - normalized Kingdoms living security profile with its existing K1–K3 review set
 - P2 profile/focused-review/inventory/placement checks in `tests/Architecture/RepositoryStructureTest.php`
 
-P2 content candidate recorded by the exit report: `e877c3b485b9937a24ddc8fcd3cae3381aa9fa47`. The current candidate/evidence chain adds only the coverage/status/exit/navigation records required by the gate.
+Corrected P2 content candidate: `645c943e59439840d3563452d97612eb17d63b10`.
+
+The initial P2 evidence head `50beb0f49b77b5321722cfa337b6334f47a8e126` passed Dependency Review and CodeQL but CI run `31503644300` failed only the repository local Markdown-link gate because the nine focused reviews pointed at the shared security directory one level too high. Pint, PHPStan, frontend, and migrations were green. Those evidence links were corrected without changing security semantics; protected validation is now required on the corrected evidence chain.
 
 ## DCP-P2 coverage summary
 
