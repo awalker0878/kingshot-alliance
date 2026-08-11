@@ -185,7 +185,9 @@ function label(value: string): string {
 
       <div v-if="subscriptions.length" class="mt-6 overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
-          <caption class="sr-only">Automated ingestion subscriptions and health</caption>
+          <caption class="sr-only">
+            Automated ingestion subscriptions and health
+          </caption>
           <thead class="text-xs tracking-wide text-slate-400 uppercase">
             <tr>
               <th class="px-3 py-3 font-semibold">Adapter</th>
@@ -262,9 +264,7 @@ function label(value: string): string {
           </tbody>
         </table>
       </div>
-      <p v-else class="mt-6 text-sm text-slate-500">
-        No automated-ingestion subscriptions configured.
-      </p>
+      <p v-else class="mt-6 text-sm text-slate-500">No automated-ingestion subscriptions configured.</p>
     </section>
 
     <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
@@ -276,7 +276,9 @@ function label(value: string): string {
 
       <div v-if="candidates.length" class="mt-6 overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
-          <caption class="sr-only">Recent normalized automated-ingestion candidates</caption>
+          <caption class="sr-only">
+            Recent normalized automated-ingestion candidates
+          </caption>
           <thead class="text-xs tracking-wide text-slate-400 uppercase">
             <tr>
               <th class="px-3 py-3 font-semibold">Adapter</th>
