@@ -83,11 +83,13 @@ COPY artisan composer.json composer.lock LICENSE ./
 COPY --from=frontend /app/public/build ./public/build
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
+COPY docker/nginx/azure.conf /etc/nginx/azure.conf
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/99-kingshot.ini
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/10-opcache.ini
 COPY docker/entrypoint.sh /usr/local/bin/kingshot-entrypoint
 
-RUN php artisan package:discover --ansi \
+RUN nginx -t -c /etc/nginx/azure.conf \
+    && php artisan package:discover --ansi \
     && chmod +x /usr/local/bin/kingshot-entrypoint \
     && chown -R www-data:www-data storage bootstrap/cache
 
