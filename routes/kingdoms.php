@@ -153,6 +153,14 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             '/alliance/kingdom-sharing/{share}/leave',
             [KingdomIntelligenceSharingController::class, 'leave'],
         )->name('alliance.kingdom-sharing.leave');
+        Route::post(
+            '/alliance/kingdom-sharing/{share}/targets/{tracking}',
+            [KingdomIntelligenceSharingController::class, 'addTarget'],
+        )->name('alliance.kingdom-sharing.targets.store');
+        Route::post(
+            '/alliance/kingdom-sharing/{share}/targets/{target}/remove',
+            [KingdomIntelligenceSharingController::class, 'removeTarget'],
+        )->name('alliance.kingdom-sharing.targets.remove');
 
         Route::post('/alliance/transfers', [TransferPlanController::class, 'store'])
             ->name('alliance.transfers.store');
