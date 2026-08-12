@@ -33,4 +33,13 @@ return [
         'quarantined_threshold' => 25,
         'recent_failure_minutes' => 60,
     ],
+
+    /*
+     * KINGDOMS-005 invitation tokens bootstrap two-party human consent only.
+     * They are one-time secrets, hash-only at rest, and do not grant data
+     * access until a manager accepts under a valid same-Kingdom context.
+     */
+    'shared_intelligence' => [
+        'invitation_ttl_hours' => 72,
+    ],
 ];
