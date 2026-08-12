@@ -3,101 +3,121 @@
 [← Kingdoms domain](../README.md)
 
 **Document type:** Living domain interface profile  
-**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P1 consent foundation validated  
+**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P2 current-fact sharing validated  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 ingestion control/operations, K5 first-party consent mutations, and internal-only `kingdoms.*` events
+**Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 ingestion control/operations, K5 first-party consent/target mutations, bounded internal current-fact query, and internal-only `kingdoms.*` events
 
 **P4 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; K5 extends this profile without changing the frozen P4 interface-inventory convention or creating a public Kingdoms API.
 
 ## 1. Boundary purpose and ownership
 
-Kingdoms owns first-party neutral-game identity, roster/history/intelligence, transfer, game-Alliance tracking/observations/diplomacy/contacts, K4 ingestion, and now K5 directional sharing-consent state.
+Kingdoms owns first-party neutral-game identity, roster/history/intelligence, transfer, game-Alliance tracking/observations/diplomacy/contacts, K4 ingestion, and K5 directional consent/target/current-fact sharing.
 
-K5-P1 adds only first-party consent mutations. No shared-target/current/history read interface exists yet.
+P2 adds explicit source target mutations and an internal recipient-safe current projection. Bounded shared history and complete K5 pages do not exist yet.
 
 ## 2. Surface inventory
 
-Existing K1–K4 routes remain unchanged. P1 adds password-confirmed authenticated routes:
+Existing K1–K4 routes remain unchanged. K5 password-confirmed authenticated mutation routes are:
 
-- `POST /alliance/kingdom-sharing/invitations` — source creates one invitation and receives `{shareId, token}` once;
-- `POST /alliance/kingdom-sharing/invitations/accept` — recipient accepts a token;
-- `POST /alliance/kingdom-sharing/invitations/decline` — recipient declines a token;
-- `POST /alliance/kingdom-sharing/{share}/revoke` — source revokes its pending/active share; and
-- `POST /alliance/kingdom-sharing/{share}/leave` — active recipient leaves.
+- `POST /alliance/kingdom-sharing/invitations` — source creates invitation and receives `{shareId, token}` once;
+- `POST /alliance/kingdom-sharing/invitations/accept` — recipient accepts token;
+- `POST /alliance/kingdom-sharing/invitations/decline` — recipient declines token;
+- `POST /alliance/kingdom-sharing/{share}/revoke` — source revokes pending/active share;
+- `POST /alliance/kingdom-sharing/{share}/leave` — active recipient leaves;
+- `POST /alliance/kingdom-sharing/{share}/targets/{tracking}` — source explicitly grants one source-owned tracking target; and
+- `POST /alliance/kingdom-sharing/{share}/targets/{target}/remove` — source removes one explicit target grant.
 
-There is no K5 GET/list/current/history route, tenant-directory endpoint, target-selection endpoint, public API or callback route in P1.
+P2 adds no K5 GET/current/history route, public API/callback, tenant directory or complete sharing page surface.
 
 ## 3. Callers, authorization and tenancy
 
-Consent mutations require active Alliance context, recent password confirmation and domain-level `kingdoms.manage` authorization.
+Consent/target mutations require active Alliance context, recent password confirmation and domain-level `kingdoms.manage`.
 
-Source revoke resolves the submitted share beneath `source_alliance_id`; recipient leave resolves beneath `recipient_alliance_id`. Acceptance binds the active recipient Alliance only after locking source/recipient Alliances and validating the captured Kingdom. Neutral Kingdom/game-Alliance identity never authorizes a K5 operation.
+Source mutations resolve shares beneath `source_alliance_id`; target grant resolves tracking beneath the same source Alliance. Recipient current facts resolve only from the active recipient Alliance through an active/context-valid agreement and explicit active grant.
+
+Neutral Kingdom/game-Alliance identity never authorizes K5 access.
 
 ## 4. Input and validation contracts
 
-Invitation acceptance/decline accepts only a required 64-character lowercase hexadecimal token. The token is hashed before lookup.
+Invitation accept/decline accepts a required 64-character lowercase hexadecimal token; lookup uses its hash.
 
-Acceptance rejects invalid/expired/used token, self-share, different-current-Kingdom context and duplicate active directional agreement. Invitation TTL defaults to 72 hours and repository configuration clamps it to 1–168 hours.
+Acceptance rejects invalid/expired/used token, self-share, different-current-Kingdom context and duplicate active agreement.
 
-P1 accepts no target ID, observation ID/payload, source endpoint, roster/diplomacy/contact data or arbitrary cross-tenant identifier for data disclosure.
+P2 target grant accepts route share/tracking IDs only after source-tenant re-resolution and rejects terminal/stale agreements, inactive/different-Kingdom participants, inactive/non-source tracking and captured-Kingdom mismatch. Removal re-resolves target beneath the source-owned share.
+
+No arbitrary observation payload, endpoint, credential, roster/diplomacy/contact data or recipient-supplied source fact enters P2 sharing.
 
 ## 5. Output and disclosure contracts
 
-Invitation creation returns only the new share ID plus plaintext token in the creation response. Plaintext is not persisted or placed in Audit/outbox metadata.
+Invitation creation returns share ID plus plaintext token once. Consent/target mutations return redirect/status outcomes only.
 
-Accept/decline/revoke/leave return redirect/status outcomes only. P1 provides no recipient shared-intelligence payload.
+`SharedKingdomIntelligenceCurrentQuery` is the P2 internal data interface and is bounded to 250 rows. Each row includes only:
 
-The source-side acceptance Audit record intentionally does not expose the recipient manager's User ID; recipient-side Audit remains attributable within the recipient tenant.
+- `shareTargetId`;
+- source Alliance `{id,name}`;
+- game Alliance `{name,tag}`;
+- `freshness` (`current|stale|missing`); and
+- latest accepted observation `{observedName,observedTag,power,memberCount,capturedAt}` or null.
+
+It excludes source tracking/stable game IDs, private/K4 fields and history.
 
 ## 6. Internal actions, queries and services
 
-P1 internal contracts are:
+Current K5 contracts include:
 
 - `CreateKingdomIntelligenceShareInvitation`;
 - `AcceptKingdomIntelligenceShareInvitation`;
 - `DeclineKingdomIntelligenceShareInvitation`;
 - `RevokeKingdomIntelligenceShare`;
-- `LeaveKingdomIntelligenceShare`; and
-- `KingdomIntelligenceShareTokenService`.
+- `LeaveKingdomIntelligenceShare`;
+- `AddKingdomIntelligenceShareTarget`;
+- `RemoveKingdomIntelligenceShareTarget`;
+- `InvalidateKingdomIntelligenceSharesForAllianceDrift`;
+- `KingdomIntelligenceShareTokenService`; and
+- `SharedKingdomIntelligenceCurrentQuery`.
 
-There is no P1 shared-target or shared-observation query/service.
+There is no P2 shared-history query/service.
 
 ## 7. Events, outbox and cross-domain consumers
 
-P1 consent events are `kingdoms.shared_intelligence_invitation_created`, `...accepted`, `...declined`, `...revoked`, and `...left`.
+P1 consent events remain internal. P2 adds `kingdoms.shared_intelligence_target_shared`, `kingdoms.shared_intelligence_target_removed`, and `kingdoms.shared_intelligence_context_invalidated`.
 
-They remain internal `kingdoms.*` events and external-webhook ineligible. Payloads use safe share/source/recipient/Kingdom/state/timing metadata only; invitation plaintext and observation/private/K4 payload data are excluded.
+All remain `kingdoms.*` external-webhook ineligible. Payloads use safe share/target/source/recipient/Kingdom/state/timing/reason metadata; invitation plaintext and shared observation/private/K4 payload bodies are excluded.
 
 ## 8. Commands, jobs and scheduled work
 
-P1 adds no Artisan command, queue job, scheduler entry or operator execution surface. K4 scheduled ingestion/maintenance remains unchanged.
+K5-P2 adds no Artisan command, queue job, scheduler entry or operator execution surface. K4 scheduled ingestion/maintenance remains unchanged.
 
-Invitation retention/cleanup is intentionally deferred to K5-P5 rather than introducing an unreviewed background task in P1.
+Invitation retention/cleanup and broader capacity diagnostics remain P5 work.
 
 ## 9. Files, imports, exports and external dependencies
 
-The controlled [CSV migration](../csv-migration.md) remains the material Kingdoms file contract. K5-P1 adds no file contract or external provider dependency.
+Controlled [CSV migration](../csv-migration.md) remains the material Kingdoms file contract. K5 adds no file contract or external provider dependency.
 
-Invitation tokens are first-party human-consent bootstrap secrets, not external API credentials.
+Invitation tokens are first-party consent-bootstrap secrets, not external API credentials. Current shared facts are not exported as files or a public feed.
 
 ## 10. Failure, idempotency, versioning and compatibility
 
-Token redemption is single-use. Failed acceptance does not consume a token because validation and state mutation are transactional. Terminal declined/revoked states do not reactivate through P1 actions.
+Token redemption is single-use; failed acceptance does not consume it. Terminal agreements do not reactivate through K5 actions.
 
-Source revoke/recipient leave remain available after Kingdom drift because they reduce access. Migration rollback/reapply now includes the K5 consent table as the newest Kingdoms dependency.
+Target grant is idempotent while active; removal terminates access and deliberate re-grant is required. Supported Kingdom drift terminalizes affected agreements and later return does not restore them.
 
-P1 creates no public compatibility contract.
+Latest accepted current fact follows K3 non-invalidated capture-time ordering; source invalidation changes the projection immediately.
+
+P2 creates no public compatibility contract.
 
 ## 11. Explicit non-capabilities
 
-P1 does not provide shared target selection, recipient observation/current/history reads, player/roster sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, reshare, tenant directory/search, public API/webhook, scoring/ranking/recommendations or automatic decisions.
+P2 does not provide bounded shared history, complete K5 sharing pages, player/roster sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, reshare, tenant directory/search, public API/webhook, scoring/ranking/recommendations or automatic decisions.
 
 ## 12. Focused contracts, evidence and related documentation
 
 - [Shared intelligence](../shared-intelligence.md)
 - [K5 Slice A validation](../product/kingdoms-shared-intelligence-slice-a-validation.md)
 - [K5 Slice A security review](../security/kingdoms-shared-intelligence-foundation-security-review.md)
+- [K5 Slice B validation](../product/kingdoms-shared-intelligence-slice-b-validation.md)
+- [K5 Slice B security review](../security/kingdoms-shared-intelligence-current-facts-security-review.md)
 - [K5 implementation plan](../product/kingdoms-shared-intelligence-implementation-plan.md)
 - [Automated ingestion](../automated-ingestion.md)
 - [CSV migration](../csv-migration.md)
@@ -107,4 +127,4 @@ P1 does not provide shared target selection, recipient observation/current/histo
 - [Interface documentation standard](../../../product/interface-documentation-standard.md)
 - [P4 interface coverage matrix](../../../product/interface-coverage-matrix.md)
 
-P1 runtime candidate `9ef1d46b1db69708d575e82d8548145cf7769e68` passed Dependency Review `31559012856`, CodeQL `31559012854`, and CI `31559012861` with 434 tests / 9,911 assertions.
+P2 runtime candidate `1a022e909cd246197510449a761a4856ce12b118` passed Dependency Review `31562753429`, CodeQL `31562753422`, and CI `31562753430` with 440 tests / 10,025 assertions.
