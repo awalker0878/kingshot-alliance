@@ -22,6 +22,13 @@ use Illuminate\Support\Carbon;
  * @property int|null $member_count
  * @property Carbon $captured_at
  * @property string $source
+ * @property string|null $source_subscription_id
+ * @property string|null $source_batch_id
+ * @property string|null $source_adapter_key
+ * @property string|null $source_adapter_version
+ * @property string|null $source_record_id
+ * @property string|null $source_identity_hash
+ * @property string|null $source_payload_hash
  * @property string $idempotency_key
  * @property string|null $corrects_observation_id
  * @property Carbon|null $invalidated_at
@@ -53,6 +60,13 @@ final class KingdomAllianceObservation extends Model
         'member_count',
         'captured_at',
         'source',
+        'source_subscription_id',
+        'source_batch_id',
+        'source_adapter_key',
+        'source_adapter_version',
+        'source_record_id',
+        'source_identity_hash',
+        'source_payload_hash',
         'idempotency_key',
         'corrects_observation_id',
         'invalidated_at',

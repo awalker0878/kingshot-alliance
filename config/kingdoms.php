@@ -1,0 +1,36 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    /*
+     * KINGDOMS-004 source adapters are explicit repository/operator-approved
+     * implementations. The production allowlist remains intentionally empty:
+     * generic ingestion infrastructure does not approve a real source.
+     */
+    'ingestion_adapters' => [],
+
+    /*
+     * Operational K4 data is intentionally shorter-lived than canonical K1/K3
+     * history. Promoted canonical snapshots/observations retain their bounded
+     * provenance independently of these operational retention windows.
+     */
+    'ingestion_retention' => [
+        'payload_days' => 30,
+        'terminal_candidate_days' => 90,
+        'quarantined_candidate_days' => 180,
+        'batch_days' => 90,
+        'disabled_compaction_days' => 30,
+    ],
+
+    /*
+     * These thresholds support operator/monitoring health checks only. They do
+     * not change promotion identity, tenancy, source approval, or retry rules.
+     */
+    'ingestion_health' => [
+        'overdue_minutes' => 5,
+        'stale_pending_minutes' => 15,
+        'quarantined_threshold' => 25,
+        'recent_failure_minutes' => 60,
+    ],
+];

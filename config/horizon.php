@@ -26,6 +26,11 @@ return [
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
+            'kingdoms-ingestion' => [
+                'queue' => ['kingdoms-ingestion'],
+                'balance' => 'simple',
+                'maxProcesses' => (int) env('HORIZON_PRODUCTION_KINGDOM_INGESTION_MAX_PROCESSES', 2),
+            ],
             'maintenance' => [
                 'queue' => ['maintenance'],
                 'balance' => 'simple',
@@ -46,6 +51,11 @@ return [
                 'balance' => 'auto',
                 'maxProcesses' => (int) env('HORIZON_STAGING_INTEGRATION_MAX_PROCESSES', 2),
             ],
+            'kingdoms-ingestion' => [
+                'queue' => ['kingdoms-ingestion'],
+                'balance' => 'simple',
+                'maxProcesses' => (int) env('HORIZON_STAGING_KINGDOM_INGESTION_MAX_PROCESSES', 1),
+            ],
             'maintenance' => [
                 'queue' => ['maintenance'],
                 'balance' => 'simple',
@@ -55,7 +65,7 @@ return [
 
         'local' => [
             'supervisor-1' => [
-                'queue' => ['default', 'notifications', 'integrations', 'maintenance'],
+                'queue' => ['default', 'notifications', 'integrations', 'kingdoms-ingestion', 'maintenance'],
                 'maxProcesses' => (int) env('HORIZON_LOCAL_MAX_PROCESSES', 3),
             ],
         ],

@@ -3,170 +3,77 @@
 [← Kingdoms domain](README.md)
 
 **Document type:** Living capability contract  
-**Status:** Current — Accepted as part of `KINGDOMS-001`  
+**Status:** Current — accepted K1 history contract extended by governed `KINGDOMS-004` K4-P2 machine provenance  
 **Owning domain:** `Kingdoms`
 
 ## 1. Purpose
 
-This document defines the current time-series player-observation contract. Snapshot history is append-oriented, Alliance-scoped, and the source of truth for current/stale/missing projection and roster trends. Observations may be accepted manually or through the controlled CSV workflow.
+Player snapshots are Alliance-owned append-oriented observations used for current/stale/missing projection and roster trends. Accepted sources are manual, controlled CSV, and the governed K4 ingestion promotion path.
 
 ## 2. Scope and non-scope
 
-In scope:
-
-- persisted `PlayerSnapshot` observation fields/provenance;
-- append-only history;
-- exact-retry idempotency;
-- latest-observation projection;
-- 30-day freshness semantics;
-- member/manager visibility; and
-- audit/outbox behavior.
-
-Out of scope:
-
-- destructive normal snapshot edit/delete;
-- aggregate/trend calculation details (see [Intelligence](intelligence.md));
-- generic automated ingestion; and
-- public Kingdoms API/webhook exposure.
+In scope: persisted observation fields/provenance, append history, exact retry, latest projection, freshness, disclosure, and audit/outbox behavior. Out of scope: destructive normal edit/delete, automatic roster enrollment, name-based identity matching, game-Alliance promotion, or public Kingdoms API/webhook exposure.
 
 ## 3. Model and state
 
-A snapshot belongs to one Alliance and references the Alliance roster entry plus neutral KingdomPlayer represented by that roster entry:
+A snapshot references one Alliance roster entry and its neutral `KingdomPlayer`. Manual/CSV snapshots retain User/import provenance. `source=ingestion` uses a null User actor plus bounded machine provenance: subscription/batch IDs, adapter key/version, optional source record ID, source identity hash, and payload hash.
 
-```text
-Kingdom
-  └─ KingdomPlayer                 global neutral identity
-       └─ AllianceRosterEntry      Alliance-owned roster relationship
-            └─ PlayerSnapshot      Alliance-owned historical observation
-```
-
-`PlayerSnapshot` records:
-
-- `alliance_id`;
-- `roster_entry_id`;
-- `kingdom_player_id`;
-- actor provenance for the User who accepted the observation;
-- observed player name;
-- power as signed 64-bit integer;
-- optional progression/level text;
-- optional observed game-side Alliance/tag;
-- capture timestamp;
-- source (`manual` or `csv`);
-- optional `roster_import_id` for CSV-origin observations;
-- deterministic idempotency key; and
-- timestamps.
-
-Power is a non-negative decimal integer no greater than `9223372036854775807`. Server responses serialize power as a decimal string so browser JavaScript cannot lose integer precision.
+Machine provenance is copied into canonical snapshot history without a foreign key to operational candidate rows so later candidate retention cannot erase accepted history.
 
 ## 4. Invariants
 
 1. Snapshot history is append-oriented.
-2. Normal roster edits, membership-link changes, CSV roster updates, mark-left, and transfer completion do not rewrite existing snapshots.
-3. Corrections are represented by a later accepted observation, not silent historical rewrite.
-4. Global KingdomPlayer reference never authorizes another tenant's history.
-5. Exact retries return the existing observation and do not duplicate audit/outbox evidence.
-6. Changing capture timestamp creates a distinct observation even if values are unchanged.
-7. Current projection is selected by greatest `captured_at`, then greatest snapshot ULID as deterministic tie-breaker.
-8. Insertion time never overrides a newer capture timestamp.
-9. Missing snapshot is distinct from recorded zero power.
+2. Normal roster edits and other workflows never rewrite existing observations.
+3. Exact retry returns the existing snapshot without duplicate audit/outbox evidence.
+4. Later capture time is a distinct observation even when values match.
+5. Neutral player identity never authorizes another Alliance's history.
+6. K4 promotion must resolve an existing owning-Alliance roster entry by stable game ID; it never creates one.
+7. Manual/CSV idempotency identity remains unchanged by K4.
+8. Missing snapshot remains distinct from zero power.
 
 ## 5. Workflows
 
-### Record manual snapshot
+Manual and CSV workflows continue to delegate to `RecordPlayerSnapshot` with human/import provenance. K4-P2 delegates to the same recorder with `source=ingestion`, null actor, and validated machine provenance after stable-ID/tenant/current-Kingdom checks.
 
-An authorized manager records the observed player state under the active Alliance and roster entry. The recorder validates ranges, canonicalizes the accepted values/time, calculates deterministic idempotency, and appends the observation.
-
-### Record CSV-origin snapshot
-
-Controlled CSV confirmation uses the same snapshot action, setting source `csv` and `roster_import_id` provenance instead of creating a parallel history model.
-
-### Exact retry
-
-The recorder computes SHA-256 identity from:
-
-- Alliance ID;
-- roster-entry ID;
-- KingdomPlayer ID;
-- observed name;
-- canonical power;
-- optional progression/level;
-- optional observed Alliance/tag;
-- canonical UTC capture time; and
-- source.
-
-Actor is intentionally excluded from observation identity.
-
-### Latest projection
-
-Roster views project latest accepted snapshot fields through `PlayerSnapshotQuery` rather than copying current power/progression/tag into mutable roster columns.
-
-### Freshness
-
-The current threshold is **30 days**:
-
-- **Current** — latest snapshot captured within 30 days.
-- **Stale** — history exists, latest snapshot older than 30 days.
-- **Missing** — no snapshot exists.
-
-`AllianceRosterEntry.last_observed_at` is roster-maintenance metadata and is not the source for snapshot freshness/current power.
+Exact K4 candidate retry resolves the previously promoted snapshot. A distinct later candidate capture appends history.
 
 ## 6. Authorization, tenancy and privacy
 
-History reads require authenticated/verified active-Alliance context plus `alliance.view`.
+History reads require active-Alliance context plus `alliance.view`. Manual/CSV mutation requires `kingdoms.manage` and recent password confirmation. Machine promotion operates only from already tenant-owned K4 state after its source/Kingdom/stable-ID checks.
 
-Manual recording and CSV confirmation require `kingdoms.manage` plus recent password confirmation.
-
-Member-visible history includes game observation fields and capture/source metadata. Actor identity and import-management metadata are omitted from ordinary member payloads. Private roster notes/membership emails are not part of snapshot member output.
-
-Submitted roster-entry IDs and all history/latest queries are constrained by the active Alliance.
+Members do not receive actor/import/machine provenance. Managers may receive bounded actor/import/source provenance; candidate normalized bodies and secrets remain excluded.
 
 ## 7. Persistence and query semantics
 
-Historical snapshots are the source of truth. No second mutable current-power table is maintained by this contract.
+`actor_user_id` is nullable only to represent legitimate machine-origin observations. Machine provenance fields are nullable for legacy/manual/CSV rows. `source_identity_hash` is unique within Alliance snapshot history for machine promotions.
 
-The member history workspace returns at most the latest **250** observations ordered by capture time newest-first. Latest projection and trend queries remain tenant-scoped.
+Latest/current/stale/missing projection remains selected by capture time and existing deterministic tie-breaking; no mutable current-power table is introduced.
 
 ## 8. Events/integrations/background processing
 
-A newly accepted observation records audit event `kingdoms.player_snapshot_recorded` plus matching internal outbox event.
+A newly accepted observation emits internal `kingdoms.player_snapshot_recorded` audit/outbox evidence. Machine observations use null actor and bounded source identifiers/hashes. Exact retry emits no second observation event.
 
-An idempotent retry emits no second audit/outbox record. Event metadata identifies safe observation identifiers/capture/source and excludes private roster notes.
-
-No snapshot-specific scheduler/worker exists. `kingdoms.*` events remain internal, not public webhook contracts.
+No snapshot scheduler or public webhook contract exists.
 
 ## 9. Failure, idempotency and concurrency
 
-- Power outside the accepted non-negative signed-64-bit range is rejected.
-- Future/invalid timestamps are constrained by the owning input workflow.
-- Exact canonical retry returns existing state.
-- Cross-Alliance roster/history object IDs fail closed.
-- A historical observation inserted later cannot become current if its capture timestamp is older.
+Power/timestamp/text bounds remain enforced by the shared recorder. K4 adds failure-before-mutation for unknown/ambiguous/out-of-context stable IDs, missing/ambiguous Alliance roster targets, revoked adapter versions, and invalid normalized payloads.
 
 ## 10. Operations and observability
 
-Operators can use source, capture time, actor/import provenance (where authorized), freshness state, and audit/outbox evidence to distinguish missing history from delivery/input failures.
-
-See [Kingdoms roster intelligence operations](operations/kingdoms-roster-intelligence.md).
+Managers/operators can distinguish manual/CSV/ingestion source and, where authorized, correlate safe source provenance to K4 candidate/batch state. Canonical snapshot history must not be deleted merely because operational ingestion records are later pruned.
 
 ## 11. Tests and validation
 
-Accepted validation covers:
+K1 snapshot tests remain authoritative for append history, latest ordering, precision, disclosure, and human-source idempotency. K4-P2 adds exact candidate→snapshot retry, later-capture append history, no fake User actor, bounded machine provenance, cross-tenant/no-auto-enrollment, source-revocation, Kingdom-drift, and migration round-trip coverage.
 
-- append-only history;
-- exact-retry idempotency;
-- latest-by-capture ordering/tie-break;
-- current/stale/missing projection;
-- decimal-string power safety;
-- member/manager privacy split;
-- tenant isolation; and
-- manual/CSV provenance sharing one history model.
-
-See the [KINGDOMS-001 exit report](product/kingdoms-roster-intelligence-exit-report.md).
+Validated K4-P2 runtime candidate: `37a7df3e0e88e2303f3c8fa74efaaed0b85fbd4f`; DR `31538958810`, CodeQL `31538958745`, CI `31538958920`.
 
 ## 12. Related documentation
 
-- [Kingdoms domain](README.md)
 - [Roster](roster.md)
 - [Roster intelligence](intelligence.md)
 - [Controlled CSV migration](csv-migration.md)
-- [KINGDOMS-001 security review](security/kingdoms-roster-intelligence-security-review.md)
+- [Automated ingestion](automated-ingestion.md)
+- [K4 Slice B validation](product/kingdoms-automated-ingestion-slice-b-validation.md)
+- [K4 Slice B security review](security/kingdoms-automated-ingestion-player-promotion-security-review.md)

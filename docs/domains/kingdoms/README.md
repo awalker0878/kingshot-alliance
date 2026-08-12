@@ -3,256 +3,159 @@
 [← Domain documentation](../README.md)
 
 **Document type:** Living domain contract  
-**Status:** Current — `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` Accepted  
+**Status:** Current — `KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` Accepted  
 **Code owner:** `app/Domain/Kingdoms`  
 **Primary authorization boundary:** `alliance.view` for member-safe reads; `kingdoms.manage` for management/private workflows; `alliance.manage` for Alliance→Kingdom setting
 
 ## 1. Purpose and ownership
 
-Kingdoms owns approved Kingshot game-world reference identity and Alliance-owned Kingdoms workflows:
+Kingdoms owns approved Kingshot game-world reference identity and Alliance-owned workflows: neutral Kingdom/player/game-Alliance identity; roster/snapshots/intelligence; controlled CSV migration/export; transfer planning/handoff; game-Alliance tracking/observations/diplomacy/contacts/intelligence; and governed automated-ingestion control, factual promotion, generic scheduling, source-revocation, retention and operational health.
 
-- global `Kingdom` reference identity;
-- global neutral `KingdomPlayer` identity scoped to a Kingdom;
-- global neutral `KingdomAlliance` identity scoped to a Kingdom;
-- Alliance-owned roster state and append-only player observations;
-- descriptive roster intelligence;
-- controlled CSV roster migration/export;
-- Alliance-owned transfer planning and explicit roster handoff; and
-- Alliance-owned game-side Alliance tracking, factual observations, explicit diplomacy, manager-private contacts, and descriptive Alliance intelligence.
-
-Accepted increment evidence is domain-owned:
-
-- [`KINGDOMS-001` — roster intelligence](product/kingdoms-roster-intelligence-increment.md);
-- [`KINGDOMS-002` — transfer planning](product/kingdoms-transfer-planning-increment.md); and
-- [`KINGDOMS-003` — Alliance intelligence and diplomacy](product/kingdoms-alliance-intelligence-increment.md).
+Accepted increment evidence: [K1](product/kingdoms-roster-intelligence-increment.md), [K2](product/kingdoms-transfer-planning-increment.md), [K3](product/kingdoms-alliance-intelligence-increment.md), and [K4](product/kingdoms-automated-ingestion-increment.md). Current K4 behavior is [Automated game-data ingestion](automated-ingestion.md); acceptance evidence is the [K4 exit report](product/kingdoms-automated-ingestion-exit-report.md).
 
 ## 2. Scope
 
 ### In scope
 
 - neutral Kingdom/player/game-Alliance reference identity;
-- Alliance→Kingdom association consumption;
-- tenant-owned roster entries and player snapshots;
-- controlled CSV roster migration/export;
-- descriptive roster metrics/trends/data quality;
-- transfer plans/participants/groups/readiness/blockers/completion;
-- neutral game-Alliance tracking;
-- append-oriented game-Alliance observations/corrections;
-- explicit manager-maintained diplomacy/NAP state/history;
-- manager-private diplomacy contacts; and
-- descriptive game-Alliance intelligence/trends/review indicators.
+- Alliance→Kingdom context consumption;
+- Alliance-owned roster/snapshots/intelligence/import/export;
+- transfer planning/readiness/completion;
+- tracked game Alliances, factual observation/correction history, explicit diplomacy, private contacts, descriptive intelligence;
+- K4 code/config adapter allowlist, subscriptions, batches, bounded candidates, quarantine/rejection, deterministic identity, manager status/control;
+- delegated factual player-snapshot and game-Alliance-observation promotion to existing owning-Alliance relationships;
+- generic K4 scheduled acquisition, opaque cursor, bounded retry/circuit, concurrency guards and password-confirmed replay; and
+- source-revocation reconciliation, bounded operational retention/pruning and aggregate health/capacity monitoring.
 
 ### Out of scope
 
-- Alliance/application identity and membership ownership;
-- automated game-data ingestion/scraping/OCR/bots;
-- cross-Alliance/shared Kingdom intelligence without a separately approved opt-in scope;
-- threat/desirability/punitive/player scoring or automatic recommendations;
-- automated diplomacy/negotiation/transfer execution;
-- transfer resource/pass/ticket optimization; and
+- application/membership ownership;
+- unapproved concrete sources, manager-configured endpoints/credentials, scraping/OCR/browser/game-client automation;
+- machine roster/tracking creation or reactivation;
+- machine game-Alliance correction/invalidation;
+- cross-Alliance/shared intelligence without separately approved opt-in scope;
+- automatic transfer/diplomacy/contact actions or scoring/ranking/recommendations; and
 - public Kingdoms API/webhook contracts.
 
 ## 3. Domain model
 
-### Identity layers
+Identity remains layered: global `User`; Alliance membership; neutral `KingdomPlayer`/`KingdomAlliance` within a `Kingdom`; and Alliance-owned relationships/observations/workflows.
 
-Kingdoms deliberately separates:
+`AllianceRosterEntry` + `PlayerSnapshot` own player roster/history. Transfer entities own planning/readiness/completion. `TrackedKingdomAlliance`, `KingdomAllianceObservation`, diplomacy/transition/contact entities own tenant game-Alliance intelligence.
 
-1. **Application identity** — global `User`, owned by Identity.
-2. **Alliance membership** — User↔Alliance relationship, owned by Memberships.
-3. **Game player identity** — neutral `KingdomPlayer` within a `Kingdom`, owned by Kingdoms.
-4. **Game Alliance identity** — neutral `KingdomAlliance` within a `Kingdom`, owned by Kingdoms.
-5. **Alliance-owned observations/workflows** — roster, snapshots, imports/intelligence, transfer planning, game-Alliance tracking/observations/diplomacy/contacts, owned by Kingdoms beneath explicit Alliance tenancy.
-
-### Kingdom
-
-A `Kingdom` is global reference data with canonical positive Kingdom number, lifecycle state, and timestamps. An Alliance stores `kingdom_id`; the legacy free-form Alliance Kingdom persistence column is removed.
-
-### KingdomPlayer
-
-A `KingdomPlayer` is neutral reference identity scoped to one Kingdom. Stable game-player ID inside that Kingdom is the only automatic player identity-match key. Display names are not unique and never auto-merge identity.
-
-### KingdomAlliance
-
-A `KingdomAlliance` is neutral game-side Alliance identity scoped to one Kingdom. Stable `game_alliance_id` inside that Kingdom is the only automatic game-Alliance identity key. Name, tag, contact handle, or diplomacy state never auto-merge identity.
-
-### Tenant-owned roster/history
-
-`AllianceRosterEntry` belongs to one platform Alliance and one neutral `KingdomPlayer`. `PlayerSnapshot` is append-only Alliance-owned historical observation.
-
-### Transfer planning
-
-Transfer state is Alliance-owned and includes plan, participant, group, readiness transition, blocker, and completion/handoff records.
-
-### Alliance intelligence/diplomacy
-
-`TrackedKingdomAlliance` is an Alliance-owned relationship to a neutral `KingdomAlliance`. Observations, diplomacy/current+transition history, contacts, private notes, and derived intelligence remain tenant-owned.
+K4 adds Alliance-owned `KingdomIngestionSubscription`, `KingdomIngestionBatch`, and `KingdomIngestionCandidate`. Subscriptions carry bounded scheduler/cursor/failure state; batches carry source-window/next-cursor state. Promoted K1/K3 history copies bounded machine provenance without operational-row FKs.
 
 ## 4. Core invariants
 
-1. Global neutral references never grant tenant access.
+1. Neutral references never grant tenant access.
 2. Stable game identifiers within one Kingdom are the only automatic neutral identity keys.
-3. Display names/tags/handles never auto-merge neutral identity.
-4. Alliance-owned Kingdoms reads/mutations begin from explicit active Alliance context.
-5. Submitted tenant-owned IDs are re-resolved beneath the active Alliance/plan/tracking boundary.
-6. Player and game-Alliance history is append-oriented; accepted corrections preserve the original evidence rather than rewriting it.
-7. Missing data remains distinct from recorded zero.
-8. Descriptive intelligence derives from accepted facts/history and does not persist hidden ranking scores.
-9. Diplomacy changes only through explicit human manager action; review/expiry timestamps never auto-transition state.
-10. Transfer completion is explicit/idempotent and never fabricates a player snapshot.
-11. Coordinator/contact responsibility never grants authorization.
-12. Internal `kingdoms.*` outbox events do not automatically become public webhooks.
+3. Display names/tags/handles/source labels never auto-merge identity.
+4. Tenant-owned reads/mutations begin from explicit Alliance context and submitted IDs are re-resolved beneath it.
+5. Player/game-Alliance history is append-oriented; human corrections preserve original evidence.
+6. Machine game-Alliance promotion is append-only and cannot correct/invalidate existing history.
+7. Missing data remains distinct from zero.
+8. Diplomacy changes only through explicit human manager action; transfer completion remains explicit/idempotent.
+9. K4 operational rows capture Alliance/Kingdom context and never silently follow Kingdom drift.
+10. K4 promotion requires an existing owning-Alliance roster or active tracking relationship; it never creates/reactivates one.
+11. K4 scheduled workers re-resolve tenant/current-Kingdom/source version; queue identity is never authority.
+12. K4 cursor advances only after Completed/Partial batch state; exact source-window/candidate/promoted retry remains idempotent.
+13. Adapter removal/version drift disables acquisition rather than substituting another source/version.
+14. K4 operational retention cannot delete promoted K1/K3 canonical history or rewrite copied provenance.
+15. Production adapters remain repository/config allowlisted; current production list is empty.
+16. Internal `kingdoms.*` events never automatically become public webhooks.
 
 ## 5. Lifecycles and workflows
 
-### Alliance Kingdom setting
+Alliance Kingdom setting remains Alliances-owned. Historical Kingdoms state fails closed after drift.
 
-Changing the Alliance's Kingdom remains an Alliances-owned setting under `alliance.manage`. Archived Kingdoms cannot be newly selected. Kingdoms workflows that capture Kingdom context fail closed after drift rather than silently retargeting historical/planning state.
+Roster/snapshot/intelligence/CSV flows are documented in [Roster](roster.md), [Snapshots](snapshots.md), [Roster intelligence](intelligence.md), and [CSV migration](csv-migration.md). Transfer planning is [Transfer planning](transfer-planning.md). Game-Alliance business workflows are [Alliance intelligence and diplomacy](alliance-intelligence.md).
 
-### Roster and player observation
+K4 managers control approved subscriptions/rejection/replay. The scheduler claims due approved subscriptions, dispatches isolated per-subscription jobs, acquires a bounded page through an acquisition-capable adapter, delegates staging and P2/P3 promotion, completes the batch, then advances its opaque cursor.
 
-Managers resolve/create neutral player identity, maintain Alliance-owned roster relationship, optionally link an active same-Alliance membership, mark roster state, and record append-only player observations.
-
-See [Roster](roster.md) and [Snapshots](snapshots.md).
-
-### Roster intelligence
-
-Current/stale/missing quality, exact recorded-power aggregates, linkage coverage, movement, and bounded 7/30-day trends are derived synchronously from accepted roster/snapshot history.
-
-See [Roster intelligence](intelligence.md).
-
-### Controlled CSV migration
-
-A strict `kingdoms-roster.v1` dry-run/confirm workflow performs bounded validation, stable-ID-only automatic matching, explicit name-ambiguity resolution, transactional confirmation, provenance, drift detection, idempotency, and safe export.
-
-See [CSV migration](csv-migration.md).
-
-### Transfer planning
-
-Accepted planning supports draft/open/locked/closed/cancelled cycles, incoming/outgoing/staying intent, groups/coordinators, manual readiness/blockers, and explicit per-participant completion/roster handoff.
-
-See [Transfer planning](transfer-planning.md).
-
-### Game-Alliance tracking and intelligence
-
-Managers track neutral game-side Alliances in current Kingdom context, append factual observations/corrections, explicitly maintain diplomacy/NAP state/history, keep minimal manager-private handle-based contacts, and view read-only descriptive intelligence/trends.
-
-See [Alliance intelligence and diplomacy](alliance-intelligence.md).
+Maintenance periodically reconciles current source approval and disables revoked adapters; daily retention redacts/prunes age-qualified operational scaffolding; on-demand health produces payload-free aggregate attention signals. See [Automated game-data ingestion](automated-ingestion.md).
 
 ## 6. Authorization and tenancy
 
-- member-safe Kingdoms reads use `alliance.view`;
-- roster/snapshot/import/transfer/game-Alliance/diplomacy/contact management uses `kingdoms.manage`;
-- privileged mutations require recent password confirmation; and
+- member-safe reads use `alliance.view`;
+- roster/snapshot/import/transfer/game-Alliance/diplomacy/contact/K4 management uses `kingdoms.manage`;
+- privileged human mutations/replay require recent password confirmation; and
 - Alliance→Kingdom setting uses `alliance.manage`.
 
-Global `Kingdom`, `KingdomPlayer`, and `KingdomAlliance` rows are reference identity, not authorization boundaries.
-
-Ordinary member payloads exclude manager notes, membership emails/management IDs, restricted blocker detail, snapshot actor/import-management metadata, diplomacy private terms/rationale, contact detail, and richer completion provenance.
+Machine acquisition/promotion/maintenance derives authority only from already-owned K4 state after tenant/source re-resolution. Neutral identity, adapter/source/cursor/candidate state never grants application authorization.
 
 ## 7. Cross-domain contracts
 
 ### Consumes
 
-- **Alliances** — active tenant context and canonical Alliance→Kingdom relation.
-- **Memberships** — optional same-Alliance roster linkage/coordinator references; membership identity never becomes game identity.
-- **Authorization** — `alliance.view`, `alliance.manage`, `kingdoms.manage`.
-- **Identity** — actor identity/recent password assurance.
-- **Audit/Platform** — audit and transactional-outbox infrastructure.
-- **Integrations** — explicit external-exposure boundary that currently excludes Kingdoms public contracts.
+- **Alliances** — active tenant/current Kingdom.
+- **Memberships** — optional roster/coordinator references only.
+- **Authorization / Identity** — permission, actor identity and assurance.
+- **Audit / Platform** — audit/outbox plus shared scheduler/queue runtime.
+- **Integrations** — explicit external-exposure boundary; Kingdoms API/webhook remains excluded.
 
 ### Exposes
 
-- member-safe roster/history/intelligence/transfer/diplomacy presentation;
-- manager-only accepted mutation/query contracts; and
-- internal durable `kingdoms.*` events for asynchronous evidence/coordination, not public webhook compatibility.
+Member-safe presentation, manager-only accepted mutation/query contracts, K4 manager control/status, internal staging/promotion/scheduler/maintenance services, and internal durable `kingdoms.*` events. K4 adapter/acquisition registration is repository/operator configuration, not a public integration contract.
 
 ## 8. Persistence and data ownership
 
-Neutral Kingdom/player/game-Alliance references are global reference data. Roster entries, snapshots, imports, transfer plans and related records, tracking, observations, diplomacy, contacts, corrections, and derived tenant intelligence are Alliance-owned.
+Neutral Kingdom/player/game-Alliance references are global reference data. Roster/history/import/transfer/tracking/observations/diplomacy/contacts/derived intelligence and K4 operational state are Alliance-owned.
 
-The global-reference/tenant-observation split is mandatory: sharing a neutral reference never exposes another tenant's notes, history, metrics, transfer state, diplomacy, contacts, or derived summaries.
+K4 normalized candidates are bounded operational data, not raw-source archives. Default operational retention is 30-day terminal payload redaction, 90-day terminal candidate/batch retention, 180-day quarantined-candidate retention and 30-day disabled-subscription scheduling/failure compaction. Promoted K1/K3 history stores bounded source provenance independently.
 
 ## 9. Events, outbox and integrations
 
-Material privileged Kingdoms mutations create audit and transactional-outbox evidence.
+Material Kingdoms mutations create audit/internal outbox evidence. `alliance.kingdom_updated` and every `kingdoms.*` event remain excluded from generic external webhook fan-out.
 
-`alliance.kingdom_updated` and all `kingdoms.*` event families remain internal and are excluded from generic external webhook fan-out, including wildcard subscriptions. Public Kingdoms API/webhook exposure requires a separately approved integration contract with documented schemas/tests.
+K4 uses internal ingestion lifecycle/promotion/replay events plus accepted K1/K3 observation events. Maintenance adds no public integration surface. No inbound public API/webhook or arbitrary endpoint/secret configuration exists.
 
 ## 10. HTTP, UI and API surfaces
 
-Current first-party surfaces include roster/history/intelligence/import/export, transfer planning/management/completion, tracked game-Alliance observation/diplomacy/contact workspaces, and descriptive Alliance-intelligence dashboard.
+K1–K3 first-party surfaces cover settings, roster/history/intelligence/import/export, transfers, and tracked game-Alliance observation/diplomacy/contact/intelligence.
 
-The existing read-only public API has no accepted Kingdoms roster/snapshot/intelligence/transfer/diplomacy route/scope.
+K4 adds manager-only ingestion status/control and password-confirmed quarantined-candidate replay. There is no HTTP route for arbitrary source payload staging, scheduler invocation, direct promotion, retention/reconciliation/health or public source callbacks.
+
+Operator commands include queueing due ingestion, source reconciliation, operational retention and aggregate ingestion health. These are internal runtime interfaces, not public APIs.
 
 ## 11. Background processing
 
-Accepted K1–K3 Kingdoms behavior is primarily synchronous request/query behavior using PostgreSQL, audit, and the shared outbox publisher.
+K4 uses `kingdoms:queue-ingestion --limit=100` every minute, transactional due claims, dedicated `kingdoms-ingestion` Horizon queue, unique/overlap-protected per-subscription jobs, bounded timeout/retries/backoff/circuit state and opaque cursor advancement.
 
-It adds no Kingdoms-specific crawler, scraper, OCR pipeline, game-data ingestion worker, autonomous transfer executor, or diplomacy automation.
+Source reconciliation runs every five minutes and operational retention daily at 04:15 with single-server/overlap protection. Production has zero configured ingestion adapters, so no real external source is polled in default production state.
 
 ## 12. Failure, idempotency and concurrency
 
-- exact player/game-Alliance observation retries resolve deterministically instead of multiplying history;
-- CSV committed-import identity prevents duplicate batch application;
-- transfer completion has one durable completion per participant and returns the existing result on retry before repeating delegated roster side effects;
-- Alliance-Kingdom drift preserves authorized historical reads but normal mutations fail closed;
-- ambiguous name/tag/handle identity is never automatically resolved; and
-- trend calculations return missing/insufficient history rather than fabricate/interpolate unsupported values.
+Existing snapshot/observation/CSV/transfer idempotency remains enforced. K4 source windows/candidate identities are deterministic; exact promoted-candidate retry returns existing canonical history. Cursor advancement uses locks and requires completed/partial batch state.
+
+Adapter removal/version drift, Kingdom drift, circuit-open state, source-window/cursor conflicts, unknown/ambiguous/inactive targets, relationship absence and invalid bounded facts fail closed. Failure state uses bounded codes, not raw exception/source text. Source reconciliation is idempotent after disablement.
 
 ## 13. Security and privacy
 
-Kingdoms contains high-value Alliance operational intelligence. Manager-private notes, blocker detail, diplomacy terms/rationale, contacts, actor provenance, and import-management data must not leak into ordinary member, other-tenant, audit/outbox, or public integration payloads beyond explicitly approved safe identifiers.
+Kingdoms holds high-value tenant operational intelligence. Manager-private notes/reasons/contacts/provenance and K4 scheduler/operational state must not cross tenant/public boundaries.
 
-Domain-specific review evidence is indexed under [Kingdoms security](security/README.md). Repository-wide security requirements remain in the [security baseline](../../security/security-baseline.md).
+K4 excludes arbitrary endpoint/credential storage, raw-response archives, normalized-payload UI/health disclosure, stable-ID guessing, cross-tenant mutation, auto roster/tracking creation, machine observation correction and diplomacy/contact automation. See [Kingdoms security](security/README.md).
 
 ## 14. Observability and operations
 
-Accepted Kingdoms operating guidance is domain-owned and consumes the repository-wide deployment/observability/recovery platform:
+Use safe tenant/reference/state/count/timing/hash/cursor/reason/promoted-record identifiers with request/trace/audit/outbox correlation. Do not log source secrets/raw responses/private text.
 
-- [Roster intelligence operations](operations/kingdoms-roster-intelligence.md)
-- [Transfer planning operations](operations/kingdoms-transfer-planning.md)
-- [Alliance intelligence operations](operations/kingdoms-alliance-intelligence.md)
+K4 operational health is bounded aggregate evidence. A representative fixture of 250 subscriptions, 40 failed batches and 110 candidates is required to remain at no more than eight SELECT queries. This is not a real-source throughput SLO.
 
-Historical/provenance fields and data-quality indicators are designed to distinguish missing/stale/invalidated facts from zero/current values.
+Domain guides: [Roster intelligence operations](operations/kingdoms-roster-intelligence.md), [Transfer planning operations](operations/kingdoms-transfer-planning.md), [Alliance intelligence operations](operations/kingdoms-alliance-intelligence.md), [Automated ingestion operations](operations/kingdoms-automated-ingestion.md).
 
 ## 15. Testing and architecture enforcement
 
-The Kingdoms suites protect:
+Suites protect identity/tenancy, authorization/privacy, append history, human-only correction/diplomacy, retry/idempotency, migration/accessibility, public integration exclusion and K4 allowlist/no-secret/stable-ID/quarantine/no-auto-relationship/scheduler/replay/retention/revocation boundaries.
 
-- neutral reference versus tenant-owned state;
-- stable-ID identity matching/no name auto-merge;
-- authorization/tenant isolation;
-- append-only observation/correction history;
-- exact/idempotent retries;
-- CSV drift/ambiguity/formula safety;
-- transfer lifecycle/readiness/blocker/completion invariants;
-- diplomacy/contact privacy and human-only state transitions;
-- bounded 7/30-day trend semantics;
-- query-count gates at realistic volumes; and
-- external API/webhook non-exposure.
-
-Architecture tests additionally protect the Kingdoms physical/module boundaries.
+K4 whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` passed Dependency Review `31556412455`, CodeQL `31556412413`, and CI `31556412468`: Pint 529 files, PHPStan/Larastan 374/374 zero errors, 429 tests / 9,799 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore and scan. See the [K4 exit report](product/kingdoms-automated-ingestion-exit-report.md).
 
 ## 16. Explicit non-capabilities
 
-The accepted runtime does not implement:
+The current runtime does not implement an approved real Kingshot source, arbitrary manager network fetches, source credential storage, scraping/OCR/browser/game-client automation, auto roster/tracking/membership/transfer/diplomacy/contact behavior, machine K3 correction/invalidation, cross-Alliance shared intelligence, scoring/ranking/recommendations, or public Kingdoms API/webhook.
 
-- scraping, OCR, bots, or undocumented/unapproved Kingshot APIs;
-- automated game-data ingestion;
-- cross-Alliance/shared Kingdom intelligence;
-- transfer marketplace/public advertising;
-- inferred transfer eligibility/readiness;
-- transfer pass/ticket/resource optimization;
-- player/Alliance/destination threat/desirability/punitive ranking;
-- automated stay/leave/diplomacy/attack recommendations;
-- automatic negotiation/diplomacy transitions;
-- bulk/automatic in-game transfer execution; or
-- public Kingdoms API/webhook contracts.
+Generic scheduler/acquisition/maintenance mechanics exist, but the production adapter allowlist is empty. Production source enablement remains separately approved.
 
 ## 17. Capability documents
-
-Current capability contracts:
 
 - [Roster](roster.md)
 - [Player snapshots](snapshots.md)
@@ -260,23 +163,21 @@ Current capability contracts:
 - [Controlled CSV migration](csv-migration.md)
 - [Transfer planning](transfer-planning.md)
 - [Alliance intelligence and diplomacy](alliance-intelligence.md)
+- [Automated game-data ingestion](automated-ingestion.md)
 
-Domain-owned evidence and operations:
-
-- [Product and acceptance evidence](product/README.md)
-- [Security evidence](security/README.md)
-- [Operations](operations/README.md)
+Domain-owned evidence: [Product](product/README.md), [Security](security/README.md), [Operations](operations/README.md), [Interfaces](interfaces/README.md), [Testing](testing/README.md).
 
 ## 18. Related documentation
 
-- [KINGDOMS-001 exit report](product/kingdoms-roster-intelligence-exit-report.md)
-- [KINGDOMS-002 exit report](product/kingdoms-transfer-planning-exit-report.md)
-- [KINGDOMS-003 exit report](product/kingdoms-alliance-intelligence-exit-report.md)
-- [Alliances domain](../alliances/README.md)
-- [Memberships domain](../memberships/README.md)
-- [Authorization domain](../authorization/README.md)
-- [Integrations domain](../integrations/README.md)
+- [KINGDOMS-001 exit](product/kingdoms-roster-intelligence-exit-report.md)
+- [KINGDOMS-002 exit](product/kingdoms-transfer-planning-exit-report.md)
+- [KINGDOMS-003 exit](product/kingdoms-alliance-intelligence-exit-report.md)
+- [KINGDOMS-004 exit](product/kingdoms-automated-ingestion-exit-report.md)
+- [K4 Slice D validation](product/kingdoms-automated-ingestion-slice-d-validation.md)
+- [K4 Slice E validation](product/kingdoms-automated-ingestion-slice-e-validation.md)
+- [K4 Slice E security review](security/kingdoms-automated-ingestion-operations-security-review.md)
+- [Alliances](../alliances/README.md)
+- [Authorization](../authorization/README.md)
+- [Integrations](../integrations/README.md)
 - [Program product documentation](../../product/README.md)
-- [Repository security documentation](../../security/README.md)
-- [Shared operations documentation](../../operations/README.md)
 - [`app/Domain/Kingdoms/README.md`](../../../app/Domain/Kingdoms/README.md)

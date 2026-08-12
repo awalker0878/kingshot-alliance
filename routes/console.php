@@ -5,6 +5,10 @@ declare(strict_types=1);
 use App\Domain\Content\Actions\PublishScheduledContent;
 use App\Domain\Identity\Models\User;
 use App\Domain\Integrations\Actions\QueueDueWebhookDeliveries;
+use App\Domain\Kingdoms\Actions\EnforceKingdomIngestionRetention;
+use App\Domain\Kingdoms\Actions\QueueDueKingdomIngestionSubscriptions;
+use App\Domain\Kingdoms\Actions\ReconcileKingdomIngestionSources;
+use App\Domain\Kingdoms\Services\KingdomIngestionOperationalHealth;
 use App\Domain\Notifications\Actions\QueueDueContributionReports;
 use App\Domain\Notifications\Actions\QueueDueEventReminders;
 use App\Domain\Notifications\Actions\SyncUpcomingEventReminders;
@@ -107,6 +111,40 @@ Artisan::command('integrations:queue-webhooks {--limit=100}', function (QueueDue
     return 0;
 })->purpose('Recover and queue due webhook deliveries');
 
+Artisan::command('kingdoms:queue-ingestion {--limit=100}', function (QueueDueKingdomIngestionSubscriptions $queue): int {
+    $queued = $queue->handle(max(1, min(500, (int) $this->option('limit'))));
+    $this->info(sprintf('Queued %d due Kingdom ingestion subscription(s).', $queued));
+
+    return 0;
+})->purpose('Queue due approved Kingdom ingestion subscriptions');
+
+Artisan::command('kingdoms:reconcile-ingestion-sources {--limit=500}', function (ReconcileKingdomIngestionSources $reconcile): int {
+    $revoked = $reconcile->handle(max(1, min(2000, (int) $this->option('limit'))));
+    $this->info(sprintf('Disabled %d Kingdom ingestion subscription(s) with revoked source approval.', $revoked));
+
+    return 0;
+})->purpose('Disable Kingdom ingestion subscriptions whose approved source/version was revoked');
+
+Artisan::command('kingdoms:enforce-ingestion-retention', function (EnforceKingdomIngestionRetention $retention): int {
+    $this->info(json_encode($retention->handle(), JSON_THROW_ON_ERROR));
+
+    return 0;
+})->purpose('Enforce KINGDOMS-004 operational retention without deleting canonical promoted history');
+
+Artisan::command('kingdoms:ingestion-health {--json}', function (KingdomIngestionOperationalHealth $health): int {
+    $snapshot = $health->snapshot();
+
+    if ((bool) $this->option('json')) {
+        $this->line(json_encode($snapshot, JSON_THROW_ON_ERROR));
+    } else {
+        foreach ($snapshot as $key => $value) {
+            $this->line(sprintf('%s=%s', $key, is_bool($value) ? ($value ? 'true' : 'false') : (string) $value));
+        }
+    }
+
+    return $snapshot['attentionRequired'] ? 1 : 0;
+})->purpose('Report bounded KINGDOMS-004 operational health signals for monitoring');
+
 Artisan::command('content:publish-scheduled {--limit=100}', function (PublishScheduledContent $publisher): int {
     $limit = max(1, min(500, (int) $this->option('limit')));
     $published = $publisher->handle($limit);
@@ -161,6 +199,9 @@ Schedule::command('events:queue-reminders --limit=100')->everyMinute()->onOneSer
 Schedule::command('contributions:queue-reports --limit=50')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('outbox:publish --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('integrations:queue-webhooks --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('kingdoms:queue-ingestion --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('kingdoms:reconcile-ingestion-sources --limit=1000')->everyFiveMinutes()->onOneServer()->withoutOverlapping(10);
+Schedule::command('kingdoms:enforce-ingestion-retention')->dailyAt('04:15')->onOneServer()->withoutOverlapping(60);
 Schedule::command('platform:process-account-deletions --limit=100')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('platform:capture-usage --limit=2000')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('platform:enforce-retention')->dailyAt('03:45')->onOneServer()->withoutOverlapping(60);

@@ -18,6 +18,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 final readonly class RecordKingdomAllianceObservation
 {
@@ -30,7 +31,7 @@ final readonly class RecordKingdomAllianceObservation
     ) {}
 
     /**
-     * @param array{
+     * @param  array{
      *   observed_name: string,
      *   observed_tag?: string|null,
      *   power?: string|null,
@@ -38,19 +39,62 @@ final readonly class RecordKingdomAllianceObservation
      *   captured_at: string,
      *   corrects_observation_id?: string|null,
      *   correction_reason?: string|null
-     * } $attributes
+     * }  $attributes
+     * @param  array{
+     *   subscription_id: string,
+     *   batch_id: string,
+     *   adapter_key: string,
+     *   adapter_version: string,
+     *   source_record_id?: string|null,
+     *   identity_hash: string,
+     *   payload_hash: string
+     * }|null  $machineProvenance
      */
     public function handle(
         Alliance $alliance,
-        User $actor,
+        ?User $actor,
         string $trackingId,
         array $attributes,
+        string $source = 'manual',
+        ?array $machineProvenance = null,
     ): KingdomAllianceObservation {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
-            throw new AuthorizationException;
+        if (in_array($source, ['manual', 'ingestion'], true) === false) {
+            throw new InvalidArgumentException('Unsupported game-alliance observation source.');
         }
 
-        return DB::transaction(function () use ($alliance, $actor, $trackingId, $attributes): KingdomAllianceObservation {
+        if ($source === 'ingestion') {
+            if ($actor !== null || $machineProvenance === null) {
+                throw new InvalidArgumentException('Automated observations require machine provenance and no User actor.');
+            }
+
+            if (
+                ($attributes['corrects_observation_id'] ?? null) !== null
+                || ($attributes['correction_reason'] ?? null) !== null
+            ) {
+                throw new InvalidArgumentException('Automated observations cannot correct or invalidate existing history.');
+            }
+        } else {
+            if (! $actor instanceof User || $machineProvenance !== null) {
+                throw new InvalidArgumentException('Manual observations require a User actor and no machine provenance.');
+            }
+
+            if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
+                throw new AuthorizationException;
+            }
+        }
+
+        $provenance = $source === 'ingestion'
+            ? $this->machineProvenance($machineProvenance)
+            : $this->emptyMachineProvenance();
+
+        return DB::transaction(function () use (
+            $alliance,
+            $actor,
+            $trackingId,
+            $attributes,
+            $source,
+            $provenance,
+        ): KingdomAllianceObservation {
             $lockedAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
             $tracking = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $lockedAlliance->id)
@@ -87,10 +131,14 @@ final readonly class RecordKingdomAllianceObservation
             $observedTag = $this->nullableLine($attributes['observed_tag'] ?? null);
             $power = $this->power($attributes['power'] ?? null);
             $memberCount = $this->memberCount($attributes['member_count'] ?? null);
-            $correctsId = $this->nullableLine($attributes['corrects_observation_id'] ?? null);
-            $correctionReason = $this->nullableText($attributes['correction_reason'] ?? null);
+            $correctsId = $source === 'manual'
+                ? $this->nullableLine($attributes['corrects_observation_id'] ?? null)
+                : null;
+            $correctionReason = $source === 'manual'
+                ? $this->nullableText($attributes['correction_reason'] ?? null)
+                : null;
 
-            $idempotencyKey = hash('sha256', json_encode([
+            $idempotencyPayload = [
                 'alliance_id' => (string) $lockedAlliance->id,
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
                 'kingdom_alliance_id' => (string) $reference->id,
@@ -99,9 +147,13 @@ final readonly class RecordKingdomAllianceObservation
                 'power' => $power,
                 'member_count' => $memberCount,
                 'captured_at' => $capturedAt->format('Y-m-d\\TH:i:s.u\\Z'),
-                'source' => 'manual',
+                'source' => $source,
                 'corrects_observation_id' => $correctsId,
-            ], JSON_THROW_ON_ERROR));
+            ];
+            if ($source === 'ingestion') {
+                $idempotencyPayload['source_identity_hash'] = $provenance['identity_hash'];
+            }
+            $idempotencyKey = hash('sha256', json_encode($idempotencyPayload, JSON_THROW_ON_ERROR));
 
             $existing = KingdomAllianceObservation::query()
                 ->where('alliance_id', $lockedAlliance->id)
@@ -130,13 +182,20 @@ final readonly class RecordKingdomAllianceObservation
                 'alliance_id' => $lockedAlliance->id,
                 'tracked_kingdom_alliance_id' => $tracking->id,
                 'kingdom_alliance_id' => $reference->id,
-                'actor_user_id' => $actor->id,
+                'actor_user_id' => $actor?->id,
                 'observed_name' => $observedName,
                 'observed_tag' => $observedTag,
                 'power' => $power,
                 'member_count' => $memberCount,
                 'captured_at' => $capturedAt,
-                'source' => 'manual',
+                'source' => $source,
+                'source_subscription_id' => $provenance['subscription_id'],
+                'source_batch_id' => $provenance['batch_id'],
+                'source_adapter_key' => $provenance['adapter_key'],
+                'source_adapter_version' => $provenance['adapter_version'],
+                'source_record_id' => $provenance['source_record_id'],
+                'source_identity_hash' => $provenance['identity_hash'],
+                'source_payload_hash' => $provenance['payload_hash'],
                 'idempotency_key' => $idempotencyKey,
                 'corrects_observation_id' => $corrects?->id,
             ]);
@@ -144,7 +203,7 @@ final readonly class RecordKingdomAllianceObservation
             if ($corrects instanceof KingdomAllianceObservation) {
                 $corrects->forceFill([
                     'invalidated_at' => now(),
-                    'invalidated_by_user_id' => $actor->id,
+                    'invalidated_by_user_id' => $actor?->id,
                     'invalidation_reason' => $correctionReason,
                 ])->save();
             }
@@ -156,8 +215,15 @@ final readonly class RecordKingdomAllianceObservation
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
                 'kingdom_alliance_id' => (string) $reference->id,
                 'captured_at' => $capturedAt->toIso8601String(),
-                'source' => 'manual',
+                'source' => $source,
                 'corrects_observation_id' => $corrects?->id === null ? null : (string) $corrects->id,
+                'source_subscription_id' => $provenance['subscription_id'],
+                'source_batch_id' => $provenance['batch_id'],
+                'source_adapter_key' => $provenance['adapter_key'],
+                'source_adapter_version' => $provenance['adapter_version'],
+                'source_record_id' => $provenance['source_record_id'],
+                'source_identity_hash' => $provenance['identity_hash'],
+                'source_payload_hash' => $provenance['payload_hash'],
             ];
             $event = 'kingdoms.alliance_intelligence_observation_recorded';
             $this->audit->record($event, $actor, $observation, $lockedAlliance, $metadata);
@@ -245,5 +311,94 @@ final readonly class RecordKingdomAllianceObservation
     private function nullableText(?string $value): ?string
     {
         return $this->nullableLine($value);
+    }
+
+    /**
+     * @param  array{
+     *   subscription_id: string,
+     *   batch_id: string,
+     *   adapter_key: string,
+     *   adapter_version: string,
+     *   source_record_id?: string|null,
+     *   identity_hash: string,
+     *   payload_hash: string
+     * }  $provenance
+     * @return array{
+     *   subscription_id: string,
+     *   batch_id: string,
+     *   adapter_key: string,
+     *   adapter_version: string,
+     *   source_record_id: string|null,
+     *   identity_hash: string,
+     *   payload_hash: string
+     * }
+     */
+    private function machineProvenance(array $provenance): array
+    {
+        return [
+            'subscription_id' => $this->provenanceText($provenance['subscription_id'] ?? null, 26, 'subscription_id'),
+            'batch_id' => $this->provenanceText($provenance['batch_id'] ?? null, 26, 'batch_id'),
+            'adapter_key' => $this->provenanceText($provenance['adapter_key'] ?? null, 80, 'adapter_key'),
+            'adapter_version' => $this->provenanceText($provenance['adapter_version'] ?? null, 40, 'adapter_version'),
+            'source_record_id' => $this->nullableProvenanceText($provenance['source_record_id'] ?? null, 191, 'source_record_id'),
+            'identity_hash' => $this->hash($provenance['identity_hash'] ?? null, 'identity_hash'),
+            'payload_hash' => $this->hash($provenance['payload_hash'] ?? null, 'payload_hash'),
+        ];
+    }
+
+    /**
+     * @return array{
+     *   subscription_id: null,
+     *   batch_id: null,
+     *   adapter_key: null,
+     *   adapter_version: null,
+     *   source_record_id: null,
+     *   identity_hash: null,
+     *   payload_hash: null
+     * }
+     */
+    private function emptyMachineProvenance(): array
+    {
+        return [
+            'subscription_id' => null,
+            'batch_id' => null,
+            'adapter_key' => null,
+            'adapter_version' => null,
+            'source_record_id' => null,
+            'identity_hash' => null,
+            'payload_hash' => null,
+        ];
+    }
+
+    private function provenanceText(mixed $value, int $max, string $field): string
+    {
+        if (! is_string($value)) {
+            throw new InvalidArgumentException('Automated observation provenance '.$field.' must be text.');
+        }
+
+        $value = trim($value);
+        if ($value === '' || mb_strlen($value) > $max) {
+            throw new InvalidArgumentException('Automated observation provenance '.$field.' is missing or too long.');
+        }
+
+        return $value;
+    }
+
+    private function nullableProvenanceText(mixed $value, int $max, string $field): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return $this->provenanceText($value, $max, $field);
+    }
+
+    private function hash(mixed $value, string $field): string
+    {
+        if (! is_string($value) || preg_match('/^[a-f0-9]{64}$/', $value) !== 1) {
+            throw new InvalidArgumentException('Automated observation provenance '.$field.' must be a SHA-256 hex digest.');
+        }
+
+        return $value;
     }
 }

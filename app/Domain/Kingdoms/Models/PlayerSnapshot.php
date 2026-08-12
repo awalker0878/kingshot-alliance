@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
  * @property string $alliance_id
  * @property string $roster_entry_id
  * @property string $kingdom_player_id
- * @property int $actor_user_id
+ * @property int|null $actor_user_id
  * @property string|null $roster_import_id
  * @property string $observed_name
  * @property int $power
@@ -23,11 +23,18 @@ use Illuminate\Support\Carbon;
  * @property string|null $observed_alliance_tag
  * @property Carbon $captured_at
  * @property string $source
+ * @property string|null $source_subscription_id
+ * @property string|null $source_batch_id
+ * @property string|null $source_adapter_key
+ * @property string|null $source_adapter_version
+ * @property string|null $source_record_id
+ * @property string|null $source_identity_hash
+ * @property string|null $source_payload_hash
  * @property string $idempotency_key
  * @property-read Alliance $alliance
  * @property-read AllianceRosterEntry $rosterEntry
  * @property-read KingdomPlayer $player
- * @property-read User $actor
+ * @property-read User|null $actor
  * @property-read RosterImport|null $rosterImport
  */
 final class PlayerSnapshot extends Model
@@ -50,6 +57,13 @@ final class PlayerSnapshot extends Model
         'observed_alliance_tag',
         'captured_at',
         'source',
+        'source_subscription_id',
+        'source_batch_id',
+        'source_adapter_key',
+        'source_adapter_version',
+        'source_record_id',
+        'source_identity_hash',
+        'source_payload_hash',
         'idempotency_key',
     ];
 
