@@ -8,7 +8,7 @@
 **Code owner:** `app/Domain/Kingdoms`  
 **Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 ingestion control/operations, K5 first-party consent/target mutations, bounded current/history queries, authenticated member/manager presentation and bounded internal retention command/schedule, with internal-only `kingdoms.*` events
 
-**P5 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; K5 P5 adds one internal operator/scheduler surface without creating a public Kingdoms API or changing the frozen interface-inventory convention.
+**P4 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; K5 P5 adds one internal operator/scheduler surface without creating a public Kingdoms API or changing the frozen interface-inventory convention.
 
 ## 1. Boundary purpose and ownership
 
