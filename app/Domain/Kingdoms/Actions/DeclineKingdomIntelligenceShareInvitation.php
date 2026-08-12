@@ -38,8 +38,20 @@ final readonly class DeclineKingdomIntelligenceShareInvitation
         }
 
         return DB::transaction(function () use ($recipientAlliance, $actor, $token): KingdomIntelligenceShare {
+            $tokenHash = $this->tokens->hash($token);
+            $candidate = KingdomIntelligenceShare::query()
+                ->where('invitation_token_hash', $tokenHash)
+                ->where('state', KingdomIntelligenceShareState::Pending->value)
+                ->first();
+
+            if (! $candidate instanceof KingdomIntelligenceShare) {
+                throw $this->invalidToken();
+            }
+
+            $recipient = Alliance::query()->whereKey($recipientAlliance->id)->lockForUpdate()->firstOrFail();
             $share = KingdomIntelligenceShare::query()
-                ->where('invitation_token_hash', $this->tokens->hash($token))
+                ->whereKey($candidate->id)
+                ->where('invitation_token_hash', $tokenHash)
                 ->where('state', KingdomIntelligenceShareState::Pending->value)
                 ->lockForUpdate()
                 ->first();
@@ -49,8 +61,6 @@ final readonly class DeclineKingdomIntelligenceShareInvitation
                 || ! $share->invitation_expires_at->isFuture()) {
                 throw $this->invalidToken();
             }
-
-            $recipient = Alliance::query()->whereKey($recipientAlliance->id)->lockForUpdate()->firstOrFail();
 
             $share->forceFill([
                 'recipient_alliance_id' => $recipient->id,
