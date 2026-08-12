@@ -3,18 +3,18 @@
 [← Kingdoms domain](../README.md) · [Shared operations](../../../operations/README.md)
 
 **Document type:** Living domain operations profile  
-**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P5 retention/capacity hardening validated  
+**Status:** Current — `KINGDOMS-004` and `KINGDOMS-005` Accepted  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary operational boundary:** Alliance-scoped roster/intelligence/transfer, K4 ingestion operations, and K5 consent/grant/current/history/presentation plus bounded operational retention with shared deployment/recovery infrastructure
+**Primary operational boundary:** Alliance-scoped roster/intelligence/transfer, K4 ingestion operations, and accepted K5 consent/grant/current/history/presentation plus bounded operational retention with shared deployment/recovery infrastructure
 
 ## 1. Operational purpose and runtime shape
 
-K1–K3 remain synchronous business workflows; K4 adds background ingestion/maintenance. K5 through P5 adds synchronous sharing consent/target mutations, bounded recipient current/history reads, member-safe presentation, a manager-only sharing workspace, and bounded scheduled retention for old K5 operational metadata.
+K1–K3 remain synchronous business workflows; K4 adds background ingestion/maintenance. Accepted K5 adds synchronous sharing consent/target mutations, bounded recipient current/history reads, member-safe presentation, a manager-only sharing workspace, and bounded scheduled retention for old K5 operational metadata.
 
 K5 retention is a repository-owned daily scheduler/Artisan surface. It has no external provider dependency, does not create recipient copies, and does not change live read authorization.
 
-`K5-P6` whole-increment acceptance is selected but remains locked until the P5 Complete / P6 Current transition head is protected-green.
+K5-P6 completed whole-increment acceptance without adding a new operational runtime surface.
 
 ## 2. Persistent state and ownership
 
@@ -50,6 +50,8 @@ P4 exposes these through the authenticated member-safe sharing page and manager-
 P5 adds `kingdoms:enforce-sharing-retention --limit=500`, scheduled daily at 04:30 with `onOneServer()` and `withoutOverlapping(60)`. One invocation uses one total budget, clamped to 1–2000, and processes expired pending invitations → old terminal agreements → old removed grants.
 
 Supported Alliance→Kingdom changes terminalize affected K5 agreements/pending source invitations in the same transaction, preventing access resume after returning to an old Kingdom.
+
+P6 adds no new background or operator workflow; it validates the complete runtime seam end to end.
 
 ## 5. Health, observability and diagnostics
 
@@ -92,7 +94,7 @@ P4 added the forward `030000` migration making `kingdom_intelligence_shares.invi
 
 Rollback fills null terminal hashes with deterministic per-share retired placeholders solely to satisfy the historical non-null schema; reapply recognizes those terminal placeholders and restores null. Pending invitation hashes remain intact.
 
-P5 adds no schema migration. Protected P5 CI demonstrated clean migrations and backup/restore with retention code present.
+P5 adds no schema migration. Whole-increment protected CI demonstrated clean migrations and backup/restore with the accepted K5 runtime present.
 
 After restore, current/history authorization still depends on live agreement/grant/context state. Restored metadata does not bypass tenant/K3 authorization and no recipient canonical history copy exists. A restore may reintroduce already-purged operational rows; bounded retention may be rerun after restore validation.
 
@@ -108,7 +110,7 @@ Retention uses one total 1–2000 per-run work budget; scheduled default is 500.
 
 ## 10. External-service degradation
 
-K5 through P5 has no external service dependency. Existing K4 production adapter allowlist remains empty.
+K5 has no external service dependency. Existing K4 production adapter allowlist remains empty.
 
 Do not use public links, external file sharing, ad hoc APIs or messaging callbacks as workarounds for K5 sharing. History cursors are first-party continuation state, not externally reusable sharing credentials.
 
@@ -124,7 +126,7 @@ Stop if recovery/maintenance would require exposing invitation secret material/h
 
 ## 12. Evidence, focused runbooks and related documentation
 
-K5-P5 now warrants a dedicated capability runbook because it adds recurring destructive retention and capacity boundaries important to safe recovery:
+K5 warrants a dedicated capability runbook because it adds recurring destructive retention and capacity boundaries important to safe recovery:
 
 - [Shared-intelligence retention and capacity operations](kingdoms-shared-intelligence-retention.md)
 
@@ -135,6 +137,6 @@ Accepted Kingdoms operational guides remain indexed and authoritative:
 - [Alliance intelligence operations](kingdoms-alliance-intelligence.md)
 - [Automated ingestion operations](kingdoms-automated-ingestion.md)
 
-P5 runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed Dependency Review `31570931190`, CodeQL `31570931290`, and CI `31570931267`: Pint 559 files, PHPStan/Larastan 394/394 zero errors, 451 tests / 10,230 assertions, frontend lint/format/type/build, migrations, image/staging/backup/scan/cleanup success.
+Whole-increment runtime candidate `6f84b51ab27941f0fec2abce71f1f2f6325560e4` passed Dependency Review `31573301975`, CodeQL `31573301988`, and CI `31573301977`: Pint 560 files, PHPStan/Larastan 394/394 zero errors, 452 tests / 10,322 assertions, frontend lint/format/type/build, migrations, image/staging/backup/scan/cleanup success.
 
-Use with [Shared intelligence](../shared-intelligence.md), [Slice E validation](../product/kingdoms-shared-intelligence-slice-e-validation.md), [Slice E security review](../security/kingdoms-shared-intelligence-retention-security-review.md), [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), and [rollback](../../../operations/runbooks/rollback.md).
+Use with [Shared intelligence](../shared-intelligence.md), [Slice E validation](../product/kingdoms-shared-intelligence-slice-e-validation.md), [Slice E security review](../security/kingdoms-shared-intelligence-retention-security-review.md), [K5 whole-increment exit report](../product/kingdoms-shared-intelligence-exit-report.md), [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), and [rollback](../../../operations/runbooks/rollback.md).
