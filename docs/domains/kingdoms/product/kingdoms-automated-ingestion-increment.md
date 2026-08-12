@@ -2,12 +2,13 @@
 
 [← Kingdoms product and acceptance evidence](README.md)
 
-**Status:** In progress — `K4-P0`–`K4-P5` Complete; `K4-P6` whole-increment acceptance selected pending exact transition-head validation  
+**Status:** **Accepted** — `K4-P0`–`K4-P6` Complete  
 **Scope ID:** `KINGDOMS-004`  
 **Owning domain:** `Kingdoms`  
 **Delivery model:** Post-program product increment; not historical Phase numbering or the completed DCP  
 **Baseline dependency:** Accepted `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003`  
 **Implementation sequence:** [KINGDOMS-004 implementation plan](kingdoms-automated-ingestion-implementation-plan.md)  
+**Exit evidence:** [KINGDOMS-004 exit report](kingdoms-automated-ingestion-exit-report.md)  
 **Living capability:** [Automated game-data ingestion](../automated-ingestion.md)
 
 ## 1. Purpose
@@ -18,17 +19,18 @@ K4 is an ingestion boundary, not an acquisition loophole. It does not authorize 
 
 ## 2. Current product state
 
-The generic repository increment now implements:
+The accepted generic repository increment provides:
 
 - code/config adapter registry and Alliance/current-Kingdom subscriptions;
 - bounded batches/candidates, deterministic source-window/candidate identity, quarantine/rejection and manager controls;
 - existing-roster player-snapshot promotion through the accepted K1 recording contract;
 - existing-active-tracking game-Alliance observation promotion through the accepted K3 recording contract;
 - scheduled acquisition, opaque cursor, retry/backoff/circuit/concurrency and controlled replay;
-- source-revocation reconciliation, bounded operational retention/pruning and payload-free health monitoring; and
-- realistic-volume aggregate-query evidence for the operations path.
+- source-revocation reconciliation, bounded operational retention/pruning and payload-free health monitoring;
+- realistic-volume aggregate-query evidence for the operations path; and
+- a dedicated whole-increment acceptance scenario proving promotion, exact-window idempotency, revocation and canonical-history survival after operational pruning.
 
-The **production adapter allowlist remains empty**, so the repository does not acquire real Kingshot data. K4-P5 runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` is protected-green; see [Slice E validation](kingdoms-automated-ingestion-slice-e-validation.md). K4-P6 whole-increment acceptance is the remaining repository gate after the containing P5→P6 transition head is protected-green.
+The **production adapter allowlist remains empty**, so repository acceptance does not itself acquire real Kingshot data or approve any provider. Whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` passed Dependency Review `31556412455`, CodeQL `31556412413`, and CI `31556412468` with 429 tests / 9,799 assertions. See the [exit report](kingdoms-automated-ingestion-exit-report.md).
 
 ## 3. Core business rules
 
@@ -74,7 +76,7 @@ Kingdoms does not persist source passwords/API tokens/cookies/authorization head
 
 ## 4. In-scope capabilities
 
-The K4 repository increment includes:
+The accepted K4 repository increment includes:
 
 1. code/config allowlisted adapter contract;
 2. Alliance-owned subscription lifecycle;
@@ -85,7 +87,7 @@ The K4 repository increment includes:
 7. manager review, observability, retention/revocation hardening (`K4-P5`); and
 8. whole-increment acceptance (`K4-P6`).
 
-Items 1–7 are implemented and slice-validated. Item 8 is the remaining repository acceptance gate.
+All eight gates are complete and recorded in the implementation plan/exit report.
 
 ## 5. Authorization and privacy
 
@@ -115,9 +117,9 @@ Default operational windows are 30-day terminal payload redaction, 90-day termin
 - `K4-P3` / Slice C — **Complete**: existing-tracking game-Alliance observation promotion.
 - `K4-P4` / Slice D — **Complete**: scheduler/cursor/retry/replay/concurrency.
 - `K4-P5` / Slice E — **Complete**: operations/review/retention/revocation/health/capacity hardening.
-- `K4-P6` — **Current / selected pending transition-head validation**: whole-increment acceptance.
+- `K4-P6` — **Complete / Accepted**: whole-increment acceptance.
 
-See the [implementation plan](kingdoms-automated-ingestion-implementation-plan.md) for gates.
+See the [implementation plan](kingdoms-automated-ingestion-implementation-plan.md) and [exit report](kingdoms-automated-ingestion-exit-report.md).
 
 ## 8. Explicitly out of scope
 
@@ -125,6 +127,4 @@ K4 does not approve scraping/OCR/browser/game-client automation/bots/undocumente
 
 ## 9. Acceptance rule
 
-Each runtime slice must update living capability/security/operations/interfaces/testing truth and pass protected Dependency Review, CodeQL, complete CI, migration rollback/reapply where applicable, and slice-specific tenant/security/idempotency tests. The evidence/status head containing the validation record must also pass before the next gate begins.
-
-Whole-increment acceptance occurs only at `K4-P6` and must record its accepted containing SHA/run IDs. Real production source enablement and production cutover remain separate operational approval decisions.
+`KINGDOMS-004` acceptance is established by the protected whole-increment runtime candidate and the protected containing acceptance/evidence status head. Real production source enablement and production cutover remain separate operational approval decisions and require source-specific authorization, network, secret, schema/cursor, monitoring and rollback evidence.
