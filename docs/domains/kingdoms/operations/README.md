@@ -84,6 +84,13 @@ Stop if recovery would require exposing invitation plaintext, database retarget/
 
 **P3 inventory decision:** Kingdoms retains domain-owned focused operational guides; K5-P1 does not yet justify a dedicated runbook because it adds no background/operator surface. Shared queue/deployment/backup mechanics remain top-level Operations-owned.
 
+Accepted Kingdoms operational guides remain indexed and authoritative for their accepted capabilities:
+
+- [Roster intelligence operations](kingdoms-roster-intelligence.md)
+- [Transfer planning operations](kingdoms-transfer-planning.md)
+- [Alliance intelligence operations](kingdoms-alliance-intelligence.md)
+- [Automated ingestion operations](kingdoms-automated-ingestion.md)
+
 P1 runtime candidate `9ef1d46b1db69708d575e82d8548145cf7769e68` passed Dependency Review `31559012856`, CodeQL `31559012854`, and CI `31559012861`: 541 Pint files, PHPStan 384/384 zero errors, 434 tests / 9,911 assertions, frontend/build, migrations, image/staging/backup/scan success.
 
 Use with [Shared intelligence](../shared-intelligence.md), [Slice A validation](../product/kingdoms-shared-intelligence-slice-a-validation.md), [Slice A security review](../security/kingdoms-shared-intelligence-foundation-security-review.md), [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), and [rollback](../../../operations/runbooks/rollback.md).
