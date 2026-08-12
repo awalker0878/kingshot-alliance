@@ -3,18 +3,18 @@
 [← Kingdoms domain](README.md)
 
 **Document type:** Living capability contract  
-**Status:** Current — `KINGDOMS-004` through `K4-P4` / Slice D validated when the containing evidence head is protected-green; `K4-P5` is next  
+**Status:** Current — `KINGDOMS-004` through `K4-P5` / Slice E runtime validated; `K4-P6` whole-increment acceptance is next after the containing transition head is protected-green  
 **Owning domain:** Kingdoms
 
 ## 1. Purpose
 
 Automated game-data ingestion provides a tenant-scoped path for approved machine-readable Kingshot facts without bypassing accepted Kingdoms identity, tenancy, append-history, privacy or human-decision boundaries.
 
-K4-P1 established the generic subscription/batch/candidate control plane. K4-P2 added existing-roster player-snapshot promotion. K4-P3 added existing-active-tracking game-Alliance observation promotion. K4-P4 adds generic scheduled acquisition, cursor/retry/concurrency mechanics and controlled replay around those accepted contracts.
+K4-P1 established the generic subscription/batch/candidate control plane. K4-P2 added existing-roster player-snapshot promotion. K4-P3 added existing-active-tracking game-Alliance observation promotion. K4-P4 added generic scheduled acquisition, cursor/retry/concurrency mechanics and controlled replay. K4-P5 adds source-revocation reconciliation, bounded operational retention, aggregate health/alert signals and capacity evidence.
 
 ## 2. Scope and non-scope
 
-Current scope includes code/config allowlisted adapters, Alliance/current-Kingdom subscriptions, bounded acquisition pages, batches, normalized candidates, quarantine/rejection, deterministic identities, delegated player/game-Alliance promotion, scheduler claiming, dedicated queue execution, opaque cursor advancement, bounded retry/circuit state, manager health presentation and password-confirmed replay.
+Current scope includes code/config allowlisted adapters, Alliance/current-Kingdom subscriptions, bounded acquisition pages, batches, normalized candidates, quarantine/rejection, deterministic identities, delegated player/game-Alliance promotion, scheduler claiming, dedicated queue execution, opaque cursor advancement, bounded retry/circuit state, manager replay, source-revocation reconciliation, retention/pruning and payload-free operational health.
 
 Still out of scope: a concrete production source, production endpoint/credential, scraping/OCR/browser/game-client automation, arbitrary manager network configuration, automatic roster/tracking creation/reactivation, machine correction/invalidation, transfer/diplomacy/contact mutation, scoring/ranking/recommendations, cross-Alliance sharing, and public Kingdoms API/webhook exposure.
 
@@ -24,7 +24,7 @@ Still out of scope: a concrete production source, production endpoint/credential
 
 Subscriptions additionally hold opaque source cursor, next-run/claim/success/failure/circuit state and bounded failure codes. Batches capture source-window identity plus the next cursor returned for that window. Candidates preserve deterministic source/identity/payload hashes and safe promoted-record identity.
 
-Promoted `PlayerSnapshot` and `KingdomAllianceObservation` rows store bounded immutable machine provenance without FK dependence on operational K4 rows.
+Promoted `PlayerSnapshot` and `KingdomAllianceObservation` rows store bounded immutable machine provenance without FK dependence on operational K4 rows. Operational retention may therefore prune K4 scaffolding without deleting or rewriting canonical promoted history.
 
 ## 4. Invariants
 
@@ -40,8 +40,10 @@ Promoted `PlayerSnapshot` and `KingdomAllianceObservation` rows store bounded im
 10. Cursor advances only after a completed/partial source window and never on failed/blocked work.
 11. Exact source-window/candidate/promoted-record retry is idempotent; later distinct capture remains append-oriented history.
 12. Failure state is bounded; raw source exception/response/secret material is not persisted as scheduler diagnostics.
-13. Production adapter configuration remains empty until separate source approval.
-14. All `kingdoms.*` ingestion events remain internal/public-webhook ineligible.
+13. Adapter removal/version drift disables future acquisition rather than substituting or silently continuing.
+14. K4 operational retention never deletes promoted K1/K3 canonical history or rewrites its machine provenance.
+15. Production adapter configuration remains empty until separate source approval.
+16. All `kingdoms.*` ingestion events remain internal/public-webhook ineligible.
 
 ## 5. Workflows
 
@@ -49,58 +51,70 @@ Managers may manage approved subscriptions and reject/replay quarantined candida
 
 The shared scheduler invokes `kingdoms:queue-ingestion` every minute. Due active subscriptions are claimed transactionally before a unique, overlap-protected job is dispatched to the dedicated `kingdoms-ingestion` queue.
 
-An acquisition-capable adapter receives the subscription's opaque cursor and a maximum page size of 250. The returned source window is passed to `StartKingdomIngestionBatch`; each record is normalized/staged through `StageKingdomIngestionCandidate` and Pending candidates delegate to the accepted P2/P3 promotion actions. The batch becomes Completed or Partial, then the cursor advances under locks.
+An acquisition-capable adapter receives the subscription's opaque cursor and a maximum page size of 250. The returned source window is passed to `StartKingdomIngestionBatch`; each record is normalized/staged through `StageKingdomIngestionCandidate` and pending candidates delegate to the accepted P2/P3 promotion actions. The batch becomes Completed or Partial, then the cursor advances under locks.
 
-Exact replay of a completed/partial source window accepts only the same stored next cursor. Manager replay resets only a quarantined candidate to Pending, records bounded human audit/outbox evidence, and re-runs the existing promotion path.
+Every five minutes `kingdoms:reconcile-ingestion-sources` rechecks active/paused subscriptions against the currently approved adapter registry and disables a subscription with bounded `source_unapproved` state when approval/version disappears.
+
+Daily `kingdoms:enforce-ingestion-retention` redacts/prunes age-qualified operational state while preserving promoted canonical history. Exact manager replay remains limited to quarantined candidates and re-runs the existing promotion path.
 
 ## 6. Authorization, tenancy and privacy
 
 Human management/replay remains `kingdoms.manage` plus recent password confirmation. Machine work derives authority only from already-owned subscription/candidate context after re-resolving current Alliance/Kingdom and adapter version; neutral/source/queue identity never grants tenant access.
 
-The manager UI may expose bounded adapter/subscription/batch/candidate scheduling, cursor, counts, timing and reason codes. It does not serialize normalized candidate payloads, source secrets, headers/cookies or arbitrary raw responses.
+The manager UI and operator health command expose bounded adapter/subscription/batch/candidate scheduling, cursor, counts, timing and reason information. They do not serialize normalized candidate payloads, source secrets, headers/cookies or arbitrary raw responses.
 
-## 7. Persistence and query semantics
+Retention shortens normalized operational payload lifetime without changing canonical-history visibility contracts.
 
-P4 adds scheduler fields to subscriptions (`next_run_at`, `last_claimed_at`, bounded consecutive failure/circuit/failure-code state) and `next_source_cursor` to batches.
+## 7. Persistence and retention semantics
 
-Source-window uniqueness and deterministic candidate identities remain authoritative. Promoted-history source identity remains independently unique within the owning Alliance. Operational cursor/failure state does not replace canonical business provenance.
+Repository-controlled defaults are:
 
-## 8. Events/integrations/background processing
+- terminal promoted/rejected candidate payload redaction after 30 days;
+- terminal promoted/rejected candidate-row purge after 90 days;
+- quarantined candidate-row purge after 180 days;
+- terminal batch purge after 90 days only when no candidates remain; and
+- disabled-subscription scheduling/failure compaction after 30 days while preserving the subscription itself.
+
+Source-window uniqueness and deterministic candidate identities remain authoritative. Promoted-history source identity remains independently unique within the owning Alliance. Operational cursor/failure/retention state does not replace canonical business provenance.
+
+## 8. Events, commands and background processing
 
 `kingdoms:queue-ingestion --limit=100` runs every minute with `onOneServer()` and `withoutOverlapping(10)`. Due work dispatches `RunKingdomIngestionSubscriptionJob` to dedicated Horizon queue `kingdoms-ingestion`.
 
-Jobs are unique per subscription, overlap-protected, timeout at 120 seconds, try at most five times and use bounded 60/300/900/3,600-second queue backoff. Repeated acquisition failures use bounded subscription backoff/circuit state; exhausted jobs finalize a still-pending batch as `failed/retry_exhausted`.
+`kingdoms:reconcile-ingestion-sources --limit=1000` runs every five minutes with single-server/overlap protection. `kingdoms:enforce-ingestion-retention` runs daily at 04:15 with single-server/overlap protection. `kingdoms:ingestion-health --json` is an operator/monitoring command and returns non-zero when bounded aggregate signals require attention.
 
-Production has no concrete acquisition adapter, so the generic scheduler has no real source/network dependency in the default production configuration.
+Jobs are unique per subscription, overlap-protected, timeout at 120 seconds, try at most five times and use bounded 60/300/900/3,600-second queue backoff. Production has no concrete acquisition adapter, so the generic scheduler has no real source/network dependency in default production configuration.
 
 ## 9. Failure, idempotency and concurrency
 
-Due claims, context checks and cursor advancement use database row locks. `next_run_at` advances before dispatch so duplicate scheduler ticks cannot repeatedly dispatch the same due subscription; queue uniqueness/overlap provides an additional, non-authoritative guard.
+Due claims, context checks, source reconciliation and cursor advancement use database row locks where concurrent mutation matters. Queue uniqueness/overlap controls reduce duplicate execution, but source-window/candidate/promoted-record idempotency remains authoritative.
 
 Adapter removal/version drift, Kingdom drift, circuit-open state, source-window conflict, unsupported payload, unknown/inactive target and business validation fail closed. Failure diagnostics store bounded codes such as `acquisition_failed`, `source_contract_invalid`, `processing_validation_failed`, `source_unapproved`, context codes and `retry_exhausted`, never raw exception text.
 
-## 10. Operations and observability
+## 10. Operations, observability and capacity
 
-Operators can correlate safe Alliance/Kingdom/subscription/batch/candidate/promoted-record IDs, adapter key/version, source-window/record IDs, opaque cursor, hashes, next-run/claim/success/failure/circuit timing, state/reason codes and internal audit/outbox IDs.
+Operational health aggregates active subscriptions, source-revoked subscriptions, overdue subscriptions, open circuits, stale pending candidates, quarantined candidates and recent failed batches into a payload-free snapshot plus `attentionRequired`.
 
-The dedicated queue keeps external acquisition pressure isolated from core/default/integration queues. See [Automated ingestion operations](operations/kingdoms-automated-ingestion.md).
+Repository defaults are five minutes overdue, fifteen minutes stale-pending, twenty-five quarantined candidates and a sixty-minute recent-failure window. A Slice E performance gate exercises 250 subscriptions, 40 failed batches and 110 candidates and requires the health snapshot to use no more than eight SELECT queries.
+
+These are generic safety/operations gates, not a real-source throughput or availability SLO. See [Automated ingestion operations](operations/kingdoms-automated-ingestion.md).
 
 ## 11. Tests and validation
 
-Final P4 runtime candidate `27855f79ba128b35edea7f82b2f6381fbf810363` passed Dependency Review `31545866277`, CodeQL `31545866288`, and CI `31545866249`: Pint 523 files, PHPStan/Larastan 371/371 with zero errors, 423 tests / 9,697 assertions, frontend/build, clean PostgreSQL migrations, immutable image, ephemeral staging, backup/restore and image scan.
+Final P5 runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` passed Dependency Review `31552113152`, CodeQL `31552113044`, and CI `31552113042`: Pint 528 files, PHPStan/Larastan 374/374 with zero errors, 428 tests / 9,736 assertions, frontend/build, clean PostgreSQL migrations, immutable image, ephemeral staging, backup/restore and image scan.
 
-Focused P4 tests prove one-time due claims, mixed player/game-Alliance processing, exact completed-window replay idempotency, bounded failure/circuit state, retry-exhaustion finalization, password-confirmed manager replay and migration round-trip.
+Focused P5 tests prove staged redaction/pruning, the longer quarantine review window, source-revocation disablement/idempotency, bounded attention signals and realistic-volume aggregate query behavior. Existing P1–P4 tenancy, scheduler, replay, cursor and promotion tests remain additive.
 
-See [Slice D validation](product/kingdoms-automated-ingestion-slice-d-validation.md).
+See [Slice E validation](product/kingdoms-automated-ingestion-slice-e-validation.md).
 
-## 12. Related documentation
+## 12. Real-source boundary and related documentation
+
+Generic repository acceptance does not approve provider authorization/terms, endpoint/network/DNS/redirect/private-address behavior, TLS/egress, source credentials, rate/timeout limits, schema/version policy, cursor semantics or production cutover. Those remain separate source-enablement prerequisites while the production adapter allowlist is empty.
 
 - [KINGDOMS-004 implementation plan](product/kingdoms-automated-ingestion-implementation-plan.md)
-- [Slice A validation](product/kingdoms-automated-ingestion-slice-a-validation.md)
-- [Slice B validation](product/kingdoms-automated-ingestion-slice-b-validation.md)
-- [Slice C validation](product/kingdoms-automated-ingestion-slice-c-validation.md)
 - [Slice D validation](product/kingdoms-automated-ingestion-slice-d-validation.md)
-- [Slice D security review](security/kingdoms-automated-ingestion-scheduler-security-review.md)
+- [Slice E validation](product/kingdoms-automated-ingestion-slice-e-validation.md)
+- [Slice E security/privacy review](security/kingdoms-automated-ingestion-operations-security-review.md)
 - [Player snapshots](snapshots.md)
 - [Alliance intelligence and diplomacy](alliance-intelligence.md)
 - [Automated ingestion operations](operations/kingdoms-automated-ingestion.md)
