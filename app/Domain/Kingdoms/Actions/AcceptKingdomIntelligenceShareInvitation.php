@@ -91,9 +91,9 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
                 ->where('state', KingdomIntelligenceShareState::Active->value)
                 ->where('id', '!=', $share->id)
                 ->lockForUpdate()
-                ->exists();
+                ->first();
 
-            if ($existing) {
+            if ($existing instanceof KingdomIntelligenceShare) {
                 throw ValidationException::withMessages([
                     'sharing' => 'An active directional sharing agreement already exists for these alliances in this Kingdom.',
                 ]);
@@ -108,7 +108,7 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
             ])->save();
 
             $metadata = $this->metadata($share);
-            $this->recordForAlliance($source, $actor, $share, $metadata);
+            $this->recordForAlliance($source, null, $share, $metadata);
             $this->recordForAlliance($recipient, $actor, $share, $metadata);
 
             return $share->refresh();
@@ -118,7 +118,7 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
     /** @param array<string, mixed> $metadata */
     private function recordForAlliance(
         Alliance $alliance,
-        User $actor,
+        ?User $actor,
         KingdomIntelligenceShare $share,
         array $metadata,
     ): void {
