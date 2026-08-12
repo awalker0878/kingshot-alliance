@@ -89,7 +89,8 @@ async function createInvitation(): Promise<void> {
     }
 
     if (!response.ok) {
-      invitationError.value = 'The invitation could not be created. Confirm your password and try again.';
+      invitationError.value =
+        'The invitation could not be created. Confirm your password and try again.';
       return;
     }
 
@@ -177,7 +178,9 @@ function formatDate(value: string | null): string {
   <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 lg:px-8">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">Shared intelligence</p>
+        <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
+          Shared intelligence
+        </p>
         <h1 class="mt-2 text-3xl font-bold">Manage sharing</h1>
         <p class="mt-2 max-w-3xl text-sm text-slate-400">
           {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. Sharing is
@@ -200,7 +203,10 @@ function formatDate(value: string | null): string {
       </nav>
     </header>
 
-    <section aria-labelledby="invite-heading" class="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+    <section
+      aria-labelledby="invite-heading"
+      class="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
+    >
       <h2 id="invite-heading" class="text-xl font-semibold">Invite another Alliance</h2>
       <p class="mt-1 max-w-3xl text-sm text-slate-400">
         The invitation secret is shown only after creation. Send it to an authorized manager of the
@@ -219,7 +225,9 @@ function formatDate(value: string | null): string {
       <p v-if="alliance.kingdom === null" class="mt-3 text-sm text-amber-300">
         Configure the Alliance Kingdom before creating a sharing invitation.
       </p>
-      <p v-if="invitationError" role="alert" class="mt-3 text-sm text-rose-300">{{ invitationError }}</p>
+      <p v-if="invitationError" role="alert" class="mt-3 text-sm text-rose-300">
+        {{ invitationError }}
+      </p>
 
       <div
         v-if="invitationToken"
@@ -254,7 +262,10 @@ function formatDate(value: string | null): string {
       </div>
     </section>
 
-    <section aria-labelledby="redeem-heading" class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+    <section
+      aria-labelledby="redeem-heading"
+      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
+    >
       <h2 id="redeem-heading" class="text-xl font-semibold">Respond to an invitation</h2>
       <p class="mt-1 text-sm text-slate-400">
         Enter the one-time token supplied by another Alliance manager. Acceptance succeeds only when
@@ -291,12 +302,16 @@ function formatDate(value: string | null): string {
       </div>
     </section>
 
-    <section aria-labelledby="outbound-heading" class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+    <section
+      aria-labelledby="outbound-heading"
+      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
+    >
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 id="outbound-heading" class="text-xl font-semibold">Outbound sharing</h2>
           <p class="mt-1 text-sm text-slate-400">
-            An active agreement still shares nothing until you explicitly grant a tracked game alliance.
+            An active agreement still shares nothing until you explicitly grant a tracked game
+            alliance.
           </p>
         </div>
         <p class="text-sm text-slate-400">{{ sharing.outbound.length }} agreement(s)</p>
@@ -314,7 +329,8 @@ function formatDate(value: string | null): string {
                 {{ share.recipientAlliance?.name ?? 'Pending recipient' }}
               </h3>
               <p class="mt-1 text-sm text-slate-400">
-                State {{ share.state }} · invitation expires {{ formatDate(share.invitationExpiresAt) }}
+                State {{ share.state }} · invitation expires
+                {{ formatDate(share.invitationExpiresAt) }}
               </p>
             </div>
             <button
@@ -337,7 +353,9 @@ function formatDate(value: string | null): string {
               >
                 <div>
                   <p class="font-medium text-slate-200">{{ target.name }}</p>
-                  <p class="text-xs text-slate-400">{{ target.tag ?? 'No tag' }} · {{ target.state }}</p>
+                  <p class="text-xs text-slate-400">
+                    {{ target.tag ?? 'No tag' }} · {{ target.state }}
+                  </p>
                 </div>
                 <button
                   v-if="target.state === 'active'"
@@ -349,11 +367,16 @@ function formatDate(value: string | null): string {
                 </button>
               </li>
             </ul>
-            <p v-else class="mt-3 text-sm text-slate-400">No targets are shared by this agreement.</p>
+            <p v-else class="mt-3 text-sm text-slate-400">
+              No targets are shared by this agreement.
+            </p>
 
             <div class="mt-4 flex flex-wrap items-end gap-3">
               <div class="min-w-64 flex-1">
-                <label class="block text-sm font-semibold text-slate-200" :for="`target-${share.id}`">
+                <label
+                  class="block text-sm font-semibold text-slate-200"
+                  :for="`target-${share.id}`"
+                >
                   Grant tracked game alliance
                 </label>
                 <select
@@ -362,7 +385,11 @@ function formatDate(value: string | null): string {
                   class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
                 >
                   <option value="">Choose a tracked game alliance</option>
-                  <option v-for="target in sharing.trackableTargets" :key="target.id" :value="target.id">
+                  <option
+                    v-for="target in sharing.trackableTargets"
+                    :key="target.id"
+                    :value="target.id"
+                  >
                     {{ target.name }}{{ target.tag ? ` (${target.tag})` : '' }}
                   </option>
                 </select>
@@ -382,11 +409,16 @@ function formatDate(value: string | null): string {
       <p v-else class="mt-6 text-sm text-slate-400">No outbound sharing agreements yet.</p>
     </section>
 
-    <section aria-labelledby="inbound-heading" class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+    <section
+      aria-labelledby="inbound-heading"
+      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
+    >
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 id="inbound-heading" class="text-xl font-semibold">Inbound sharing</h2>
-          <p class="mt-1 text-sm text-slate-400">Active sources may share only targets they explicitly grant.</p>
+          <p class="mt-1 text-sm text-slate-400">
+            Active sources may share only targets they explicitly grant.
+          </p>
         </div>
         <p class="text-sm text-slate-400">{{ sharing.inbound.length }} agreement(s)</p>
       </div>
@@ -404,7 +436,9 @@ function formatDate(value: string | null): string {
           </thead>
           <tbody class="divide-y divide-slate-800">
             <tr v-for="share in sharing.inbound" :key="share.id">
-              <td class="px-3 py-4 font-medium text-slate-200">{{ share.sourceAlliance.name }}</td>
+              <td class="px-3 py-4 font-medium text-slate-200">
+                {{ share.sourceAlliance.name }}
+              </td>
               <td class="px-3 py-4 text-slate-300">{{ share.state }}</td>
               <td class="px-3 py-4 text-slate-300">{{ formatDate(share.acceptedAt) }}</td>
               <td class="px-3 py-4">
