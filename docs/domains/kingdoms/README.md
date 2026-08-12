@@ -3,15 +3,15 @@
 [← Domain documentation](../README.md)
 
 **Document type:** Living domain contract  
-**Status:** Current — `KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003` Accepted; `KINGDOMS-004` through `K4-P5` runtime validated with P6 acceptance next after the containing transition head is protected-green  
+**Status:** Current — `KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` Accepted  
 **Code owner:** `app/Domain/Kingdoms`  
 **Primary authorization boundary:** `alliance.view` for member-safe reads; `kingdoms.manage` for management/private workflows; `alliance.manage` for Alliance→Kingdom setting
 
 ## 1. Purpose and ownership
 
-Kingdoms owns approved Kingshot game-world reference identity and Alliance-owned workflows: neutral Kingdom/player/game-Alliance identity; roster/snapshots/intelligence; controlled CSV migration/export; transfer planning/handoff; game-Alliance tracking/observations/diplomacy/contacts/intelligence; and governed K4 automated-ingestion control, factual promotion, generic scheduling, source-revocation, retention and operational health.
+Kingdoms owns approved Kingshot game-world reference identity and Alliance-owned workflows: neutral Kingdom/player/game-Alliance identity; roster/snapshots/intelligence; controlled CSV migration/export; transfer planning/handoff; game-Alliance tracking/observations/diplomacy/contacts/intelligence; and governed automated-ingestion control, factual promotion, generic scheduling, source-revocation, retention and operational health.
 
-Accepted increment evidence: [K1](product/kingdoms-roster-intelligence-increment.md), [K2](product/kingdoms-transfer-planning-increment.md), [K3](product/kingdoms-alliance-intelligence-increment.md). K4 is [in progress](product/kingdoms-automated-ingestion-increment.md); current behavior is [Automated game-data ingestion](automated-ingestion.md).
+Accepted increment evidence: [K1](product/kingdoms-roster-intelligence-increment.md), [K2](product/kingdoms-transfer-planning-increment.md), [K3](product/kingdoms-alliance-intelligence-increment.md), and [K4](product/kingdoms-automated-ingestion-increment.md). Current K4 behavior is [Automated game-data ingestion](automated-ingestion.md); acceptance evidence is the [K4 exit report](product/kingdoms-automated-ingestion-exit-report.md).
 
 ## 2. Scope
 
@@ -72,7 +72,7 @@ Roster/snapshot/intelligence/CSV flows are documented in [Roster](roster.md), [S
 
 K4 managers control approved subscriptions/rejection/replay. The scheduler claims due approved subscriptions, dispatches isolated per-subscription jobs, acquires a bounded page through an acquisition-capable adapter, delegates staging and P2/P3 promotion, completes the batch, then advances its opaque cursor.
 
-P5 maintenance periodically reconciles current source approval and disables revoked adapters; daily retention redacts/prunes age-qualified operational scaffolding; on-demand health produces payload-free aggregate attention signals. See [Automated game-data ingestion](automated-ingestion.md).
+Maintenance periodically reconciles current source approval and disables revoked adapters; daily retention redacts/prunes age-qualified operational scaffolding; on-demand health produces payload-free aggregate attention signals. See [Automated game-data ingestion](automated-ingestion.md).
 
 ## 6. Authorization and tenancy
 
@@ -107,7 +107,7 @@ K4 normalized candidates are bounded operational data, not raw-source archives. 
 
 Material Kingdoms mutations create audit/internal outbox evidence. `alliance.kingdom_updated` and every `kingdoms.*` event remain excluded from generic external webhook fan-out.
 
-K4 uses internal ingestion lifecycle/promotion/replay events plus accepted K1/K3 observation events. P5 maintenance adds no public integration surface. No inbound public API/webhook or arbitrary endpoint/secret configuration exists.
+K4 uses internal ingestion lifecycle/promotion/replay events plus accepted K1/K3 observation events. Maintenance adds no public integration surface. No inbound public API/webhook or arbitrary endpoint/secret configuration exists.
 
 ## 10. HTTP, UI and API surfaces
 
@@ -121,7 +121,7 @@ Operator commands include queueing due ingestion, source reconciliation, operati
 
 K4 uses `kingdoms:queue-ingestion --limit=100` every minute, transactional due claims, dedicated `kingdoms-ingestion` Horizon queue, unique/overlap-protected per-subscription jobs, bounded timeout/retries/backoff/circuit state and opaque cursor advancement.
 
-P5 adds source reconciliation every five minutes and operational retention daily at 04:15 with single-server/overlap protection. Production has zero configured ingestion adapters, so no real external source is polled in default production state.
+Source reconciliation runs every five minutes and operational retention daily at 04:15 with single-server/overlap protection. Production has zero configured ingestion adapters, so no real external source is polled in default production state.
 
 ## 12. Failure, idempotency and concurrency
 
@@ -139,7 +139,7 @@ K4 excludes arbitrary endpoint/credential storage, raw-response archives, normal
 
 Use safe tenant/reference/state/count/timing/hash/cursor/reason/promoted-record identifiers with request/trace/audit/outbox correlation. Do not log source secrets/raw responses/private text.
 
-P5 operational health is bounded aggregate evidence. A representative fixture of 250 subscriptions, 40 failed batches and 110 candidates is required to remain at no more than eight SELECT queries. This is not a real-source throughput SLO.
+K4 operational health is bounded aggregate evidence. A representative fixture of 250 subscriptions, 40 failed batches and 110 candidates is required to remain at no more than eight SELECT queries. This is not a real-source throughput SLO.
 
 Domain guides: [Roster intelligence operations](operations/kingdoms-roster-intelligence.md), [Transfer planning operations](operations/kingdoms-transfer-planning.md), [Alliance intelligence operations](operations/kingdoms-alliance-intelligence.md), [Automated ingestion operations](operations/kingdoms-automated-ingestion.md).
 
@@ -147,7 +147,7 @@ Domain guides: [Roster intelligence operations](operations/kingdoms-roster-intel
 
 Suites protect identity/tenancy, authorization/privacy, append history, human-only correction/diplomacy, retry/idempotency, migration/accessibility, public integration exclusion and K4 allowlist/no-secret/stable-ID/quarantine/no-auto-relationship/scheduler/replay/retention/revocation boundaries.
 
-K4-P5 runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` passed DR `31552113152`, CodeQL `31552113044`, CI `31552113042`: Pint 528, PHPStan 374/374 zero errors, 428 tests / 9,736 assertions, image/staging/backup/scan success.
+K4 whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` passed Dependency Review `31556412455`, CodeQL `31556412413`, and CI `31556412468`: Pint 529 files, PHPStan/Larastan 374/374 zero errors, 429 tests / 9,799 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore and scan. See the [K4 exit report](product/kingdoms-automated-ingestion-exit-report.md).
 
 ## 16. Explicit non-capabilities
 
@@ -172,7 +172,7 @@ Domain-owned evidence: [Product](product/README.md), [Security](security/README.
 - [KINGDOMS-001 exit](product/kingdoms-roster-intelligence-exit-report.md)
 - [KINGDOMS-002 exit](product/kingdoms-transfer-planning-exit-report.md)
 - [KINGDOMS-003 exit](product/kingdoms-alliance-intelligence-exit-report.md)
-- [KINGDOMS-004 scope](product/kingdoms-automated-ingestion-increment.md)
+- [KINGDOMS-004 exit](product/kingdoms-automated-ingestion-exit-report.md)
 - [K4 Slice D validation](product/kingdoms-automated-ingestion-slice-d-validation.md)
 - [K4 Slice E validation](product/kingdoms-automated-ingestion-slice-e-validation.md)
 - [K4 Slice E security review](security/kingdoms-automated-ingestion-operations-security-review.md)
