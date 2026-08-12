@@ -2,7 +2,7 @@
 
 [← Kingdoms domain](../README.md)
 
-This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` are accepted. `KINGDOMS-005` is in progress: `K5-P0`–`K5-P1` are Complete and `K5-P2` / Slice B is selected pending exact transition-head validation.
+This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001` through `KINGDOMS-004` are accepted. `KINGDOMS-005` is in progress: `K5-P0`–`K5-P2` are Complete and `K5-P3` / Slice C is selected pending exact transition-head validation.
 
 Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; a selected future slice does not imply runtime capability.
 
@@ -57,11 +57,11 @@ Whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` is 
 
 ## KINGDOMS-005 — opt-in shared Kingdom intelligence — in progress
 
-`K5-P0` and `K5-P1` are Complete. P1 runtime candidate `9ef1d46b1db69708d575e82d8548145cf7769e68` passed Dependency Review `31559012856`, CodeQL `31559012854`, and CI `31559012861`: Pint 541 files, PHPStan/Larastan 384/384 zero errors, 434 tests / 9,911 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore and scan.
+`K5-P0`–`K5-P2` are Complete. P2 runtime candidate `1a022e909cd246197510449a761a4856ce12b118` passed Dependency Review `31562753429`, CodeQL `31562753422`, and CI `31562753430`: Pint 550 files, PHPStan/Larastan 390/390 zero errors, 440 tests / 10,025 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
 
-Current runtime contains only the directional consent/agreement foundation. It has no shared-target table and no recipient observation/current/history read path.
+Current runtime includes directional consent/agreement state, explicit per-target grants/removal, persistent fail-closed Kingdom-drift invalidation, and a bounded internal recipient-safe current-fact projection over source-owned accepted observations. It creates no recipient canonical copy and does not permit reshare.
 
-`K5-P2` / Slice B is selected next and is the first slice allowed to introduce explicit source-target selection plus a safe recipient current-fact projection. P2 cannot begin until the exact containing P1 Complete / P2 Current head is protected-green.
+Bounded shared observation history is **not** implemented yet. `K5-P3` / Slice C is selected next but cannot begin until the exact containing P2 Complete / P3 Current head is protected-green.
 
 - [Scope](kingdoms-shared-intelligence-increment.md)
 - [Implementation plan](kingdoms-shared-intelligence-implementation-plan.md)
@@ -70,9 +70,11 @@ Current runtime contains only the directional consent/agreement foundation. It h
 - [K5-P0 exit report](kingdoms-shared-intelligence-p0-exit-report.md)
 - [Slice A validation](kingdoms-shared-intelligence-slice-a-validation.md)
 - [Slice A security review](../security/kingdoms-shared-intelligence-foundation-security-review.md)
+- [Slice B validation](kingdoms-shared-intelligence-slice-b-validation.md)
+- [Slice B security review](../security/kingdoms-shared-intelligence-current-facts-security-review.md)
 - [Living shared-intelligence contract](../shared-intelligence.md)
 
-The locked contract remains directional, two-party opt-in, same-Kingdom, explicit-per-target and read-only. Roster/player sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, transitive reshare, public directories/APIs/webhooks, source acquisition, scoring/ranking and automatic decisions remain excluded.
+The locked contract remains directional, two-party opt-in, same-Kingdom, explicit-per-target, source-owned and read-only. Roster/player sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, transitive reshare, public directories/APIs/webhooks, source acquisition, scoring/ranking and automatic decisions remain excluded.
 
 ## Related evidence
 
