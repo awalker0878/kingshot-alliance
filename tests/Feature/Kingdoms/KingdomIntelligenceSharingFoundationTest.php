@@ -13,7 +13,6 @@ use App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
-use App\Domain\Kingdoms\Services\KingdomIntelligenceShareTokenService;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\OutboxMessage;
