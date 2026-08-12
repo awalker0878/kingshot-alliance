@@ -2,9 +2,9 @@
 
 [← Kingdoms domain](../README.md)
 
-This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` are accepted. `KINGDOMS-005` is in progress: `K5-P0` is Complete and `K5-P1` / Slice A is selected pending exact transition-head validation; no shared-observation runtime capability exists yet.
+This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` are accepted. `KINGDOMS-005` is in progress: `K5-P0`–`K5-P1` are Complete and `K5-P2` / Slice B is selected pending exact transition-head validation.
 
-Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; a selected future slice does not imply runtime capability or production approval.
+Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; a selected future slice does not imply runtime capability.
 
 ## KINGDOMS-001 — roster intelligence
 
@@ -41,38 +41,36 @@ Use the [Kingdoms domain](../README.md) and living capability contracts for curr
 
 ## KINGDOMS-004 — automated game-data ingestion — accepted
 
-Current governed state: P0/P1/P2/P3/P4/P5/P6 Complete. Whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` is protected-green across Dependency Review `31556412455`, CodeQL `31556412413`, and CI `31556412468`, with 429 tests / 9,799 assertions. Production adapter configuration remains empty and no concrete source/cutover is approved.
+Whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` is protected-green across Dependency Review `31556412455`, CodeQL `31556412413`, and CI `31556412468`. Production adapter configuration remains empty and no concrete source/cutover is approved.
 
 - [Scope](kingdoms-automated-ingestion-increment.md)
 - [Implementation plan](kingdoms-automated-ingestion-implementation-plan.md)
 - [K4-P0 decisions](kingdoms-automated-ingestion-p0-decisions.md)
-- [K4-P0 security/privacy review](../security/kingdoms-automated-ingestion-p0-security-review.md)
 - [K4-P0 exit report](kingdoms-automated-ingestion-p0-exit-report.md)
 - [Slice A validation](kingdoms-automated-ingestion-slice-a-validation.md)
-- [Slice A security review](../security/kingdoms-automated-ingestion-foundation-security-review.md)
 - [Slice B validation](kingdoms-automated-ingestion-slice-b-validation.md)
-- [Slice B security review](../security/kingdoms-automated-ingestion-player-promotion-security-review.md)
 - [Slice C validation](kingdoms-automated-ingestion-slice-c-validation.md)
-- [Slice C security review](../security/kingdoms-automated-ingestion-alliance-promotion-security-review.md)
 - [Slice D validation](kingdoms-automated-ingestion-slice-d-validation.md)
-- [Slice D security review](../security/kingdoms-automated-ingestion-scheduler-security-review.md)
 - [Slice E validation](kingdoms-automated-ingestion-slice-e-validation.md)
-- [Slice E security/privacy review](../security/kingdoms-automated-ingestion-operations-security-review.md)
 - [Whole-increment exit report](kingdoms-automated-ingestion-exit-report.md)
-- [Automated ingestion operations](../operations/kingdoms-automated-ingestion.md)
 - [Living automated-ingestion contract](../automated-ingestion.md)
 
 ## KINGDOMS-005 — opt-in shared Kingdom intelligence — in progress
 
-`K5-P0` is Complete at validated candidate `d9e05fd06bd08050e5489598406cfb556d5bc0ac`: Dependency Review `31557697685`, CodeQL `31557697793`, and CI `31557697725` all succeeded, including 529 Pint files, PHPStan/Larastan 374/374 zero errors, 429 tests / 9,809 assertions, frontend/build, image, staging, backup/restore and scan.
+`K5-P0` and `K5-P1` are Complete. P1 runtime candidate `9ef1d46b1db69708d575e82d8548145cf7769e68` passed Dependency Review `31559012856`, CodeQL `31559012854`, and CI `31559012861`: Pint 541 files, PHPStan/Larastan 384/384 zero errors, 434 tests / 9,911 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore and scan.
 
-`K5-P1` / Slice A is selected next but cannot begin until the exact containing P0 Complete / P1 Current status head is protected-green. Slice A is consent-foundation only: directional agreement/invitation persistence and accept/decline/revoke behavior. It will not expose observation data.
+Current runtime contains only the directional consent/agreement foundation. It has no shared-target table and no recipient observation/current/history read path.
+
+`K5-P2` / Slice B is selected next and is the first slice allowed to introduce explicit source-target selection plus a safe recipient current-fact projection. P2 cannot begin until the exact containing P1 Complete / P2 Current head is protected-green.
 
 - [Scope](kingdoms-shared-intelligence-increment.md)
 - [Implementation plan](kingdoms-shared-intelligence-implementation-plan.md)
 - [K5-P0 decisions](kingdoms-shared-intelligence-p0-decisions.md)
 - [K5-P0 security/privacy review](../security/kingdoms-shared-intelligence-p0-security-review.md)
 - [K5-P0 exit report](kingdoms-shared-intelligence-p0-exit-report.md)
+- [Slice A validation](kingdoms-shared-intelligence-slice-a-validation.md)
+- [Slice A security review](../security/kingdoms-shared-intelligence-foundation-security-review.md)
+- [Living shared-intelligence contract](../shared-intelligence.md)
 
 The locked contract remains directional, two-party opt-in, same-Kingdom, explicit-per-target and read-only. Roster/player sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, transitive reshare, public directories/APIs/webhooks, source acquisition, scoring/ranking and automatic decisions remain excluded.
 
