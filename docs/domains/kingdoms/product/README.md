@@ -2,9 +2,9 @@
 
 [← Kingdoms domain](../README.md)
 
-This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` are accepted.
+This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` are accepted. `KINGDOMS-005` is planning-only at `K5-P0`; no shared-intelligence runtime capability exists yet.
 
-Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; they do not authorize a concrete source or production cutover.
+Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; planning records do not imply runtime capability or production approval.
 
 ## KINGDOMS-001 — roster intelligence
 
@@ -61,6 +61,17 @@ Current governed state: P0/P1/P2/P3/P4/P5/P6 Complete. Whole-increment runtime c
 - [Whole-increment exit report](kingdoms-automated-ingestion-exit-report.md)
 - [Automated ingestion operations](../operations/kingdoms-automated-ingestion.md)
 - [Living automated-ingestion contract](../automated-ingestion.md)
+
+## KINGDOMS-005 — opt-in shared Kingdom intelligence — planning only
+
+`K5-P0` is the current pre-runtime gate. The candidate contract is directional, two-party opt-in, same-Kingdom, explicit-per-target, read-only sharing of safe game-Alliance observation facts. It does not yet authorize any runtime schema, route, UI or cross-tenant read path.
+
+- [Scope](kingdoms-shared-intelligence-increment.md)
+- [Implementation plan](kingdoms-shared-intelligence-implementation-plan.md)
+- [K5-P0 decisions](kingdoms-shared-intelligence-p0-decisions.md)
+- [K5-P0 security/privacy review](../security/kingdoms-shared-intelligence-p0-security-review.md)
+
+Explicitly still excluded at P0: roster/player sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, transitive reshare, public directories/APIs/webhooks, source acquisition, scoring/ranking and automatic decisions.
 
 ## Related evidence
 
