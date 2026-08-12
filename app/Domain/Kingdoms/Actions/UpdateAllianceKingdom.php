@@ -19,6 +19,7 @@ final readonly class UpdateAllianceKingdom
     public function __construct(
         private AllianceAuthorization $authorization,
         private ResolveKingdom $kingdoms,
+        private InvalidateKingdomIntelligenceSharesForAllianceDrift $invalidateSharing,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -41,6 +42,8 @@ final readonly class UpdateAllianceKingdom
             $locked->forceFill([
                 'kingdom_id' => $kingdom?->id,
             ])->save();
+
+            $this->invalidateSharing->handle($locked, $actor);
 
             $metadata = [
                 'previous_kingdom_id' => $previous?->id,
