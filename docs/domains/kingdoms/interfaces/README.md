@@ -8,7 +8,7 @@
 **Code owner:** `app/Domain/Kingdoms`  
 **Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 manager ingestion control/replay, generic scheduled acquisition/maintenance contracts, and internal-only `kingdoms.*` events
 
-**P5 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; this profile inventories first-party, operator and machine boundaries without creating a public Kingdoms API or duplicating route-by-route implementation documentation.
+**P4 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; the P5/K4 additions extend this profile without changing the frozen P4 interface-inventory convention or creating a public Kingdoms API.
 
 ## 1. Boundary purpose and ownership
 
@@ -79,11 +79,11 @@ No crawler, scraper, OCR worker, browser/game-client bot, arbitrary curl command
 
 ## 9. Files, imports, exports and external dependencies
 
-The material file contract remains the controlled roster CSV flow. K4 adds no file upload/download contract.
+The material file contract remains the controlled [CSV migration](../csv-migration.md) flow. K4 adds no file upload/download contract.
 
 K4 defines a generic acquisition interface but no accepted production external service dependency, endpoint or source credential. A concrete adapter requires separate source/network/security approval.
 
-## 10. Failure, idempotency, retention and compatibility
+## 10. Failure, idempotency, versioning and compatibility
 
 K4 adapter key/version is captured on subscriptions/batches and changed/missing versions fail closed. P5 reconciliation disables active/paused subscriptions with bounded `source_unapproved` state rather than substituting another version.
 
@@ -99,6 +99,7 @@ Generic scheduler/maintenance mechanics are implemented, but production has zero
 
 ## 12. Focused contracts, evidence and related documentation
 
+- [CSV migration](../csv-migration.md)
 - [Automated ingestion](../automated-ingestion.md)
 - [K4 Slice E validation](../product/kingdoms-automated-ingestion-slice-e-validation.md)
 - [K4 Slice E security review](../security/kingdoms-automated-ingestion-operations-security-review.md)
