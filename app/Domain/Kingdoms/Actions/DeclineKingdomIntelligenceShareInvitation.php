@@ -66,6 +66,7 @@ final readonly class DeclineKingdomIntelligenceShareInvitation
                 'recipient_alliance_id' => $recipient->id,
                 'state' => KingdomIntelligenceShareState::Declined,
                 'declined_by_user_id' => $actor->id,
+                'invitation_token_hash' => null,
                 'invitation_used_at' => now(),
                 'declined_at' => now(),
             ])->save();
