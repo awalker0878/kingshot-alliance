@@ -2,7 +2,7 @@
 
 [← Kingdoms opt-in shared intelligence product increment](kingdoms-shared-intelligence-increment.md)
 
-**Status:** In progress — `K5-P0`–`K5-P5` Complete; `K5-P6` Current / selected pending exact transition-head validation  
+**Status:** **Accepted** — `K5-P0`–`K5-P6` Complete  
 **Scope ID:** `KINGDOMS-005`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Accepted `KINGDOMS-001` through `KINGDOMS-004`  
@@ -13,13 +13,14 @@
 **Slice C validation:** [K5-P3 validation](kingdoms-shared-intelligence-slice-c-validation.md)  
 **Slice D validation:** [K5-P4 validation](kingdoms-shared-intelligence-slice-d-validation.md)  
 **Slice E validation:** [K5-P5 validation](kingdoms-shared-intelligence-slice-e-validation.md)  
+**Whole-increment exit:** [K5-P6 exit report](kingdoms-shared-intelligence-exit-report.md)  
 **Important:** These are implementation phases inside `KINGDOMS-005`; they are not historical Phase 0–6 or DCP phases.
 
 ## 1. Purpose
 
 Deliver opt-in cross-Alliance sharing of selected safe game-Alliance intelligence without weakening Alliance tenancy, K3 append-history/privacy rules, K4 source isolation or public-integration exclusions.
 
-Consent, explicit current facts, bounded accepted history, complete first-party presentation, bounded retention and realistic-volume capacity hardening are now independently accepted. P6 is the whole-increment acceptance gate and may not add unreviewed sharing scope.
+Consent, explicit current facts, bounded accepted history, complete first-party presentation, bounded retention, realistic-volume capacity hardening and the complete cross-tenant acceptance seam are accepted. P6 added acceptance evidence only and did not widen sharing scope.
 
 ## 2. Phase status
 
@@ -31,7 +32,7 @@ Consent, explicit current facts, bounded accepted history, complete first-party 
 | `K5-P3` | **Complete** | Bounded accepted shared history + correction/invalidation semantics | Slice C |
 | `K5-P4` | **Complete** | First-party source/recipient UX, safe page-prop boundary, invitation lifecycle hardening and accessibility | Slice D |
 | `K5-P5` | **Complete** | Bounded operational retention + realistic-volume current/history capacity hardening | Slice E |
-| `K5-P6` | **Current / selected pending transition-head validation** | Whole-increment acceptance | Whole increment |
+| `K5-P6` | **Complete** | Whole-increment cross-tenant acceptance | Whole increment |
 
 ## 3. `K5-P0` — Contract lock — Complete
 
@@ -123,40 +124,35 @@ Runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed Dependency R
 
 See [Slice E validation](kingdoms-shared-intelligence-slice-e-validation.md), [Slice E security review](../security/kingdoms-shared-intelligence-retention-security-review.md), [retention operations runbook](../operations/kingdoms-shared-intelligence-retention.md), and [living shared-intelligence contract](../shared-intelligence.md).
 
-## 9. `K5-P6` — Whole-increment acceptance
+## 9. `K5-P6` — Whole-increment acceptance — Complete
 
-### Acceptance outcome
-
-P6 must prove one complete cross-tenant seam without adding a new feature slice:
+P6 re-proved one complete cross-tenant seam without adding a feature slice:
 
 consent → explicit target → safe current/history reads → complete first-party presentation → bounded operational retention → private-field exclusion → correction/invalidation propagation → no copy/reshare/mutation → immediate authorization loss → unrelated-tenant failure.
 
-### Required whole-increment evidence
+Exact whole-increment runtime candidate `6f84b51ab27941f0fec2abce71f1f2f6325560e4` passed:
 
-P6 must aggregate and independently validate:
+- Dependency Review `31573301975` — success;
+- CodeQL `31573301988` — success;
+- CI `31573301977` — success;
+- Pint — **560 files**;
+- PHPStan/Larastan — **394/394, zero errors**;
+- ParaTest/PHPUnit — **452 tests / 10,322 assertions**;
+- `KingdomSharedIntelligenceAcceptanceTest` — passing;
+- frontend dependency audit/lint/locked-format/type/build — success;
+- clean PostgreSQL migrations — success;
+- immutable production image — success;
+- ephemeral staging — success;
+- backup/restore — success;
+- image scan — success; and
+- staging cleanup — success.
 
-- exact accepted P0–P5 runtime/evidence identities;
-- product, domain, security, operations, interface and testing living-contract consistency;
-- invitation plaintext/hash lifecycle and retention separation;
-- same-Kingdom/tenant authorization on consent, grants, current and every history page;
-- source-owned canonical history with zero recipient canonical copies;
-- correction/invalidation propagation;
-- target removal/revoke/leave/Kingdom-drift immediate authorization loss;
-- no arbitrary history-window reopening;
-- 50-row / 250-observation history limits and 250-current limit;
-- bounded/idempotent retention with active/canonical/Audit/outbox preservation;
-- first-party accessibility/page-prop isolation;
-- explicit public API/webhook/directory/non-sharing data-class exclusions; and
-- protected Dependency Review, CodeQL, full CI, migrations, static analysis, frontend/accessibility, immutable image, staging, backup/restore, scan and cleanup on the exact whole-increment candidate.
+The immediately preceding transition head `0eb0444ee195fd3a09c9c9c07cdb2b1ddcb92873` independently passed Dependency Review `31572748561`, CodeQL `31572748558`, and CI `31572748595`, proving the P5 Complete / P6 Current transition before P6 work began.
 
-### Entry gate
-
-P6 whole-increment acceptance work is writable only after the exact containing status/evidence head that records P5 Complete / P6 Current independently passes Dependency Review, CodeQL and full CI/recovery.
+The accepted whole-increment boundary and residual non-capabilities are recorded in the [K5-P6 exit report](kingdoms-shared-intelligence-exit-report.md).
 
 ## 10. Continuation rule
 
-On `continue`, remain at the current K5 gate until both runtime/evidence and the exact containing status head are protected-green.
-
-For this transition, `K5-P6` whole-increment acceptance becomes writable only if the exact head containing P5 Complete / P6 Current passes Dependency Review, CodeQL and full CI/recovery. Otherwise remain at the P5 transition and repair only that defect.
+`KINGDOMS-005` is closed as **Accepted**. Future work must preserve the accepted K5 boundary and must not reopen or widen K5 implicitly.
 
 Do not widen K5 to player/roster sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, public APIs/webhooks, transitive reshare, scoring/ranking or automatic decisions without a separately reviewed scope change.
