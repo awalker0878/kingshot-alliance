@@ -46,6 +46,21 @@ The default topology is `docker-compose.staging.yml`. It provides:
 
 Application roles that require runtime writes share the `storage` volume. The web-only role does not receive write access. Package and framework manifests remain inside the immutable image.
 
+### Azure Container Apps topology
+
+Azure Container Apps uses the same immutable image but maps runtime lifecycles differently. See the [Azure Container Apps runbook](azure-container-apps.md) and [ADR 0009](../../adr/0009-azure-container-apps-runtime-topology.md) for the authoritative hosted topology.
+
+The ACA web Container App contains two containers per replica:
+
+- `nginx` — same image, explicit `nginx -c /etc/nginx/azure.conf -g "daemon off;"`, HTTP port 8080;
+- `app` — same image with no startup override, preserving `kingshot-entrypoint` and default `php-fpm` on FastCGI port 9000.
+
+ACA ingress terminates HTTPS, rejects insecure external traffic, and targets Nginx port 8080. The ACA Nginx profile uses replica-local `127.0.0.1:9000`; the Compose Nginx profile intentionally remains `app:9000`.
+
+Horizon is a separate Container App. Azure scheduler execution uses a scheduled Container Apps Job running `php artisan schedule:run`, and migrations use a manual Container Apps Job running `php artisan migrate --force`. Because ACA `command` overrides Docker ENTRYPOINT, non-web role overrides must invoke `kingshot-entrypoint` explicitly before the Artisan command when hosted runtime validation is required.
+
+Azure Managed Redis configuration uses the repository-supported `REDIS_SCHEME=tls` setting plus the environment-specific managed endpoint/port. Local and Compose Redis retain `REDIS_SCHEME=tcp`.
+
 ## Deploy by digest
 
 ```bash
@@ -81,7 +96,7 @@ The container CI job builds the runtime image, validates source-control and buil
 
 Production promotion must use the same image digest accepted in staging. Configuration may differ, but the image must not be rebuilt.
 
-Use an environment-specific production orchestrator and managed data services where available. Preserve the same controls: digest-only images, verified image and release identity, OCI provenance, image-owned package manifests, a single release job, least-privilege storage mounts, health gates, backup evidence, and an explicit rollback digest.
+Use an environment-specific production orchestrator and managed data services where available. Azure deployments must preserve the process/lifecycle boundaries in the [Azure Container Apps runbook](azure-container-apps.md). Preserve the same controls: digest-only images, verified image and release identity, OCI provenance, image-owned package manifests, a single release job, least-privilege storage mounts, health gates, backup evidence, and an explicit rollback digest.
 
 ## Post-deployment
 
