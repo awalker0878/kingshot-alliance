@@ -6,11 +6,11 @@
 **Status:** Current  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary operational boundary:** Alliance-scoped roster/snapshot/import, transfer, Alliance-intelligence/diplomacy, and K4 ingestion/promotion/scheduler state with shared deployment/recovery infrastructure
+**Primary operational boundary:** Alliance-scoped roster/snapshot/import, transfer, Alliance-intelligence/diplomacy, and K4 ingestion/promotion/scheduler/maintenance state with shared deployment/recovery infrastructure
 
 ## 1. Operational purpose and runtime shape
 
-K1–K3 remain predominantly synchronous Laravel/PostgreSQL workflows with shared audit/outbox. K4 through P4 adds manager ingestion control, delegated factual promotion, and generic background acquisition/scheduling on shared Laravel Scheduler/Redis/Horizon infrastructure.
+K1–K3 remain predominantly synchronous Laravel/PostgreSQL workflows with shared audit/outbox. K4 through P5 adds manager ingestion control, delegated factual promotion, generic background acquisition/scheduling, source-revocation reconciliation, bounded operational retention and payload-free health monitoring on shared Laravel Scheduler/Redis/Horizon infrastructure.
 
 No concrete production source is configured; the production adapter allowlist remains empty.
 
@@ -24,7 +24,7 @@ K4 operational rows are not canonical history. Promoted K1/K3 records copy bound
 
 Primary dependencies are PostgreSQL, active tenant/auth/audit/outbox infrastructure, Laravel Scheduler, Redis queues/Horizon and repository/config adapter registration.
 
-K4 has a dedicated `kingdoms-ingestion` queue. Production `ingestion_adapters` remains intentionally empty; no source endpoint/credential is accepted. A real adapter would add separately approved network/secret dependencies.
+K4 has a dedicated `kingdoms-ingestion` queue. Production `ingestion_adapters` remains intentionally empty; no source endpoint/credential is accepted. Repository-controlled retention and health thresholds are configuration, not tenant-supplied source settings.
 
 ## 4. Normal flow and background processing
 
@@ -32,7 +32,11 @@ Managers with `kingdoms.manage` may view status, configure an already registered
 
 `kingdoms:queue-ingestion --limit=100` runs every minute with `onOneServer()` and `withoutOverlapping(10)`, claims due subscriptions under row locks and dispatches unique/overlap-protected per-subscription jobs to the isolated queue. Workers call accepted staging plus P2/P3 promotion actions; cursor advances only after Completed/Partial batches.
 
+`kingdoms:reconcile-ingestion-sources --limit=1000` runs every five minutes and disables active/paused subscriptions whose adapter key/version is no longer approved. `kingdoms:enforce-ingestion-retention` runs daily at 04:15 and redacts/prunes age-qualified operational state.
+
 ## 5. Health, observability and diagnostics
+
+`kingdoms:ingestion-health --json` returns aggregate counts for active/revoked/overdue subscriptions, open circuits, stale pending candidates, quarantined candidates and recent failed batches plus `attentionRequired`; it exits non-zero when attention is required.
 
 Use request/trace/audit/outbox correlation plus Alliance/current/captured Kingdom, adapter/version, opaque cursor/window, subscription/batch/candidate lifecycle, next-run/claim/success/failure/circuit timing, stable/source IDs, hashes, promoted-record IDs, and bounded failure/quarantine codes.
 
@@ -40,7 +44,7 @@ Do not log normalized payload bodies, raw source responses, credentials, headers
 
 ## 6. Failure modes and diagnosis
 
-Failure classes include no approved adapter, inactive subscription, adapter-version mismatch, Kingdom/context drift, open circuit, source-window/cursor conflict, unsupported/bounded values, missing/unknown/ambiguous stable identity, missing/inactive tenant relationship, business-record validation failure, retry exhaustion, invalid batch transition and cross-tenant ID tampering.
+Failure classes include no approved adapter, inactive subscription, adapter-version mismatch/revocation, Kingdom/context drift, open circuit, source-window/cursor conflict, unsupported/bounded values, missing/unknown/ambiguous stable identity, missing/inactive tenant relationship, business-record validation failure, retry exhaustion, invalid batch transition and cross-tenant ID tampering.
 
 Expected production state remains **zero approved source adapters**; that is not an outage.
 
@@ -48,31 +52,35 @@ Expected production state remains **zero approved source adapters**; that is not
 
 Use supported domain actions rather than editing rows. Exact completed-window/promoted-candidate retry should resolve existing state. Pause/disable stale subscriptions; never rewrite captured context or cursor by hand.
 
-Password-confirmed manager replay is limited to quarantined candidates and re-runs the accepted promotion rules. Do not guess stable IDs, auto-create/reactivate roster/tracking, or use machine correction/invalidation as recovery.
+After restore, inspect aggregate ingestion health and reconcile current source approval before acquisition resumes. Password-confirmed manager replay remains limited to quarantined candidates and re-runs accepted promotion rules.
 
-## 8. Backup, restore, migration and rollback
+Do not guess stable IDs, auto-create/reactivate roster/tracking, use machine correction/invalidation as recovery, or directly re-enable a source whose registry approval disappeared.
+
+## 8. Backup, restore, migration and retention
 
 The K4 scheduling migration extends the accepted Kingdoms dependency chain after foundation/provenance migrations. Focused and whole-domain migration tests exercise down/up order; full CI applies all migrations on PostgreSQL.
 
-Shared backup/restore/immutable-image rollback applies. After restore, validate representative K1–K3 history, K4 ownership/cursor/scheduler/failure state, promoted-record correlation and independence of canonical history from operational K4 retention.
+Shared backup/restore/immutable-image rollback applies. After restore, validate representative K1–K3 history, K4 ownership/cursor/scheduler/failure state, source approval, promoted-record correlation and independence of canonical history from operational K4 retention.
+
+Default K4 operational windows are 30-day terminal payload redaction, 90-day terminal promoted/rejected candidate and candidate-free terminal batch retention, 180-day quarantined-candidate retention, and 30-day disabled-subscription scheduling/failure compaction.
 
 ## 9. Capacity, query and performance boundaries
 
 K1–K3 retain accepted query gates. P4 bounds one acquisition page to 250 records, adapter polling to 60–86,400 seconds, job timeout to 120 seconds and dedicated production/staging queue concurrency to defaults of 2/1.
 
-These are safety limits, not a real-source throughput SLO. P5 must add capacity/retention/alert evidence before source enablement.
+P5 adds a realistic-volume operations gate: 250 subscriptions, 40 failed batches and 110 candidates must produce the aggregate health snapshot in no more than eight SELECT queries. These are repository safety/capacity limits, not a real-source throughput SLO.
 
 ## 10. External-service degradation
 
-K4 generic failure/backoff/circuit mechanics now exist, but there is still no accepted external game-data dependency. Do not add scraping/OCR/bots/unapproved provider calls as an operational workaround.
+K4 generic failure/backoff/circuit/revocation mechanics exist, but there is still no accepted external game-data dependency. Do not add scraping/OCR/bots/unapproved provider calls as an operational workaround.
 
-A later approved adapter must define authorization/terms, timeout/rate/cursor/schema/revocation behavior and safe network/secret boundaries.
+A later approved adapter must define authorization/terms, endpoint/network/TLS/egress, timeout/rate/cursor/schema/revocation behavior and safe secret boundaries.
 
 ## 11. Safe operator actions and stop conditions
 
-Safe: inspect persisted lifecycle/cursor/provenance, pause/disable supported subscriptions, replay a legitimate quarantined candidate through the manager action, restore database/Redis/runtime health, and verify production adapter config remains intentionally empty.
+Safe: inspect persisted lifecycle/cursor/provenance and aggregate health, pause/disable supported subscriptions, reconcile source approval, run repository-controlled retention, replay a legitimate quarantined candidate through the manager action, restore database/Redis/runtime health, and verify production adapter config remains intentionally empty.
 
-Stop if recovery would require unapproved source/network access, source secrets/raw-response storage, cross-tenant access, stable-ID guessing, auto roster/tracking creation/reactivation, machine K3 correction/invalidation, transfer/diplomacy/contact automation, scoring/recommendation or manual row/cursor rewrites.
+Stop if recovery would require unapproved source/network access, source secrets/raw-response storage, cross-tenant access, stable-ID guessing, auto roster/tracking creation/reactivation, machine K3 correction/invalidation, transfer/diplomacy/contact automation, scoring/recommendation or manual row/cursor/candidate rewrites.
 
 ## 12. Evidence, focused runbooks and related documentation
 
@@ -85,6 +93,6 @@ Focused Kingdoms guides:
 - [Alliance intelligence operations](kingdoms-alliance-intelligence.md)
 - [Automated ingestion operations](kingdoms-automated-ingestion.md)
 
-K4-P4 runtime candidate `27855f79ba128b35edea7f82b2f6381fbf810363` passed DR `31545866277`, CodeQL `31545866288`, CI `31545866249`, including frontend, 523 Pint files, PHPStan 371/371 zero errors, 423 tests / 9,697 assertions, image/staging/backup/scan.
+K4-P5 runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` passed DR `31552113152`, CodeQL `31552113044`, CI `31552113042`, including frontend, 528 Pint files, PHPStan 374/374 zero errors, 428 tests / 9,736 assertions, image/staging/backup/scan.
 
-Use with [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), [rollback](../../../operations/runbooks/rollback.md), and [Kingdoms security](../security/README.md).
+Use with [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), [rollback](../../../operations/runbooks/rollback.md), [K4 Slice E validation](../product/kingdoms-automated-ingestion-slice-e-validation.md), and [Kingdoms security](../security/README.md).
