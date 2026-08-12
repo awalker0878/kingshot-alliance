@@ -2,7 +2,7 @@
 
 [← Kingdoms automated game-data ingestion product increment](kingdoms-automated-ingestion-increment.md)
 
-**Status:** In progress — `K4-P0`–`K4-P4` Complete; `K4-P5` Current / selected pending exact transition-head validation  
+**Status:** In progress — `K4-P0`–`K4-P5` Complete; `K4-P6` Current / selected pending exact transition-head validation  
 **Scope ID:** `KINGDOMS-004`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Accepted `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` implementations  
@@ -12,6 +12,7 @@
 **Slice B validation:** [K4-P2 validation](kingdoms-automated-ingestion-slice-b-validation.md)  
 **Slice C validation:** [K4-P3 validation](kingdoms-automated-ingestion-slice-c-validation.md)  
 **Slice D validation:** [K4-P4 validation](kingdoms-automated-ingestion-slice-d-validation.md)  
+**Slice E validation:** [K4-P5 validation](kingdoms-automated-ingestion-slice-e-validation.md)  
 **Important:** These are implementation phases inside `KINGDOMS-004`; they are not historical Phase 0–6 or DCP phases.
 
 ## 1. Purpose
@@ -27,8 +28,8 @@ Sequence controlled machine ingestion into independently validated slices while 
 | `K4-P2` | **Complete** | Existing-roster stable-player-ID promotion through shared snapshot action | Slice B |
 | `K4-P3` | **Complete** | Existing-active-tracking stable-game-Alliance-ID factual observation promotion through K3 action | Slice C |
 | `K4-P4` | **Complete** | Generic scheduler/cursor/retry/replay/concurrency around accepted staging/promotions | Slice D |
-| `K4-P5` | **Current / selected pending transition-head validation** | Operations/review/retention/source-revocation hardening | Slice E |
-| `K4-P6` | Blocked by P5 | Whole-increment acceptance | Whole increment |
+| `K4-P5` | **Complete** | Operations/review/retention/source-revocation/health/capacity hardening | Slice E |
+| `K4-P6` | **Current / selected pending transition-head validation** | Whole-increment acceptance | Whole increment |
 
 ## 3. `K4-P0` — Contract lock — Complete
 
@@ -56,30 +57,41 @@ Runtime candidate `8186af9fd7276a20889ca3a25b80172c6fe824d9` and containing evid
 
 P4 added generic acquisition scheduling after both promotion paths were accepted: transactional due claims, isolated `kingdoms-ingestion` Horizon queue, bounded adapter poll/page contracts, unique/overlap-protected jobs, opaque cursor progression, bounded retries/backoff/circuit state, retry-exhaustion batch finalization and password-confirmed quarantined-candidate replay.
 
-P4 invokes the accepted staging/P2/P3 promotion contracts rather than directly writing canonical history. Source-window/candidate/promoted-record idempotency remains authoritative under at-least-once delivery.
+Runtime candidate `27855f79ba128b35edea7f82b2f6381fbf810363` passed DR `31545866277`, CodeQL `31545866288`, CI `31545866249`. Repaired containing evidence head `3bf795e12a99a98c5ad71e570744743056cedd14` independently passed DR `31547224197`, CodeQL `31547224301`, and CI `31547224414`.
 
-Runtime candidate `27855f79ba128b35edea7f82b2f6381fbf810363` passed DR `31545866277`, CodeQL `31545866288`, CI `31545866249`: Pint 523, PHPStan 371/371 zero errors, 423 tests / 9,697 assertions, frontend/build, migrations, immutable image, staging, backup/restore and scan.
+## 8. `K4-P5` / Slice E — Operations, review and retention hardening — Complete
 
-The first evidence head exposed only documentation-navigation drift. Repaired containing evidence head `3bf795e12a99a98c5ad71e570744743056cedd14` then independently passed DR `31547224197`, CodeQL `31547224301`, and CI `31547224414`, including the full container/staging/recovery/scan chain.
+P5 added repository-controlled source-revocation reconciliation, bounded operational retention/pruning, payload-free aggregate health/attention signals, scheduled maintenance commands, recovery/runbook hardening and realistic-volume operations capacity evidence.
 
-A concrete networked adapter still requires separate source approval including authorization/terms, DNS/redirect/private-address/TLS/egress controls, secret handling, schema/version policy, rate limits, cursor semantics and revocation behavior. Production adapter config remains empty.
+Default retention redacts promoted/rejected normalized candidate payloads after 30 days, purges terminal promoted/rejected candidates after 90 days, retains quarantined candidates for 180 days, purges terminal batches after 90 days only when candidate-free, and compacts disabled-subscription scheduling/failure state after 30 days while preserving the subscription row.
 
-## 8. `K4-P5` / Slice E — Operations, review and retention hardening
+Revoked/missing adapter approval disables active/paused subscriptions with bounded `source_unapproved` state. The health projection is aggregate and performance-gated at 250 subscriptions, 40 failed batches and 110 candidates with no more than eight SELECT queries.
 
-P5 completes operational review, source-revocation procedures, operational batch/candidate/subscription-state retention/pruning, metrics/alerts, capacity/performance evidence and recovery/runbook hardening. Pruning must preserve promoted K1/K3 canonical history/provenance.
+Runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` passed DR `31552113152`, CodeQL `31552113044`, CI `31552113042`: Pint 528 files, PHPStan/Larastan 374/374 zero errors, 428 tests / 9,736 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore and scan.
 
-P5 does not itself approve a concrete source. Where real-source-specific controls cannot be repository-proven with an empty allowlist, record them as source-enablement prerequisites rather than inventing production evidence.
-
-P5 implementation may begin only after the exact transition/status head that records P4 Complete / P5 Current passes Dependency Review, CodeQL and full CI.
+P5 still does not approve a concrete source. Real-source-specific authorization/terms, network/DNS/redirect/private-address/TLS/egress, secret, rate/timeout, schema/version, cursor, monitoring and revocation evidence remain source-enablement prerequisites while production adapter configuration is empty.
 
 ## 9. `K4-P6` — Whole-increment acceptance
 
-Prove final source authorization boundary, tenancy/stable-ID identity, secret/network exclusion, quarantine, delegated promotion, at-least-once replay, cursor/concurrency, history integrity, migration/recovery, performance/accessibility, event/public-integration exclusion, retention and explicit non-capabilities. Record exact accepted SHA/run IDs in the K4 exit report.
+P6 is documentation/evidence acceptance, not a new acquisition feature. It must prove the complete generic repository increment across:
 
-Repository acceptance still does not itself approve real production source/cutover.
+- source authorization boundary and empty-production-allowlist default;
+- Alliance/current-Kingdom tenancy and stable-ID-only identity;
+- secret/raw-response/network exclusion before source approval;
+- quarantine/rejection and delegated existing-target-only promotion;
+- at-least-once replay, cursor/concurrency and retry/circuit behavior;
+- source-revocation fail-closed behavior;
+- operational retention with canonical-history/provenance independence;
+- migration/backup/recovery and realistic-volume query evidence;
+- accessibility/frontend and internal-event/public-integration exclusion; and
+- explicit non-capabilities including no auto roster/tracking/transfer/diplomacy/contact/scoring/recommendation behavior.
+
+Record the final accepted containing SHA and protected run IDs in a K4 exit report. Repository acceptance still does not itself approve real production source/cutover.
+
+P6 work may begin only after the exact transition/status head containing the P5 Complete / P6 Current state passes Dependency Review, CodeQL and full CI.
 
 ## 10. Continuation rule
 
-On `continue`, read PR #54/current successor state and this plan. Stay in the current K4 gate until its implementation **and containing evidence/status head** are protected-green. Do not start a later slice to compensate for a current-slice defect.
+On `continue`, read PR #54/current successor state and this plan. Stay in the current K4 gate until its implementation **and containing evidence/status head** are protected-green. Do not start a later gate to compensate for a current-gate defect.
 
-For this transition, `K4-P5` becomes writable only if the exact head containing the P4 Complete / P5 Current status passes Dependency Review, CodeQL and full CI. Otherwise remain at the P4 transition and repair only the status/evidence defect.
+For this transition, `K4-P6` becomes writable only if the exact head containing the P5 Complete / P6 Current status passes Dependency Review, CodeQL and full CI. Otherwise remain at the P5 transition and repair only the status/evidence defect.
