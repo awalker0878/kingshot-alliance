@@ -2,17 +2,17 @@
 
 ## Purpose
 
-Owns approved Kingshot game-world reference identity plus Alliance-scoped roster/history/intelligence, controlled roster migration, transfer planning, game-side Alliance intelligence/diplomacy, and governed `KINGDOMS-004` automated-ingestion control/promotion/scheduler services.
+Owns approved Kingshot game-world reference identity plus Alliance-scoped roster/history/intelligence, controlled roster migration, transfer planning, game-side Alliance intelligence/diplomacy, and governed `KINGDOMS-004` automated-ingestion control/promotion/scheduler/operations services.
 
-`KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted. K4 through P4 provides a generic empty-by-default ingestion pipeline: manager control, bounded staging/quarantine, delegated factual player/game-Alliance promotion, and generic scheduled acquisition/cursor/retry/replay. Production adapter configuration remains empty and no real source is approved.
+`KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted. K4 through P5 provides a generic empty-by-default ingestion pipeline: manager control, bounded staging/quarantine, delegated factual player/game-Alliance promotion, scheduled acquisition/cursor/retry/replay, source-revocation reconciliation, bounded operational retention and aggregate health monitoring. Production adapter configuration remains empty and no real source is approved.
 
 ## Owned code
 
 - `Models/` — neutral Kingdom/player/game-Alliance references and Alliance-owned roster/transfer/intelligence/ingestion persistence.
-- `Actions/` — explicit roster, observation, import, transfer, diplomacy/contact, ingestion-control, scheduler/orchestration/replay, and delegated promotion mutations.
+- `Actions/` — explicit roster, observation, import, transfer, diplomacy/contact, ingestion-control, scheduler/orchestration/replay, source-reconciliation/retention, and delegated promotion mutations.
 - `Jobs/` — isolated per-subscription K4 acquisition work only.
 - `Queries/` — tenant-first roster/history/intelligence/transfer/game-Alliance/ingestion projections.
-- `Services/`, `Contracts/`, and `Data/` — descriptive intelligence plus K4 adapter allowlist, normalization/acquisition and bounded page contracts.
+- `Services/`, `Contracts/`, and `Data/` — descriptive intelligence plus K4 adapter allowlist, normalization/acquisition, bounded page and operational-health contracts.
 - `Enums/` — accepted Kingdoms lifecycle/state vocabularies.
 - `Http/` — first-party Kingdoms request/presentation boundaries.
 
@@ -22,7 +22,9 @@ Intentional cross-domain contracts include canonical `Kingdom` references consum
 
 Stable game IDs scoped to one Kingdom are the only automatic neutral identity keys. Names, tags, handles, and source-local labels never auto-merge identity. Neutral `KingdomPlayer`/`KingdomAlliance` references never grant tenant access.
 
-K4 adapter registration/acquisition is repository/operator configuration, not a tenant-configurable external integration contract. K4 promotion never creates roster/tracking relationships and machine game-Alliance observations cannot correct/invalidate history. Generic scheduling does not create a public Kingdoms API, inbound webhook, arbitrary source endpoint, or approved production provider.
+K4 adapter registration/acquisition is repository/operator configuration, not a tenant-configurable external integration contract. K4 promotion never creates roster/tracking relationships and machine game-Alliance observations cannot correct/invalidate history. Source removal/version drift disables future acquisition. Operational retention cannot delete promoted K1/K3 canonical history or rewrite its copied provenance.
+
+Generic scheduling/maintenance does not create a public Kingdoms API, inbound webhook, arbitrary source endpoint, or approved production provider.
 
 ## Dependencies
 
