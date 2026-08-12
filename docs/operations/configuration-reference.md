@@ -90,8 +90,9 @@ The repository's staging Compose topology uses a private PostgreSQL container fo
 | `SESSION_SECURE_COOKIE` | Require HTTPS for session cookie. | Must be `true` in production and normal hosted staging. |
 | `SESSION_SAME_SITE` | Cookie SameSite mode. | Hosted value must be `lax` or `strict`. |
 | `REDIS_CLIENT` | Redis client implementation. | Repository images include `phpredis`. |
-| `REDIS_URL` | Optional Redis URL. | Protect if it contains credentials. |
-| `REDIS_HOST` / `REDIS_PORT` | Redis endpoint. | Hosted dependency; default port `6379`. |
+| `REDIS_SCHEME` | Redis connection transport scheme. | Defaults to `tcp`; use `tls` when the managed Redis endpoint requires encrypted transport. |
+| `REDIS_URL` | Optional Redis URL. | Protect if it contains credentials. A URL scheme can also select TCP/TLS. |
+| `REDIS_HOST` / `REDIS_PORT` | Redis endpoint. | Local/Compose defaults use port `6379`; use the managed-service port for hosted Redis. |
 | `REDIS_USERNAME` / `REDIS_PASSWORD` | Redis authentication. | Secrets when used. |
 | `REDIS_DB` | Default Redis database. | Defaults to `0`. |
 | `REDIS_CACHE_DB` | Cache Redis database. | Defaults to `1`. |
@@ -101,6 +102,8 @@ The repository's staging Compose topology uses a private PostgreSQL container fo
 | `REDIS_MAX_RETRIES` | Client retry count. | Defaults to `3`. |
 | `REDIS_BACKOFF_ALGORITHM` | Redis client backoff. | Defaults to `decorrelated_jitter`. |
 | `REDIS_BACKOFF_BASE` / `REDIS_BACKOFF_CAP` | Retry backoff milliseconds. | Defaults to 100 / 1000. |
+
+`config/database.php` applies `REDIS_SCHEME` to both the default and cache Redis connections. The repository's local and Compose examples use `REDIS_SCHEME=tcp`; Azure Managed Redis deployments use `REDIS_SCHEME=tls`, the normal managed-service hostname, and the service port defined by the Azure environment. See the [Azure Container Apps runbook](runbooks/azure-container-apps.md).
 
 Redis loss affects cache, sessions, queues, Horizon, and scheduler coordination such as `onOneServer()` locks. Treat Redis health as a platform dependency, not only a cache concern.
 
