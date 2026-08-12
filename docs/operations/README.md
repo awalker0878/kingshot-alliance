@@ -2,7 +2,7 @@
 
 [← Documentation home](../README.md)
 
-This directory owns the **shared repository/runtime operating model**: configuration, background processing, observability, deployment/release controls, recovery runbooks, and historical phase-wide operating evidence.
+This directory owns the **shared repository/runtime operating model**: configuration, background processing, observability, provider deployment, release controls, recovery runbooks, and historical phase-wide operating evidence.
 
 Operating guides that primarily diagnose one code-domain capability live with that owning domain under `docs/domains/<domain>/operations/` and consume these shared runbooks rather than defining a separate platform.
 
@@ -13,8 +13,31 @@ DCP-P3 operating-document depth is governed by the [operations documentation sta
 - [Background processing](background-processing.md) — scheduler commands, Horizon queues, outbox processing, idempotency, failure signals, and safe catch-up/recovery.
 - [Runtime configuration reference](configuration-reference.md) — application, PostgreSQL, Redis/session/queue, storage, mail, security/proxy, Horizon, launch-threshold, and deployment-host settings.
 - [Observability](observability.md) — liveness/readiness, request/trace correlation, JSON logs, audit correlation, Horizon, outbox/webhook signals, release identity, alert categories, and evidence boundaries.
+- [Provider deployment](deployment/README.md) — provider-specific infrastructure blueprints; currently includes the complete Azure deployment under `deployment/azure/`.
 
 These shared living contracts are updated when runtime configuration, scheduler cadence, queue ownership, health checks, observability, deployment, or recovery semantics change.
+
+## Provider deployment blueprints
+
+Provider infrastructure belongs beneath `docs/operations/deployment/` rather than in a new top-level documentation group:
+
+```text
+docs/operations/deployment/
+  README.md
+  azure/
+    README.md
+    bootstrap.md
+    networking.md
+    data-services.md
+    container-apps.md
+    application-configuration.md
+    github-actions.md
+    validation-and-recovery.md
+```
+
+- [Azure deployment](deployment/azure/README.md) — Azure Container Apps, VNet/private DNS, PostgreSQL 18 Flexible Server, private Azure Managed Redis, ACR, Key Vault, managed identities, Log Analytics/Application Insights, GitHub Actions OIDC, validation, and recovery.
+
+Provider blueprints explain how to provision the external hosting platform. The runbooks below remain the provider-neutral operator procedures for release, rollback, backup/restore, and incident response.
 
 ## Domain operations profiles
 
@@ -41,7 +64,7 @@ Focused living runbooks required by the P3 inventory are indexed from those prof
 
 - [Local development](runbooks/local-development.md)
 - [Deployment](runbooks/deployment.md)
-- [Azure Container Apps](runbooks/azure-container-apps.md) — supported multi-container web replica, Horizon boundary, scheduled/release jobs, private managed dependencies, and validation.
+- [Azure Container Apps](runbooks/azure-container-apps.md) — supported multi-container web replica, Horizon boundary, scheduled/release jobs, private managed dependencies, and validation. Full provider provisioning is in the [Azure deployment blueprint](deployment/azure/README.md).
 - [Rollback](runbooks/rollback.md)
 - [Backup and restore](runbooks/backup-restore.md)
 - [Incident response](runbooks/incident-response.md)
@@ -51,11 +74,12 @@ Runbooks stay under `operations/runbooks/`; do not create a parallel top-level `
 A practical operator path is:
 
 1. establish valid runtime configuration;
-2. deploy using the deployment runbook and the environment-specific runbook where applicable;
-3. validate shared health/telemetry using observability;
-4. verify scheduler/outbox/queues using background processing;
-5. diagnose the owning domain through `docs/domains/<domain>/operations/`; and
-6. use rollback, backup/restore, or incident response when a stop/recovery condition is reached.
+2. provision/verify the environment through the applicable provider deployment blueprint;
+3. deploy using the generic deployment runbook and the environment-specific runbook where applicable;
+4. validate shared health/telemetry using observability;
+5. verify scheduler/outbox/queues using background processing;
+6. diagnose the owning domain through `docs/domains/<domain>/operations/`; and
+7. use rollback, backup/restore, or incident response when a stop/recovery condition is reached.
 
 Domain-specific guides add domain diagnosis/state semantics to this path; they do not replace it.
 
@@ -110,10 +134,11 @@ Top-level shared operations owns deployment/configuration/health/backup/rollback
 - A living operations guide/runbook must be executable by an operator who did not write the feature.
 - Include prerequisites, safety/stop conditions, actions/commands, validation, rollback/recovery, and evidence to retain where applicable.
 - Prefer immutable identifiers such as release SHA, image digest, backup ID, or change/incident record ID.
-- Never commit production credentials, secret values, private recovery material, or sensitive incident payloads.
+- Never commit production credentials, secret values, private recovery material, environment-specific private addresses, or sensitive incident payloads.
+- Provider deployment examples must use placeholders for subscription/tenant/client IDs, secret values, resource-specific private addresses, certificates, and other sensitive environment identifiers.
 - Distinguish a tested procedure from a completed real-world control. CI recovery demonstrations do not prove production recovery unless production evidence says so.
 - A restart is not proof of recovery; validate the durable state that was expected to advance.
-- When runtime behavior changes, update the owning domain guide plus any affected shared runbook/configuration contract in the same change.
+- When runtime behavior changes, update the owning domain guide plus any affected shared runbook/configuration/provider deployment contract in the same change.
 - Historical phase records remain evidence; do not keep extending them to describe current domain behavior when a living domain guide owns it.
 
 ## Launch evidence boundary
