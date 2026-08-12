@@ -89,7 +89,7 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
                 ->where('recipient_alliance_id', $recipient->id)
                 ->where('kingdom_id', $share->kingdom_id)
                 ->where('state', KingdomIntelligenceShareState::Active->value)
-                ->whereKeyNot($share->id)
+                ->where('id', '!=', $share->id)
                 ->lockForUpdate()
                 ->exists();
 
