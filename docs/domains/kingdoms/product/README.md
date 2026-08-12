@@ -2,9 +2,9 @@
 
 [← Kingdoms domain](../README.md)
 
-This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001` through `KINGDOMS-004` are accepted. `KINGDOMS-005` is in progress: `K5-P0`–`K5-P5` are Complete and `K5-P6` whole-increment acceptance is selected pending exact transition-head validation.
+This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001` through `KINGDOMS-005` are accepted.
 
-Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; a selected future gate does not imply acceptance.
+Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; repository/product acceptance remains distinct from broader production policy or future scope changes.
 
 ## KINGDOMS-001 — roster intelligence
 
@@ -55,15 +55,13 @@ Whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` is 
 - [Whole-increment exit report](kingdoms-automated-ingestion-exit-report.md)
 - [Living automated-ingestion contract](../automated-ingestion.md)
 
-## KINGDOMS-005 — opt-in shared Kingdom intelligence — in progress
+## KINGDOMS-005 — opt-in shared Kingdom intelligence — accepted
 
-`K5-P0`–`K5-P5` are Complete. P5 runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed Dependency Review `31570931190`, CodeQL `31570931290`, and CI `31570931267`: Pint 559 files, PHPStan/Larastan 394/394 zero errors, 451 tests / 10,230 assertions, frontend lint/format/type/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
+`K5-P0`–`K5-P6` are Complete. Whole-increment runtime candidate `6f84b51ab27941f0fec2abce71f1f2f6325560e4` passed Dependency Review `31573301975`, CodeQL `31573301988`, and CI `31573301977`: Pint 560 files, PHPStan/Larastan 394/394 zero errors, 452 tests / 10,322 assertions, frontend lint/format/type/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
 
-Current runtime includes directional consent/agreement state, explicit per-target grants/removal, persistent fail-closed Kingdom-drift invalidation, bounded safe current facts, bounded accepted history, member-safe current/history presentation and a manager-only consent/grant workspace. History uses opaque encrypted target-bound cursors, 50-row maximum pages, and a hard 250-observation traversal cap; the UI exposes no arbitrary `asOf` history-window control. Recipient reads create no canonical copy and do not permit reshare.
+Accepted runtime includes directional consent/agreement state, explicit per-target grants/removal, persistent fail-closed Kingdom-drift invalidation, bounded safe current facts, bounded accepted history, member-safe current/history presentation and a manager-only consent/grant workspace. History uses opaque encrypted target-bound cursors, 50-row maximum pages, and a hard 250-observation traversal cap; the UI exposes no arbitrary `asOf` history-window control. Recipient reads create no canonical copy and do not permit reshare.
 
-P4 hardens one-time invitation-secret lifecycle by erasing the persisted hash on accept, decline and revoke. P5 adds bounded retention of eligible old operational consent/grant rows while preserving active shares/grants, canonical source tracking/observations and Audit/outbox evidence. It also proves the accepted current/history limits at 300 active grants and 1,000 source observations without introducing a cache/materialized recipient projection.
-
-`K5-P6` whole-increment acceptance is selected next, but P6 acceptance work cannot begin until the exact containing P5 Complete / P6 Current head is independently protected-green.
+P4 hardens one-time invitation-secret lifecycle by erasing the persisted hash on accept, decline and revoke. P5 adds bounded retention of eligible old operational consent/grant rows while preserving active shares/grants, canonical source tracking/observations and Audit/outbox evidence, plus realistic-volume capacity proof. P6 composes the complete cross-tenant seam and re-proves unrelated-tenant denial, correction/invalidation propagation, no copy/reshare/mutation and immediate authorization loss.
 
 - [Scope](kingdoms-shared-intelligence-increment.md)
 - [Implementation plan](kingdoms-shared-intelligence-implementation-plan.md)
@@ -81,9 +79,10 @@ P4 hardens one-time invitation-secret lifecycle by erasing the persisted hash on
 - [Slice E validation](kingdoms-shared-intelligence-slice-e-validation.md)
 - [Slice E retention/capacity security review](../security/kingdoms-shared-intelligence-retention-security-review.md)
 - [Slice E retention operations runbook](../operations/kingdoms-shared-intelligence-retention.md)
+- [Whole-increment exit report](kingdoms-shared-intelligence-exit-report.md)
 - [Living shared-intelligence contract](../shared-intelligence.md)
 
-The locked contract remains directional, two-party opt-in, same-Kingdom, explicit-per-target, source-owned and read-only. Roster/player sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, transitive reshare, public directories/APIs/webhooks, source acquisition, scoring/ranking and automatic decisions remain excluded.
+The accepted contract remains directional, two-party opt-in, same-Kingdom, explicit-per-target, source-owned and read-only. Roster/player sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, transitive reshare, public directories/APIs/webhooks, source acquisition, scoring/ranking and automatic decisions remain excluded.
 
 ## Related evidence
 
