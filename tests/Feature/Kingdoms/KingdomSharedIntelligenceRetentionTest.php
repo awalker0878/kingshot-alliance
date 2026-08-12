@@ -161,9 +161,9 @@ final class KingdomSharedIntelligenceRetentionTest extends TestCase
 
     private function pendingShare(User $owner, Alliance $source): KingdomIntelligenceShare
     {
-        return $this->app->make(CreateKingdomIntelligenceShareInvitation::class)
-            ->handle($source, $owner)
-            ->share;
+        $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)->handle($source, $owner);
+
+        return KingdomIntelligenceShare::query()->findOrFail($issued->shareId);
     }
 
     private function activeShare(
