@@ -9,7 +9,6 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
