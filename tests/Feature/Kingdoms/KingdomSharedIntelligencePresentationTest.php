@@ -49,7 +49,7 @@ final class KingdomSharedIntelligencePresentationTest extends TestCase
             ->handle($source, $sourceOwner, (string) $share->id, (string) $tracking->id);
 
         $response = $this->actingAs($recipientMember)
-            ->withSession($this->session((string) $recipient->id))
+            ->withSession($this->activeAllianceSession((string) $recipient->id))
             ->withHeader('X-Inertia', 'true')
             ->get('/alliance/kingdom-sharing?target='.$target->id.'&asOf=2000-01-01T00:00:00Z');
 
@@ -88,19 +88,19 @@ final class KingdomSharedIntelligencePresentationTest extends TestCase
             ->handle($source, $sourceOwner, (string) $share->id, (string) $tracking->id);
 
         $this->actingAs($sourceMember)
-            ->withSession($this->session((string) $source->id))
+            ->withSession($this->activeAllianceSession((string) $source->id))
             ->get('/alliance/kingdom-sharing/manage')
             ->assertForbidden();
 
         $issued = $this->actingAs($sourceOwner)
-            ->withSession($this->session((string) $source->id, true))
+            ->withSession($this->activeAllianceSession((string) $source->id, true))
             ->postJson('/alliance/kingdom-sharing/invitations')
             ->assertCreated();
         $token = (string) $issued->json('token');
         self::assertNotSame('', $token);
 
         $response = $this->actingAs($sourceOwner)
-            ->withSession($this->session((string) $source->id))
+            ->withSession($this->activeAllianceSession((string) $source->id))
             ->withHeader('X-Inertia', 'true')
             ->get('/alliance/kingdom-sharing/manage');
 
@@ -134,14 +134,14 @@ final class KingdomSharedIntelligencePresentationTest extends TestCase
         $member = $this->member($alliance);
 
         $this->actingAs($member)
-            ->withSession($this->session((string) $alliance->id))
+            ->withSession($this->activeAllianceSession((string) $alliance->id))
             ->withHeader('X-Inertia', 'true')
             ->get('/alliance/kingdom-sharing')
             ->assertOk()
             ->assertJsonPath('props.canManage', false);
 
         $this->actingAs($owner)
-            ->withSession($this->session((string) $alliance->id))
+            ->withSession($this->activeAllianceSession((string) $alliance->id))
             ->withHeader('X-Inertia', 'true')
             ->get('/alliance/kingdom-sharing')
             ->assertOk()
@@ -226,7 +226,7 @@ final class KingdomSharedIntelligencePresentationTest extends TestCase
     }
 
     /** @return array<string, mixed> */
-    private function session(string $allianceId, bool $passwordConfirmed = false): array
+    private function activeAllianceSession(string $allianceId, bool $passwordConfirmed = false): array
     {
         $session = [
             (string) config('identity.active_alliance_session_key') => $allianceId,
