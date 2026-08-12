@@ -37,6 +37,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         $kingdomAllianceContactMigration = require database_path('migrations/2026_08_10_100000_create_kingdom_alliance_diplomacy_contacts.php');
         $ingestionMigration = require database_path('migrations/2026_08_11_190000_create_kingdom_ingestion_foundation.php');
         $ingestionSchedulingMigration = require database_path('migrations/2026_08_11_220000_add_ingestion_scheduling.php');
+        $sharingMigration = require database_path('migrations/2026_08_12_010000_create_kingdom_intelligence_shares.php');
         self::assertInstanceOf(Migration::class, $kingdomMigration);
         self::assertInstanceOf(Migration::class, $rosterMigration);
         self::assertInstanceOf(Migration::class, $snapshotMigration);
@@ -52,9 +53,11 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertInstanceOf(Migration::class, $kingdomAllianceContactMigration);
         self::assertInstanceOf(Migration::class, $ingestionMigration);
         self::assertInstanceOf(Migration::class, $ingestionSchedulingMigration);
+        self::assertInstanceOf(Migration::class, $sharingMigration);
 
         // Exercise the full Kingdoms dependency order from newest tenant workflow to
         // the first-class Kingdom reference it ultimately depends on.
+        $sharingMigration->down();
         $ingestionSchedulingMigration->down();
         $ingestionMigration->down();
         $kingdomAllianceContactMigration->down();
@@ -92,6 +95,7 @@ final class KingdomMigrationBackfillTest extends TestCase
         $kingdomAllianceContactMigration->up();
         $ingestionMigration->up();
         $ingestionSchedulingMigration->up();
+        $sharingMigration->up();
 
         self::assertFalse(Schema::hasColumn('alliances', 'kingdom'));
         self::assertTrue(Schema::hasColumn('alliances', 'kingdom_id'));
@@ -114,9 +118,13 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertTrue(Schema::hasTable('kingdom_ingestion_subscriptions'));
         self::assertTrue(Schema::hasTable('kingdom_ingestion_batches'));
         self::assertTrue(Schema::hasTable('kingdom_ingestion_candidates'));
+        self::assertTrue(Schema::hasTable('kingdom_intelligence_shares'));
         self::assertTrue(Schema::hasColumn('kingdom_ingestion_subscriptions', 'next_run_at'));
         self::assertTrue(Schema::hasColumn('kingdom_ingestion_subscriptions', 'circuit_open_until'));
         self::assertTrue(Schema::hasColumn('kingdom_ingestion_batches', 'next_source_cursor'));
+        self::assertTrue(Schema::hasColumn('kingdom_intelligence_shares', 'invitation_token_hash'));
+        self::assertTrue(Schema::hasColumn('kingdom_intelligence_shares', 'recipient_alliance_id'));
+        self::assertTrue(Schema::hasColumn('kingdom_intelligence_shares', 'kingdom_id'));
         self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'idempotency_key'));
         self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'corrects_observation_id'));
         self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'invalidated_at'));
