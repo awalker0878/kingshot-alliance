@@ -2,7 +2,7 @@
 
 [← Kingdoms opt-in shared intelligence product increment](kingdoms-shared-intelligence-increment.md)
 
-**Status:** In progress — `K5-P0`–`K5-P3` Complete; `K5-P4` Current / selected pending exact transition-head validation  
+**Status:** In progress — `K5-P0`–`K5-P4` Complete; `K5-P5` Current / selected pending exact transition-head validation  
 **Scope ID:** `KINGDOMS-005`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Accepted `KINGDOMS-001` through `KINGDOMS-004`  
@@ -11,13 +11,14 @@
 **Slice A validation:** [K5-P1 validation](kingdoms-shared-intelligence-slice-a-validation.md)  
 **Slice B validation:** [K5-P2 validation](kingdoms-shared-intelligence-slice-b-validation.md)  
 **Slice C validation:** [K5-P3 validation](kingdoms-shared-intelligence-slice-c-validation.md)  
+**Slice D validation:** [K5-P4 validation](kingdoms-shared-intelligence-slice-d-validation.md)  
 **Important:** These are implementation phases inside `KINGDOMS-005`; they are not historical Phase 0–6 or DCP phases.
 
 ## 1. Purpose
 
 Deliver opt-in cross-Alliance sharing of selected safe game-Alliance intelligence without weakening Alliance tenancy, K3 append-history/privacy rules, K4 source isolation or public-integration exclusions.
 
-Consent, explicit current facts and bounded accepted history are now independently accepted. P4 is the first slice allowed to expose those accepted contracts through complete first-party source/recipient pages.
+Consent, explicit current facts, bounded accepted history and complete first-party presentation are now independently accepted. P5 is the first slice allowed to add retention/operations/capacity hardening around those accepted contracts.
 
 ## 2. Phase status
 
@@ -27,8 +28,8 @@ Consent, explicit current facts and bounded accepted history are now independent
 | `K5-P1` | **Complete** | Directional two-party sharing agreement/invitation foundation | Slice A |
 | `K5-P2` | **Complete** | Explicit shared-target grants + safe recipient current-fact projection | Slice B |
 | `K5-P3` | **Complete** | Bounded accepted shared history + correction/invalidation semantics | Slice C |
-| `K5-P4` | **Current / selected pending transition-head validation** | Source/recipient UX, drift/revocation presentation, audit/events and accessibility | Slice D |
-| `K5-P5` | Planned | Privacy, retention, operations and capacity hardening | Slice E |
+| `K5-P4` | **Complete** | First-party source/recipient UX, safe page-prop boundary, invitation lifecycle hardening and accessibility | Slice D |
+| `K5-P5` | **Current / selected pending transition-head validation** | Privacy, retention, operations and capacity hardening | Slice E |
 | `K5-P6` | Planned | Whole-increment acceptance | Whole increment |
 
 ## 3. `K5-P0` — Contract lock — Complete
@@ -75,39 +76,53 @@ Runtime candidate `70739d320caab059d2102feda081be33754b77ec` passed Dependency R
 
 See [Slice C validation](kingdoms-shared-intelligence-slice-c-validation.md), [Slice C security review](../security/kingdoms-shared-intelligence-history-security-review.md), and [living shared-intelligence contract](../shared-intelligence.md).
 
-## 7. `K5-P4` / Slice D — UX, drift, audit and accessibility
+## 7. `K5-P4` / Slice D — UX, drift, audit and accessibility — Complete
 
-### Runtime outcome
+P4 exposes the accepted K5 consent/grant/current/history contracts through complete first-party source-manager and recipient-member/manager pages without widening the accepted data boundary.
 
-Expose the accepted K5 consent/grant/current/history contracts through complete first-party source-manager and recipient-member/manager pages without widening the accepted data boundary.
+Accepted behavior includes:
 
-### Required behavior
+- manager sharing workspace for source invitation creation, outbound agreement state, explicit target grant/removal and revoke;
+- recipient manager token accept/decline and active-share leave flows;
+- member-safe shared-intelligence page for P2 current facts and P3 bounded history;
+- history navigation using only explicit target + P3 opaque continuation cursor;
+- no arbitrary client-controlled history `asOf` selector or equivalent older-window control;
+- manager agreement/grant state manager-only while safe current/history facts remain member-safe;
+- invitation plaintext only in the authenticated creation response and Vue component memory, never Inertia/session props;
+- page-prop exclusion of private source/K4/governance metadata;
+- accessible semantic controls, labels, captions and status/alert behavior;
+- immediate erasure of persisted invitation hashes on accept, decline and revoke; and
+- a forward nullable-hash migration with deterministic rollback/reapply compatibility evidence, leaving accepted P1/P2 migrations unchanged.
 
-- add a manager sharing workspace for source invitation creation, outbound agreement state, explicit target grant/removal and revoke;
-- add recipient manager consent flows for token accept/decline and active-share leave;
-- add a member-safe recipient shared-intelligence page showing only P2 safe current facts;
-- add member-safe bounded history navigation using only P3 opaque continuation cursors;
-- **do not expose an arbitrary client-controlled history `asOf` selector** or other mechanism for repeatedly opening progressively older 250-record windows;
-- manager agreement/grant state remains manager-only; safe shared current/history facts may be available under `alliance.view`;
-- drift/revocation/removed/terminal state is presented clearly and fail closed;
-- invitation plaintext is shown only immediately after source creation and must not be placed in persistent page props/history, logs or events;
-- page props exclude private source tracking IDs/stable game IDs/actors/reasons/K4 provenance/private text;
-- no public tenant directory/search is introduced;
-- existing target/context events remain internal-only; any P4 presentation-oriented events must remain safe `kingdoms.*` internal evidence only;
-- no recipient mutation/copy/reshare controls are added; and
-- all new source/recipient pages/components pass the repository's accessibility/source-level frontend gates.
+Runtime candidate `9a095ae62e9b913ece6d619c3744574f0b91fd6f` passed Dependency Review `31569202741`, CodeQL `31569202422`, and CI `31569202418`: Pint **556 files**, PHPStan/Larastan **393/393 zero errors**, **448 tests / 10,160 assertions**, frontend lint/format/type/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
 
-### Evidence
-
-Feature, tenant-isolation, architecture, frontend and accessibility tests must cover source manager, recipient manager and recipient member perspectives; invitation one-time disclosure; current/history safe props; opaque cursor navigation; no arbitrary historical-window control; drift/revoke/remove terminal presentation; permission/password boundaries; no private/K4 disclosure; no public API/webhook/directory; and source-level accessibility.
-
-### Entry gate
-
-Actual P4 runtime/UI code may begin only after the exact containing status/evidence head that records P3 Complete / P4 Current passes Dependency Review, CodeQL and full CI.
+See [Slice D validation](kingdoms-shared-intelligence-slice-d-validation.md), [Slice D presentation security review](../security/kingdoms-shared-intelligence-presentation-security-review.md), and [living shared-intelligence contract](../shared-intelligence.md).
 
 ## 8. `K5-P5` / Slice E — Privacy, retention, operations and capacity
 
-Harden invitation cleanup, agreement/grant history, authorization-safe diagnostics/caching, realistic-volume current/history query gates, backup/restore and retention without materializing recipient copies of source observation history.
+### Runtime outcome
+
+Harden the accepted sharing capability for bounded operational retention and realistic workload behavior without widening the data-sharing boundary or materializing recipient copies of source observations.
+
+### Required behavior
+
+- define and implement bounded cleanup/retention for expired/terminal invitation and agreement/grant operational records while preserving required Audit/outbox evidence;
+- preserve the P4 rule that invitation hashes are erased immediately on accept/decline/revoke rather than deferring secret cleanup to retention jobs;
+- prove cleanup is tenant-safe, idempotent, bounded per run and does not reactivate or mutate active sharing unexpectedly;
+- add realistic-volume capacity evidence for current-fact and bounded-history reads, including explicit query-count/response-size expectations under many agreements/targets/observations;
+- any caching or diagnostic acceleration must remain authorization-safe and must invalidate/fail closed on revoke, target removal, membership/Kingdom context loss and source correction/invalidation;
+- preserve 50-row history pages, 250-observation traversal cap and opaque cursor semantics;
+- preserve manager/member page-prop boundaries and the no-`asOf` UI rule;
+- backup/restore and operational runbook evidence must cover the new retention state; and
+- no recipient canonical copy, public API/webhook, tenant directory/search, cross-Kingdom sharing or transitive reshare may be introduced.
+
+### Evidence
+
+Focused tests must cover retention eligibility/bounds/idempotency, active-record preservation, authorization-safe cache/diagnostic behavior if any is introduced, realistic-volume current/history query bounds, immediate fail-closed behavior after authorization loss, backup/restore and operational observability without leaking shared payloads/secrets.
+
+### Entry gate
+
+Actual P5 runtime code may begin only after the exact containing status/evidence head that records P4 Complete / P5 Current passes Dependency Review, CodeQL and full CI/recovery.
 
 ## 9. `K5-P6` — Whole-increment acceptance
 
@@ -119,6 +134,6 @@ Whole-increment evidence must record the exact implementation SHA and protected 
 
 On `continue`, remain at the current K5 gate until both runtime/evidence and the exact containing status head are protected-green.
 
-For this transition, `K5-P4` becomes writable only if the exact head containing P3 Complete / P4 Current passes Dependency Review, CodeQL and full CI. Otherwise remain at the P3 transition and repair only that defect.
+For this transition, `K5-P5` becomes writable only if the exact head containing P4 Complete / P5 Current passes Dependency Review, CodeQL and full CI/recovery. Otherwise remain at the P4 transition and repair only that defect.
 
 Do not widen K5 to player/roster sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, public APIs/webhooks, transitive reshare, scoring/ranking or automatic decisions without a separately reviewed scope change.
