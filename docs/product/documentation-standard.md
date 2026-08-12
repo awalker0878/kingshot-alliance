@@ -30,15 +30,27 @@ docs/
   security/
 ```
 
-Do not create parallel groups such as `docs/architecture/`, `docs/runbooks/`, `docs/wiki/`, `docs/features/`, or `docs/reference/`.
+Do not create parallel groups such as `docs/architecture/`, `docs/deployment/`, `docs/runbooks/`, `docs/wiki/`, `docs/features/`, or `docs/reference/`.
 
 - `docs/adr/` — current system architecture index and durable architecture decisions/rationale.
 - `docs/domains/` — current domain contracts and domain-specific product/security/operations/interfaces/testing evidence.
-- `docs/operations/` — shared runtime/configuration/observability/deployment/recovery/runbooks and historical phase-wide operating evidence.
+- `docs/operations/` — shared runtime/configuration/observability/deployment/recovery/runbooks and historical phase-wide operating evidence. Provider-specific infrastructure blueprints live beneath `docs/operations/deployment/<provider>/`; provider-neutral operator procedures remain beneath `docs/operations/runbooks/`.
 - `docs/product/` — cross-program baseline/governance/status/current architecture/capability/audits/DCP/historical phase-wide acceptance/production decisions.
 - `docs/security/` — shared security baseline, historical phase-wide threat evidence, production security boundary.
 
 Every top-level group has `README.md` navigation.
+
+Provider deployment has this canonical nested shape:
+
+```text
+docs/operations/deployment/
+  README.md
+  <provider>/
+    README.md
+    <provider-specific-procedure>.md
+```
+
+Provider deployment documents must use placeholders rather than real subscription/tenant/client IDs, credentials, private endpoint addresses, certificates, or secret values.
 
 ## 3. Canonical domain ownership
 
@@ -235,6 +247,7 @@ Stable documentation architecture is protected by architecture tests. Together t
 - filename/path rules;
 - local Markdown links;
 - shared/domain evidence placement;
+- provider deployment indexes and placeholder-only Azure deployment examples;
 - ADR lifecycle/indexing;
 - interface/route inventory rules;
 - operations/security/testing/architecture governance inventories; and
