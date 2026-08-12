@@ -3,14 +3,14 @@
 [← Kingdoms domain](README.md)
 
 **Document type:** Living capability contract  
-**Status:** Current — `KINGDOMS-004` through `K4-P5` / Slice E runtime validated; `K4-P6` whole-increment acceptance is next after the containing transition head is protected-green  
+**Status:** Current — `KINGDOMS-004` Accepted through `K4-P6`  
 **Owning domain:** Kingdoms
 
 ## 1. Purpose
 
 Automated game-data ingestion provides a tenant-scoped path for approved machine-readable Kingshot facts without bypassing accepted Kingdoms identity, tenancy, append-history, privacy or human-decision boundaries.
 
-K4-P1 established the generic subscription/batch/candidate control plane. K4-P2 added existing-roster player-snapshot promotion. K4-P3 added existing-active-tracking game-Alliance observation promotion. K4-P4 added generic scheduled acquisition, cursor/retry/concurrency mechanics and controlled replay. K4-P5 adds source-revocation reconciliation, bounded operational retention, aggregate health/alert signals and capacity evidence.
+K4-P1 established the generic subscription/batch/candidate control plane. K4-P2 added existing-roster player-snapshot promotion. K4-P3 added existing-active-tracking game-Alliance observation promotion. K4-P4 added generic scheduled acquisition, cursor/retry/concurrency mechanics and controlled replay. K4-P5 added source-revocation reconciliation, bounded operational retention, aggregate health/alert signals and capacity evidence. K4-P6 completed whole-increment acceptance across those seams.
 
 ## 2. Scope and non-scope
 
@@ -77,7 +77,7 @@ Repository-controlled retention defaults are:
 
 Source-window uniqueness and deterministic candidate identities remain authoritative. Promoted-history source identity remains independently unique within the owning Alliance. Operational cursor/failure/retention state does not replace canonical business provenance.
 
-Operational-health query semantics are aggregate and bounded; the accepted P5 capacity fixture requires no more than eight SELECT queries for 250 subscriptions, 40 failed batches and 110 candidates.
+Operational-health query semantics are aggregate and bounded; the accepted capacity fixture requires no more than eight SELECT queries for 250 subscriptions, 40 failed batches and 110 candidates.
 
 ## 8. Events, commands and background processing
 
@@ -97,23 +97,24 @@ Adapter removal/version drift, Kingdom drift, circuit-open state, source-window 
 
 Operational health aggregates active subscriptions, source-revoked subscriptions, overdue subscriptions, open circuits, stale pending candidates, quarantined candidates and recent failed batches into a payload-free snapshot plus `attentionRequired`.
 
-Repository defaults are five minutes overdue, fifteen minutes stale-pending, twenty-five quarantined candidates and a sixty-minute recent-failure window. The Slice E capacity gate remains part of operations evidence rather than a real-source throughput or availability SLO.
+Repository defaults are five minutes overdue, fifteen minutes stale-pending, twenty-five quarantined candidates and a sixty-minute recent-failure window. The accepted capacity gate remains operations evidence rather than a real-source throughput or availability SLO.
 
 See [Automated ingestion operations](operations/kingdoms-automated-ingestion.md).
 
 ## 11. Tests and validation
 
-Final P5 runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` passed Dependency Review `31552113152`, CodeQL `31552113044`, and CI `31552113042`: Pint 528 files, PHPStan/Larastan 374/374 with zero errors, 428 tests / 9,736 assertions, frontend/build, clean PostgreSQL migrations, immutable image, ephemeral staging, backup/restore and image scan.
+Whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` passed Dependency Review `31556412455`, CodeQL `31556412413`, and CI `31556412468`: Pint 529 files, PHPStan/Larastan 374/374 with zero errors, 429 tests / 9,799 assertions, frontend/build, clean PostgreSQL migrations, immutable image, ephemeral staging, backup/restore and image scan.
 
-Focused P5 tests prove staged redaction/pruning, the longer quarantine review window, source-revocation disablement/idempotency, bounded attention signals and realistic-volume aggregate query behavior. Existing P1–P4 tenancy, scheduler, replay, cursor and promotion tests remain additive.
+The dedicated `KingdomIngestionAcceptanceTest` proves empty-default source approval, both delegated promotion paths, exact source-window retry idempotency, fail-closed source revocation, operational attention, staged retention redaction/pruning and canonical promoted-history/provenance survival after K4 operational deletion. Focused P1–P5 tests remain additive.
 
-See [Slice E validation](product/kingdoms-automated-ingestion-slice-e-validation.md).
+See the [KINGDOMS-004 exit report](product/kingdoms-automated-ingestion-exit-report.md).
 
 ## 12. Related documentation
 
-Generic repository acceptance does not approve provider authorization/terms, endpoint/network/DNS/redirect/private-address behavior, TLS/egress, source credentials, rate/timeout limits, schema/version policy, cursor semantics or production cutover. Those remain separate source-enablement prerequisites while the production adapter allowlist is empty.
+Repository acceptance does not approve provider authorization/terms, endpoint/network/DNS/redirect/private-address behavior, TLS/egress, source credentials, rate/timeout limits, schema/version policy, cursor semantics or production cutover. Those remain separate source-enablement prerequisites while the production adapter allowlist is empty.
 
 - [KINGDOMS-004 implementation plan](product/kingdoms-automated-ingestion-implementation-plan.md)
+- [KINGDOMS-004 exit report](product/kingdoms-automated-ingestion-exit-report.md)
 - [Slice D validation](product/kingdoms-automated-ingestion-slice-d-validation.md)
 - [Slice E validation](product/kingdoms-automated-ingestion-slice-e-validation.md)
 - [Slice E security/privacy review](security/kingdoms-automated-ingestion-operations-security-review.md)
