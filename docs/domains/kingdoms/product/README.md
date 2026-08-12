@@ -2,7 +2,7 @@
 
 [← Kingdoms domain](../README.md)
 
-This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted. `KINGDOMS-004` is in progress: `K4-P0`–`K4-P4` are Complete; `K4-P5` is Current / selected pending exact transition-head validation.
+This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted. `KINGDOMS-004` is in progress: `K4-P0`–`K4-P5` are Complete; `K4-P6` whole-increment acceptance is Current / selected pending exact transition-head validation.
 
 Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; they do not authorize a concrete source or production cutover.
 
@@ -41,7 +41,7 @@ Use the [Kingdoms domain](../README.md) and living capability contracts for curr
 
 ## KINGDOMS-004 — automated game-data ingestion — in progress
 
-Current governed state: P0/P1/P2/P3/P4 Complete; P5 selected pending exact transition-head validation. P4 runtime candidate `27855f79ba128b35edea7f82b2f6381fbf810363` and repaired evidence head `3bf795e12a99a98c5ad71e570744743056cedd14` are protected-green. Production adapter configuration remains empty and no concrete source is approved.
+Current governed state: P0/P1/P2/P3/P4/P5 Complete; P6 whole-increment acceptance selected pending exact transition-head validation. P5 runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` is protected-green across Dependency Review `31552113152`, CodeQL `31552113044`, and CI `31552113042`. Production adapter configuration remains empty and no concrete source is approved.
 
 - [Scope](kingdoms-automated-ingestion-increment.md)
 - [Implementation plan](kingdoms-automated-ingestion-implementation-plan.md)
@@ -56,6 +56,8 @@ Current governed state: P0/P1/P2/P3/P4 Complete; P5 selected pending exact trans
 - [Slice C security review](../security/kingdoms-automated-ingestion-alliance-promotion-security-review.md)
 - [Slice D validation](kingdoms-automated-ingestion-slice-d-validation.md)
 - [Slice D security review](../security/kingdoms-automated-ingestion-scheduler-security-review.md)
+- [Slice E validation](kingdoms-automated-ingestion-slice-e-validation.md)
+- [Slice E security/privacy review](../security/kingdoms-automated-ingestion-operations-security-review.md)
 - [Automated ingestion operations](../operations/kingdoms-automated-ingestion.md)
 - [Living automated-ingestion contract](../automated-ingestion.md)
 
