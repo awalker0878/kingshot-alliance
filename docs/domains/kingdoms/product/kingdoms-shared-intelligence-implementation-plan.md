@@ -2,27 +2,28 @@
 
 [← Kingdoms opt-in shared intelligence product increment](kingdoms-shared-intelligence-increment.md)
 
-**Status:** In progress — `K5-P0` Complete; `K5-P1` Current / selected pending exact transition-head validation  
+**Status:** In progress — `K5-P0`–`K5-P1` Complete; `K5-P2` Current / selected pending exact transition-head validation  
 **Scope ID:** `KINGDOMS-005`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Accepted `KINGDOMS-001` through `KINGDOMS-004`  
 **K5-P0 decisions:** [K5-P0 design decisions](kingdoms-shared-intelligence-p0-decisions.md)  
 **K5-P0 exit:** [K5-P0 exit report](kingdoms-shared-intelligence-p0-exit-report.md)  
+**Slice A validation:** [K5-P1 validation](kingdoms-shared-intelligence-slice-a-validation.md)  
 **Important:** These are implementation phases inside `KINGDOMS-005`; they are not historical Phase 0–6 or DCP phases.
 
 ## 1. Purpose
 
 Deliver opt-in cross-Alliance sharing of selected safe game-Alliance intelligence without weakening the Alliance tenant boundary, K3 append-history/privacy rules, K4 source isolation or existing public-integration exclusions.
 
-The plan deliberately separates consent/grant mechanics from data projection. No shared observation read path is introduced until the two-party authorization model is independently accepted.
+The sequence deliberately proves the consent/grant boundary before any source target or observation data can cross tenants.
 
 ## 2. Phase status
 
 | Phase | Status | Outcome | Delivery slice |
 | --- | --- | --- | --- |
 | `K5-P0` | **Complete** | Consent, tenancy, same-Kingdom, data-classification, revocation and reshare contract locked | Pre-runtime gate |
-| `K5-P1` | **Current / selected pending transition-head validation** | Directional two-party sharing agreement foundation | Slice A |
-| `K5-P2` | Planned | Explicit shared-target selection + safe current-fact recipient projection | Slice B |
+| `K5-P1` | **Complete** | Directional two-party sharing agreement/invitation foundation; no shared observations | Slice A |
+| `K5-P2` | **Current / selected pending transition-head validation** | Explicit shared-target selection + safe current-fact recipient projection | Slice B |
 | `K5-P3` | Planned | Bounded accepted shared history + freshness/correction semantics | Slice C |
 | `K5-P4` | Planned | Source/recipient UX, drift/revocation, audit/events and accessibility | Slice D |
 | `K5-P5` | Planned | Privacy, retention, operations and capacity hardening | Slice E |
@@ -34,146 +35,81 @@ P0 locked directional source→recipient ownership, two-party manager consent, h
 
 Validated candidate `d9e05fd06bd08050e5489598406cfb556d5bc0ac` passed Dependency Review `31557697685`, CodeQL `31557697793`, and CI `31557697725`: Pint 529 files, PHPStan/Larastan 374/374 zero errors, 429 tests / 9,809 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore and scan.
 
-See the [P0 exit report](kingdoms-shared-intelligence-p0-exit-report.md).
+## 4. `K5-P1` / Slice A — Sharing agreement foundation — Complete
 
-P0 authorizes Slice A only. It does not authorize any observation disclosure.
+P1 delivered one directional consent table plus source invitation creation, recipient acceptance/decline, source revoke and recipient leave.
 
-## 4. `K5-P1` / Slice A — Sharing agreement foundation
+Accepted invariants include:
 
-### Runtime outcome
+- 32 cryptographically random invitation bytes represented as 64 lowercase hex characters;
+- SHA-256 hash-only persistence and hidden token hash serialization;
+- repository-bounded expiry, default 72 hours;
+- `kingdoms.manage` plus recent password confirmation for every consent mutation;
+- self-share, different-Kingdom activation, expired/used token and duplicate-active agreement failure;
+- deterministic source/recipient row locking during acceptance;
+- single-use token semantics;
+- source/recipient tenant scoping for terminal actions;
+- drift-tolerant access-reducing decline/revoke/leave;
+- safe internal Audit/outbox evidence with no plaintext token or observation data; and
+- null source-side Audit actor on acceptance to avoid recipient-manager identity leakage.
 
-Introduce tenant-owned directional sharing agreement persistence and manager flows for invitation creation, redemption/acceptance, decline and revocation.
+P1 deliberately adds no shared-target table and no recipient observation/current/history read path.
 
-### Required behavior
+Runtime candidate `9ef1d46b1db69708d575e82d8548145cf7769e68` passed Dependency Review `31559012856`, CodeQL `31559012854`, and CI `31559012861`: Pint 541 files, PHPStan/Larastan 384/384 zero errors, 434 tests / 9,911 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore, image scan and cleanup.
 
-- source manager creates an unguessable one-time invitation secret;
-- only a cryptographic hash is persisted;
-- invitation has a bounded expiry and single-use semantics;
-- recipient manager redeems under their active Alliance context;
-- source and recipient must be different Alliances;
-- both Alliances must resolve to the same current Kingdom at activation;
-- accepted agreement captures that Kingdom context;
-- reverse sharing requires a separate agreement;
-- revocation/decline is always allowed as an access-reducing action;
-- invitation/consent state is tenant-private and manager-only;
-- safe Audit/internal-outbox evidence excludes invitation plaintext/private payloads;
-- no observation data is shared in Slice A; and
-- no platform-Alliance directory/search surface is added.
-
-### Evidence
-
-Feature/tenant-isolation tests must cover token hashing/single-use/expiry, same-Kingdom rejection, self-share rejection, cross-tenant ID substitution, password confirmation, revocation, idempotent terminal transitions, safe evidence and absence of shared-data read paths.
-
-### Entry gate
-
-Actual P1 runtime writes may begin only after the exact containing status/evidence head that records P0 Complete / P1 Current passes Dependency Review, CodeQL and full CI.
+See [Slice A validation](kingdoms-shared-intelligence-slice-a-validation.md), [Slice A security review](../security/kingdoms-shared-intelligence-foundation-security-review.md), and [living shared-intelligence contract](../shared-intelligence.md).
 
 ## 5. `K5-P2` / Slice B — Explicit target selection and current facts
 
 ### Runtime outcome
 
-Allow a source manager to select individual existing source-owned `TrackedKingdomAlliance` targets for one active share, then expose a recipient member-safe current-fact projection.
+Allow a source manager to select individual existing source-owned `TrackedKingdomAlliance` targets for one active share, then expose a recipient member-safe **current-fact** projection. P2 is the first K5 slice permitted to disclose observation data.
 
 ### Required behavior
 
-- source target must belong to the source Alliance and captured Kingdom;
-- only active accepted source observations participate;
-- shared fields are restricted to the locked safe factual projection;
-- recipient query begins from active recipient Alliance + active share authorization;
-- no source manager notes/diplomacy/contacts/actors/K4 provenance leak;
-- recipient cannot mutate source data;
-- recipient cannot automatically create local tracking/history from the share;
-- item removal immediately removes access; and
-- recipient cannot reshare the item.
+- target selection requires source `kingdoms.manage` plus recent password confirmation;
+- share must be active and source-owned;
+- source and recipient current Kingdoms must still equal the captured sharing Kingdom;
+- source target must be active, source-owned and in the captured Kingdom;
+- no wildcard “share all” mode;
+- recipient reads begin from active recipient Alliance, active/context-valid share, then explicitly shared item;
+- current fact comes from the latest accepted/non-invalidated source observation under accepted K3 semantics;
+- safe fields only: source Alliance identity, neutral/current game-Alliance name/tag, accepted observed name/tag, power/member count when present, capture time and bounded freshness state;
+- source manager notes, diplomacy/contact data, observation actor/correction reason and all K4 provenance remain excluded;
+- recipient cannot mutate source state, create/reactivate local tracking, copy the fact into recipient canonical history or reshare it;
+- item removal, agreement revocation or Kingdom drift immediately removes recipient access; and
+- P2 does not yet expose bounded observation history; that remains P3.
 
 ### Evidence
 
-Tenant isolation must prove a recipient sees only explicitly shared targets from the bound source and that unrelated source/private data is inaccessible even when neutral `KingdomAlliance` identity is shared globally.
+Tenant-isolation and feature tests must prove explicit-target-only visibility, safe field projection, unrelated/private source data exclusion, no local canonical copy, no reshare/mutation path, current-observation correction/invalidation behavior, item removal/revocation/drift failure and bounded current-list query behavior.
+
+### Entry gate
+
+Actual P2 code may begin only after the exact containing status/evidence head that records P1 Complete / P2 Current passes Dependency Review, CodeQL and full CI.
 
 ## 6. `K5-P3` / Slice C — Bounded history and correction semantics
 
-### Runtime outcome
-
-Add bounded shared accepted observation history and freshness semantics without materializing recipient-owned copies.
-
-### Required behavior
-
-- history is bounded/paginated;
-- only accepted/non-invalidated source observations appear;
-- source correction/invalidation affects recipient projection immediately;
-- capture-time ordering remains authoritative;
-- missing values remain distinct from zero;
-- recipient receives no invalidation reason/actor;
-- freshness is descriptive only;
-- source ownership/provenance boundary remains explainable without exposing K4 operational provenance; and
-- revoked/removed shares/items stop both current and history reads.
-
-### Evidence
-
-Tests cover source correction/invalidation after sharing, stale/fresh/missing projections, bounded query behavior, exact recipient authorization and no copied recipient canonical observations.
+Add bounded/paginated accepted source observation history for explicitly shared targets. Only accepted/non-invalidated observations appear; source correction/invalidation changes the recipient projection immediately; missing remains distinct from zero; private invalidation reason/actor stays source-private; freshness remains descriptive only; and no recipient canonical copy is created.
 
 ## 7. `K5-P4` / Slice D — UX, drift, audit and accessibility
 
-### Runtime outcome
-
-Complete first-party source/recipient management and recipient read experiences, plus fail-closed context drift and internal evidence.
-
-### Required behavior
-
-- source manager sees pending/active/revoked agreements and explicitly shared targets;
-- recipient manager sees invitations/accepted sources and may leave/decline;
-- recipient members see only the safe active shared-intelligence view;
-- captured-Kingdom drift blocks access and cannot silently retarget;
-- drift recovery requires a new deliberate agreement or other explicitly locked P0 recovery path;
-- material consent/item changes create attributable audit/internal outbox evidence with safe metadata;
-- invitation secrets/private data never enter logs/audit/outbox;
-- all K5 events remain external-webhook ineligible; and
-- all first-party surfaces pass source-level accessibility gates.
-
-### Evidence
-
-Feature/architecture/accessibility/integration tests cover both source and recipient perspectives, drift, revocation, event exclusion and private-field disclosure.
+Complete source/recipient management/read experiences, explicit drift/revocation presentation, safe Audit/internal-outbox evidence and source-level accessibility. All K5 events remain external-webhook ineligible and invitation/private data stays out of logs/evidence.
 
 ## 8. `K5-P5` / Slice E — Privacy, retention, operations and capacity
 
-### Runtime outcome
-
-Harden expired invitation cleanup, agreement history, read-path performance and operator diagnostics without creating shared payload replicas.
-
-### Required behavior
-
-- expired/used invitation secret material is removed or irreversibly unusable under bounded retention;
-- revoked agreement metadata may remain for audit/history while shared observation payload access is absent;
-- operator diagnostics use safe IDs/states/counts only;
-- no raw/shared observation payload is copied into general logs;
-- realistic-volume recipient projections remain bounded and N+1 resistant;
-- revocation/drift access checks remain authoritative under concurrency; and
-- backup/restore preserves consent history without restoring unauthorized recipient access.
-
-### Evidence
-
-Add realistic-volume query gates, retention tests, migration rollback/reapply coverage, recovery checks and focused security/privacy review.
+Harden expired/used invitation cleanup, agreement history, authorization-safe caching/diagnostics, realistic-volume query gates, backup/restore behavior and retention without materializing recipient copies of source observation history.
 
 ## 9. `K5-P6` — Whole-increment acceptance
 
-P6 must revalidate the complete cross-tenant seam in one acceptance scenario:
+P6 must prove one complete cross-tenant seam: create invitation → same-Kingdom acceptance → explicit target selection → safe current/history read → private-field exclusion → correction/invalidation propagation → no recipient mutation/reshare/copy → immediate revoke loss of access → unrelated-tenant ID/token failure.
 
-1. source creates an invitation;
-2. recipient accepts under same-Kingdom context;
-3. source explicitly shares one tracked game Alliance;
-4. recipient sees only safe current/history facts;
-5. unrelated source/private fields remain inaccessible;
-6. source correction/invalidation changes the recipient projection without copying data;
-7. recipient cannot mutate or reshare source intelligence;
-8. revocation removes access immediately while consent audit evidence remains; and
-9. another Alliance cannot use the same invitation/agreement/item IDs to cross the boundary.
-
-Whole-increment evidence must include exact implementation SHA plus Dependency Review, CodeQL, complete CI, migrations, static analysis, full tests, frontend/accessibility, immutable image, staging, backup/restore and vulnerability scan.
+Whole-increment evidence must record the exact implementation SHA and protected Dependency Review, CodeQL, complete CI, migration, static-analysis, frontend/accessibility, image, staging, backup/restore and scan results.
 
 ## 10. Continuation rule
 
-On `continue`, remain at the current K5 gate until both implementation/evidence and the exact containing status head are protected-green.
+On `continue`, remain at the current K5 gate until both runtime/evidence and the exact containing status head are protected-green.
 
-For this transition, `K5-P1` becomes writable only if the exact head containing the P0 Complete / P1 Current state passes Dependency Review, CodeQL and full CI. Otherwise remain at the P0 transition and repair only that defect.
+For this transition, `K5-P2` becomes writable only if the exact head containing the P1 Complete / P2 Current state passes Dependency Review, CodeQL and full CI. Otherwise remain at the P1 transition and repair only that defect.
 
-Do not start a later slice to compensate for a current-slice defect. Do not widen K5 to player/roster sharing, diplomacy/contact sharing, cross-Kingdom sharing, public APIs/webhooks, reshare, scoring or automatic decisions without a separately reviewed scope change.
+Do not widen K5 to player/roster sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, public APIs/webhooks, transitive reshare, scoring/ranking or automatic decisions without a separately reviewed scope change.
