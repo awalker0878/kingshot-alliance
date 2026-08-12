@@ -3,16 +3,16 @@
 [← Kingdoms domain](../README.md)
 
 **Document type:** Living domain interface profile  
-**Status:** Current  
+**Status:** Current — `KINGDOMS-004` Accepted  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
 **Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 manager ingestion control/replay, generic scheduled acquisition/maintenance contracts, and internal-only `kingdoms.*` events
 
-**P4 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; the P5/K4 additions extend this profile without changing the frozen P4 interface-inventory convention or creating a public Kingdoms API.
+**P4 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; accepted K4 extends this profile without changing the frozen P4 interface-inventory convention or creating a public Kingdoms API.
 
 ## 1. Boundary purpose and ownership
 
-Kingdoms owns first-party workflows around neutral game identity, roster/history/intelligence, CSV migration/export, transfer planning, game-Alliance tracking/observations/diplomacy/contacts/intelligence, and K4 ingestion control/promotion/scheduling/operations.
+Kingdoms owns first-party workflows around neutral game identity, roster/history/intelligence, CSV migration/export, transfer planning, game-Alliance tracking/observations/diplomacy/contacts/intelligence, and accepted K4 ingestion control/promotion/scheduling/operations.
 
 The external/public boundary remains narrow: there is no public Kingdoms API, public Kingdoms webhook event family, or public inbound ingestion endpoint.
 
@@ -34,15 +34,15 @@ There is no HTTP route to define source endpoints/credentials, stage arbitrary p
 
 Member-safe K1–K3 reads use `alliance.view`; K1–K4 management uses `kingdoms.manage` plus recent password confirmation for privileged human mutations; Alliance→Kingdom setting uses `alliance.manage`.
 
-Tenant-owned identifiers are re-resolved beneath active Alliance/plan/tracking/subscription boundaries. Queue, adapter, source, cursor and candidate identity do not grant authorization. P5 maintenance tasks act only on persisted K4 operational state and gain no business-mutation authority.
+Tenant-owned identifiers are re-resolved beneath active Alliance/plan/tracking/subscription boundaries. Queue, adapter, source, cursor and candidate identity do not grant authorization. K4 maintenance tasks act only on persisted K4 operational state and gain no business-mutation authority.
 
 ## 4. Input and validation contracts
 
 Stable game IDs remain the only automatic neutral identity keys. Display names/tags/handles/source labels are not match keys.
 
-K4 subscription creation accepts only a bounded adapter key already present in the registry. Acquisition-capable adapters define a repository-controlled poll interval from 60–86,400 seconds and return a bounded page with source-window ID, optional opaque cursor and at most 250 records. Normalized records still pass target-specific staging bounds before P2/P3 promotion.
+K4 subscription creation accepts only a bounded adapter key already present in the registry. Acquisition-capable adapters define a repository-controlled poll interval from 60–86,400 seconds and return a bounded page with source-window ID, optional opaque cursor and at most 250 records. Normalized records still pass target-specific staging bounds before promotion.
 
-P5 retention/health thresholds are repository-controlled `config/kingdoms.php` values, not tenant input. Source reconciliation accepts only a bounded processing limit and resolves current adapter approval from the registry.
+Retention/health thresholds are repository-controlled `config/kingdoms.php` values, not tenant input. Source reconciliation accepts only a bounded processing limit and resolves current adapter approval from the registry.
 
 ## 5. Output and disclosure contracts
 
@@ -62,7 +62,7 @@ These are application/domain contracts, not public source APIs. [Automated inges
 
 Material Kingdoms mutations produce Audit/Platform outbox evidence. External exclusion remains enforced: `alliance.kingdom_updated` and every `kingdoms.*` event are rejected by Integrations webhook fan-out before subscription matching.
 
-K4 lifecycle/replay events carry bounded IDs/state/count/hash metadata. P5 source reconciliation/retention/health do not create a new external event contract. Internal event names are not public compatibility promises; their external ineligibility is the enforced contract.
+K4 lifecycle/replay events carry bounded IDs/state/count/hash metadata. Source reconciliation/retention/health do not create a new external event contract. Internal event names are not public compatibility promises; their external ineligibility is the enforced contract.
 
 ## 8. Commands, jobs and scheduled work
 
@@ -85,7 +85,7 @@ K4 defines a generic acquisition interface but no accepted production external s
 
 ## 10. Failure, idempotency, versioning and compatibility
 
-K4 adapter key/version is captured on subscriptions/batches and changed/missing versions fail closed. P5 reconciliation disables active/paused subscriptions with bounded `source_unapproved` state rather than substituting another version.
+K4 adapter key/version is captured on subscriptions/batches and changed/missing versions fail closed. Source reconciliation disables active/paused subscriptions with bounded `source_unapproved` state rather than substituting another version.
 
 Source-window uniqueness, deterministic candidate identity and promoted-history idempotency protect at-least-once retry. Cursor advances only after Completed/Partial outcomes; exact completed-window replay requires the same stored next cursor.
 
@@ -95,12 +95,13 @@ Operational retention may redact/prune K4 candidate/batch state after repository
 
 Kingdoms does not provide public API/webhook ingestion; arbitrary manager URLs/headers/credentials; scraping/OCR/bots; an approved real game-data source; auto roster/tracking/membership/transfer/diplomacy/contact behavior; machine K3 correction/invalidation; cross-Alliance sharing; or scoring/ranking/recommendations.
 
-Generic scheduler/maintenance mechanics are implemented, but production has zero approved ingestion adapters.
+Generic scheduler/maintenance mechanics are accepted, but production has zero approved ingestion adapters.
 
 ## 12. Focused contracts, evidence and related documentation
 
 - [CSV migration](../csv-migration.md)
 - [Automated ingestion](../automated-ingestion.md)
+- [K4 exit report](../product/kingdoms-automated-ingestion-exit-report.md)
 - [K4 Slice E validation](../product/kingdoms-automated-ingestion-slice-e-validation.md)
 - [K4 Slice E security review](../security/kingdoms-automated-ingestion-operations-security-review.md)
 - [K4 operations](../operations/kingdoms-automated-ingestion.md)
@@ -109,3 +110,5 @@ Generic scheduler/maintenance mechanics are implemented, but production has zero
 - [Integrations webhooks](../../integrations/webhooks.md)
 - [Interface documentation standard](../../../product/interface-documentation-standard.md)
 - [P4 interface coverage matrix](../../../product/interface-coverage-matrix.md)
+
+Whole-increment interface evidence is protected-green at `3e0976e8bdd32207bd6314011c26b94fa0f3c118`: Dependency Review `31556412455`, CodeQL `31556412413`, CI `31556412468`, 429 tests / 9,799 assertions.
