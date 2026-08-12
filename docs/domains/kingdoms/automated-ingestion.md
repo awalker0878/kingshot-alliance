@@ -65,9 +65,9 @@ The manager UI and operator health command expose bounded adapter/subscription/b
 
 Retention shortens normalized operational payload lifetime without changing canonical-history visibility contracts.
 
-## 7. Persistence and retention semantics
+## 7. Persistence and query semantics
 
-Repository-controlled defaults are:
+Repository-controlled retention defaults are:
 
 - terminal promoted/rejected candidate payload redaction after 30 days;
 - terminal promoted/rejected candidate-row purge after 90 days;
@@ -76,6 +76,8 @@ Repository-controlled defaults are:
 - disabled-subscription scheduling/failure compaction after 30 days while preserving the subscription itself.
 
 Source-window uniqueness and deterministic candidate identities remain authoritative. Promoted-history source identity remains independently unique within the owning Alliance. Operational cursor/failure/retention state does not replace canonical business provenance.
+
+Operational-health query semantics are aggregate and bounded; the accepted P5 capacity fixture requires no more than eight SELECT queries for 250 subscriptions, 40 failed batches and 110 candidates.
 
 ## 8. Events, commands and background processing
 
@@ -91,13 +93,13 @@ Due claims, context checks, source reconciliation and cursor advancement use dat
 
 Adapter removal/version drift, Kingdom drift, circuit-open state, source-window conflict, unsupported payload, unknown/inactive target and business validation fail closed. Failure diagnostics store bounded codes such as `acquisition_failed`, `source_contract_invalid`, `processing_validation_failed`, `source_unapproved`, context codes and `retry_exhausted`, never raw exception text.
 
-## 10. Operations, observability and capacity
+## 10. Operations and observability
 
 Operational health aggregates active subscriptions, source-revoked subscriptions, overdue subscriptions, open circuits, stale pending candidates, quarantined candidates and recent failed batches into a payload-free snapshot plus `attentionRequired`.
 
-Repository defaults are five minutes overdue, fifteen minutes stale-pending, twenty-five quarantined candidates and a sixty-minute recent-failure window. A Slice E performance gate exercises 250 subscriptions, 40 failed batches and 110 candidates and requires the health snapshot to use no more than eight SELECT queries.
+Repository defaults are five minutes overdue, fifteen minutes stale-pending, twenty-five quarantined candidates and a sixty-minute recent-failure window. The Slice E capacity gate remains part of operations evidence rather than a real-source throughput or availability SLO.
 
-These are generic safety/operations gates, not a real-source throughput or availability SLO. See [Automated ingestion operations](operations/kingdoms-automated-ingestion.md).
+See [Automated ingestion operations](operations/kingdoms-automated-ingestion.md).
 
 ## 11. Tests and validation
 
@@ -107,7 +109,7 @@ Focused P5 tests prove staged redaction/pruning, the longer quarantine review wi
 
 See [Slice E validation](product/kingdoms-automated-ingestion-slice-e-validation.md).
 
-## 12. Real-source boundary and related documentation
+## 12. Related documentation
 
 Generic repository acceptance does not approve provider authorization/terms, endpoint/network/DNS/redirect/private-address behavior, TLS/egress, source credentials, rate/timeout limits, schema/version policy, cursor semantics or production cutover. Those remain separate source-enablement prerequisites while the production adapter allowlist is empty.
 
