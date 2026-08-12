@@ -3,111 +3,100 @@
 [← Kingdoms domain](../README.md)
 
 **Document type:** Living domain testing and evidence profile  
-**Status:** Current — `KINGDOMS-004` Accepted  
+**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P1 consent foundation validated  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary validation boundary:** Neutral identity, tenant-owned Kingdoms workflows, K4 ingestion-control/promotion/scheduler/operations isolation and idempotency, realistic-volume query bounds, and explicit public/decision-automation non-capabilities
+**Primary validation boundary:** Neutral identity, tenant-owned Kingdoms workflows, K4 ingestion isolation/idempotency, K5 consent isolation and explicit public/decision-automation non-capabilities
 
-**P5 evidence decision:** Current proof is mapped by executable suite/evidence class and immutable candidate identities; accepted P6 adds one whole-increment seam test without replacing the focused P1–P5 evidence.
+**P5 evidence decision:** Current proof is mapped by executable suite/evidence class and immutable candidate identities; K5 adds focused cross-tenant consent evidence without replacing K1–K4 accepted evidence.
 
 ## 1. Critical claims and validation ownership
 
-Kingdoms validation proves identity/membership/game-reference separation; Alliance ownership; stable-ID-only automatic identity; append history; explicit human transfer/diplomacy behavior; disclosure boundaries; and K4 source/secret/quarantine/promotion/scheduler/replay/retention/revocation limits.
+Kingdoms validation protects identity/tenant separation, append history, human-only governance, K4 source boundaries and K5's new two-party sharing-consent seam.
 
-Whole-increment acceptance additionally proves those controls compose correctly across acquisition, both supported promotion paths, exact-window retry, source revocation and operational pruning.
+At P1, K5 must prove only consent/agreement state exists and that no observation/current/history sharing path has accidentally appeared.
 
 ## 2. Executable suite mapping
 
-All six PHPUnit groups remain material: Architecture, Feature, Integration, Performance, TenantIsolation and Unit. K4-P1–P6 coverage is additive to accepted K1–K3 evidence.
+All six PHPUnit groups remain material: Architecture, Feature, Integration, Performance, TenantIsolation and Unit. K5-P1 adds Feature/migration/tenant-boundary evidence to accepted K1–K4 suites.
 
-Architecture protects ownership/non-capabilities/accessibility; Feature protects manager/member/control/promotion/scheduler/operations/acceptance workflows; Integration protects persistence/outbox/cross-domain contracts; Performance protects accepted realistic-volume query gates; TenantIsolation protects Alliance state around shared neutral references; Unit protects deterministic parsing/projection/value/state behavior.
+Architecture protects ownership/non-capabilities/public exposure; Feature protects consent workflows; Integration protects Audit/outbox and migration behavior; TenantIsolation protects source/recipient/share-ID boundaries; existing Performance/Unit suites remain additive.
 
 ## 3. Architecture and domain-boundary validation
 
-Architecture guards protect neutral references vs tenant state, no name/tag/handle auto-merge, no public Kingdoms API/wildcard webhook exposure, and no scoring/automatic diplomacy/transfer behavior.
+Existing architecture guards continue to enforce no public Kingdoms API/wildcard webhook, stable-ID identity boundaries and documentation conventions.
 
-K4 permits separately governed `/alliance/kingdom-ingestion` manager routes and generic scheduled/maintenance work while preserving no public machine/source route. Production adapter configuration remains empty.
+P1 adds only password-confirmed POST consent routes. Focused tests assert there is no sharing index or shared-observation read route and no P1 target-sharing table.
 
 ## 4. Authorization, tenancy, security and privacy validation
 
-Tests cover `alliance.view`, `kingdoms.manage`, recent password confirmation, submitted-ID re-resolution, shared-neutral-reference privacy, Alliance-Kingdom drift, cross-tenant subscription/candidate tampering, source-version revocation and existing roster/tracking relationship requirements.
+`KingdomIntelligenceSharingFoundationTest` proves recent password confirmation and `kingdoms.manage`, source/recipient tenant scoping, same-Kingdom acceptance, self-share rejection, unrelated-tenant revoke/leave rejection, hash-only token storage and no plaintext token in outbox payloads.
 
-K4 additionally proves no manager URL/header/credential configuration, bounded normalized candidate/source scheduling state, stable-ID quarantine, null machine actor, no direct canonical-write shortcut, no raw exception text persisted as diagnostics, and operational retention that does not delete canonical promoted history.
-
-The P6 acceptance test starts from an empty production adapter allowlist and uses only a test-local adapter so whole-increment evidence does not imply real-source approval.
+Acceptance uses the active recipient Alliance and captured source Kingdom. Different-Kingdom acceptance fails without consuming the token. Access-reducing decline/revoke/leave remain available when context drifts.
 
 ## 5. Feature, interface and integration validation
 
-Feature coverage spans all K1–K3 workspaces plus K4 manager adapter/subscription/batch/candidate status/control, player/game-Alliance promotion, replay, retention, source reconciliation, health behavior and whole-increment acceptance. Scheduler/acquisition tests use test-only adapters; production config remains empty.
+Focused P1 scenarios cover invitation creation, accept, decline, revoke and leave; token expiry/single use; duplicate active directional agreement rejection; terminal idempotency; source-side acceptance actor privacy; absence of observation/payload/K4 fields on the consent table; and no shared-data GET interface.
 
-Integration/Audit/outbox evidence ensures K4 human mutations and internal batch/candidate/promotion/replay events remain tenant-correlated/internal without public API/webhook eligibility.
-
-`KingdomIngestionAcceptanceTest.php` exercises one complete source window containing both supported target kinds, validates resulting canonical provenance and then continues through retry, revocation and retention boundaries.
+Audit/outbox assertions verify safe internal consent evidence while keeping invitation plaintext out of durable event payloads.
 
 ## 6. Idempotency, concurrency and asynchronous validation
 
-Accepted K1/K3 exact observation retries and transfer/import idempotency remain protected. K4 source-window uniqueness, deterministic candidate identity and promoted-history identity protect exact retry.
+Successful acceptance consumes a pending invitation once. Exact token replay fails. Duplicate active directional agreement creation is rejected.
 
-P4 proves transactional due claims, queue uniqueness/overlap controls, cursor advancement only after successful/partial batches, completed-window replay with matching next cursor, bounded retries/backoff/circuit behavior and retry-exhaustion finalization.
+Acceptance locks the share and source/recipient Alliance rows in deterministic ID order; revoke/leave use tenant-scoped row locks. Terminal declined/revoked state never reactivates through P1 actions.
 
-P5 proves source reconciliation is idempotent: once approval removal disables the subscription, a repeated reconciliation makes no additional transition. Queue/cache controls remain additive; database/domain idempotency remains authoritative.
-
-P6 replays the exact accepted test source window and proves the repository still has one batch, two candidates and one promoted canonical record per target. It then removes adapter approval and proves one disable transition followed by an idempotent reconciliation no-op.
+P1 adds no asynchronous job/cache authorization path; database/domain checks remain authoritative.
 
 ## 7. Persistence, migration, rollback and recovery evidence
 
-The full Kingdom migration round-trip includes the K4 foundation, player/game-Alliance provenance and scheduling migrations. CI clean PostgreSQL migration and shared backup/restore remain required.
+`2026_08_12_010000_create_kingdom_intelligence_shares` is included in clean PostgreSQL CI and in the full Kingdoms migration backfill/round-trip test.
 
-P5 retention tests prove terminal normalized payloads redact before terminal candidate/batch deletion; subscriptions survive operational pruning; quarantined rows receive the longer review window; and batch pruning waits until candidate rows are gone. Promoted canonical history/provenance remains structurally independent of operational K4 retention.
+The round trip drops the K5 consent table before the K4/K3/K2/K1 dependency chain and reapplies it after K4 scheduling, then asserts token-hash, recipient-Alliance and captured-Kingdom columns exist.
 
-P6 re-proves the critical retention seam end-to-end: terminal normalized payloads are redacted, operational candidate/batch rows are later pruned, the subscription remains, and promoted `PlayerSnapshot`/`KingdomAllianceObservation` records retain copied source subscription/batch/adapter/version/record/hash provenance after their operational rows are gone.
+Backup/restore passed with the new consent table. P1 stores no shared observation payload/history, so recovery cannot recreate a recipient data copy that never existed.
 
 ## 8. Performance, query and capacity evidence
 
-Accepted query gates remain:
+Existing K1–K4 query gates remain accepted. P1 is mutation-only and adds no recipient shared-data list/history query, so it establishes no new read-performance claim.
 
-- K1: 150 tracked players / 450 snapshots with bounded intelligence query shape;
-- K2: 150 transfer participants / 20 groups with bounded planning projections;
-- K3: 120 tracked game Alliances / 600 observations / 120 diplomacy relationships / 60 contacts with manager intelligence at ≤10 SELECTs; and
-- K4: 250 subscriptions / 40 failed batches / 110 candidates with the operational-health snapshot at ≤8 SELECTs.
-
-K4 safety bounds remain 250 records/page, poll interval 60–86,400 seconds, 120-second job timeout, bounded retry/circuit state and low dedicated queue concurrency. The aggregate query gate is repository-level operations capacity evidence, not a real-source throughput SLO.
-
-Focused tests verify a clean health snapshot does not require attention and a source-revoked subscription is counted and sets `attentionRequired`. The realistic-volume fixture validates expected counts for active/revoked/overdue subscriptions, open circuits, stale pending candidates, quarantined candidates and recent failed batches. Monitoring output is aggregate/payload-free.
+P2 must add bounded current-fact query evidence when the first recipient projection is implemented; realistic-volume cross-tenant capacity hardening remains owned by P5.
 
 ## 9. Accessibility and frontend evidence
 
-The Kingdom accessibility architecture suite includes `KingdomIngestionManage.vue`, requiring main landmark/primary heading/native controls/labels/table overflow semantics. P6 adds no new public/manager UI surface; the whole-increment candidate passed frontend dependency audit, ESLint, pinned Prettier, Vue/TypeScript and production frontend build.
+P1 adds no new Vue/page surface. Consent endpoints are mutation interfaces only, so no new source-level accessibility artifact exists yet.
+
+The full candidate still passed frontend dependency audit, ESLint/Prettier/Vue-TypeScript checks and production frontend build. P4 remains responsible for complete source/recipient first-party UX/accessibility.
 
 ## 10. Historical accepted evidence
 
-K1, K2, K3 and K4 retain their accepted increment/exit evidence under the Kingdoms product directory. Historical SHAs/run IDs remain immutable evidence even as current living contracts evolve.
+K1–K4 historical accepted SHAs/run IDs remain immutable evidence.
 
-K4 whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` passed:
+K5-P0 candidate `d9e05fd06bd08050e5489598406cfb556d5bc0ac` passed DR `31557697685`, CodeQL `31557697793`, CI `31557697725` with 429 tests / 9,809 assertions.
 
-- Dependency Review `31556412455` — success;
-- CodeQL `31556412413` — success;
-- CI `31556412468` — success;
-- Pint — 529 files;
-- PHPStan/Larastan — 374/374, zero errors;
-- ParaTest/PHPUnit — 429 tests / 9,799 assertions;
-- frontend/build and clean PostgreSQL migrations — success; and
-- immutable image, ephemeral staging, backup/restore, image scan and cleanup — success.
+K5-P1 runtime candidate `9ef1d46b1db69708d575e82d8548145cf7769e68` passed:
 
-Focused K4 evidence includes `KingdomIngestionOperationsHardeningTest.php`, `KingdomIngestionOperationsPerformanceTest.php`, scheduler/promotion/foundation suites and the final `KingdomIngestionAcceptanceTest.php`.
-
-The preceding P5→P6 transition head `482b3b8b3eb07bc9211ba4e7c30e1cceff6c2303` independently passed Dependency Review `31556128860`, CodeQL `31556128870`, and CI `31556128858` before P6 work began.
+- Dependency Review `31559012856`;
+- CodeQL `31559012854`;
+- CI `31559012861`;
+- Pint — 541 files;
+- PHPStan/Larastan — 384/384, zero errors;
+- ParaTest/PHPUnit — 434 tests / 9,911 assertions;
+- frontend/build and clean migrations — success; and
+- immutable image, staging, backup/restore, scan and cleanup — success.
 
 ## 11. Evidence identity, retention and supersession
 
-Historical accepted SHAs/run IDs remain immutable evidence. Current behavior follows current code/tests/living contracts. Each K4 slice records the exact runtime candidate and validates the containing evidence/status head before continuation.
+Historical accepted evidence remains immutable. Current behavior follows current code/tests/living contracts.
 
-K4 operational retention changes the lifetime of ingestion scaffolding, not the retention/supersession rules for acceptance evidence or promoted canonical business history.
+K5 P1 runtime acceptance is attached to the exact implementation candidate above. The exact containing evidence/status head that records P1 Complete / P2 Current must independently pass protected gates before P2 implementation begins.
 
-The final K4 exit report records the accepted implementation candidate; the exact containing acceptance/status documentation head must independently remain protected-green before the increment is considered closed.
+Future token-retention behavior belongs to P5 and must not erase acceptance evidence or canonical K3 observations.
 
 ## 12. Gaps, non-capabilities and related documentation
 
-K4 validation does not prove a real production source/network/credential path, provider terms/authorization, real-source rate/schema/cursor behavior, provider-side revocation semantics, or production cutover. Those remain explicit source-enablement/separate approval gates.
+P1 does not validate shared target selection, recipient current/history projection, correction propagation, shared-data query performance, recipient member UX, reshare prevention at a data path, or retention cleanup. Those remain P2–P5 work.
 
-Related: [Automated ingestion](../automated-ingestion.md), [K4 exit report](../product/kingdoms-automated-ingestion-exit-report.md), [Slice E validation](../product/kingdoms-automated-ingestion-slice-e-validation.md), [Slice E security review](../security/kingdoms-automated-ingestion-operations-security-review.md), [Security profile](../security/README.md), [Operations profile](../operations/README.md), [Automated ingestion operations](../operations/kingdoms-automated-ingestion.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md), [P5 testing/evidence coverage matrix](../../../product/testing-evidence-coverage-matrix.md).
+P1 still provides no player/roster sharing, transfers, diplomacy/contact sharing, cross-Kingdom sharing, public APIs/webhooks, tenant directory, scoring/ranking/recommendations or automatic decisions.
+
+Related: [Shared intelligence](../shared-intelligence.md), [Slice A validation](../product/kingdoms-shared-intelligence-slice-a-validation.md), [Slice A security review](../security/kingdoms-shared-intelligence-foundation-security-review.md), [Security profile](../security/README.md), [Operations profile](../operations/README.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md), [P5 testing/evidence coverage matrix](../../../product/testing-evidence-coverage-matrix.md).
