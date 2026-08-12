@@ -88,25 +88,27 @@ Laravel's hosted configuration uses:
 
 ```text
 DB_CONNECTION=pgsql
-DB_HOST=<Azure PostgreSQL FQDN>
+DB_HOST=<AZURE-POSTGRESQL-FQDN>
 DB_PORT=5432
-DB_DATABASE=app
-DB_USERNAME=appadmin
+DB_DATABASE=<APPLICATION-DATABASE>
+DB_USERNAME=<APPLICATION-DATABASE-ADMIN>
 DB_PASSWORD=<Key Vault secret reference>
 DB_SSLMODE=require
 ```
 
 Production may choose `verify-ca` or `verify-full` when the complete certificate trust configuration is managed and validated.
 
-## 3. Azure Managed Redis service level
+## 3. Azure Managed Redis service level and clustering policy
 
 Azure Managed Redis currently provides Redis 7.4.x as the managed service version. The repository can continue using Redis 8 for local/CI, but this blueprint does not claim that Azure Managed Redis is Redis 8.
 
-The `Balanced_B0` SKU is a staging-oriented starting point. Production sizing is a capacity decision based on session/cache/queue/Horizon load.
+The staging baseline is `Balanced_B0` with **`NoCluster`**. The Laravel runtime uses a normal PhpRedis connection and does not require Redis Cluster slot routing. Explicitly selecting `NoCluster` prevents `MOVED <slot> <host>:<port>` redirects that a standalone client cannot follow.
+
+`OSSCluster` is the Azure CLI default when `--clustering-policy` is omitted, so the policy must be stated explicitly. Staging disables high availability to reduce cost; production availability and sizing are separate capacity/SLA decisions.
 
 ```powershell
 # ============================================================
-# AZURE MANAGED REDIS
+# AZURE MANAGED REDIS - STANDALONE / NOCLUSTER
 # ============================================================
 
 az redisenterprise create `
@@ -115,13 +117,12 @@ az redisenterprise create `
     --location $Location `
     --sku Balanced_B0 `
     --minimum-tls-version 1.2 `
-    --public-network-access Disabled
-
-az redisenterprise database update `
-    --cluster-name $Redis `
-    --resource-group $RG `
-    --access-keys-auth Enabled `
-    --client-protocol Encrypted
+    --public-network-access Disabled `
+    --clustering-policy NoCluster `
+    --client-protocol Encrypted `
+    --access-keys-authentication Enabled `
+    --port 10000 `
+    --high-availability Disabled
 
 $RedisId = az redisenterprise show `
     --name $Redis `
@@ -130,7 +131,27 @@ $RedisId = az redisenterprise show `
     --output tsv
 ```
 
-Access-key authentication is used by the current Laravel deployment contract. If the application later adopts a different Azure Managed Redis authentication mode, treat that as a reviewed runtime/security change.
+Verify the database policy immediately after provisioning:
+
+```powershell
+az redisenterprise database show `
+    --cluster-name $Redis `
+    --resource-group $RG `
+    --query "{Policy:clusteringPolicy,Protocol:clientProtocol,Port:port}" `
+    --output table
+```
+
+The expected staging values are:
+
+```text
+Policy       Protocol    Port
+-----------  ----------  -----
+NoCluster    Encrypted   10000
+```
+
+If an existing database was created as `OSSCluster`, do not try to solve `MOVED` responses in Laravel for this topology. Azure does not allow an `OSSCluster` database to be changed to `NoCluster` in place; recreate the Redis database/service with the intended policy after confirming that disposable cache/session/queue state can be lost.
+
+Access-key authentication is used by the current Laravel deployment contract. If the application later adopts Microsoft Entra authentication for Azure Managed Redis, treat that as a reviewed runtime/security change.
 
 ## 4. Azure Managed Redis private endpoint
 
@@ -163,7 +184,7 @@ az network private-endpoint dns-zone-group create `
     --zone-name redis
 ```
 
-## 5. Redis host, port, and secret
+## 5. Redis host, port, secret, and logical database
 
 Use the normal Azure Managed Redis hostname and TLS port `10000`:
 
@@ -207,6 +228,8 @@ $RedisPasswordUri = az keyvault secret show `
     --output tsv
 ```
 
+Azure Managed Redis exposes a single logical Redis database: database `0`. Do not use database `1` to separate Laravel cache data. Keep both Laravel Redis connections on database `0`; repository/application prefixes provide logical key separation.
+
 Laravel's hosted Redis configuration uses:
 
 ```text
@@ -214,12 +237,12 @@ CACHE_STORE=redis
 QUEUE_CONNECTION=redis
 SESSION_DRIVER=redis
 REDIS_CLIENT=phpredis
-REDIS_HOST=<normal Azure Managed Redis hostname>
+REDIS_HOST=<NORMAL-AZURE-MANAGED-REDIS-HOSTNAME>
 REDIS_PORT=10000
 REDIS_PASSWORD=<Key Vault secret reference>
 REDIS_SCHEME=tls
 REDIS_DB=0
-REDIS_CACHE_DB=1
+REDIS_CACHE_DB=0
 ```
 
 ## 6. Verify the private endpoint without `customDnsConfigs`

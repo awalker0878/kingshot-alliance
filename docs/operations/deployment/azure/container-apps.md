@@ -124,6 +124,8 @@ $RedisPasswordUri = az keyvault secret show `
 
 These URIs are environment-specific metadata. Do not copy them into a tracked YAML file.
 
+SMTP is configured after these deployment units exist by following [Email and SMTP](email.md). The initial Container Apps deployment can therefore start with the repository's non-SMTP default mail transport and then receive the Key Vault-backed SMTP credential in a later revision.
+
 ## 5. Deploy the two-container web replica
 
 Azure CLI's single-container flags are not a good fit for this web topology. Generate a **temporary untracked YAML file** in the shell, deploy it, then delete it. The YAML contains Key Vault references but no secret values.
@@ -242,7 +244,7 @@ properties:
           - name: REDIS_DB
             value: "0"
           - name: REDIS_CACHE_DB
-            value: "1"
+            value: "0"
 
           - name: FILESYSTEM_DISK
             value: local
@@ -281,6 +283,8 @@ az containerapp create `
 
 Remove-Item $WebYaml -Force
 ```
+
+Azure Managed Redis supports only logical database `0`. Keep both `REDIS_DB` and `REDIS_CACHE_DB` at `0`; use application key prefixes for logical separation rather than Redis database numbers.
 
 ### Why the two web containers differ
 
@@ -393,13 +397,13 @@ az containerapp create `
         "REDIS_PASSWORD=secretref:redis-password" `
         "REDIS_SCHEME=tls" `
         "REDIS_DB=0" `
-        "REDIS_CACHE_DB=1" `
+        "REDIS_CACHE_DB=0" `
         "FILESYSTEM_DISK=local" `
         "CONTENT_MEDIA_DISK=local" `
         "PULSE_ENABLED=false"
 ```
 
-Do not set web ingress on Horizon.
+Do not set web ingress on Horizon. Configure ACS SMTP on Horizon after creation by following [Email and SMTP](email.md).
 
 ## 8. Scheduler Container Apps Job
 
@@ -455,12 +459,14 @@ az containerapp job create `
         "REDIS_PORT=10000" `
         "REDIS_PASSWORD=secretref:redis-password" `
         "REDIS_SCHEME=tls" `
+        "REDIS_DB=0" `
+        "REDIS_CACHE_DB=0" `
         "FILESYSTEM_DISK=local" `
         "CONTENT_MEDIA_DISK=local" `
         "PULSE_ENABLED=false"
 ```
 
-Use `schedule:run`, not a permanently running `schedule:work`, because Azure already owns the schedule trigger.
+Use `schedule:run`, not a permanently running `schedule:work`, because Azure already owns the schedule trigger. If scheduled commands send mail directly, add the ACS SMTP secret and `MAIL_*` variables described in [Email and SMTP](email.md).
 
 ## 9. Manual migration Container Apps Job
 
@@ -515,6 +521,8 @@ az containerapp job create `
         "REDIS_PORT=10000" `
         "REDIS_PASSWORD=secretref:redis-password" `
         "REDIS_SCHEME=tls" `
+        "REDIS_DB=0" `
+        "REDIS_CACHE_DB=0" `
         "FILESYSTEM_DISK=local" `
         "CONTENT_MEDIA_DISK=local" `
         "PULSE_ENABLED=false"
@@ -557,4 +565,4 @@ The intended shape is one multi-container web app, one Horizon app, one schedule
 
 ## Next
 
-Continue with [Application configuration](application-configuration.md), then [GitHub Actions](github-actions.md) and [Validation and recovery](validation-and-recovery.md).
+Continue with [Email and SMTP](email.md), then [Application configuration](application-configuration.md), [GitHub Actions](github-actions.md), and [Validation and recovery](validation-and-recovery.md).

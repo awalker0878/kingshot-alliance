@@ -10,7 +10,7 @@ This directory captures the complete Azure deployment discussed and validated fo
 
 ## Target application stack
 
-The hosted application image contains PHP 8.5, Laravel 13, Inertia 3, Vue 3, TypeScript, Tailwind CSS 4, Vite 8, Nginx, PHP-FPM, Horizon, Sanctum, Pennant, and the repository's release/runtime validation. PostgreSQL 18 is provided by Azure Database for PostgreSQL Flexible Server. Azure Managed Redis currently provides Redis 7.4.x; Redis 8 remains suitable for local/CI but is not claimed as the managed Azure production version.
+The hosted application image contains PHP 8.5, Laravel 13, Inertia 3, Vue 3, TypeScript, Tailwind CSS 4, Vite 8, Nginx, PHP-FPM, Horizon, Sanctum, Pennant, and the repository's release/runtime validation. PostgreSQL 18 is provided by Azure Database for PostgreSQL Flexible Server. Azure Managed Redis currently provides Redis 7.4.x and is deployed with a `NoCluster` database for the Laravel runtime. Transactional mail is delivered through Azure Communication Services Email using SMTP AUTH.
 
 ## Target Azure topology
 
@@ -51,11 +51,22 @@ Azure Container Apps ingress
            |                      |                     |
            v                      v                     v
  PostgreSQL 18             Azure Managed Redis      Key Vault
- Flexible Server           Private Endpoint         secret refs
- delegated subnet          TLS / private DNS
+ Flexible Server           NoCluster / DB 0         secret refs
+ delegated subnet          Private Endpoint
+                            TLS / private DNS
+
+web / Horizon
+   |
+   | SMTP + STARTTLS :587
+   v
+smtp.azurecomm.net
+   |
+   v
+Azure Communication Services Email
+linked verified domain + SMTP Username + Entra app
 ```
 
-The Container Apps environment is attached to a dedicated VNet subnet. PostgreSQL uses private VNet integration in its own delegated subnet. Azure Managed Redis uses a private endpoint in a separate private-endpoint subnet with public network access disabled.
+The Container Apps environment is attached to a dedicated VNet subnet. PostgreSQL uses private VNet integration in its own delegated subnet. Azure Managed Redis uses `NoCluster`, a private endpoint in a separate private-endpoint subnet, TLS, and public network access disabled. ACS Email is an external Azure managed service reached over authenticated TLS SMTP.
 
 ## Deployment sequence
 
@@ -63,11 +74,12 @@ Follow these documents in order:
 
 1. [Bootstrap](bootstrap.md) — variables, Azure login/extensions/providers, resource group, Log Analytics/Application Insights, ACR, managed identities, Key Vault, and Laravel `APP_KEY` generation.
 2. [Networking](networking.md) — VNet, delegated subnets, private endpoint subnet, DNS zones, and ingress/TLS flow.
-3. [Data services](data-services.md) — PostgreSQL 18 private deployment, Azure Managed Redis private endpoint/TLS configuration, secret storage, and connection verification.
+3. [Data services](data-services.md) — PostgreSQL 18 private deployment, Azure Managed Redis `NoCluster`/DB 0 private endpoint configuration, secret storage, and connection verification.
 4. [Container Apps](container-apps.md) — Container Apps environment creation, immutable image build, multi-container web replica, Horizon, scheduler job, migration job, HTTPS ingress, and revision behavior.
-5. [Application configuration](application-configuration.md) — Laravel environment contract, HTTPS/proxy handling, PostgreSQL/Redis TLS, sessions, Sanctum, Horizon, Pennant, Pulse, and storage notes.
-6. [GitHub Actions](github-actions.md) — OIDC federation, managed identity, least-privilege roles, build-once/promotion model, and deployment workflow shape.
-7. [Validation and recovery](validation-and-recovery.md) — revisions, replicas, logs, stream-timeout diagnosis, private DNS verification, migrations, health gates, rollback, backup/restore, and recovery validation.
+5. [Email and SMTP](email.md) — Azure Communication Services Email, Azure-managed/custom domains, Entra SMTP identity, Key Vault client-secret handling, and Laravel/Horizon SMTP configuration.
+6. [Application configuration](application-configuration.md) — Laravel environment contract, HTTPS/proxy handling, PostgreSQL/Redis TLS, ACS SMTP, sessions, Sanctum, Horizon, Pennant, Pulse, and storage notes.
+7. [GitHub Actions](github-actions.md) — OIDC federation, managed identity, least-privilege roles, build-once/promotion model, and deployment workflow shape.
+8. [Validation and recovery](validation-and-recovery.md) — revisions, replicas, logs, stream-timeout diagnosis, private DNS verification, migrations, health gates, rollback, backup/restore, and recovery validation.
 
 ## Placeholder convention
 
@@ -80,6 +92,8 @@ Angle-bracket values are intentionally non-real examples and must be replaced at
 <GITHUB-OWNER>
 <GITHUB-REPOSITORY>
 <CUSTOM-DOMAIN>
+<VERIFIED-SENDER-ADDRESS>
+<ACS-SMTP-USERNAME>
 ```
 
 Generated resource names use variables and random suffixes rather than hard-coded live names. Secrets are never embedded in this repository.
@@ -95,6 +109,8 @@ Generated resource names use variables and random suffixes rather than hard-code
 - The PHP-FPM web container preserves the image's normal `kingshot-entrypoint` + `php-fpm` startup so hosted configuration validation runs.
 - Command-overridden worker/job roles explicitly invoke `kingshot-entrypoint` before the Artisan command.
 - PostgreSQL and Redis are private network dependencies.
+- Azure Managed Redis uses `NoCluster` for this topology; both Laravel Redis connections use logical database `0`.
+- ACS Email uses `smtp.azurecomm.net:587` with TLS/STARTTLS, an ACS SMTP username, and an Entra client secret held in Key Vault.
 - `APP_VERSION` and `RELEASE_SHA` are baked into the image at build time; they are not normal runtime overrides.
 - Hosted Pulse remains disabled until its repository schema/access policy is approved.
 

@@ -40,16 +40,25 @@ HTTPS :443
 
 ## 3. Trusted proxies and forwarded HTTPS metadata
 
-`bootstrap/app.php` reads `TRUSTED_PROXIES` and configures Laravel's trusted-proxy middleware. The ACA Nginx profile preserves the platform-provided forwarded request metadata into FastCGI:
+`bootstrap/app.php` reads `TRUSTED_PROXIES` and configures Laravel's trusted-proxy middleware. The accepted ACA topology trusts only the forwarded metadata required to recover client addressing and the original HTTPS scheme:
 
 ```text
 X-Forwarded-For
-X-Forwarded-Host
-X-Forwarded-Port
 X-Forwarded-Proto
 ```
 
-For the accepted ACA topology, the PHP-FPM container is reachable only through the tightly coupled Nginx container inside the replica and is not exposed as Container Apps ingress. The deployment therefore uses the repository's explicit trust-all approval pair:
+The Azure Nginx profile reconstructs the public host and HTTPS request explicitly for FastCGI rather than trusting forwarded host, port, or prefix values:
+
+```text
+HTTP_HOST=<request Host header>
+SERVER_NAME=<request Host header>
+SERVER_PORT=443
+HTTPS=on
+```
+
+Do not add `X-Forwarded-Host`, `X-Forwarded-Port`, or `X-Forwarded-Prefix` to Laravel's trusted-header mask for the current ACA topology. Trusting prefix metadata can change Symfony/Laravel's request base URL and produce malformed Inertia/asset URLs.
+
+For the accepted ACA topology, the PHP-FPM container is reachable only through the tightly coupled Nginx container inside the replica and is not exposed as Container Apps ingress. The deployment therefore uses the repository's explicit trust-all proxy-address approval pair while restricting which forwarded header types are trusted in code:
 
 ```text
 TRUSTED_PROXIES=*
@@ -79,8 +88,8 @@ Do not set insecure cookies to work around an HTTPS/proxy misconfiguration. Fix 
 DB_CONNECTION=pgsql
 DB_HOST=<AZURE-POSTGRESQL-FQDN>
 DB_PORT=5432
-DB_DATABASE=app
-DB_USERNAME=appadmin
+DB_DATABASE=<APPLICATION-DATABASE>
+DB_USERNAME=<APPLICATION-DATABASE-ADMIN>
 DB_PASSWORD=<Key Vault secret reference>
 DB_SSLMODE=require
 ```
@@ -90,6 +99,10 @@ The server hostname is resolved through PostgreSQL private DNS from the Containe
 Production may adopt stronger certificate verification (`verify-ca` / `verify-full`) when the corresponding trust material is managed and tested.
 
 ## 6. Azure Managed Redis
+
+The Azure staging baseline uses `Balanced_B0` with the Redis database configured as **`NoCluster`**. This matches Laravel's normal PhpRedis connection model and avoids Redis Cluster `MOVED` redirects.
+
+Azure Managed Redis exposes only logical database `0`, so both the Laravel default and cache Redis connections must use database `0`:
 
 ```text
 CACHE_STORE=redis
@@ -102,16 +115,39 @@ REDIS_PORT=10000
 REDIS_PASSWORD=<Key Vault secret reference>
 REDIS_SCHEME=tls
 REDIS_DB=0
-REDIS_CACHE_DB=1
+REDIS_CACHE_DB=0
 ```
+
+Do not set `REDIS_CACHE_DB=1` for Azure Managed Redis. Use Redis key prefixes to separate cache/session/queue namespaces instead of logical database numbers.
 
 Use the normal Azure Managed Redis hostname returned by the service, not a `privatelink` hostname. Private DNS resolves that normal name to the private endpoint for VNet clients.
 
 The managed Azure service currently runs Redis 7.4.x even though local/CI can use Redis 8. This difference must remain visible rather than being hidden by documentation.
 
-## 7. Horizon
+## 7. Azure Communication Services Email SMTP
 
-Horizon uses the same PostgreSQL/Redis configuration as the web runtime and runs as its own Container App:
+Transactional email is sent through Azure Communication Services Email using SMTP AUTH. The Azure email resource/domain/SMTP identity procedure is documented in [Email and SMTP](email.md).
+
+The Laravel runtime uses:
+
+```text
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtp
+MAIL_HOST=smtp.azurecomm.net
+MAIL_PORT=587
+MAIL_USERNAME=<ACS-SMTP-USERNAME>
+MAIL_PASSWORD=<Key Vault secret reference>
+MAIL_FROM_ADDRESS=<VERIFIED-SENDER-ADDRESS>
+MAIL_FROM_NAME=Kingshot Alliance
+```
+
+Port `587` is the preferred ACS SMTP submission port and requires TLS/STARTTLS. The SMTP password is an Entra application client secret associated with the ACS SMTP username; it must be stored in Key Vault rather than copied into Container Apps configuration or repository files.
+
+Apply the mail configuration to the web `app` container and Horizon. Horizon needs the same settings because queued notifications/mail are processed outside the web request. If scheduled commands send mail directly, give the scheduler job the same secret and mail variables.
+
+## 8. Horizon
+
+Horizon uses the same PostgreSQL/Redis/mail configuration as the web runtime and runs as its own Container App:
 
 ```text
 HORIZON_PREFIX=<ENVIRONMENT-SPECIFIC-PREFIX>
@@ -121,7 +157,7 @@ HORIZON_STAGING_INTEGRATION_MAX_PROCESSES=2
 
 The exact process limits remain governed by `config/horizon.php` and capacity testing. Do not scale Horizon merely by increasing web replica count.
 
-## 8. Sanctum
+## 9. Sanctum
 
 For the default Container Apps hostname:
 
@@ -138,7 +174,7 @@ SANCTUM_STATEFUL_DOMAINS=<CUSTOM-DOMAIN>
 
 Set `SESSION_DOMAIN` only when the intended cookie-sharing domain design requires it. Do not use a broad parent-domain cookie scope by default.
 
-## 9. Pennant
+## 10. Pennant
 
 The staging blueprint uses the database-backed feature flag store:
 
@@ -148,7 +184,7 @@ PENNANT_STORE=database
 
 Any change to the feature-flag persistence model must be reflected in application configuration and migration/recovery procedures.
 
-## 10. Pulse
+## 11. Pulse
 
 Hosted Pulse recording remains deliberately disabled:
 
@@ -158,7 +194,7 @@ PULSE_ENABLED=false
 
 Do not set `PULSE_ENABLED=true` only because the package is installed. The repository's hosted validator intentionally blocks Pulse until the required schema and access policy are introduced. If a future approved design requires `pulse:work`, deploy it as a separate Container App.
 
-## 11. Logging
+## 12. Logging
 
 ```text
 LOG_CHANNEL=stack
@@ -168,9 +204,9 @@ LOG_LEVEL=info
 
 The repository emits JSON logs to stderr. Azure Container Apps sends console/system logs into the environment logging configuration, which is connected to Log Analytics in this blueprint.
 
-Do not log secret values, Key Vault payloads, session contents, access tokens, or private data solely for troubleshooting.
+Do not log secret values, Key Vault payloads, session contents, access tokens, SMTP credentials, or private data solely for troubleshooting.
 
-## 12. Files and content media
+## 13. Files and content media
 
 For staging, the repository validator permits local storage:
 
@@ -196,7 +232,7 @@ AWS_USE_PATH_STYLE_ENDPOINT=false
 
 Do not put real storage credentials or bucket identifiers into tracked documentation. Provider-specific production object storage is a separate deployment decision from the staging bootstrap documented here.
 
-## 13. Security controls
+## 14. Security controls
 
 The current staging profile also includes:
 
@@ -208,7 +244,7 @@ INVITATION_TTL_HOURS=72
 
 `REGISTRATION_MODE` is product configuration, not an Azure requirement. Choose the production registration policy through product/security approval rather than carrying the staging value forward automatically.
 
-## 14. Canonical hosted environment shape
+## 15. Canonical hosted environment shape
 
 The effective non-secret staging values are conceptually:
 
@@ -224,8 +260,8 @@ LOG_LEVEL=info
 DB_CONNECTION=pgsql
 DB_HOST=<AZURE-POSTGRESQL-FQDN>
 DB_PORT=5432
-DB_DATABASE=app
-DB_USERNAME=appadmin
+DB_DATABASE=<APPLICATION-DATABASE>
+DB_USERNAME=<APPLICATION-DATABASE-ADMIN>
 DB_SSLMODE=require
 
 CACHE_STORE=redis
@@ -241,7 +277,15 @@ REDIS_HOST=<NORMAL-AZURE-MANAGED-REDIS-HOSTNAME>
 REDIS_PORT=10000
 REDIS_SCHEME=tls
 REDIS_DB=0
-REDIS_CACHE_DB=1
+REDIS_CACHE_DB=0
+
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtp
+MAIL_HOST=smtp.azurecomm.net
+MAIL_PORT=587
+MAIL_USERNAME=<ACS-SMTP-USERNAME>
+MAIL_FROM_ADDRESS=<VERIFIED-SENDER-ADDRESS>
+MAIL_FROM_NAME=Kingshot Alliance
 
 FILESYSTEM_DISK=local
 CONTENT_MEDIA_DISK=local
@@ -261,9 +305,10 @@ The following values are **not** represented literally above because they must c
 APP_KEY
 DB_PASSWORD
 REDIS_PASSWORD
+MAIL_PASSWORD
 ```
 
-## 15. Configuration validation
+## 16. Configuration validation
 
 Every role that passes through `kingshot-entrypoint` runs the repository's hosted configuration validation before starting the requested process. A valid staging startup should emit:
 
@@ -276,6 +321,7 @@ If validation fails, treat each reported message as a deployment blocker instead
 ## Related documentation
 
 - [Runtime configuration reference](../../configuration-reference.md)
-- [Azure Container Apps](container-apps.md)
 - [Azure data services](data-services.md)
+- [Azure Container Apps](container-apps.md)
+- [Azure Communication Services Email and SMTP](email.md)
 - [ADR 0009](../../../adr/0009-azure-container-apps-runtime-topology.md)

@@ -18,6 +18,7 @@ final class AzureDeploymentDocumentationTest extends TestCase
             'docs/operations/deployment/azure/networking.md',
             'docs/operations/deployment/azure/data-services.md',
             'docs/operations/deployment/azure/container-apps.md',
+            'docs/operations/deployment/azure/email.md',
             'docs/operations/deployment/azure/application-configuration.md',
             'docs/operations/deployment/azure/github-actions.md',
             'docs/operations/deployment/azure/validation-and-recovery.md',
@@ -45,6 +46,7 @@ final class AzureDeploymentDocumentationTest extends TestCase
             'networking.md',
             'data-services.md',
             'container-apps.md',
+            'email.md',
             'application-configuration.md',
             'github-actions.md',
             'validation-and-recovery.md',
@@ -97,16 +99,26 @@ final class AzureDeploymentDocumentationTest extends TestCase
         $containers = $this->read('docs/operations/deployment/azure/container-apps.md');
         $data = $this->read('docs/operations/deployment/azure/data-services.md');
         $configuration = $this->read('docs/operations/deployment/azure/application-configuration.md');
+        $email = $this->read('docs/operations/deployment/azure/email.md');
 
         self::assertStringContainsString('same immutable image', $index);
         self::assertStringContainsString('127.0.0.1:9000', $index);
         self::assertStringContainsString('allowInsecure: false', $containers);
         self::assertStringContainsString('schedule:run', $containers);
         self::assertStringContainsString('migrate --force', $containers);
+        self::assertStringContainsString('--clustering-policy NoCluster', $data);
         self::assertStringContainsString('REDIS_PORT=10000', $data);
         self::assertStringContainsString('REDIS_SCHEME=tls', $data);
+        self::assertStringContainsString('REDIS_DB=0', $data);
+        self::assertStringContainsString('REDIS_CACHE_DB=0', $data);
+        self::assertStringNotContainsString('REDIS_CACHE_DB=1', $containers);
         self::assertStringContainsString('PULSE_ENABLED=false', $configuration);
         self::assertStringContainsString('SESSION_SECURE_COOKIE=true', $configuration);
+        self::assertStringContainsString('MAIL_MAILER=smtp', $configuration);
+        self::assertStringContainsString('MAIL_HOST=smtp.azurecomm.net', $configuration);
+        self::assertStringContainsString('smtp.azurecomm.net', $email);
+        self::assertStringContainsString('MAIL_PASSWORD=secretref:smtp-password', $email);
+        self::assertStringContainsString('Communication and Email Service Owner', $email);
     }
 
     private function read(string $path): string
