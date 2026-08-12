@@ -25,7 +25,7 @@ The Azure Container Apps web application contains two containers in each replica
 
 The ACA-specific Nginx profile uses `fastcgi_pass 127.0.0.1:9000;` because both containers share the replica network namespace. The existing Compose Nginx profile remains separate and continues to use `fastcgi_pass app:9000;` because Compose services use service-name networking.
 
-Container Apps ingress terminates external HTTPS, rejects insecure public traffic, and forwards HTTP to Nginx on target port 8080. PHP-FPM port 9000 is not exposed as application ingress.
+Container Apps ingress terminates external HTTPS. With `allowInsecure=false`, insecure HTTP requests are redirected to HTTPS by Container Apps; the managed ingress forwards the request to Nginx on target port 8080 inside the environment. PHP-FPM port 9000 is not exposed as application ingress. The ACA Nginx profile preserves the platform-provided forwarded host/protocol/port/client metadata into FastCGI so Laravel can reconstruct the original HTTPS request after trusted-proxy validation.
 
 Other roles use separate Azure deployment units while reusing the same immutable image:
 
@@ -58,12 +58,12 @@ When Azure overrides a container startup command, roles that require Laravel run
 - Runtime image: `Dockerfile`, `docker/entrypoint.sh`, `docker/nginx/default.conf`, and `docker/nginx/azure.conf`.
 - Hosted deployment: Azure Container Apps web, Horizon, scheduler-job, and migration-job definitions.
 - Runtime configuration: PostgreSQL and Redis remain external dependencies; Azure Managed Redis uses the application `REDIS_SCHEME=tls` configuration with its private endpoint.
-- Operations: [Deployment runbook](../operations/runbooks/deployment.md) and [runtime configuration reference](../operations/configuration-reference.md).
+- Operations: [Azure provider deployment blueprint](../operations/deployment/azure/README.md), [Deployment runbook](../operations/runbooks/deployment.md), and [runtime configuration reference](../operations/configuration-reference.md).
 
 ## Validation
 
 - Build the runtime image and require `nginx -t -c /etc/nginx/azure.conf` to pass during the Docker build.
-- Keep architecture tests that assert the Compose profile targets `app:9000`, the ACA profile targets `127.0.0.1:9000`, and the image preserves `ENTRYPOINT ["kingshot-entrypoint"]` / `CMD ["php-fpm"]`.
+- Keep architecture tests that assert the Compose profile targets `app:9000`, the ACA profile targets `127.0.0.1:9000`, preserves forwarded request metadata, and the image preserves `ENTRYPOINT ["kingshot-entrypoint"]` / `CMD ["php-fpm"]`.
 - In Azure, require the web revision to become healthy with ingress target port 8080 and verify `/up` and `/health/ready` over HTTPS.
 - Verify the Nginx container can reach PHP-FPM over loopback and that port 9000 is not externally exposed.
 - Verify Horizon and release/scheduler jobs use the same immutable release digest as the web containers.
