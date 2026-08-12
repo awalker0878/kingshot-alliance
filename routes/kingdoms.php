@@ -66,6 +66,11 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/kingdom-ingestion/manage', [KingdomIngestionController::class, 'manage'])
         ->name('alliance.kingdom-ingestion.manage');
 
+    Route::get('/alliance/kingdom-sharing', [KingdomIntelligenceSharingController::class, 'index'])
+        ->name('alliance.kingdom-sharing.index');
+    Route::get('/alliance/kingdom-sharing/manage', [KingdomIntelligenceSharingController::class, 'manage'])
+        ->name('alliance.kingdom-sharing.manage');
+
     Route::get('/alliance/transfers', [TransferPlanController::class, 'index'])
         ->name('alliance.transfers.index');
     Route::get('/alliance/transfers/manage', [TransferPlanController::class, 'manage'])
