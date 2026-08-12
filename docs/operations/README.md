@@ -41,6 +41,7 @@ Focused living runbooks required by the P3 inventory are indexed from those prof
 
 - [Local development](runbooks/local-development.md)
 - [Deployment](runbooks/deployment.md)
+- [Azure Container Apps](runbooks/azure-container-apps.md) — supported multi-container web replica, Horizon boundary, scheduled/release jobs, private managed dependencies, and validation.
 - [Rollback](runbooks/rollback.md)
 - [Backup and restore](runbooks/backup-restore.md)
 - [Incident response](runbooks/incident-response.md)
@@ -50,7 +51,7 @@ Runbooks stay under `operations/runbooks/`; do not create a parallel top-level `
 A practical operator path is:
 
 1. establish valid runtime configuration;
-2. deploy using the deployment runbook;
+2. deploy using the deployment runbook and the environment-specific runbook where applicable;
 3. validate shared health/telemetry using observability;
 4. verify scheduler/outbox/queues using background processing;
 5. diagnose the owning domain through `docs/domains/<domain>/operations/`; and
