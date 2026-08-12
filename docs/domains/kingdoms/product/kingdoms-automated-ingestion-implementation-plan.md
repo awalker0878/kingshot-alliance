@@ -2,7 +2,7 @@
 
 [← Kingdoms automated game-data ingestion product increment](kingdoms-automated-ingestion-increment.md)
 
-**Status:** In progress — `K4-P0`–`K4-P5` Complete; `K4-P6` Current / selected pending exact transition-head validation  
+**Status:** **Complete / Accepted** — `K4-P0`–`K4-P6` Complete  
 **Scope ID:** `KINGDOMS-004`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Accepted `KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` implementations  
@@ -13,6 +13,7 @@
 **Slice C validation:** [K4-P3 validation](kingdoms-automated-ingestion-slice-c-validation.md)  
 **Slice D validation:** [K4-P4 validation](kingdoms-automated-ingestion-slice-d-validation.md)  
 **Slice E validation:** [K4-P5 validation](kingdoms-automated-ingestion-slice-e-validation.md)  
+**Whole-increment exit:** [K4-P6 exit report](kingdoms-automated-ingestion-exit-report.md)  
 **Important:** These are implementation phases inside `KINGDOMS-004`; they are not historical Phase 0–6 or DCP phases.
 
 ## 1. Purpose
@@ -29,7 +30,7 @@ Sequence controlled machine ingestion into independently validated slices while 
 | `K4-P3` | **Complete** | Existing-active-tracking stable-game-Alliance-ID factual observation promotion through K3 action | Slice C |
 | `K4-P4` | **Complete** | Generic scheduler/cursor/retry/replay/concurrency around accepted staging/promotions | Slice D |
 | `K4-P5` | **Complete** | Operations/review/retention/source-revocation/health/capacity hardening | Slice E |
-| `K4-P6` | **Current / selected pending transition-head validation** | Whole-increment acceptance | Whole increment |
+| `K4-P6` | **Complete / Accepted** | Whole-increment acceptance | Whole increment |
 
 ## 3. `K4-P0` — Contract lock — Complete
 
@@ -71,27 +72,24 @@ Runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` passed DR `31552113
 
 P5 still does not approve a concrete source. Real-source-specific authorization/terms, network/DNS/redirect/private-address/TLS/egress, secret, rate/timeout, schema/version, cursor, monitoring and revocation evidence remain source-enablement prerequisites while production adapter configuration is empty.
 
-## 9. `K4-P6` — Whole-increment acceptance
+## 9. `K4-P6` — Whole-increment acceptance — Complete
 
-P6 is documentation/evidence acceptance, not a new acquisition feature. It must prove the complete generic repository increment across:
+P6 revalidated the complete generic repository increment across source authorization and empty-production-allowlist defaults; Alliance/current-Kingdom tenancy and stable-ID-only identity; secret/raw-response/network exclusion; quarantine/rejection and delegated existing-target-only promotion; at-least-once replay/cursor/concurrency/retry behavior; source-revocation fail-closed behavior; operational retention with canonical-history/provenance independence; migration/backup/recovery; realistic-volume query evidence; accessibility/frontend; internal-event/public-integration exclusion; and explicit decision-automation non-capabilities.
 
-- source authorization boundary and empty-production-allowlist default;
-- Alliance/current-Kingdom tenancy and stable-ID-only identity;
-- secret/raw-response/network exclusion before source approval;
-- quarantine/rejection and delegated existing-target-only promotion;
-- at-least-once replay, cursor/concurrency and retry/circuit behavior;
-- source-revocation fail-closed behavior;
-- operational retention with canonical-history/provenance independence;
-- migration/backup/recovery and realistic-volume query evidence;
-- accessibility/frontend and internal-event/public-integration exclusion; and
-- explicit non-capabilities including no auto roster/tracking/transfer/diplomacy/contact/scoring/recommendation behavior.
+The dedicated whole-increment acceptance scenario promotes both supported target kinds, replays the exact source window idempotently, revokes source approval, verifies operational attention, redacts/prunes K4 operational rows and proves promoted canonical history/provenance remains intact.
 
-Record the final accepted containing SHA and protected run IDs in a K4 exit report. Repository acceptance still does not itself approve real production source/cutover.
+Validated whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` passed:
 
-P6 work may begin only after the exact transition/status head containing the P5 Complete / P6 Current state passes Dependency Review, CodeQL and full CI.
+- Dependency Review `31556412455` — success;
+- CodeQL `31556412413` — success;
+- CI `31556412468` — success;
+- Pint — 529 files;
+- PHPStan/Larastan — 374/374, zero errors;
+- ParaTest/PHPUnit — 429 tests / 9,799 assertions; and
+- frontend/build, clean migrations, immutable image, staging, backup/restore and image scan — success.
+
+See the [K4 exit report](kingdoms-automated-ingestion-exit-report.md). Repository acceptance does not approve real production source/cutover; those remain separately governed.
 
 ## 10. Continuation rule
 
-On `continue`, read PR #54/current successor state and this plan. Stay in the current K4 gate until its implementation **and containing evidence/status head** are protected-green. Do not start a later gate to compensate for a current-gate defect.
-
-For this transition, `K4-P6` becomes writable only if the exact head containing the P5 Complete / P6 Current status passes Dependency Review, CodeQL and full CI. Otherwise remain at the P5 transition and repair only the status/evidence defect.
+`KINGDOMS-004` is closed at `K4-P6` once the exact containing acceptance/evidence status head is protected-green. Future work must begin as a separately governed increment or source-enablement/cutover approval; do not reopen K4 acceptance to smuggle in a concrete source, cross-Alliance sharing or decision automation.
