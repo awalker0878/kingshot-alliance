@@ -3,94 +3,104 @@
 [← Kingdoms domain](../README.md) · [Shared operations](../../../operations/README.md)
 
 **Document type:** Living domain operations profile  
-**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P1 consent foundation validated  
+**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P2 current-fact sharing validated  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary operational boundary:** Alliance-scoped roster/intelligence/transfer, K4 ingestion operations, and K5 consent metadata with shared deployment/recovery infrastructure
+**Primary operational boundary:** Alliance-scoped roster/intelligence/transfer, K4 ingestion operations, and K5 consent/grant/current-fact state with shared deployment/recovery infrastructure
 
 ## 1. Operational purpose and runtime shape
 
-K1–K3 remain synchronous business workflows; K4 adds background ingestion/maintenance. K5-P1 adds synchronous first-party sharing-consent mutations only.
+K1–K3 remain synchronous business workflows; K4 adds background ingestion/maintenance. K5-P1/P2 adds synchronous first-party sharing consent/target mutations plus a bounded internal recipient current-fact query.
 
-P1 has no shared observation read surface, background job, scheduler entry, operator command or external service dependency.
+K5 still has no background job, scheduler entry, operator command, external provider dependency or bounded shared-history query.
 
 ## 2. Persistent state and ownership
 
-K5-P1 adds `kingdom_intelligence_shares`: directional source/recipient/captured-Kingdom consent state plus hash-only invitation token identity and consent timestamps/actors.
+K5 stores `kingdom_intelligence_shares` for directional consent and `kingdom_intelligence_share_targets` for explicit target grant history.
 
-It stores no selected game-Alliance target or observation payload/history. Existing K1–K4 data ownership is unchanged.
+Source `KingdomAllianceObservation` rows remain source-owned and canonical. K5 stores no recipient observation-history copy.
 
 ## 3. Configuration and runtime dependencies
 
-K5 uses existing Laravel/PostgreSQL/auth/Audit/outbox dependencies. `config/kingdoms.php` defines a 72-hour invitation TTL, clamped by the creation action to 1–168 hours.
+K5 uses existing Laravel/PostgreSQL/auth/Audit/outbox dependencies. `config/kingdoms.php` defines a 72-hour invitation TTL, clamped to 1–168 hours.
 
-Invitation token generation uses local cryptographic randomness and SHA-256 hashing; no external dependency or credential service is introduced.
+Invitation token generation uses local cryptographic randomness and SHA-256 hashing. P2 current projection requires no external provider or credential.
 
 ## 4. Normal flow and background processing
 
-Source manager creates an invitation; recipient manager accepts/declines; source may revoke; active recipient may leave. All HTTP mutations are password-confirmed and actions enforce `kingdoms.manage`.
+Source manager creates invitation; recipient accepts/declines; source may revoke; active recipient may leave. Source managers may explicitly add/remove one active source tracking target under an active same-Kingdom agreement.
 
-Acceptance is transactional and row-locked. There is no K5 background processing in P1. Existing K4 scheduler/queue behavior is unchanged.
+Recipient current facts use the internal `SharedKingdomIntelligenceCurrentQuery`, bounded to 250 grants and latest accepted source observations only.
+
+Supported Alliance→Kingdom changes terminalize affected K5 agreements/pending source invitations in the same transaction, preventing access resume after returning to an old Kingdom.
+
+There is no K5 background processing in P2. Existing K4 scheduler/queue behavior is unchanged.
 
 ## 5. Health, observability and diagnostics
 
-Safe P1 diagnostic fields are share ID, authorized source/recipient Alliance IDs, captured Kingdom, state and consent/expiry/use timestamps.
+Safe K5 diagnostics are share/target IDs, authorized source/recipient Alliance IDs, captured Kingdom, state and timestamps. The current query exposes only safe factual display/current observation fields.
 
-Do not log invitation plaintext. Do not log future shared observation payloads, tracking notes, diplomacy/contact data, roster/transfer data or K4 provenance through K5 diagnostics.
+Do not log invitation plaintext, shared observation payload bodies, source tracking IDs, manager notes, diplomacy/contact data, roster/transfer data or K4 provenance through K5 diagnostics.
 
-No K5 health command/dashboard exists in P1.
+No K5 health command/dashboard exists yet.
 
 ## 6. Failure modes and diagnosis
 
-Expected P1 failure modes include missing current source Kingdom, invalid/expired/used token, self-share, different-Kingdom acceptance, duplicate active directional agreement, insufficient permission/recent-password assurance and cross-tenant submitted share ID.
+Expected K5 failures include invalid/expired/used token, self-share, different-Kingdom activation, duplicate active agreement, stale/terminal agreement, inactive/different-Kingdom participant, non-source/inactive tracking, removed target and unrelated-tenant submitted identifiers.
 
-A different-Kingdom failed acceptance leaves the invitation unconsumed. Decline/revoke/leave remain valid access-reducing transitions after drift.
+Recipient current visibility is expected to disappear immediately on target removal, share revocation or context invalidation.
+
+A source invalidation may cause the recipient current fact to fall back to the latest older accepted observation; this is canonical behavior, not data loss.
 
 ## 7. Recovery, replay and reconciliation
 
-Do not repair sharing state by editing token hashes, recipient IDs, captured Kingdom, consent timestamps or state directly.
+Do not repair K5 by editing token hashes, recipient/source IDs, captured Kingdom, grant state or observation payloads.
 
-A revoked/declined agreement is terminal. Future collaboration requires a new invitation/agreement. Failed/expired invitation acceptance is not replayed by operators; the source creates a new invitation when appropriate.
+Revoked/declined agreements are terminal; future collaboration requires a new invitation/agreement. Removed targets require deliberate re-grant by the source manager.
 
-No P1 reconciliation job exists. Same-Kingdom validity for later reads remains a P2+ authorization requirement.
+Supported Kingdom drift persists terminal agreement state; returning to the previous Kingdom does not restore access.
+
+P2 adds no operator replay/reconciliation job. Source observation correction/invalidation remains K3-owned.
 
 ## 8. Backup, restore, migration and rollback
 
-The K5 consent migration is the newest Kingdoms dependency after K4 scheduling. Full Kingdom migration evidence now drops/reapplies it in the correct dependency order.
+K5 migrations now include consent plus explicit target-grant state. The target table is dropped before its parent share/tracking dependencies and reapplied afterward in both complete and focused Kingdoms rollback tests.
 
-Clean PostgreSQL migrations, immutable image, staging and backup/restore all passed for P1 candidate `9ef1d46b1db69708d575e82d8548145cf7769e68`.
+Clean PostgreSQL migrations, immutable image, staging and backup/restore all passed for P2 candidate `1a022e909cd246197510449a761a4856ce12b118`.
 
-After restore, consent rows may exist in pending/active/terminal states, but P1 still contains no shared-data read path. Operators must not assume an active agreement means observation data is exposed.
+After restore, K5 authorization still depends on live agreement/grant/context state. Restored metadata does not bypass tenant/K3 authorization and no recipient canonical history copy exists.
 
 ## 9. Capacity, query and performance boundaries
 
-P1 introduces no recipient shared-data query or new read-performance gate. Consent mutations are bounded single-agreement operations.
+`SharedKingdomIntelligenceCurrentQuery::CURRENT_LIMIT` is 250.
 
-P2 must establish bounded current-fact projection behavior; P5 owns realistic-volume cross-tenant query/capacity gates and invitation-retention operations.
+The focused 12-target fixture proves no more than two SELECTs for the current projection: one recipient/share/grant/context query plus one latest accepted observation query.
+
+This is a bounded implementation gate, not a production throughput SLO. Realistic-volume current/history capacity, diagnostics and any authorization-safe caching remain P5 work.
 
 ## 10. External-service degradation
 
-K5-P1 has no external service dependency. Existing K4 production adapter allowlist remains empty.
+K5-P2 has no external service dependency. Existing K4 production adapter allowlist remains empty.
 
-Do not use public links, external file sharing, ad hoc APIs or messaging-service callbacks as workarounds for K5 consent/data sharing.
+Do not use public links, external file sharing, ad hoc APIs or messaging callbacks as workarounds for K5 sharing.
 
 ## 11. Safe operator actions and stop conditions
 
-Safe: inspect consent state/timestamps and standard Audit/outbox evidence; verify migrations/recovery; advise source to revoke or issue a new invitation using supported first-party actions.
+Safe: inspect authorized consent/grant state and timestamps, standard Audit/outbox evidence, migrations/recovery, and advise source/recipient managers to use supported revoke/leave/remove/new-invitation workflows.
 
-Stop if recovery would require exposing invitation plaintext, database retarget/reactivation, cross-tenant ID substitution, manual shared observation copy, public link/feed creation, or widening to private data classes.
+Stop if recovery would require exposing invitation plaintext, database retarget/reactivation, cross-tenant ID substitution, manual recipient observation copy, public link/feed creation, bypassing target grants or widening to private data classes.
 
 ## 12. Evidence, focused runbooks and related documentation
 
-**P3 inventory decision:** Kingdoms retains domain-owned focused operational guides; K5-P1 does not yet justify a dedicated runbook because it adds no background/operator surface. Shared queue/deployment/backup mechanics remain top-level Operations-owned.
+**P3 inventory decision:** Kingdoms retains domain-owned focused operational guides. K5-P2 still does not justify a dedicated runbook because it adds no background/operator surface; shared deployment/backup mechanics remain top-level Operations-owned.
 
-Accepted Kingdoms operational guides remain indexed and authoritative for their accepted capabilities:
+Accepted Kingdoms operational guides remain indexed and authoritative:
 
 - [Roster intelligence operations](kingdoms-roster-intelligence.md)
 - [Transfer planning operations](kingdoms-transfer-planning.md)
 - [Alliance intelligence operations](kingdoms-alliance-intelligence.md)
 - [Automated ingestion operations](kingdoms-automated-ingestion.md)
 
-P1 runtime candidate `9ef1d46b1db69708d575e82d8548145cf7769e68` passed Dependency Review `31559012856`, CodeQL `31559012854`, and CI `31559012861`: 541 Pint files, PHPStan 384/384 zero errors, 434 tests / 9,911 assertions, frontend/build, migrations, image/staging/backup/scan success.
+P2 runtime candidate `1a022e909cd246197510449a761a4856ce12b118` passed Dependency Review `31562753429`, CodeQL `31562753422`, and CI `31562753430`: Pint 550 files, PHPStan 390/390 zero errors, 440 tests / 10,025 assertions, frontend/build, migrations, image/staging/backup/scan success.
 
-Use with [Shared intelligence](../shared-intelligence.md), [Slice A validation](../product/kingdoms-shared-intelligence-slice-a-validation.md), [Slice A security review](../security/kingdoms-shared-intelligence-foundation-security-review.md), [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), and [rollback](../../../operations/runbooks/rollback.md).
+Use with [Shared intelligence](../shared-intelligence.md), [Slice B validation](../product/kingdoms-shared-intelligence-slice-b-validation.md), [Slice B security review](../security/kingdoms-shared-intelligence-current-facts-security-review.md), [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), and [rollback](../../../operations/runbooks/rollback.md).
