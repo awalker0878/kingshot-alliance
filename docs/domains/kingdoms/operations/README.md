@@ -56,13 +56,13 @@ After restore, inspect aggregate ingestion health and reconcile current source a
 
 Do not guess stable IDs, auto-create/reactivate roster/tracking, use machine correction/invalidation as recovery, or directly re-enable a source whose registry approval disappeared.
 
-## 8. Backup, restore, migration and retention
+## 8. Backup, restore, migration and rollback
 
 The K4 scheduling migration extends the accepted Kingdoms dependency chain after foundation/provenance migrations. Focused and whole-domain migration tests exercise down/up order; full CI applies all migrations on PostgreSQL.
 
 Shared backup/restore/immutable-image rollback applies. After restore, validate representative K1–K3 history, K4 ownership/cursor/scheduler/failure state, source approval, promoted-record correlation and independence of canonical history from operational K4 retention.
 
-Default K4 operational windows are 30-day terminal payload redaction, 90-day terminal promoted/rejected candidate and candidate-free terminal batch retention, 180-day quarantined-candidate retention, and 30-day disabled-subscription scheduling/failure compaction.
+Default K4 operational retention windows are 30-day terminal payload redaction, 90-day terminal promoted/rejected candidate and candidate-free terminal batch retention, 180-day quarantined-candidate retention, and 30-day disabled-subscription scheduling/failure compaction.
 
 ## 9. Capacity, query and performance boundaries
 
