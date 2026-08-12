@@ -29,7 +29,7 @@ type History = {
   nextCursor: string | null;
 };
 
-const props = defineProps<{
+defineProps<{
   alliance: { id: string; name: string; kingdom: string | null };
   canManage: boolean;
   current: CurrentRow[];
