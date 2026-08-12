@@ -3,14 +3,14 @@
 [← Kingdoms domain](../README.md) · [Shared operations](../../../operations/README.md)
 
 **Document type:** Living domain operations profile  
-**Status:** Current  
+**Status:** Current — `KINGDOMS-004` Accepted  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
 **Primary operational boundary:** Alliance-scoped roster/snapshot/import, transfer, Alliance-intelligence/diplomacy, and K4 ingestion/promotion/scheduler/maintenance state with shared deployment/recovery infrastructure
 
 ## 1. Operational purpose and runtime shape
 
-K1–K3 remain predominantly synchronous Laravel/PostgreSQL workflows with shared audit/outbox. K4 through P5 adds manager ingestion control, delegated factual promotion, generic background acquisition/scheduling, source-revocation reconciliation, bounded operational retention and payload-free health monitoring on shared Laravel Scheduler/Redis/Horizon infrastructure.
+K1–K3 remain predominantly synchronous Laravel/PostgreSQL workflows with shared audit/outbox. Accepted K4 adds manager ingestion control, delegated factual promotion, generic background acquisition/scheduling, source-revocation reconciliation, bounded operational retention and payload-free health monitoring on shared Laravel Scheduler/Redis/Horizon infrastructure.
 
 No concrete production source is configured; the production adapter allowlist remains empty.
 
@@ -66,13 +66,13 @@ Default K4 operational retention windows are 30-day terminal payload redaction, 
 
 ## 9. Capacity, query and performance boundaries
 
-K1–K3 retain accepted query gates. P4 bounds one acquisition page to 250 records, adapter polling to 60–86,400 seconds, job timeout to 120 seconds and dedicated production/staging queue concurrency to defaults of 2/1.
+K1–K3 retain accepted query gates. K4 bounds one acquisition page to 250 records, adapter polling to 60–86,400 seconds, job timeout to 120 seconds and dedicated production/staging queue concurrency to defaults of 2/1.
 
-P5 adds a realistic-volume operations gate: 250 subscriptions, 40 failed batches and 110 candidates must produce the aggregate health snapshot in no more than eight SELECT queries. These are repository safety/capacity limits, not a real-source throughput SLO.
+The accepted operations gate uses 250 subscriptions, 40 failed batches and 110 candidates and requires the aggregate health snapshot to remain at no more than eight SELECT queries. These are repository safety/capacity limits, not a real-source throughput SLO.
 
 ## 10. External-service degradation
 
-K4 generic failure/backoff/circuit/revocation mechanics exist, but there is still no accepted external game-data dependency. Do not add scraping/OCR/bots/unapproved provider calls as an operational workaround.
+K4 generic failure/backoff/circuit/revocation mechanics are accepted, but there is still no accepted external game-data dependency. Do not add scraping/OCR/bots/unapproved provider calls as an operational workaround.
 
 A later approved adapter must define authorization/terms, endpoint/network/TLS/egress, timeout/rate/cursor/schema/revocation behavior and safe secret boundaries.
 
@@ -93,6 +93,6 @@ Focused Kingdoms guides:
 - [Alliance intelligence operations](kingdoms-alliance-intelligence.md)
 - [Automated ingestion operations](kingdoms-automated-ingestion.md)
 
-K4-P5 runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` passed DR `31552113152`, CodeQL `31552113044`, CI `31552113042`, including frontend, 528 Pint files, PHPStan 374/374 zero errors, 428 tests / 9,736 assertions, image/staging/backup/scan.
+K4 whole-increment candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` passed Dependency Review `31556412455`, CodeQL `31556412413`, and CI `31556412468`: frontend/build, 529 Pint files, PHPStan 374/374 zero errors, 429 tests / 9,799 assertions, clean migrations, immutable image, staging, backup/restore and scan.
 
-Use with [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), [rollback](../../../operations/runbooks/rollback.md), [K4 Slice E validation](../product/kingdoms-automated-ingestion-slice-e-validation.md), and [Kingdoms security](../security/README.md).
+Use with [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), [rollback](../../../operations/runbooks/rollback.md), [K4 exit report](../product/kingdoms-automated-ingestion-exit-report.md), [K4 Slice E validation](../product/kingdoms-automated-ingestion-slice-e-validation.md), and [Kingdoms security](../security/README.md).
