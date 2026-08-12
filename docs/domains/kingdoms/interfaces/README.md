@@ -3,18 +3,18 @@
 [← Kingdoms domain](../README.md)
 
 **Document type:** Living domain interface profile  
-**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P4 first-party shared-intelligence presentation validated  
+**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P5 retention/capacity hardening validated  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 ingestion control/operations, K5 first-party consent/target mutations, bounded current/history queries and authenticated member/manager presentation, with internal-only `kingdoms.*` events
+**Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 ingestion control/operations, K5 first-party consent/target mutations, bounded current/history queries, authenticated member/manager presentation and bounded internal retention command/schedule, with internal-only `kingdoms.*` events
 
-**P4 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; K5 extends this profile without changing the frozen P4 interface-inventory convention or creating a public Kingdoms API.
+**P5 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; K5 P5 adds one internal operator/scheduler surface without creating a public Kingdoms API or changing the frozen interface-inventory convention.
 
 ## 1. Boundary purpose and ownership
 
-Kingdoms owns first-party neutral-game identity, roster/history/intelligence, transfer, game-Alliance tracking/observations/diplomacy/contacts, K4 ingestion, and K5 directional consent/target/current/history sharing plus first-party presentation.
+Kingdoms owns first-party neutral-game identity, roster/history/intelligence, transfer, game-Alliance tracking/observations/diplomacy/contacts, K4 ingestion, and K5 directional consent/target/current/history sharing plus first-party presentation and bounded operational retention.
 
-P4 exposes the accepted P1–P3 contracts through authenticated member/manager Inertia pages. P5 retention/operations/capacity work remains selected but locked behind its transition gate.
+P5 hardens the accepted P1–P4 contracts with internal maintenance and capacity evidence only. `K5-P6` whole-increment acceptance is selected but locked behind the P5 Complete / P6 Current transition gate.
 
 ## 2. Surface inventory
 
@@ -28,10 +28,16 @@ Existing K1–K4 routes remain unchanged. K5 authenticated mutation routes are:
 - `POST /alliance/kingdom-sharing/{share}/targets/{tracking}` — source explicitly grants one source-owned tracking target; and
 - `POST /alliance/kingdom-sharing/{share}/targets/{target}/remove` — source removes one explicit target grant.
 
-P4 first-party GET surfaces are:
+First-party GET surfaces are:
 
 - `GET /alliance/kingdom-sharing` — member-safe current facts and optional bounded history for one explicit share target; and
 - `GET /alliance/kingdom-sharing/manage` — manager-only consent/agreement/grant workspace.
+
+P5 internal operator surface is:
+
+- `php artisan kingdoms:enforce-sharing-retention --limit=<1..2000>` — bounded cleanup of eligible old K5 operational sharing rows; default/scheduled limit 500.
+
+The command is scheduled daily at 04:30 with `onOneServer()` and `withoutOverlapping(60)`.
 
 There is no public API/callback, anonymous feed, tenant directory/search or external sharing credential.
 
@@ -45,6 +51,8 @@ Source mutations resolve shares beneath `source_alliance_id`; target grant resol
 
 Every history page repeats live recipient/share/grant/source-context authorization. A continuation cursor never grants access by itself. Neutral Kingdom/game-Alliance identity never authorizes K5 access.
 
+The retention command is an operator-only runtime surface rather than a tenant HTTP capability. It uses only state/time eligibility and cannot create/regrant/retarget sharing.
+
 ## 4. Input and validation contracts
 
 Invitation accept/decline accepts a required 64-character lowercase hexadecimal token; lookup uses its hash while the invitation is pending.
@@ -56,6 +64,8 @@ Target grant accepts route share/tracking IDs only after source-tenant re-resolu
 History presentation accepts one explicit share-target ID and optional opaque encrypted continuation cursor. The cursor is target-bound and fixes the history `asOf` snapshot/keyset position/accepted-record count. Malformed, tampered or wrong-target cursors fail closed.
 
 The first-party UI exposes no arbitrary client-controlled history `asOf` parameter or equivalent older-window mechanism.
+
+Retention accepts only integer `--limit`; command and action clamp the work budget to 1–2000. Retention windows come from repository configuration and are clamped to safe positive values. Candidate selection and deletion both require the expected terminal/pending/removed state plus cutoff.
 
 No arbitrary observation payload, endpoint, credential, roster/diplomacy/contact data or recipient-supplied source fact enters K5 sharing.
 
@@ -69,6 +79,8 @@ Invitation creation returns share ID plus plaintext token once. The plaintext is
 
 Manager page props are bounded consent/grant/display metadata only. Current/history/manager props exclude invitation hashes, source tracking/stable game/observation IDs, actors, correction/invalidation metadata, manager notes, private/K4 fields and recipient mutation authority.
 
+Retention command output is metadata-only JSON: `expiredInvitationsPurged`, `terminalSharesPurged`, `removedTargetsPurged`, `processed`. It does not emit invitation secrets or shared observation payloads.
+
 ## 6. Internal actions, queries and services
 
 Current K5 contracts include:
@@ -81,6 +93,7 @@ Current K5 contracts include:
 - `AddKingdomIntelligenceShareTarget`;
 - `RemoveKingdomIntelligenceShareTarget`;
 - `InvalidateKingdomIntelligenceSharesForAllianceDrift`;
+- `EnforceKingdomIntelligenceSharingRetention`;
 - `KingdomIntelligenceShareTokenService`;
 - `KingdomIntelligenceSharingManageQuery`;
 - `SharedKingdomIntelligenceCurrentQuery`;
@@ -93,19 +106,31 @@ The history cursor is an internal continuation mechanism, not a public authentic
 
 P1 consent and P2 target/context events remain internal `kingdoms.*` external-webhook-ineligible events.
 
-P3/P4 add no public mutation/integration event for reads/presentation. Current/history payload bodies, encrypted cursors and invitation plaintext/hash material are not Audit/outbox payloads.
+P3/P4 add no public mutation/integration event for reads/presentation. P5 retention adds no new public event contract and does not delete Audit/outbox evidence.
+
+Current/history payload bodies, encrypted cursors and invitation plaintext/hash material are not Audit/outbox payloads.
 
 ## 8. Commands, jobs and scheduled work
 
-K5 through P4 adds no Artisan command, queue job, scheduler entry or operator execution surface. K4 scheduled ingestion/maintenance remains unchanged.
+K5 P5 adds the Artisan command `kingdoms:enforce-sharing-retention {--limit=500}`.
 
-Bounded invitation/agreement/grant retention operations and broader capacity diagnostics remain P5 work.
+It uses one shared per-run budget clamped to 1–2000 and deletes in priority order:
+
+1. sufficiently old expired pending invitations;
+2. sufficiently old declined/revoked agreements; then
+3. sufficiently old removed target grants.
+
+The command is scheduled daily at 04:30 with `onOneServer()` and `withoutOverlapping(60)`.
+
+K5 still adds no queue job. K4 scheduled ingestion/maintenance remains unchanged.
 
 ## 9. Files, imports, exports and external dependencies
 
 Controlled [CSV migration](../csv-migration.md) remains the material Kingdoms file contract. K5 adds no file/export contract or external provider dependency.
 
 Invitation tokens and history cursors are first-party transient secrets/state, not external API credentials or public sharing links. Current/history facts are not exported as files or a public feed.
+
+Retention operates only on PostgreSQL-owned K5 operational metadata.
 
 ## 10. Failure, idempotency, versioning and compatibility
 
@@ -119,11 +144,15 @@ History uses encrypted target-bound keyset continuation with fixed snapshot and 
 
 The P4 forward nullable-hash schema migration preserves accepted P1 history by using deterministic retired placeholders only when rolling back to the historical non-null schema, then restoring terminal null values on reapply.
 
+P5 retention is idempotent once no rows are eligible. Candidate IDs are not unconditional delete authority: state/cutoff eligibility is rechecked in the destructive statement.
+
 K5 creates no public compatibility contract.
 
 ## 11. Explicit non-capabilities
 
-Current K5 runtime does not provide arbitrary historical-window selection, player/roster sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, reshare, tenant directory/search, public API/webhook, P5 retention/capacity runtime, scoring/ranking/recommendations or automatic decisions.
+Current K5 runtime does not provide arbitrary historical-window selection, player/roster sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, reshare, tenant directory/search, public API/webhook, recipient canonical materialization, scoring/ranking/recommendations or automatic decisions.
+
+P6 whole-increment acceptance is not a new runtime feature capability.
 
 ## 12. Focused contracts, evidence and related documentation
 
@@ -136,6 +165,9 @@ Current K5 runtime does not provide arbitrary historical-window selection, playe
 - [K5 Slice C security review](../security/kingdoms-shared-intelligence-history-security-review.md)
 - [K5 Slice D validation](../product/kingdoms-shared-intelligence-slice-d-validation.md)
 - [K5 Slice D presentation security review](../security/kingdoms-shared-intelligence-presentation-security-review.md)
+- [K5 Slice E validation](../product/kingdoms-shared-intelligence-slice-e-validation.md)
+- [K5 Slice E security review](../security/kingdoms-shared-intelligence-retention-security-review.md)
+- [K5 Slice E retention runbook](../operations/kingdoms-shared-intelligence-retention.md)
 - [K5 implementation plan](../product/kingdoms-shared-intelligence-implementation-plan.md)
 - [Automated ingestion](../automated-ingestion.md)
 - [CSV migration](../csv-migration.md)
@@ -145,4 +177,4 @@ Current K5 runtime does not provide arbitrary historical-window selection, playe
 - [Interface documentation standard](../../../product/interface-documentation-standard.md)
 - [P4 interface coverage matrix](../../../product/interface-coverage-matrix.md)
 
-P4 runtime candidate `9a095ae62e9b913ece6d619c3744574f0b91fd6f` passed Dependency Review `31569202741`, CodeQL `31569202422`, and CI `31569202418` with 448 tests / 10,160 assertions plus full frontend/recovery evidence.
+P5 runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed Dependency Review `31570931190`, CodeQL `31570931290`, and CI `31570931267` with 451 tests / 10,230 assertions plus full frontend/recovery evidence.
