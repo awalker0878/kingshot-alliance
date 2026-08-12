@@ -3,10 +3,10 @@
 [← Kingdoms domain](../README.md)
 
 **Document type:** Living domain testing and evidence profile  
-**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P5 retention/capacity hardening validated  
+**Status:** Current — `KINGDOMS-004` and `KINGDOMS-005` Accepted  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary validation boundary:** Neutral identity, tenant-owned Kingdoms workflows, K4 ingestion isolation/idempotency, K5 consent/grant/current/history/presentation/retention isolation and explicit public/decision-automation non-capabilities
+**Primary validation boundary:** Neutral identity, tenant-owned Kingdoms workflows, K4 ingestion isolation/idempotency, accepted K5 consent/grant/current/history/presentation/retention isolation and explicit public/decision-automation non-capabilities
 
 **P5 evidence decision:** Current proof is mapped by executable suite/evidence class and immutable candidate identities; K5 adds focused cross-tenant/retention/capacity evidence without replacing K1–K4 accepted evidence.
 
@@ -16,13 +16,15 @@ Kingdoms validation protects identity/tenant separation, append history, human-o
 
 P5 preserves all P1–P4 claims and additionally proves old operational consent/grant rows can be removed only through bounded state/time predicates while active/canonical/Audit/outbox state is preserved. It also proves accepted current/history query and response bounds at realistic fixture volume without introducing a cache/materialized recipient copy.
 
+P6 composes the complete K5 seam in one whole-increment acceptance test and re-proves consent, explicit grant, safe correction-aware current/history projection, first-party presentation, tenant isolation, no copy/reshare/mutation, immediate authorization loss and retention/canonical-evidence independence.
+
 ## 2. Executable suite mapping
 
 All six PHPUnit groups remain material: Architecture, Feature, Integration, Performance, TenantIsolation and Unit.
 
 Architecture protects ownership/non-capabilities/public exposure/accessibility/documentation; Feature protects consent/grant/current/history/presentation/retention workflows; Integration protects Audit/outbox/migrations; TenantIsolation protects source/recipient/grant boundaries; Performance protects bounded current/history behavior at larger fixture volume.
 
-P5 adds `KingdomSharedIntelligenceRetentionTest` and `KingdomSharedIntelligenceCapacityTest` to the accepted P1–P4 K5 suite.
+K5 adds `KingdomSharedIntelligenceRetentionTest`, `KingdomSharedIntelligenceCapacityTest`, and whole-increment `KingdomSharedIntelligenceAcceptanceTest` to the accepted P1–P4 suite.
 
 ## 3. Architecture and domain-boundary validation
 
@@ -32,7 +34,7 @@ K5 authenticated first-party GET presentation plus password-confirmed mutation r
 
 P1's historical no-sharing invariant remains protected: invitation creation alone creates zero target grants and no observation data is disclosed.
 
-P5 introduces an internal Artisan/scheduler retention surface only; it does not add a public data route/interface.
+P5 introduces an internal Artisan/scheduler retention surface only; it does not add a public data route/interface. P6 adds no new runtime or public interface.
 
 ## 4. Authorization, tenancy, security and privacy validation
 
@@ -47,6 +49,8 @@ P5 introduces an internal Artisan/scheduler retention surface only; it does not 
 `KingdomSharedIntelligencePresentationTest` proves member-safe props, manager-only workspace access, safe manager props, invitation plaintext non-persistence and `canManage` behavior.
 
 `KingdomSharedIntelligenceRetentionTest` proves retention eligibility, one-total-budget bounds/idempotency, active share/grant preservation, canonical tracking/observation preservation, terminal-share target cascade, and durable Audit/outbox evidence.
+
+`KingdomSharedIntelligenceAcceptanceTest` proves the complete cross-tenant acceptance seam on one scenario, including unrelated-tenant failure, safe correction propagation, no recipient canonical copy/reshare/mutation, immediate remove/revoke authorization loss and terminal retention preserving canonical/Audit/outbox evidence.
 
 ## 5. Feature, interface and integration validation
 
@@ -65,10 +69,11 @@ Focused K5 scenarios cover:
 - invitation token creation response as the only plaintext presentation seam;
 - accept/decline/revoke terminal hash erasure;
 - nullable-hash schema down→up recovery while preserving terminal state/recipient;
-- bounded scheduled/operator retention without active/canonical/Audit/outbox deletion; and
+- bounded scheduled/operator retention without active/canonical/Audit/outbox deletion;
+- unrelated-tenant denial and source mutation isolation; and
 - no public K5 API/webhook/directory surface.
 
-P1–P4 evidence remains additive.
+P1–P5 evidence remains additive.
 
 ## 6. Idempotency, concurrency and asynchronous validation
 
@@ -80,7 +85,7 @@ History is read-only and uses keyset continuation. The encrypted cursor fixes ta
 
 P5 retention is scheduled but not queued. It selects a bounded ordered candidate set and repeats state/cutoff predicates in the delete statement. Focused tests prove repeated runs drain eligible work within one total budget and become no-op/idempotent when no work remains.
 
-K5 still has no authorization cache/materialized recipient projection.
+K5 has no authorization cache/materialized recipient projection.
 
 ## 7. Persistence, migration, rollback and recovery evidence
 
@@ -88,9 +93,9 @@ All three K5 migrations are included in clean PostgreSQL CI. P4's forward `03000
 
 The full Kingdoms round trip includes the migration in correct dependency order. Focused recovery evidence proves a terminal null hash receives a deterministic retired placeholder on rollback to the historical non-null schema, then returns to null on reapply while terminal state/recipient binding remains unchanged.
 
-P5 adds no schema migration. Protected P5 CI passed the repository backup/restore demonstration with the retention runtime present.
+P5 adds no schema migration. Protected whole-increment CI passed the repository backup/restore demonstration with the accepted K5 runtime present.
 
-Retention-focused feature evidence proves canonical source observations and Audit/outbox evidence survive operational cleanup. Recipient history remains a live source projection, so there is no recipient observation copy to restore.
+Retention-focused feature and P6 acceptance evidence prove canonical source observations and Audit/outbox evidence survive operational cleanup. Recipient history remains a live source projection, so there is no recipient observation copy to restore.
 
 ## 8. Performance, query and capacity evidence
 
@@ -113,9 +118,9 @@ These are regression/capacity fixtures, not production throughput/latency/concur
 
 ## 9. Accessibility and frontend evidence
 
-P4 added the member-safe `Alliance/KingdomSharing` and manager-only `Alliance/KingdomSharingManage` pages; P5 does not change their presentation contract.
+P4 added the member-safe `Alliance/KingdomSharing` and manager-only `Alliance/KingdomSharingManage` pages; P5/P6 do not change their presentation contract.
 
-The P5 runtime candidate independently passed frontend dependency audit, ESLint, locked Prettier/Tailwind formatting, Vue TypeScript validation and production frontend build. Existing architecture checks continue to enforce semantic/label/table/status controls and absence of an arbitrary `asOf` UI.
+The whole-increment runtime candidate independently passed frontend dependency audit, ESLint, locked Prettier/Tailwind formatting, Vue TypeScript validation and production frontend build. Existing architecture checks continue to enforce semantic/label/table/status controls and absence of an arbitrary `asOf` UI.
 
 ## 10. Historical accepted evidence
 
@@ -131,29 +136,32 @@ K5-P3 candidate `70739d320caab059d2102feda081be33754b77ec` passed DR `3156426386
 
 K5-P4 candidate `9a095ae62e9b913ece6d619c3744574f0b91fd6f` passed DR `31569202741`, CodeQL `31569202422`, CI `31569202418` with 448 tests / 10,160 assertions.
 
-K5-P5 runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed:
+K5-P5 runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed DR `31570931190`, CodeQL `31570931290`, CI `31570931267` with Pint 559 files, PHPStan/Larastan 394/394 zero errors and 451 tests / 10,230 assertions plus full frontend/recovery evidence.
 
-- Dependency Review `31570931190`;
-- CodeQL `31570931290`;
-- CI `31570931267`;
-- Pint — 559 files;
+K5-P6 whole-increment runtime candidate `6f84b51ab27941f0fec2abce71f1f2f6325560e4` passed:
+
+- Dependency Review `31573301975`;
+- CodeQL `31573301988`;
+- CI `31573301977`;
+- Pint — 560 files;
 - PHPStan/Larastan — 394/394, zero errors;
-- ParaTest/PHPUnit — 451 tests / 10,230 assertions;
+- ParaTest/PHPUnit — 452 tests / 10,322 assertions;
+- whole-increment `KingdomSharedIntelligenceAcceptanceTest` — passing;
 - frontend lint/locked-format/type/build and clean migrations — success; and
 - immutable image, staging, backup/restore, scan and cleanup — success.
+
+The immediately preceding P5→P6 transition head `0eb0444ee195fd3a09c9c9c07cdb2b1ddcb92873` independently passed DR `31572748561`, CodeQL `31572748558`, and CI `31572748595`.
 
 ## 11. Evidence identity, retention and supersession
 
 Historical accepted evidence remains immutable. Current behavior follows current code/tests/living contracts.
 
-K5 P5 runtime acceptance is attached to exact implementation candidate `b47f639a275652590304fccef051f78997a0153c`. The exact containing evidence/status head that records P5 Complete / P6 Current must independently pass protected gates before whole-increment P6 acceptance begins.
+K5 whole-increment runtime acceptance is attached to exact implementation candidate `6f84b51ab27941f0fec2abce71f1f2f6325560e4`. The containing acceptance/status documentation head must also remain protected-green before PR completion.
 
 K5 operational retention must not erase acceptance evidence or canonical K3 observations. Audit/outbox business evidence remains outside the K5 cleanup action. Immediate consumed/terminal invitation-hash erasure remains accepted P4 behavior. Encrypted history cursors are transient continuation state and are not acceptance evidence.
 
 ## 12. Gaps, non-capabilities and related documentation
 
-P6 still must aggregate and re-prove the complete K5 cross-tenant seam on one exact candidate; it is an acceptance gate, not permission to widen runtime scope.
+Accepted K5 runtime provides no arbitrary historical-window selection, player/roster sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, public APIs/webhooks, tenant directory, recipient canonical copy/reshare, scoring/ranking/recommendations or automatic decisions.
 
-Current runtime provides no arbitrary historical-window selection, player/roster sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, public APIs/webhooks, tenant directory, recipient canonical copy/reshare, scoring/ranking/recommendations or automatic decisions.
-
-Related: [Shared intelligence](../shared-intelligence.md), [Slice E validation](../product/kingdoms-shared-intelligence-slice-e-validation.md), [Slice E security review](../security/kingdoms-shared-intelligence-retention-security-review.md), [retention runbook](../operations/kingdoms-shared-intelligence-retention.md), [Security profile](../security/README.md), [Operations profile](../operations/README.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md), [P5 testing/evidence coverage matrix](../../../product/testing-evidence-coverage-matrix.md).
+Related: [Shared intelligence](../shared-intelligence.md), [Slice E validation](../product/kingdoms-shared-intelligence-slice-e-validation.md), [Slice E security review](../security/kingdoms-shared-intelligence-retention-security-review.md), [retention runbook](../operations/kingdoms-shared-intelligence-retention.md), [K5 whole-increment exit report](../product/kingdoms-shared-intelligence-exit-report.md), [Security profile](../security/README.md), [Operations profile](../operations/README.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md), [P5 testing/evidence coverage matrix](../../../product/testing-evidence-coverage-matrix.md).
