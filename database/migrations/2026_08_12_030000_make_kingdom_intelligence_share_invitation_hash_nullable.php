@@ -24,9 +24,11 @@ return new class extends Migration
             ->orderBy('id')
             ->get();
 
-        foreach ($terminalRows as $row) {
-            $id = (string) $row->id;
-            $hash = (string) $row->invitation_token_hash;
+        foreach ($terminalRows as $terminalRow) {
+            /** @var array{id: mixed, invitation_token_hash: mixed} $row */
+            $row = (array) $terminalRow;
+            $id = (string) $row['id'];
+            $hash = (string) $row['invitation_token_hash'];
 
             if (! hash_equals($this->retiredHash($id), $hash)) {
                 continue;
@@ -46,8 +48,10 @@ return new class extends Migration
             ->orderBy('id')
             ->get();
 
-        foreach ($rows as $row) {
-            $id = (string) $row->id;
+        foreach ($rows as $result) {
+            /** @var array{id: mixed} $row */
+            $row = (array) $result;
+            $id = (string) $row['id'];
             DB::table('kingdom_intelligence_shares')
                 ->where('id', $id)
                 ->update(['invitation_token_hash' => $this->retiredHash($id)]);
