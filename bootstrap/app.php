@@ -42,6 +42,8 @@ return Application::configure(basePath: dirname(__DIR__))
         if ($trustedProxies !== []) {
             $middleware->trustProxies(
                 at: $trustedProxies === ['*'] ? '*' : $trustedProxies,
+                headers: Request::HEADER_X_FORWARDED_FOR
+                    | Request::HEADER_X_FORWARDED_PROTO,
             );
         }
 
