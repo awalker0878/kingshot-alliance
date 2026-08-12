@@ -3,14 +3,14 @@
 [← Kingdoms domain](README.md)
 
 **Document type:** Living capability contract  
-**Status:** Current — `KINGDOMS-005` through `K5-P4` / Slice D runtime validated; `K5-P5` selected pending exact transition-head validation  
+**Status:** Current — `KINGDOMS-005` through `K5-P5` / Slice E runtime validated; `K5-P6` selected pending exact transition-head validation  
 **Owning domain:** `Kingdoms`
 
 ## 1. Purpose
 
 Opt-in shared Kingdom intelligence provides a deliberately authorized source-Alliance → recipient-Alliance path for selected safe game-Alliance observation facts.
 
-K5 currently includes the P1 consent foundation, P2 explicit target/current-fact sharing, P3 bounded accepted history, and P4 complete first-party member/manager presentation. Source observations remain canonical/source-owned. P5 retention/operations/capacity hardening is selected but not runtime-authorized until the containing transition head is protected-green.
+K5 currently includes the P1 consent foundation, P2 explicit target/current-fact sharing, P3 bounded accepted history, P4 complete first-party member/manager presentation, and P5 bounded retention/operations/capacity hardening. Source observations remain canonical/source-owned. P6 is the whole-increment acceptance gate and remains locked until the containing transition head is protected-green.
 
 ## 2. Scope and non-scope
 
@@ -22,10 +22,12 @@ Current scope includes:
 - bounded accepted source observation history for one active explicit grant;
 - member-safe first-party current/history presentation;
 - manager-only first-party invitation/agreement/grant management;
-- immediate persisted invitation-hash erasure on accept, decline and revoke; and
-- persistent fail-closed K5 agreement invalidation when the supported Alliance→Kingdom workflow changes either participant's Kingdom.
+- immediate persisted invitation-hash erasure on accept, decline and revoke;
+- persistent fail-closed K5 agreement invalidation when the supported Alliance→Kingdom workflow changes either participant's Kingdom;
+- bounded scheduled retention of eligible old K5 operational consent/grant rows; and
+- realistic-volume current/history regression/capacity evidence without a recipient cache/materialized copy.
 
-Still out of scope: roster/player/snapshot sharing; transfer sharing; diplomacy/contact sharing; cross-Kingdom sharing; tenant directory/search; transitive reshare; public API/webhooks; scoring/ranking/recommendations; automatic decisions; and P5 retention/capacity runtime until its transition gate opens.
+Still out of scope: roster/player/snapshot sharing; transfer sharing; diplomacy/contact sharing; cross-Kingdom sharing; tenant directory/search; transitive reshare; public API/webhooks; scoring/ranking/recommendations; automatic decisions; and P6 acceptance until its transition gate opens.
 
 ## 3. Model and state
 
@@ -36,6 +38,8 @@ Still out of scope: roster/player/snapshot sharing; transfer sharing; diplomacy/
 Current/history reads project source-owned accepted `KingdomAllianceObservation` rows. K5 does not materialize recipient observation history.
 
 History continuation state is encrypted/authenticated transient cursor data, not a persisted data-ownership record or reusable authorization credential.
+
+P5 operational retention may delete only sufficiently old pending/terminal/removed K5 operational rows. It never deletes active shares/grants, source tracking/observations, Audit events or outbox messages.
 
 ## 4. Invariants
 
@@ -60,6 +64,10 @@ History continuation state is encrypted/authenticated transient cursor data, not
 19. Manager agreement/grant state remains manager-only; safe current/history facts are member-safe.
 20. Invitation plaintext exists only in the authenticated creation response/component memory and never in Inertia/session props.
 21. All K5 events remain internal/public-webhook ineligible.
+22. Retention has one total bounded work budget and cannot create/reactivate authorization.
+23. Active shares/grants and canonical source tracking/observations are never retention-eligible.
+24. Retention deletion repeats state/cutoff eligibility so stale candidate IDs cannot delete rows that became non-eligible.
+25. Audit/outbox business evidence remains outside K5 operational retention.
 
 ## 5. Workflows
 
@@ -72,6 +80,8 @@ Recipient current facts are provided by `SharedKingdomIntelligenceCurrentQuery`.
 P3 accepted history is provided by `SharedKingdomIntelligenceHistoryQuery` for one explicit share target. The first page fixes an internal `asOf`; continuation pages use an encrypted target-bound cursor containing the fixed snapshot, keyset position and authenticated `seen` count. Pages are capped at 50 and one traversal stops at 250 accepted observations.
 
 P4 exposes those accepted reads through `Alliance/KingdomSharing` and consent/grant management through `Alliance/KingdomSharingManage`. History links carry only explicit target + opaque server-issued cursor; the UI exposes no `asOf` selector.
+
+P5 adds `kingdoms:enforce-sharing-retention --limit=500`, scheduled daily at 04:30 on one server without overlap. One invocation uses one total 1–2000 budget and processes expired pending invitations → old terminal shares → old removed grants.
 
 When an Alliance changes Kingdom through `UpdateAllianceKingdom`, affected active agreements/source pending invitations are terminalized before commit. A new relationship requires a new invitation/agreement.
 
@@ -89,15 +99,19 @@ Excluded: invitation hashes/plaintext outside the creation response, source trac
 
 Counterpart Audit records use null actor where needed to avoid cross-tenant manager User-ID leakage.
 
+P5 retention does not widen tenant visibility or grant any recipient/operator read capability.
+
 ## 7. Persistence and query semantics
 
 `kingdom_intelligence_shares` stores consent metadata; `kingdom_intelligence_share_targets` stores explicit grant history. Source `KingdomAllianceObservation` rows remain canonical.
 
 The accepted P1 migration remains historical evidence. P4's forward `030000` migration makes `invitation_token_hash` nullable so consumed/terminal secret-derived values can be erased. Its rollback writes deterministic per-share retired placeholders solely to satisfy the historical non-null schema; reapply recognizes terminal placeholders and restores null. Pending invitation hashes are preserved.
 
-`SharedKingdomIntelligenceCurrentQuery::CURRENT_LIMIT` is 250 and uses no more than two SELECTs under the focused 12-target fixture.
+`SharedKingdomIntelligenceCurrentQuery::CURRENT_LIMIT` is 250. P5 realistic-volume evidence at 300 active grants proves exactly 250 returned rows, no more than two SELECTs and no recipient canonical observations.
 
-`SharedKingdomIntelligenceHistoryQuery` uses 50-row maximum keyset pages and the K3 `HISTORY_LIMIT = 250`. Each page uses one authorization/context query and one accepted-observation query under the focused 260-observation fixture.
+`SharedKingdomIntelligenceHistoryQuery` uses 50-row maximum keyset pages and `HISTORY_LIMIT = 250`. P5 realistic-volume evidence at 1,000 source observations proves five 50-row pages, termination at 250 and no more than two SELECTs per page.
+
+The reviewed encoded fixture ceilings are 160,000 bytes for the bounded current projection and 50,000 bytes per history page. These are regression/capacity evidence, not production throughput/latency SLOs.
 
 The history cursor is encrypted/authenticated and target-bound. It fixes `asOf`, last capture timestamp/order ID and cumulative accepted count. Invalid/tampered/wrong-target cursors fail with a bounded validation error.
 
@@ -109,7 +123,7 @@ P1 consent and P2 target/context events remain internal `kingdoms.*` events and 
 
 P3/P4 presentation adds no public integration event. Current/history payloads/cursors and invitation plaintext are not Audit/outbox payloads and must not be copied into general logs.
 
-K5 through P4 adds no dedicated background job, scheduler, public API, inbound callback, anonymous sharing feed or external machine credential.
+P5 adds one internal Artisan/scheduler maintenance surface only. It adds no public API, inbound callback, anonymous sharing feed, external machine credential, queue job or external provider dependency.
 
 ## 9. Failure, idempotency and concurrency
 
@@ -123,23 +137,29 @@ Relevant mutation lock order remains Alliance(s) → share → target. Supported
 
 History keyset pagination avoids mutable client offsets; encrypted cursor state is bound to target/fixed snapshot and total accepted-record cap.
 
+Retention is idempotent after eligible rows are gone. It selects bounded candidate IDs and repeats state/cutoff predicates during deletion, preserving a row that changed to a non-eligible state between the two steps.
+
 ## 10. Operations and observability
 
-K5 through P4 adds no K5 health command/background workload. Safe diagnostics remain share/target identifiers, authorized Alliance IDs, captured Kingdom, state and timestamps.
+K5 P5 provides the bounded retention command and schedule. Safe diagnostics remain share/target identifiers, authorized Alliance IDs, captured Kingdom, state/timestamps, configured retention windows and command result counts.
+
+Default operational retention windows are 30 days after invitation expiry, 180 days for terminal shares and 90 days for removed grants. The command default/scheduled budget is 500 and runtime cap is 2000.
 
 Do not log invitation plaintext, invitation hashes, history/current payload bodies, encrypted cursors, source manager notes, diplomacy/contact data or K4 provenance. Do not repair/reactivate shares/targets by database edits.
 
-Retention/cleanup of expired/terminal agreement/grant operational records, realistic-volume current/history capacity and any authorization-safe caching remain P5 work. Immediate terminal invitation-hash erasure is already P4 runtime behavior and must not be deferred to P5 retention jobs.
+After database restore, live authorization remains authoritative. If old eligible operational rows are restored, rerun bounded retention only after normal restore validation.
+
+See [shared-intelligence retention operations](operations/kingdoms-shared-intelligence-retention.md).
 
 ## 11. Tests and validation
 
-P4 runtime candidate `9a095ae62e9b913ece6d619c3744574f0b91fd6f` passed Dependency Review `31569202741`, CodeQL `31569202422`, and CI `31569202418`.
+P5 runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed Dependency Review `31570931190`, CodeQL `31570931290`, and CI `31570931267`.
 
-CI passed Pint for **556 files**, PHPStan/Larastan **393/393 with zero errors**, **448 tests / 10,160 assertions**, frontend lint/locked-format/type/build, clean PostgreSQL migrations, immutable image, ephemeral staging, backup/restore, image scan and cleanup.
+CI passed Pint for **559 files**, PHPStan/Larastan **394/394 with zero errors**, **451 tests / 10,230 assertions**, frontend lint/locked-format/type/build, clean PostgreSQL migrations, immutable image, ephemeral staging, backup/restore, image scan and cleanup.
 
-Focused P4 evidence proves member/manager page-prop isolation, manager-only access, invitation plaintext non-persistence, immediate terminal hash erasure, nullable-hash migration down/up recovery, fail-closed lifecycle/context behavior, opaque bounded history navigation, absence of arbitrary `asOf` UI and accessible controls.
+Focused P5 evidence proves retention eligibility/bounds/idempotency, one-total-budget behavior, active-record preservation, terminal-share target cascade without canonical-history deletion, durable Audit/outbox evidence, 300-target current capacity, 1,000-observation history capacity, response-size ceilings and zero recipient canonical copies.
 
-P2/P3 current/history query and no-copy evidence remains additive and accepted.
+P1–P4 consent/current/history/presentation/security evidence remains additive and accepted.
 
 ## 12. Related documentation
 
@@ -155,6 +175,9 @@ P2/P3 current/history query and no-copy evidence remains additive and accepted.
 - [K5 Slice C security review](security/kingdoms-shared-intelligence-history-security-review.md)
 - [K5 Slice D validation](product/kingdoms-shared-intelligence-slice-d-validation.md)
 - [K5 Slice D presentation security review](security/kingdoms-shared-intelligence-presentation-security-review.md)
+- [K5 Slice E validation](product/kingdoms-shared-intelligence-slice-e-validation.md)
+- [K5 Slice E security review](security/kingdoms-shared-intelligence-retention-security-review.md)
+- [K5 Slice E retention operations](operations/kingdoms-shared-intelligence-retention.md)
 - [Alliance intelligence and diplomacy](alliance-intelligence.md)
 - [Kingdoms interfaces](interfaces/README.md)
 - [Kingdoms testing/evidence](testing/README.md)
