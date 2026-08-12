@@ -2,12 +2,13 @@
 
 [← Kingdoms product and acceptance evidence](README.md)
 
-**Status:** Planning only — `K5-P0` contract lock current; no runtime capability exists  
+**Status:** In progress — `K5-P0` Complete; `K5-P1` selected pending exact transition-head validation  
 **Scope ID:** `KINGDOMS-005`  
 **Owning domain:** `Kingdoms`  
 **Baseline dependency:** Accepted `KINGDOMS-001` through `KINGDOMS-004`  
 **Implementation sequence:** [KINGDOMS-005 implementation plan](kingdoms-shared-intelligence-implementation-plan.md)  
-**P0 decisions:** [KINGDOMS-005 K5-P0 design decisions](kingdoms-shared-intelligence-p0-decisions.md)
+**P0 decisions:** [KINGDOMS-005 K5-P0 design decisions](kingdoms-shared-intelligence-p0-decisions.md)  
+**P0 exit:** [KINGDOMS-005 K5-P0 exit report](kingdoms-shared-intelligence-p0-exit-report.md)
 
 ## 1. Purpose
 
@@ -15,7 +16,15 @@
 
 The increment exists to let cooperating Alliances reduce duplicated intelligence collection while preserving the tenant boundary established by K1-K4. Sharing is a deliberately authorized read path over source-owned canonical Kingdoms facts. It is not a cross-tenant database merge, a public directory, a data marketplace, an automatic diplomacy system, or a new acquisition channel.
 
-## 2. Initial product boundary
+## 2. Current governed state
+
+`K5-P0` is Complete at candidate `d9e05fd06bd08050e5489598406cfb556d5bc0ac`, which passed Dependency Review `31557697685`, CodeQL `31557697793`, and CI `31557697725` with Pint 529 files, PHPStan/Larastan 374/374 zero errors, and 429 tests / 9,809 assertions plus frontend, image, staging, backup/restore and scan.
+
+`K5-P1` / Slice A is selected next, but runtime implementation may begin only after the exact containing P0 Complete / P1 Current transition head is independently protected-green.
+
+Slice A is consent-foundation only. No observation/current/history sharing is authorized by P0 completion.
+
+## 3. Initial product boundary
 
 The initial increment is intentionally narrow:
 
@@ -28,9 +37,9 @@ The initial increment is intentionally narrow:
 - recipient reads remain read-only views of source-owned accepted observation facts; and
 - revocation or context invalidation removes recipient access without copying the source history into recipient-owned canonical tables.
 
-## 3. Shared data allowed in the initial increment
+## 4. Shared data allowed in the initial increment
 
-A shared projection may expose only safe factual game-Alliance observation information already suitable for ordinary Kingdoms intelligence presentation, such as:
+A later accepted shared projection may expose only safe factual game-Alliance observation information already suitable for ordinary Kingdoms intelligence presentation, such as:
 
 - neutral game-Alliance current name/tag needed for display;
 - accepted observed name/tag;
@@ -42,9 +51,11 @@ A shared projection may expose only safe factual game-Alliance observation infor
 
 A later slice may expose a bounded accepted observation history for an explicitly shared target, but only from the source-owned canonical K3 history and only while the share remains authorized.
 
-## 4. Data excluded from sharing
+Slice A does not expose any of these observation facts.
 
-The initial increment does **not** share:
+## 5. Data excluded from sharing
+
+The increment does **not** share:
 
 - player roster entries or player snapshots;
 - transfer plans, participants, groups, readiness, blockers or completion state;
@@ -59,7 +70,7 @@ The initial increment does **not** share:
 - private manager text; or
 - any score, ranking, threat/desirability assessment or recommendation.
 
-## 5. Consent model
+## 6. Consent model
 
 Sharing requires two-party manager consent.
 
@@ -69,13 +80,13 @@ An authorized manager of another active Alliance redeems the invitation under th
 
 The source may revoke an active agreement at any time. The recipient may leave/decline an agreement. Revocation/decline cannot grant additional access and must not be blocked by stale source data.
 
-## 6. No Alliance-directory expansion
+## 7. No Alliance-directory expansion
 
 K5 does not create a public or member-visible platform Alliance directory merely to locate sharing partners.
 
 The initial invitation-token handshake avoids exposing tenant IDs, manager lists, contact directories or searchable Alliance enumeration as a prerequisite for sharing. The product may display the source Alliance identity to the recipient after the recipient deliberately redeems the invitation, and each side may see the counterpart identity for its own accepted/pending agreement management.
 
-## 7. Same-Kingdom boundary
+## 8. Same-Kingdom boundary
 
 A share captures one Kingdom context.
 
@@ -87,9 +98,9 @@ Activation and every shared-data read must verify:
 
 If either platform Alliance changes Kingdom, recipient access fails closed. K5 does not silently retarget an agreement to the new Kingdom and does not use shared intelligence as a bridge across Kingdoms.
 
-The exact invalidation/suspension persistence behavior is locked in K5-P0 before runtime work begins.
+P0 locks recovery after drift as a new deliberate agreement, not implicit reactivation.
 
-## 8. Source ownership and recipient read semantics
+## 9. Source ownership and recipient read semantics
 
 The source Alliance remains the sole owner of its tracking relationship and accepted observation history.
 
@@ -103,9 +114,9 @@ The recipient receives no ownership over source observations and cannot:
 - use the share to create/reactivate local tracking automatically; or
 - reshare the source's data to another Alliance.
 
-Recipient queries must cross the tenant boundary only through an active authorized share agreement and explicit shared target selection.
+Recipient queries in later slices must cross the tenant boundary only through an active authorized share agreement and explicit shared target selection.
 
-## 9. Correction, invalidation and freshness behavior
+## 10. Correction, invalidation and freshness behavior
 
 Shared reads are projections over the source's currently accepted canonical facts.
 
@@ -113,15 +124,15 @@ If the source later invalidates/corrects an observation, the recipient must not 
 
 Missing values remain distinct from zero. Freshness is descriptive only and creates no automatic decision or diplomacy state.
 
-## 10. Authorization and member visibility
+## 11. Authorization and member visibility
 
 Share invitation creation, acceptance/decline, revocation and shared-target management require `kingdoms.manage` plus recent password confirmation.
 
-Once a share is active, the recipient may expose the approved safe shared projection to members with `alliance.view`, because the projection is restricted to member-safe factual fields. Management metadata about invitations, consent history, counterpart management state and revocation remains manager-only.
+Once a later sharing slice is active, the recipient may expose the approved safe shared projection to members with `alliance.view`, because the projection is restricted to member-safe factual fields. Management metadata about invitations, consent history, counterpart management state and revocation remains manager-only.
 
 Submitted share, invitation, source-tracking and target identifiers must always be re-resolved beneath the active Alliance and applicable source/recipient relationship.
 
-## 11. Audit and event boundary
+## 12. Audit and event boundary
 
 Material consent and shared-target changes create attributable Audit/internal outbox evidence with safe IDs, states and timestamps only.
 
@@ -129,25 +140,25 @@ Invitation bearer secrets, private text, contact data and source ingestion detai
 
 All K5 events remain `kingdoms.*` internal-only under the existing Integrations exclusion. K5 creates no public Kingdoms API scope, inbound endpoint, external webhook schema or public sharing feed.
 
-## 12. Retention and revocation principle
+## 13. Retention and revocation principle
 
 K5 persists the minimum consent/grant metadata required for authorization, auditability and historical explanation.
 
-Recipient access to shared observation payloads is authorization-dependent and must stop immediately when the agreement/item becomes unauthorized. K5 should avoid materializing a second long-lived copy of source canonical observation history solely for sharing.
+Recipient access to shared observation payloads is authorization-dependent and must stop immediately when the agreement/item becomes unauthorized. K5 avoids materializing a second long-lived copy of source canonical observation history solely for sharing.
 
 Expired invitation secrets and operational token material require bounded retention; accepted/revoked agreement metadata may be retained as audit/history without retaining shareable observation payloads.
 
-## 13. Delivery slices
+## 14. Delivery slices
 
-- `K5-P0` — **Current**: consent, same-Kingdom, data-classification, revocation and non-capability contract lock.
-- `K5-P1` / Slice A — sharing agreement foundation: hashed invitation, accept/decline/revoke, directional tenancy and same-Kingdom enforcement.
-- `K5-P2` / Slice B — explicit shared-target selection plus recipient current-fact projection.
-- `K5-P3` / Slice C — bounded accepted shared history, freshness and correction/invalidation projection semantics.
-- `K5-P4` / Slice D — first-party source/recipient UX, audit/internal-event evidence, drift/revocation hardening and accessibility.
-- `K5-P5` / Slice E — privacy/retention/operations/capacity hardening.
-- `K5-P6` — whole-increment acceptance.
+- `K5-P0` — **Complete**: consent, same-Kingdom, data-classification, revocation and non-capability contract locked.
+- `K5-P1` / Slice A — **Current / selected pending transition-head validation**: sharing agreement foundation: hashed invitation, accept/decline/revoke, directional tenancy and same-Kingdom enforcement; no observation sharing.
+- `K5-P2` / Slice B — Planned: explicit shared-target selection plus recipient current-fact projection.
+- `K5-P3` / Slice C — Planned: bounded accepted shared history, freshness and correction/invalidation projection semantics.
+- `K5-P4` / Slice D — Planned: first-party source/recipient UX, audit/internal-event evidence, drift/revocation hardening and accessibility.
+- `K5-P5` / Slice E — Planned: privacy/retention/operations/capacity hardening.
+- `K5-P6` — Planned: whole-increment acceptance.
 
-## 14. Explicitly out of scope
+## 15. Explicitly out of scope
 
 `KINGDOMS-005` does not approve or reserve hidden runtime placeholders for:
 
@@ -166,8 +177,8 @@ Expired invitation secrets and operational token material require bounded retent
 - ranking/recommendations/battle prediction; or
 - AI-generated management/enforcement decisions.
 
-## 15. Acceptance rule
+## 16. Acceptance rule
 
 K5 is implemented only through the gated plan. Every slice must preserve K1-K4 tenant ownership, stable-ID identity, K3 history semantics, K4 source isolation and existing public integration exclusions.
 
-P0 has no runtime impact. Slice A may begin only after the exact P0 evidence/status head passes Dependency Review, CodeQL and full CI. Whole-increment acceptance at K5-P6 remains repository/product acceptance only; production deployment/cutover remains separately governed.
+P0 has no runtime impact. Slice A may begin only after the exact containing P0 Complete / P1 Current status head passes Dependency Review, CodeQL and full CI. Whole-increment acceptance at K5-P6 remains repository/product acceptance only; production deployment/cutover remains separately governed.
