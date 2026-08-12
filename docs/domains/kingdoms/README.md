@@ -109,13 +109,13 @@ Material Kingdoms mutations create audit/internal outbox evidence. `alliance.kin
 
 K4 uses internal ingestion lifecycle/promotion/replay events plus accepted K1/K3 observation events. P5 maintenance adds no public integration surface. No inbound public API/webhook or arbitrary endpoint/secret configuration exists.
 
-## 10. HTTP, UI and operator surfaces
+## 10. HTTP, UI and API surfaces
 
 K1–K3 first-party surfaces cover settings, roster/history/intelligence/import/export, transfers, and tracked game-Alliance observation/diplomacy/contact/intelligence.
 
 K4 adds manager-only ingestion status/control and password-confirmed quarantined-candidate replay. There is no HTTP route for arbitrary source payload staging, scheduler invocation, direct promotion, retention/reconciliation/health or public source callbacks.
 
-Operator commands include queueing due ingestion, source reconciliation, operational retention and aggregate ingestion health. These commands are internal runtime interfaces, not public APIs.
+Operator commands include queueing due ingestion, source reconciliation, operational retention and aggregate ingestion health. These are internal runtime interfaces, not public APIs.
 
 ## 11. Background processing
 
@@ -135,7 +135,7 @@ Kingdoms holds high-value tenant operational intelligence. Manager-private notes
 
 K4 excludes arbitrary endpoint/credential storage, raw-response archives, normalized-payload UI/health disclosure, stable-ID guessing, cross-tenant mutation, auto roster/tracking creation, machine observation correction and diplomacy/contact automation. See [Kingdoms security](security/README.md).
 
-## 14. Observability, capacity and operations
+## 14. Observability and operations
 
 Use safe tenant/reference/state/count/timing/hash/cursor/reason/promoted-record identifiers with request/trace/audit/outbox correlation. Do not log source secrets/raw responses/private text.
 
