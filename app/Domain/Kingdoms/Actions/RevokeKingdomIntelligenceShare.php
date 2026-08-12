@@ -55,6 +55,7 @@ final readonly class RevokeKingdomIntelligenceShare
             $share->forceFill([
                 'state' => KingdomIntelligenceShareState::Revoked,
                 'revoked_by_user_id' => $actor->id,
+                'invitation_token_hash' => null,
                 'revoked_at' => now(),
             ])->save();
 
