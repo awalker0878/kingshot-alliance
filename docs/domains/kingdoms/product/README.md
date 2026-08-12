@@ -2,7 +2,7 @@
 
 [← Kingdoms domain](../README.md)
 
-This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001` through `KINGDOMS-004` are accepted. `KINGDOMS-005` is in progress: `K5-P0`–`K5-P3` are Complete and `K5-P4` / Slice D is selected pending exact transition-head validation.
+This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001` through `KINGDOMS-004` are accepted. `KINGDOMS-005` is in progress: `K5-P0`–`K5-P4` are Complete and `K5-P5` / Slice E is selected pending exact transition-head validation.
 
 Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; a selected future slice does not imply runtime capability.
 
@@ -57,11 +57,13 @@ Whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` is 
 
 ## KINGDOMS-005 — opt-in shared Kingdom intelligence — in progress
 
-`K5-P0`–`K5-P3` are Complete. P3 runtime candidate `70739d320caab059d2102feda081be33754b77ec` passed Dependency Review `31564263865`, CodeQL `31564263863`, and CI `31564263891`: Pint 553 files, PHPStan/Larastan 392/392 zero errors, 443 tests / 10,086 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
+`K5-P0`–`K5-P4` are Complete. P4 runtime candidate `9a095ae62e9b913ece6d619c3744574f0b91fd6f` passed Dependency Review `31569202741`, CodeQL `31569202422`, and CI `31569202418`: Pint 556 files, PHPStan/Larastan 393/393 zero errors, 448 tests / 10,160 assertions, frontend lint/format/type/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
 
-Current runtime includes directional consent/agreement state, explicit per-target grants/removal, persistent fail-closed Kingdom-drift invalidation, bounded safe current facts, and bounded accepted history for one explicit target. History uses opaque encrypted target-bound cursors, 50-row maximum pages, and a hard 250-observation traversal cap. Recipient reads create no canonical copy and do not permit reshare.
+Current runtime includes directional consent/agreement state, explicit per-target grants/removal, persistent fail-closed Kingdom-drift invalidation, bounded safe current facts, bounded accepted history, member-safe current/history presentation and a manager-only consent/grant workspace. History uses opaque encrypted target-bound cursors, 50-row maximum pages, and a hard 250-observation traversal cap; the UI exposes no arbitrary `asOf` history-window control. Recipient reads create no canonical copy and do not permit reshare.
 
-Complete first-party sharing pages/accessibility are **not** implemented yet. `K5-P4` / Slice D is selected next but cannot begin until the exact containing P3 Complete / P4 Current head is protected-green.
+P4 also hardens one-time invitation-secret lifecycle by erasing the persisted hash on accept, decline and revoke. Because the accepted P1 schema originally required a non-null hash, P4 adds a forward nullable-column migration with deterministic rollback/reapply compatibility evidence rather than rewriting accepted P1 history.
+
+`K5-P5` / Slice E is selected next for invitation/grant retention operations and realistic-volume current/history capacity hardening, but P5 runtime work cannot begin until the exact containing P4 Complete / P5 Current head is independently protected-green.
 
 - [Scope](kingdoms-shared-intelligence-increment.md)
 - [Implementation plan](kingdoms-shared-intelligence-implementation-plan.md)
@@ -74,6 +76,8 @@ Complete first-party sharing pages/accessibility are **not** implemented yet. `K
 - [Slice B security review](../security/kingdoms-shared-intelligence-current-facts-security-review.md)
 - [Slice C validation](kingdoms-shared-intelligence-slice-c-validation.md)
 - [Slice C security review](../security/kingdoms-shared-intelligence-history-security-review.md)
+- [Slice D validation](kingdoms-shared-intelligence-slice-d-validation.md)
+- [Slice D presentation security review](../security/kingdoms-shared-intelligence-presentation-security-review.md)
 - [Living shared-intelligence contract](../shared-intelligence.md)
 
 The locked contract remains directional, two-party opt-in, same-Kingdom, explicit-per-target, source-owned and read-only. Roster/player sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, transitive reshare, public directories/APIs/webhooks, source acquisition, scoring/ranking and automatic decisions remain excluded.
