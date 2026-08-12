@@ -3,18 +3,18 @@
 [← Kingdoms domain](../README.md)
 
 **Document type:** Living domain interface profile  
-**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P5 retention/capacity hardening validated  
+**Status:** Current — `KINGDOMS-004` and `KINGDOMS-005` Accepted  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
 **Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 ingestion control/operations, K5 first-party consent/target mutations, bounded current/history queries, authenticated member/manager presentation and bounded internal retention command/schedule, with internal-only `kingdoms.*` events
 
-**P4 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; K5 P5 adds one internal operator/scheduler surface without creating a public Kingdoms API or changing the frozen interface-inventory convention.
+**P4 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; K5 adds one internal operator/scheduler surface without creating a public Kingdoms API or changing the frozen interface-inventory convention.
 
 ## 1. Boundary purpose and ownership
 
-Kingdoms owns first-party neutral-game identity, roster/history/intelligence, transfer, game-Alliance tracking/observations/diplomacy/contacts, K4 ingestion, and K5 directional consent/target/current/history sharing plus first-party presentation and bounded operational retention.
+Kingdoms owns first-party neutral-game identity, roster/history/intelligence, transfer, game-Alliance tracking/observations/diplomacy/contacts, K4 ingestion, and accepted K5 directional consent/target/current/history sharing plus first-party presentation and bounded operational retention.
 
-P5 hardens the accepted P1–P4 contracts with internal maintenance and capacity evidence only. `K5-P6` whole-increment acceptance is selected but locked behind the P5 Complete / P6 Current transition gate.
+K5-P6 completed whole-increment acceptance without adding a new interface. The accepted interface boundary remains the P1–P5 runtime surface below.
 
 ## 2. Surface inventory
 
@@ -33,7 +33,7 @@ First-party GET surfaces are:
 - `GET /alliance/kingdom-sharing` — member-safe current facts and optional bounded history for one explicit share target; and
 - `GET /alliance/kingdom-sharing/manage` — manager-only consent/agreement/grant workspace.
 
-P5 internal operator surface is:
+K5 internal operator surface is:
 
 - `php artisan kingdoms:enforce-sharing-retention --limit=<1..2000>` — bounded cleanup of eligible old K5 operational sharing rows; default/scheduled limit 500.
 
@@ -106,7 +106,7 @@ The history cursor is an internal continuation mechanism, not a public authentic
 
 P1 consent and P2 target/context events remain internal `kingdoms.*` external-webhook-ineligible events.
 
-P3/P4 add no public mutation/integration event for reads/presentation. P5 retention adds no new public event contract and does not delete Audit/outbox evidence.
+P3/P4 add no public mutation/integration event for reads/presentation. P5 retention adds no new public event contract and does not delete Audit/outbox evidence. P6 adds no interface or event surface.
 
 Current/history payload bodies, encrypted cursors and invitation plaintext/hash material are not Audit/outbox payloads.
 
@@ -122,7 +122,7 @@ It uses one shared per-run budget clamped to 1–2000 and deletes in priority or
 
 The command is scheduled daily at 04:30 with `onOneServer()` and `withoutOverlapping(60)`.
 
-K5 still adds no queue job. K4 scheduled ingestion/maintenance remains unchanged.
+K5 adds no queue job. K4 scheduled ingestion/maintenance remains unchanged.
 
 ## 9. Files, imports, exports and external dependencies
 
@@ -150,9 +150,9 @@ K5 creates no public compatibility contract.
 
 ## 11. Explicit non-capabilities
 
-Current K5 runtime does not provide arbitrary historical-window selection, player/roster sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, reshare, tenant directory/search, public API/webhook, recipient canonical materialization, scoring/ranking/recommendations or automatic decisions.
+Accepted K5 runtime does not provide arbitrary historical-window selection, player/roster sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, reshare, tenant directory/search, public API/webhook, recipient canonical materialization, scoring/ranking/recommendations or automatic decisions.
 
-P6 whole-increment acceptance is not a new runtime feature capability.
+P6 whole-increment acceptance added no new runtime interface capability.
 
 ## 12. Focused contracts, evidence and related documentation
 
@@ -168,6 +168,7 @@ P6 whole-increment acceptance is not a new runtime feature capability.
 - [K5 Slice E validation](../product/kingdoms-shared-intelligence-slice-e-validation.md)
 - [K5 Slice E security review](../security/kingdoms-shared-intelligence-retention-security-review.md)
 - [K5 Slice E retention runbook](../operations/kingdoms-shared-intelligence-retention.md)
+- [K5 whole-increment exit report](../product/kingdoms-shared-intelligence-exit-report.md)
 - [K5 implementation plan](../product/kingdoms-shared-intelligence-implementation-plan.md)
 - [Automated ingestion](../automated-ingestion.md)
 - [CSV migration](../csv-migration.md)
@@ -177,4 +178,4 @@ P6 whole-increment acceptance is not a new runtime feature capability.
 - [Interface documentation standard](../../../product/interface-documentation-standard.md)
 - [P4 interface coverage matrix](../../../product/interface-coverage-matrix.md)
 
-P5 runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed Dependency Review `31570931190`, CodeQL `31570931290`, and CI `31570931267` with 451 tests / 10,230 assertions plus full frontend/recovery evidence.
+Whole-increment runtime candidate `6f84b51ab27941f0fec2abce71f1f2f6325560e4` passed Dependency Review `31573301975`, CodeQL `31573301988`, and CI `31573301977` with 452 tests / 10,322 assertions plus full frontend/recovery evidence.
