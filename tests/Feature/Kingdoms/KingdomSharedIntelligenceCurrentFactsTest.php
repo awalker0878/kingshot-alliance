@@ -12,7 +12,6 @@ use App\Domain\Kingdoms\Actions\AddKingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Actions\InvalidateKingdomAllianceObservation;
 use App\Domain\Kingdoms\Actions\RecordKingdomAllianceObservation;
-use App\Domain\Kingdoms\Actions\RemoveKingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Actions\RevokeKingdomIntelligenceShare;
 use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
 use App\Domain\Kingdoms\Actions\UpdateAllianceKingdom;
