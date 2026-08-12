@@ -61,8 +61,8 @@ function historyUrl(target: string, cursor?: string | null): string {
         </p>
         <h1 class="mt-2 text-3xl font-bold">Shared game-alliance facts</h1>
         <p class="mt-2 max-w-3xl text-sm text-slate-400">
-          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. These are
-          factual observations explicitly shared by another platform Alliance. They never change
+          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. These
+          are factual observations explicitly shared by another platform Alliance. They never change
           tracking, diplomacy, transfers, or roster state automatically.
         </p>
       </div>
@@ -170,8 +170,8 @@ function historyUrl(target: string, cursor?: string | null): string {
           <h2 id="shared-history-heading" class="text-xl font-semibold">Bounded shared history</h2>
           <p class="mt-1 text-sm text-slate-400">
             {{ selectedHistory.gameAlliance.name }} · shared by
-            {{ selectedHistory.sourceAlliance.name }}. Pages contain at most 50 accepted observations
-            and one traversal stops at 250.
+            {{ selectedHistory.sourceAlliance.name }}. Pages contain at most 50 accepted
+            observations and one traversal stops at 250.
           </p>
         </div>
         <Link
@@ -197,7 +197,10 @@ function historyUrl(target: string, cursor?: string | null): string {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800">
-            <tr v-for="item in selectedHistory.items" :key="`${item.capturedAt}-${item.observedName}`">
+            <tr
+              v-for="item in selectedHistory.items"
+              :key="`${item.capturedAt}-${item.observedName}`"
+            >
               <td class="px-3 py-4 text-slate-300">{{ formatCapturedAt(item.capturedAt) }}</td>
               <td class="px-3 py-4">
                 <p class="font-medium text-slate-200">{{ item.observedName }}</p>
