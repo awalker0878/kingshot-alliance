@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string $source_alliance_id
  * @property string|null $recipient_alliance_id
  * @property string $kingdom_id
- * @property string $invitation_token_hash
+ * @property string|null $invitation_token_hash
  * @property KingdomIntelligenceShareState $state
  * @property int $invited_by_user_id
  * @property int|null $accepted_by_user_id
