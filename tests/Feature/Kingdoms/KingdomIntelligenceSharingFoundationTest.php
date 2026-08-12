@@ -48,7 +48,8 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
         self::assertArrayNotHasKey('invitation_token_hash', $share->toArray());
 
         self::assertTrue(Schema::hasTable('kingdom_intelligence_shares'));
-        self::assertFalse(Schema::hasTable('kingdom_intelligence_share_targets'));
+        self::assertTrue(Schema::hasTable('kingdom_intelligence_share_targets'));
+        $this->assertDatabaseCount('kingdom_intelligence_share_targets', 0);
         foreach (['observation_id', 'payload', 'normalized_payload', 'adapter_key', 'source_record_id', 'manager_notes'] as $column) {
             self::assertFalse(Schema::hasColumn('kingdom_intelligence_shares', $column));
         }
