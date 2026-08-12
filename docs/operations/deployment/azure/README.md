@@ -61,10 +61,10 @@ The Container Apps environment is attached to a dedicated VNet subnet. PostgreSQ
 
 Follow these documents in order:
 
-1. [Bootstrap](bootstrap.md) — variables, Azure login/extensions/providers, resource group, Log Analytics/Application Insights, Container Apps environment, ACR, managed identity, Key Vault, and Laravel `APP_KEY` generation.
+1. [Bootstrap](bootstrap.md) — variables, Azure login/extensions/providers, resource group, Log Analytics/Application Insights, ACR, managed identities, Key Vault, and Laravel `APP_KEY` generation.
 2. [Networking](networking.md) — VNet, delegated subnets, private endpoint subnet, DNS zones, and ingress/TLS flow.
 3. [Data services](data-services.md) — PostgreSQL 18 private deployment, Azure Managed Redis private endpoint/TLS configuration, secret storage, and connection verification.
-4. [Container Apps](container-apps.md) — immutable image build, multi-container web replica, Horizon, scheduler job, migration job, HTTPS ingress, and revision behavior.
+4. [Container Apps](container-apps.md) — Container Apps environment creation, immutable image build, multi-container web replica, Horizon, scheduler job, migration job, HTTPS ingress, and revision behavior.
 5. [Application configuration](application-configuration.md) — Laravel environment contract, HTTPS/proxy handling, PostgreSQL/Redis TLS, sessions, Sanctum, Horizon, Pennant, Pulse, and storage notes.
 6. [GitHub Actions](github-actions.md) — OIDC federation, managed identity, least-privilege roles, build-once/promotion model, and deployment workflow shape.
 7. [Validation and recovery](validation-and-recovery.md) — revisions, replicas, logs, stream-timeout diagnosis, private DNS verification, migrations, health gates, rollback, backup/restore, and recovery validation.
