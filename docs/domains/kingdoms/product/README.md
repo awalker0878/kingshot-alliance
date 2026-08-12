@@ -2,7 +2,7 @@
 
 [← Kingdoms domain](../README.md)
 
-This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001` through `KINGDOMS-004` are accepted. `KINGDOMS-005` is in progress: `K5-P0`–`K5-P2` are Complete and `K5-P3` / Slice C is selected pending exact transition-head validation.
+This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001` through `KINGDOMS-004` are accepted. `KINGDOMS-005` is in progress: `K5-P0`–`K5-P3` are Complete and `K5-P4` / Slice D is selected pending exact transition-head validation.
 
 Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; a selected future slice does not imply runtime capability.
 
@@ -57,11 +57,11 @@ Whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` is 
 
 ## KINGDOMS-005 — opt-in shared Kingdom intelligence — in progress
 
-`K5-P0`–`K5-P2` are Complete. P2 runtime candidate `1a022e909cd246197510449a761a4856ce12b118` passed Dependency Review `31562753429`, CodeQL `31562753422`, and CI `31562753430`: Pint 550 files, PHPStan/Larastan 390/390 zero errors, 440 tests / 10,025 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
+`K5-P0`–`K5-P3` are Complete. P3 runtime candidate `70739d320caab059d2102feda081be33754b77ec` passed Dependency Review `31564263865`, CodeQL `31564263863`, and CI `31564263891`: Pint 553 files, PHPStan/Larastan 392/392 zero errors, 443 tests / 10,086 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
 
-Current runtime includes directional consent/agreement state, explicit per-target grants/removal, persistent fail-closed Kingdom-drift invalidation, and a bounded internal recipient-safe current-fact projection over source-owned accepted observations. It creates no recipient canonical copy and does not permit reshare.
+Current runtime includes directional consent/agreement state, explicit per-target grants/removal, persistent fail-closed Kingdom-drift invalidation, bounded safe current facts, and bounded accepted history for one explicit target. History uses opaque encrypted target-bound cursors, 50-row maximum pages, and a hard 250-observation traversal cap. Recipient reads create no canonical copy and do not permit reshare.
 
-Bounded shared observation history is **not** implemented yet. `K5-P3` / Slice C is selected next but cannot begin until the exact containing P2 Complete / P3 Current head is protected-green.
+Complete first-party sharing pages/accessibility are **not** implemented yet. `K5-P4` / Slice D is selected next but cannot begin until the exact containing P3 Complete / P4 Current head is protected-green.
 
 - [Scope](kingdoms-shared-intelligence-increment.md)
 - [Implementation plan](kingdoms-shared-intelligence-implementation-plan.md)
@@ -72,6 +72,8 @@ Bounded shared observation history is **not** implemented yet. `K5-P3` / Slice C
 - [Slice A security review](../security/kingdoms-shared-intelligence-foundation-security-review.md)
 - [Slice B validation](kingdoms-shared-intelligence-slice-b-validation.md)
 - [Slice B security review](../security/kingdoms-shared-intelligence-current-facts-security-review.md)
+- [Slice C validation](kingdoms-shared-intelligence-slice-c-validation.md)
+- [Slice C security review](../security/kingdoms-shared-intelligence-history-security-review.md)
 - [Living shared-intelligence contract](../shared-intelligence.md)
 
 The locked contract remains directional, two-party opt-in, same-Kingdom, explicit-per-target, source-owned and read-only. Roster/player sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, transitive reshare, public directories/APIs/webhooks, source acquisition, scoring/ranking and automatic decisions remain excluded.
