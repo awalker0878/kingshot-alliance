@@ -2,39 +2,37 @@
 
 ## Purpose
 
-Owns approved Kingshot game-world reference identity plus Alliance-scoped roster/history/intelligence, controlled roster migration, transfer planning, game-side Alliance intelligence/diplomacy, and accepted `KINGDOMS-004` automated-ingestion control/promotion/scheduler/operations services.
+Owns approved Kingshot game-world reference identity plus Alliance-scoped roster/history/intelligence, controlled roster migration, transfer planning, game-side Alliance intelligence/diplomacy, accepted `KINGDOMS-004` automated-ingestion services, and the `KINGDOMS-005` directional sharing-consent foundation.
 
-`KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` are accepted. K4 provides a generic empty-by-default ingestion pipeline: manager control, bounded staging/quarantine, delegated factual player/game-Alliance promotion, scheduled acquisition/cursor/retry/replay, source-revocation reconciliation, bounded operational retention and aggregate health monitoring. Whole-increment acceptance is recorded at implementation candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118`. Production adapter configuration remains empty and no real source/cutover is approved.
+`KINGDOMS-001` through `KINGDOMS-004` are accepted. K5 is in progress: P1 adds only invitation/agreement consent state and mutations. There is still no shared target or recipient observation/current/history read path.
 
 ## Owned code
 
-- `Models/` — neutral Kingdom/player/game-Alliance references and Alliance-owned roster/transfer/intelligence/ingestion persistence.
-- `Actions/` — explicit roster, observation, import, transfer, diplomacy/contact, ingestion-control, scheduler/orchestration/replay, source-reconciliation/retention, and delegated promotion mutations.
-- `Jobs/` — isolated per-subscription K4 acquisition work only.
-- `Queries/` — tenant-first roster/history/intelligence/transfer/game-Alliance/ingestion projections.
-- `Services/`, `Contracts/`, and `Data/` — descriptive intelligence plus K4 adapter allowlist, normalization/acquisition, bounded page and operational-health contracts.
-- `Enums/` — accepted Kingdoms lifecycle/state vocabularies.
-- `Http/` — first-party Kingdoms request/presentation boundaries.
+- `Models/` — neutral Kingdom/player/game-Alliance references; tenant roster/transfer/intelligence/ingestion; and K5 consent metadata.
+- `Actions/` — roster, observation, import, transfer, diplomacy/contact, K4 ingestion/operations, and K5 invitation/accept/decline/revoke/leave mutations.
+- `Jobs/` — isolated per-subscription K4 acquisition work only; K5-P1 has no jobs.
+- `Queries/` — tenant-first existing Kingdoms projections; K5-P1 has no shared-data query.
+- `Services/`, `Contracts/`, `Data/`, and `ValueObjects/` — existing intelligence/K4 contracts plus hash-only K5 invitation token issuance and one-time issued-token return value.
+- `Enums/` — accepted Kingdoms lifecycle/state vocabularies including K5 pending/active/declined/revoked consent state.
+- `Http/` — first-party Kingdoms boundaries including password-confirmed K5 consent mutations.
 
 ## Public contracts
 
-Intentional cross-domain contracts include canonical `Kingdom` references consumed by Alliances; member-safe Kingdoms queries under `alliance.view`; management actions/queries under `kingdoms.manage`; optional same-Alliance Membership references without transferring ownership; and internal `kingdoms.*` domain/outbox events that are **not** public webhook contracts.
+Intentional cross-domain contracts include canonical `Kingdom` references; member-safe Kingdoms reads under `alliance.view`; management actions under `kingdoms.manage`; Audit/Platform internal evidence; and `kingdoms.*` internal events that are **not** public webhook contracts.
 
-Stable game IDs scoped to one Kingdom are the only automatic neutral identity keys. Names, tags, handles, and source-local labels never auto-merge identity. Neutral `KingdomPlayer`/`KingdomAlliance` references never grant tenant access.
+K5-P1 introduces no public contract. Invitation creation/acceptance/decline/revoke/leave are authenticated first-party mutations only. The token is a one-time human consent bootstrap secret, not an API credential.
 
-K4 adapter registration/acquisition is repository/operator configuration, not a tenant-configurable external integration contract. K4 promotion never creates roster/tracking relationships and machine game-Alliance observations cannot correct/invalidate history. Source removal/version drift disables future acquisition. Operational retention cannot delete promoted K1/K3 canonical history or rewrite its copied provenance.
-
-Generic scheduling/maintenance does not create a public Kingdoms API, inbound webhook, arbitrary source endpoint, or approved production provider. Repository K4 acceptance does not itself authorize a concrete provider, source credential/network path, production source enablement, or production cutover.
+Stable neutral identity never grants K5 access. K5 acceptance requires a different recipient Alliance and matching current/captured Kingdom. Source observations remain source-owned and no recipient copy exists in P1.
 
 ## Dependencies
 
-- `Alliances` — active tenant context and canonical Alliance→Kingdom association.
-- `Memberships` — optional roster/coordinator references; membership remains Memberships-owned.
+- `Alliances` — active tenant/current Kingdom plus K5 source/recipient identities.
+- `Memberships` — optional existing roster/coordinator references only.
 - `Authorization` — `alliance.view`, `alliance.manage`, and `kingdoms.manage`.
-- `Identity` — human actor identity and recent-password assurance; machine provenance is explicit/null-actor.
-- `Audit` — attributable human and bounded machine mutation evidence.
-- `Platform` — scheduler/queue and transactional-outbox infrastructure.
-- `Integrations` — explicit external-exposure boundary; Kingdoms events/API surfaces remain internal/not approved for public exposure.
+- `Identity` — human actor identity and recent-password assurance.
+- `Audit` — attributable/safe consent evidence; source-side acceptance avoids cross-tenant recipient-manager actor disclosure.
+- `Platform` — transactional outbox and shared runtime infrastructure.
+- `Integrations` — external-exposure boundary; all K5 events remain internal/not public-webhook eligible.
 
 ## Canonical documentation
 
@@ -46,7 +44,9 @@ Generic scheduling/maintenance does not create a public Kingdoms API, inbound we
 - [Transfer planning](../../../docs/domains/kingdoms/transfer-planning.md)
 - [Alliance intelligence and diplomacy](../../../docs/domains/kingdoms/alliance-intelligence.md)
 - [Automated game-data ingestion](../../../docs/domains/kingdoms/automated-ingestion.md)
-- [KINGDOMS-004 exit report](../../../docs/domains/kingdoms/product/kingdoms-automated-ingestion-exit-report.md)
+- [Opt-in shared Kingdom intelligence](../../../docs/domains/kingdoms/shared-intelligence.md)
+- [K5 Slice A validation](../../../docs/domains/kingdoms/product/kingdoms-shared-intelligence-slice-a-validation.md)
+- [K5 Slice A security review](../../../docs/domains/kingdoms/security/kingdoms-shared-intelligence-foundation-security-review.md)
 - [Product and acceptance evidence](../../../docs/domains/kingdoms/product/README.md)
 - [Security evidence](../../../docs/domains/kingdoms/security/README.md)
 - [Operations](../../../docs/domains/kingdoms/operations/README.md)
