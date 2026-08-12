@@ -56,9 +56,9 @@ Business domains             Shared/platform domains
 
 ### Runtime topology
 
-One immutable application image supplies web/PHP-FPM, Horizon worker, scheduler, and one-shot migration roles. Standard hosted topology uses Nginx, PostgreSQL, Redis, Horizon, `schedule:work`, and private local/S3-compatible storage. Production Content media requires durable S3-backed storage.
+One immutable application image supplies all Laravel runtime roles. In Azure Container Apps, each web replica contains a tightly coupled Nginx container on port 8080 and PHP-FPM container on port 9000; Nginx reaches PHP-FPM through replica-local `127.0.0.1:9000`. Horizon runs as a separate Container App, while scheduler execution and migrations run as Container Apps Jobs so those lifecycles do not scale with web traffic. Docker Compose retains service-name FastCGI routing through `app:9000`. Production Content media requires durable S3-backed storage.
 
-See [Runtime configuration](../operations/configuration-reference.md), [Background processing](../operations/background-processing.md), [Observability](../operations/observability.md), and [Deployment](../operations/runbooks/deployment.md).
+See [ADR 0009](0009-azure-container-apps-runtime-topology.md), [Runtime configuration](../operations/configuration-reference.md), [Background processing](../operations/background-processing.md), [Observability](../operations/observability.md), and [Deployment](../operations/runbooks/deployment.md).
 
 ## Domain ownership
 
@@ -144,6 +144,7 @@ Use [the ADR template](adr-template.md) for new material decisions. Architecture
 | [0006](0006-observability-and-correlation.md) | Observability and correlation | Accepted |
 | [0007](0007-testing-toolchain-compatibility.md) | Testing toolchain compatibility | Accepted |
 | [0008](0008-domain-first-source-layout.md) | Domain-first source layout | Accepted |
+| [0009](0009-azure-container-apps-runtime-topology.md) | Azure Container Apps runtime topology | Accepted |
 
 There are currently no Superseded or Rejected numbered ADRs.
 
