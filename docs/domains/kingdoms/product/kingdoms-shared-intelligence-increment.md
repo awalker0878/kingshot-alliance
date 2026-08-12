@@ -2,7 +2,7 @@
 
 [← Kingdoms product and acceptance evidence](README.md)
 
-**Status:** In progress — `K5-P0`–`K5-P4` Complete; `K5-P5` selected pending exact transition-head validation  
+**Status:** In progress — `K5-P0`–`K5-P5` Complete; `K5-P6` selected pending exact transition-head validation  
 **Scope ID:** `KINGDOMS-005`  
 **Owning domain:** `Kingdoms`  
 **Baseline dependency:** Accepted `KINGDOMS-001` through `KINGDOMS-004`  
@@ -12,7 +12,8 @@
 **Slice A validation:** [K5-P1 validation](kingdoms-shared-intelligence-slice-a-validation.md)  
 **Slice B validation:** [K5-P2 validation](kingdoms-shared-intelligence-slice-b-validation.md)  
 **Slice C validation:** [K5-P3 validation](kingdoms-shared-intelligence-slice-c-validation.md)  
-**Slice D validation:** [K5-P4 validation](kingdoms-shared-intelligence-slice-d-validation.md)
+**Slice D validation:** [K5-P4 validation](kingdoms-shared-intelligence-slice-d-validation.md)  
+**Slice E validation:** [K5-P5 validation](kingdoms-shared-intelligence-slice-e-validation.md)
 
 ## 1. Purpose
 
@@ -22,9 +23,9 @@ Sharing is a deliberately authorized source-owned projection. It is not tenant f
 
 ## 2. Current governed state
 
-`K5-P0` through `K5-P4` are Complete.
+`K5-P0` through `K5-P5` are Complete.
 
-P4 runtime candidate `9a095ae62e9b913ece6d619c3744574f0b91fd6f` passed Dependency Review `31569202741`, CodeQL `31569202422`, and CI `31569202418`: Pint 556 files, PHPStan/Larastan 393/393 zero errors, 448 tests / 10,160 assertions, frontend lint/format/type/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
+P5 runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed Dependency Review `31570931190`, CodeQL `31570931290`, and CI `31570931267`: Pint 559 files, PHPStan/Larastan 394/394 zero errors, 451 tests / 10,230 assertions, frontend lint/format/type/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
 
 Current runtime includes:
 
@@ -33,10 +34,12 @@ Current runtime includes:
 - bounded recipient-safe current facts;
 - bounded accepted history for one explicit target using encrypted target-bound continuation cursors;
 - member-safe first-party current/history presentation;
-- manager-only first-party invitation/agreement/grant management; and
-- immediate erasure of persisted invitation hashes when invitations are accepted, declined or revoked.
+- manager-only first-party invitation/agreement/grant management;
+- immediate erasure of persisted invitation hashes when invitations are accepted, declined or revoked;
+- bounded scheduled cleanup of eligible old K5 operational consent/grant rows while preserving active/canonical/Audit/outbox state; and
+- realistic-volume current/history read evidence without a new cache/materialization boundary.
 
-`K5-P5` / Slice E is selected next for invitation/grant retention operations and realistic-volume current/history capacity hardening, but runtime P5 work cannot begin until the exact P4 Complete / P5 Current containing head is independently protected-green.
+`K5-P6` is selected next for whole-increment acceptance, but P6 acceptance work cannot begin until the exact P5 Complete / P6 Current containing head is independently protected-green.
 
 ## 3. Product boundary
 
@@ -50,10 +53,11 @@ The increment remains intentionally narrow:
 - source explicitly selects each tracked game-side Alliance;
 - recipient reads are read-only projections of source-owned accepted observations;
 - source observations remain canonical and are not copied into recipient history;
-- current facts are bounded;
+- current facts are bounded to 250 rows;
 - history is bounded to 50-row pages and 250 accepted observations per traversal;
-- revocation, target removal or context invalidation removes recipient access; and
-- supported Kingdom drift permanently terminalizes affected agreements rather than silently retargeting/reactivating them.
+- revocation, target removal or context invalidation removes recipient access;
+- supported Kingdom drift permanently terminalizes affected agreements rather than silently retargeting/reactivating them; and
+- operational retention can remove only eligible old pending/terminal/removed K5 metadata, never active shares/grants or canonical source history.
 
 ## 4. Consent behavior
 
@@ -81,7 +85,25 @@ P4 exposes these accepted projections through a member-safe Inertia page and exp
 
 Invitation plaintext is returned only by the authenticated creation POST and held only in component memory; it is never an Inertia/session prop.
 
-## 6. Data excluded from sharing
+P5 proves the accepted current/history limits at larger fixture volume: 300 active grants still yield only 250 current facts within two SELECTs, and 1,000 source observations still yield only five 50-row history pages / 250 accepted observations within two SELECTs per page. Recipient canonical observation count remains zero.
+
+## 6. Retention and operational behavior
+
+P5 adds `EnforceKingdomIntelligenceSharingRetention` for old K5 operational metadata only.
+
+One invocation has one total work budget, default 500 and clamped to 1–2000. It processes, in order:
+
+1. pending invitations older than 30 days after expiry by default;
+2. declined/revoked agreements older than 180 days by default; then
+3. removed target grants older than 90 days by default.
+
+The delete statement repeats state/cutoff eligibility so stale candidate IDs cannot delete a row that became active/re-granted/non-eligible before deletion.
+
+Active agreements/grants, source tracking/observations, Audit events and outbox messages are never eligible through this action. The command `kingdoms:enforce-sharing-retention --limit=500` runs daily at 04:30 on one server without overlap.
+
+Immediate invitation-hash erasure remains P4 runtime behavior and is not deferred to retention.
+
+## 7. Data excluded from sharing
 
 K5 does not share player roster/snapshots; transfer state; diplomacy terms/history; diplomacy contacts/handles/notes; tracking notes; source tracking IDs; stable game IDs; observation IDs; correction/invalidation reasons/actors/linkage; K4 adapter/subscription/batch/candidate/cursor/source provenance; raw responses/secrets; Audit internals; private free text; scores/rankings/recommendations; or automatic decisions.
 
@@ -89,7 +111,7 @@ History cursors are opaque continuation state, not data-sharing credentials, and
 
 Manager page props likewise exclude invitation hashes, observation payloads, private source notes/actors/governance metadata and K4 source provenance.
 
-## 7. Same-Kingdom, ownership, non-copy and no-reshare rules
+## 8. Same-Kingdom, ownership, non-copy and no-reshare rules
 
 An agreement captures one Kingdom. Every current/history read revalidates participant Alliances plus source tracking context.
 
@@ -99,7 +121,9 @@ Source `TrackedKingdomAlliance`/`KingdomAllianceObservation` state remains sourc
 
 A recipient cannot use received source tracking/grant/history as the upstream target of its own outbound K5 share. K5 remains non-transitive.
 
-## 8. Public integration and presentation boundary
+Retention does not change those ownership rules and never creates/reactivates sharing state.
+
+## 9. Public integration and presentation boundary
 
 K5 remains first-party/internal. Consent and target mutations are authenticated active-Alliance routes under the accepted authorization/password rules. Current/history projections are exposed only through authenticated first-party presentation; no public recipient data API exists.
 
@@ -107,24 +131,26 @@ There is no public Alliance directory, public Kingdoms API scope, inbound sharin
 
 The first-party history UI uses only opaque target-bound continuation cursors and does not expose an arbitrary client-controlled history `asOf` control that could repeatedly reopen progressively older 250-record windows.
 
-## 9. Delivery slices
+The P5 retention command is an internal operator surface, not a public integration contract.
+
+## 10. Delivery slices
 
 - `K5-P0` — **Complete**: contract lock.
 - `K5-P1` / Slice A — **Complete**: invitation/agreement consent foundation.
 - `K5-P2` / Slice B — **Complete**: explicit target grants + bounded safe current-fact projection.
 - `K5-P3` / Slice C — **Complete**: bounded accepted history + correction/invalidation projection semantics.
 - `K5-P4` / Slice D — **Complete**: first-party source/recipient UX, safe page-prop boundary, invitation lifecycle hardening and accessibility.
-- `K5-P5` / Slice E — **Current / selected pending transition-head validation**: privacy/retention/operations/capacity hardening.
-- `K5-P6` — Planned: whole-increment acceptance.
+- `K5-P5` / Slice E — **Complete**: bounded operational retention + realistic-volume current/history capacity hardening.
+- `K5-P6` — **Current / selected pending transition-head validation**: whole-increment acceptance.
 
-## 10. Explicitly out of scope
+## 11. Explicitly out of scope
 
 No player/roster sharing, transfer sharing/automation, diplomacy/contact sharing/automation, public tenant/contact directory, cross-Kingdom sharing, transitive reshare, anonymous/global feed, public API/webhook sharing, source acquisition/scraping/OCR/bots, arbitrary tenant export, scoring/ranking/prediction/recommendation or AI-generated management decision is approved.
 
-P5 does not become runtime-authorized merely because it is selected.
+P6 does not become accepted merely because it is selected.
 
-## 11. Acceptance rule
+## 12. Acceptance rule
 
 Every slice must preserve the P0 contract and pass both its runtime candidate gate and the exact containing evidence/status transition gate.
 
-P5 may begin only after the exact head recording P4 Complete / P5 Current passes Dependency Review, CodeQL and full CI/recovery. Whole-increment acceptance at K5-P6 remains repository/product acceptance; production deployment/cutover remains separately governed.
+P6 whole-increment acceptance may begin only after the exact head recording P5 Complete / P6 Current passes Dependency Review, CodeQL and full CI/recovery. P6 then must re-prove the complete cross-tenant seam on one exact whole-increment candidate. Repository/product acceptance remains separate from production deployment/cutover governance.
