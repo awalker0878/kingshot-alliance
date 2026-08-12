@@ -17,7 +17,6 @@ use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
 use App\Domain\Kingdoms\Actions\UpdateAllianceKingdom;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
-use App\Domain\Kingdoms\Models\KingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Queries\SharedKingdomIntelligenceHistoryQuery;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
