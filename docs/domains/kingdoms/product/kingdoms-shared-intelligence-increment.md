@@ -2,7 +2,7 @@
 
 [← Kingdoms product and acceptance evidence](README.md)
 
-**Status:** In progress — `K5-P0`–`K5-P5` Complete; `K5-P6` selected pending exact transition-head validation  
+**Status:** **Accepted** — `K5-P0`–`K5-P6` Complete  
 **Scope ID:** `KINGDOMS-005`  
 **Owning domain:** `Kingdoms`  
 **Baseline dependency:** Accepted `KINGDOMS-001` through `KINGDOMS-004`  
@@ -13,7 +13,8 @@
 **Slice B validation:** [K5-P2 validation](kingdoms-shared-intelligence-slice-b-validation.md)  
 **Slice C validation:** [K5-P3 validation](kingdoms-shared-intelligence-slice-c-validation.md)  
 **Slice D validation:** [K5-P4 validation](kingdoms-shared-intelligence-slice-d-validation.md)  
-**Slice E validation:** [K5-P5 validation](kingdoms-shared-intelligence-slice-e-validation.md)
+**Slice E validation:** [K5-P5 validation](kingdoms-shared-intelligence-slice-e-validation.md)  
+**Whole-increment exit:** [K5-P6 exit report](kingdoms-shared-intelligence-exit-report.md)
 
 ## 1. Purpose
 
@@ -23,11 +24,11 @@ Sharing is a deliberately authorized source-owned projection. It is not tenant f
 
 ## 2. Current governed state
 
-`K5-P0` through `K5-P5` are Complete.
+`KINGDOMS-005` is **Accepted**. `K5-P0` through `K5-P6` are Complete.
 
-P5 runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed Dependency Review `31570931190`, CodeQL `31570931290`, and CI `31570931267`: Pint 559 files, PHPStan/Larastan 394/394 zero errors, 451 tests / 10,230 assertions, frontend lint/format/type/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
+Whole-increment runtime candidate `6f84b51ab27941f0fec2abce71f1f2f6325560e4` passed Dependency Review `31573301975`, CodeQL `31573301988`, and CI `31573301977`: Pint 560 files, PHPStan/Larastan 394/394 zero errors, 452 tests / 10,322 assertions, frontend lint/format/type/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
 
-Current runtime includes:
+Accepted runtime includes:
 
 - directional two-party consent/agreement state;
 - explicit per-target grant/removal state;
@@ -36,10 +37,11 @@ Current runtime includes:
 - member-safe first-party current/history presentation;
 - manager-only first-party invitation/agreement/grant management;
 - immediate erasure of persisted invitation hashes when invitations are accepted, declined or revoked;
-- bounded scheduled cleanup of eligible old K5 operational consent/grant rows while preserving active/canonical/Audit/outbox state; and
-- realistic-volume current/history read evidence without a new cache/materialization boundary.
+- bounded scheduled cleanup of eligible old K5 operational consent/grant rows while preserving active/canonical/Audit/outbox state;
+- realistic-volume current/history read evidence without a new cache/materialization boundary; and
+- whole-increment acceptance evidence proving unrelated-tenant failure, correction-safe projection, no copy/reshare/mutation and immediate fail-closed authorization loss.
 
-`K5-P6` is selected next for whole-increment acceptance, but P6 acceptance work cannot begin until the exact P5 Complete / P6 Current containing head is independently protected-green.
+The accepted behavior and exact evidence are recorded in the [whole-increment exit report](kingdoms-shared-intelligence-exit-report.md).
 
 ## 3. Product boundary
 
@@ -87,6 +89,8 @@ Invitation plaintext is returned only by the authenticated creation POST and hel
 
 P5 proves the accepted current/history limits at larger fixture volume: 300 active grants still yield only 250 current facts within two SELECTs, and 1,000 source observations still yield only five 50-row history pages / 250 accepted observations within two SELECTs per page. Recipient canonical observation count remains zero.
 
+P6 composes the accepted seams end to end and re-proves safe current/history presentation, correction/invalidation propagation, unrelated-tenant denial, no copy/reshare/mutation and immediate access loss after target removal or share revocation.
+
 ## 6. Retention and operational behavior
 
 P5 adds `EnforceKingdomIntelligenceSharingRetention` for old K5 operational metadata only.
@@ -102,6 +106,8 @@ The delete statement repeats state/cutoff eligibility so stale candidate IDs can
 Active agreements/grants, source tracking/observations, Audit events and outbox messages are never eligible through this action. The command `kingdoms:enforce-sharing-retention --limit=500` runs daily at 04:30 on one server without overlap.
 
 Immediate invitation-hash erasure remains P4 runtime behavior and is not deferred to retention.
+
+P6 re-proves terminal operational cleanup while preserving canonical observations and durable revoke Audit/outbox evidence, followed by an idempotent no-op retention run.
 
 ## 7. Data excluded from sharing
 
@@ -141,16 +147,16 @@ The P5 retention command is an internal operator surface, not a public integrati
 - `K5-P3` / Slice C — **Complete**: bounded accepted history + correction/invalidation projection semantics.
 - `K5-P4` / Slice D — **Complete**: first-party source/recipient UX, safe page-prop boundary, invitation lifecycle hardening and accessibility.
 - `K5-P5` / Slice E — **Complete**: bounded operational retention + realistic-volume current/history capacity hardening.
-- `K5-P6` — **Current / selected pending transition-head validation**: whole-increment acceptance.
+- `K5-P6` — **Complete**: whole-increment acceptance.
 
 ## 11. Explicitly out of scope
 
 No player/roster sharing, transfer sharing/automation, diplomacy/contact sharing/automation, public tenant/contact directory, cross-Kingdom sharing, transitive reshare, anonymous/global feed, public API/webhook sharing, source acquisition/scraping/OCR/bots, arbitrary tenant export, scoring/ranking/prediction/recommendation or AI-generated management decision is approved.
 
-P6 does not become accepted merely because it is selected.
+Repository/product acceptance does not itself approve production policy changes or a broader public integration surface.
 
 ## 12. Acceptance rule
 
-Every slice must preserve the P0 contract and pass both its runtime candidate gate and the exact containing evidence/status transition gate.
+`KINGDOMS-005` is accepted only on the exact whole-increment candidate and evidence recorded in the [exit report](kingdoms-shared-intelligence-exit-report.md).
 
-P6 whole-increment acceptance may begin only after the exact head recording P5 Complete / P6 Current passes Dependency Review, CodeQL and full CI/recovery. P6 then must re-prove the complete cross-tenant seam on one exact whole-increment candidate. Repository/product acceptance remains separate from production deployment/cutover governance.
+Future changes must preserve the accepted P0–P6 boundary. Any widening of data classes, tenant scope, public interfaces, materialization/caching authorization, reshare or decision automation requires separate review and acceptance.
