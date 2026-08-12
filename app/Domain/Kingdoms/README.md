@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Owns approved Kingshot game-world reference identity plus Alliance-scoped roster/history/intelligence, controlled roster migration, transfer planning, game-side Alliance intelligence/diplomacy, and governed `KINGDOMS-004` automated-ingestion control/promotion/scheduler/operations services.
+Owns approved Kingshot game-world reference identity plus Alliance-scoped roster/history/intelligence, controlled roster migration, transfer planning, game-side Alliance intelligence/diplomacy, and accepted `KINGDOMS-004` automated-ingestion control/promotion/scheduler/operations services.
 
-`KINGDOMS-001`, `KINGDOMS-002`, and `KINGDOMS-003` are accepted. K4 through P5 provides a generic empty-by-default ingestion pipeline: manager control, bounded staging/quarantine, delegated factual player/game-Alliance promotion, scheduled acquisition/cursor/retry/replay, source-revocation reconciliation, bounded operational retention and aggregate health monitoring. Production adapter configuration remains empty and no real source is approved.
+`KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` are accepted. K4 provides a generic empty-by-default ingestion pipeline: manager control, bounded staging/quarantine, delegated factual player/game-Alliance promotion, scheduled acquisition/cursor/retry/replay, source-revocation reconciliation, bounded operational retention and aggregate health monitoring. Whole-increment acceptance is recorded at implementation candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118`. Production adapter configuration remains empty and no real source/cutover is approved.
 
 ## Owned code
 
@@ -24,7 +24,7 @@ Stable game IDs scoped to one Kingdom are the only automatic neutral identity ke
 
 K4 adapter registration/acquisition is repository/operator configuration, not a tenant-configurable external integration contract. K4 promotion never creates roster/tracking relationships and machine game-Alliance observations cannot correct/invalidate history. Source removal/version drift disables future acquisition. Operational retention cannot delete promoted K1/K3 canonical history or rewrite its copied provenance.
 
-Generic scheduling/maintenance does not create a public Kingdoms API, inbound webhook, arbitrary source endpoint, or approved production provider.
+Generic scheduling/maintenance does not create a public Kingdoms API, inbound webhook, arbitrary source endpoint, or approved production provider. Repository K4 acceptance does not itself authorize a concrete provider, source credential/network path, production source enablement, or production cutover.
 
 ## Dependencies
 
@@ -46,6 +46,7 @@ Generic scheduling/maintenance does not create a public Kingdoms API, inbound we
 - [Transfer planning](../../../docs/domains/kingdoms/transfer-planning.md)
 - [Alliance intelligence and diplomacy](../../../docs/domains/kingdoms/alliance-intelligence.md)
 - [Automated game-data ingestion](../../../docs/domains/kingdoms/automated-ingestion.md)
+- [KINGDOMS-004 exit report](../../../docs/domains/kingdoms/product/kingdoms-automated-ingestion-exit-report.md)
 - [Product and acceptance evidence](../../../docs/domains/kingdoms/product/README.md)
 - [Security evidence](../../../docs/domains/kingdoms/security/README.md)
 - [Operations](../../../docs/domains/kingdoms/operations/README.md)
