@@ -3,18 +3,18 @@
 [← Kingdoms domain](README.md)
 
 **Document type:** Living capability contract  
-**Status:** Current — `KINGDOMS-005` through `K5-P5` / Slice E runtime validated; `K5-P6` selected pending exact transition-head validation  
+**Status:** Current — `KINGDOMS-005` **Accepted**; `K5-P0`–`K5-P6` Complete  
 **Owning domain:** `Kingdoms`
 
 ## 1. Purpose
 
 Opt-in shared Kingdom intelligence provides a deliberately authorized source-Alliance → recipient-Alliance path for selected safe game-Alliance observation facts.
 
-K5 currently includes the P1 consent foundation, P2 explicit target/current-fact sharing, P3 bounded accepted history, P4 complete first-party member/manager presentation, and P5 bounded retention/operations/capacity hardening. Source observations remain canonical/source-owned. P6 is the whole-increment acceptance gate and remains locked until the containing transition head is protected-green.
+K5 includes the P1 consent foundation, P2 explicit target/current-fact sharing, P3 bounded accepted history, P4 complete first-party member/manager presentation, P5 bounded retention/operations/capacity hardening, and P6 whole-increment acceptance. Source observations remain canonical/source-owned. P6 added acceptance evidence only and did not widen the runtime boundary.
 
 ## 2. Scope and non-scope
 
-Current scope includes:
+Current accepted scope includes:
 
 - directional source→recipient invitation/agreement consent;
 - source-manager explicit grant/removal of individual active source-owned tracked game Alliances;
@@ -24,10 +24,11 @@ Current scope includes:
 - manager-only first-party invitation/agreement/grant management;
 - immediate persisted invitation-hash erasure on accept, decline and revoke;
 - persistent fail-closed K5 agreement invalidation when the supported Alliance→Kingdom workflow changes either participant's Kingdom;
-- bounded scheduled retention of eligible old K5 operational consent/grant rows; and
-- realistic-volume current/history regression/capacity evidence without a recipient cache/materialized copy.
+- bounded scheduled retention of eligible old K5 operational consent/grant rows;
+- realistic-volume current/history regression/capacity evidence without a recipient cache/materialized copy; and
+- whole-seam acceptance evidence for unrelated-tenant denial, no copy/reshare/mutation and immediate authorization loss.
 
-Still out of scope: roster/player/snapshot sharing; transfer sharing; diplomacy/contact sharing; cross-Kingdom sharing; tenant directory/search; transitive reshare; public API/webhooks; scoring/ranking/recommendations; automatic decisions; and P6 acceptance until its transition gate opens.
+Still out of scope: roster/player/snapshot sharing; transfer sharing; diplomacy/contact sharing; cross-Kingdom sharing; tenant directory/search; transitive reshare; public API/webhooks; scoring/ranking/recommendations; automatic decisions; recipient canonical materialization; and arbitrary historical-window reopening.
 
 ## 3. Model and state
 
@@ -85,6 +86,8 @@ P5 adds `kingdoms:enforce-sharing-retention --limit=500`, scheduled daily at 04:
 
 When an Alliance changes Kingdom through `UpdateAllianceKingdom`, affected active agreements/source pending invitations are terminalized before commit. A new relationship requires a new invitation/agreement.
 
+P6 adds no workflow. It composes the accepted workflows end to end through `KingdomSharedIntelligenceAcceptanceTest`.
+
 ## 6. Authorization, tenancy and privacy
 
 Consent/target mutations use first-party authenticated active-Alliance routes. Domain actions independently enforce `kingdoms.manage`.
@@ -99,7 +102,7 @@ Excluded: invitation hashes/plaintext outside the creation response, source trac
 
 Counterpart Audit records use null actor where needed to avoid cross-tenant manager User-ID leakage.
 
-P5 retention does not widen tenant visibility or grant any recipient/operator read capability.
+Retention does not widen tenant visibility or grant any recipient/operator read capability.
 
 ## 7. Persistence and query semantics
 
@@ -125,6 +128,8 @@ P3/P4 presentation adds no public integration event. Current/history payloads/cu
 
 P5 adds one internal Artisan/scheduler maintenance surface only. It adds no public API, inbound callback, anonymous sharing feed, external machine credential, queue job or external provider dependency.
 
+P6 adds no integration surface.
+
 ## 9. Failure, idempotency and concurrency
 
 Invalid/expired/used invitation, self-share, different-Kingdom activation, duplicate active agreement and unrelated-tenant IDs fail closed.
@@ -141,7 +146,7 @@ Retention is idempotent after eligible rows are gone. It selects bounded candida
 
 ## 10. Operations and observability
 
-K5 P5 provides the bounded retention command and schedule. Safe diagnostics remain share/target identifiers, authorized Alliance IDs, captured Kingdom, state/timestamps, configured retention windows and command result counts.
+K5 provides the bounded retention command and schedule. Safe diagnostics remain share/target identifiers, authorized Alliance IDs, captured Kingdom, state/timestamps, configured retention windows and command result counts.
 
 Default operational retention windows are 30 days after invitation expiry, 180 days for terminal shares and 90 days for removed grants. The command default/scheduled budget is 500 and runtime cap is 2000.
 
@@ -153,13 +158,13 @@ See [shared-intelligence retention operations](operations/kingdoms-shared-intell
 
 ## 11. Tests and validation
 
-P5 runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed Dependency Review `31570931190`, CodeQL `31570931290`, and CI `31570931267`.
+Whole-increment runtime candidate `6f84b51ab27941f0fec2abce71f1f2f6325560e4` passed Dependency Review `31573301975`, CodeQL `31573301988`, and CI `31573301977`.
 
-CI passed Pint for **559 files**, PHPStan/Larastan **394/394 with zero errors**, **451 tests / 10,230 assertions**, frontend lint/locked-format/type/build, clean PostgreSQL migrations, immutable image, ephemeral staging, backup/restore, image scan and cleanup.
+CI passed Pint for **560 files**, PHPStan/Larastan **394/394 with zero errors**, **452 tests / 10,322 assertions**, frontend lint/locked-format/type/build, clean PostgreSQL migrations, immutable image, ephemeral staging, backup/restore, image scan and cleanup.
 
-Focused P5 evidence proves retention eligibility/bounds/idempotency, one-total-budget behavior, active-record preservation, terminal-share target cascade without canonical-history deletion, durable Audit/outbox evidence, 300-target current capacity, 1,000-observation history capacity, response-size ceilings and zero recipient canonical copies.
+`KingdomSharedIntelligenceAcceptanceTest` re-proves pending-secret handling, no visibility before explicit grant, correction-safe current/history, unrelated-tenant failure, recipient no-copy/no-reshare, member/manager prop isolation, immediate remove/revoke denial, terminal retention, canonical observation survival and durable Audit/outbox evidence.
 
-P1–P4 consent/current/history/presentation/security evidence remains additive and accepted.
+P1–P5 consent/current/history/presentation/security/retention/capacity evidence remains additive and accepted.
 
 ## 12. Related documentation
 
@@ -178,6 +183,7 @@ P1–P4 consent/current/history/presentation/security evidence remains additive 
 - [K5 Slice E validation](product/kingdoms-shared-intelligence-slice-e-validation.md)
 - [K5 Slice E security review](security/kingdoms-shared-intelligence-retention-security-review.md)
 - [K5 Slice E retention operations](operations/kingdoms-shared-intelligence-retention.md)
+- [K5 whole-increment exit report](product/kingdoms-shared-intelligence-exit-report.md)
 - [Alliance intelligence and diplomacy](alliance-intelligence.md)
 - [Kingdoms interfaces](interfaces/README.md)
 - [Kingdoms testing/evidence](testing/README.md)
