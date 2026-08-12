@@ -96,12 +96,17 @@ async function createInvitation(): Promise<void> {
 
     const body = (await response.json()) as { shareId: string; token: string };
     invitationToken.value = body.token;
-    router.reload({ only: ['sharing'], preserveScroll: true, preserveState: true });
+    router.reload({ only: ['sharing'] });
   } catch {
     invitationError.value = 'The invitation could not be created. Try again.';
   } finally {
     invitationBusy.value = false;
   }
+}
+
+async function copyInvitationToken(): Promise<void> {
+  if (!invitationToken.value) return;
+  await window.navigator.clipboard.writeText(invitationToken.value);
 }
 
 function acceptInvitation(): void {
@@ -247,7 +252,7 @@ function formatDate(value: string | null): string {
           <button
             class="rounded-lg border border-amber-700 px-3 py-2 text-sm font-semibold text-amber-200"
             type="button"
-            @click="navigator.clipboard.writeText(invitationToken)"
+            @click="copyInvitationToken"
           >
             Copy token
           </button>
