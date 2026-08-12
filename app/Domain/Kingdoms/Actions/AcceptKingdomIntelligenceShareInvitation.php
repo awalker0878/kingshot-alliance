@@ -114,6 +114,7 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
                 'recipient_alliance_id' => $recipient->id,
                 'state' => KingdomIntelligenceShareState::Active,
                 'accepted_by_user_id' => $actor->id,
+                'invitation_token_hash' => null,
                 'invitation_used_at' => now(),
                 'accepted_at' => now(),
             ])->save();
