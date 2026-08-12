@@ -7,9 +7,11 @@ namespace App\Domain\Kingdoms\Http\Controllers;
 use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\AcceptKingdomIntelligenceShareInvitation;
+use App\Domain\Kingdoms\Actions\AddKingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Actions\DeclineKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Actions\LeaveKingdomIntelligenceShare;
+use App\Domain\Kingdoms\Actions\RemoveKingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Actions\RevokeKingdomIntelligenceShare;
 use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -81,6 +83,30 @@ final class KingdomIntelligenceSharingController extends Controller
         $leave->handle($context->alliance(), $this->user($request), $share);
 
         return back()->with('status', 'kingdom-shared-intelligence-left');
+    }
+
+    public function addTarget(
+        Request $request,
+        AllianceContext $context,
+        AddKingdomIntelligenceShareTarget $add,
+        string $share,
+        string $tracking,
+    ): RedirectResponse {
+        $add->handle($context->alliance(), $this->user($request), $share, $tracking);
+
+        return back()->with('status', 'kingdom-shared-intelligence-target-shared');
+    }
+
+    public function removeTarget(
+        Request $request,
+        AllianceContext $context,
+        RemoveKingdomIntelligenceShareTarget $remove,
+        string $share,
+        string $target,
+    ): RedirectResponse {
+        $remove->handle($context->alliance(), $this->user($request), $share, $target);
+
+        return back()->with('status', 'kingdom-shared-intelligence-target-removed');
     }
 
     private function user(Request $request): User
