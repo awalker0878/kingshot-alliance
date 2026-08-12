@@ -3,14 +3,14 @@
 [← Kingdoms domain](README.md)
 
 **Document type:** Living capability contract  
-**Status:** Current — `KINGDOMS-005` through `K5-P2` / Slice B runtime validated; bounded shared history not yet implemented  
+**Status:** Current — `KINGDOMS-005` through `K5-P3` / Slice C runtime validated; complete first-party sharing UX remains P4  
 **Owning domain:** `Kingdoms`
 
 ## 1. Purpose
 
 Opt-in shared Kingdom intelligence provides a deliberately authorized source-Alliance → recipient-Alliance path for selected safe game-Alliance observation facts.
 
-K5 currently includes the P1 consent foundation plus P2 explicit target grants and a bounded safe **current-fact** recipient projection. Source observations remain source-owned. Bounded shared observation history is not yet implemented and remains `K5-P3`.
+K5 currently includes the P1 consent foundation, P2 explicit target/current-fact sharing, and P3 bounded accepted history for one explicitly shared target. Source observations remain canonical/source-owned. Complete source/recipient sharing pages and accessibility remain `K5-P4`.
 
 ## 2. Scope and non-scope
 
@@ -18,18 +18,19 @@ Current scope includes:
 
 - directional source→recipient invitation/agreement consent;
 - source-manager explicit grant/removal of individual active source-owned tracked game Alliances;
-- recipient-safe current facts for active, context-valid explicit grants; and
+- recipient-safe current facts for active/context-valid explicit grants;
+- bounded accepted source observation history for one active explicit grant; and
 - persistent fail-closed K5 agreement invalidation when the supported Alliance→Kingdom workflow changes either participant's Kingdom.
 
-Still out of scope: bounded shared history; full K5 source/recipient pages; roster/player/snapshot sharing; transfer sharing; diplomacy/contact sharing; cross-Kingdom sharing; tenant directory/search; transitive reshare; public API/webhooks; scoring/ranking/recommendations; and automatic decisions.
+Still out of scope: complete K5 source/recipient pages; roster/player/snapshot sharing; transfer sharing; diplomacy/contact sharing; cross-Kingdom sharing; tenant directory/search; transitive reshare; public API/webhooks; scoring/ranking/recommendations; and automatic decisions.
 
 ## 3. Model and state
 
 `KingdomIntelligenceShare` captures directional source/recipient/captured-Kingdom consent plus hash-only invitation identity and pending/active/declined/revoked state.
 
-`KingdomIntelligenceShareTarget` captures one explicit source grant from an agreement to one source-owned `TrackedKingdomAlliance`. Target state is `active|removed`. A unique share/tracking pair preserves grant history while requiring another deliberate manager action to reactivate a removed target.
+`KingdomIntelligenceShareTarget` captures one explicit source grant from an agreement to one source-owned `TrackedKingdomAlliance`. Target state is `active|removed`; a removed target requires another deliberate source-manager action before sharing resumes.
 
-Neither K5 table stores recipient copies of source observation history.
+Current/history reads project source-owned accepted `KingdomAllianceObservation` rows. K5 does not materialize recipient observation history.
 
 ## 4. Invariants
 
@@ -38,88 +39,94 @@ Neither K5 table stores recipient copies of source observation history.
 3. Agreement activation requires both current Kingdoms to equal the captured invitation Kingdom.
 4. Invitation plaintext is never persisted; redemption is single-use.
 5. An active agreement alone shares no observation data.
-6. Every P2 target is explicitly selected by the source; no wildcard share-all mode exists.
-7. Target grant requires an active source-owned agreement, active source/recipient Alliances, matching current/captured Kingdom and active source-owned tracking in that Kingdom.
-8. Recipient reads begin from active recipient Alliance authorization, then active agreement, active explicit grant and live source tracking/context.
+6. Every target is explicitly selected by the source; no wildcard share-all mode exists.
+7. Target grant requires active source-owned agreement, active source/recipient Alliances, matching current/captured Kingdom and active source-owned tracking in that Kingdom.
+8. Recipient reads begin from active recipient Alliance → active agreement → active explicit grant → live source tracking/context.
 9. Neutral `KingdomAlliance` identity never grants cross-tenant access.
 10. Source canonical observations remain source-owned; recipient reads create no local tracking/observation copy.
 11. Received intelligence cannot be used as an upstream K5 grant; reshare is non-transitive.
-12. Latest current fact uses accepted K3 observation semantics: non-invalidated, capture-time ordered by `captured_at DESC, id DESC`.
-13. Freshness reuses the K3 30-day descriptive boundary and remains `current|stale|missing`; missing is not zero.
-14. Target removal, share revocation or context invalidation immediately removes recipient visibility.
-15. A supported Alliance→Kingdom change terminalizes affected active K5 agreements; returning to the old Kingdom does not reactivate them.
-16. All K5 events remain internal/public-webhook ineligible.
-17. P2 exposes current facts only; bounded history remains P3.
+12. Current/history use accepted K3 observation semantics: `invalidated_at IS NULL`, deterministic `captured_at DESC, id DESC`.
+13. Current freshness remains K3 30-day `current|stale|missing`; history item freshness is descriptive `current|stale`.
+14. Target removal, share revocation or context invalidation immediately removes current/history visibility.
+15. Supported Alliance→Kingdom change terminalizes affected K5 agreements; returning to the old Kingdom does not reactivate them.
+16. Shared history is paginated at up to 50 rows/page and capped at 250 accepted observations per traversal.
+17. History continuation uses an encrypted cursor bound to the share target and fixed `asOf`; a cursor is never standalone authorization.
+18. P4 must not expose arbitrary client-controlled historical `asOf` windows without separate review.
+19. All K5 events remain internal/public-webhook ineligible.
 
 ## 5. Workflows
 
-P1 consent remains unchanged: source creates a bounded one-time invitation; recipient accepts or declines; source may revoke; active recipient may leave.
+P1 consent remains source invitation → recipient accept/decline → source revoke / recipient leave.
 
-P2 source managers may add an individual active source-owned tracking relationship to an active share, or remove a previously granted target. Both HTTP target mutations use active Alliance context, `kingdoms.manage`, and recent password confirmation.
+P2 source managers add/remove one active source-owned tracking target under an active share. Both mutations require active Alliance context, `kingdoms.manage`, and recent password confirmation.
 
-Recipient current facts are provided by the internal `SharedKingdomIntelligenceCurrentQuery`. It first resolves active recipient/share/grant/context authorization, then loads only the latest accepted source observation for the authorized tracking set.
+Recipient current facts are provided by `SharedKingdomIntelligenceCurrentQuery`.
 
-When an Alliance changes Kingdom through `UpdateAllianceKingdom`, affected active agreements and source pending invitations are terminalized before the transaction completes. A new sharing relationship requires a new invitation/agreement.
+P3 accepted history is provided by `SharedKingdomIntelligenceHistoryQuery` for one explicit share target. The first page fixes an internal `asOf`; continuation pages use an encrypted target-bound cursor containing the fixed snapshot, keyset position and authenticated `seen` count. Pages are capped at 50 and one traversal stops at 250 accepted observations.
+
+When an Alliance changes Kingdom through `UpdateAllianceKingdom`, affected active agreements/source pending invitations are terminalized before commit. A new relationship requires a new invitation/agreement.
 
 ## 6. Authorization, tenancy and privacy
 
-Consent and target mutations use first-party authenticated active-Alliance routes. Domain actions independently enforce `kingdoms.manage`; current recipient facts are member-safe data intended for later P4 presentation under `alliance.view`.
+Consent/target mutations use first-party authenticated active-Alliance routes. Domain actions independently enforce `kingdoms.manage`.
 
-Target creation re-resolves the share under the source Alliance and tracking under that same source Alliance. Recipient current queries begin from `recipient_alliance_id`, not from a neutral game-Alliance or submitted tracking identifier.
+Current/history facts are member-safe data intended for P4 presentation under `alliance.view`. Every read re-authorizes the active recipient Alliance through an active share and active explicit grant, and revalidates source/recipient/tracking Kingdom/state.
 
-The safe P2 projection contains only source Alliance ID/name, neutral/current game-Alliance name/tag, latest accepted observed name/tag, optional power/member count, capture time and freshness.
+Safe current/history data is limited to source Alliance ID/name, neutral/current game-Alliance name/tag, accepted observed name/tag, optional power/member count, capture time and descriptive freshness.
 
-It excludes source tracking IDs, stable game IDs, manager notes, diplomacy/contact data, player/roster/transfer data, observation actor/correction/invalidation reason, K4 provenance/raw source data/secrets and Audit/outbox internals.
+Excluded: source tracking IDs, stable game IDs, observation IDs, actors, correction/invalidation reason/linkage, manager notes, diplomacy/contact data, player/roster/transfer data, K4 provenance/raw source data/secrets and Audit/outbox internals.
 
 Counterpart Audit records use null actor where needed to avoid cross-tenant manager User-ID leakage.
 
 ## 7. Persistence and query semantics
 
-`kingdom_intelligence_shares` stores consent metadata. `kingdom_intelligence_share_targets` stores explicit grant history. Source `KingdomAllianceObservation` rows remain canonical and are never copied into recipient-owned observation history.
+`kingdom_intelligence_shares` stores consent metadata; `kingdom_intelligence_share_targets` stores explicit grant history. Source `KingdomAllianceObservation` rows remain canonical.
 
-`SharedKingdomIntelligenceCurrentQuery::CURRENT_LIMIT` is 250. Under the focused multi-target fixture it uses no more than two SELECT queries: one recipient-first authorization/grant projection and one latest accepted observation query.
+`SharedKingdomIntelligenceCurrentQuery::CURRENT_LIMIT` is 250 and uses no more than two SELECTs under the focused 12-target fixture.
 
-Latest observations require `invalidated_at IS NULL`, `captured_at <= as-of`, and K3 ordering by capture time then ID. If the latest source fact is invalidated, recipient output immediately falls back to the next accepted source fact if one exists; private invalidation metadata remains hidden.
+`SharedKingdomIntelligenceHistoryQuery` uses 50-row maximum keyset pages and the K3 `HISTORY_LIMIT = 250`. Each page uses one authorization/context query and one accepted-observation query under the focused 260-observation fixture.
 
-There is no bounded shared-history query in P2.
+The history cursor is encrypted/authenticated and target-bound. It fixes `asOf`, last capture timestamp/order ID and cumulative accepted count. Invalid/tampered/wrong-target cursors fail with a bounded validation error.
+
+Source invalidation removes the invalidated observation from both current and later history pages immediately. Corrected replacements appear only as their own accepted observations; private correction metadata remains source-private.
 
 ## 8. Events/integrations/background processing
 
-P1 consent events remain internal. P2 adds:
+P1 consent and P2 target/context events remain internal `kingdoms.*` events and external-webhook ineligible.
 
-- `kingdoms.shared_intelligence_target_shared`;
-- `kingdoms.shared_intelligence_target_removed`; and
-- `kingdoms.shared_intelligence_context_invalidated`.
+P3 adds no business mutation event because it adds a read-only history query. History payloads/cursors are not Audit/outbox payloads and must not be copied into general logs.
 
-All remain `kingdoms.*` internal events and external-webhook ineligible. Durable evidence uses safe IDs/state/reason metadata only.
-
-K5-P2 adds no background job, scheduler, public API, inbound callback, anonymous sharing feed or external machine credential.
+K5-P3 adds no background job, scheduler, public API, inbound callback, anonymous sharing feed or external machine credential.
 
 ## 9. Failure, idempotency and concurrency
 
 Invalid/expired/used invitation, self-share, different-Kingdom activation, duplicate active agreement and unrelated-tenant IDs fail closed.
 
-Target add rejects invalid/stale context or non-source tracking. Re-adding an already active target is idempotent; a removed target requires deliberate re-grant. Removal is access-reducing and remains safe even after other context changes.
+Target add rejects invalid/stale context or non-source tracking. Active re-add is idempotent; a removed target requires deliberate re-grant.
 
-Relevant mutation lock order is aligned to Alliance(s) → share → target where Kingdom drift can race with consent/grant changes. Source/recipient Alliances are locked in deterministic ID order for acceptance/grant operations.
+Current/history authorization is re-evaluated on each request/page. A stale history cursor cannot bypass target removal, share revocation or context invalidation.
 
-Supported Kingdom drift permanently terminalizes affected agreements, so returning to the captured Kingdom cannot silently resume access.
+Relevant mutation lock order remains Alliance(s) → share → target. Supported Kingdom drift permanently terminalizes affected agreements, so returning cannot silently resume access.
+
+History keyset pagination avoids mutable client offsets; encrypted cursor state is bound to target/fixed snapshot and total accepted-record cap.
 
 ## 10. Operations and observability
 
-K5-P2 adds no K5 health command or background operational workload. Safe diagnostics are share/target IDs, authorized source/recipient Alliance IDs, captured Kingdom, state and timestamps.
+K5-P3 adds no K5 health command/background workload. Safe diagnostics remain share/target identifiers, authorized Alliance IDs, captured Kingdom, state and timestamps.
 
-Do not log invitation plaintext, shared observation payload bodies, source manager notes, diplomacy/contact data or K4 provenance. Do not repair or reactivate shares/targets by database edits.
+Do not log invitation plaintext, history/current payload bodies, encrypted cursors, source manager notes, diplomacy/contact data or K4 provenance. Do not repair/reactivate shares/targets by database edits.
 
-Retention/cleanup of used/expired invitation material and realistic-volume cross-tenant capacity hardening remain P5 work.
+Retention/cleanup of used/expired invitation material plus realistic-volume current/history capacity and any authorization-safe caching remain P5 work.
 
 ## 11. Tests and validation
 
-P2 runtime candidate `1a022e909cd246197510449a761a4856ce12b118` passed Dependency Review `31562753429`, CodeQL `31562753422`, and CI `31562753430`.
+P3 runtime candidate `70739d320caab059d2102feda081be33754b77ec` passed Dependency Review `31564263865`, CodeQL `31564263863`, and CI `31564263891`.
 
-CI passed Pint for **550 files**, PHPStan/Larastan **390/390 with zero errors**, **440 tests / 10,025 assertions**, frontend/build, clean PostgreSQL migrations through `2026_08_12_020000_create_kingdom_intelligence_share_targets`, immutable image build, ephemeral staging, backup/restore, image scan and cleanup.
+CI passed Pint for **553 files**, PHPStan/Larastan **392/392 with zero errors**, **443 tests / 10,086 assertions**, frontend/build, clean PostgreSQL migrations, immutable image, ephemeral staging, backup/restore, image scan and cleanup.
 
-Focused evidence proves explicit-target-only visibility, strict safe-field projection, latest accepted/invalidation fallback, current/stale/missing semantics, no recipient canonical copy, no reshare, source-only target mutation, immediate removal/revoke/drift loss of access, no access resume after leaving and returning to a Kingdom, bounded two-SELECT current projection, and full/focused migration rollback/reapply integrity.
+Focused history evidence proves encrypted target-bound cursor behavior, deterministic accepted-only pagination, correction/invalidation privacy, hard 250-record traversal cap, 50-row page cap, no more than two SELECTs per page, no recipient canonical copy and immediate fail-closed history after target removal/share revoke/Kingdom drift including no resume after returning.
+
+P2 current-fact evidence remains additive and accepted.
 
 ## 12. Related documentation
 
@@ -131,6 +138,8 @@ Focused evidence proves explicit-target-only visibility, strict safe-field proje
 - [K5 Slice A security review](security/kingdoms-shared-intelligence-foundation-security-review.md)
 - [K5 Slice B validation](product/kingdoms-shared-intelligence-slice-b-validation.md)
 - [K5 Slice B security review](security/kingdoms-shared-intelligence-current-facts-security-review.md)
+- [K5 Slice C validation](product/kingdoms-shared-intelligence-slice-c-validation.md)
+- [K5 Slice C security review](security/kingdoms-shared-intelligence-history-security-review.md)
 - [Alliance intelligence and diplomacy](alliance-intelligence.md)
 - [Kingdoms interfaces](interfaces/README.md)
 - [Kingdoms testing/evidence](testing/README.md)
