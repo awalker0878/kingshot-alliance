@@ -40,20 +40,19 @@ final readonly class AddKingdomIntelligenceShareTarget
         }
 
         return DB::transaction(function () use ($sourceAlliance, $actor, $shareId, $trackingId): KingdomIntelligenceShareTarget {
-            $share = KingdomIntelligenceShare::query()
+            $candidate = KingdomIntelligenceShare::query()
                 ->whereKey($shareId)
                 ->where('source_alliance_id', $sourceAlliance->id)
                 ->where('state', KingdomIntelligenceShareState::Active->value)
-                ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($share->recipient_alliance_id === null) {
+            if ($candidate->recipient_alliance_id === null) {
                 throw ValidationException::withMessages([
                     'sharing' => 'Only an active sharing agreement with a recipient can receive shared targets.',
                 ]);
             }
 
-            $allianceIds = [$share->source_alliance_id, $share->recipient_alliance_id];
+            $allianceIds = [$candidate->source_alliance_id, $candidate->recipient_alliance_id];
             sort($allianceIds, SORT_STRING);
             $alliances = Alliance::query()
                 ->whereIn('id', $allianceIds)
@@ -63,15 +62,23 @@ final readonly class AddKingdomIntelligenceShareTarget
                 ->keyBy(static fn (Alliance $alliance): string => (string) $alliance->id);
 
             /** @var Alliance|null $source */
-            $source = $alliances->get($share->source_alliance_id);
+            $source = $alliances->get($candidate->source_alliance_id);
             /** @var Alliance|null $recipient */
-            $recipient = $alliances->get($share->recipient_alliance_id);
+            $recipient = $alliances->get($candidate->recipient_alliance_id);
 
             if (! $source instanceof Alliance || ! $recipient instanceof Alliance) {
                 throw ValidationException::withMessages([
                     'sharing' => 'Both sharing alliances must still exist before a target can be shared.',
                 ]);
             }
+
+            $share = KingdomIntelligenceShare::query()
+                ->whereKey($candidate->id)
+                ->where('source_alliance_id', $source->id)
+                ->where('recipient_alliance_id', $recipient->id)
+                ->where('state', KingdomIntelligenceShareState::Active->value)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if ($source->status !== AllianceStatus::Active
                 || $recipient->status !== AllianceStatus::Active
