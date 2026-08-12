@@ -112,13 +112,15 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
 
         $this->actingAs($recipientOwner)->withSession($recipientSession)
             ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $token])
-            ->assertNotFound();
+            ->assertRedirect()
+            ->assertSessionHasErrors('token');
         self::assertSame(1, KingdomIntelligenceShare::query()->count());
 
         $selfToken = $this->issueViaHttp($sourceOwner, $sourceSession);
         $this->actingAs($sourceOwner)->withSession($sourceSession)
             ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $selfToken])
-            ->assertUnprocessable();
+            ->assertRedirect()
+            ->assertSessionHasErrors('sharing');
         self::assertSame(2, KingdomIntelligenceShare::query()->count());
     }
 
@@ -177,7 +179,8 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
             ->post('/alliance/kingdom-sharing/'.$leaveShare->id.'/leave')
             ->assertRedirect();
         $leaveShare->refresh();
-        self::assertSame(KingdomIntelligenceShareState::Left, $leaveShare->state);
+        self::assertSame(KingdomIntelligenceShareState::Declined, $leaveShare->state);
+        self::assertNull($leaveShare->invitation_token_hash);
     }
 
     public function test_membership_and_kingdom_context_changes_fail_closed(): void
