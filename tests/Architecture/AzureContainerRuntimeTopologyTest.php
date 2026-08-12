@@ -21,6 +21,20 @@ final class AzureContainerRuntimeTopologyTest extends TestCase
         self::assertStringNotContainsString('fastcgi_pass app:9000;', $azure);
     }
 
+    public function test_azure_nginx_preserves_container_apps_forwarded_request_metadata(): void
+    {
+        $azure = $this->read('docker/nginx/azure.conf');
+
+        foreach ([
+            'HTTP_X_FORWARDED_FOR $http_x_forwarded_for',
+            'HTTP_X_FORWARDED_HOST $http_x_forwarded_host',
+            'HTTP_X_FORWARDED_PORT $http_x_forwarded_port',
+            'HTTP_X_FORWARDED_PROTO $http_x_forwarded_proto',
+        ] as $forwardedParameter) {
+            self::assertStringContainsString($forwardedParameter, $azure);
+        }
+    }
+
     public function test_runtime_image_preserves_generic_entrypoint_and_packages_azure_nginx_profile(): void
     {
         $dockerfile = $this->read('Dockerfile');
