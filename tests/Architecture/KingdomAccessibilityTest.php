@@ -26,6 +26,8 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAllianceDiplomacyContacts.vue',
             'KingdomAllianceIntelligence.vue',
             'KingdomIngestionManage.vue',
+            'KingdomSharing.vue',
+            'KingdomSharingManage.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
@@ -55,6 +57,7 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAllianceDiplomacyContacts.vue',
             'KingdomAllianceIntelligence.vue',
             'KingdomIngestionManage.vue',
+            'KingdomSharingManage.vue',
             'TransferPlansManage.vue',
             'TransferReadinessManage.vue',
             'TransferCompletionManage.vue',
@@ -128,6 +131,26 @@ final class KingdomAccessibilityTest extends TestCase
         self::assertIsString($ingestion);
         self::assertStringContainsString('for="ingestion-adapter"', $ingestion);
         self::assertStringContainsString('<caption class="sr-only">', $ingestion);
+
+        $sharing = file_get_contents($root.'KingdomSharing.vue');
+        self::assertIsString($sharing);
+        self::assertStringContainsString('aria-labelledby="shared-current-heading"', $sharing);
+        self::assertStringContainsString('aria-labelledby="shared-history-heading"', $sharing);
+        self::assertStringContainsString('<caption class="sr-only">', $sharing);
+        self::assertStringNotContainsString('asOf', $sharing);
+
+        $sharingManage = file_get_contents($root.'KingdomSharingManage.vue');
+        self::assertIsString($sharingManage);
+        foreach ([
+            'for="issued-sharing-token"',
+            'for="sharing-consent-token"',
+            ':for="`target-${share.id}`"',
+            'role="status"',
+            'role="alert"',
+            '<caption class="sr-only">',
+        ] as $sharingContract) {
+            self::assertStringContainsString($sharingContract, $sharingManage);
+        }
     }
 
     public function test_transfer_readiness_and_completion_controls_keep_programmatic_context(): void
@@ -165,6 +188,8 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAllianceDiplomacyContacts.vue',
             'KingdomAllianceIntelligence.vue',
             'KingdomIngestionManage.vue',
+            'KingdomSharing.vue',
+            'KingdomSharingManage.vue',
             'TransferPlans.vue',
             'TransferPlansManage.vue',
         ] as $page) {
