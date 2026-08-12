@@ -183,8 +183,8 @@ function formatDate(value: string | null): string {
         </p>
         <h1 class="mt-2 text-3xl font-bold">Manage sharing</h1>
         <p class="mt-2 max-w-3xl text-sm text-slate-400">
-          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. Sharing is
-          directional, same-Kingdom, and explicit per tracked game alliance.
+          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. Sharing
+          is directional, same-Kingdom, and explicit per tracked game alliance.
         </p>
       </div>
       <nav aria-label="Sharing navigation" class="flex flex-wrap gap-3">
@@ -425,7 +425,9 @@ function formatDate(value: string | null): string {
 
       <div v-if="sharing.inbound.length" class="mt-6 overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
-          <caption class="sr-only">Inbound shared-intelligence agreements</caption>
+          <caption class="sr-only">
+            Inbound shared-intelligence agreements
+          </caption>
           <thead class="text-xs tracking-wide text-slate-400 uppercase">
             <tr>
               <th class="px-3 py-3 font-semibold">Source Alliance</th>
