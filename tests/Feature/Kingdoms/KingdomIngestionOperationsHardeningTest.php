@@ -23,6 +23,7 @@ use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\Services\KingdomIngestionOperationalHealth;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 final class KingdomIngestionOperationsHardeningTest extends TestCase
@@ -60,8 +61,10 @@ final class KingdomIngestionOperationsHardeningTest extends TestCase
         $candidate->forceFill([
             'state' => KingdomIngestionCandidateState::Rejected,
             'rejection_code' => 'operator_rejected',
-            'updated_at' => now()->subDays(20),
-        ])->save(['timestamps' => false]);
+        ])->save();
+        DB::table('kingdom_ingestion_candidates')
+            ->where('id', $candidate->id)
+            ->update(['updated_at' => now()->subDays(20)]);
         $batch->forceFill([
             'state' => KingdomIngestionBatchState::Completed,
             'completed_at' => now()->subDays(20),
@@ -73,7 +76,9 @@ final class KingdomIngestionOperationsHardeningTest extends TestCase
         self::assertSame(0, $first['terminalCandidatesPurged']);
         self::assertSame([], $candidate->refresh()->normalized_payload);
 
-        $candidate->forceFill(['updated_at' => now()->subDays(40)])->save(['timestamps' => false]);
+        DB::table('kingdom_ingestion_candidates')
+            ->where('id', $candidate->id)
+            ->update(['updated_at' => now()->subDays(40)]);
         $batch->forceFill(['completed_at' => now()->subDays(40)])->save();
 
         $second = $retention->handle();
@@ -94,8 +99,10 @@ final class KingdomIngestionOperationsHardeningTest extends TestCase
         $candidate->forceFill([
             'state' => KingdomIngestionCandidateState::Quarantined,
             'quarantine_code' => 'unknown_player',
-            'updated_at' => now()->subDays(40),
-        ])->save(['timestamps' => false]);
+        ])->save();
+        DB::table('kingdom_ingestion_candidates')
+            ->where('id', $candidate->id)
+            ->update(['updated_at' => now()->subDays(40)]);
         $batch->forceFill([
             'state' => KingdomIngestionBatchState::Partial,
             'completed_at' => now()->subDays(40),
@@ -106,7 +113,9 @@ final class KingdomIngestionOperationsHardeningTest extends TestCase
         self::assertSame(0, $first['quarantinedCandidatesPurged']);
         self::assertTrue(KingdomIngestionCandidate::query()->whereKey($candidate->id)->exists());
 
-        $candidate->forceFill(['updated_at' => now()->subDays(70)])->save(['timestamps' => false]);
+        DB::table('kingdom_ingestion_candidates')
+            ->where('id', $candidate->id)
+            ->update(['updated_at' => now()->subDays(70)]);
         $batch->forceFill(['completed_at' => now()->subDays(70)])->save();
         $second = $retention->handle();
         self::assertSame(1, $second['quarantinedCandidatesPurged']);
