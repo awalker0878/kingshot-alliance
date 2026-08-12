@@ -131,7 +131,8 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
 
         $this->actingAs($recipientOwner)->withSession($recipientSession)
             ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $token])
-            ->assertUnprocessable();
+            ->assertRedirect()
+            ->assertSessionHasErrors('sharing');
 
         $share = KingdomIntelligenceShare::query()->sole();
         self::assertSame(KingdomIntelligenceShareState::Pending, $share->state);
@@ -147,13 +148,16 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
         [$recipientOwner, $recipient, $recipientSession] = $this->ownerAlliance('K5 Recipient Lifecycle', 'k5-recipient-life', 7506);
 
         $declineToken = $this->issueViaHttp($sourceOwner, $sourceSession);
+        $declineShare = $this->shareForToken($declineToken);
         $this->actingAs($recipientOwner)->withSession($recipientSession)
             ->post('/alliance/kingdom-sharing/invitations/decline', ['token' => $declineToken])
             ->assertRedirect();
-        self::assertSame(KingdomIntelligenceShareState::Declined, KingdomIntelligenceShare::query()->latest('created_at')->firstOrFail()->state);
+        $declineShare->refresh();
+        self::assertSame(KingdomIntelligenceShareState::Declined, $declineShare->state);
+        self::assertNull($declineShare->invitation_token_hash);
 
         $revokeToken = $this->issueViaHttp($sourceOwner, $sourceSession);
-        $revokeShare = KingdomIntelligenceShare::query()->latest('created_at')->firstOrFail();
+        $revokeShare = $this->shareForToken($revokeToken);
         $this->actingAs($sourceOwner)->withSession($sourceSession)
             ->post('/alliance/kingdom-sharing/'.$revokeShare->id.'/revoke')
             ->assertRedirect();
@@ -162,10 +166,13 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
         self::assertNull($revokeShare->invitation_token_hash);
 
         $leaveToken = $this->issueViaHttp($sourceOwner, $sourceSession);
+        $leaveShare = $this->shareForToken($leaveToken);
         $this->actingAs($recipientOwner)->withSession($recipientSession)
             ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $leaveToken])
             ->assertRedirect();
-        $leaveShare = KingdomIntelligenceShare::query()->latest('created_at')->firstOrFail();
+        $leaveShare->refresh();
+        self::assertSame(KingdomIntelligenceShareState::Active, $leaveShare->state);
+        self::assertNull($leaveShare->invitation_token_hash);
         $this->actingAs($recipientOwner)->withSession($recipientSession)
             ->post('/alliance/kingdom-sharing/'.$leaveShare->id.'/leave')
             ->assertRedirect();
@@ -183,7 +190,7 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
             ->where('alliance_id', $recipient->id)
             ->where('user_id', $recipientOwner->id)
             ->firstOrFail();
-        $recipientMembership->forceFill(['status' => MembershipStatus::Inactive])->save();
+        $recipientMembership->forceFill(['status' => MembershipStatus::Suspended])->save();
 
         $this->actingAs($recipientOwner)->withSession($recipientSession)
             ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $token])
@@ -193,7 +200,8 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
         $recipient->forceFill(['kingdom_id' => Kingdom::query()->firstOrCreate(['number' => 7508])->id])->save();
         $this->actingAs($recipientOwner)->withSession($recipientSession)
             ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $token])
-            ->assertUnprocessable();
+            ->assertRedirect()
+            ->assertSessionHasErrors('sharing');
     }
 
     private function issueViaHttp(User $owner, array $session): string
@@ -203,6 +211,13 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
             ->assertCreated();
 
         return (string) $response->json('token');
+    }
+
+    private function shareForToken(string $token): KingdomIntelligenceShare
+    {
+        return KingdomIntelligenceShare::query()
+            ->where('invitation_token_hash', hash('sha256', $token))
+            ->sole();
     }
 
     /** @return array{0: User, 1: Alliance, 2: array<string, mixed>} */
