@@ -3,16 +3,16 @@
 [← Kingdoms domain](../README.md)
 
 **Document type:** Living domain security profile  
-**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P5 retention/capacity hardening validated  
+**Status:** Current — `KINGDOMS-004` and `KINGDOMS-005` Accepted  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary security boundary:** Alliance-owned Kingdoms data, K4 source isolation, and K5 directional consent/explicit grants/current+bounded-history reads/presentation plus bounded operational retention separated from private tenant data and public exposure
+**Primary security boundary:** Alliance-owned Kingdoms data, K4 source isolation, and accepted K5 directional consent/explicit grants/current+bounded-history reads/presentation plus bounded operational retention separated from private tenant data and public exposure
 
 ## 1. Security purpose and scope
 
-Kingdoms protects roster/history/import/intelligence, transfer/diplomacy/contact state, game-Alliance observations and K4 ingestion. K5 now includes explicit two-party consent, per-target grants, bounded safe current facts, bounded accepted history, complete first-party member/manager presentation and bounded operational retention/capacity hardening.
+Kingdoms protects roster/history/import/intelligence, transfer/diplomacy/contact state, game-Alliance observations and K4 ingestion. Accepted K5 includes explicit two-party consent, per-target grants, bounded safe current facts, bounded accepted history, complete first-party member/manager presentation, bounded operational retention/capacity hardening and whole-increment cross-tenant acceptance evidence.
 
-K5 remains source-owned, recipient-first authorized, explicitly granted, same-Kingdom, non-copying and non-transitive. `K5-P6` whole-increment acceptance is selected but not writable until the P5 Complete / P6 Current transition gate is green.
+K5 remains source-owned, recipient-first authorized, explicitly granted, same-Kingdom, non-copying and non-transitive. P6 completed acceptance without adding a new data class, trust boundary or public interface.
 
 ## 2. Assets and sensitive data
 
@@ -62,6 +62,8 @@ P4 adds authenticated first-party presentation: member-safe current/history page
 
 P5 adds internal scheduled/operator cleanup for old K5 operational metadata only. Candidate IDs are bounded and destructive predicates are rechecked at deletion time.
 
+P6 composes these accepted flows end to end and adds no new trust boundary.
+
 An active agreement without a grant exposes nothing. A grant does not transfer ownership. Current/history reads do not create reusable recipient canonical data or an upstream reshare object.
 
 K4 source/network trust boundaries remain unchanged; production adapters remain empty.
@@ -74,7 +76,7 @@ History cursor state is encrypted/authenticated, target-bound and capped to one 
 
 Retention controls use one total 1–2000 work budget, state/timestamp eligibility, delete-time predicate rechecks, active/canonical exclusions and durable Audit/outbox preservation.
 
-Tests prove invitation creation alone creates zero grants, explicit-target-only visibility, no recipient canonical copy, no reshare, bounded accepted history, manager/member prop isolation, invitation plaintext non-persistence, bounded/idempotent retention and no public K5 data API.
+Tests prove invitation creation alone creates zero grants, explicit-target-only visibility, no recipient canonical copy, no reshare, bounded accepted history, manager/member prop isolation, invitation plaintext non-persistence, bounded/idempotent retention and no public K5 data API. P6 additionally re-proves the complete cross-tenant seam in one acceptance test.
 
 See [P0 security review](kingdoms-shared-intelligence-p0-security-review.md), [Slice A security review](kingdoms-shared-intelligence-foundation-security-review.md), [Slice B security review](kingdoms-shared-intelligence-current-facts-security-review.md), [Slice C security review](kingdoms-shared-intelligence-history-security-review.md), [Slice D presentation security review](kingdoms-shared-intelligence-presentation-security-review.md), and [Slice E retention/capacity security review](kingdoms-shared-intelligence-retention-security-review.md).
 
@@ -130,15 +132,15 @@ Target/context events remain internal and external-webhook ineligible. Current/h
 
 Retention command evidence may include release identity, timestamp/environment, bounded limit, and returned per-class/total counts. It must not include secret material or shared observation payload bodies.
 
-P5 runtime candidate `b47f639a275652590304fccef051f78997a0153c` passed Dependency Review `31570931190`, CodeQL `31570931290`, and CI `31570931267`: Pint 559 files, PHPStan/Larastan 394/394 zero errors, 451 tests / 10,230 assertions, clean migrations, frontend lint/format/type/build, immutable image, staging, backup/restore, scan and cleanup.
+Whole-increment runtime candidate `6f84b51ab27941f0fec2abce71f1f2f6325560e4` passed Dependency Review `31573301975`, CodeQL `31573301988`, and CI `31573301977`: Pint 560 files, PHPStan/Larastan 394/394 zero errors, 452 tests / 10,322 assertions, clean migrations, frontend lint/format/type/build, immutable image, staging, backup/restore, scan and cleanup.
 
 ## 11. Residual risks and explicit non-capabilities
 
-P6 must independently re-prove the whole K5 seam on one exact candidate, including unrelated-tenant failure, immediate authorization loss, retention/canonical preservation and public/non-sharing exclusions.
+Accepted K5 runtime provides no arbitrary historical-window selection, roster/player sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, public API/webhook, tenant directory, recipient copy/reshare, scoring/ranking/recommendations or automatic decisions.
 
-Current runtime provides no arbitrary historical-window selection, roster/player sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, public API/webhook, tenant directory, recipient copy/reshare, scoring/ranking/recommendations or automatic decisions.
+K5 introduces no authorization cache/materialized recipient read store. Any future caching/materialization requires separate review.
 
-P5 introduces no authorization cache/materialized recipient read store. Any future caching/materialization requires separate review.
+Any future widening of data classes, tenant scope, public exposure, reshare or decision automation requires a separately reviewed increment/scope change.
 
 ## 12. Focused reviews and related documentation
 
@@ -162,6 +164,7 @@ Existing focused/whole-increment Kingdoms security reviews remain historical acc
 - [K5-P4 validation](../product/kingdoms-shared-intelligence-slice-d-validation.md)
 - [K5-P5 validation](../product/kingdoms-shared-intelligence-slice-e-validation.md)
 - [K5-P5 retention operations](../operations/kingdoms-shared-intelligence-retention.md)
+- [K5-P6 whole-increment exit report](../product/kingdoms-shared-intelligence-exit-report.md)
 - [Living shared-intelligence contract](../shared-intelligence.md)
 - [K5 implementation plan](../product/kingdoms-shared-intelligence-implementation-plan.md)
 
