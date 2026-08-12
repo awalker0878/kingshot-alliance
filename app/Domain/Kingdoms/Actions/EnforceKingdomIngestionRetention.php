@@ -39,7 +39,6 @@ final class EnforceKingdomIngestionRetention
             ->where('updated_at', '<', now()->subDays($payloadDays))
             ->update([
                 'normalized_payload' => '[]',
-                'updated_at' => now(),
             ]);
 
         $terminalCandidatesPurged = KingdomIngestionCandidate::query()
