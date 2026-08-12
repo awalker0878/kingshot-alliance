@@ -2,9 +2,9 @@
 
 [← Kingdoms domain](../README.md)
 
-This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` are accepted. `KINGDOMS-005` is planning-only at `K5-P0`; no shared-intelligence runtime capability exists yet.
+This directory contains Kingdoms-specific product scope, implementation-plan, slice validation, accessibility and acceptance evidence. `KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` are accepted. `KINGDOMS-005` is in progress: `K5-P0` is Complete and `K5-P1` / Slice A is selected pending exact transition-head validation; no shared-observation runtime capability exists yet.
 
-Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; planning records do not imply runtime capability or production approval.
+Use the [Kingdoms domain](../README.md) and living capability contracts for current behavior. Product records capture governed increment scope and validation history; a selected future slice does not imply runtime capability or production approval.
 
 ## KINGDOMS-001 — roster intelligence
 
@@ -62,16 +62,19 @@ Current governed state: P0/P1/P2/P3/P4/P5/P6 Complete. Whole-increment runtime c
 - [Automated ingestion operations](../operations/kingdoms-automated-ingestion.md)
 - [Living automated-ingestion contract](../automated-ingestion.md)
 
-## KINGDOMS-005 — opt-in shared Kingdom intelligence — planning only
+## KINGDOMS-005 — opt-in shared Kingdom intelligence — in progress
 
-`K5-P0` is the current pre-runtime gate. The candidate contract is directional, two-party opt-in, same-Kingdom, explicit-per-target, read-only sharing of safe game-Alliance observation facts. It does not yet authorize any runtime schema, route, UI or cross-tenant read path.
+`K5-P0` is Complete at validated candidate `d9e05fd06bd08050e5489598406cfb556d5bc0ac`: Dependency Review `31557697685`, CodeQL `31557697793`, and CI `31557697725` all succeeded, including 529 Pint files, PHPStan/Larastan 374/374 zero errors, 429 tests / 9,809 assertions, frontend/build, image, staging, backup/restore and scan.
+
+`K5-P1` / Slice A is selected next but cannot begin until the exact containing P0 Complete / P1 Current status head is protected-green. Slice A is consent-foundation only: directional agreement/invitation persistence and accept/decline/revoke behavior. It will not expose observation data.
 
 - [Scope](kingdoms-shared-intelligence-increment.md)
 - [Implementation plan](kingdoms-shared-intelligence-implementation-plan.md)
 - [K5-P0 decisions](kingdoms-shared-intelligence-p0-decisions.md)
 - [K5-P0 security/privacy review](../security/kingdoms-shared-intelligence-p0-security-review.md)
+- [K5-P0 exit report](kingdoms-shared-intelligence-p0-exit-report.md)
 
-Explicitly still excluded at P0: roster/player sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, transitive reshare, public directories/APIs/webhooks, source acquisition, scoring/ranking and automatic decisions.
+The locked contract remains directional, two-party opt-in, same-Kingdom, explicit-per-target and read-only. Roster/player sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, transitive reshare, public directories/APIs/webhooks, source acquisition, scoring/ranking and automatic decisions remain excluded.
 
 ## Related evidence
 
