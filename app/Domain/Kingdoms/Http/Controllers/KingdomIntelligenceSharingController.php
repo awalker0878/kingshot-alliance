@@ -83,6 +83,7 @@ final class KingdomIntelligenceSharingController extends Controller
 
         return Inertia::render('Alliance/KingdomSharingManage', [
             'alliance' => $this->allianceSummary($alliance),
+            'passwordConfirmUrl' => route('password.confirm'),
             'sharing' => $sharing->forAlliance($alliance),
         ]);
     }
