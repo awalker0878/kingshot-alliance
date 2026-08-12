@@ -38,27 +38,24 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
         }
 
         return DB::transaction(function () use ($recipientAlliance, $actor, $token): KingdomIntelligenceShare {
-            $share = KingdomIntelligenceShare::query()
-                ->where('invitation_token_hash', $this->tokens->hash($token))
+            $tokenHash = $this->tokens->hash($token);
+            $candidate = KingdomIntelligenceShare::query()
+                ->where('invitation_token_hash', $tokenHash)
                 ->where('state', KingdomIntelligenceShareState::Pending->value)
-                ->lockForUpdate()
                 ->first();
 
-            if (! $share instanceof KingdomIntelligenceShare
-                || $share->invitation_used_at !== null
-                || ! $share->invitation_expires_at->isFuture()) {
+            if (! $candidate instanceof KingdomIntelligenceShare) {
                 throw $this->invalidToken();
             }
 
-            if ($share->source_alliance_id === (string) $recipientAlliance->id) {
+            if ($candidate->source_alliance_id === (string) $recipientAlliance->id) {
                 throw ValidationException::withMessages([
                     'sharing' => 'An alliance cannot accept its own sharing invitation.',
                 ]);
             }
 
-            $ids = [$share->source_alliance_id, (string) $recipientAlliance->id];
+            $ids = [$candidate->source_alliance_id, (string) $recipientAlliance->id];
             sort($ids, SORT_STRING);
-
             $locked = Alliance::query()
                 ->whereIn('id', $ids)
                 ->orderBy('id')
@@ -67,11 +64,25 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
                 ->keyBy(static fn (Alliance $alliance): string => (string) $alliance->id);
 
             /** @var Alliance|null $source */
-            $source = $locked->get($share->source_alliance_id);
+            $source = $locked->get($candidate->source_alliance_id);
             /** @var Alliance|null $recipient */
             $recipient = $locked->get((string) $recipientAlliance->id);
 
             if (! $source instanceof Alliance || ! $recipient instanceof Alliance) {
+                throw $this->invalidToken();
+            }
+
+            $share = KingdomIntelligenceShare::query()
+                ->whereKey($candidate->id)
+                ->where('invitation_token_hash', $tokenHash)
+                ->where('source_alliance_id', $source->id)
+                ->where('state', KingdomIntelligenceShareState::Pending->value)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $share instanceof KingdomIntelligenceShare
+                || $share->invitation_used_at !== null
+                || ! $share->invitation_expires_at->isFuture()) {
                 throw $this->invalidToken();
             }
 
