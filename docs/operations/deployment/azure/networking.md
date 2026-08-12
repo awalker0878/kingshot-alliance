@@ -195,7 +195,7 @@ nginx container
 PHP-FPM / Laravel container
 ```
 
-The PHP image does **not** need to terminate TLS. Azure Container Apps ingress terminates external HTTPS. `allowInsecure=false` prevents the externally exposed Container App from accepting insecure public HTTP traffic.
+The PHP image does **not** need to terminate TLS. Azure Container Apps ingress terminates external HTTPS. With `allowInsecure=false`, public HTTP requests are redirected to HTTPS by Container Apps before the request is forwarded into the application path.
 
 `docker/nginx/azure.conf` preserves the platform's `X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Port`, and `X-Forwarded-Proto` values into FastCGI so Laravel can reconstruct the original request after its trusted-proxy middleware accepts the controlled proxy boundary.
 
