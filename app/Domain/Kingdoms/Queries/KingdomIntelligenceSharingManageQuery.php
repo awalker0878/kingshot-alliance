@@ -48,9 +48,10 @@ final class KingdomIntelligenceSharingManageQuery
             ->map(static fn (mixed $id): string => (string) $id)
             ->all();
 
-        $targets = collect();
+        /** @var array<string, list<array<string, mixed>>> $targetsByShare */
+        $targetsByShare = [];
         if ($outboundIds !== []) {
-            $targets = DB::table('kingdom_intelligence_share_targets as targets')
+            $targetRows = DB::table('kingdom_intelligence_share_targets as targets')
                 ->join(
                     'tracked_kingdom_alliances as tracking',
                     'tracking.id',
@@ -71,13 +72,38 @@ final class KingdomIntelligenceSharingManageQuery
                 ])
                 ->orderBy('game_alliances.current_name')
                 ->orderBy('targets.id')
-                ->get()
-                ->groupBy('kingdom_intelligence_share_id');
+                ->get();
+
+            foreach ($targetRows as $target) {
+                /**
+                 * @var array{
+                 *   id: mixed,
+                 *   kingdom_intelligence_share_id: mixed,
+                 *   state: mixed,
+                 *   shared_at: mixed,
+                 *   removed_at: mixed,
+                 *   tracking_id: mixed,
+                 *   current_name: mixed,
+                 *   current_tag: mixed
+                 * } $row
+                 */
+                $row = (array) $target;
+                $shareId = (string) $row['kingdom_intelligence_share_id'];
+                $targetsByShare[$shareId][] = [
+                    'id' => (string) $row['id'],
+                    'trackingId' => (string) $row['tracking_id'],
+                    'state' => (string) $row['state'],
+                    'name' => (string) $row['current_name'],
+                    'tag' => $row['current_tag'] === null ? null : (string) $row['current_tag'],
+                    'sharedAt' => (string) $row['shared_at'],
+                    'removedAt' => $row['removed_at'] === null ? null : (string) $row['removed_at'],
+                ];
+            }
         }
 
+        /** @var list<array<string, mixed>> $outboundRows */
         $outboundRows = [];
         foreach ($outbound as $share) {
-            $shareTargets = $targets->get((string) $share->id, collect());
             $outboundRows[] = [
                 'id' => (string) $share->id,
                 'state' => (string) $share->state,
@@ -91,15 +117,7 @@ final class KingdomIntelligenceSharingManageQuery
                 'acceptedAt' => $share->accepted_at === null ? null : (string) $share->accepted_at,
                 'declinedAt' => $share->declined_at === null ? null : (string) $share->declined_at,
                 'revokedAt' => $share->revoked_at === null ? null : (string) $share->revoked_at,
-                'targets' => $shareTargets->map(static fn (object $target): array => [
-                    'id' => (string) $target->id,
-                    'trackingId' => (string) $target->tracking_id,
-                    'state' => (string) $target->state,
-                    'name' => (string) $target->current_name,
-                    'tag' => $target->current_tag === null ? null : (string) $target->current_tag,
-                    'sharedAt' => (string) $target->shared_at,
-                    'removedAt' => $target->removed_at === null ? null : (string) $target->removed_at,
-                ])->values()->all(),
+                'targets' => $targetsByShare[(string) $share->id] ?? [],
             ];
         }
 
@@ -134,7 +152,10 @@ final class KingdomIntelligenceSharingManageQuery
             ])
             ->values()
             ->all();
+        /** @var list<array<string, mixed>> $inbound */
+        $inbound = array_values($inbound);
 
+        /** @var list<array{id: string, name: string, tag: string|null}> $trackableTargets */
         $trackableTargets = [];
         if ($alliance->kingdom_id !== null) {
             $trackableTargets = DB::table('tracked_kingdom_alliances as tracking')
@@ -156,7 +177,9 @@ final class KingdomIntelligenceSharingManageQuery
                     'name' => (string) $tracking->current_name,
                     'tag' => $tracking->current_tag === null ? null : (string) $tracking->current_tag,
                 ])
+                ->values()
                 ->all();
+            $trackableTargets = array_values($trackableTargets);
         }
 
         return [
