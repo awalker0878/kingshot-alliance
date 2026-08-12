@@ -3,47 +3,60 @@
 [← Domain documentation](../README.md)
 
 **Document type:** Living domain contract  
-**Status:** Current — `KINGDOMS-001`, `KINGDOMS-002`, `KINGDOMS-003`, and `KINGDOMS-004` Accepted  
+**Status:** Current runtime — `KINGDOMS-001`–`KINGDOMS-005` Accepted  
 **Code owner:** `app/Domain/Kingdoms`  
 **Primary authorization boundary:** `alliance.view` for member-safe reads; `kingdoms.manage` for management/private workflows; `alliance.manage` for Alliance→Kingdom setting
 
 ## 1. Purpose and ownership
 
-Kingdoms owns approved Kingshot game-world reference identity and Alliance-owned workflows: neutral Kingdom/player/game-Alliance identity; roster/snapshots/intelligence; controlled CSV migration/export; transfer planning/handoff; game-Alliance tracking/observations/diplomacy/contacts/intelligence; and governed automated-ingestion control, factual promotion, generic scheduling, source-revocation, retention and operational health.
+Kingdoms owns neutral Kingdom/player/game-Alliance identity; Alliance-owned roster/snapshots/intelligence; CSV migration/export; transfer planning; game-Alliance tracking/observations/diplomacy/contacts; K4 automated ingestion; and accepted K5 directional consent, explicit target grants, safe current/history projections, first-party sharing presentation and bounded operational retention.
 
-Accepted increment evidence: [K1](product/kingdoms-roster-intelligence-increment.md), [K2](product/kingdoms-transfer-planning-increment.md), [K3](product/kingdoms-alliance-intelligence-increment.md), and [K4](product/kingdoms-automated-ingestion-increment.md). Current K4 behavior is [Automated game-data ingestion](automated-ingestion.md); acceptance evidence is the [K4 exit report](product/kingdoms-automated-ingestion-exit-report.md).
+Accepted increment evidence: [K1](product/kingdoms-roster-intelligence-increment.md), [K2](product/kingdoms-transfer-planning-increment.md), [K3](product/kingdoms-alliance-intelligence-increment.md), [K4](product/kingdoms-automated-ingestion-increment.md), and [K5](product/kingdoms-shared-intelligence-increment.md).
+
+Current K5 behavior is [Opt-in shared Kingdom intelligence](shared-intelligence.md). P0–P6 are Complete; whole-increment acceptance is recorded in the [K5 exit report](product/kingdoms-shared-intelligence-exit-report.md).
 
 ## 2. Scope
 
 ### In scope
 
 - neutral Kingdom/player/game-Alliance reference identity;
-- Alliance→Kingdom context consumption;
-- Alliance-owned roster/snapshots/intelligence/import/export;
+- Alliance-owned roster/history/intelligence/import/export;
 - transfer planning/readiness/completion;
-- tracked game Alliances, factual observation/correction history, explicit diplomacy, private contacts, descriptive intelligence;
-- K4 code/config adapter allowlist, subscriptions, batches, bounded candidates, quarantine/rejection, deterministic identity, manager status/control;
-- delegated factual player-snapshot and game-Alliance-observation promotion to existing owning-Alliance relationships;
-- generic K4 scheduled acquisition, opaque cursor, bounded retry/circuit, concurrency guards and password-confirmed replay; and
-- source-revocation reconciliation, bounded operational retention/pruning and aggregate health/capacity monitoring.
+- tracked game Alliances, factual observation/correction history, explicit diplomacy, private contacts and descriptive intelligence;
+- K4 allowlisted ingestion, delegated factual promotion, scheduler/cursor/retry/replay, source revocation, retention and health;
+- K5 directional invitation/agreement consent with hash-only pending token identity and same-Kingdom activation;
+- K5 explicit source-owned target grant/removal;
+- bounded recipient-safe current-fact projection;
+- bounded recipient-safe accepted history for one explicit target using opaque encrypted continuation cursors;
+- member-safe first-party current/history page;
+- manager-only first-party sharing consent/grant workspace;
+- bounded scheduled retention of eligible old K5 operational sharing metadata;
+- realistic-volume current/history capacity regression evidence; and
+- whole-increment cross-tenant acceptance evidence.
 
 ### Out of scope
 
 - application/membership ownership;
-- unapproved concrete sources, manager-configured endpoints/credentials, scraping/OCR/browser/game-client automation;
-- machine roster/tracking creation or reactivation;
-- machine game-Alliance correction/invalidation;
-- cross-Alliance/shared intelligence without separately approved opt-in scope;
-- automatic transfer/diplomacy/contact actions or scoring/ranking/recommendations; and
-- public Kingdoms API/webhook contracts.
+- unapproved ingestion sources/scraping/OCR/browser/game-client automation;
+- machine roster/tracking creation/reactivation or observation correction/invalidation;
+- roster/player, transfer, diplomacy/contact or cross-Kingdom sharing;
+- transitive reshare, public tenant directory, public Kingdoms API/webhook;
+- recipient canonical shared-intelligence copy/materialization; and
+- scoring/ranking/recommendations/automatic decisions.
 
 ## 3. Domain model
 
 Identity remains layered: global `User`; Alliance membership; neutral `KingdomPlayer`/`KingdomAlliance` within a `Kingdom`; and Alliance-owned relationships/observations/workflows.
 
-`AllianceRosterEntry` + `PlayerSnapshot` own player roster/history. Transfer entities own planning/readiness/completion. `TrackedKingdomAlliance`, `KingdomAllianceObservation`, diplomacy/transition/contact entities own tenant game-Alliance intelligence.
+K1–K3 own roster/snapshot/transfer/game-Alliance intelligence. K4 owns `KingdomIngestionSubscription`, `KingdomIngestionBatch`, and `KingdomIngestionCandidate` operational state while promoted K1/K3 history retains independent provenance.
 
-K4 adds Alliance-owned `KingdomIngestionSubscription`, `KingdomIngestionBatch`, and `KingdomIngestionCandidate`. Subscriptions carry bounded scheduler/cursor/failure state; batches carry source-window/next-cursor state. Promoted K1/K3 history copies bounded machine provenance without operational-row FKs.
+K5 adds `KingdomIntelligenceShare` for directional consent and `KingdomIntelligenceShareTarget` for one explicit source-owned tracking grant. Current/history queries read source `KingdomAllianceObservation` rows directly under live authorization; K5 stores no recipient observation copies.
+
+Pending invitations retain only a one-way token hash. P4 erases that hash on accept, decline and revoke through a forward nullable-column migration; accepted historical P1/P2 migrations remain unchanged.
+
+P5 retention can remove only eligible old pending/terminal/removed K5 operational rows. Active shares/grants, canonical source tracking/observations, Audit events and outbox messages remain outside that destructive boundary.
+
+History continuation state is encrypted/authenticated transient cursor data, not a persisted data-ownership record or reusable authorization credential.
 
 ## 4. Core invariants
 
@@ -55,105 +68,160 @@ K4 adds Alliance-owned `KingdomIngestionSubscription`, `KingdomIngestionBatch`, 
 6. Machine game-Alliance promotion is append-only and cannot correct/invalidate existing history.
 7. Missing data remains distinct from zero.
 8. Diplomacy changes only through explicit human manager action; transfer completion remains explicit/idempotent.
-9. K4 operational rows capture Alliance/Kingdom context and never silently follow Kingdom drift.
-10. K4 promotion requires an existing owning-Alliance roster or active tracking relationship; it never creates/reactivates one.
-11. K4 scheduled workers re-resolve tenant/current-Kingdom/source version; queue identity is never authority.
-12. K4 cursor advances only after Completed/Partial batch state; exact source-window/candidate/promoted retry remains idempotent.
-13. Adapter removal/version drift disables acquisition rather than substituting another source/version.
-14. K4 operational retention cannot delete promoted K1/K3 canonical history or rewrite copied provenance.
-15. Production adapters remain repository/config allowlisted; current production list is empty.
-16. Internal `kingdoms.*` events never automatically become public webhooks.
+9. K4 operational rows never silently follow Kingdom drift; cursor/retry/source rules remain fail closed.
+10. K4 promotion requires existing owning-Alliance roster/tracking relationships and never creates/reactivates them.
+11. K5 sharing is directional; reverse sharing requires another agreement.
+12. K5 acceptance requires a different Alliance and both current Kingdoms equal the captured invitation Kingdom.
+13. Invitation plaintext is never persisted; redemption is single-use; accepted/declined/revoked invitation hashes are erased.
+14. Active agreement alone shares no observations; each target requires explicit source grant.
+15. Recipient current/history reads authorize through active recipient → active agreement → active grant → source-owned active tracking/context.
+16. Source observations remain canonical; recipient reads create no local tracking/history copy.
+17. Received intelligence cannot be used as an upstream K5 grant.
+18. Current/history use accepted K3 semantics; invalidated observations cease participating immediately.
+19. Target removal, agreement revocation or supported Kingdom drift immediately removes current/history access.
+20. Supported Kingdom drift terminalizes affected agreements so returning cannot silently resume consent.
+21. History pages are capped at 50 and one traversal at 250 accepted observations.
+22. History continuation cursor is encrypted, target-bound and fixed to one `asOf` snapshot; it never substitutes for live authorization.
+23. First-party K5 presentation exposes no arbitrary client-selected historical `asOf` windows.
+24. Manager agreement/grant state remains manager-only; safe shared facts/history are member-safe.
+25. Invitation plaintext is never persisted into Inertia/session page state.
+26. Internal `kingdoms.*` events never automatically become public webhooks.
+27. K5 retention owns one total work budget, clamped to 1–2000, and cannot create/reactivate authorization.
+28. Active shares/grants and canonical source tracking/observations are never K5 retention-eligible.
+29. Retention repeats state/cutoff predicates during deletion so stale candidate IDs cannot delete newly non-eligible rows.
+30. Audit/outbox evidence remains outside K5 operational retention.
 
 ## 5. Lifecycles and workflows
 
-Alliance Kingdom setting remains Alliances-owned. Historical Kingdoms state fails closed after drift.
+Existing roster/snapshot/intelligence/CSV, transfer, game-Alliance and K4 workflows remain documented in their capability contracts.
 
-Roster/snapshot/intelligence/CSV flows are documented in [Roster](roster.md), [Snapshots](snapshots.md), [Roster intelligence](intelligence.md), and [CSV migration](csv-migration.md). Transfer planning is [Transfer planning](transfer-planning.md). Game-Alliance business workflows are [Alliance intelligence and diplomacy](alliance-intelligence.md).
+K5 consent: source creates invitation; recipient accepts/declines; source revokes; active recipient leaves. Accept, decline and revoke erase the persisted invitation hash. K5 target lifecycle: source explicitly grants/removes one active source tracking target. Consent/target mutations require `kingdoms.manage` plus recent password confirmation where defined.
 
-K4 managers control approved subscriptions/rejection/replay. The scheduler claims due approved subscriptions, dispatches isolated per-subscription jobs, acquires a bounded page through an acquisition-capable adapter, delegates staging and P2/P3 promotion, completes the batch, then advances its opaque cursor.
+Current facts use `SharedKingdomIntelligenceCurrentQuery`. Bounded history uses `SharedKingdomIntelligenceHistoryQuery` with 50-row keyset pages, 250 accepted-observation traversal limit and encrypted target-bound continuation state.
 
-Maintenance periodically reconciles current source approval and disables revoked adapters; daily retention redacts/prunes age-qualified operational scaffolding; on-demand health produces payload-free aggregate attention signals. See [Automated game-data ingestion](automated-ingestion.md).
+P4 first-party presentation uses `Alliance/KingdomSharing` for member-safe facts/history and `Alliance/KingdomSharingManage` for manager-only consent/grant operations. History navigation uses explicit target + opaque server cursor only.
+
+P5 retention uses `kingdoms:enforce-sharing-retention --limit=500`, scheduled daily at 04:30 on one server without overlap. Cleanup priority is expired pending invitations, old terminal shares, then old removed target grants.
+
+Supported Alliance→Kingdom changes terminalize affected K5 agreements and source pending invitations inside the Kingdom-change transaction.
+
+P6 adds no lifecycle; it re-proves the complete accepted seam end to end.
 
 ## 6. Authorization and tenancy
 
-- member-safe reads use `alliance.view`;
-- roster/snapshot/import/transfer/game-Alliance/diplomacy/contact/K4 management uses `kingdoms.manage`;
-- privileged human mutations/replay require recent password confirmation; and
-- Alliance→Kingdom setting uses `alliance.manage`.
+Member-safe existing reads use `alliance.view`; Kingdoms management uses `kingdoms.manage`; privileged human mutations require recent password confirmation; Alliance→Kingdom setting uses `alliance.manage`.
 
-Machine acquisition/promotion/maintenance derives authority only from already-owned K4 state after tenant/source re-resolution. Neutral identity, adapter/source/cursor/candidate state never grants application authorization.
+K5 source mutations resolve shares/tracking beneath the active source Alliance. Recipient current/history facts resolve from active recipient Alliance through active directional agreement and explicit active grant. Every history page repeats live authorization; stale cursor state does not bypass removal/revoke/drift.
+
+The management page requires `kingdoms.manage`; safe K5 current/history presentation is first-party member-safe. No public recipient API exists.
+
+The P5 retention command is an internal operator surface and does not grant tenant read/write authority.
 
 ## 7. Cross-domain contracts
 
 ### Consumes
 
-- **Alliances** — active tenant/current Kingdom.
-- **Memberships** — optional roster/coordinator references only.
-- **Authorization / Identity** — permission, actor identity and assurance.
-- **Audit / Platform** — audit/outbox plus shared scheduler/queue runtime.
-- **Integrations** — explicit external-exposure boundary; Kingdoms API/webhook remains excluded.
+- **Alliances** — tenant/current Kingdom plus K5 source/recipient identity and supported Kingdom-change lifecycle.
+- **Memberships** — optional existing roster/coordinator references only.
+- **Authorization / Identity** — permissions, actor identity and password assurance.
+- **Audit / Platform** — Audit/outbox plus shared runtime infrastructure.
+- **Integrations** — external-exposure boundary; `kingdoms.*` remains excluded.
 
 ### Exposes
 
-Member-safe presentation, manager-only accepted mutation/query contracts, K4 manager control/status, internal staging/promotion/scheduler/maintenance services, and internal durable `kingdoms.*` events. K4 adapter/acquisition registration is repository/operator configuration, not a public integration contract.
+Existing member/manager Kingdoms contracts, K4 internal ingestion services, K5 first-party consent/target mutations, bounded current/history queries, authenticated first-party K5 sharing pages and one bounded internal retention command/schedule. K5 exposes no public sharing API/webhook.
 
 ## 8. Persistence and data ownership
 
-Neutral Kingdom/player/game-Alliance references are global reference data. Roster/history/import/transfer/tracking/observations/diplomacy/contacts/derived intelligence and K4 operational state are Alliance-owned.
+Neutral Kingdom/player/game-Alliance references are global reference data. Roster/history/import/transfer/tracking/observations/diplomacy/contacts/K4 state remain Alliance-owned.
 
-K4 normalized candidates are bounded operational data, not raw-source archives. Default operational retention is 30-day terminal payload redaction, 90-day terminal candidate/batch retention, 180-day quarantined-candidate retention and 30-day disabled-subscription scheduling/failure compaction. Promoted K1/K3 history stores bounded source provenance independently.
+K5 sharing/target tables store only consent/grant metadata. Source observations stay source-owned; no recipient observation/history rows are materialized.
+
+`invitation_token_hash` is nullable in current schema so consumed/terminal secret-derived values can be erased. Rollback compatibility uses deterministic retired placeholders only when reverting to the historical P1 non-null schema; reapply restores terminal null values.
+
+P5 operational retention can delete eligible K5 share/target rows but does not delete canonical source observations or Audit/outbox evidence.
+
+The encrypted history cursor is request continuation state only and is not persisted by the domain.
 
 ## 9. Events, outbox and integrations
 
-Material Kingdoms mutations create audit/internal outbox evidence. `alliance.kingdom_updated` and every `kingdoms.*` event remain excluded from generic external webhook fan-out.
+Material Kingdoms mutations create Audit/internal outbox evidence. `alliance.kingdom_updated` and every `kingdoms.*` event remain excluded from generic external webhook fan-out.
 
-K4 uses internal ingestion lifecycle/promotion/replay events plus accepted K1/K3 observation events. Maintenance adds no public integration surface. No inbound public API/webhook or arbitrary endpoint/secret configuration exists.
+K5 consent/target/context events remain internal and safe-metadata-only. Current/history presentation and P5 retention add no public event contract. History/current payloads, invitation plaintext and cursors are not event payloads.
+
+P5 retention explicitly preserves Audit/outbox rows. P6 adds no event contract.
 
 ## 10. HTTP, UI and API surfaces
 
-K1–K3 first-party surfaces cover settings, roster/history/intelligence/import/export, transfers, and tracked game-Alliance observation/diplomacy/contact/intelligence.
+K1–K4 first-party surfaces remain unchanged. K5 consent POST routes create/accept/decline/revoke/leave agreements; target POST routes add/remove explicit grants.
 
-K4 adds manager-only ingestion status/control and password-confirmed quarantined-candidate replay. There is no HTTP route for arbitrary source payload staging, scheduler invocation, direct promotion, retention/reconciliation/health or public source callbacks.
+K5 includes authenticated first-party GET presentation for member-safe current/history facts and a manager-only sharing workspace. History uses opaque continuation cursors and exposes no arbitrary historical-window control.
 
-Operator commands include queueing due ingestion, source reconciliation, operational retention and aggregate ingestion health. These are internal runtime interfaces, not public APIs.
+P5 adds an internal Artisan command/scheduler entry only. There is still no public K5 data API/webhook, anonymous feed, tenant directory/search or external callback/credential.
 
 ## 11. Background processing
 
-K4 uses `kingdoms:queue-ingestion --limit=100` every minute, transactional due claims, dedicated `kingdoms-ingestion` Horizon queue, unique/overlap-protected per-subscription jobs, bounded timeout/retries/backoff/circuit state and opaque cursor advancement.
+K4 retains its accepted scheduler/queue/maintenance behavior.
 
-Source reconciliation runs every five minutes and operational retention daily at 04:15 with single-server/overlap protection. Production has zero configured ingestion adapters, so no real external source is polled in default production state.
+K5 P5 adds no queue job but adds a daily scheduled retention command at 04:30. It runs `onOneServer()` and `withoutOverlapping(60)`, with one total work budget defaulting to 500 and clamped to 1–2000.
+
+Default windows are 30 days after invitation expiry, 180 days for terminal shares and 90 days for removed grants. Immediate invitation-hash erasure remains synchronous P4 behavior.
+
+K5 introduces no read cache/materialized recipient projection. P6 adds no background processing.
 
 ## 12. Failure, idempotency and concurrency
 
-Existing snapshot/observation/CSV/transfer idempotency remains enforced. K4 source windows/candidate identities are deterministic; exact promoted-candidate retry returns existing canonical history. Cursor advancement uses locks and requires completed/partial batch state.
+K4 idempotency/concurrency semantics remain unchanged.
 
-Adapter removal/version drift, Kingdom drift, circuit-open state, source-window/cursor conflicts, unknown/ambiguous/inactive targets, relationship absence and invalid bounded facts fail closed. Failure state uses bounded codes, not raw exception/source text. Source reconciliation is idempotent after disablement.
+K5 invalid/expired/used token, self-share, different-Kingdom activation, duplicate active agreement, stale share context, unrelated-tenant IDs and invalid/wrong-target history cursors fail closed.
+
+Active target re-add is idempotent; removed grants require deliberate re-grant. History continuation uses keyset ordering rather than mutable offsets and repeats live recipient/share/grant/context authorization on each page.
+
+Relevant consent/grant lock ordering remains Alliance(s) → share → target. Supported Kingdom drift terminalizes affected agreements, preventing later implicit access resume.
+
+Retention is idempotent after eligible rows are removed and repeats eligibility at delete time, preventing a stale candidate set from overriding a newer active/re-granted state.
 
 ## 13. Security and privacy
 
-Kingdoms holds high-value tenant operational intelligence. Manager-private notes/reasons/contacts/provenance and K4 scheduler/operational state must not cross tenant/public boundaries.
+K5 current/history/manager projections explicitly whitelist safe fields rather than serialize source models wholesale.
 
-K4 excludes arbitrary endpoint/credential storage, raw-response archives, normalized-payload UI/health disclosure, stable-ID guessing, cross-tenant mutation, auto roster/tracking creation, machine observation correction and diplomacy/contact automation. See [Kingdoms security](security/README.md).
+Recipients receive source Alliance ID/name, neutral/current game-Alliance name/tag, accepted observed name/tag, optional power/member count, capture time and descriptive freshness. History additionally uses opaque continuation state only.
+
+Invitation plaintext appears only in the authenticated creation response/component memory. Pending invitation hashes are never page props and are erased on accept/decline/revoke.
+
+Tracking IDs, stable game IDs, observation IDs, manager notes, diplomacy/contact data, roster/transfer data, actors/reasons/correction linkage, K4 provenance and private source data remain excluded.
+
+P5 retention is operational metadata minimization only; active/canonical/Audit/outbox state remains protected.
+
+See [Kingdoms security](security/README.md), [K5 Slice D presentation security review](security/kingdoms-shared-intelligence-presentation-security-review.md), [K5 Slice E retention security review](security/kingdoms-shared-intelligence-retention-security-review.md), and [K5 whole-increment exit report](product/kingdoms-shared-intelligence-exit-report.md).
 
 ## 14. Observability and operations
 
-Use safe tenant/reference/state/count/timing/hash/cursor/reason/promoted-record identifiers with request/trace/audit/outbox correlation. Do not log source secrets/raw responses/private text.
+K4 operational health remains unchanged. K5 P5 adds metadata-only retention command counts but no dedicated health dashboard/alert.
 
-K4 operational health is bounded aggregate evidence. A representative fixture of 250 subscriptions, 40 failed batches and 110 candidates is required to remain at no more than eight SELECT queries. This is not a real-source throughput SLO.
+Current projection is bounded to 250 rows. P5 proves 300 active grants still return only 250 rows in no more than two SELECTs and within the reviewed 160,000-byte encoded fixture ceiling.
 
-Domain guides: [Roster intelligence operations](operations/kingdoms-roster-intelligence.md), [Transfer planning operations](operations/kingdoms-transfer-planning.md), [Alliance intelligence operations](operations/kingdoms-alliance-intelligence.md), [Automated ingestion operations](operations/kingdoms-automated-ingestion.md).
+History remains 50 rows/page and 250 accepted observations/traversal. P5 proves 1,000 source observations still produce only five 50-row pages, no more than two SELECTs/page and a reviewed 50,000-byte encoded page ceiling.
+
+Retention is bounded to one total 1–2000 rows/run. Safe operational evidence includes release identity, run timestamp/environment, requested limit and returned per-class/total counts.
+
+Do not log invitation plaintext/hashes, current/history payload bodies or history cursors; do not repair/reactivate sharing via database edits.
+
+See [K5 retention operations](operations/kingdoms-shared-intelligence-retention.md).
 
 ## 15. Testing and architecture enforcement
 
-Suites protect identity/tenancy, authorization/privacy, append history, human-only correction/diplomacy, retry/idempotency, migration/accessibility, public integration exclusion and K4 allowlist/no-secret/stable-ID/quarantine/no-auto-relationship/scheduler/replay/retention/revocation boundaries.
+Suites protect identity/tenancy, privacy, history, K4 source/idempotency and K5 consent/grant/current/history/presentation/retention boundaries.
 
-K4 whole-increment runtime candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` passed Dependency Review `31556412455`, CodeQL `31556412413`, and CI `31556412468`: Pint 529 files, PHPStan/Larastan 374/374 zero errors, 429 tests / 9,799 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore and scan. See the [K4 exit report](product/kingdoms-automated-ingestion-exit-report.md).
+K5 whole-increment runtime candidate `6f84b51ab27941f0fec2abce71f1f2f6325560e4` passed Dependency Review `31573301975`, CodeQL `31573301988`, and CI `31573301977`: Pint 560 files, PHPStan/Larastan 394/394 zero errors, 452 tests / 10,322 assertions, frontend lint/format/type/build, clean migrations, immutable image, staging, backup/restore, scan and cleanup.
+
+P5 evidence includes bounded/idempotent retention, active/canonical/Audit/outbox preservation, realistic-volume current/history query/response bounds and zero recipient canonical copies. P6 adds whole-seam acceptance evidence for unrelated-tenant denial, safe correction propagation, no copy/reshare/mutation and immediate authorization loss. P1–P4 evidence remains additive.
 
 ## 16. Explicit non-capabilities
 
-The current runtime does not implement an approved real Kingshot source, arbitrary manager network fetches, source credential storage, scraping/OCR/browser/game-client automation, auto roster/tracking/membership/transfer/diplomacy/contact behavior, machine K3 correction/invalidation, cross-Alliance shared intelligence, scoring/ranking/recommendations, or public Kingdoms API/webhook.
+Current runtime does not provide arbitrary historical-window selection, roster/player sharing, transfer sharing/automation, diplomacy/contact sharing, cross-Kingdom sharing, transitive reshare, tenant directory, public Kingdoms API/webhook, recipient canonical materialization, scoring/ranking/recommendations or automatic decisions.
 
-Generic scheduler/acquisition/maintenance mechanics exist, but the production adapter allowlist is empty. Production source enablement remains separately approved.
+K4 production source enablement also remains separately unapproved. K5 repository acceptance is not approval for a broader public or production-policy scope.
 
 ## 17. Capability documents
 
@@ -164,6 +232,7 @@ Generic scheduler/acquisition/maintenance mechanics exist, but the production ad
 - [Transfer planning](transfer-planning.md)
 - [Alliance intelligence and diplomacy](alliance-intelligence.md)
 - [Automated game-data ingestion](automated-ingestion.md)
+- [Opt-in shared Kingdom intelligence](shared-intelligence.md)
 
 Domain-owned evidence: [Product](product/README.md), [Security](security/README.md), [Operations](operations/README.md), [Interfaces](interfaces/README.md), [Testing](testing/README.md).
 
@@ -173,9 +242,21 @@ Domain-owned evidence: [Product](product/README.md), [Security](security/README.
 - [KINGDOMS-002 exit](product/kingdoms-transfer-planning-exit-report.md)
 - [KINGDOMS-003 exit](product/kingdoms-alliance-intelligence-exit-report.md)
 - [KINGDOMS-004 exit](product/kingdoms-automated-ingestion-exit-report.md)
-- [K4 Slice D validation](product/kingdoms-automated-ingestion-slice-d-validation.md)
-- [K4 Slice E validation](product/kingdoms-automated-ingestion-slice-e-validation.md)
-- [K4 Slice E security review](security/kingdoms-automated-ingestion-operations-security-review.md)
+- [KINGDOMS-005 scope](product/kingdoms-shared-intelligence-increment.md)
+- [KINGDOMS-005 implementation plan](product/kingdoms-shared-intelligence-implementation-plan.md)
+- [K5-P0 exit](product/kingdoms-shared-intelligence-p0-exit-report.md)
+- [K5 Slice A validation](product/kingdoms-shared-intelligence-slice-a-validation.md)
+- [K5 Slice A security review](security/kingdoms-shared-intelligence-foundation-security-review.md)
+- [K5 Slice B validation](product/kingdoms-shared-intelligence-slice-b-validation.md)
+- [K5 Slice B security review](security/kingdoms-shared-intelligence-current-facts-security-review.md)
+- [K5 Slice C validation](product/kingdoms-shared-intelligence-slice-c-validation.md)
+- [K5 Slice C security review](security/kingdoms-shared-intelligence-history-security-review.md)
+- [K5 Slice D validation](product/kingdoms-shared-intelligence-slice-d-validation.md)
+- [K5 Slice D presentation security review](security/kingdoms-shared-intelligence-presentation-security-review.md)
+- [K5 Slice E validation](product/kingdoms-shared-intelligence-slice-e-validation.md)
+- [K5 Slice E security review](security/kingdoms-shared-intelligence-retention-security-review.md)
+- [K5 Slice E retention operations](operations/kingdoms-shared-intelligence-retention.md)
+- [KINGDOMS-005 exit](product/kingdoms-shared-intelligence-exit-report.md)
 - [Alliances](../alliances/README.md)
 - [Authorization](../authorization/README.md)
 - [Integrations](../integrations/README.md)

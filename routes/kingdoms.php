@@ -8,6 +8,7 @@ use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceIntelligenceController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceObservationController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomIngestionController;
+use App\Domain\Kingdoms\Http\Controllers\KingdomIntelligenceSharingController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
 use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
 use App\Domain\Kingdoms\Http\Controllers\RosterController;
@@ -64,6 +65,11 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
 
     Route::get('/alliance/kingdom-ingestion/manage', [KingdomIngestionController::class, 'manage'])
         ->name('alliance.kingdom-ingestion.manage');
+
+    Route::get('/alliance/kingdom-sharing', [KingdomIntelligenceSharingController::class, 'index'])
+        ->name('alliance.kingdom-sharing.index');
+    Route::get('/alliance/kingdom-sharing/manage', [KingdomIntelligenceSharingController::class, 'manage'])
+        ->name('alliance.kingdom-sharing.manage');
 
     Route::get('/alliance/transfers', [TransferPlanController::class, 'index'])
         ->name('alliance.transfers.index');
@@ -131,6 +137,35 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
             '/alliance/kingdom-ingestion/subscriptions/{subscription}/candidates/{candidate}/replay',
             [KingdomIngestionController::class, 'replayCandidate'],
         )->name('alliance.kingdom-ingestion.candidates.replay');
+
+        Route::post(
+            '/alliance/kingdom-sharing/invitations',
+            [KingdomIntelligenceSharingController::class, 'createInvitation'],
+        )->name('alliance.kingdom-sharing.invitations.store');
+        Route::post(
+            '/alliance/kingdom-sharing/invitations/accept',
+            [KingdomIntelligenceSharingController::class, 'acceptInvitation'],
+        )->name('alliance.kingdom-sharing.invitations.accept');
+        Route::post(
+            '/alliance/kingdom-sharing/invitations/decline',
+            [KingdomIntelligenceSharingController::class, 'declineInvitation'],
+        )->name('alliance.kingdom-sharing.invitations.decline');
+        Route::post(
+            '/alliance/kingdom-sharing/{share}/revoke',
+            [KingdomIntelligenceSharingController::class, 'revoke'],
+        )->name('alliance.kingdom-sharing.revoke');
+        Route::post(
+            '/alliance/kingdom-sharing/{share}/leave',
+            [KingdomIntelligenceSharingController::class, 'leave'],
+        )->name('alliance.kingdom-sharing.leave');
+        Route::post(
+            '/alliance/kingdom-sharing/{share}/targets/{tracking}',
+            [KingdomIntelligenceSharingController::class, 'addTarget'],
+        )->name('alliance.kingdom-sharing.targets.store');
+        Route::post(
+            '/alliance/kingdom-sharing/{share}/targets/{target}/remove',
+            [KingdomIntelligenceSharingController::class, 'removeTarget'],
+        )->name('alliance.kingdom-sharing.targets.remove');
 
         Route::post('/alliance/transfers', [TransferPlanController::class, 'store'])
             ->name('alliance.transfers.store');

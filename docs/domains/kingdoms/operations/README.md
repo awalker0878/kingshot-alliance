@@ -3,96 +3,140 @@
 [← Kingdoms domain](../README.md) · [Shared operations](../../../operations/README.md)
 
 **Document type:** Living domain operations profile  
-**Status:** Current — `KINGDOMS-004` Accepted  
+**Status:** Current — `KINGDOMS-004` and `KINGDOMS-005` Accepted  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary operational boundary:** Alliance-scoped roster/snapshot/import, transfer, Alliance-intelligence/diplomacy, and K4 ingestion/promotion/scheduler/maintenance state with shared deployment/recovery infrastructure
+**Primary operational boundary:** Alliance-scoped roster/intelligence/transfer, K4 ingestion operations, and accepted K5 consent/grant/current/history/presentation plus bounded operational retention with shared deployment/recovery infrastructure
 
 ## 1. Operational purpose and runtime shape
 
-K1–K3 remain predominantly synchronous Laravel/PostgreSQL workflows with shared audit/outbox. Accepted K4 adds manager ingestion control, delegated factual promotion, generic background acquisition/scheduling, source-revocation reconciliation, bounded operational retention and payload-free health monitoring on shared Laravel Scheduler/Redis/Horizon infrastructure.
+K1–K3 remain synchronous business workflows; K4 adds background ingestion/maintenance. Accepted K5 adds synchronous sharing consent/target mutations, bounded recipient current/history reads, member-safe presentation, a manager-only sharing workspace, and bounded scheduled retention for old K5 operational metadata.
 
-No concrete production source is configured; the production adapter allowlist remains empty.
+K5 retention is a repository-owned daily scheduler/Artisan surface. It has no external provider dependency, does not create recipient copies, and does not change live read authorization.
+
+K5-P6 completed whole-increment acceptance without adding a new operational runtime surface.
 
 ## 2. Persistent state and ownership
 
-Kingdoms owns neutral Kingdom/player/game-Alliance references plus Alliance-owned roster/history/import, transfer, game-Alliance intelligence/diplomacy, K4 subscriptions/batches/candidates, scheduler/cursor/failure state, and promoted canonical observation history.
+K5 stores `kingdom_intelligence_shares` for directional consent and `kingdom_intelligence_share_targets` for explicit target grant history.
 
-K4 operational rows are not canonical history. Promoted K1/K3 records copy bounded source provenance independently of operational-row retention.
+Pending invitations persist a one-way token hash; accept, decline and revoke erase it immediately. The current schema allows that hash to be null for consumed/terminal rows.
+
+Source `TrackedKingdomAlliance` / `KingdomAllianceObservation` rows remain source-owned and canonical. Current/history reads create no recipient observation-history copy. History continuation cursors and invitation plaintext are transient client/request state, not business records.
+
+P5 retention may delete only eligible old pending/terminal/removed K5 operational rows. Active shares/grants, canonical source tracking/observations, Audit events and outbox messages are not eligible.
 
 ## 3. Configuration and runtime dependencies
 
-Primary dependencies are PostgreSQL, active tenant/auth/audit/outbox infrastructure, Laravel Scheduler, Redis queues/Horizon and repository/config adapter registration.
+K5 uses existing Laravel/PostgreSQL/auth/Audit/outbox dependencies. `config/kingdoms.php` defines:
 
-K4 has a dedicated `kingdoms-ingestion` queue. Production `ingestion_adapters` remains intentionally empty; no source endpoint/credential is accepted. Repository-controlled retention and health thresholds are configuration, not tenant-supplied source settings.
+- `shared_intelligence.invitation_ttl_hours = 72`, repository-bounded to 1–168 hours;
+- `shared_intelligence_retention.expired_invitation_days = 30`;
+- `shared_intelligence_retention.terminal_share_days = 180`; and
+- `shared_intelligence_retention.removed_target_days = 90`.
+
+Invitation token generation uses local cryptographic randomness and SHA-256 hashing. History continuation uses Laravel encrypted-string protection. K5 current/history/UI/retention requires no external provider or credential.
+
+Retention runtime clamps all configured day windows to at least one day and never allows the terminal-share window below the expired-invitation window.
 
 ## 4. Normal flow and background processing
 
-Managers with `kingdoms.manage` may view status, configure an already registered adapter, transition subscription state, reject quarantined candidates, and replay quarantined candidates; privileged human mutations require recent password confirmation.
+Source manager creates invitation; recipient accepts/declines; source may revoke; active recipient may leave. Source managers may explicitly add/remove one active source tracking target under an active same-Kingdom agreement.
 
-`kingdoms:queue-ingestion --limit=100` runs every minute with `onOneServer()` and `withoutOverlapping(10)`, claims due subscriptions under row locks and dispatches unique/overlap-protected per-subscription jobs to the isolated queue. Workers call accepted staging plus P2/P3 promotion actions; cursor advances only after Completed/Partial batches.
+Recipient current facts use `SharedKingdomIntelligenceCurrentQuery`, bounded to 250 grants. Recipient history uses `SharedKingdomIntelligenceHistoryQuery`, capped at 50 rows/page and 250 accepted observations/traversal with an encrypted target-bound cursor.
 
-`kingdoms:reconcile-ingestion-sources --limit=1000` runs every five minutes and disables active/paused subscriptions whose adapter key/version is no longer approved. `kingdoms:enforce-ingestion-retention` runs daily at 04:15 and redacts/prunes age-qualified operational state.
+P4 exposes these through the authenticated member-safe sharing page and manager-only management page. The history UI has no arbitrary `asOf` selector. Invitation plaintext appears only after creation in component memory and can be cleared.
+
+P5 adds `kingdoms:enforce-sharing-retention --limit=500`, scheduled daily at 04:30 with `onOneServer()` and `withoutOverlapping(60)`. One invocation uses one total budget, clamped to 1–2000, and processes expired pending invitations → old terminal agreements → old removed grants.
+
+Supported Alliance→Kingdom changes terminalize affected K5 agreements/pending source invitations in the same transaction, preventing access resume after returning to an old Kingdom.
+
+P6 adds no new background or operator workflow; it validates the complete runtime seam end to end.
 
 ## 5. Health, observability and diagnostics
 
-`kingdoms:ingestion-health --json` returns aggregate counts for active/revoked/overdue subscriptions, open circuits, stale pending candidates, quarantined candidates and recent failed batches plus `attentionRequired`; it exits non-zero when attention is required.
+Safe K5 diagnostics are share/target IDs, authorized source/recipient Alliance IDs, captured Kingdom, state, timestamps, retention command limit, and returned per-class/total counts.
 
-Use request/trace/audit/outbox correlation plus Alliance/current/captured Kingdom, adapter/version, opaque cursor/window, subscription/batch/candidate lifecycle, next-run/claim/success/failure/circuit timing, stable/source IDs, hashes, promoted-record IDs, and bounded failure/quarantine codes.
+The retention command returns JSON keys `expiredInvitationsPurged`, `terminalSharesPurged`, `removedTargetsPurged`, and `processed`.
 
-Do not log normalized payload bodies, raw source responses, credentials, headers/cookies, raw exception text or private manager/diplomacy/contact text.
+Do not log invitation plaintext/hash material, encrypted history cursors, current/history observation payload bodies, source tracking IDs, manager notes, diplomacy/contact data, roster/transfer data or K4 provenance.
+
+No dedicated K5 health dashboard/alert exists. The command counts are operator evidence, not a production monitoring system by themselves.
 
 ## 6. Failure modes and diagnosis
 
-Failure classes include no approved adapter, inactive subscription, adapter-version mismatch/revocation, Kingdom/context drift, open circuit, source-window/cursor conflict, unsupported/bounded values, missing/unknown/ambiguous stable identity, missing/inactive tenant relationship, business-record validation failure, retry exhaustion, invalid batch transition and cross-tenant ID tampering.
+Expected K5 access failures include invalid/expired/used token, self-share, different-Kingdom activation, duplicate active agreement, stale/terminal agreement, inactive/different-Kingdom participant, non-source/inactive tracking, removed target, unrelated-tenant identifiers, and invalid/tampered/wrong-target history cursor.
 
-Expected production state remains **zero approved source adapters**; that is not an outage.
+Recipient current/history visibility disappears immediately on target removal, share revocation or context invalidation. A stale otherwise-valid history cursor cannot restore access.
+
+Retention-specific diagnosis:
+
+- a lower-than-expected processed count may reflect the one-total-budget limit, configured window, or delete-time state/cutoff recheck preserving a row that changed state;
+- a zero-result run is healthy when nothing is eligible;
+- an eligible backlog may require repeated bounded runs; and
+- any loss of an active share/grant or canonical observation during retention is a stop condition/data-integrity incident, not expected cleanup behavior.
 
 ## 7. Recovery, replay and reconciliation
 
-Use supported domain actions rather than editing rows. Exact completed-window/promoted-candidate retry should resolve existing state. Pause/disable stale subscriptions; never rewrite captured context or cursor by hand.
+Do not repair K5 by editing invitation hashes, source/recipient IDs, captured Kingdom, grant state, cursor state, observation payloads or retention timestamps.
 
-After restore, inspect aggregate ingestion health and reconcile current source approval before acquisition resumes. Password-confirmed manager replay remains limited to quarantined candidates and re-runs accepted promotion rules.
+Revoked/declined agreements are terminal; future collaboration requires a new invitation/agreement. Removed targets require deliberate re-grant by the source manager.
 
-Do not guess stable IDs, auto-create/reactivate roster/tracking, use machine correction/invalidation as recovery, or directly re-enable a source whose registry approval disappeared.
+The retention command is safe to retry because eligibility is state/timestamp based and already-deleted rows no longer match. After database restore, old eligible operational rows may be reintroduced; after normal restore validation, rerun retention with a bounded limit as needed.
+
+Supported Kingdom drift persists terminal agreement state; returning to the previous Kingdom does not restore access. History cursors from an unauthorized/terminal share are unusable because every page repeats live authorization.
+
+Source observation correction/invalidation remains K3-owned.
 
 ## 8. Backup, restore, migration and rollback
 
-The K4 scheduling migration extends the accepted Kingdoms dependency chain after foundation/provenance migrations. Focused and whole-domain migration tests exercise down/up order; full CI applies all migrations on PostgreSQL.
+P4 added the forward `030000` migration making `kingdom_intelligence_shares.invitation_token_hash` nullable so consumed/terminal secret-derived values can be erased without rewriting accepted P1 history.
 
-Shared backup/restore/immutable-image rollback applies. After restore, validate representative K1–K3 history, K4 ownership/cursor/scheduler/failure state, source approval, promoted-record correlation and independence of canonical history from operational K4 retention.
+Rollback fills null terminal hashes with deterministic per-share retired placeholders solely to satisfy the historical non-null schema; reapply recognizes those terminal placeholders and restores null. Pending invitation hashes remain intact.
 
-Default K4 operational retention windows are 30-day terminal payload redaction, 90-day terminal promoted/rejected candidate and candidate-free terminal batch retention, 180-day quarantined-candidate retention, and 30-day disabled-subscription scheduling/failure compaction.
+P5 adds no schema migration. Whole-increment protected CI demonstrated clean migrations and backup/restore with the accepted K5 runtime present.
+
+After restore, current/history authorization still depends on live agreement/grant/context state. Restored metadata does not bypass tenant/K3 authorization and no recipient canonical history copy exists. A restore may reintroduce already-purged operational rows; bounded retention may be rerun after restore validation.
 
 ## 9. Capacity, query and performance boundaries
 
-K1–K3 retain accepted query gates. K4 bounds one acquisition page to 250 records, adapter polling to 60–86,400 seconds, job timeout to 120 seconds and dedicated production/staging queue concurrency to defaults of 2/1.
+`SharedKingdomIntelligenceCurrentQuery::CURRENT_LIMIT` is 250. P5 realistic-volume evidence creates 300 active explicit grants and proves the current projection remains exactly 250 rows, uses no more than two SELECTs, stays within the reviewed 160,000-byte encoded fixture ceiling, and creates zero recipient canonical observations.
 
-The accepted operations gate uses 250 subscriptions, 40 failed batches and 110 candidates and requires the aggregate health snapshot to remain at no more than eight SELECT queries. These are repository safety/capacity limits, not a real-source throughput SLO.
+`SharedKingdomIntelligenceHistoryQuery` caps pages at 50 and one traversal at 250 accepted observations. P5 creates 1,000 source observations for one target and proves five 50-row pages, termination at exactly 250, no more than two SELECTs/page (10 across the five-page fixture), a reviewed 50,000-byte encoded page ceiling, and zero recipient canonical observations.
+
+The manager workspace remains bounded to 100 outbound agreements, 100 inbound agreements and 250 source-owned active trackable targets.
+
+Retention uses one total 1–2000 per-run work budget; scheduled default is 500. These are bounded implementation regression/capacity gates, not production throughput/latency SLOs.
 
 ## 10. External-service degradation
 
-K4 generic failure/backoff/circuit/revocation mechanics are accepted, but there is still no accepted external game-data dependency. Do not add scraping/OCR/bots/unapproved provider calls as an operational workaround.
+K5 has no external service dependency. Existing K4 production adapter allowlist remains empty.
 
-A later approved adapter must define authorization/terms, endpoint/network/TLS/egress, timeout/rate/cursor/schema/revocation behavior and safe secret boundaries.
+Do not use public links, external file sharing, ad hoc APIs or messaging callbacks as workarounds for K5 sharing. History cursors are first-party continuation state, not externally reusable sharing credentials.
+
+Database/runtime degradation during manual retention catch-up should be handled by lowering the supported `--limit`, not bypassing predicates or widening the 2000 cap.
 
 ## 11. Safe operator actions and stop conditions
 
-Safe: inspect persisted lifecycle/cursor/provenance and aggregate health, pause/disable supported subscriptions, reconcile source approval, run repository-controlled retention, replay a legitimate quarantined candidate through the manager action, restore database/Redis/runtime health, and verify production adapter config remains intentionally empty.
+Safe: inspect authorized consent/grant state and timestamps, configured retention windows, standard Audit/outbox evidence, migrations/recovery, retention JSON counts, and advise source/recipient managers to use supported revoke/leave/remove/new-invitation workflows.
 
-Stop if recovery would require unapproved source/network access, source secrets/raw-response storage, cross-tenant access, stable-ID guessing, auto roster/tracking creation/reactivation, machine K3 correction/invalidation, transfer/diplomacy/contact automation, scoring/recommendation or manual row/cursor/candidate rewrites.
+Safe manual maintenance: `php artisan kingdoms:enforce-sharing-retention --limit=<1..2000>` after normal environment/database validation. Lower limits are preferred for conservative catch-up.
+
+Stop if recovery/maintenance would require exposing invitation secret material/history cursors, database retarget/reactivation, cross-tenant ID substitution, deleting active shares/grants, deleting canonical observations/Audit/outbox, manual recipient observation copy, public link/feed creation, bypassing target grants, arbitrary historical-window reopening, disabling delete-time eligibility rechecks, or widening to private data classes.
 
 ## 12. Evidence, focused runbooks and related documentation
 
-**P3 inventory decision:** Kingdoms retains domain-owned focused operational guides for roster intelligence, transfer planning, Alliance intelligence, and automated ingestion; shared queue/deployment/backup mechanics remain top-level Operations-owned.
+K5 warrants a dedicated capability runbook because it adds recurring destructive retention and capacity boundaries important to safe recovery:
 
-Focused Kingdoms guides:
+- [Shared-intelligence retention and capacity operations](kingdoms-shared-intelligence-retention.md)
+
+Accepted Kingdoms operational guides remain indexed and authoritative:
 
 - [Roster intelligence operations](kingdoms-roster-intelligence.md)
 - [Transfer planning operations](kingdoms-transfer-planning.md)
 - [Alliance intelligence operations](kingdoms-alliance-intelligence.md)
 - [Automated ingestion operations](kingdoms-automated-ingestion.md)
 
-K4 whole-increment candidate `3e0976e8bdd32207bd6314011c26b94fa0f3c118` passed Dependency Review `31556412455`, CodeQL `31556412413`, and CI `31556412468`: frontend/build, 529 Pint files, PHPStan 374/374 zero errors, 429 tests / 9,799 assertions, clean migrations, immutable image, staging, backup/restore and scan.
+Whole-increment runtime candidate `6f84b51ab27941f0fec2abce71f1f2f6325560e4` passed Dependency Review `31573301975`, CodeQL `31573301988`, and CI `31573301977`: Pint 560 files, PHPStan/Larastan 394/394 zero errors, 452 tests / 10,322 assertions, frontend lint/format/type/build, migrations, image/staging/backup/scan/cleanup success.
 
-Use with [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), [rollback](../../../operations/runbooks/rollback.md), [K4 exit report](../product/kingdoms-automated-ingestion-exit-report.md), [K4 Slice E validation](../product/kingdoms-automated-ingestion-slice-e-validation.md), and [Kingdoms security](../security/README.md).
+Use with [Shared intelligence](../shared-intelligence.md), [Slice E validation](../product/kingdoms-shared-intelligence-slice-e-validation.md), [Slice E security review](../security/kingdoms-shared-intelligence-retention-security-review.md), [K5 whole-increment exit report](../product/kingdoms-shared-intelligence-exit-report.md), [background processing](../../../operations/background-processing.md), [observability](../../../operations/observability.md), [backup/restore](../../../operations/runbooks/backup-restore.md), and [rollback](../../../operations/runbooks/rollback.md).

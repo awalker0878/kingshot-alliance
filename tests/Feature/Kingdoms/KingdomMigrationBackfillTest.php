@@ -10,6 +10,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 final class KingdomMigrationBackfillTest extends TestCase
@@ -37,6 +38,9 @@ final class KingdomMigrationBackfillTest extends TestCase
         $kingdomAllianceContactMigration = require database_path('migrations/2026_08_10_100000_create_kingdom_alliance_diplomacy_contacts.php');
         $ingestionMigration = require database_path('migrations/2026_08_11_190000_create_kingdom_ingestion_foundation.php');
         $ingestionSchedulingMigration = require database_path('migrations/2026_08_11_220000_add_ingestion_scheduling.php');
+        $sharingMigration = require database_path('migrations/2026_08_12_010000_create_kingdom_intelligence_shares.php');
+        $sharingTargetMigration = require database_path('migrations/2026_08_12_020000_create_kingdom_intelligence_share_targets.php');
+        $sharingHashMigration = require database_path('migrations/2026_08_12_030000_make_kingdom_intelligence_share_invitation_hash_nullable.php');
         self::assertInstanceOf(Migration::class, $kingdomMigration);
         self::assertInstanceOf(Migration::class, $rosterMigration);
         self::assertInstanceOf(Migration::class, $snapshotMigration);
@@ -52,9 +56,15 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertInstanceOf(Migration::class, $kingdomAllianceContactMigration);
         self::assertInstanceOf(Migration::class, $ingestionMigration);
         self::assertInstanceOf(Migration::class, $ingestionSchedulingMigration);
+        self::assertInstanceOf(Migration::class, $sharingMigration);
+        self::assertInstanceOf(Migration::class, $sharingTargetMigration);
+        self::assertInstanceOf(Migration::class, $sharingHashMigration);
 
         // Exercise the full Kingdoms dependency order from newest tenant workflow to
         // the first-class Kingdom reference it ultimately depends on.
+        $sharingHashMigration->down();
+        $sharingTargetMigration->down();
+        $sharingMigration->down();
         $ingestionSchedulingMigration->down();
         $ingestionMigration->down();
         $kingdomAllianceContactMigration->down();
@@ -92,6 +102,9 @@ final class KingdomMigrationBackfillTest extends TestCase
         $kingdomAllianceContactMigration->up();
         $ingestionMigration->up();
         $ingestionSchedulingMigration->up();
+        $sharingMigration->up();
+        $sharingTargetMigration->up();
+        $sharingHashMigration->up();
 
         self::assertFalse(Schema::hasColumn('alliances', 'kingdom'));
         self::assertTrue(Schema::hasColumn('alliances', 'kingdom_id'));
@@ -114,9 +127,17 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertTrue(Schema::hasTable('kingdom_ingestion_subscriptions'));
         self::assertTrue(Schema::hasTable('kingdom_ingestion_batches'));
         self::assertTrue(Schema::hasTable('kingdom_ingestion_candidates'));
+        self::assertTrue(Schema::hasTable('kingdom_intelligence_shares'));
+        self::assertTrue(Schema::hasTable('kingdom_intelligence_share_targets'));
         self::assertTrue(Schema::hasColumn('kingdom_ingestion_subscriptions', 'next_run_at'));
         self::assertTrue(Schema::hasColumn('kingdom_ingestion_subscriptions', 'circuit_open_until'));
         self::assertTrue(Schema::hasColumn('kingdom_ingestion_batches', 'next_source_cursor'));
+        self::assertTrue(Schema::hasColumn('kingdom_intelligence_shares', 'invitation_token_hash'));
+        self::assertTrue(Schema::hasColumn('kingdom_intelligence_shares', 'recipient_alliance_id'));
+        self::assertTrue(Schema::hasColumn('kingdom_intelligence_shares', 'kingdom_id'));
+        self::assertTrue(Schema::hasColumn('kingdom_intelligence_share_targets', 'kingdom_intelligence_share_id'));
+        self::assertTrue(Schema::hasColumn('kingdom_intelligence_share_targets', 'tracked_kingdom_alliance_id'));
+        self::assertTrue(Schema::hasColumn('kingdom_intelligence_share_targets', 'state'));
         self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'idempotency_key'));
         self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'corrects_observation_id'));
         self::assertTrue(Schema::hasColumn('kingdom_alliance_observations', 'invalidated_at'));
@@ -147,8 +168,9 @@ final class KingdomMigrationBackfillTest extends TestCase
         $observationMigration = require database_path('migrations/2026_08_09_150000_create_kingdom_alliance_observations.php');
         $diplomacyMigration = require database_path('migrations/2026_08_10_090000_create_kingdom_alliance_diplomacy.php');
         $contactMigration = require database_path('migrations/2026_08_10_100000_create_kingdom_alliance_diplomacy_contacts.php');
+        $sharingTargetMigration = require database_path('migrations/2026_08_12_020000_create_kingdom_intelligence_share_targets.php');
 
-        foreach ([$trackingMigration, $observationMigration, $diplomacyMigration, $contactMigration] as $migration) {
+        foreach ([$trackingMigration, $observationMigration, $diplomacyMigration, $contactMigration, $sharingTargetMigration] as $migration) {
             self::assertInstanceOf(Migration::class, $migration);
         }
 
@@ -156,7 +178,9 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertTrue(Schema::hasTable('alliance_roster_entries'));
         self::assertTrue(Schema::hasTable('player_snapshots'));
         self::assertTrue(Schema::hasTable('kingdom_alliance_diplomacy_contacts'));
+        self::assertTrue(Schema::hasTable('kingdom_intelligence_share_targets'));
 
+        $sharingTargetMigration->down();
         $contactMigration->down();
         $diplomacyMigration->down();
         $observationMigration->down();
@@ -171,11 +195,13 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertFalse(Schema::hasTable('kingdom_alliance_diplomacy_relationships'));
         self::assertFalse(Schema::hasTable('kingdom_alliance_diplomacy_transitions'));
         self::assertFalse(Schema::hasTable('kingdom_alliance_diplomacy_contacts'));
+        self::assertFalse(Schema::hasTable('kingdom_intelligence_share_targets'));
 
         $trackingMigration->up();
         $observationMigration->up();
         $diplomacyMigration->up();
         $contactMigration->up();
+        $sharingTargetMigration->up();
 
         self::assertTrue(Schema::hasTable('transfer_completions'));
         self::assertTrue(Schema::hasTable('alliance_roster_entries'));
@@ -186,5 +212,55 @@ final class KingdomMigrationBackfillTest extends TestCase
         self::assertTrue(Schema::hasTable('kingdom_alliance_diplomacy_relationships'));
         self::assertTrue(Schema::hasTable('kingdom_alliance_diplomacy_transitions'));
         self::assertTrue(Schema::hasTable('kingdom_alliance_diplomacy_contacts'));
+        self::assertTrue(Schema::hasTable('kingdom_intelligence_share_targets'));
+    }
+
+    public function test_shared_intelligence_invitation_hash_nullability_round_trips_terminal_rows(): void
+    {
+        $sourceOwner = User::factory()->create();
+        $recipientOwner = User::factory()->create();
+        $createAlliance = $this->app->make(CreateAlliance::class);
+        $source = $createAlliance->handle($sourceOwner, 'Hash Source', 'hash-source', 7610);
+        $recipient = $createAlliance->handle($recipientOwner, 'Hash Recipient', 'hash-recipient', 7610);
+        $shareId = (string) Str::ulid();
+        $now = now()->startOfSecond();
+
+        DB::table('kingdom_intelligence_shares')->insert([
+            'id' => $shareId,
+            'source_alliance_id' => $source->id,
+            'recipient_alliance_id' => $recipient->id,
+            'kingdom_id' => $source->kingdom_id,
+            'invitation_token_hash' => null,
+            'state' => 'active',
+            'invited_by_user_id' => $sourceOwner->id,
+            'accepted_by_user_id' => $recipientOwner->id,
+            'declined_by_user_id' => null,
+            'revoked_by_user_id' => null,
+            'invitation_expires_at' => $now->copy()->addDay(),
+            'invitation_used_at' => $now,
+            'accepted_at' => $now,
+            'declined_at' => null,
+            'revoked_at' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        $migration = require database_path('migrations/2026_08_12_030000_make_kingdom_intelligence_share_invitation_hash_nullable.php');
+        self::assertInstanceOf(Migration::class, $migration);
+
+        $migration->down();
+
+        $retiredHash = DB::table('kingdom_intelligence_shares')
+            ->where('id', $shareId)
+            ->value('invitation_token_hash');
+        self::assertIsString($retiredHash);
+        self::assertMatchesRegularExpression('/\A[a-f0-9]{64}\z/', $retiredHash);
+        self::assertSame('active', DB::table('kingdom_intelligence_shares')->where('id', $shareId)->value('state'));
+
+        $migration->up();
+
+        self::assertNull(DB::table('kingdom_intelligence_shares')->where('id', $shareId)->value('invitation_token_hash'));
+        self::assertSame('active', DB::table('kingdom_intelligence_shares')->where('id', $shareId)->value('state'));
+        self::assertSame($recipient->id, DB::table('kingdom_intelligence_shares')->where('id', $shareId)->value('recipient_alliance_id'));
     }
 }

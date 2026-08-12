@@ -6,6 +6,7 @@ use App\Domain\Content\Actions\PublishScheduledContent;
 use App\Domain\Identity\Models\User;
 use App\Domain\Integrations\Actions\QueueDueWebhookDeliveries;
 use App\Domain\Kingdoms\Actions\EnforceKingdomIngestionRetention;
+use App\Domain\Kingdoms\Actions\EnforceKingdomIntelligenceSharingRetention;
 use App\Domain\Kingdoms\Actions\QueueDueKingdomIngestionSubscriptions;
 use App\Domain\Kingdoms\Actions\ReconcileKingdomIngestionSources;
 use App\Domain\Kingdoms\Services\KingdomIngestionOperationalHealth;
@@ -131,6 +132,13 @@ Artisan::command('kingdoms:enforce-ingestion-retention', function (EnforceKingdo
     return 0;
 })->purpose('Enforce KINGDOMS-004 operational retention without deleting canonical promoted history');
 
+Artisan::command('kingdoms:enforce-sharing-retention {--limit=500}', function (EnforceKingdomIntelligenceSharingRetention $retention): int {
+    $limit = max(1, min(2000, (int) $this->option('limit')));
+    $this->info(json_encode($retention->handle($limit), JSON_THROW_ON_ERROR));
+
+    return 0;
+})->purpose('Enforce bounded KINGDOMS-005 consent/grant retention without deleting canonical observations');
+
 Artisan::command('kingdoms:ingestion-health {--json}', function (KingdomIngestionOperationalHealth $health): int {
     $snapshot = $health->snapshot();
 
@@ -202,6 +210,7 @@ Schedule::command('integrations:queue-webhooks --limit=100')->everyMinute()->onO
 Schedule::command('kingdoms:queue-ingestion --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('kingdoms:reconcile-ingestion-sources --limit=1000')->everyFiveMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('kingdoms:enforce-ingestion-retention')->dailyAt('04:15')->onOneServer()->withoutOverlapping(60);
+Schedule::command('kingdoms:enforce-sharing-retention --limit=500')->dailyAt('04:30')->onOneServer()->withoutOverlapping(60);
 Schedule::command('platform:process-account-deletions --limit=100')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('platform:capture-usage --limit=2000')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('platform:enforce-retention')->dailyAt('03:45')->onOneServer()->withoutOverlapping(60);

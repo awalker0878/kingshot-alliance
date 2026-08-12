@@ -33,4 +33,24 @@ return [
         'quarantined_threshold' => 25,
         'recent_failure_minutes' => 60,
     ],
+
+    /*
+     * KINGDOMS-005 invitation tokens bootstrap two-party human consent only.
+     * They are one-time secrets, hash-only while pending, and do not grant data
+     * access until a manager accepts under a valid same-Kingdom context.
+     */
+    'shared_intelligence' => [
+        'invitation_ttl_hours' => 72,
+    ],
+
+    /*
+     * K5 operational consent/grant metadata is shorter-lived than canonical K3
+     * observations and durable Audit/outbox evidence. Active shares/grants and
+     * canonical source observations are never eligible for this cleanup.
+     */
+    'shared_intelligence_retention' => [
+        'expired_invitation_days' => 30,
+        'terminal_share_days' => 180,
+        'removed_target_days' => 90,
+    ],
 ];
