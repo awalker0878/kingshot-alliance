@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Queries;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareTargetState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use Illuminate\Support\Facades\DB;
 
@@ -136,30 +135,29 @@ final class KingdomIntelligenceSharingManageQuery
             ->values()
             ->all();
 
-        $trackableTargets = DB::table('tracked_kingdom_alliances as tracking')
-            ->join('kingdom_alliances as game_alliances', 'game_alliances.id', '=', 'tracking.kingdom_alliance_id')
-            ->where('tracking.alliance_id', $alliance->id)
-            ->where('tracking.state', TrackedKingdomAllianceState::Active->value)
-            ->when(
-                $alliance->kingdom_id !== null,
-                static fn ($query) => $query->where('tracking.kingdom_id', $alliance->kingdom_id),
-                static fn ($query) => $query->whereRaw('1 = 0'),
-            )
-            ->select([
-                'tracking.id',
-                'game_alliances.current_name',
-                'game_alliances.current_tag',
-            ])
-            ->orderBy('game_alliances.current_name')
-            ->orderBy('tracking.id')
-            ->limit(self::TRACKING_LIMIT)
-            ->get()
-            ->map(static fn (object $tracking): array => [
-                'id' => (string) $tracking->id,
-                'name' => (string) $tracking->current_name,
-                'tag' => $tracking->current_tag === null ? null : (string) $tracking->current_tag,
-            ])
-            ->all();
+        $trackableTargets = [];
+        if ($alliance->kingdom_id !== null) {
+            $trackableTargets = DB::table('tracked_kingdom_alliances as tracking')
+                ->join('kingdom_alliances as game_alliances', 'game_alliances.id', '=', 'tracking.kingdom_alliance_id')
+                ->where('tracking.alliance_id', $alliance->id)
+                ->where('tracking.kingdom_id', $alliance->kingdom_id)
+                ->where('tracking.state', TrackedKingdomAllianceState::Active->value)
+                ->select([
+                    'tracking.id',
+                    'game_alliances.current_name',
+                    'game_alliances.current_tag',
+                ])
+                ->orderBy('game_alliances.current_name')
+                ->orderBy('tracking.id')
+                ->limit(self::TRACKING_LIMIT)
+                ->get()
+                ->map(static fn (object $tracking): array => [
+                    'id' => (string) $tracking->id,
+                    'name' => (string) $tracking->current_name,
+                    'tag' => $tracking->current_tag === null ? null : (string) $tracking->current_tag,
+                ])
+                ->all();
+        }
 
         return [
             'outbound' => $outboundRows,
