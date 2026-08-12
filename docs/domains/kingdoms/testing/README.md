@@ -46,7 +46,7 @@ P4 proves transactional due claims, queue uniqueness/overlap controls, cursor ad
 
 P5 proves source reconciliation is idempotent: once approval removal disables the subscription, a repeated reconciliation makes no additional transition. Queue/cache controls remain additive; database/domain idempotency remains authoritative.
 
-## 7. Persistence, retention, rollback and recovery evidence
+## 7. Persistence, migration, rollback and recovery evidence
 
 The full Kingdom migration round-trip includes the K4 foundation, player/game-Alliance provenance and scheduling migrations. CI clean PostgreSQL migration and shared backup/restore remain required.
 
@@ -63,34 +63,28 @@ Accepted query gates remain:
 
 P4 safety bounds remain 250 records/page, poll interval 60–86,400 seconds, 120-second job timeout, bounded retry/circuit state and low dedicated queue concurrency. P5's aggregate query gate is repository-level operations capacity evidence, not a real-source throughput SLO.
 
-## 9. Operational health evidence
+Focused P5 tests verify a clean health snapshot does not require attention and a source-revoked subscription is counted and sets `attentionRequired`. The realistic-volume fixture validates expected counts for active/revoked/overdue subscriptions, open circuits, stale pending candidates, quarantined candidates and recent failed batches. Monitoring output is aggregate/payload-free.
 
-Focused P5 tests verify a clean health snapshot does not require attention and a source-revoked subscription is counted and sets `attentionRequired`. The realistic-volume fixture additionally validates expected counts for active/revoked/overdue subscriptions, open circuits, stale pending candidates, quarantined candidates and recent failed batches.
+## 9. Accessibility and frontend evidence
 
-Monitoring output is aggregate/payload-free; testing does not relax source, tenant or business-mutation controls.
+The Kingdom accessibility architecture suite includes `KingdomIngestionManage.vue`, requiring main landmark/primary heading/native controls/labels/table overflow semantics. P5 adds no new public/manager UI surface; the final P5 candidate passed ESLint, Prettier, Vue/TypeScript and production frontend build.
 
-## 10. Accessibility and frontend evidence
+## 10. Historical accepted evidence
 
-The Kingdom accessibility architecture suite includes `KingdomIngestionManage.vue`, requiring main landmark/primary heading/native controls/labels/table overflow semantics. P5 adds no new public/manager UI surface; the final P5 candidate still passed ESLint, Prettier, Vue/TypeScript and production frontend build.
+K1, K2 and K3 retain their accepted increment/exit evidence under the Kingdoms product directory. Historical SHAs/run IDs remain immutable evidence even as current living contracts evolve.
 
-## 11. Accepted K4-P5 evidence
-
-K4-P5 runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` passed:
-
-- Dependency Review `31552113152`;
-- CodeQL `31552113044`;
-- CI `31552113042`;
-- Pint — 528 files;
-- PHPStan/Larastan — 374/374, zero errors;
-- ParaTest/PHPUnit — 428 tests / 9,736 assertions;
-- frontend/build, clean migrations, immutable image, staging, backup/restore and image scan.
+K4-P5 runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` passed Dependency Review `31552113152`, CodeQL `31552113044`, and CI `31552113042`: Pint 528 files, PHPStan/Larastan 374/374 with zero errors, 428 tests / 9,736 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore and image scan.
 
 Focused P5 files are `KingdomIngestionOperationsHardeningTest.php` and `KingdomIngestionOperationsPerformanceTest.php`.
 
-## 12. Evidence identity, gaps and related documentation
+## 11. Evidence identity, retention and supersession
 
 Historical accepted SHAs/run IDs remain immutable evidence. Current behavior follows current code/tests/living contracts. Each K4 slice records the exact runtime candidate and validates the containing evidence/status head before continuation.
 
+K4 operational retention changes the lifetime of ingestion scaffolding, not the retention/supersession rules for acceptance evidence or promoted canonical business history.
+
+## 12. Gaps, non-capabilities and related documentation
+
 K4 validation still does not prove a real production source/network/credential path, provider terms/authorization, real-source rate/schema/cursor behavior, provider-side revocation semantics, or production cutover. Those remain explicit source-enablement/separate approval gates.
 
-Related: [Automated ingestion](../automated-ingestion.md), [Slice E validation](../product/kingdoms-automated-ingestion-slice-e-validation.md), [Slice E security review](../security/kingdoms-automated-ingestion-operations-security-review.md), [Security profile](../security/README.md), [Automated ingestion operations](../operations/kingdoms-automated-ingestion.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md), [P5 testing/evidence coverage matrix](../../../product/testing-evidence-coverage-matrix.md).
+Related: [Automated ingestion](../automated-ingestion.md), [Slice E validation](../product/kingdoms-automated-ingestion-slice-e-validation.md), [Slice E security review](../security/kingdoms-automated-ingestion-operations-security-review.md), [Security profile](../security/README.md), [Operations profile](../operations/README.md), [Automated ingestion operations](../operations/kingdoms-automated-ingestion.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md), [P5 testing/evidence coverage matrix](../../../product/testing-evidence-coverage-matrix.md).
