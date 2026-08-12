@@ -2,11 +2,12 @@
 
 [← Kingdoms opt-in shared intelligence product increment](kingdoms-shared-intelligence-increment.md)
 
-**Status:** In progress — `K5-P0` Current; no runtime implementation authorized yet  
+**Status:** In progress — `K5-P0` Complete; `K5-P1` Current / selected pending exact transition-head validation  
 **Scope ID:** `KINGDOMS-005`  
 **Owning domain:** `Kingdoms`  
 **Baseline:** Accepted `KINGDOMS-001` through `KINGDOMS-004`  
 **K5-P0 decisions:** [K5-P0 design decisions](kingdoms-shared-intelligence-p0-decisions.md)  
+**K5-P0 exit:** [K5-P0 exit report](kingdoms-shared-intelligence-p0-exit-report.md)  
 **Important:** These are implementation phases inside `KINGDOMS-005`; they are not historical Phase 0–6 or DCP phases.
 
 ## 1. Purpose
@@ -19,38 +20,23 @@ The plan deliberately separates consent/grant mechanics from data projection. No
 
 | Phase | Status | Outcome | Delivery slice |
 | --- | --- | --- | --- |
-| `K5-P0` | **Current** | Consent, tenancy, same-Kingdom, data-classification, revocation and reshare contract lock | Pre-runtime gate |
-| `K5-P1` | Planned | Directional two-party sharing agreement foundation | Slice A |
+| `K5-P0` | **Complete** | Consent, tenancy, same-Kingdom, data-classification, revocation and reshare contract locked | Pre-runtime gate |
+| `K5-P1` | **Current / selected pending transition-head validation** | Directional two-party sharing agreement foundation | Slice A |
 | `K5-P2` | Planned | Explicit shared-target selection + safe current-fact recipient projection | Slice B |
 | `K5-P3` | Planned | Bounded accepted shared history + freshness/correction semantics | Slice C |
 | `K5-P4` | Planned | Source/recipient UX, drift/revocation, audit/events and accessibility | Slice D |
 | `K5-P5` | Planned | Privacy, retention, operations and capacity hardening | Slice E |
 | `K5-P6` | Planned | Whole-increment acceptance | Whole increment |
 
-## 3. `K5-P0` — Contract lock
+## 3. `K5-P0` — Contract lock — Complete
 
-P0 must lock, before runtime schema/routes/UI:
+P0 locked directional source→recipient ownership, two-party manager consent, hash-only invitation-secret handling, same-current-Kingdom scope, explicit per-target sharing, safe/excluded data classes, recipient read-only/non-copy semantics, correction/invalidation projection rules, fail-closed drift/revocation, no reshare, manager/member authorization split, internal event boundaries and retention principles.
 
-- directional source→recipient ownership;
-- two-party manager consent;
-- invitation-token secret handling;
-- same-current-Kingdom requirement;
-- explicit per-target sharing rather than tenant-wide exposure;
-- exact safe shared field set and excluded private field classes;
-- recipient read-only/non-copy semantics;
-- correction/invalidation projection behavior;
-- drift/revocation fail-closed behavior;
-- no transitive reshare;
-- manager/member authorization split;
-- internal-only audit/outbox event boundary;
-- token/agreement retention principles; and
-- explicit non-capabilities.
+Validated candidate `d9e05fd06bd08050e5489598406cfb556d5bc0ac` passed Dependency Review `31557697685`, CodeQL `31557697793`, and CI `31557697725`: Pint 529 files, PHPStan/Larastan 374/374 zero errors, 429 tests / 9,809 assertions, frontend/build, clean migrations, immutable image, staging, backup/restore and scan.
 
-### P0 exit gate
+See the [P0 exit report](kingdoms-shared-intelligence-p0-exit-report.md).
 
-P0 is Complete only when scope, plan, design decisions and security/privacy review agree on the same contract, navigation labels K5 as planning/no-runtime, no living runtime document claims K5 exists, and the exact containing P0 evidence/status head passes Dependency Review, CodeQL and full CI.
-
-P0 acceptance authorizes Slice A only.
+P0 authorizes Slice A only. It does not authorize any observation disclosure.
 
 ## 4. `K5-P1` / Slice A — Sharing agreement foundation
 
@@ -70,12 +56,17 @@ Introduce tenant-owned directional sharing agreement persistence and manager flo
 - reverse sharing requires a separate agreement;
 - revocation/decline is always allowed as an access-reducing action;
 - invitation/consent state is tenant-private and manager-only;
+- safe Audit/internal-outbox evidence excludes invitation plaintext/private payloads;
 - no observation data is shared in Slice A; and
 - no platform-Alliance directory/search surface is added.
 
 ### Evidence
 
-Feature/tenant-isolation tests must cover token hashing/single-use/expiry, same-Kingdom rejection, self-share rejection, cross-tenant ID substitution, password confirmation, revocation, idempotent terminal transitions and absence of shared-data read paths.
+Feature/tenant-isolation tests must cover token hashing/single-use/expiry, same-Kingdom rejection, self-share rejection, cross-tenant ID substitution, password confirmation, revocation, idempotent terminal transitions, safe evidence and absence of shared-data read paths.
+
+### Entry gate
+
+Actual P1 runtime writes may begin only after the exact containing status/evidence head that records P0 Complete / P1 Current passes Dependency Review, CodeQL and full CI.
 
 ## 5. `K5-P2` / Slice B — Explicit target selection and current facts
 
@@ -182,5 +173,7 @@ Whole-increment evidence must include exact implementation SHA plus Dependency R
 ## 10. Continuation rule
 
 On `continue`, remain at the current K5 gate until both implementation/evidence and the exact containing status head are protected-green.
+
+For this transition, `K5-P1` becomes writable only if the exact head containing the P0 Complete / P1 Current state passes Dependency Review, CodeQL and full CI. Otherwise remain at the P0 transition and repair only that defect.
 
 Do not start a later slice to compensate for a current-slice defect. Do not widen K5 to player/roster sharing, diplomacy/contact sharing, cross-Kingdom sharing, public APIs/webhooks, reshare, scoring or automatic decisions without a separately reviewed scope change.
