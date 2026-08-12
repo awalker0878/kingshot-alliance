@@ -3,112 +3,108 @@
 [← Kingdoms domain](../README.md)
 
 **Document type:** Living domain interface profile  
-**Status:** Current — `KINGDOMS-004` Accepted  
+**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P1 consent foundation validated  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 manager ingestion control/replay, generic scheduled acquisition/maintenance contracts, and internal-only `kingdoms.*` events
+**Primary boundary:** Authenticated Alliance Kingdoms workspaces, K4 ingestion control/operations, K5 first-party consent mutations, and internal-only `kingdoms.*` events
 
-**P4 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; accepted K4 extends this profile without changing the frozen P4 interface-inventory convention or creating a public Kingdoms API.
+**P4 inventory decision:** Existing accepted Kingdoms capability contracts remain the focused contract authority; K5 extends this profile without changing the frozen P4 interface-inventory convention or creating a public Kingdoms API.
 
 ## 1. Boundary purpose and ownership
 
-Kingdoms owns first-party workflows around neutral game identity, roster/history/intelligence, CSV migration/export, transfer planning, game-Alliance tracking/observations/diplomacy/contacts/intelligence, and accepted K4 ingestion control/promotion/scheduling/operations.
+Kingdoms owns first-party neutral-game identity, roster/history/intelligence, transfer, game-Alliance tracking/observations/diplomacy/contacts, K4 ingestion, and now K5 directional sharing-consent state.
 
-The external/public boundary remains narrow: there is no public Kingdoms API, public Kingdoms webhook event family, or public inbound ingestion endpoint.
+K5-P1 adds only first-party consent mutations. No shared-target/current/history read interface exists yet.
 
 ## 2. Surface inventory
 
-`routes/kingdoms.php` exposes authenticated/verified active-Alliance workspaces for settings; roster/history/intelligence/import/export; tracked game Alliances/intelligence/history/diplomacy/contacts; transfers/readiness/completion; and K4 manager ingestion status/control.
+Existing K1–K4 routes remain unchanged. P1 adds password-confirmed authenticated routes:
 
-K4 manager routes include:
+- `POST /alliance/kingdom-sharing/invitations` — source creates one invitation and receives `{shareId, token}` once;
+- `POST /alliance/kingdom-sharing/invitations/accept` — recipient accepts a token;
+- `POST /alliance/kingdom-sharing/invitations/decline` — recipient declines a token;
+- `POST /alliance/kingdom-sharing/{share}/revoke` — source revokes its pending/active share; and
+- `POST /alliance/kingdom-sharing/{share}/leave` — active recipient leaves.
 
-- `GET /alliance/kingdom-ingestion/manage`;
-- password-confirmed `POST /alliance/kingdom-ingestion/subscriptions`;
-- password-confirmed `PATCH /alliance/kingdom-ingestion/subscriptions/{subscription}/state`;
-- password-confirmed `POST .../candidates/{candidate}/reject`; and
-- password-confirmed `POST .../candidates/{candidate}/replay`.
-
-There is no HTTP route to define source endpoints/credentials, stage arbitrary payloads, start/complete batches, invoke acquisition directly, promote arbitrary candidates, run retention/reconciliation/health, or receive external callbacks.
+There is no K5 GET/list/current/history route, tenant-directory endpoint, target-selection endpoint, public API or callback route in P1.
 
 ## 3. Callers, authorization and tenancy
 
-Member-safe K1–K3 reads use `alliance.view`; K1–K4 management uses `kingdoms.manage` plus recent password confirmation for privileged human mutations; Alliance→Kingdom setting uses `alliance.manage`.
+Consent mutations require active Alliance context, recent password confirmation and domain-level `kingdoms.manage` authorization.
 
-Tenant-owned identifiers are re-resolved beneath active Alliance/plan/tracking/subscription boundaries. Queue, adapter, source, cursor and candidate identity do not grant authorization. K4 maintenance tasks act only on persisted K4 operational state and gain no business-mutation authority.
+Source revoke resolves the submitted share beneath `source_alliance_id`; recipient leave resolves beneath `recipient_alliance_id`. Acceptance binds the active recipient Alliance only after locking source/recipient Alliances and validating the captured Kingdom. Neutral Kingdom/game-Alliance identity never authorizes a K5 operation.
 
 ## 4. Input and validation contracts
 
-Stable game IDs remain the only automatic neutral identity keys. Display names/tags/handles/source labels are not match keys.
+Invitation acceptance/decline accepts only a required 64-character lowercase hexadecimal token. The token is hashed before lookup.
 
-K4 subscription creation accepts only a bounded adapter key already present in the registry. Acquisition-capable adapters define a repository-controlled poll interval from 60–86,400 seconds and return a bounded page with source-window ID, optional opaque cursor and at most 250 records. Normalized records still pass target-specific staging bounds before promotion.
+Acceptance rejects invalid/expired/used token, self-share, different-current-Kingdom context and duplicate active directional agreement. Invitation TTL defaults to 72 hours and repository configuration clamps it to 1–168 hours.
 
-Retention/health thresholds are repository-controlled `config/kingdoms.php` values, not tenant input. Source reconciliation accepts only a bounded processing limit and resolves current adapter approval from the registry.
+P1 accepts no target ID, observation ID/payload, source endpoint, roster/diplomacy/contact data or arbitrary cross-tenant identifier for data disclosure.
 
 ## 5. Output and disclosure contracts
 
-K4 manager UI returns safe Alliance/Kingdom, adapter key/version/label/scheduling capability, subscription state/health/cursor/timing/circuit code, recent batch status/counts/failure code/next cursor, and recent candidate target/IDs/timing/state/reason.
+Invitation creation returns only the new share ID plus plaintext token in the creation response. Plaintext is not persisted or placed in Audit/outbox metadata.
 
-`kingdoms:ingestion-health --json` returns aggregate counts for active/revoked/overdue subscriptions, open circuits, stale pending candidates, quarantined candidates, recent failed batches and `attentionRequired`.
+Accept/decline/revoke/leave return redirect/status outcomes only. P1 provides no recipient shared-intelligence payload.
 
-Neither surface serializes candidate normalized payload bodies, arbitrary external raw responses, source credentials/headers/cookies, tenant-entered URLs, or public machine credentials. No `/api/v1` Kingdoms ingestion scope exists.
+The source-side acceptance Audit record intentionally does not expose the recipient manager's User ID; recipient-side Audit remains attributable within the recipient tenant.
 
 ## 6. Internal actions, queries and services
 
-Supported K4 internal contracts include adapter registry/acquisition definitions; subscription create/transition; due-work claim; batch start/complete; normalized candidate staging; player/game-Alliance promotion; candidate reject/replay; scheduler run orchestration; source reconciliation; operational retention; aggregate operational health; and Alliance-scoped ingestion projections.
+P1 internal contracts are:
 
-These are application/domain contracts, not public source APIs. [Automated ingestion](../automated-ingestion.md) defines lifecycle/invariants.
+- `CreateKingdomIntelligenceShareInvitation`;
+- `AcceptKingdomIntelligenceShareInvitation`;
+- `DeclineKingdomIntelligenceShareInvitation`;
+- `RevokeKingdomIntelligenceShare`;
+- `LeaveKingdomIntelligenceShare`; and
+- `KingdomIntelligenceShareTokenService`.
+
+There is no P1 shared-target or shared-observation query/service.
 
 ## 7. Events, outbox and cross-domain consumers
 
-Material Kingdoms mutations produce Audit/Platform outbox evidence. External exclusion remains enforced: `alliance.kingdom_updated` and every `kingdoms.*` event are rejected by Integrations webhook fan-out before subscription matching.
+P1 consent events are `kingdoms.shared_intelligence_invitation_created`, `...accepted`, `...declined`, `...revoked`, and `...left`.
 
-K4 lifecycle/replay events carry bounded IDs/state/count/hash metadata. Source reconciliation/retention/health do not create a new external event contract. Internal event names are not public compatibility promises; their external ineligibility is the enforced contract.
+They remain internal `kingdoms.*` events and external-webhook ineligible. Payloads use safe share/source/recipient/Kingdom/state/timing metadata only; invitation plaintext and observation/private/K4 payload data are excluded.
 
 ## 8. Commands, jobs and scheduled work
 
-K4 operator/runtime commands are:
+P1 adds no Artisan command, queue job, scheduler entry or operator execution surface. K4 scheduled ingestion/maintenance remains unchanged.
 
-- `kingdoms:queue-ingestion --limit=100` — every minute, single-server/overlap protected;
-- `kingdoms:reconcile-ingestion-sources --limit=1000` — every five minutes, single-server/overlap protected;
-- `kingdoms:enforce-ingestion-retention` — daily at 04:15, single-server/overlap protected; and
-- `kingdoms:ingestion-health --json` — on-demand monitoring command with non-zero attention exit status.
-
-Acquisition jobs use bounded timeout/tries/backoff, per-subscription unique/overlap controls and durable database claim/cursor state. Production adapter allowlist is empty, so acquisition has no real source in default production state.
-
-No crawler, scraper, OCR worker, browser/game-client bot, arbitrary curl command or public source callback exists.
+Invitation retention/cleanup is intentionally deferred to K5-P5 rather than introducing an unreviewed background task in P1.
 
 ## 9. Files, imports, exports and external dependencies
 
-The material file contract remains the controlled [CSV migration](../csv-migration.md) flow. K4 adds no file upload/download contract.
+The controlled [CSV migration](../csv-migration.md) remains the material Kingdoms file contract. K5-P1 adds no file contract or external provider dependency.
 
-K4 defines a generic acquisition interface but no accepted production external service dependency, endpoint or source credential. A concrete adapter requires separate source/network/security approval.
+Invitation tokens are first-party human-consent bootstrap secrets, not external API credentials.
 
 ## 10. Failure, idempotency, versioning and compatibility
 
-K4 adapter key/version is captured on subscriptions/batches and changed/missing versions fail closed. Source reconciliation disables active/paused subscriptions with bounded `source_unapproved` state rather than substituting another version.
+Token redemption is single-use. Failed acceptance does not consume a token because validation and state mutation are transactional. Terminal declined/revoked states do not reactivate through P1 actions.
 
-Source-window uniqueness, deterministic candidate identity and promoted-history idempotency protect at-least-once retry. Cursor advances only after Completed/Partial outcomes; exact completed-window replay requires the same stored next cursor.
+Source revoke/recipient leave remain available after Kingdom drift because they reduce access. Migration rollback/reapply now includes the K5 consent table as the newest Kingdoms dependency.
 
-Operational retention may redact/prune K4 candidate/batch state after repository-controlled windows but cannot delete promoted K1/K3 canonical history or rewrite copied provenance. A concrete adapter's source schema/version/cursor/network behavior becomes compatibility-relevant only after separate source approval.
+P1 creates no public compatibility contract.
 
 ## 11. Explicit non-capabilities
 
-Kingdoms does not provide public API/webhook ingestion; arbitrary manager URLs/headers/credentials; scraping/OCR/bots; an approved real game-data source; auto roster/tracking/membership/transfer/diplomacy/contact behavior; machine K3 correction/invalidation; cross-Alliance sharing; or scoring/ranking/recommendations.
-
-Generic scheduler/maintenance mechanics are accepted, but production has zero approved ingestion adapters.
+P1 does not provide shared target selection, recipient observation/current/history reads, player/roster sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, reshare, tenant directory/search, public API/webhook, scoring/ranking/recommendations or automatic decisions.
 
 ## 12. Focused contracts, evidence and related documentation
 
-- [CSV migration](../csv-migration.md)
+- [Shared intelligence](../shared-intelligence.md)
+- [K5 Slice A validation](../product/kingdoms-shared-intelligence-slice-a-validation.md)
+- [K5 Slice A security review](../security/kingdoms-shared-intelligence-foundation-security-review.md)
+- [K5 implementation plan](../product/kingdoms-shared-intelligence-implementation-plan.md)
 - [Automated ingestion](../automated-ingestion.md)
-- [K4 exit report](../product/kingdoms-automated-ingestion-exit-report.md)
-- [K4 Slice E validation](../product/kingdoms-automated-ingestion-slice-e-validation.md)
-- [K4 Slice E security review](../security/kingdoms-automated-ingestion-operations-security-review.md)
-- [K4 operations](../operations/kingdoms-automated-ingestion.md)
+- [CSV migration](../csv-migration.md)
 - [Kingdoms domain](../README.md)
 - [Integrations interfaces](../../integrations/interfaces/README.md)
 - [Integrations webhooks](../../integrations/webhooks.md)
 - [Interface documentation standard](../../../product/interface-documentation-standard.md)
 - [P4 interface coverage matrix](../../../product/interface-coverage-matrix.md)
 
-Whole-increment interface evidence is protected-green at `3e0976e8bdd32207bd6314011c26b94fa0f3c118`: Dependency Review `31556412455`, CodeQL `31556412413`, CI `31556412468`, 429 tests / 9,799 assertions.
+P1 runtime candidate `9ef1d46b1db69708d575e82d8548145cf7769e68` passed Dependency Review `31559012856`, CodeQL `31559012854`, and CI `31559012861` with 434 tests / 9,911 assertions.
