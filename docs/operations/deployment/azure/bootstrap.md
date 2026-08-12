@@ -40,10 +40,12 @@ $Horizon   = "$Prefix-$Stage-horizon"
 $Scheduler = "$Prefix-$Stage-scheduler"
 $Migrate   = "$Prefix-$Stage-migrate"
 
-$Database = "app"
-$PgAdmin  = "appadmin"
+# Keep hosted staging defaults aligned with deploy/staging.env.example.
+$Database = "kingshot_staging"
+$PgAdmin  = "kingshot_staging"
 
-$ImageRepository = "app"
+# Keep the hosted image repository aligned with CI's APP_IMAGE convention.
+$ImageRepository = "kingshot-alliance"
 ```
 
 Use an Azure region supported by all selected services. Keep staging and production in separate deployment scopes and do not reuse secret values between environments.
