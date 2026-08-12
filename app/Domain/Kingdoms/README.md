@@ -2,35 +2,37 @@
 
 ## Purpose
 
-Owns approved Kingshot game-world reference identity plus Alliance-scoped roster/history/intelligence, controlled roster migration, transfer planning, game-side Alliance intelligence/diplomacy, accepted `KINGDOMS-004` automated-ingestion services, and the `KINGDOMS-005` directional sharing-consent foundation.
+Owns approved Kingshot game-world reference identity plus Alliance-scoped roster/history/intelligence, controlled roster migration, transfer planning, game-side Alliance intelligence/diplomacy, accepted `KINGDOMS-004` automated-ingestion services, and `KINGDOMS-005` directional sharing through K5-P2.
 
-`KINGDOMS-001` through `KINGDOMS-004` are accepted. K5 is in progress: P1 adds only invitation/agreement consent state and mutations. There is still no shared target or recipient observation/current/history read path.
+`KINGDOMS-001` through `KINGDOMS-004` are accepted. K5 is in progress: P1 provides invitation/agreement consent; P2 adds explicit source target grants/removal and a bounded recipient-safe current-fact projection. Bounded shared observation history is not implemented yet.
 
 ## Owned code
 
-- `Models/` — neutral Kingdom/player/game-Alliance references; tenant roster/transfer/intelligence/ingestion; and K5 consent metadata.
-- `Actions/` — roster, observation, import, transfer, diplomacy/contact, K4 ingestion/operations, and K5 invitation/accept/decline/revoke/leave mutations.
-- `Jobs/` — isolated per-subscription K4 acquisition work only; K5-P1 has no jobs.
-- `Queries/` — tenant-first existing Kingdoms projections; K5-P1 has no shared-data query.
+- `Models/` — neutral Kingdom/player/game-Alliance references; tenant roster/transfer/intelligence/ingestion; K5 consent and explicit grant metadata.
+- `Actions/` — roster, observation, import, transfer, diplomacy/contact, K4 ingestion/operations, K5 consent lifecycle, target grant/removal, and fail-closed sharing invalidation on supported Kingdom drift.
+- `Jobs/` — isolated per-subscription K4 acquisition work only; K5-P2 has no jobs.
+- `Queries/` — tenant-first Kingdoms projections including the bounded recipient-safe `SharedKingdomIntelligenceCurrentQuery`; no K5 shared-history query yet.
 - `Services/`, `Contracts/`, `Data/`, and `ValueObjects/` — existing intelligence/K4 contracts plus hash-only K5 invitation token issuance and one-time issued-token return value.
-- `Enums/` — accepted Kingdoms lifecycle/state vocabularies including K5 pending/active/declined/revoked consent state.
-- `Http/` — first-party Kingdoms boundaries including password-confirmed K5 consent mutations.
+- `Enums/` — accepted Kingdoms lifecycle/state vocabularies including K5 agreement and target grant states.
+- `Http/` — first-party Kingdoms boundaries including password-confirmed K5 consent and target mutations. No K5 public/current/history data API exists.
 
 ## Public contracts
 
 Intentional cross-domain contracts include canonical `Kingdom` references; member-safe Kingdoms reads under `alliance.view`; management actions under `kingdoms.manage`; Audit/Platform internal evidence; and `kingdoms.*` internal events that are **not** public webhook contracts.
 
-K5-P1 introduces no public contract. Invitation creation/acceptance/decline/revoke/leave are authenticated first-party mutations only. The token is a one-time human consent bootstrap secret, not an API credential.
+K5 introduces no public contract. Consent and target changes are authenticated first-party mutations. P2 current facts are an internal bounded query over explicitly granted source-owned targets.
 
-Stable neutral identity never grants K5 access. K5 acceptance requires a different recipient Alliance and matching current/captured Kingdom. Source observations remain source-owned and no recipient copy exists in P1.
+Stable neutral identity never grants K5 access. Recipient current facts require active recipient → active directional agreement → active explicit grant → live valid source tracking/context.
+
+Source observations remain source-owned; P2 creates no recipient canonical tracking/observation copy. Received intelligence cannot be used as the upstream tracking target of another K5 share.
 
 ## Dependencies
 
-- `Alliances` — active tenant/current Kingdom plus K5 source/recipient identities.
+- `Alliances` — active tenant/current Kingdom, K5 source/recipient identities, and the supported Kingdom-change lifecycle that terminalizes affected K5 agreements.
 - `Memberships` — optional existing roster/coordinator references only.
 - `Authorization` — `alliance.view`, `alliance.manage`, and `kingdoms.manage`.
 - `Identity` — human actor identity and recent-password assurance.
-- `Audit` — attributable/safe consent evidence; source-side acceptance avoids cross-tenant recipient-manager actor disclosure.
+- `Audit` — attributable/safe consent/grant evidence; counterpart records avoid cross-tenant manager identity disclosure where appropriate.
 - `Platform` — transactional outbox and shared runtime infrastructure.
 - `Integrations` — external-exposure boundary; all K5 events remain internal/not public-webhook eligible.
 
@@ -47,6 +49,8 @@ Stable neutral identity never grants K5 access. K5 acceptance requires a differe
 - [Opt-in shared Kingdom intelligence](../../../docs/domains/kingdoms/shared-intelligence.md)
 - [K5 Slice A validation](../../../docs/domains/kingdoms/product/kingdoms-shared-intelligence-slice-a-validation.md)
 - [K5 Slice A security review](../../../docs/domains/kingdoms/security/kingdoms-shared-intelligence-foundation-security-review.md)
+- [K5 Slice B validation](../../../docs/domains/kingdoms/product/kingdoms-shared-intelligence-slice-b-validation.md)
+- [K5 Slice B security review](../../../docs/domains/kingdoms/security/kingdoms-shared-intelligence-current-facts-security-review.md)
 - [Product and acceptance evidence](../../../docs/domains/kingdoms/product/README.md)
 - [Security evidence](../../../docs/domains/kingdoms/security/README.md)
 - [Operations](../../../docs/domains/kingdoms/operations/README.md)
