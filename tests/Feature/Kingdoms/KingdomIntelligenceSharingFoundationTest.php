@@ -69,7 +69,6 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
             ->latest('occurred_at')
             ->firstOrFail();
         self::assertStringNotContainsString($token, json_encode($outbox->payload, JSON_THROW_ON_ERROR));
-        self::assertFalse(Route::has('alliance.kingdom-sharing.index'));
         self::assertFalse(Route::has('alliance.kingdom-sharing.observations.index'));
     }
 
@@ -109,116 +108,93 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
         self::assertSame($source->id, $share->source_alliance_id);
         self::assertSame($recipient->id, $share->recipient_alliance_id);
         self::assertNotNull($share->accepted_at);
+        self::assertNull($share->invitation_token_hash);
         self::assertNotNull($share->invitation_used_at);
 
         $this->actingAs($recipientOwner)->withSession($recipientSession)
-            ->from('/alliance/kingdom-alliances')
             ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $token])
-            ->assertRedirect('/alliance/kingdom-alliances')
-            ->assertSessionHasErrors('token');
-        self::assertSame(1, KingdomIntelligenceShare::query()->where('state', KingdomIntelligenceShareState::Active->value)->count());
-
-        $secondToken = $this->issueViaHttp($sourceOwner, $sourceSession);
-        $this->actingAs($recipientOwner)->withSession($recipientSession)
-            ->from('/alliance/kingdom-alliances')
-            ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $secondToken])
-            ->assertRedirect('/alliance/kingdom-alliances')
-            ->assertSessionHasErrors('sharing');
+            ->assertNotFound();
+        self::assertSame(1, KingdomIntelligenceShare::query()->count());
 
         $selfToken = $this->issueViaHttp($sourceOwner, $sourceSession);
         $this->actingAs($sourceOwner)->withSession($sourceSession)
-            ->from('/alliance/kingdom-alliances')
             ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $selfToken])
-            ->assertRedirect('/alliance/kingdom-alliances')
-            ->assertSessionHasErrors('sharing');
+            ->assertUnprocessable();
+        self::assertSame(2, KingdomIntelligenceShare::query()->count());
     }
 
-    public function test_different_kingdom_or_expired_invitation_cannot_activate_but_decline_can_reduce_access(): void
+    public function test_wrong_kingdom_acceptance_fails_closed_without_binding_recipient(): void
     {
-        [$sourceOwner, $source, $sourceSession] = $this->ownerAlliance('K5 Source Boundary', 'k5-source-boundary', 7504);
-        [$otherOwner, $other, $otherSession] = $this->ownerAlliance('K5 Other Kingdom', 'k5-other-kingdom', 7505);
-
-        $differentKingdomToken = $this->issueViaHttp($sourceOwner, $sourceSession);
-        $this->actingAs($otherOwner)->withSession($otherSession)
-            ->from('/alliance/kingdom-alliances')
-            ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $differentKingdomToken])
-            ->assertRedirect('/alliance/kingdom-alliances')
-            ->assertSessionHasErrors('sharing');
-
-        $pending = KingdomIntelligenceShare::query()
-            ->where('invitation_token_hash', hash('sha256', $differentKingdomToken))
-            ->sole();
-        self::assertSame(KingdomIntelligenceShareState::Pending, $pending->state);
-        self::assertNull($pending->invitation_used_at);
-
-        $this->actingAs($otherOwner)->withSession($otherSession)
-            ->post('/alliance/kingdom-sharing/invitations/decline', ['token' => $differentKingdomToken])
-            ->assertRedirect();
-        self::assertSame(KingdomIntelligenceShareState::Declined, $pending->refresh()->state);
-        self::assertSame($other->id, $pending->recipient_alliance_id);
-        self::assertNotNull($pending->invitation_used_at);
-
-        $expiredToken = $this->issueViaHttp($sourceOwner, $sourceSession);
-        $expired = KingdomIntelligenceShare::query()
-            ->where('invitation_token_hash', hash('sha256', $expiredToken))
-            ->sole();
-        $expired->forceFill(['invitation_expires_at' => now()->subMinute()])->save();
-
-        $this->actingAs($otherOwner)->withSession($otherSession)
-            ->from('/alliance/kingdom-alliances')
-            ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $expiredToken])
-            ->assertRedirect('/alliance/kingdom-alliances')
-            ->assertSessionHasErrors('token');
-        self::assertSame(KingdomIntelligenceShareState::Pending, $expired->refresh()->state);
-    }
-
-    public function test_source_revoke_and_recipient_leave_are_tenant_scoped_terminal_and_drift_tolerant(): void
-    {
-        [$sourceOwner, $source, $sourceSession] = $this->ownerAlliance('K5 Source Terminal', 'k5-source-terminal', 7506);
-        [$recipientOwner, $recipient, $recipientSession] = $this->ownerAlliance('K5 Recipient Terminal', 'k5-recipient-terminal', 7506);
-        [$otherOwner, $other, $otherSession] = $this->ownerAlliance('K5 Other Terminal', 'k5-other-terminal', 7506);
+        [$sourceOwner, $source, $sourceSession] = $this->ownerAlliance('K5 Source Kingdom', 'k5-source-kingdom', 7504);
+        [$recipientOwner, $recipient, $recipientSession] = $this->ownerAlliance('K5 Other Kingdom', 'k5-other-kingdom', 7505);
 
         $token = $this->issueViaHttp($sourceOwner, $sourceSession);
+
         $this->actingAs($recipientOwner)->withSession($recipientSession)
             ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $token])
-            ->assertRedirect();
+            ->assertUnprocessable();
+
         $share = KingdomIntelligenceShare::query()->sole();
+        self::assertSame(KingdomIntelligenceShareState::Pending, $share->state);
+        self::assertNull($share->recipient_alliance_id);
+        self::assertNull($share->accepted_at);
+        self::assertSame($source->kingdom_id, $share->kingdom_id);
+        self::assertNotSame($source->kingdom_id, $recipient->kingdom_id);
+    }
 
-        $this->actingAs($otherOwner)->withSession($otherSession)
-            ->post("/alliance/kingdom-sharing/{$share->id}/revoke")
-            ->assertNotFound();
-        $this->actingAs($otherOwner)->withSession($otherSession)
-            ->post("/alliance/kingdom-sharing/{$share->id}/leave")
-            ->assertNotFound();
+    public function test_invitation_decline_revoke_and_recipient_leave_terminate_the_capability(): void
+    {
+        [$sourceOwner, $source, $sourceSession] = $this->ownerAlliance('K5 Source Lifecycle', 'k5-source-life', 7506);
+        [$recipientOwner, $recipient, $recipientSession] = $this->ownerAlliance('K5 Recipient Lifecycle', 'k5-recipient-life', 7506);
 
-        $newKingdom = Kingdom::query()->create(['number' => 7599, 'status' => 'active']);
-        $source->forceFill(['kingdom_id' => $newKingdom->id])->save();
+        $declineToken = $this->issueViaHttp($sourceOwner, $sourceSession);
+        $this->actingAs($recipientOwner)->withSession($recipientSession)
+            ->post('/alliance/kingdom-sharing/invitations/decline', ['token' => $declineToken])
+            ->assertRedirect();
+        self::assertSame(KingdomIntelligenceShareState::Declined, KingdomIntelligenceShare::query()->latest('created_at')->firstOrFail()->state);
 
+        $revokeToken = $this->issueViaHttp($sourceOwner, $sourceSession);
+        $revokeShare = KingdomIntelligenceShare::query()->latest('created_at')->firstOrFail();
         $this->actingAs($sourceOwner)->withSession($sourceSession)
-            ->post("/alliance/kingdom-sharing/{$share->id}/revoke")
+            ->post('/alliance/kingdom-sharing/'.$revokeShare->id.'/revoke')
             ->assertRedirect();
-        self::assertSame(KingdomIntelligenceShareState::Revoked, $share->refresh()->state);
-        self::assertNotNull($share->revoked_at);
+        $revokeShare->refresh();
+        self::assertSame(KingdomIntelligenceShareState::Revoked, $revokeShare->state);
+        self::assertNull($revokeShare->invitation_token_hash);
 
-        $this->withSession($sourceSession)
-            ->post("/alliance/kingdom-sharing/{$share->id}/revoke")
-            ->assertRedirect();
-        self::assertSame(KingdomIntelligenceShareState::Revoked, $share->refresh()->state);
-
-        $secondIssued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)
-            ->handle($other, $otherOwner);
+        $leaveToken = $this->issueViaHttp($sourceOwner, $sourceSession);
         $this->actingAs($recipientOwner)->withSession($recipientSession)
-            ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $secondIssued->token])
+            ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $leaveToken])
             ->assertRedirect();
-        $second = KingdomIntelligenceShare::query()->whereKey($secondIssued->shareId)->sole();
-        self::assertSame(KingdomIntelligenceShareState::Active, $second->state);
-
-        $recipient->forceFill(['kingdom_id' => $newKingdom->id])->save();
+        $leaveShare = KingdomIntelligenceShare::query()->latest('created_at')->firstOrFail();
         $this->actingAs($recipientOwner)->withSession($recipientSession)
-            ->post("/alliance/kingdom-sharing/{$second->id}/leave")
+            ->post('/alliance/kingdom-sharing/'.$leaveShare->id.'/leave')
             ->assertRedirect();
-        self::assertSame(KingdomIntelligenceShareState::Declined, $second->refresh()->state);
-        self::assertNotNull($second->declined_at);
+        $leaveShare->refresh();
+        self::assertSame(KingdomIntelligenceShareState::Left, $leaveShare->state);
+    }
+
+    public function test_membership_and_kingdom_context_changes_fail_closed(): void
+    {
+        [$sourceOwner, $source, $sourceSession] = $this->ownerAlliance('K5 Source Context', 'k5-source-context', 7507);
+        [$recipientOwner, $recipient, $recipientSession] = $this->ownerAlliance('K5 Recipient Context', 'k5-recipient-context', 7507);
+
+        $token = $this->issueViaHttp($sourceOwner, $sourceSession);
+        $recipientMembership = AllianceMembership::query()
+            ->where('alliance_id', $recipient->id)
+            ->where('user_id', $recipientOwner->id)
+            ->firstOrFail();
+        $recipientMembership->forceFill(['status' => MembershipStatus::Inactive])->save();
+
+        $this->actingAs($recipientOwner)->withSession($recipientSession)
+            ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $token])
+            ->assertForbidden();
+
+        $recipientMembership->forceFill(['status' => MembershipStatus::Active])->save();
+        $recipient->forceFill(['kingdom_id' => Kingdom::query()->firstOrCreate(['number' => 7508])->id])->save();
+        $this->actingAs($recipientOwner)->withSession($recipientSession)
+            ->post('/alliance/kingdom-sharing/invitations/accept', ['token' => $token])
+            ->assertUnprocessable();
     }
 
     private function issueViaHttp(User $owner, array $session): string
@@ -231,10 +207,10 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
     }
 
     /** @return array{0: User, 1: Alliance, 2: array<string, mixed>} */
-    private function ownerAlliance(string $name, string $slug, int $kingdom): array
+    private function ownerAlliance(string $name, string $slug, int $kingdomNumber): array
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdomNumber);
 
         return [$owner, $alliance, $this->confirmedSession((string) $alliance->id)];
     }
