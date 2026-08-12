@@ -3,70 +3,86 @@
 [← Kingdoms domain](../README.md)
 
 **Document type:** Living domain testing and evidence profile  
-**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P1 consent foundation validated  
+**Status:** Current — `KINGDOMS-004` Accepted; `KINGDOMS-005` through K5-P2 current-fact sharing validated  
 **Owning domain:** Kingdoms  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary validation boundary:** Neutral identity, tenant-owned Kingdoms workflows, K4 ingestion isolation/idempotency, K5 consent isolation and explicit public/decision-automation non-capabilities
+**Primary validation boundary:** Neutral identity, tenant-owned Kingdoms workflows, K4 ingestion isolation/idempotency, K5 consent/grant/current-fact isolation and explicit public/decision-automation non-capabilities
 
-**P5 evidence decision:** Current proof is mapped by executable suite/evidence class and immutable candidate identities; K5 adds focused cross-tenant consent evidence without replacing K1–K4 accepted evidence.
+**P5 evidence decision:** Current proof is mapped by executable suite/evidence class and immutable candidate identities; K5 adds focused cross-tenant evidence without replacing K1–K4 accepted evidence.
 
 ## 1. Critical claims and validation ownership
 
-Kingdoms validation protects identity/tenant separation, append history, human-only governance, K4 source boundaries and K5's new two-party sharing-consent seam.
+Kingdoms validation protects identity/tenant separation, append history, human-only governance, K4 source boundaries and K5's explicit cross-tenant consent/grant/read seam.
 
-At P1, K5 must prove only consent/agreement state exists and that no observation/current/history sharing path has accidentally appeared.
+P2 must prove only explicitly granted safe current facts cross tenants, source canonical ownership remains intact, recipient reads do not copy or reshare facts, and removal/revoke/drift immediately fail closed. Bounded shared history remains outside current evidence.
 
 ## 2. Executable suite mapping
 
-All six PHPUnit groups remain material: Architecture, Feature, Integration, Performance, TenantIsolation and Unit. K5-P1 adds Feature/migration/tenant-boundary evidence to accepted K1–K4 suites.
+All six PHPUnit groups remain material: Architecture, Feature, Integration, Performance, TenantIsolation and Unit. K5-P2 adds feature/migration/tenant/query evidence to accepted K1–K4 and P1 suites.
 
-Architecture protects ownership/non-capabilities/public exposure; Feature protects consent workflows; Integration protects Audit/outbox and migration behavior; TenantIsolation protects source/recipient/share-ID boundaries; existing Performance/Unit suites remain additive.
+Architecture protects ownership/non-capabilities/public exposure; Feature protects consent/grant/current workflows; Integration protects Audit/outbox/migrations; TenantIsolation protects source/recipient/grant boundaries; focused query assertions protect bounded current projection behavior.
 
 ## 3. Architecture and domain-boundary validation
 
 Existing architecture guards continue to enforce no public Kingdoms API/wildcard webhook, stable-ID identity boundaries and documentation conventions.
 
-P1 adds only password-confirmed POST consent routes. Focused tests assert there is no sharing index or shared-observation read route and no P1 target-sharing table.
+K5 adds password-confirmed mutation routes only. Focused tests assert there is no K5 current/history GET route. P2's recipient current projection is an internal query, not a new public interface.
+
+P1's historical no-sharing invariant is retained correctly under P2: invitation creation alone creates zero target grants and no observation data is disclosed.
 
 ## 4. Authorization, tenancy, security and privacy validation
 
-`KingdomIntelligenceSharingFoundationTest` proves recent password confirmation and `kingdoms.manage`, source/recipient tenant scoping, same-Kingdom acceptance, self-share rejection, unrelated-tenant revoke/leave rejection, hash-only token storage and no plaintext token in outbox payloads.
+`KingdomIntelligenceSharingFoundationTest` continues to prove password/permission, hash-only token, same-Kingdom consent, tenant scoping and token secrecy.
 
-Acceptance uses the active recipient Alliance and captured source Kingdom. Different-Kingdom acceptance fails without consuming the token. Access-reducing decline/revoke/leave remain available when context drifts.
+`KingdomSharedIntelligenceCurrentFactsTest` proves source-only target mutation, recipient-first visibility, explicit-target-only sharing, safe-field whitelisting, same-Kingdom/context checks, target removal/revocation/drift failure and no access resume after returning to the captured Kingdom.
+
+`KingdomSharedIntelligenceIsolationTest` proves recipient current reads create no local tracking/observation copy, received source tracking cannot be re-granted through an outbound share, and missing observation remains missing rather than zero.
 
 ## 5. Feature, interface and integration validation
 
-Focused P1 scenarios cover invitation creation, accept, decline, revoke and leave; token expiry/single use; duplicate active directional agreement rejection; terminal idempotency; source-side acceptance actor privacy; absence of observation/payload/K4 fields on the consent table; and no shared-data GET interface.
+Focused P2 scenarios cover:
 
-Audit/outbox assertions verify safe internal consent evidence while keeping invitation plaintext out of durable event payloads.
+- explicit source target grant/removal;
+- unshared source target absence;
+- safe current projection shape;
+- latest accepted observation selection;
+- source invalidation fallback without private reason disclosure;
+- current/stale/missing freshness;
+- no copy/no reshare;
+- unrelated-tenant share/tracking/target substitution rejection;
+- supported Kingdom drift terminalization and no implicit reactivation;
+- internal target/context Audit/outbox evidence; and
+- no current/history public GET surface.
 
 ## 6. Idempotency, concurrency and asynchronous validation
 
-Successful acceptance consumes a pending invitation once. Exact token replay fails. Duplicate active directional agreement creation is rejected.
+P1 consent token/idempotency behavior remains protected. P2 active grant re-add is idempotent; removed state requires deliberate re-grant.
 
-Acceptance locks the share and source/recipient Alliance rows in deterministic ID order; revoke/leave use tenant-scoped row locks. Terminal declined/revoked state never reactivates through P1 actions.
+Acceptance/grant locking aligns to deterministic Alliance(s) → share → target ordering where Kingdom drift can race. Supported Kingdom changes terminalize affected agreements inside the same transaction.
 
-P1 adds no asynchronous job/cache authorization path; database/domain checks remain authoritative.
+P2 adds no asynchronous job/cache authorization path; database/domain checks remain authoritative.
 
 ## 7. Persistence, migration, rollback and recovery evidence
 
-`2026_08_12_010000_create_kingdom_intelligence_shares` is included in clean PostgreSQL CI and in the full Kingdoms migration backfill/round-trip test.
+Both K5 migrations are included in clean PostgreSQL CI.
 
-The round trip drops the K5 consent table before the K4/K3/K2/K1 dependency chain and reapplies it after K4 scheduling, then asserts token-hash, recipient-Alliance and captured-Kingdom columns exist.
+The full Kingdoms round trip drops `kingdom_intelligence_share_targets` before the parent K5 share and older K3/K1 dependencies, then reapplies it after the parent share. The focused K3 round trip also temporarily drops/reapplies the target table because of its FK to `tracked_kingdom_alliances`.
 
-Backup/restore passed with the new consent table. P1 stores no shared observation payload/history, so recovery cannot recreate a recipient data copy that never existed.
+Backup/restore passed with K5 consent/grant state. Source observations remain canonical and no recipient observation history copy exists to restore.
 
 ## 8. Performance, query and capacity evidence
 
-Existing K1–K4 query gates remain accepted. P1 is mutation-only and adds no recipient shared-data list/history query, so it establishes no new read-performance claim.
+`SharedKingdomIntelligenceCurrentQuery::CURRENT_LIMIT` is 250.
 
-P2 must add bounded current-fact query evidence when the first recipient projection is implemented; realistic-volume cross-tenant capacity hardening remains owned by P5.
+A focused fixture with 12 explicit targets asserts the current projection uses no more than two SELECT queries while returning all 12 authorized rows. This proves bounded/no-N+1 current behavior for the slice, not a production throughput SLO.
+
+P3 must establish bounded history query behavior; realistic-volume current/history capacity remains P5 work.
 
 ## 9. Accessibility and frontend evidence
 
-P1 adds no new Vue/page surface. Consent endpoints are mutation interfaces only, so no new source-level accessibility artifact exists yet.
+P2 adds no new K5 Vue/page surface; target routes are mutation interfaces and the recipient current projection is internal. Full source/recipient first-party UX/accessibility remains P4.
 
-The full candidate still passed frontend dependency audit, ESLint/Prettier/Vue-TypeScript checks and production frontend build. P4 remains responsible for complete source/recipient first-party UX/accessibility.
+The P2 candidate still passed frontend dependency audit, ESLint/Prettier/Vue-TypeScript checks and production frontend build.
 
 ## 10. Historical accepted evidence
 
@@ -74,14 +90,16 @@ K1–K4 historical accepted SHAs/run IDs remain immutable evidence.
 
 K5-P0 candidate `d9e05fd06bd08050e5489598406cfb556d5bc0ac` passed DR `31557697685`, CodeQL `31557697793`, CI `31557697725` with 429 tests / 9,809 assertions.
 
-K5-P1 runtime candidate `9ef1d46b1db69708d575e82d8548145cf7769e68` passed:
+K5-P1 candidate `9ef1d46b1db69708d575e82d8548145cf7769e68` passed DR `31559012856`, CodeQL `31559012854`, CI `31559012861` with 434 tests / 9,911 assertions.
 
-- Dependency Review `31559012856`;
-- CodeQL `31559012854`;
-- CI `31559012861`;
-- Pint — 541 files;
-- PHPStan/Larastan — 384/384, zero errors;
-- ParaTest/PHPUnit — 434 tests / 9,911 assertions;
+K5-P2 runtime candidate `1a022e909cd246197510449a761a4856ce12b118` passed:
+
+- Dependency Review `31562753429`;
+- CodeQL `31562753422`;
+- CI `31562753430`;
+- Pint — 550 files;
+- PHPStan/Larastan — 390/390, zero errors;
+- ParaTest/PHPUnit — 440 tests / 10,025 assertions;
 - frontend/build and clean migrations — success; and
 - immutable image, staging, backup/restore, scan and cleanup — success.
 
@@ -89,14 +107,14 @@ K5-P1 runtime candidate `9ef1d46b1db69708d575e82d8548145cf7769e68` passed:
 
 Historical accepted evidence remains immutable. Current behavior follows current code/tests/living contracts.
 
-K5 P1 runtime acceptance is attached to the exact implementation candidate above. The exact containing evidence/status head that records P1 Complete / P2 Current must independently pass protected gates before P2 implementation begins.
+K5 P2 runtime acceptance is attached to the exact implementation candidate above. The exact containing evidence/status head that records P2 Complete / P3 Current must independently pass protected gates before P3 implementation begins.
 
-Future token-retention behavior belongs to P5 and must not erase acceptance evidence or canonical K3 observations.
+Future invitation/grant retention behavior belongs to P5 and must not erase acceptance evidence or canonical K3 observations.
 
 ## 12. Gaps, non-capabilities and related documentation
 
-P1 does not validate shared target selection, recipient current/history projection, correction propagation, shared-data query performance, recipient member UX, reshare prevention at a data path, or retention cleanup. Those remain P2–P5 work.
+P2 does not validate bounded shared history, history pagination/query bounds, complete recipient/source sharing UX/accessibility or retention cleanup. Those remain P3–P5 work.
 
-P1 still provides no player/roster sharing, transfers, diplomacy/contact sharing, cross-Kingdom sharing, public APIs/webhooks, tenant directory, scoring/ranking/recommendations or automatic decisions.
+Current runtime still provides no player/roster sharing, transfer sharing, diplomacy/contact sharing, cross-Kingdom sharing, public APIs/webhooks, tenant directory, scoring/ranking/recommendations or automatic decisions.
 
-Related: [Shared intelligence](../shared-intelligence.md), [Slice A validation](../product/kingdoms-shared-intelligence-slice-a-validation.md), [Slice A security review](../security/kingdoms-shared-intelligence-foundation-security-review.md), [Security profile](../security/README.md), [Operations profile](../operations/README.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md), [P5 testing/evidence coverage matrix](../../../product/testing-evidence-coverage-matrix.md).
+Related: [Shared intelligence](../shared-intelligence.md), [Slice B validation](../product/kingdoms-shared-intelligence-slice-b-validation.md), [Slice B security review](../security/kingdoms-shared-intelligence-current-facts-security-review.md), [Security profile](../security/README.md), [Operations profile](../operations/README.md), [Interfaces](../interfaces/README.md), [testing/evidence standard](../../../product/testing-evidence-standard.md), [P5 testing/evidence coverage matrix](../../../product/testing-evidence-coverage-matrix.md).
