@@ -2,8 +2,8 @@
 
 [← Kingdoms operations](README.md)
 
-**Scope:** `KINGDOMS-004` through `K4-P4` / Slice D  
-**Current delivery:** Generic control plane, delegated player/game-Alliance promotion, generic scheduled acquisition/cursor/retry/replay; no concrete production source
+**Scope:** `KINGDOMS-004` through `K4-P5` / Slice E  
+**Current delivery:** Generic control plane, delegated player/game-Alliance promotion, scheduled acquisition/cursor/retry/replay, source-revocation reconciliation, bounded operational retention and health monitoring; no concrete production source
 
 ## Runtime ownership
 
@@ -13,7 +13,12 @@ K4 remains first-party Laravel/PostgreSQL under `app/Domain/Kingdoms` and uses s
 
 The manager surface is `/alliance/kingdom-ingestion/manage` with `kingdoms.manage`; human mutations including replay require recent password confirmation. There is no public source endpoint, inbound webhook, tenant URL/credential form, arbitrary staging endpoint or public promotion API.
 
-The operator command `kingdoms:queue-ingestion --limit=100` is scheduled every minute using `onOneServer()` and `withoutOverlapping(10)`.
+Operator commands are:
+
+- `kingdoms:queue-ingestion --limit=100` — queue due approved subscriptions;
+- `kingdoms:reconcile-ingestion-sources --limit=500` — disable subscriptions whose adapter key/version is no longer approved;
+- `kingdoms:enforce-ingestion-retention` — redact/prune age-qualified operational scaffolding; and
+- `kingdoms:ingestion-health --json` — emit bounded health signals and return non-zero when attention is required.
 
 ## Durable state
 
@@ -41,48 +46,70 @@ Pending `player_snapshot` candidates require an existing owning-Alliance roster 
 
 Manager replay applies only to quarantined candidates and re-runs the accepted promotion path after rechecking Alliance/current-Kingdom/source version. Replay is not an operator shortcut for guessing identity or creating missing relationships.
 
-## Diagnostics
+## Source revocation
 
-Use safe Alliance/Kingdom/subscription/batch/candidate/promoted-record IDs, adapter key/version, source-window/record IDs, opaque cursor, capture time, hashes, next-run/claim/success/failure/circuit timing, state/reason codes and internal audit/outbox IDs.
+`kingdoms:reconcile-ingestion-sources --limit=1000` runs every five minutes with `onOneServer()` and `withoutOverlapping(10)`.
 
-Never persist/log normalized payload bodies, raw source responses, endpoint/credential/header/cookie material, private diplomacy/contact text or raw exception text as scheduler diagnostics.
+For each active/paused subscription it re-resolves the current adapter registry under a row lock. If the adapter key is missing or its version differs from the captured version, the subscription is changed to `disabled`, bounded `source_unapproved` block/failure state is recorded, and future scheduling/circuit state is cleared.
+
+Do not directly re-enable a revoked source in the database. Source use resumes only after a reviewed repository/operator adapter approval and normal tenant management.
+
+## Operational health and alerts
+
+`kingdoms:ingestion-health --json` reports aggregate, payload-free counts for active subscriptions, source-revoked subscriptions, overdue subscriptions, open circuits, stale pending candidates, quarantined candidates and recent failed batches plus `attentionRequired`.
+
+Repository-controlled defaults are five minutes overdue, fifteen minutes stale-pending, twenty-five quarantined candidates and a sixty-minute recent-failure window. These are generic operator signals, not source-specific SLOs and not authority to mutate business state.
+
+The health query path is performance-gated at realistic volume: 250 subscriptions, 40 failed batches and 110 candidates must remain within eight SELECT queries.
 
 ## Failure, backoff and circuit behavior
 
 - acquisition errors: bounded `acquisition_failed` plus exponential retry state;
 - invalid acquisition contract: `source_contract_invalid`;
 - processing validation failure: `processing_validation_failed`;
-- source adapter unavailable/version unapproved: fail closed with bounded source code;
+- source adapter unavailable/version unapproved: fail closed with `source_unapproved` or other bounded source code;
 - Kingdom drift: block preserved captured context; never retarget;
 - after three consecutive acquisition failures, a bounded circuit-open interval prevents immediate re-acquisition;
 - queue retry exhaustion finalizes a still-pending batch as `failed/retry_exhausted`;
-- completed source-window replay is accepted only when its next cursor matches the stored value;
+- completed source-window replay is accepted only when its next cursor matches the stored value; and
 - cursor conflict/divergence stops rather than rewinding or guessing.
+
+## Retention and pruning
+
+`kingdoms:enforce-ingestion-retention` runs daily at 04:15 with `onOneServer()` and `withoutOverlapping(60)`.
+
+Default repository-controlled windows are:
+
+- promoted/rejected normalized candidate payload: redact after 30 days;
+- promoted/rejected candidate row: purge after 90 days;
+- quarantined candidate row: purge after 180 days;
+- completed/partial/failed/blocked batch: purge after 90 days only when no candidates remain; and
+- disabled subscription scheduling/failure/circuit fields: compact after 30 days while preserving the subscription row.
+
+Pruning never deletes promoted K1/K3 snapshots/observations or rewrites their machine provenance. Operational retention is not a replay mechanism.
 
 ## Recovery and reconciliation
 
-Safe recovery begins by restoring runtime/database/Redis health, inspecting bounded subscription/batch state and checking whether the source remains approved. Pause/disable the subscription when uncertainty remains.
+Safe recovery begins by restoring runtime/database/Redis health, inspecting `kingdoms:ingestion-health --json`, then reconciling current source approval before acquisition resumes. Pause/disable subscriptions when uncertainty remains.
 
 For quarantined candidates whose legitimate target relationship has since been corrected by a human workflow, use password-confirmed manager replay. Never directly reset promoted/rejected candidates, rewrite source identities or bypass the promotion actions.
 
-A source adapter removal/version change intentionally blocks future acquisition. Re-enable only through reviewed repository/config approval; P5 will formalize source-revocation procedures.
+After restore, validate representative source cursor/next-run/circuit state, batch/candidate correlation and independence of canonical promoted history from operational K4 retention.
 
-## Backup, migration and retention
+## Diagnostics and privacy
 
-P4 migration `2026_08_11_220000_add_ingestion_scheduling.php` adds scheduling/circuit state and batch next-cursor state. The full Kingdoms migration round-trip test places it after the K4 foundation/provenance chain and drops it first during rollback.
+Use safe Alliance/Kingdom/subscription/batch/candidate/promoted-record IDs, adapter key/version, source-window/record IDs, opaque cursor, capture time, hashes, next-run/claim/success/failure/circuit timing, state/reason codes and internal audit/outbox IDs.
 
-Shared backup/restore applies. After restore, validate representative source cursor/next-run/circuit state, batch/candidate correlation and independence of canonical promoted history from operational K4 retention.
-
-Formal pruning/retention remains K4-P5. Do not manually prune operational rows as a replay strategy.
+Never persist/log normalized payload bodies as diagnostics, raw source responses, endpoint/credential/header/cookie material, private diplomacy/contact text or raw exception text.
 
 ## Capacity and stop conditions
 
-The generic contract caps one acquisition page at 250 normalized records and one adapter poll interval at 60–86,400 seconds. Queue concurrency is deliberately isolated/bounded. These are safety bounds, not a proven real-source throughput SLO.
+The generic contract caps one acquisition page at 250 normalized records and one adapter poll interval at 60–86,400 seconds. Queue concurrency and the operational aggregate-query set are deliberately bounded. These are safety/capacity gates, not a proven real-source throughput SLO.
 
-Stop/escalate if operation would require unapproved source/network/credentials, raw-response archiving, cross-tenant access, stable-ID guessing, auto roster/tracking creation/reactivation, machine K3 correction/invalidation, transfer/diplomacy/contact mutation, scoring/recommendation, or changing queue/cursor state by hand.
+Stop/escalate if operation would require unapproved source/network/credentials, raw-response archiving, cross-tenant access, stable-ID guessing, auto roster/tracking creation/reactivation, machine K3 correction/invalidation, transfer/diplomacy/contact mutation, scoring/recommendation, or changing queue/cursor/candidate state by hand.
 
 ## Acceptance evidence
 
-K4-P4 runtime candidate `27855f79ba128b35edea7f82b2f6381fbf810363` passed Dependency Review `31545866277`, CodeQL `31545866288`, and CI `31545866249`: Pint 523 files, PHPStan 371/371 zero errors, 423 tests / 9,697 assertions, frontend/build, migrations, immutable image, staging, backup/restore and scan.
+K4-P5 runtime candidate `eb706a96c9c875dd41e932e0691e4258f33e01f1` passed Dependency Review `31552113152`, CodeQL `31552113044`, and CI `31552113042`: Pint 528 files, PHPStan 374/374 zero errors, 428 tests / 9,736 assertions, frontend/build, migrations, immutable image, staging, backup/restore and scan.
 
-See [Slice D validation](../product/kingdoms-automated-ingestion-slice-d-validation.md) and [Slice D security review](../security/kingdoms-automated-ingestion-scheduler-security-review.md).
+See [Slice E validation](../product/kingdoms-automated-ingestion-slice-e-validation.md) and [Slice E security/privacy review](../security/kingdoms-automated-ingestion-operations-security-review.md).
