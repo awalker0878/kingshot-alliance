@@ -47,6 +47,16 @@ final class AuthExperienceTest extends TestCase
             'zh-CN',
             'zh-TW',
         ] as $locale) {
+            if ($locale === 'en') {
+                self::assertMatchesRegularExpression(
+                    '/(?:^|\s)en,\s*$/m',
+                    $messages,
+                    $locale,
+                );
+
+                continue;
+            }
+
             self::assertMatchesRegularExpression(
                 '/(?:^|\s)[\'\"]?'.preg_quote($locale, '/').'[\'\"]?\s*:/m',
                 $messages,
