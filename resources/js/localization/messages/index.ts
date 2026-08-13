@@ -11,6 +11,7 @@ import { publicExtraMessages } from './public-extra';
 import { publicMessages } from './public';
 import { rosterManagementMessages } from './roster-management';
 import { rosterMessages } from './roster';
+import { rosterWorkflowOverrides } from './roster-workflow-overrides';
 import { rosterWorkflowMessages } from './roster-workflows';
 
 type StringLeaves<T> = {
@@ -68,6 +69,7 @@ export const messages = Object.fromEntries(
       },
       ...rosterMessages[locale],
       ...rosterWorkflowMessages[locale],
+      ...(rosterWorkflowOverrides[locale] ?? {}),
     },
   ]),
 ) as Record<LocaleCode, MessageTree>;
