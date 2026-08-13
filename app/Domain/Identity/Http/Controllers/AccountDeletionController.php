@@ -22,6 +22,10 @@ final class AccountDeletionController extends Controller
         $deletion = AccountDeletionRequest::query()->where('user_id', $user->id)->first();
 
         return Inertia::render('AccountDeletion', [
+            'user' => [
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
             'request' => $deletion instanceof AccountDeletionRequest ? [
                 'status' => (string) $deletion->status,
                 'requestedAt' => $deletion->requested_at->toIso8601String(),
