@@ -7,10 +7,13 @@ on:
     paths:
       - .ux-p5b-php-diagnostic-trigger
 
+permissions:
+  contents: write
+
 jobs:
   diagnose:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:18-alpine
@@ -70,17 +73,26 @@ jobs:
       - name: Run migrations
         run: php artisan migrate --force
 
-      - name: Pint check
-        run: vendor/bin/pint --parallel --test
+      - name: Full parallel tests and capture output
+        id: tests
+        shell: bash
+        run: |
+          set +e
+          php artisan test --parallel 2>&1 | tee /tmp/ux-p5b-test-output.log
+          status=${PIPESTATUS[0]}
+          tail -n 500 /tmp/ux-p5b-test-output.log > ux-p5b-test-output.txt
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
 
-      - name: Larastan check
-        if: always()
-        run: vendor/bin/phpstan analyse --memory-limit=1G
+      - name: Commit failure output
+        if: steps.tests.outputs.status != '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ux-p5b-test-output.txt
+          git commit -m "Capture UX-P5-B PHP test failure"
+          git push origin HEAD:ux/ux-001-experience-localization
 
-      - name: Roster architecture test
-        if: always()
-        run: php artisan test tests/Architecture/RosterExperienceTest.php
-
-      - name: Full parallel tests
-        if: always()
-        run: php artisan test --parallel
+      - name: Fail when tests fail
+        if: steps.tests.outputs.status != '0'
+        run: exit 1
