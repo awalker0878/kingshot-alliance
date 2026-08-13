@@ -1,0 +1,78 @@
+name: Repair localization test migrator
+
+on:
+  push:
+    branches:
+      - perf/domain-locale-code-splitting
+    paths:
+      - '.fix-perf-test-migrator'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: perf/domain-locale-code-splitting
+
+      - name: Repair scanner and escaped controller assertions
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('.github/workflows/perf-localization-test-contracts.yml')
+          source = path.read_text()
+          old = '''              depth = 0
+              end = None
+              for i in range(brace, len(source)):
+                  if source[i] == '{':
+                      depth += 1
+                  elif source[i] == '}':
+                      depth -= 1
+                      if depth == 0:
+                          end = i
+                          break
+'''
+          new = '''              depth = 0
+              end = None
+              quote = None
+              escaped = False
+              for i in range(brace, len(source)):
+                  char = source[i]
+                  if quote is not None:
+                      if escaped:
+                          escaped = False
+                      elif char == '\\\\':
+                          escaped = True
+                      elif char == quote:
+                          quote = None
+                      continue
+                  if char in ("'", '"'):
+                      quote = char
+                      continue
+                  if char == '{':
+                      depth += 1
+                  elif char == '}':
+                      depth -= 1
+                      if depth == 0:
+                          end = i
+                          break
+'''
+          if old not in source:
+              raise RuntimeError('Expected scanner block not found')
+          source = source.replace(old, new)
+          source = source.replace('(string) $user->name', '(string) \\$user->name')
+          source = source.replace('(string) $user->email', '(string) \\$user->email')
+          path.write_text(source)
+
+      - name: Commit repair
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/perf-localization-test-contracts.yml
+          git commit -m 'Repair localization test contract migrator'
+          git push origin HEAD:perf/domain-locale-code-splitting
