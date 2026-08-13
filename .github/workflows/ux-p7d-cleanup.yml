@@ -1,0 +1,30 @@
+name: UX P7-D Cleanup
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .ux-p7d-cleanup-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out UX branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ux/ux-001-experience-localization
+          fetch-depth: 0
+      - name: Remove temporary P7-D workflow artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -f .github/workflows/ux-p7d-apply.yml .github/workflows/ux-p7d-cleanup.yml .ux-p7d-cleanup-trigger
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Clean up UX-P7-D workflow artifacts'
+          git push origin HEAD:ux/ux-001-experience-localization
