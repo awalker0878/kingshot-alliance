@@ -3,9 +3,8 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 import AppLayout from '../../../layouts/AppLayout.vue';
-import { useLocale } from '../../../localization';
+import { hasLocaleCatalogue, useLocale } from '../../../localization';
 import { defaultLocale, locales } from '../../../localization/locales';
-import { hasMessageCatalogue } from '../../../localization/messages';
 
 type AllianceRow = {
   id: string;
@@ -133,7 +132,7 @@ const metricLabels: Record<string, string> = {
 const localeRows = computed(() =>
   locales.map((locale) => ({
     ...locale,
-    catalogueRegistered: hasMessageCatalogue(locale.code),
+    catalogueRegistered: hasLocaleCatalogue(locale.code),
   })),
 );
 

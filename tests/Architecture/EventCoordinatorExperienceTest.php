@@ -50,7 +50,7 @@ final class EventCoordinatorExperienceTest extends TestCase
 
     public function test_event_coordinator_catalogue_covers_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/event-coordinator.ts');
+        $messages = $this->read('resources/js/localization/messages/events/en.ts');
         $index = $this->read('resources/js/localization/messages/index.ts');
 
         foreach ($this->locales() as $locale) {

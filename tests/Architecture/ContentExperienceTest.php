@@ -60,7 +60,7 @@ final class ContentExperienceTest extends TestCase
 
     public function test_content_catalogue_covers_all_supported_locales(): void
     {
-        $source = $this->read('resources/js/localization/messages/content-experience.ts');
+        $source = $this->read('resources/js/localization/messages/content/en.ts');
 
         foreach ([
             'en',

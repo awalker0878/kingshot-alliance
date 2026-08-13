@@ -142,9 +142,9 @@ final class RosterExperienceTest extends TestCase
     public function test_roster_catalogues_cover_all_supported_locales(): void
     {
         $catalogues = [
-            $this->read('resources/js/localization/messages/roster.ts'),
-            $this->read('resources/js/localization/messages/roster-management.ts'),
-            $this->read('resources/js/localization/messages/roster-workflows.ts'),
+            $this->read('resources/js/localization/messages/roster/en.ts'),
+            $this->read('resources/js/localization/messages/roster/en.ts'),
+            $this->read('resources/js/localization/messages/roster/en.ts'),
         ];
 
         foreach ($catalogues as $source) {
@@ -198,7 +198,7 @@ final class RosterExperienceTest extends TestCase
             self::assertStringContainsString("'".$key."'", $workflows);
         }
 
-        $overrides = $this->read('resources/js/localization/messages/roster-workflow-overrides.ts');
+        $overrides = $this->read('resources/js/localization/messages/roster/en.ts');
         foreach (['pl', 'ru', 'th', 'tr', 'vi'] as $locale) {
             self::assertMatchesRegularExpression('/(?:^|\s)'.preg_quote($locale, '/').':\s*\{/', $overrides);
         }

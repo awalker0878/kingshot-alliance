@@ -1,0 +1,72 @@
+import type { MessageCatalogue } from '../../types';
+
+const messages = {
+  common: {
+    language: 'Bahasa',
+    signIn: 'Masuk',
+    signOut: 'Keluar',
+    createAccount: 'Buat akun',
+    continue: 'Lanjutkan',
+    cancel: 'Batal',
+    save: 'Simpan',
+    close: 'Tutup',
+    loading: 'Memuat',
+    openNavigation: 'Buka navigasi',
+    closeNavigation: 'Tutup navigasi',
+    currentAlliance: 'Aliansi saat ini',
+    noActiveAlliance: 'Pilih aliansi untuk membuka alat aliansi.',
+    skipToContent: 'Lewati ke konten',
+  },
+  navigation: {
+    home: 'Beranda',
+    dashboard: 'Dasbor',
+    alliance: 'Aliansi',
+    events: 'Acara',
+    roster: 'Anggota',
+    recruitment: 'Rekrutmen',
+    content: 'Konten',
+    contributions: 'Kontribusi',
+    kingdom: 'Kerajaan',
+    transfers: 'Transfer',
+    integrations: 'Integrasi',
+    profile: 'Profil',
+    settings: 'Pengaturan',
+    allianceOperations: 'Operasi aliansi',
+    kingdomOperations: 'Operasi kerajaan',
+    account: 'Akun',
+  },
+  application: {
+    dashboard: {
+      title: 'Dasbor',
+      eyebrow: 'Komando aliansi',
+      welcome: 'Selamat datang, {name}',
+      verificationPending: 'Verifikasi email tertunda',
+      activeAllianceTitle: 'Aliansi aktif',
+      activeAllianceIntro:
+        'Aliansi ini menjadi konteks saat ini untuk alat yang terkait dengan aliansi.',
+      noActiveAllianceTitle: 'Pilih aliansi aktif',
+      noActiveAllianceIntro:
+        'Pilih salah satu keanggotaan Anda sebelum membuka alat aliansi, event, roster, kerajaan, atau transfer.',
+      alliancesTitle: 'Aliansi Anda',
+      alliancesIntro: 'Pilih aliansi yang akan digunakan sebagai konteks kerja saat ini.',
+      openActiveAlliance: 'Buka aliansi aktif',
+      active: 'Aktif',
+      roles: 'Peran',
+      noRoles: 'Tidak ada peran yang ditetapkan',
+      switchAlliance: 'Beralih ke aliansi ini',
+      kingdomAlliances: 'Aliansi kerajaan',
+      transfers: 'Transfer',
+      kingdomSettings: 'Pengaturan kerajaan',
+      empty:
+        'Anda belum memiliki keanggotaan aliansi aktif. Buat aliansi di bawah untuk menetapkan konteks aliansi pertama Anda.',
+      createTitle: 'Buat aliansi',
+      createIntro: 'Buat aliansi baru dan jadilah pemilik awalnya dalam satu proses.',
+      allianceName: 'Nama aliansi',
+      kingdomNumber: 'Nomor kerajaan',
+      timezone: 'Zona waktu',
+      create: 'Buat aliansi',
+    },
+  },
+} satisfies MessageCatalogue;
+
+export default messages;

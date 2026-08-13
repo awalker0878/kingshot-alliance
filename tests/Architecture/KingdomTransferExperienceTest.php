@@ -140,7 +140,7 @@ final class KingdomTransferExperienceTest extends TestCase
 
     public function test_transfer_catalogue_covers_all_supported_locales(): void
     {
-        $catalogue = file_get_contents(dirname(__DIR__, 2).'/resources/js/localization/messages/kingdom-p7d.ts');
+        $catalogue = file_get_contents(dirname(__DIR__, 2).'/resources/js/localization/messages/transfers/en.ts');
         self::assertIsString($catalogue);
 
         foreach ([

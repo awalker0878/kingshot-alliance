@@ -22,8 +22,8 @@ final class UserExperienceLocalizationFoundationTest extends TestCase
     public function test_major_kingshot_locale_catalogue_is_declared_and_complete(): void
     {
         $locales = $this->read('resources/js/localization/locales.ts');
-        $catalogues = $this->read('resources/js/localization/messages/catalogues.ts');
-        $publicExtra = $this->read('resources/js/localization/messages/public-extra.ts');
+        $catalogues = $this->read('resources/js/localization/messages/core/en.ts');
+        $publicExtra = $this->read('resources/js/localization/messages/public/en.ts');
         $messageIndex = $this->read('resources/js/localization/messages/index.ts');
 
         foreach ([

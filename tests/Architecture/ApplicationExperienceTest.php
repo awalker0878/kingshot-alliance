@@ -39,7 +39,7 @@ final class ApplicationExperienceTest extends TestCase
 
     public function test_dashboard_catalogue_is_complete_for_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/app-extra.ts');
+        $messages = $this->read('resources/js/localization/messages/core/en.ts');
         $index = $this->read('resources/js/localization/messages/index.ts');
 
         foreach ([

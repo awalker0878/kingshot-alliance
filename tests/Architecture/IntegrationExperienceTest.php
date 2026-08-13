@@ -65,7 +65,7 @@ final class IntegrationExperienceTest extends TestCase
 
     public function test_integration_catalogue_covers_all_supported_locales(): void
     {
-        $source = $this->read('resources/js/localization/messages/integration-experience.ts');
+        $source = $this->read('resources/js/localization/messages/integrations/en.ts');
 
         foreach ([
             'en',

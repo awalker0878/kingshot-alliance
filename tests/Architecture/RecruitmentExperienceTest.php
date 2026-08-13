@@ -68,7 +68,7 @@ final class RecruitmentExperienceTest extends TestCase
 
     public function test_recruitment_catalogue_covers_all_supported_locales(): void
     {
-        $source = $this->read('resources/js/localization/messages/recruitment.ts');
+        $source = $this->read('resources/js/localization/messages/recruitment/en.ts');
 
         foreach ([
             'en',

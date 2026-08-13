@@ -110,7 +110,7 @@ final class AllianceOperationsExperienceTest extends TestCase
 
     public function test_alliance_operations_catalogue_covers_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/alliance-operations.ts');
+        $messages = $this->read('resources/js/localization/messages/alliance/en.ts');
         $index = $this->read('resources/js/localization/messages/index.ts');
 
         foreach ($this->locales() as $locale) {
@@ -128,7 +128,7 @@ final class AllianceOperationsExperienceTest extends TestCase
 
     public function test_event_detail_catalogue_covers_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/event-detail.ts');
+        $messages = $this->read('resources/js/localization/messages/events/en.ts');
         $index = $this->read('resources/js/localization/messages/index.ts');
 
         foreach ($this->locales() as $locale) {

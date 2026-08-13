@@ -35,7 +35,7 @@ final class HomepageExperienceTest extends TestCase
 
     public function test_homepage_strings_are_available_for_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/public.ts');
+        $messages = $this->read('resources/js/localization/messages/public/en.ts');
         $messageIndex = $this->read('resources/js/localization/messages/index.ts');
 
         foreach ([

@@ -1,0 +1,73 @@
+import type { MessageCatalogue } from '../../types';
+
+const messages = {
+  common: {
+    language: 'Ngôn ngữ',
+    signIn: 'Đăng nhập',
+    signOut: 'Đăng xuất',
+    createAccount: 'Tạo tài khoản',
+    continue: 'Tiếp tục',
+    cancel: 'Hủy',
+    save: 'Lưu',
+    close: 'Đóng',
+    loading: 'Đang tải',
+    openNavigation: 'Mở điều hướng',
+    closeNavigation: 'Đóng điều hướng',
+    currentAlliance: 'Liên minh hiện tại',
+    noActiveAlliance: 'Chọn một liên minh để mở công cụ liên minh.',
+    skipToContent: 'Chuyển đến nội dung',
+  },
+  navigation: {
+    home: 'Trang chủ',
+    dashboard: 'Bảng điều khiển',
+    alliance: 'Liên minh',
+    events: 'Sự kiện',
+    roster: 'Thành viên',
+    recruitment: 'Tuyển thành viên',
+    content: 'Nội dung',
+    contributions: 'Đóng góp',
+    kingdom: 'Vương quốc',
+    transfers: 'Chuyển vương quốc',
+    integrations: 'Tích hợp',
+    profile: 'Hồ sơ',
+    settings: 'Cài đặt',
+    allianceOperations: 'Vận hành liên minh',
+    kingdomOperations: 'Vận hành vương quốc',
+    account: 'Tài khoản',
+  },
+  application: {
+    dashboard: {
+      title: 'Bảng điều khiển',
+      eyebrow: 'Bộ chỉ huy liên minh',
+      welcome: 'Chào mừng, {name}',
+      verificationPending: 'Đang chờ xác minh email',
+      activeAllianceTitle: 'Liên minh đang hoạt động',
+      activeAllianceIntro:
+        'Liên minh này là ngữ cảnh hiện tại cho các công cụ thuộc phạm vi liên minh.',
+      noActiveAllianceTitle: 'Chọn liên minh đang hoạt động',
+      noActiveAllianceIntro:
+        'Chọn một tư cách thành viên bên dưới trước khi mở các công cụ liên minh, sự kiện, danh sách, vương quốc hoặc chuyển giao.',
+      alliancesTitle: 'Các liên minh của bạn',
+      alliancesIntro: 'Chọn liên minh được dùng làm ngữ cảnh làm việc hiện tại.',
+      openActiveAlliance: 'Mở liên minh đang hoạt động',
+      active: 'Hoạt động',
+      roles: 'Vai trò',
+      noRoles: 'Chưa có vai trò được gán',
+      switchAlliance: 'Chuyển sang liên minh này',
+      roster: 'Danh sách',
+      kingdomAlliances: 'Liên minh trong vương quốc',
+      transfers: 'Chuyển giao',
+      kingdomSettings: 'Cài đặt vương quốc',
+      empty:
+        'Bạn chưa có tư cách thành viên liên minh đang hoạt động. Hãy tạo liên minh bên dưới để thiết lập ngữ cảnh đầu tiên.',
+      createTitle: 'Tạo liên minh',
+      createIntro: 'Tạo liên minh mới và trở thành chủ sở hữu đầu tiên trong một thao tác.',
+      allianceName: 'Tên liên minh',
+      kingdomNumber: 'Số vương quốc',
+      timezone: 'Múi giờ',
+      create: 'Tạo liên minh',
+    },
+  },
+} satisfies MessageCatalogue;
+
+export default messages;

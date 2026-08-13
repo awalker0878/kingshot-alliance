@@ -50,7 +50,7 @@ final class KingdomP7AExperienceTest extends TestCase
     public function test_p7a_catalogue_covers_all_supported_locales_and_controllers_supply_shell_identity(): void
     {
         $root = dirname(__DIR__, 2);
-        $catalogue = file_get_contents($root.'/resources/js/localization/messages/kingdom-p7a.ts');
+        $catalogue = file_get_contents($root.'/resources/js/localization/messages/kingdom/en.ts');
         self::assertIsString($catalogue);
         foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
             self::assertStringContainsString("'{$locale}'", $catalogue);

@@ -25,7 +25,7 @@ final class AuthExperienceTest extends TestCase
 
     public function test_auth_experience_catalogue_is_complete_for_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/auth-extra.ts');
+        $messages = $this->read('resources/js/localization/messages/auth/en.ts');
         $index = $this->read('resources/js/localization/messages/index.ts');
 
         foreach ([

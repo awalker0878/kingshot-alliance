@@ -10,7 +10,7 @@ final class AccountExperienceTest extends TestCase
 {
     public function test_account_catalogue_is_complete_for_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/account-extra.ts');
+        $messages = $this->read('resources/js/localization/messages/account/en.ts');
         $index = $this->read('resources/js/localization/messages/index.ts');
 
         foreach ([
