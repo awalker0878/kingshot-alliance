@@ -221,6 +221,10 @@ final class EventCalendarController extends Controller
         }
 
         return Inertia::render('Alliance/Events/Show', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'id' => $alliance->id,
                 'name' => $alliance->name,
@@ -271,55 +275,56 @@ final class EventCalendarController extends Controller
     public function saveFormation(
         Request $request,
         AllianceContext $context,
-        SaveMemberFormation $saveFormation,
+        SaveMemberFormation $save,
     ): RedirectResponse {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
-            'heroes' => ['nullable', 'array', 'max:5'],
-            'heroes.*' => ['string', 'max:100'],
+            'heroes' => ['array', 'max:3'],
+            'heroes.*' => ['required', 'string', 'max:100'],
             'infantry_percent' => ['required', 'integer', 'between:0,100'],
             'cavalry_percent' => ['required', 'integer', 'between:0,100'],
             'archer_percent' => ['required', 'integer', 'between:0,100'],
             'notes' => ['nullable', 'string', 'max:2000'],
-            'is_default' => ['nullable', 'boolean'],
+            'is_default' => ['sometimes', 'boolean'],
         ]);
 
-        /** @var list<string> $heroes */
-        $heroes = array_values(array_filter(
-            $validated['heroes'] ?? [],
-            static fn (mixed $hero): bool => is_string($hero),
-        ));
+        $composition = FormationComposition::fromPercentages(
+            infantry: (int) $validated['infantry_percent'],
+            cavalry: (int) $validated['cavalry_percent'],
+            archer: (int) $validated['archer_percent'],
+        );
 
-        $saveFormation->handle(
-            actor: $this->user($request),
+        $save->handle(
+            user: $this->user($request),
             alliance: $context->alliance(),
-            name: (string) $validated['name'],
-            composition: new FormationComposition(
-                (int) $validated['infantry_percent'],
-                (int) $validated['cavalry_percent'],
-                (int) $validated['archer_percent'],
-            ),
-            heroes: $heroes,
-            notes: isset($validated['notes']) ? (string) $validated['notes'] : null,
+            name: trim((string) $validated['name']),
+            heroes: collect($validated['heroes'] ?? [])
+                ->map(static fn (mixed $hero): string => trim((string) $hero))
+                ->filter()
+                ->values()
+                ->all(),
+            composition: $composition,
+            notes: $this->nullableString($validated['notes'] ?? null),
             isDefault: (bool) ($validated['is_default'] ?? false),
         );
 
         return back()->with('status', 'formation-saved');
     }
 
-    public function export(Request $request, AllianceContext $context, AllianceEventQuery $events): HttpResponse
-    {
-        $this->user($request);
+    public function export(
+        Request $request,
+        AllianceContext $context,
+        AllianceEventQuery $events,
+    ): HttpResponse {
         $alliance = $context->alliance();
-        $occurrences = $events->calendar($alliance, pastDays: 0, futureDays: 366);
+        $occurrences = $events->calendar($alliance);
 
-        $stream = fopen('php://temp', 'r+');
+        $stream = fopen('php://temp', 'w+');
         if ($stream === false) {
-            abort(500, 'Unable to create event export.');
+            throw new LogicException('Unable to create an event export stream.');
         }
 
-        fputcsv($stream, ['event', 'starts_at_utc', 'ends_at_utc', 'alliance_timezone', 'capacity', 'status']);
-
+        fputcsv($stream, ['Event', 'Start', 'End', 'Alliance timezone', 'Capacity', 'Status']);
         foreach ($occurrences as $occurrence) {
             $event = $occurrence->event;
             if (! $event instanceof Event) {
@@ -327,11 +332,11 @@ final class EventCalendarController extends Controller
             }
 
             fputcsv($stream, [
-                $event->title,
+                (string) $event->title,
                 $occurrence->starts_at->toIso8601String(),
                 $occurrence->ends_at->toIso8601String(),
-                $event->timezone,
-                $occurrence->capacity,
+                (string) $alliance->timezone,
+                $event->capacity === null ? '' : (string) $event->capacity,
                 $occurrence->status->value,
             ]);
         }
@@ -340,26 +345,28 @@ final class EventCalendarController extends Controller
         $csv = stream_get_contents($stream);
         fclose($stream);
 
-        return response($csv === false ? '' : $csv, 200, [
+        if ($csv === false) {
+            throw new LogicException('Unable to read the event export stream.');
+        }
+
+        return response($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="'.Str::slug((string) $alliance->name).'-events.csv"',
-            'Cache-Control' => 'private, no-store',
+            'Content-Disposition' => 'attachment; filename="alliance-events.csv"',
         ]);
     }
 
-    public function ical(Request $request, AllianceContext $context, AllianceEventQuery $events): HttpResponse
-    {
-        $this->user($request);
+    public function ical(
+        Request $request,
+        AllianceContext $context,
+        AllianceEventQuery $events,
+    ): HttpResponse {
         $alliance = $context->alliance();
-        $occurrences = $events->calendar($alliance, pastDays: 0, futureDays: 366);
+        $occurrences = $events->calendar($alliance);
         $lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
             'PRODID:-//Kingshot Alliance//Events//EN',
             'CALSCALE:GREGORIAN',
-            'METHOD:PUBLISH',
-            'X-WR-CALNAME:'.$this->icalEscape((string) $alliance->name).' Events',
-            'X-WR-TIMEZONE:'.$this->icalEscape((string) $alliance->timezone),
         ];
 
         foreach ($occurrences as $occurrence) {
@@ -370,12 +377,12 @@ final class EventCalendarController extends Controller
 
             $lines[] = 'BEGIN:VEVENT';
             $lines[] = 'UID:'.$occurrence->id.'@kingshot-alliance';
-            $lines[] = 'DTSTAMP:'.now()->utc()->format('Ymd\\THis\\Z');
-            $lines[] = 'DTSTART:'.$occurrence->starts_at->copy()->utc()->format('Ymd\\THis\\Z');
-            $lines[] = 'DTEND:'.$occurrence->ends_at->copy()->utc()->format('Ymd\\THis\\Z');
-            $lines[] = 'SUMMARY:'.$this->icalEscape((string) $event->title);
+            $lines[] = 'DTSTAMP:'.now('UTC')->format('Ymd\\THis\\Z');
+            $lines[] = 'DTSTART:'.$occurrence->starts_at->clone()->utc()->format('Ymd\\THis\\Z');
+            $lines[] = 'DTEND:'.$occurrence->ends_at->clone()->utc()->format('Ymd\\THis\\Z');
+            $lines[] = 'SUMMARY:'.$this->escapeIcal((string) $event->title);
             if ($event->instructions !== null && trim((string) $event->instructions) !== '') {
-                $lines[] = 'DESCRIPTION:'.$this->icalEscape((string) $event->instructions);
+                $lines[] = 'DESCRIPTION:'.$this->escapeIcal((string) $event->instructions);
             }
             $lines[] = 'END:VEVENT';
         }
@@ -384,8 +391,7 @@ final class EventCalendarController extends Controller
 
         return response(implode("\r\n", $lines)."\r\n", 200, [
             'Content-Type' => 'text/calendar; charset=UTF-8',
-            'Content-Disposition' => 'inline; filename="'.Str::slug((string) $alliance->name).'-events.ics"',
-            'Cache-Control' => 'private, no-store',
+            'Content-Disposition' => 'attachment; filename="alliance-events.ics"',
         ]);
     }
 
@@ -401,8 +407,8 @@ final class EventCalendarController extends Controller
             'title' => (string) $event->title,
             'startsAt' => $occurrence->starts_at->toIso8601String(),
             'endsAt' => $occurrence->ends_at->toIso8601String(),
-            'allianceTimezone' => (string) $event->timezone,
-            'capacity' => $occurrence->capacity === null ? null : (int) $occurrence->capacity,
+            'allianceTimezone' => (string) $occurrence->alliance->timezone,
+            'capacity' => $event->capacity === null ? null : (int) $event->capacity,
             'status' => $occurrence->status->value,
             'registrationOpensAt' => $occurrence->registration_opens_at?->toIso8601String(),
             'registrationClosesAt' => $occurrence->registration_closes_at?->toIso8601String(),
@@ -415,20 +421,33 @@ final class EventCalendarController extends Controller
         ];
     }
 
-    private function icalEscape(string $value): string
-    {
-        return str_replace(
-            ['\\', ';', ',', "\r\n", "\r", "\n"],
-            ['\\\\', '\\;', '\\,', '\\n', '\\n', '\\n'],
-            $value,
-        );
-    }
-
     private function user(Request $request): User
     {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        if (! $user instanceof User) {
+            throw new LogicException('An authenticated user is required.');
+        }
 
         return $user;
+    }
+
+    private function nullableString(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        return $trimmed === '' ? null : $trimmed;
+    }
+
+    private function escapeIcal(string $value): string
+    {
+        return str_replace(
+            ["\\", ";", ",", "\r\n", "\r", "\n"],
+            ["\\\\", '\\;', '\\,', '\\n', '\\n', '\\n'],
+            $value,
+        );
     }
 }
