@@ -197,7 +197,7 @@ function formatDate(value: string | null): string {
           }}
         </p>
       </div>
-      <nav aria-label="Sharing navigation" class="flex flex-wrap gap-3">
+      <nav :aria-label="t('kingdomP7C.sharingNavigation')" class="flex flex-wrap gap-3">
         <Link
           class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
           href="/alliance/kingdom-sharing"
@@ -208,7 +208,7 @@ function formatDate(value: string | null): string {
           class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-text)]"
           href="/dashboard"
         >
-          Dashboard
+          {{ t('kingdomP7C.dashboard') }}
         </Link>
       </nav>
     </header>
@@ -358,7 +358,11 @@ function formatDate(value: string | null): string {
             <h4 class="text-sm font-semibold text-[var(--ks-text)]">
               {{ t('kingdomP7C.explicitTargets') }}
             </h4>
-            <ul v-if="share.targets.length" class="mt-3 space-y-2" aria-label="Shared targets">
+            <ul
+              v-if="share.targets.length"
+              class="mt-3 space-y-2"
+              :aria-label="t('kingdomP7C.sharedTargetsAria')"
+            >
               <li
                 v-for="target in share.targets"
                 :key="target.id"
@@ -442,12 +446,14 @@ function formatDate(value: string | null): string {
       <div v-if="sharing.inbound.length" class="mt-6 overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
           <caption class="sr-only">
-            Inbound shared-intelligence agreements
+            {{
+              t('kingdomP7C.inboundCaption')
+            }}
           </caption>
           <thead class="text-xs tracking-wide text-[var(--ks-text-muted)] uppercase">
             <tr>
               <th class="px-3 py-3 font-semibold">{{ t('kingdomP7C.sourceAllianceManage') }}</th>
-              <th class="px-3 py-3 font-semibold">State</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomP7C.state') }}</th>
               <th class="px-3 py-3 font-semibold">{{ t('kingdomP7C.acceptedAt') }}</th>
               <th class="px-3 py-3 font-semibold">{{ t('kingdomP7C.action') }}</th>
             </tr>

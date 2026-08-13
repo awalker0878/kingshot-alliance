@@ -88,6 +88,11 @@ const base = {
   leaveSharing: 'Leave sharing',
   terminal: 'Terminal',
   noInbound: 'No inbound sharing agreements yet.',
+  dashboard: 'Dashboard',
+  sharingNavigation: 'Sharing navigation',
+  sharingSummary: 'Sharing summary',
+  sharedTargetsAria: 'Explicit shared targets',
+  inboundCaption: 'Inbound shared-intelligence agreements',
 } as const;
 
 type Copy = { [K in keyof typeof base]: string };

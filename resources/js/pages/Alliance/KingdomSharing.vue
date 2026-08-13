@@ -96,7 +96,10 @@ function historyUrl(target: string, cursor?: string | null): string {
       </Link>
     </header>
 
-    <section class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Sharing summary">
+    <section
+      class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      :aria-label="t('kingdomP7C.sharingSummary')"
+    >
       <article class="ks-surface p-4">
         <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
           {{ t('kingdomP7C.sharedTargets') }}
@@ -138,7 +141,7 @@ function historyUrl(target: string, cursor?: string | null): string {
           </p>
         </div>
         <p class="text-sm text-[var(--ks-text-muted)]">
-          {{ formatNumber(current.length) }} {{ t('kingdomP7C.sharedTargets').toLowerCase() }}
+          {{ formatNumber(current.length) }} {{ t('kingdomP7C.sharedTargets') }}
         </p>
       </div>
 
