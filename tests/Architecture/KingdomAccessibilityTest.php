@@ -11,14 +11,17 @@ final class KingdomAccessibilityTest extends TestCase
     public function test_kingdoms_surfaces_keep_semantic_landmarks_and_native_controls(): void
     {
         $root = dirname(__DIR__, 2).'/resources/js/pages/Alliance/';
-
-        foreach ([
-            'KingdomSettings.vue',
+        $sharedShellPages = [
             'Roster.vue',
             'RosterManage.vue',
             'RosterHistory.vue',
             'RosterIntelligence.vue',
             'RosterImport.vue',
+        ];
+
+        foreach ([
+            'KingdomSettings.vue',
+            ...$sharedShellPages,
             'KingdomAlliances.vue',
             'KingdomAlliancesManage.vue',
             'KingdomAllianceHistory.vue',
@@ -35,7 +38,7 @@ final class KingdomAccessibilityTest extends TestCase
         ] as $page) {
             $source = file_get_contents($root.$page);
             self::assertIsString($source);
-            if (in_array($page, ['Roster.vue', 'RosterIntelligence.vue'], true)) {
+            if (in_array($page, $sharedShellPages, true)) {
                 self::assertStringContainsString('AppLayout', $source, $page.' must inherit the shared app landmark.');
                 self::assertStringNotContainsString('<main', $source, $page.' must not duplicate the shared main landmark.');
             } else {
@@ -75,7 +78,7 @@ final class KingdomAccessibilityTest extends TestCase
         $import = file_get_contents($root.'RosterImport.vue');
         self::assertIsString($import);
         self::assertStringContainsString(':aria-label="resolutionLabel(row)"', $import);
-        self::assertStringContainsString('Resolution for CSV row', $import);
+        self::assertStringContainsString("t('rosterImport.resolutionErrors')", $import);
         self::assertStringContainsString('aria-live="polite"', $import);
         self::assertStringContainsString('role="alert"', $import);
 
