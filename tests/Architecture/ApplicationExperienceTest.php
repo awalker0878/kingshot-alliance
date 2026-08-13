@@ -39,44 +39,22 @@ final class ApplicationExperienceTest extends TestCase
 
     public function test_dashboard_catalogue_is_complete_for_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/core/en.ts');
-        $index = $this->read('resources/js/localization/messages/index.ts');
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/core/en.ts');
+        self::assertIsString($english);
 
-        foreach ([
-            'en',
-            'ar',
-            'de',
-            'es',
-            'fr',
-            'id',
-            'it',
-            'ja',
-            'ko',
-            'pl',
-            'pt-BR',
-            'ru',
-            'th',
-            'tr',
-            'vi',
-            'zh-CN',
-            'zh-TW',
-        ] as $locale) {
-            if ($locale === 'en') {
-                self::assertMatchesRegularExpression('/(?:^|\s)en,\s*$/m', $messages, $locale);
-
-                continue;
-            }
-
-            self::assertMatchesRegularExpression(
-                '/(?:^|\s)[\'\"]?'.preg_quote($locale, '/').'[\'\"]?\s*:/m',
-                $messages,
-                $locale,
-            );
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/core/{$locale}.ts");
         }
 
-        self::assertStringContainsString('Record<LocaleCode, ApplicationExtraTree>', $messages);
-        self::assertStringContainsString("import { applicationExtraMessages } from './app-extra';", $index);
-        self::assertStringContainsString('...applicationExtraMessages[locale]', $index);
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['application:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
+        }
+
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
+        self::assertStringContainsString("'core'", $registry);
     }
 
     public function test_shared_application_input_and_command_link_tokens_are_available(): void

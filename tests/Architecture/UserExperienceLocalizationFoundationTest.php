@@ -21,46 +21,22 @@ final class UserExperienceLocalizationFoundationTest extends TestCase
 
     public function test_major_kingshot_locale_catalogue_is_declared_and_complete(): void
     {
-        $locales = $this->read('resources/js/localization/locales.ts');
-        $catalogues = $this->read('resources/js/localization/messages/core/en.ts');
-        $publicExtra = $this->read('resources/js/localization/messages/public/en.ts');
-        $messageIndex = $this->read('resources/js/localization/messages/index.ts');
+        $root = dirname(__DIR__, 2);
+        $localeRegistry = file_get_contents($root.'/resources/js/localization/locales.ts');
+        $domainRegistry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($localeRegistry);
+        self::assertIsString($domainRegistry);
 
-        foreach ([
-            'en',
-            'ar',
-            'de',
-            'es',
-            'fr',
-            'id',
-            'it',
-            'ja',
-            'ko',
-            'pl',
-            'pt-BR',
-            'ru',
-            'th',
-            'tr',
-            'vi',
-            'zh-CN',
-            'zh-TW',
-        ] as $locale) {
-            self::assertStringContainsString("'".$locale."'", $locales, $locale);
-
-            if ($locale !== 'en') {
-                $this->assertTypeScriptObjectKey($catalogues, $locale);
-            }
-
-            $this->assertTypeScriptObjectKey($publicExtra, $locale);
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertStringContainsString("'".$locale."'", $localeRegistry, $locale);
+            self::assertFileExists($root."/resources/js/localization/messages/core/{$locale}.ts");
         }
 
-        self::assertStringContainsString("code: 'ar'", $locales);
-        self::assertStringContainsString("direction: 'rtl'", $locales);
-        self::assertStringContainsString('Record<LocaleCode, PublicExtraTree>', $publicExtra);
-        self::assertStringContainsString('Record<LocaleCode, MessageTree>', $messageIndex);
-        self::assertStringContainsString('...additionalCatalogues', $messageIndex);
-        self::assertStringContainsString('...publicMessages[locale]', $messageIndex);
-        self::assertStringContainsString('...publicExtraMessages[locale]', $messageIndex);
+        self::assertStringContainsString("code: 'ar'", $localeRegistry);
+        self::assertStringContainsString("direction: 'rtl'", $localeRegistry);
+        foreach (['core', 'auth', 'account', 'alliance', 'events', 'roster', 'contributions', 'recruitment', 'content', 'integrations', 'kingdom', 'transfers', 'platform', 'public'] as $domain) {
+            self::assertStringContainsString("'".$domain."'", $domainRegistry, $domain);
+        }
     }
 
     public function test_shared_visual_tokens_and_locale_bootstrap_exist(): void
@@ -80,13 +56,13 @@ final class UserExperienceLocalizationFoundationTest extends TestCase
             self::assertStringContainsString($token, $css, $token);
         }
 
-        self::assertStringContainsString("import { initializeLocale } from './localization';", $app);
+        self::assertStringContainsString("import { ensurePageDomains, initializeLocale } from './localization';", $app);
         self::assertStringContainsString('initializeLocale();', $app);
     }
 
     public function test_translation_catalogue_only_names_current_auth_capabilities(): void
     {
-        $messages = $this->read('resources/js/localization/messages/en.ts');
+        $messages = $this->read('resources/js/localization/messages/auth/en.ts');
 
         foreach ([
             'Sign in',

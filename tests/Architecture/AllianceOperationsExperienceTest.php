@@ -110,38 +110,42 @@ final class AllianceOperationsExperienceTest extends TestCase
 
     public function test_alliance_operations_catalogue_covers_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/alliance/en.ts');
-        $index = $this->read('resources/js/localization/messages/index.ts');
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/alliance/en.ts');
+        self::assertIsString($english);
 
-        foreach ($this->locales() as $locale) {
-            self::assertMatchesRegularExpression(
-                '/(?:^|\s)[\'\"]?'.preg_quote($locale, '/').'[\'\"]?\s*:/m',
-                $messages,
-                $locale,
-            );
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/alliance/{$locale}.ts");
         }
 
-        self::assertStringContainsString('Record<LocaleCode, AllianceOperationsTree>', $messages);
-        self::assertStringContainsString("import { allianceOperationsMessages } from './alliance-operations';", $index);
-        self::assertStringContainsString('...allianceOperationsMessages[locale]', $index);
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['allianceOperations:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
+        }
+
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
+        self::assertStringContainsString("'alliance'", $registry);
     }
 
     public function test_event_detail_catalogue_covers_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/events/en.ts');
-        $index = $this->read('resources/js/localization/messages/index.ts');
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/events/en.ts');
+        self::assertIsString($english);
 
-        foreach ($this->locales() as $locale) {
-            self::assertMatchesRegularExpression(
-                '/(?:^|\s)[\'\"]?'.preg_quote($locale, '/').'[\'\"]?\s*:/m',
-                $messages,
-                $locale,
-            );
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/events/{$locale}.ts");
         }
 
-        self::assertStringContainsString('Record<LocaleCode, EventDetailTree>', $messages);
-        self::assertStringContainsString("import { eventDetailMessages } from './event-detail';", $index);
-        self::assertStringContainsString('...eventDetailMessages[locale]', $index);
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['eventDetail:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
+        }
+
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
+        self::assertStringContainsString("'events'", $registry);
     }
 
     /** @return list<string> */

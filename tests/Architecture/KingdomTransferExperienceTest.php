@@ -140,29 +140,21 @@ final class KingdomTransferExperienceTest extends TestCase
 
     public function test_transfer_catalogue_covers_all_supported_locales(): void
     {
-        $catalogue = file_get_contents(dirname(__DIR__, 2).'/resources/js/localization/messages/transfers/en.ts');
-        self::assertIsString($catalogue);
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/transfers/en.ts');
+        self::assertIsString($english);
 
-        foreach ([
-            "'en'",
-            "'ar'",
-            "'de'",
-            "'es'",
-            "'fr'",
-            "'id'",
-            "'it'",
-            "'ja'",
-            "'ko'",
-            "'pl'",
-            "'pt-BR'",
-            "'ru'",
-            "'th'",
-            "'tr'",
-            "'vi'",
-            "'zh-CN'",
-            "'zh-TW'",
-        ] as $locale) {
-            self::assertStringContainsString($locale, $catalogue);
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/transfers/{$locale}.ts");
         }
+
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['kingdomP7D:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
+        }
+
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
+        self::assertStringContainsString("'transfers'", $registry);
     }
 }

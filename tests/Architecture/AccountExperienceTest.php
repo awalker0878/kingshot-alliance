@@ -10,17 +10,21 @@ final class AccountExperienceTest extends TestCase
 {
     public function test_account_catalogue_is_complete_for_every_supported_locale(): void
     {
-        $root = $this->root();
-        $english = $this->read('resources/js/localization/messages/account/en.ts');
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/account/en.ts');
+        self::assertIsString($english);
 
-        foreach ($this->locales() as $locale) {
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
             self::assertFileExists($root."/resources/js/localization/messages/account/{$locale}.ts");
         }
 
-        self::assertStringContainsString('accountExperience:', $english);
         self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['accountExperience:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
+        }
 
-        $registry = $this->read('resources/js/localization/registry.ts');
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
         self::assertStringContainsString("'account'", $registry);
     }
 

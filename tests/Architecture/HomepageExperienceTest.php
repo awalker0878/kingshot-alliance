@@ -35,48 +35,22 @@ final class HomepageExperienceTest extends TestCase
 
     public function test_homepage_strings_are_available_for_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/public/en.ts');
-        $messageIndex = $this->read('resources/js/localization/messages/index.ts');
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/public/en.ts');
+        self::assertIsString($english);
 
-        foreach ([
-            'en',
-            'ar',
-            'de',
-            'es',
-            'fr',
-            'id',
-            'it',
-            'ja',
-            'ko',
-            'pl',
-            'pt-BR',
-            'ru',
-            'th',
-            'tr',
-            'vi',
-            'zh-CN',
-            'zh-TW',
-        ] as $locale) {
-            $this->assertTypeScriptObjectKey($messages, $locale);
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/public/{$locale}.ts");
         }
 
-        foreach ([
-            'heroLine1',
-            'heroLine2',
-            'eventsDesc',
-            'rosterDesc',
-            'recruitmentDesc',
-            'kingdomDesc',
-            'transfersDesc',
-            'contentDesc',
-            'publicPagesTitle',
-            'multilingualTitle',
-        ] as $key) {
-            $this->assertTypeScriptObjectKey($messages, $key);
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['heroLine1:', 'heroLine2:', 'eventsDesc:', 'rosterDesc:', 'recruitmentDesc:', 'kingdomDesc:', 'transfersDesc:', 'contentDesc:', 'publicPagesTitle:', 'multilingualTitle:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
         }
 
-        self::assertStringContainsString("import { publicMessages } from './public';", $messageIndex);
-        self::assertStringContainsString('...publicMessages[locale]', $messageIndex);
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
+        self::assertStringContainsString("'public'", $registry);
     }
 
     private function assertTypeScriptObjectKey(string $source, string $key): void

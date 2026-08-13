@@ -65,40 +65,22 @@ final class IntegrationExperienceTest extends TestCase
 
     public function test_integration_catalogue_covers_all_supported_locales(): void
     {
-        $source = $this->read('resources/js/localization/messages/integrations/en.ts');
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/integrations/en.ts');
+        self::assertIsString($english);
 
-        foreach ([
-            'en',
-            'ar',
-            'de',
-            'es',
-            'fr',
-            'id',
-            'it',
-            'ja',
-            'ko',
-            'pl',
-            'pt-BR',
-            'ru',
-            'th',
-            'tr',
-            'vi',
-            'zh-CN',
-            'zh-TW',
-        ] as $locale) {
-            self::assertStringContainsString("'".$locale."'", $source);
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/integrations/{$locale}.ts");
         }
 
-        foreach ([
-            'title',
-            'apiCredentials',
-            'webhookSubscriptions',
-            'deliveryLog',
-            'saveCredentialNow',
-            'saveWebhookNow',
-        ] as $key) {
-            self::assertStringContainsString($key.':', $source);
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['title:', 'apiCredentials:', 'webhookSubscriptions:', 'deliveryLog:', 'saveCredentialNow:', 'saveWebhookNow:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
         }
+
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
+        self::assertStringContainsString("'integrations'", $registry);
     }
 
     public function test_integration_controller_only_adds_shell_identity_to_existing_contract(): void

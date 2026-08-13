@@ -68,41 +68,22 @@ final class RecruitmentExperienceTest extends TestCase
 
     public function test_recruitment_catalogue_covers_all_supported_locales(): void
     {
-        $source = $this->read('resources/js/localization/messages/recruitment/en.ts');
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/recruitment/en.ts');
+        self::assertIsString($english);
 
-        foreach ([
-            'en',
-            'ar',
-            'de',
-            'es',
-            'fr',
-            'id',
-            'it',
-            'ja',
-            'ko',
-            'pl',
-            'pt-BR',
-            'ru',
-            'th',
-            'tr',
-            'vi',
-            'zh-CN',
-            'zh-TW',
-        ] as $locale) {
-            self::assertStringContainsString("'".$locale."'", $source);
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/recruitment/{$locale}.ts");
         }
 
-        foreach ([
-            'title',
-            'pipeline',
-            'settings',
-            'questions',
-            'candidateRecord',
-            'privateNotes',
-            'stageHistory',
-        ] as $key) {
-            self::assertStringContainsString($key.':', $source);
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['title:', 'pipeline:', 'settings:', 'questions:', 'candidateRecord:', 'privateNotes:', 'stageHistory:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
         }
+
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
+        self::assertStringContainsString("'recruitment'", $registry);
     }
 
     public function test_recruitment_controllers_only_add_authenticated_shell_identity(): void
