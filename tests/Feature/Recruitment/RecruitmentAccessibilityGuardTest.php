@@ -45,10 +45,19 @@ final class RecruitmentAccessibilityGuardTest extends TestCase
             return;
         }
 
+        if (str_contains($source, 'AppLayout')) {
+            self::assertStringContainsString('<AppLayout', $source, "{$path} must render the shared app layout.");
+            $layout = file_get_contents(base_path('resources/js/layouts/AppLayout.vue'));
+            self::assertIsString($layout);
+            self::assertStringContainsString('<main', $layout, 'AppLayout must expose the main landmark.');
+
+            return;
+        }
+
         self::assertStringContainsString(
             "import PublicLayout from '../../layouts/PublicLayout.vue';",
             $source,
-            "{$path} must either own a main landmark or use the shared public layout.",
+            "{$path} must either own a main landmark or use a shared layout.",
         );
         self::assertStringContainsString('<PublicLayout>', $source, "{$path} must render the shared public layout.");
 
