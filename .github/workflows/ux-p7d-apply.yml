@@ -1,0 +1,164 @@
+name: UX P7-D Apply
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .ux-p7d-apply-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out UX branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ux/ux-001-experience-localization
+          fetch-depth: 0
+
+      - name: Materialize P7-D page blobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          fetch_blob() {
+            local path="$1"
+            local sha="$2"
+            gh api "repos/${REPO}/git/blobs/${sha}" --jq '.content' | tr -d '\n' | base64 -d > "$path"
+          }
+          fetch_blob resources/js/pages/Alliance/TransferPlans.vue 28b560855f9c48ccdb5b6b0cd82a40e14d69092b
+          fetch_blob resources/js/pages/Alliance/TransferPlansManage.vue f5f507bc7f993c744aef85875de794541eaf2890
+          fetch_blob resources/js/pages/Alliance/TransferReadinessManage.vue e0337c0e28d5f08187363c8b0139e1474d978371
+          fetch_blob resources/js/pages/Alliance/TransferCompletionManage.vue 60d3934e7d8c7907d7928392602d3b9955fd32e8
+
+      - name: Apply shell identity and architecture updates
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              'app/Domain/Kingdoms/Http/Controllers/TransferPlanController.php': [
+                  "return Inertia::render('Alliance/TransferPlans', [\n            'alliance' =>",
+                  "return Inertia::render('Alliance/TransferPlansManage', [\n            'alliance' =>",
+              ],
+              'app/Domain/Kingdoms/Http/Controllers/TransferReadinessController.php': [
+                  "return Inertia::render('Alliance/TransferReadinessManage', [\n            'alliance' =>",
+              ],
+              'app/Domain/Kingdoms/Http/Controllers/TransferCompletionController.php': [
+                  "return Inertia::render('Alliance/TransferCompletionManage', [\n            'alliance' =>",
+              ],
+          }
+
+          for path, markers in replacements.items():
+              file = Path(path)
+              source = file.read_text()
+              for marker in markers:
+                  if marker not in source:
+                      raise SystemExit(f'Missing controller marker in {path}: {marker}')
+                  replacement = marker.replace(
+                      "            'alliance' =>",
+                      "            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' =>",
+                  )
+                  source = source.replace(marker, replacement, 1)
+              file.write_text(source)
+
+          accessibility = Path('tests/Architecture/KingdomAccessibilityTest.php')
+          source = accessibility.read_text()
+          shell_marker = "            'KingdomSharingManage.vue',\n        ];"
+          shell_replacement = "            'KingdomSharingManage.vue',\n            'TransferPlans.vue',\n            'TransferPlansManage.vue',\n            'TransferReadinessManage.vue',\n            'TransferCompletionManage.vue',\n        ];"
+          if shell_marker not in source:
+              raise SystemExit('Missing accessibility shared-shell marker')
+          source = source.replace(shell_marker, shell_replacement, 1)
+          old_completion = "self::assertStringContainsString('Record actual completion', $completion);"
+          new_completion = "self::assertStringContainsString(\"t('kingdomP7D.recordCompletion')\", $completion);"
+          if old_completion not in source:
+              raise SystemExit('Missing completion accessibility marker')
+          source = source.replace(old_completion, new_completion, 1)
+          accessibility.write_text(source)
+
+          catalogue = Path('resources/js/localization/messages/kingdom-p7d.ts')
+          source = catalogue.read_text()
+          old = "  groupArchived: 'Archived',\n} as const;"
+          new = "  groupArchived: 'Archived',\n  rosterActive: 'Active',\n  rosterTracked: 'Tracked',\n  rosterLeft: 'Left',\n} as const;"
+          if old not in source:
+              raise SystemExit('Missing P7-D catalogue marker')
+          catalogue.write_text(source.replace(old, new, 1))
+
+          completion = Path('resources/js/pages/Alliance/TransferCompletionManage.vue')
+          source = completion.read_text()
+          old = "active: 'groupActive', tracked: 'planning', left: 'withdrawn',"
+          new = "active: 'rosterActive', tracked: 'rosterTracked', left: 'rosterLeft',"
+          if old not in source:
+              raise SystemExit('Missing completion roster-state marker')
+          completion.write_text(source.replace(old, new, 1))
+          PY
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Format and verify frontend
+        run: |
+          npx prettier --write \
+            resources/js/pages/Alliance/TransferPlans.vue \
+            resources/js/pages/Alliance/TransferPlansManage.vue \
+            resources/js/pages/Alliance/TransferReadinessManage.vue \
+            resources/js/pages/Alliance/TransferCompletionManage.vue \
+            resources/js/localization/messages/kingdom-p7d.ts \
+            resources/js/localization/messages/index.ts
+          npm run check
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+
+      - name: Format and verify PHP guards
+        run: |
+          ./vendor/bin/pint \
+            app/Domain/Kingdoms/Http/Controllers/TransferPlanController.php \
+            app/Domain/Kingdoms/Http/Controllers/TransferReadinessController.php \
+            app/Domain/Kingdoms/Http/Controllers/TransferCompletionController.php \
+            tests/Architecture/KingdomAccessibilityTest.php \
+            tests/Architecture/KingdomTransferExperienceTest.php
+          ./vendor/bin/phpunit tests/Architecture/KingdomAccessibilityTest.php tests/Architecture/KingdomTransferExperienceTest.php
+
+      - name: Commit P7-D implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            resources/js/pages/Alliance/TransferPlans.vue \
+            resources/js/pages/Alliance/TransferPlansManage.vue \
+            resources/js/pages/Alliance/TransferReadinessManage.vue \
+            resources/js/pages/Alliance/TransferCompletionManage.vue \
+            resources/js/localization/messages/kingdom-p7d.ts \
+            resources/js/localization/messages/index.ts \
+            app/Domain/Kingdoms/Http/Controllers/TransferPlanController.php \
+            app/Domain/Kingdoms/Http/Controllers/TransferReadinessController.php \
+            app/Domain/Kingdoms/Http/Controllers/TransferCompletionController.php \
+            tests/Architecture/KingdomAccessibilityTest.php \
+            tests/Architecture/KingdomTransferExperienceTest.php
+          git diff --cached --quiet && { echo 'No P7-D changes to commit'; exit 1; }
+          git commit -m 'Implement UX-P7-D transfer experience'
+          git push origin HEAD:ux/ux-001-experience-localization
