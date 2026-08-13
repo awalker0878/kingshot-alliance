@@ -1,0 +1,72 @@
+import type { MessageCatalogue } from '../../types';
+
+const messages = {
+  common: {
+    language: 'Idioma',
+    signIn: 'Iniciar sesión',
+    signOut: 'Cerrar sesión',
+    createAccount: 'Crear cuenta',
+    continue: 'Continuar',
+    cancel: 'Cancelar',
+    save: 'Guardar',
+    close: 'Cerrar',
+    loading: 'Cargando',
+    menu: 'Menú',
+    openNavigation: 'Abrir navegación',
+    closeNavigation: 'Cerrar navegación',
+    currentAlliance: 'Alianza actual',
+    noActiveAlliance: 'Selecciona una alianza para abrir las herramientas de alianza.',
+    skipToContent: 'Saltar al contenido',
+  },
+  navigation: {
+    home: 'Inicio',
+    dashboard: 'Panel',
+    alliance: 'Alianza',
+    events: 'Eventos',
+    roster: 'Miembros',
+    recruitment: 'Reclutamiento',
+    content: 'Contenido',
+    contributions: 'Contribuciones',
+    kingdom: 'Reino',
+    transfers: 'Traslados',
+    integrations: 'Integraciones',
+    profile: 'Perfil',
+    settings: 'Ajustes',
+    allianceOperations: 'Operaciones de alianza',
+    kingdomOperations: 'Operaciones del reino',
+    account: 'Cuenta',
+  },
+  application: {
+    dashboard: {
+      title: 'Panel',
+      eyebrow: 'Mando de la alianza',
+      welcome: 'Bienvenido, {name}',
+      verificationPending: 'Verificación de correo pendiente',
+      activeAllianceTitle: 'Alianza activa',
+      activeAllianceIntro: 'Esta alianza es el contexto actual para las herramientas de alianza.',
+      noActiveAllianceTitle: 'Elige una alianza activa',
+      noActiveAllianceIntro:
+        'Selecciona una de tus membresías antes de abrir herramientas de alianza, eventos, roster, reino o transferencias.',
+      alliancesTitle: 'Tus alianzas',
+      alliancesIntro: 'Elige qué alianza se usará como contexto de trabajo actual.',
+      openActiveAlliance: 'Abrir alianza activa',
+      active: 'Activa',
+      noRoles: 'Sin roles asignados',
+      switchAlliance: 'Cambiar a esta alianza',
+      kingdomAlliances: 'Alianzas del reino',
+      transfers: 'Transferencias',
+      kingdomSettings: 'Ajustes del reino',
+      empty:
+        'Aún no tienes una membresía activa. Crea una alianza abajo para establecer tu primer contexto de alianza.',
+      createTitle: 'Crear una alianza',
+      createIntro:
+        'Crea una nueva alianza y conviértete en su propietario inicial en una sola operación.',
+      allianceName: 'Nombre de la alianza',
+      kingdomNumber: 'Número de reino',
+      timezone: 'Zona horaria',
+      create: 'Crear alianza',
+    },
+  },
+} satisfies MessageCatalogue;
+
+export default messages;

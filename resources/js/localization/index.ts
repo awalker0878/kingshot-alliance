@@ -1,5 +1,6 @@
 import { computed, readonly, ref } from 'vue';
 
+import { loadDomains, resolveMessage } from './loader';
 import {
   defaultLocale,
   localeDefinition,
@@ -7,38 +8,16 @@ import {
   normalizeLocale,
   type LocaleCode,
 } from './locales';
-import { hasMessageCatalogue, messages } from './messages';
-import { publicMessages } from './messages/public';
+import { domainsForPage, hasLocaleCatalogue, type LocalizationDomain } from './registry';
+import type { TranslationParams } from './types';
 
 const storageKey = 'kingshot.locale';
 const currentLocale = ref<LocaleCode>(defaultLocale);
-
-type TranslationParams = Record<string, string | number>;
-
-function catalogueFor(locale: LocaleCode) {
-  return messages[locale] ?? messages[defaultLocale];
-}
-
-function publicCatalogueFor(locale: LocaleCode) {
-  return publicMessages[locale] ?? publicMessages[defaultLocale];
-}
-
-function readPath(source: unknown, path: string): string | null {
-  const value = path.split('.').reduce<unknown>((node, segment) => {
-    if (!node || typeof node !== 'object') {
-      return null;
-    }
-
-    return (node as Record<string, unknown>)[segment] ?? null;
-  }, source);
-
-  return typeof value === 'string' ? value : null;
-}
+let currentPageDomains: LocalizationDomain[] = [];
+let localeRequest = 0;
 
 function interpolate(value: string, params?: TranslationParams): string {
-  if (!params) {
-    return value;
-  }
+  if (!params) return value;
 
   return value.replace(/\{([A-Za-z0-9_]+)\}/g, (match, key: string) => {
     const replacement = params[key];
@@ -47,19 +26,32 @@ function interpolate(value: string, params?: TranslationParams): string {
 }
 
 function applyDocumentLocale(locale: LocaleCode): void {
-  if (typeof document === 'undefined') {
-    return;
-  }
-
+  if (typeof document === 'undefined') return;
   const definition = localeDefinition(locale);
   document.documentElement.lang = definition.code;
   document.documentElement.dir = definition.direction;
 }
 
-export function setLocale(locale: LocaleCode, persist = true): void {
-  if (!hasMessageCatalogue(locale)) {
-    return;
-  }
+function activeDomains(): LocalizationDomain[] {
+  return ['core', ...currentPageDomains];
+}
+
+export async function ensureDomain(domain: LocalizationDomain): Promise<void> {
+  await loadDomains(currentLocale.value, ['core', domain]);
+}
+
+export async function ensurePageDomains(pageName: string): Promise<void> {
+  const domains = domainsForPage(pageName);
+  await loadDomains(currentLocale.value, ['core', ...domains]);
+  currentPageDomains = domains;
+}
+
+export async function setLocale(locale: LocaleCode, persist = true): Promise<void> {
+  if (!hasLocaleCatalogue(locale)) return;
+
+  const request = ++localeRequest;
+  await loadDomains(locale, activeDomains());
+  if (request !== localeRequest) return;
 
   currentLocale.value = locale;
   applyDocumentLocale(locale);
@@ -69,7 +61,7 @@ export function setLocale(locale: LocaleCode, persist = true): void {
   }
 }
 
-export function initializeLocale(preferredLocale?: string | null): void {
+export async function initializeLocale(preferredLocale?: string | null): Promise<void> {
   const candidates: Array<string | null | undefined> = [preferredLocale];
 
   if (typeof window !== 'undefined') {
@@ -81,20 +73,17 @@ export function initializeLocale(preferredLocale?: string | null): void {
   const locale = candidates
     .map((candidate) => normalizeLocale(candidate))
     .find(
-      (candidate): candidate is LocaleCode => candidate !== null && hasMessageCatalogue(candidate),
+      (candidate): candidate is LocaleCode => candidate !== null && hasLocaleCatalogue(candidate),
     );
+  const selected = locale ?? defaultLocale;
 
-  setLocale(locale ?? defaultLocale, false);
+  applyDocumentLocale(selected);
+  await loadDomains(selected, ['core']);
+  currentLocale.value = selected;
 }
 
 export function t(key: string, params?: TranslationParams): string {
-  const localized =
-    readPath(catalogueFor(currentLocale.value), key) ??
-    readPath(publicCatalogueFor(currentLocale.value), key);
-  const fallback =
-    readPath(catalogueFor(defaultLocale), key) ?? readPath(publicCatalogueFor(defaultLocale), key);
-
-  return interpolate(localized ?? fallback ?? key, params);
+  return interpolate(resolveMessage(currentLocale.value, activeDomains(), key) ?? key, params);
 }
 
 export function formatNumber(value: number, options?: Intl.NumberFormatOptions): string {
@@ -115,7 +104,7 @@ export function formatRelativeTime(value: number, unit: Intl.RelativeTimeFormatU
 export function useLocale() {
   const definition = computed(() => localeDefinition(currentLocale.value));
   const availableLocales = computed(() =>
-    locales.filter((locale) => hasMessageCatalogue(locale.code)),
+    locales.filter((locale) => hasLocaleCatalogue(locale.code)),
   );
 
   return {
@@ -124,9 +113,13 @@ export function useLocale() {
     direction: computed(() => definition.value.direction),
     availableLocales,
     setLocale,
-    t,
+    ensureDomain,
     formatNumber,
     formatDate,
     formatRelativeTime,
+    t,
   };
 }
+
+export { hasLocaleCatalogue } from './registry';
+export type { LocalizationDomain } from './registry';

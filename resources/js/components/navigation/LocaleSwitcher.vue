@@ -4,7 +4,7 @@ import type { LocaleCode } from '../../localization/locales';
 
 const { locale, availableLocales, setLocale, t } = useLocale();
 
-function changeLocale(event: Event): void {
+async function changeLocale(event: Event): Promise<void> {
   setLocale((event.target as HTMLSelectElement).value as LocaleCode);
 }
 </script>

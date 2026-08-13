@@ -1,0 +1,72 @@
+import type { MessageCatalogue } from '../../types';
+
+const messages = {
+  accountExperience: {
+    account: {
+      eyebrow: 'Account command',
+      title: 'Account & security',
+      intro:
+        'Manage your identity, verification, password, two-factor authentication, and active sessions.',
+      passwordUpdated: 'Your password was updated and other authenticated sessions were revoked.',
+      sessionsRevoked: 'Other authenticated sessions were signed out.',
+      twoFactorDisabled: 'Two-factor authentication was disabled.',
+      profileTitle: 'Profile',
+      profileIntro: 'Changing your email address requires verification again.',
+      timezone: 'Time zone',
+      saveProfile: 'Save profile',
+      emailVerification: 'Email verification',
+      verified: 'Verified',
+      pending: 'Pending',
+      twoFactorState: 'Two-factor authentication',
+      enabled: 'Enabled',
+      setupPending: 'Setup pending',
+      notEnabled: 'Not enabled',
+      twoFactorTitle: 'Two-factor authentication',
+      twoFactorIntro:
+        'Protect sign-in with a TOTP authenticator. Recovery codes are shown only when created or regenerated.',
+      startSetup: 'Start setup',
+      authenticatorSecret: 'Authenticator secret',
+      provisioningUri: 'Provisioning URI',
+      authenticationCode: 'Authentication code',
+      confirm: 'Confirm',
+      saveRecoveryCodes: 'Save these recovery codes now',
+      recoveryIntro: 'Each code works once. Store them somewhere separate from this account.',
+      regenerateRecoveryCodes: 'Regenerate recovery codes',
+      disableTwoFactor: 'Disable two-factor authentication',
+      passwordTitle: 'Change password',
+      passwordIntro:
+        'Changing your password revokes personal access tokens and invalidates other authenticated sessions.',
+      currentPassword: 'Current password',
+      newPassword: 'New password',
+      confirmNewPassword: 'Confirm new password',
+      updatePassword: 'Update password',
+      sessionsTitle: 'Other sessions',
+      sessionsIntro: 'Revoke every authenticated session except this device.',
+      signOutOthers: 'Sign out other devices',
+      dangerTitle: 'Danger zone',
+      deleteAccount: 'Account deletion',
+    },
+    deletion: {
+      eyebrow: 'Account lifecycle',
+      title: 'Account deletion',
+      intro:
+        'Deletion uses a seven-day cooling-off period. Active alliance ownership, platform-administrator access, and legal holds can block processing. Processed accounts are anonymized instead of silently removing audit history.',
+      currentRequest: 'Current request',
+      status: 'Status',
+      eligibleAt: 'Eligible at',
+      requestedAt: 'Requested',
+      processedAt: 'Processed',
+      notYet: 'Not yet',
+      requestTitle: 'Request deletion',
+      requestIntro:
+        'Transfer ownership of any alliance you own first. Records subject to legal hold or required for security and audit integrity are retained in pseudonymized form.',
+      requestButton: 'Request account deletion',
+      confirm:
+        'Request account deletion? There is a seven-day cooling-off period and ownership/legal-hold checks apply.',
+      requested: 'Your account deletion request was recorded.',
+      backToAccount: 'Back to account & security',
+    },
+  },
+} satisfies MessageCatalogue;
+
+export default messages;

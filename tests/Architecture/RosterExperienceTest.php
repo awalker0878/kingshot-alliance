@@ -141,67 +141,22 @@ final class RosterExperienceTest extends TestCase
 
     public function test_roster_catalogues_cover_all_supported_locales(): void
     {
-        $catalogues = [
-            $this->read('resources/js/localization/messages/roster.ts'),
-            $this->read('resources/js/localization/messages/roster-management.ts'),
-            $this->read('resources/js/localization/messages/roster-workflows.ts'),
-        ];
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/roster/en.ts');
+        self::assertIsString($english);
 
-        foreach ($catalogues as $source) {
-            foreach ([
-                'en',
-                'ar',
-                'de',
-                'es',
-                'fr',
-                'id',
-                'it',
-                'ja',
-                'ko',
-                'pl',
-                'pt-BR',
-                'ru',
-                'th',
-                'tr',
-                'vi',
-                'zh-CN',
-                'zh-TW',
-            ] as $locale) {
-                $present = str_contains($source, $locale.': locale(')
-                    || str_contains($source, "'".$locale."': locale(")
-                    || str_contains($source, '"'.$locale.'": locale(');
-
-                self::assertTrue($present, 'Missing roster locale '.$locale);
-            }
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/roster/{$locale}.ts");
         }
 
-        $roster = $catalogues[0];
-        foreach ([
-            'title',
-            'freshnessHelp',
-            'intelligenceTitle',
-            'snapshotQuality',
-            'sevenDayChange',
-            'trendMethodBody',
-            'managerDetail',
-        ] as $key) {
-            self::assertStringContainsString("'".$key."'", $roster);
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['title:', 'freshnessHelp:', 'intelligenceTitle:', 'snapshotQuality:', 'sevenDayChange:', 'trendMethodBody:', 'managerDetail:', 'manageSubtitle:', 'markLeftConfirm:', 'managerNotes:', 'savePlayer:', 'confirmAtomic:', 'recordSnapshot:', 'historyHelp:', 'committedSummary:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
         }
 
-        $management = $catalogues[1];
-        foreach (['manageSubtitle', 'markLeftConfirm', 'managerNotes', 'savePlayer'] as $key) {
-            self::assertStringContainsString("'".$key."'", $management);
-        }
-
-        $workflows = $catalogues[2];
-        foreach (['confirmAtomic', 'recordSnapshot', 'historyHelp', 'committedSummary'] as $key) {
-            self::assertStringContainsString("'".$key."'", $workflows);
-        }
-
-        $overrides = $this->read('resources/js/localization/messages/roster-workflow-overrides.ts');
-        foreach (['pl', 'ru', 'th', 'tr', 'vi'] as $locale) {
-            self::assertMatchesRegularExpression('/(?:^|\s)'.preg_quote($locale, '/').':\s*\{/', $overrides);
-        }
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
+        self::assertStringContainsString("'roster'", $registry);
     }
 
     public function test_roster_controllers_only_add_authenticated_shell_identity(): void

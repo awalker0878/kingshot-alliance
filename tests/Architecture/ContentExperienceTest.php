@@ -60,40 +60,22 @@ final class ContentExperienceTest extends TestCase
 
     public function test_content_catalogue_covers_all_supported_locales(): void
     {
-        $source = $this->read('resources/js/localization/messages/content-experience.ts');
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/content/en.ts');
+        self::assertIsString($english);
 
-        foreach ([
-            'en',
-            'ar',
-            'de',
-            'es',
-            'fr',
-            'id',
-            'it',
-            'ja',
-            'ko',
-            'pl',
-            'pt-BR',
-            'ru',
-            'th',
-            'tr',
-            'vi',
-            'zh-CN',
-            'zh-TW',
-        ] as $locale) {
-            self::assertStringContainsString("'".$locale."'", $source);
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/content/{$locale}.ts");
         }
 
-        foreach ([
-            'hubTitle',
-            'manageContent',
-            'publicProfile',
-            'createContent',
-            'mediaLibrary',
-            'contentInventory',
-        ] as $key) {
-            self::assertStringContainsString($key.':', $source);
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['hubTitle:', 'manageContent:', 'publicProfile:', 'createContent:', 'mediaLibrary:', 'contentInventory:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
         }
+
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
+        self::assertStringContainsString("'content'", $registry);
     }
 
     public function test_content_controllers_expose_authenticated_shell_identity_without_new_domain_state(): void

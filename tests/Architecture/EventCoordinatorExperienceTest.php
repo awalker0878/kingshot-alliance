@@ -50,20 +50,22 @@ final class EventCoordinatorExperienceTest extends TestCase
 
     public function test_event_coordinator_catalogue_covers_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/event-coordinator.ts');
-        $index = $this->read('resources/js/localization/messages/index.ts');
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/events/en.ts');
+        self::assertIsString($english);
 
-        foreach ($this->locales() as $locale) {
-            self::assertMatchesRegularExpression(
-                '/(?:^|\\s)[\'\"]?'.preg_quote($locale, '/').'[\'\"]?\\s*:/m',
-                $messages,
-                $locale,
-            );
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/events/{$locale}.ts");
         }
 
-        self::assertStringContainsString('Record<LocaleCode, EventCoordinatorTree>', $messages);
-        self::assertStringContainsString("import { eventCoordinatorMessages } from './event-coordinator';", $index);
-        self::assertStringContainsString('...eventCoordinatorMessages[locale]', $index);
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['eventCoordinator:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
+        }
+
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
+        self::assertStringContainsString("'events'", $registry);
     }
 
     public function test_event_coordinator_controller_only_adds_authenticated_shell_identity_to_presentation_payload(): void

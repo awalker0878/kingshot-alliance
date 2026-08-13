@@ -10,44 +10,22 @@ final class AccountExperienceTest extends TestCase
 {
     public function test_account_catalogue_is_complete_for_every_supported_locale(): void
     {
-        $messages = $this->read('resources/js/localization/messages/account-extra.ts');
-        $index = $this->read('resources/js/localization/messages/index.ts');
+        $root = dirname(__DIR__, 2);
+        $english = file_get_contents($root.'/resources/js/localization/messages/account/en.ts');
+        self::assertIsString($english);
 
-        foreach ([
-            'en',
-            'ar',
-            'de',
-            'es',
-            'fr',
-            'id',
-            'it',
-            'ja',
-            'ko',
-            'pl',
-            'pt-BR',
-            'ru',
-            'th',
-            'tr',
-            'vi',
-            'zh-CN',
-            'zh-TW',
-        ] as $locale) {
-            if ($locale === 'en') {
-                self::assertMatchesRegularExpression('/(?:^|\s)en,\s*$/m', $messages, $locale);
-
-                continue;
-            }
-
-            self::assertMatchesRegularExpression(
-                '/(?:^|\s)[\'\"]?'.preg_quote($locale, '/').'[\'\"]?\s*:/m',
-                $messages,
-                $locale,
-            );
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/account/{$locale}.ts");
         }
 
-        self::assertStringContainsString('Record<LocaleCode, AccountExperienceTree>', $messages);
-        self::assertStringContainsString("import { accountExperienceMessages } from './account-extra';", $index);
-        self::assertStringContainsString('...accountExperienceMessages[locale]', $index);
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
+        foreach (['accountExperience:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
+        }
+
+        $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+        self::assertIsString($registry);
+        self::assertStringContainsString("'account'", $registry);
     }
 
     public function test_profile_uses_the_shared_shell_and_preserves_security_actions(): void
@@ -88,6 +66,30 @@ final class AccountExperienceTest extends TestCase
         self::assertStringContainsString("'name' => \$user->name", $controller);
         self::assertStringContainsString("'email' => \$user->email", $controller);
         self::assertStringContainsString("with('status', 'account-deletion-requested')", $controller);
+    }
+
+    /** @return list<string> */
+    private function locales(): array
+    {
+        return [
+            'en',
+            'ar',
+            'de',
+            'es',
+            'fr',
+            'id',
+            'it',
+            'ja',
+            'ko',
+            'pl',
+            'pt-BR',
+            'ru',
+            'th',
+            'tr',
+            'vi',
+            'zh-CN',
+            'zh-TW',
+        ];
     }
 
     private function read(string $path): string

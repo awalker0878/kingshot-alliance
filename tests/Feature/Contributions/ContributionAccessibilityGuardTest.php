@@ -122,29 +122,16 @@ final class ContributionAccessibilityGuardTest extends TestCase
 
     public function test_contribution_copy_is_available_through_every_supported_catalogue(): void
     {
-        $index = $this->read('resources/js/localization/messages/index.ts');
-        $overrides = implode("\n", [
-            $this->read('resources/js/localization/messages/contribution-extra.ts'),
-            $this->read('resources/js/localization/messages/contribution-extra-2.ts'),
-            $this->read('resources/js/localization/messages/contribution-extra-3.ts'),
-            $this->read('resources/js/localization/messages/contribution-extra-4.ts'),
-        ]);
-
-        self::assertStringContainsString('const contributionCopy = {', $index);
-        self::assertStringContainsString('contributionOverrides[locale]', $index);
-        foreach (['title', 'selfReportTitle', 'managerTitle', 'approvalQueue', 'scheduledReport'] as $key) {
-            self::assertStringContainsString($key.':', $index);
+        $root = base_path();
+        $english = file_get_contents($root.'/resources/js/localization/messages/contributions/en.ts');
+        self::assertIsString($english);
+        foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+            self::assertFileExists($root."/resources/js/localization/messages/contributions/{$locale}.ts");
         }
-
-        foreach ([
-            'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW',
-        ] as $locale) {
-            $present = str_contains($overrides, $locale.':')
-                || str_contains($overrides, "'".$locale."':")
-                || str_contains($overrides, '"'.$locale.'":');
-
-            self::assertTrue($present, 'Missing contribution locale '.$locale);
+        foreach (['title:', 'selfReportTitle:', 'managerTitle:', 'approvalQueue:', 'scheduledReport:'] as $required) {
+            self::assertStringContainsString($required, $english, $required);
         }
+        self::assertStringContainsString('satisfies MessageCatalogue', $english);
     }
 
     private function read(string $path): string
