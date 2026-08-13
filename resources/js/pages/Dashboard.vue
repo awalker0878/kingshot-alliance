@@ -91,7 +91,9 @@ function rolesFor(membership: MembershipSummary): string {
         <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
           {{ t('application.dashboard.welcome', { name: user.name }) }}
         </h1>
-        <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[var(--ks-text-muted)]">
+        <div
+          class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[var(--ks-text-muted)]"
+        >
           <span>{{ user.email }}</span>
           <span aria-hidden="true">•</span>
           <span>{{ user.timezone }}</span>
@@ -134,7 +136,10 @@ function rolesFor(membership: MembershipSummary): string {
               {{ t('application.dashboard.active') }}
             </span>
           </div>
-          <h2 id="active-alliance-heading" class="ks-display mt-3 text-2xl font-semibold sm:text-3xl">
+          <h2
+            id="active-alliance-heading"
+            class="ks-display mt-3 text-2xl font-semibold sm:text-3xl"
+          >
             {{ activeMembership.alliance.name }}
           </h2>
           <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--ks-text-muted)]">
@@ -143,7 +148,9 @@ function rolesFor(membership: MembershipSummary): string {
           <dl class="mt-5 flex flex-wrap gap-x-8 gap-y-4 text-sm">
             <div>
               <dt class="text-[var(--ks-text-muted)]">{{ t('application.dashboard.roles') }}</dt>
-              <dd class="mt-1 font-semibold text-[var(--ks-text)]">{{ rolesFor(activeMembership) }}</dd>
+              <dd class="mt-1 font-semibold text-[var(--ks-text)]">
+                {{ rolesFor(activeMembership) }}
+              </dd>
             </div>
             <div>
               <dt class="text-[var(--ks-text-muted)]">{{ t('application.dashboard.timezone') }}</dt>

@@ -56,7 +56,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         activeAllianceTitle: 'التحالف النشط',
         activeAllianceIntro: 'هذا التحالف هو السياق الحالي لأدوات التحالف.',
         noActiveAllianceTitle: 'اختر تحالفاً نشطاً',
-        noActiveAllianceIntro: 'اختر إحدى عضوياتك أدناه قبل فتح أدوات التحالف أو الأحداث أو القائمة أو المملكة أو النقل.',
+        noActiveAllianceIntro:
+          'اختر إحدى عضوياتك أدناه قبل فتح أدوات التحالف أو الأحداث أو القائمة أو المملكة أو النقل.',
         alliancesTitle: 'تحالفاتك',
         alliancesIntro: 'اختر التحالف الذي تريد استخدامه كسياق العمل الحالي.',
         openActiveAlliance: 'فتح التحالف النشط',
@@ -87,9 +88,11 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         welcome: 'Willkommen, {name}',
         verificationPending: 'E-Mail-Bestätigung ausstehend',
         activeAllianceTitle: 'Aktive Allianz',
-        activeAllianceIntro: 'Diese Allianz ist der aktuelle Kontext für allianzbezogene Werkzeuge.',
+        activeAllianceIntro:
+          'Diese Allianz ist der aktuelle Kontext für allianzbezogene Werkzeuge.',
         noActiveAllianceTitle: 'Aktive Allianz auswählen',
-        noActiveAllianceIntro: 'Wähle unten eine Mitgliedschaft aus, bevor du Allianz-, Event-, Kader-, Königreich- oder Transferwerkzeuge öffnest.',
+        noActiveAllianceIntro:
+          'Wähle unten eine Mitgliedschaft aus, bevor du Allianz-, Event-, Kader-, Königreich- oder Transferwerkzeuge öffnest.',
         alliancesTitle: 'Deine Allianzen',
         alliancesIntro: 'Wähle, welche Allianz als aktueller Arbeitskontext verwendet werden soll.',
         openActiveAlliance: 'Aktive Allianz öffnen',
@@ -101,7 +104,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: 'Königreich-Allianzen',
         transfers: 'Transfers',
         kingdomSettings: 'Königreich-Einstellungen',
-        empty: 'Du hast noch keine aktive Allianzmitgliedschaft. Erstelle unten eine Allianz, um deinen ersten Allianzkontext anzulegen.',
+        empty:
+          'Du hast noch keine aktive Allianzmitgliedschaft. Erstelle unten eine Allianz, um deinen ersten Allianzkontext anzulegen.',
         createTitle: 'Allianz erstellen',
         createIntro: 'Erstelle eine neue Allianz und werde in einem Schritt ihr erster Besitzer.',
         allianceName: 'Allianzname',
@@ -122,7 +126,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         activeAllianceTitle: 'Alianza activa',
         activeAllianceIntro: 'Esta alianza es el contexto actual para las herramientas de alianza.',
         noActiveAllianceTitle: 'Elige una alianza activa',
-        noActiveAllianceIntro: 'Selecciona una de tus membresías antes de abrir herramientas de alianza, eventos, roster, reino o transferencias.',
+        noActiveAllianceIntro:
+          'Selecciona una de tus membresías antes de abrir herramientas de alianza, eventos, roster, reino o transferencias.',
         alliancesTitle: 'Tus alianzas',
         alliancesIntro: 'Elige qué alianza se usará como contexto de trabajo actual.',
         openActiveAlliance: 'Abrir alianza activa',
@@ -134,9 +139,11 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: 'Alianzas del reino',
         transfers: 'Transferencias',
         kingdomSettings: 'Ajustes del reino',
-        empty: 'Aún no tienes una membresía activa. Crea una alianza abajo para establecer tu primer contexto de alianza.',
+        empty:
+          'Aún no tienes una membresía activa. Crea una alianza abajo para establecer tu primer contexto de alianza.',
         createTitle: 'Crear una alianza',
-        createIntro: 'Crea una nueva alianza y conviértete en su propietario inicial en una sola operación.',
+        createIntro:
+          'Crea una nueva alianza y conviértete en su propietario inicial en una sola operación.',
         allianceName: 'Nombre de la alianza',
         slug: 'Slug',
         kingdomNumber: 'Número de reino',
@@ -155,7 +162,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         activeAllianceTitle: 'Alliance active',
         activeAllianceIntro: 'Cette alliance est le contexte actuel des outils liés à l’alliance.',
         noActiveAllianceTitle: 'Choisissez une alliance active',
-        noActiveAllianceIntro: 'Sélectionnez une de vos adhésions ci-dessous avant d’ouvrir les outils d’alliance, d’événements, de roster, de royaume ou de transfert.',
+        noActiveAllianceIntro:
+          'Sélectionnez une de vos adhésions ci-dessous avant d’ouvrir les outils d’alliance, d’événements, de roster, de royaume ou de transfert.',
         alliancesTitle: 'Vos alliances',
         alliancesIntro: 'Choisissez l’alliance à utiliser comme contexte de travail actuel.',
         openActiveAlliance: 'Ouvrir l’alliance active',
@@ -167,9 +175,11 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: 'Alliances du royaume',
         transfers: 'Transferts',
         kingdomSettings: 'Paramètres du royaume',
-        empty: 'Vous n’avez pas encore d’adhésion active à une alliance. Créez une alliance ci-dessous pour établir votre premier contexte.',
+        empty:
+          'Vous n’avez pas encore d’adhésion active à une alliance. Créez une alliance ci-dessous pour établir votre premier contexte.',
         createTitle: 'Créer une alliance',
-        createIntro: 'Créez une nouvelle alliance et devenez son propriétaire initial en une seule opération.',
+        createIntro:
+          'Créez une nouvelle alliance et devenez son propriétaire initial en une seule opération.',
         allianceName: 'Nom de l’alliance',
         slug: 'Slug',
         kingdomNumber: 'Numéro du royaume',
@@ -186,9 +196,11 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         welcome: 'Selamat datang, {name}',
         verificationPending: 'Verifikasi email tertunda',
         activeAllianceTitle: 'Aliansi aktif',
-        activeAllianceIntro: 'Aliansi ini menjadi konteks saat ini untuk alat yang terkait dengan aliansi.',
+        activeAllianceIntro:
+          'Aliansi ini menjadi konteks saat ini untuk alat yang terkait dengan aliansi.',
         noActiveAllianceTitle: 'Pilih aliansi aktif',
-        noActiveAllianceIntro: 'Pilih salah satu keanggotaan Anda sebelum membuka alat aliansi, event, roster, kerajaan, atau transfer.',
+        noActiveAllianceIntro:
+          'Pilih salah satu keanggotaan Anda sebelum membuka alat aliansi, event, roster, kerajaan, atau transfer.',
         alliancesTitle: 'Aliansi Anda',
         alliancesIntro: 'Pilih aliansi yang akan digunakan sebagai konteks kerja saat ini.',
         openActiveAlliance: 'Buka aliansi aktif',
@@ -200,7 +212,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: 'Aliansi kerajaan',
         transfers: 'Transfer',
         kingdomSettings: 'Pengaturan kerajaan',
-        empty: 'Anda belum memiliki keanggotaan aliansi aktif. Buat aliansi di bawah untuk menetapkan konteks aliansi pertama Anda.',
+        empty:
+          'Anda belum memiliki keanggotaan aliansi aktif. Buat aliansi di bawah untuk menetapkan konteks aliansi pertama Anda.',
         createTitle: 'Buat aliansi',
         createIntro: 'Buat aliansi baru dan jadilah pemilik awalnya dalam satu proses.',
         allianceName: 'Nama aliansi',
@@ -219,9 +232,11 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         welcome: 'Benvenuto, {name}',
         verificationPending: 'Verifica e-mail in sospeso',
         activeAllianceTitle: 'Alleanza attiva',
-        activeAllianceIntro: 'Questa alleanza è il contesto corrente per gli strumenti dell’alleanza.',
+        activeAllianceIntro:
+          'Questa alleanza è il contesto corrente per gli strumenti dell’alleanza.',
         noActiveAllianceTitle: 'Scegli un’alleanza attiva',
-        noActiveAllianceIntro: 'Seleziona una delle tue appartenenze prima di aprire gli strumenti di alleanza, eventi, roster, regno o trasferimenti.',
+        noActiveAllianceIntro:
+          'Seleziona una delle tue appartenenze prima di aprire gli strumenti di alleanza, eventi, roster, regno o trasferimenti.',
         alliancesTitle: 'Le tue alleanze',
         alliancesIntro: 'Scegli quale alleanza usare come contesto di lavoro corrente.',
         openActiveAlliance: 'Apri alleanza attiva',
@@ -233,9 +248,11 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: 'Alleanze del regno',
         transfers: 'Trasferimenti',
         kingdomSettings: 'Impostazioni regno',
-        empty: 'Non hai ancora un’appartenenza attiva a un’alleanza. Crea un’alleanza qui sotto per stabilire il tuo primo contesto.',
+        empty:
+          'Non hai ancora un’appartenenza attiva a un’alleanza. Crea un’alleanza qui sotto per stabilire il tuo primo contesto.',
         createTitle: 'Crea un’alleanza',
-        createIntro: 'Crea una nuova alleanza e diventa il suo proprietario iniziale in un’unica operazione.',
+        createIntro:
+          'Crea una nuova alleanza e diventa il suo proprietario iniziale in un’unica operazione.',
         allianceName: 'Nome alleanza',
         slug: 'Slug',
         kingdomNumber: 'Numero regno',
@@ -254,7 +271,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         activeAllianceTitle: 'アクティブ同盟',
         activeAllianceIntro: 'この同盟が同盟関連ツールの現在のコンテキストです。',
         noActiveAllianceTitle: 'アクティブ同盟を選択',
-        noActiveAllianceIntro: '同盟、イベント、名簿、王国、移転ツールを開く前に、下の所属同盟から1つ選択してください。',
+        noActiveAllianceIntro:
+          '同盟、イベント、名簿、王国、移転ツールを開く前に、下の所属同盟から1つ選択してください。',
         alliancesTitle: 'あなたの同盟',
         alliancesIntro: '現在の作業コンテキストとして使用する同盟を選択します。',
         openActiveAlliance: 'アクティブ同盟を開く',
@@ -266,7 +284,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: '王国内同盟',
         transfers: '移転',
         kingdomSettings: '王国設定',
-        empty: 'まだアクティブな同盟所属がありません。下で同盟を作成して最初の同盟コンテキストを設定してください。',
+        empty:
+          'まだアクティブな同盟所属がありません。下で同盟を作成して最初の同盟コンテキストを設定してください。',
         createTitle: '同盟を作成',
         createIntro: '新しい同盟を作成し、1回の操作で最初の所有者になります。',
         allianceName: '同盟名',
@@ -287,7 +306,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         activeAllianceTitle: '활성 연맹',
         activeAllianceIntro: '이 연맹이 연맹 범위 도구의 현재 작업 컨텍스트입니다.',
         noActiveAllianceTitle: '활성 연맹 선택',
-        noActiveAllianceIntro: '연맹, 이벤트, 명단, 왕국 또는 이전 도구를 열기 전에 아래 멤버십 중 하나를 선택하세요.',
+        noActiveAllianceIntro:
+          '연맹, 이벤트, 명단, 왕국 또는 이전 도구를 열기 전에 아래 멤버십 중 하나를 선택하세요.',
         alliancesTitle: '내 연맹',
         alliancesIntro: '현재 작업 컨텍스트로 사용할 연맹을 선택하세요.',
         openActiveAlliance: '활성 연맹 열기',
@@ -299,7 +319,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: '왕국 연맹',
         transfers: '이전',
         kingdomSettings: '왕국 설정',
-        empty: '아직 활성 연맹 멤버십이 없습니다. 아래에서 연맹을 만들어 첫 연맹 컨텍스트를 설정하세요.',
+        empty:
+          '아직 활성 연맹 멤버십이 없습니다. 아래에서 연맹을 만들어 첫 연맹 컨텍스트를 설정하세요.',
         createTitle: '연맹 만들기',
         createIntro: '새 연맹을 만들고 한 번의 작업으로 최초 소유자가 됩니다.',
         allianceName: '연맹 이름',
@@ -320,7 +341,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         activeAllianceTitle: 'Aktywny sojusz',
         activeAllianceIntro: 'Ten sojusz jest bieżącym kontekstem dla narzędzi sojuszu.',
         noActiveAllianceTitle: 'Wybierz aktywny sojusz',
-        noActiveAllianceIntro: 'Wybierz jedno ze swoich członkostw przed otwarciem narzędzi sojuszu, wydarzeń, składu, królestwa lub transferów.',
+        noActiveAllianceIntro:
+          'Wybierz jedno ze swoich członkostw przed otwarciem narzędzi sojuszu, wydarzeń, składu, królestwa lub transferów.',
         alliancesTitle: 'Twoje sojusze',
         alliancesIntro: 'Wybierz sojusz, który ma być bieżącym kontekstem pracy.',
         openActiveAlliance: 'Otwórz aktywny sojusz',
@@ -332,7 +354,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: 'Sojusze królestwa',
         transfers: 'Transfery',
         kingdomSettings: 'Ustawienia królestwa',
-        empty: 'Nie masz jeszcze aktywnego członkostwa w sojuszu. Utwórz sojusz poniżej, aby ustanowić pierwszy kontekst.',
+        empty:
+          'Nie masz jeszcze aktywnego członkostwa w sojuszu. Utwórz sojusz poniżej, aby ustanowić pierwszy kontekst.',
         createTitle: 'Utwórz sojusz',
         createIntro: 'Utwórz nowy sojusz i zostań jego pierwszym właścicielem w jednej operacji.',
         allianceName: 'Nazwa sojuszu',
@@ -353,7 +376,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         activeAllianceTitle: 'Aliança ativa',
         activeAllianceIntro: 'Esta aliança é o contexto atual para as ferramentas da aliança.',
         noActiveAllianceTitle: 'Escolha uma aliança ativa',
-        noActiveAllianceIntro: 'Selecione uma das suas associações abaixo antes de abrir as ferramentas de aliança, eventos, elenco, reino ou transferências.',
+        noActiveAllianceIntro:
+          'Selecione uma das suas associações abaixo antes de abrir as ferramentas de aliança, eventos, elenco, reino ou transferências.',
         alliancesTitle: 'Suas alianças',
         alliancesIntro: 'Escolha qual aliança deve ser usada como contexto de trabalho atual.',
         openActiveAlliance: 'Abrir aliança ativa',
@@ -365,9 +389,11 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: 'Alianças do reino',
         transfers: 'Transferências',
         kingdomSettings: 'Configurações do reino',
-        empty: 'Você ainda não tem uma associação ativa a uma aliança. Crie uma aliança abaixo para estabelecer seu primeiro contexto.',
+        empty:
+          'Você ainda não tem uma associação ativa a uma aliança. Crie uma aliança abaixo para estabelecer seu primeiro contexto.',
         createTitle: 'Criar uma aliança',
-        createIntro: 'Crie uma nova aliança e torne-se o proprietário inicial em uma única operação.',
+        createIntro:
+          'Crie uma nova aliança e torne-se o proprietário inicial em uma única operação.',
         allianceName: 'Nome da aliança',
         slug: 'Slug',
         kingdomNumber: 'Número do reino',
@@ -386,7 +412,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         activeAllianceTitle: 'Активный альянс',
         activeAllianceIntro: 'Этот альянс является текущим контекстом для инструментов альянса.',
         noActiveAllianceTitle: 'Выберите активный альянс',
-        noActiveAllianceIntro: 'Выберите одно из своих членств ниже, прежде чем открывать инструменты альянса, событий, состава, королевства или трансферов.',
+        noActiveAllianceIntro:
+          'Выберите одно из своих членств ниже, прежде чем открывать инструменты альянса, событий, состава, королевства или трансферов.',
         alliancesTitle: 'Ваши альянсы',
         alliancesIntro: 'Выберите альянс, который будет текущим рабочим контекстом.',
         openActiveAlliance: 'Открыть активный альянс',
@@ -398,7 +425,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: 'Альянсы королевства',
         transfers: 'Трансферы',
         kingdomSettings: 'Настройки королевства',
-        empty: 'У вас пока нет активного членства в альянсе. Создайте альянс ниже, чтобы установить первый контекст.',
+        empty:
+          'У вас пока нет активного членства в альянсе. Создайте альянс ниже, чтобы установить первый контекст.',
         createTitle: 'Создать альянс',
         createIntro: 'Создайте новый альянс и станьте его первым владельцем за одну операцию.',
         allianceName: 'Название альянса',
@@ -419,7 +447,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         activeAllianceTitle: 'พันธมิตรที่ใช้งานอยู่',
         activeAllianceIntro: 'พันธมิตรนี้เป็นบริบทปัจจุบันสำหรับเครื่องมือที่เกี่ยวข้องกับพันธมิตร',
         noActiveAllianceTitle: 'เลือกพันธมิตรที่ใช้งานอยู่',
-        noActiveAllianceIntro: 'เลือกหนึ่งในสมาชิกของคุณด้านล่างก่อนเปิดเครื่องมือพันธมิตร อีเวนต์ รายชื่อ อาณาจักร หรือการย้าย',
+        noActiveAllianceIntro:
+          'เลือกหนึ่งในสมาชิกของคุณด้านล่างก่อนเปิดเครื่องมือพันธมิตร อีเวนต์ รายชื่อ อาณาจักร หรือการย้าย',
         alliancesTitle: 'พันธมิตรของคุณ',
         alliancesIntro: 'เลือกพันธมิตรที่จะใช้เป็นบริบทการทำงานปัจจุบัน',
         openActiveAlliance: 'เปิดพันธมิตรที่ใช้งานอยู่',
@@ -431,7 +460,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: 'พันธมิตรในอาณาจักร',
         transfers: 'การย้าย',
         kingdomSettings: 'การตั้งค่าอาณาจักร',
-        empty: 'คุณยังไม่มีสมาชิกพันธมิตรที่ใช้งานอยู่ สร้างพันธมิตรด้านล่างเพื่อกำหนดบริบทแรกของคุณ',
+        empty:
+          'คุณยังไม่มีสมาชิกพันธมิตรที่ใช้งานอยู่ สร้างพันธมิตรด้านล่างเพื่อกำหนดบริบทแรกของคุณ',
         createTitle: 'สร้างพันธมิตร',
         createIntro: 'สร้างพันธมิตรใหม่และเป็นเจ้าของคนแรกในขั้นตอนเดียว',
         allianceName: 'ชื่อพันธมิตร',
@@ -450,9 +480,11 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         welcome: 'Hoş geldin, {name}',
         verificationPending: 'E-posta doğrulaması bekleniyor',
         activeAllianceTitle: 'Etkin ittifak',
-        activeAllianceIntro: 'Bu ittifak, ittifak kapsamındaki araçlar için geçerli çalışma bağlamıdır.',
+        activeAllianceIntro:
+          'Bu ittifak, ittifak kapsamındaki araçlar için geçerli çalışma bağlamıdır.',
         noActiveAllianceTitle: 'Etkin bir ittifak seçin',
-        noActiveAllianceIntro: 'İttifak, etkinlik, kadro, krallık veya transfer araçlarını açmadan önce aşağıdaki üyeliklerinizden birini seçin.',
+        noActiveAllianceIntro:
+          'İttifak, etkinlik, kadro, krallık veya transfer araçlarını açmadan önce aşağıdaki üyeliklerinizden birini seçin.',
         alliancesTitle: 'İttifakların',
         alliancesIntro: 'Geçerli çalışma bağlamı olarak kullanılacak ittifakı seçin.',
         openActiveAlliance: 'Etkin ittifakı aç',
@@ -464,7 +496,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: 'Krallık ittifakları',
         transfers: 'Transferler',
         kingdomSettings: 'Krallık ayarları',
-        empty: 'Henüz etkin bir ittifak üyeliğin yok. İlk ittifak bağlamını oluşturmak için aşağıdan bir ittifak oluştur.',
+        empty:
+          'Henüz etkin bir ittifak üyeliğin yok. İlk ittifak bağlamını oluşturmak için aşağıdan bir ittifak oluştur.',
         createTitle: 'İttifak oluştur',
         createIntro: 'Yeni bir ittifak oluştur ve tek işlemde ilk sahibi ol.',
         allianceName: 'İttifak adı',
@@ -483,9 +516,11 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         welcome: 'Chào mừng, {name}',
         verificationPending: 'Đang chờ xác minh email',
         activeAllianceTitle: 'Liên minh đang hoạt động',
-        activeAllianceIntro: 'Liên minh này là ngữ cảnh hiện tại cho các công cụ thuộc phạm vi liên minh.',
+        activeAllianceIntro:
+          'Liên minh này là ngữ cảnh hiện tại cho các công cụ thuộc phạm vi liên minh.',
         noActiveAllianceTitle: 'Chọn liên minh đang hoạt động',
-        noActiveAllianceIntro: 'Chọn một tư cách thành viên bên dưới trước khi mở các công cụ liên minh, sự kiện, danh sách, vương quốc hoặc chuyển giao.',
+        noActiveAllianceIntro:
+          'Chọn một tư cách thành viên bên dưới trước khi mở các công cụ liên minh, sự kiện, danh sách, vương quốc hoặc chuyển giao.',
         alliancesTitle: 'Các liên minh của bạn',
         alliancesIntro: 'Chọn liên minh được dùng làm ngữ cảnh làm việc hiện tại.',
         openActiveAlliance: 'Mở liên minh đang hoạt động',
@@ -497,7 +532,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         kingdomAlliances: 'Liên minh trong vương quốc',
         transfers: 'Chuyển giao',
         kingdomSettings: 'Cài đặt vương quốc',
-        empty: 'Bạn chưa có tư cách thành viên liên minh đang hoạt động. Hãy tạo liên minh bên dưới để thiết lập ngữ cảnh đầu tiên.',
+        empty:
+          'Bạn chưa có tư cách thành viên liên minh đang hoạt động. Hãy tạo liên minh bên dưới để thiết lập ngữ cảnh đầu tiên.',
         createTitle: 'Tạo liên minh',
         createIntro: 'Tạo liên minh mới và trở thành chủ sở hữu đầu tiên trong một thao tác.',
         allianceName: 'Tên liên minh',
@@ -518,7 +554,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         activeAllianceTitle: '当前联盟',
         activeAllianceIntro: '该联盟是联盟范围工具的当前工作上下文。',
         noActiveAllianceTitle: '选择当前联盟',
-        noActiveAllianceIntro: '打开联盟、活动、名单、王国或转服工具前，请先在下方选择一个联盟成员关系。',
+        noActiveAllianceIntro:
+          '打开联盟、活动、名单、王国或转服工具前，请先在下方选择一个联盟成员关系。',
         alliancesTitle: '你的联盟',
         alliancesIntro: '选择要作为当前工作上下文的联盟。',
         openActiveAlliance: '打开当前联盟',
@@ -551,7 +588,8 @@ export const applicationExtraMessages: Record<LocaleCode, ApplicationExtraTree> 
         activeAllianceTitle: '目前聯盟',
         activeAllianceIntro: '此聯盟是聯盟範圍工具目前的工作脈絡。',
         noActiveAllianceTitle: '選擇目前聯盟',
-        noActiveAllianceIntro: '開啟聯盟、活動、名冊、王國或轉服工具前，請先在下方選擇一個聯盟成員關係。',
+        noActiveAllianceIntro:
+          '開啟聯盟、活動、名冊、王國或轉服工具前，請先在下方選擇一個聯盟成員關係。',
         alliancesTitle: '你的聯盟',
         alliancesIntro: '選擇要作為目前工作脈絡的聯盟。',
         openActiveAlliance: '開啟目前聯盟',
