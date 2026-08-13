@@ -3,7 +3,7 @@ name: UX P9 Test Fix
 on:
   push:
     paths:
-      - '.ux-p9-test-fix-run'
+      - '.ux-p9-retry'
 
 permissions:
   contents: write
@@ -32,7 +32,7 @@ jobs:
           PY
 
           printf 'run-2\n' > .ux-p9-run
-          rm -f .ux-p9-test-fix-run .github/workflows/ux-p9-test-fix.yml
+          rm -f .ux-p9-retry .github/workflows/ux-p9-test-fix.yml
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
