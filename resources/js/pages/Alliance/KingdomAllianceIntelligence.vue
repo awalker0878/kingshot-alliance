@@ -92,7 +92,7 @@ const props = defineProps<{
   intelligence: Intelligence;
 }>();
 
-const { t, formatDate: localeDate, formatNumber } = useLocale();
+const { t, formatDate: localeDate } = useLocale();
 const filters = reactive<Filters>({ ...props.intelligence.filters });
 
 function applyFilters(): void {
@@ -117,7 +117,7 @@ function resetFilters(): void {
 }
 
 function formatDecimal(value: string | null): string {
-  if (value === null) return 'missing';
+  if (value === null) return t('kingdomP7B.missing');
 
   const negative = value.startsWith('-');
   const unsigned = negative ? value.slice(1) : value;
@@ -127,13 +127,13 @@ function formatDecimal(value: string | null): string {
 }
 
 function formatSignedDecimal(value: string | null): string {
-  if (value === null) return 'missing';
+  if (value === null) return t('kingdomP7B.missing');
   if (value.startsWith('-') || value === '0') return formatDecimal(value);
   return `+${formatDecimal(value)}`;
 }
 
 function formatSignedNumber(value: number | null): string {
-  if (value === null) return 'missing';
+  if (value === null) return t('kingdomP7B.missing');
   if (value <= 0) return String(value);
   return `+${value}`;
 }
@@ -160,7 +160,7 @@ function changeText(change: Change | null): string {
 }
 
 function freshnessLabel(row: IntelligenceRow): string {
-  if (row.freshness === 'missing') return 'Missing observation';
+  if (row.freshness === 'missing') return t('kingdomP7B.missingObservation');
   if (row.observationAgeDays === null) return stateLabel(row.freshness);
   return `${stateLabel(row.freshness)} · ${row.observationAgeDays} day${row.observationAgeDays === 1 ? '' : 's'} old`;
 }
@@ -183,10 +183,7 @@ function freshnessLabel(row: IntelligenceRow): string {
         </p>
         <h1 class="mt-2 text-3xl font-bold">{{ t('kingdomP7B.intelligenceTitle') }}</h1>
         <p class="mt-2 max-w-4xl text-sm text-[var(--ks-text-secondary)]">
-          Descriptive operational trends derived only from accepted observations and explicit
-          diplomacy state. Missing values remain missing; this view does not calculate threat,
-          desirability, target, or composite scores and never recommends or executes diplomacy or
-          transfer actions.
+          {{ t('kingdomP7B.intelligenceSubtitle') }}
         </p>
       </div>
       <Link
@@ -200,7 +197,7 @@ function freshnessLabel(row: IntelligenceRow): string {
 
     <section
       class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-      aria-label="{{ t('kingdomP7B.intelligenceTitle') }} summary"
+      :aria-label="`${t('kingdomP7B.intelligenceTitle')} summary`"
     >
       <div class="ks-surface p-5">
         <p class="text-sm text-[var(--ks-text-secondary)]">{{ t('kingdomP7B.activeTracked') }}</p>
@@ -270,8 +267,11 @@ function freshnessLabel(row: IntelligenceRow): string {
           {{ intelligence.managerSummary.trackedWithVerificationDue }}
         </p>
         <p class="mt-2 text-xs text-[var(--ks-text-muted)]">
-          Due means an active contact is unverified or last verified more than
-          {{ intelligence.managerSummary.verificationStaleAfterDays }} days ago.
+          {{
+            t('kingdomP7B.verificationDueHelp', {
+              days: intelligence.managerSummary.verificationStaleAfterDays,
+            })
+          }}
         </p>
       </div>
     </section>
@@ -281,8 +281,7 @@ function freshnessLabel(row: IntelligenceRow): string {
         {{ t('kingdomP7B.filtersTitle') }}
       </h2>
       <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
-        Default order is alphabetical. Optional factual sorting changes navigation order only; it is
-        not a best/worst, threat, target, or desirability ranking.
+        {{ t('kingdomP7B.filtersHelp') }}
       </p>
 
       <form class="mt-5 grid gap-4 md:grid-cols-3 xl:grid-cols-6" @submit.prevent="applyFilters">
@@ -296,9 +295,9 @@ function freshnessLabel(row: IntelligenceRow): string {
             name="tracking"
             class="ks-input mt-2 w-full"
           >
-            <option value="active">Active</option>
-            <option value="archived">Archived</option>
-            <option value="all">All</option>
+            <option value="active">{{ t('kingdomP7B.active') }}</option>
+            <option value="archived">{{ t('kingdomP7B.archived') }}</option>
+            <option value="all">{{ t('kingdomP7B.all') }}</option>
           </select>
         </div>
         <div>
@@ -311,10 +310,10 @@ function freshnessLabel(row: IntelligenceRow): string {
             name="freshness"
             class="ks-input mt-2 w-full"
           >
-            <option value="all">All</option>
-            <option value="current">Current</option>
-            <option value="stale">Stale</option>
-            <option value="missing">Missing</option>
+            <option value="all">{{ t('kingdomP7B.all') }}</option>
+            <option value="current">{{ t('kingdomP7B.current') }}</option>
+            <option value="stale">{{ t('kingdomP7B.stale') }}</option>
+            <option value="missing">{{ t('kingdomP7B.missing') }}</option>
           </select>
         </div>
         <div>
@@ -327,7 +326,7 @@ function freshnessLabel(row: IntelligenceRow): string {
             name="diplomacy"
             class="ks-input mt-2 w-full"
           >
-            <option value="all">All</option>
+            <option value="all">{{ t('kingdomP7B.all') }}</option>
             <option value="unknown">Unknown</option>
             <option value="neutral">Neutral</option>
             <option value="friendly">Friendly</option>
@@ -339,11 +338,11 @@ function freshnessLabel(row: IntelligenceRow): string {
         <div>
           <label class="text-sm font-medium" for="sort-filter">{{ t('kingdomP7B.sortBy') }}</label>
           <select id="sort-filter" v-model="filters.sort" name="sort" class="ks-input mt-2 w-full">
-            <option value="name">Name</option>
-            <option value="tag">Tag</option>
-            <option value="power">Latest power</option>
-            <option value="members">Latest members</option>
-            <option value="age">Observation age</option>
+            <option value="name">{{ t('kingdomP7B.name') }}</option>
+            <option value="tag">{{ t('kingdomP7B.tag') }}</option>
+            <option value="power">{{ t('kingdomP7B.latestPowerSort') }}</option>
+            <option value="members">{{ t('kingdomP7B.latestMembersSort') }}</option>
+            <option value="age">{{ t('kingdomP7B.observationAge') }}</option>
             <option value="diplomacy">{{ t('kingdomP7B.diplomacyState') }}</option>
           </select>
         </div>
@@ -357,8 +356,8 @@ function freshnessLabel(row: IntelligenceRow): string {
             name="direction"
             class="ks-input mt-2 w-full"
           >
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
+            <option value="asc">{{ t('kingdomP7B.ascending') }}</option>
+            <option value="desc">{{ t('kingdomP7B.descending') }}</option>
           </select>
         </div>
         <div class="flex items-end gap-2">
@@ -366,14 +365,14 @@ function freshnessLabel(row: IntelligenceRow): string {
             class="rounded-lg bg-[var(--ks-blue)] px-4 py-2 font-semibold text-white"
             type="submit"
           >
-            Apply
+            {{ t('kingdomP7B.apply') }}
           </button>
           <button
             class="rounded-lg border border-slate-700 px-4 py-2 font-semibold text-slate-200"
             type="button"
             @click="resetFilters"
           >
-            Reset
+            {{ t('kingdomP7B.reset') }}
           </button>
         </div>
       </form>
@@ -382,11 +381,7 @@ function freshnessLabel(row: IntelligenceRow): string {
     <section class="ks-surface mt-6 p-5" aria-labelledby="trend-rules">
       <h2 id="trend-rules" class="text-lg font-semibold">{{ t('kingdomP7B.trendRules') }}</h2>
       <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
-        The current point is the latest accepted observation at or before the dashboard time. Prior
-        change uses the immediately preceding accepted point. For an N-day trend, the baseline is
-        the closest accepted observation at or before the N-day target but no older than 2N days. A
-        newer point is never substituted for the target, older history outside the bounded window is
-        ignored, and missing history is never interpolated.
+        {{ t('kingdomP7B.trendRulesHelp') }}
       </p>
       <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
         Current windows: {{ intelligence.windows.sevenDay.days }}–{{
@@ -410,7 +405,68 @@ function freshnessLabel(row: IntelligenceRow): string {
         </p>
       </div>
 
-      <div v-if="intelligence.rows.length" class="overflow-x-auto">
+      <div v-if="intelligence.rows.length" class="grid gap-3 p-4 lg:hidden">
+        <article
+          v-for="row in intelligence.rows"
+          :key="row.historyUrl"
+          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/10 p-4"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <Link class="font-semibold text-[var(--ks-gold)]" :href="row.historyUrl">{{
+                row.name
+              }}</Link>
+              <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                {{ row.tag ?? '—' }} · Kingdom {{ row.kingdom }}
+              </p>
+            </div>
+            <span class="text-xs font-semibold">{{ freshnessLabel(row) }}</span>
+          </div>
+          <div v-if="row.latestObservation" class="mt-3 grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.power') }}</p>
+              <p>{{ formatDecimal(row.latestObservation.power) }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.members') }}</p>
+              <p>{{ row.latestObservation.memberCount ?? t('kingdomP7B.missing') }}</p>
+            </div>
+          </div>
+          <div class="mt-3 space-y-1 text-xs text-[var(--ks-text-secondary)]">
+            <p>{{ t('kingdomP7B.priorChange') }}: {{ changeText(row.priorChange) }}</p>
+            <p>{{ t('kingdomP7B.sevenDay') }}: {{ changeText(row.sevenDayChange) }}</p>
+            <p>{{ t('kingdomP7B.thirtyDay') }}: {{ changeText(row.thirtyDayChange) }}</p>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <span
+              class="rounded-full border border-[var(--ks-border)] px-2 py-1 text-xs font-semibold"
+              >{{ stateLabel(row.diplomacy.state) }}</span
+            ><span
+              v-if="row.diplomacy.needsReview"
+              class="rounded-full border border-amber-400/25 bg-amber-500/10 px-2 py-1 text-xs font-semibold text-amber-200"
+              >{{ t('kingdomP7B.reviewDue') }}</span
+            >
+          </div>
+          <div class="mt-3 flex flex-wrap gap-3 text-xs">
+            <Link :href="row.historyUrl" class="font-semibold text-[var(--ks-gold)]">{{
+              t('kingdomP7B.history')
+            }}</Link
+            ><Link
+              v-if="canManage && row.diplomacyUrl"
+              :href="row.diplomacyUrl"
+              class="font-semibold text-[var(--ks-gold)]"
+              >{{ t('kingdomP7B.diplomacy') }}</Link
+            ><Link
+              v-if="canManage && row.contactsUrl"
+              :href="row.contactsUrl"
+              class="font-semibold text-[var(--ks-gold)]"
+              >{{ t('kingdomP7B.contacts') }}</Link
+            >
+          </div>
+        </article>
+      </div>
+
+      <div v-if="intelligence.rows.length" class="hidden overflow-x-auto lg:block">
         <table class="min-w-full text-left text-sm">
           <caption class="sr-only">
             Tracked game-side alliance descriptive intelligence
@@ -476,7 +532,7 @@ function freshnessLabel(row: IntelligenceRow): string {
                   v-if="row.diplomacy.needsReview"
                   class="mt-1 text-xs font-semibold text-amber-300"
                 >
-                  Human review due
+                  {{ t('kingdomP7B.reviewDue') }}
                 </p>
                 <p v-if="row.diplomacy.reviewAt" class="mt-1 text-xs text-[var(--ks-text-muted)]">
                   Review {{ formatDate(row.diplomacy.reviewAt) }}
@@ -516,7 +572,7 @@ function freshnessLabel(row: IntelligenceRow): string {
       </div>
 
       <p v-else class="p-8 text-sm text-[var(--ks-text-secondary)]">
-        No tracked alliances match the selected filters.
+        {{ t('kingdomP7B.noRows') }}
       </p>
     </section>
 

@@ -156,9 +156,7 @@ function deactivateContact(contact: Contact): void {
           {{ t('kingdomP7B.contactsTitle', { alliance: tracking.name }) }}
         </h1>
         <p class="mt-2 max-w-3xl text-sm text-[var(--ks-text-secondary)]">
-          {{ alliance.name }} · Kingdom {{ tracking.kingdom }}. This is a manager-private handle
-          directory for diplomacy coordination. Contacts do not create users, memberships, player
-          identity, or permissions.
+          {{ t('kingdomP7B.contactsSubtitle', { kingdom: tracking.kingdom }) }}
         </p>
       </div>
       <div class="flex flex-wrap gap-3">
@@ -208,29 +206,22 @@ function deactivateContact(contact: Contact): void {
     </section>
 
     <div class="mt-4 rounded-xl border border-amber-900 bg-amber-950/30 p-4 text-sm text-amber-100">
-      Store handles only. Do not put phone numbers, home addresses, passwords, recovery material, or
-      other private secrets in this directory. Handles and notes stay manager-private and are not
-      copied into audit/outbox payloads.
+      {{ t('kingdomP7B.handlesSafety') }}
     </div>
 
     <div
       v-if="tracking.state !== 'active' || !tracking.contextCurrent"
       class="mt-5 rounded-xl border border-amber-900 bg-amber-950/30 p-4 text-sm text-amber-200"
     >
-      This tracking record is read-only because it is archived or belongs to historical Kingdom
-      context. Existing contact history remains visible, but contacts cannot be created, edited, or
-      deactivated.
+      {{ t('kingdomP7B.contactReadOnly') }}
     </div>
 
     <section class="ks-surface mt-8 p-6">
       <h2 class="text-xl font-semibold">
-        {{ editingId === null ? '{{ t('kingdomP7B.addContact') }}' : '{{
-          t('kingdomP7B.editContact')
-        }}' }}
+        {{ editingId === null ? t('kingdomP7B.addContact') : t('kingdomP7B.editContact') }}
       </h2>
       <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
-        {{ t('kingdomP7B.displayName') }}s and handles are coordination labels only. They never
-        auto-link a Kingdom player or platform account.
+        {{ t('kingdomP7B.contactHelp') }}
       </p>
 
       <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="submitContact">
@@ -280,7 +271,7 @@ function deactivateContact(contact: Contact): void {
             :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
           >
             <option v-for="channel in channels" :key="channel.value" :value="channel.value">
-              {{ channel.label }}
+              {{ channelLabel(channel.value) }}
             </option>
           </select>
           <p v-if="form.errors.channel_type" class="mt-1 text-sm text-rose-300">
@@ -318,7 +309,7 @@ function deactivateContact(contact: Contact): void {
             type="datetime-local"
           />
           <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-            Optional factual verification time; future values are rejected.
+            {{ t('kingdomP7B.verificationHelp') }}
           </p>
           <p v-if="form.errors.last_verified_at" class="mt-1 text-sm text-rose-300">
             {{ form.errors.last_verified_at }}
@@ -347,9 +338,7 @@ function deactivateContact(contact: Contact): void {
             :disabled="form.processing || tracking.state !== 'active' || !tracking.contextCurrent"
             type="submit"
           >
-            {{ editingId === null ? '{{ t('kingdomP7B.addContact') }}' : '{{
-              t('kingdomP7B.saveContact')
-            }}' }}
+            {{ editingId === null ? t('kingdomP7B.addContact') : t('kingdomP7B.saveContact') }}
           </button>
           <button
             v-if="editingId !== null"
@@ -369,21 +358,72 @@ function deactivateContact(contact: Contact): void {
         <div>
           <h2 class="text-xl font-semibold">{{ t('kingdomP7B.directory') }}</h2>
           <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
-            Inactive entries remain visible as coordination history and are not destructively
-            deleted or edited.
+            {{ t('kingdomP7B.directoryHelp') }}
           </p>
         </div>
-        <p class="text-sm text-[var(--ks-text-muted)]">Up to {{ contactLimit }} contacts</p>
+        <p class="text-sm text-[var(--ks-text-muted)]">
+          {{ t('kingdomP7B.contactLimit', { count: contactLimit }) }}
+        </p>
       </div>
 
-      <div v-if="contacts.length" class="mt-6 overflow-x-auto">
+      <div v-if="contacts.length" class="mt-6 grid gap-3 lg:hidden">
+        <article
+          v-for="contact in contacts"
+          :key="contact.id"
+          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/10 p-4"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="font-semibold">{{ contact.displayName }}</p>
+              <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                {{ contact.gameRole ?? t('kingdomP7B.noRole') }}
+              </p>
+            </div>
+            <span class="text-xs font-semibold">{{
+              contact.state === 'active' ? t('kingdomP7B.active') : t('kingdomP7B.inactive')
+            }}</span>
+          </div>
+          <p class="mt-3 text-sm">
+            {{ channelLabel(contact.channelType) }} ·
+            <span class="font-mono text-xs">{{ contact.handle }}</span>
+          </p>
+          <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+            {{ t('kingdomP7B.lastVerified') }}: {{ formatDate(contact.lastVerifiedAt) }}
+          </p>
+          <p
+            v-if="contact.managerNotes"
+            class="mt-3 text-sm whitespace-pre-wrap text-[var(--ks-text-secondary)]"
+          >
+            {{ contact.managerNotes }}
+          </p>
+          <div v-if="contact.state === 'active'" class="mt-3 flex gap-2">
+            <button
+              class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-xs font-semibold"
+              :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
+              type="button"
+              @click="beginEdit(contact)"
+            >
+              {{ t('kingdomP7B.edit') }}</button
+            ><button
+              class="rounded-lg border border-rose-900 px-3 py-2 text-xs font-semibold text-rose-300"
+              :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
+              type="button"
+              @click="deactivateContact(contact)"
+            >
+              {{ t('kingdomP7B.deactivate') }}
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <div v-if="contacts.length" class="mt-6 hidden overflow-x-auto lg:block">
         <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
           <thead class="text-xs tracking-wide text-[var(--ks-text-secondary)] uppercase">
             <tr>
               <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.contact') }}</th>
               <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.channel') }}</th>
               <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.verification') }}</th>
-              <th class="px-3 py-3 font-semibold">Private notes</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.managerNotes') }}</th>
               <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.lifecycle') }}</th>
               <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.actions') }}</th>
             </tr>
@@ -393,7 +433,7 @@ function deactivateContact(contact: Contact): void {
               <td class="px-3 py-4 text-slate-200">
                 <p class="font-semibold">{{ contact.displayName }}</p>
                 <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                  {{ contact.gameRole ?? 'No role recorded' }}
+                  {{ contact.gameRole ?? t('kingdomP7B.noRole') }}
                 </p>
               </td>
               <td class="px-3 py-4 text-slate-300">
@@ -404,7 +444,7 @@ function deactivateContact(contact: Contact): void {
               </td>
               <td class="px-3 py-4 text-slate-300">{{ formatDate(contact.lastVerifiedAt) }}</td>
               <td class="px-3 py-4 whitespace-pre-wrap text-slate-300">
-                {{ contact.managerNotes ?? 'No private notes' }}
+                {{ contact.managerNotes ?? t('kingdomP7B.noNotes') }}
               </td>
               <td class="px-3 py-4 text-slate-300">
                 <p class="font-semibold">{{ contact.state }}</p>
@@ -450,7 +490,7 @@ function deactivateContact(contact: Contact): void {
         v-else
         class="mt-6 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-[var(--ks-text-secondary)]"
       >
-        No diplomacy contacts have been recorded for this tracked alliance.
+        {{ t('kingdomP7B.noContacts') }}
       </p>
     </section>
   </AppLayout>

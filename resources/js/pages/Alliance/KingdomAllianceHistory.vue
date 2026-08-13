@@ -148,14 +148,13 @@ function invalidateObservation(): void {
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <p class="text-sm font-semibold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
-          Kingdom intelligence
+          {{ t('kingdomP7B.eyebrow') }}
         </p>
         <h1 class="mt-2 text-3xl font-bold">
           {{ t('kingdomP7B.historyTitle', { alliance: tracking.name }) }}
         </h1>
         <p class="mt-2 max-w-3xl text-sm text-[var(--ks-text-secondary)]">
-          Kingdom {{ tracking.kingdom }} · {{ tracking.tag ?? 'no tag recorded' }}. Observations are
-          factual historical records and do not imply threat, ranking, or diplomacy state.
+          {{ t('kingdomP7B.historySubtitle', { kingdom: tracking.kingdom }) }}
         </p>
       </div>
       <Link
@@ -173,7 +172,7 @@ function invalidateObservation(): void {
         </p>
         <p class="mt-2 text-xl font-semibold">{{ freshness }}</p>
         <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-          Current means captured within {{ freshDays }} days.
+          {{ t('kingdomP7B.currentWithinDays', { days: freshDays }) }}
         </p>
       </div>
       <div class="ks-surface p-5">
@@ -181,7 +180,7 @@ function invalidateObservation(): void {
           {{ t('kingdomP7B.latestPower') }}
         </p>
         <p class="mt-2 text-xl font-semibold">{{ latest?.power ?? t('kingdomP7B.missing') }}</p>
-        <p class="mt-1 text-xs text-[var(--ks-text-muted)]">Missing is distinct from zero.</p>
+        <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.missingNotZero') }}</p>
       </div>
       <div class="ks-surface p-5">
         <p class="text-xs font-semibold tracking-wide text-[var(--ks-text-secondary)] uppercase">
@@ -195,7 +194,7 @@ function invalidateObservation(): void {
           }}
         </p>
         <p v-if="latest" class="mt-1 text-xs text-[var(--ks-text-muted)]">
-          Captured {{ formatDate(latest.capturedAt) }}
+          {{ t('kingdomP7B.captured', { date: formatDate(latest.capturedAt) }) }}
         </p>
       </div>
     </section>
@@ -204,13 +203,14 @@ function invalidateObservation(): void {
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 class="text-xl font-semibold">
-            {{ recordForm.corrects_observation_id ? '{{ t('kingdomP7B.recordCorrection') }}' : '{{
-              t('kingdomP7B.recordObservation')
-            }}' }}
+            {{
+              recordForm.corrects_observation_id
+                ? t('kingdomP7B.recordCorrection')
+                : t('kingdomP7B.recordObservation')
+            }}
           </h2>
           <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
-            Exact retries are idempotent. A correction appends a new row and invalidates the
-            original; it never rewrites history.
+            {{ t('kingdomP7B.observationHelp') }}
           </p>
         </div>
         <button
@@ -263,7 +263,9 @@ function invalidateObservation(): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="observation-power">Power</label>
+          <label class="block text-sm font-medium" for="observation-power">{{
+            t('kingdomP7B.power')
+          }}</label>
           <input
             id="observation-power"
             v-model="recordForm.power"
@@ -323,7 +325,7 @@ function invalidateObservation(): void {
             placeholder="Manager-private context"
           />
           <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-            Private management detail; excluded from member payloads and event metadata.
+            {{ t('kingdomP7B.correctionPrivate') }}
           </p>
         </div>
 
@@ -336,9 +338,11 @@ function invalidateObservation(): void {
             :disabled="recordForm.processing || !canMutate"
             type="submit"
           >
-            {{ recordForm.corrects_observation_id ? '{{ t('kingdomP7B.recordCorrection') }}' : '{{
-              t('kingdomP7B.recordObservation')
-            }}' }}
+            {{
+              recordForm.corrects_observation_id
+                ? t('kingdomP7B.recordCorrection')
+                : t('kingdomP7B.recordObservation')
+            }}
           </button>
         </div>
       </form>
@@ -348,12 +352,66 @@ function invalidateObservation(): void {
       <div>
         <h2 class="text-xl font-semibold">{{ t('kingdomP7B.historicalObservations') }}</h2>
         <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
-          Up to the latest 250 records are shown, ordered by capture time. Managers also see
-          invalidated records and provenance.
+          {{ t('kingdomP7B.historyHelp') }}
         </p>
       </div>
 
-      <div v-if="history.length" class="mt-6 overflow-x-auto">
+      <div v-if="history.length" class="mt-6 grid gap-3 lg:hidden">
+        <article
+          v-for="observation in history"
+          :key="observation.id ?? observation.capturedAt"
+          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/10 p-4"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="font-semibold">{{ observation.observedName }}</p>
+              <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                {{ observation.observedTag ?? '—' }}
+              </p>
+            </div>
+            <span
+              v-if="observation.invalidatedAt"
+              class="rounded-full bg-rose-950 px-2 py-1 text-xs font-semibold text-rose-300"
+              >{{ t('kingdomP7B.invalidated') }}</span
+            >
+          </div>
+          <dl class="mt-3 grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.capturedAt') }}</dt>
+              <dd>{{ formatDate(observation.capturedAt) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.power') }}</dt>
+              <dd>{{ observation.power ?? t('kingdomP7B.missing') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.members') }}</dt>
+              <dd>{{ observation.memberCount ?? t('kingdomP7B.missing') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.source') }}</dt>
+              <dd>{{ observation.source }}</dd>
+            </div>
+          </dl>
+          <div v-if="canManage && !observation.invalidatedAt && canMutate" class="mt-3 flex gap-2">
+            <button
+              class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-xs font-semibold"
+              type="button"
+              @click="beginCorrection(observation)"
+            >
+              {{ t('kingdomP7B.correct') }}</button
+            ><button
+              class="rounded-lg border border-rose-900 px-3 py-2 text-xs font-semibold text-rose-300"
+              type="button"
+              @click="beginInvalidation(observation)"
+            >
+              {{ t('kingdomP7B.invalidate') }}
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <div v-if="history.length" class="mt-6 hidden overflow-x-auto lg:block">
         <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
           <thead class="text-xs tracking-wide text-[var(--ks-text-secondary)] uppercase">
             <tr>
@@ -386,10 +444,17 @@ function invalidateObservation(): void {
                   {{ observation.observedTag ?? 'No tag' }}
                 </p>
               </td>
-              <td class="px-3 py-4 text-slate-300">{{ observation.power ?? 'missing' }}</td>
-              <td class="px-3 py-4 text-slate-300">{{ observation.memberCount ?? 'missing' }}</td>
+              <td class="px-3 py-4 text-slate-300">
+                {{ observation.power ?? t('kingdomP7B.missing') }}
+              </td>
+              <td class="px-3 py-4 text-slate-300">
+                {{ observation.memberCount ?? t('kingdomP7B.missing') }}
+              </td>
               <td v-if="canManage" class="px-3 py-4 text-slate-300">
-                <p>{{ observation.actorName ?? 'Unavailable actor' }} · {{ observation.source }}</p>
+                <p>
+                  {{ observation.actorName ?? t('kingdomP7B.unavailableActor') }} ·
+                  {{ observation.source }}
+                </p>
                 <p
                   v-if="observation.correctsObservationId"
                   class="mt-1 text-xs text-[var(--ks-text-muted)]"
@@ -438,7 +503,7 @@ function invalidateObservation(): void {
         v-else
         class="mt-6 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-[var(--ks-text-secondary)]"
       >
-        No accepted observations have been recorded yet.
+        {{ t('kingdomP7B.noObservations') }}
       </p>
     </section>
 
@@ -446,12 +511,14 @@ function invalidateObservation(): void {
       v-if="canManage && invalidateTargetId"
       class="mt-8 rounded-2xl border border-rose-900 bg-slate-900/70 p-6"
     >
-      <h2 class="text-xl font-semibold">Invalidate observation</h2>
+      <h2 class="text-xl font-semibold">{{ t('kingdomP7B.invalidate') }}</h2>
       <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
         The original row remains historical and is excluded from latest/freshness projections.
       </p>
       <form class="mt-5" @submit.prevent="invalidateObservation">
-        <label class="block text-sm font-medium" for="invalidation-reason">Reason</label>
+        <label class="block text-sm font-medium" for="invalidation-reason">{{
+          t('kingdomP7B.invalidateReason')
+        }}</label>
         <textarea
           id="invalidation-reason"
           v-model="invalidateForm.reason"
@@ -468,7 +535,7 @@ function invalidateObservation(): void {
             :disabled="invalidateForm.processing || !canMutate"
             type="submit"
           >
-            Confirm invalidation
+            {{ t('kingdomP7B.confirmInvalidation') }}
           </button>
           <button
             class="rounded-lg border border-slate-700 px-4 py-2 font-semibold"
