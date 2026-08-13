@@ -12,8 +12,11 @@ final class RosterExperienceTest extends TestCase
     {
         $roster = $this->read('resources/js/pages/Alliance/Roster.vue');
         $intelligence = $this->read('resources/js/pages/Alliance/RosterIntelligence.vue');
+        $manage = $this->read('resources/js/pages/Alliance/RosterManage.vue');
+        $import = $this->read('resources/js/pages/Alliance/RosterImport.vue');
+        $history = $this->read('resources/js/pages/Alliance/RosterHistory.vue');
 
-        foreach ([$roster, $intelligence] as $source) {
+        foreach ([$roster, $intelligence, $manage, $import, $history] as $source) {
             self::assertStringContainsString('AppLayout', $source);
             self::assertMatchesRegularExpression('/:?has-active-alliance\s*=\s*"true"/', $source);
             self::assertStringNotContainsString('<main', $source);
@@ -27,7 +30,7 @@ final class RosterExperienceTest extends TestCase
             '/alliance/roster/manage',
             '/alliance/roster/${entry.id}/history',
         ] as $route) {
-            self::assertStringContainsString($route, $roster.$intelligence);
+            self::assertStringContainsString($route, $roster.$intelligence.$manage.$history);
         }
 
         foreach ([
@@ -43,24 +46,54 @@ final class RosterExperienceTest extends TestCase
         ] as $contract) {
             self::assertStringContainsString($contract, $roster);
         }
+
+        foreach ([
+            "createForm.post('/alliance/roster'",
+            'router.patch(`/alliance/roster/${entry.id}`',
+            'router.post(`/alliance/roster/${entry.id}/leave`',
+            'href="/alliance/roster/import"',
+        ] as $contract) {
+            self::assertStringContainsString($contract, $manage);
+        }
+
+        foreach ([
+            "uploadForm.post('/alliance/roster/import/preview'",
+            'commitForm.post(`/alliance/roster/import/${props.importRecord.id}/commit`',
+            '/alliance/roster/export.csv?scope=member',
+            '/alliance/roster/export.csv?scope=management',
+        ] as $contract) {
+            self::assertStringContainsString($contract, $import);
+        }
+
+        self::assertStringContainsString(
+            '.post(`/alliance/roster/${props.entry.id}/snapshots`',
+            $history,
+        );
     }
 
     public function test_roster_views_have_intentional_mobile_and_desktop_presentations(): void
     {
         $roster = $this->read('resources/js/pages/Alliance/Roster.vue');
         $intelligence = $this->read('resources/js/pages/Alliance/RosterIntelligence.vue');
+        $import = $this->read('resources/js/pages/Alliance/RosterImport.vue');
+        $history = $this->read('resources/js/pages/Alliance/RosterHistory.vue');
 
-        foreach ([$roster, $intelligence] as $source) {
+        foreach ([$roster, $intelligence, $import, $history] as $source) {
             self::assertStringContainsString('lg:hidden', $source);
             self::assertStringContainsString('hidden overflow-x-auto lg:block', $source);
-            self::assertStringContainsString('xl:sticky xl:top-24', $source);
             self::assertStringContainsString('ks-surface-gold', $source);
+        }
+
+        foreach ([$roster, $intelligence, $history] as $source) {
+            self::assertStringContainsString('xl:sticky xl:top-24', $source);
         }
 
         self::assertStringContainsString('linkedResults', $roster);
         self::assertStringContainsString('snapshotPercent', $roster);
         self::assertStringContainsString('snapshotTone', $intelligence);
         self::assertStringContainsString('rosterStateTone', $intelligence);
+        self::assertStringContainsString('outcomeTone', $import);
+        self::assertStringContainsString('freshnessTone', $history);
     }
 
     public function test_roster_intelligence_only_presents_recorded_metrics(): void
@@ -106,36 +139,43 @@ final class RosterExperienceTest extends TestCase
         }
     }
 
-    public function test_roster_catalogue_covers_all_supported_locales(): void
+    public function test_roster_catalogues_cover_all_supported_locales(): void
     {
-        $source = $this->read('resources/js/localization/messages/roster.ts');
+        $catalogues = [
+            $this->read('resources/js/localization/messages/roster.ts'),
+            $this->read('resources/js/localization/messages/roster-management.ts'),
+            $this->read('resources/js/localization/messages/roster-workflows.ts'),
+        ];
 
-        foreach ([
-            'en',
-            'ar',
-            'de',
-            'es',
-            'fr',
-            'id',
-            'it',
-            'ja',
-            'ko',
-            'pl',
-            'pt-BR',
-            'ru',
-            'th',
-            'tr',
-            'vi',
-            'zh-CN',
-            'zh-TW',
-        ] as $locale) {
-            $present = str_contains($source, $locale.': locale([')
-                || str_contains($source, "'".$locale."': locale([")
-                || str_contains($source, '"'.$locale.'": locale([');
+        foreach ($catalogues as $source) {
+            foreach ([
+                'en',
+                'ar',
+                'de',
+                'es',
+                'fr',
+                'id',
+                'it',
+                'ja',
+                'ko',
+                'pl',
+                'pt-BR',
+                'ru',
+                'th',
+                'tr',
+                'vi',
+                'zh-CN',
+                'zh-TW',
+            ] as $locale) {
+                $present = str_contains($source, $locale.': locale(')
+                    || str_contains($source, "'".$locale."': locale(")
+                    || str_contains($source, '"'.$locale.'": locale(');
 
-            self::assertTrue($present, 'Missing roster locale '.$locale);
+                self::assertTrue($present, 'Missing roster locale '.$locale);
+            }
         }
 
+        $roster = $catalogues[0];
         foreach ([
             'title',
             'freshnessHelp',
@@ -145,7 +185,22 @@ final class RosterExperienceTest extends TestCase
             'trendMethodBody',
             'managerDetail',
         ] as $key) {
-            self::assertStringContainsString("'".$key."'", $source);
+            self::assertStringContainsString("'".$key."'", $roster);
+        }
+
+        $management = $catalogues[1];
+        foreach (['manageSubtitle', 'markLeftConfirm', 'managerNotes', 'savePlayer'] as $key) {
+            self::assertStringContainsString("'".$key."'", $management);
+        }
+
+        $workflows = $catalogues[2];
+        foreach (['confirmAtomic', 'recordSnapshot', 'historyHelp', 'committedSummary'] as $key) {
+            self::assertStringContainsString("'".$key."'", $workflows);
+        }
+
+        $overrides = $this->read('resources/js/localization/messages/roster-workflow-overrides.ts');
+        foreach (['pl', 'ru', 'th', 'tr', 'vi'] as $locale) {
+            self::assertMatchesRegularExpression('/(?:^|\s)'.preg_quote($locale, '/').':\s*\{/', $overrides);
         }
     }
 
@@ -153,8 +208,10 @@ final class RosterExperienceTest extends TestCase
     {
         $roster = $this->read('app/Domain/Kingdoms/Http/Controllers/RosterController.php');
         $intelligence = $this->read('app/Domain/Kingdoms/Http/Controllers/RosterIntelligenceController.php');
+        $csv = $this->read('app/Domain/Kingdoms/Http/Controllers/RosterCsvController.php');
+        $snapshots = $this->read('app/Domain/Kingdoms/Http/Controllers/PlayerSnapshotController.php');
 
-        foreach ([$roster, $intelligence] as $source) {
+        foreach ([$roster, $intelligence, $csv, $snapshots] as $source) {
             self::assertStringContainsString("'name' => (string) \$user->name", $source);
             self::assertStringContainsString("'email' => (string) \$user->email", $source);
             self::assertStringContainsString('PermissionKey::AllianceView', $source);
@@ -163,6 +220,8 @@ final class RosterExperienceTest extends TestCase
         self::assertStringContainsString("Rule::in(['linked', 'unlinked'])", $roster);
         self::assertStringContainsString("Rule::in(['current', 'stale', 'missing'])", $roster);
         self::assertStringContainsString('PermissionKey::KingdomManage', $roster);
+        self::assertStringContainsString("Rule::in(['member', 'management'])", $csv);
+        self::assertStringContainsString("'power' => ['required', 'string', 'regex:/^\\d{1,19}$/']", $snapshots);
     }
 
     private function read(string $path): string
