@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 
+import AuthLayout from '../../layouts/AuthLayout.vue';
+import { useLocale } from '../../localization';
+
 const props = defineProps<{
   status: string | null;
   email: string;
 }>();
+
+const { t } = useLocale();
 
 function resend(): void {
   router.post('/email/verification-notification');
@@ -12,30 +17,37 @@ function resend(): void {
 </script>
 
 <template>
-  <Head title="Verify email" />
+  <Head :title="t('auth.verification.title')" />
 
-  <main class="mx-auto flex min-h-screen max-w-xl items-center px-6 py-16">
-    <section class="w-full rounded-2xl border border-slate-800 bg-slate-900/70 p-8">
-      <h1 class="text-3xl font-bold">Verify your email</h1>
-      <p class="mt-3 text-sm text-slate-300">
-        We sent a verification link to <strong>{{ props.email }}</strong
-        >. Verify the address before performing protected account actions.
+  <AuthLayout>
+    <template #headline>{{ t('auth.verification.title') }}</template>
+    <template #intro>
+      {{ t('authExperience.verification.description', { email: props.email }) }}
+    </template>
+
+    <div>
+      <h2 class="ks-display text-2xl font-semibold sm:text-3xl">
+        {{ t('auth.verification.title') }}
+      </h2>
+      <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
+        {{ t('authExperience.verification.description', { email: props.email }) }}
       </p>
 
       <p
         v-if="props.status === 'verification-link-sent'"
-        class="mt-5 rounded-lg border border-emerald-800 bg-emerald-950/30 p-4 text-sm text-emerald-100"
+        class="mt-6 rounded-[var(--ks-radius-sm)] border border-emerald-800 bg-emerald-950/25 p-4 text-sm leading-6 text-emerald-100"
+        role="status"
       >
-        A fresh verification link has been sent.
+        {{ t('authExperience.verification.sent') }}
       </p>
 
       <button
-        class="mt-8 w-full rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950"
+        class="mt-7 w-full rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-5 py-3 font-bold text-slate-950 transition hover:bg-[var(--ks-gold-strong)]"
         type="button"
         @click="resend"
       >
-        Resend verification email
+        {{ t('auth.verification.resend') }}
       </button>
-    </section>
-  </main>
+    </div>
+  </AuthLayout>
 </template>
