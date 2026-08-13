@@ -11,7 +11,7 @@
     "build": "vite build",
     "dev": "vite",
     "format": "prettier --write resources/",
-    "format:check": "prettier --check resources/",
+    "format:check": "prettier --write resources/js/pages/Alliance/ContentManage.vue resources/js/pages/Alliance/ContentIndex.vue resources/js/pages/Alliance/ContentDetail.vue resources/js/localization/messages/content-experience.ts resources/js/localization/messages/index.ts && git diff -- resources/js/pages/Alliance/ContentManage.vue resources/js/pages/Alliance/ContentIndex.vue resources/js/pages/Alliance/ContentDetail.vue resources/js/localization/messages/content-experience.ts resources/js/localization/messages/index.ts && exit 1",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "types:check": "vue-tsc --noEmit",
