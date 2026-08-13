@@ -32,6 +32,9 @@ jobs:
       - name: Generate domain and locale catalogues
         run: node scripts/migrate-localization-domains.mjs
 
+      - name: Make temporary generator lint-explicit
+        run: sed -i "3i import process from 'node:process';" scripts/migrate-localization-domains.mjs
+
       - name: Format generated frontend and architecture files
         run: |
           npx prettier --write \
