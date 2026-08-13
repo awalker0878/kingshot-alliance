@@ -8,6 +8,7 @@ import {
   type LocaleCode,
 } from './locales';
 import { hasMessageCatalogue, messages } from './messages';
+import { publicMessages } from './messages/public';
 
 const storageKey = 'kingshot.locale';
 const currentLocale = ref<LocaleCode>(defaultLocale);
@@ -16,6 +17,10 @@ type TranslationParams = Record<string, string | number>;
 
 function catalogueFor(locale: LocaleCode) {
   return messages[locale] ?? messages[defaultLocale];
+}
+
+function publicCatalogueFor(locale: LocaleCode) {
+  return publicMessages[locale] ?? publicMessages[defaultLocale];
 }
 
 function readPath(source: unknown, path: string): string | null {
@@ -81,8 +86,12 @@ export function initializeLocale(preferredLocale?: string | null): void {
 }
 
 export function t(key: string, params?: TranslationParams): string {
-  const localized = readPath(catalogueFor(currentLocale.value), key);
-  const fallback = readPath(catalogueFor(defaultLocale), key);
+  const localized =
+    readPath(catalogueFor(currentLocale.value), key) ??
+    readPath(publicCatalogueFor(currentLocale.value), key);
+  const fallback =
+    readPath(catalogueFor(defaultLocale), key) ?? readPath(publicCatalogueFor(defaultLocale), key);
+
   return interpolate(localized ?? fallback ?? key, params);
 }
 
