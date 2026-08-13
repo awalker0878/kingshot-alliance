@@ -1,0 +1,219 @@
+name: UX P6 Content wiring
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .ux-p6-content-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out UX branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ux/ux-001-experience-localization
+
+      - name: Wire content shell identity, catalogue, and guards
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str):
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f'missing anchor in {path}: {old[:80]!r}')
+              p.write_text(text.replace(old, new, 1))
+
+          member = Path('app/Domain/Content/Http/Controllers/MemberContentController.php')
+          text = member.read_text()
+          text = text.replace(
+              "        return Inertia::render('Alliance/ContentIndex', [\n            'alliance' => [",
+              "        return Inertia::render('Alliance/ContentIndex', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' => [",
+              1,
+          )
+          text = text.replace(
+              "        return Inertia::render('Alliance/ContentDetail', [\n            'alliance' => [",
+              "        return Inertia::render('Alliance/ContentDetail', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' => [",
+              1,
+          )
+          member.write_text(text)
+
+          replace_once(
+              'app/Domain/Content/Http/Controllers/ContentManagementController.php',
+              "        return Inertia::render('Alliance/ContentManage', [\n            'alliance' => [",
+              "        return Inertia::render('Alliance/ContentManage', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' => [",
+          )
+
+          p = Path('resources/js/localization/messages/index.ts')
+          text = p.read_text()
+          text = text.replace(
+              "import { contributionLocaleOverrides } from './contribution-extra';\n",
+              "import { contributionLocaleOverrides } from './contribution-extra';\nimport { contentMessages } from './content-experience';\n",
+              1,
+          )
+          text = text.replace(
+              "type BaseMessageTree = StringLeaves<typeof en>;\n",
+              "type BaseMessageTree = StringLeaves<typeof en>;\ntype ContentMessageTree = (typeof contentMessages)['en'];\n",
+              1,
+          )
+          text = text.replace(
+              "export type MessageTree = BaseMessageTree &\n  AccountExperienceMessageTree &",
+              "export type MessageTree = BaseMessageTree &\n  ContentMessageTree &\n  AccountExperienceMessageTree &",
+              1,
+          )
+          text = text.replace(
+              "    ...baseMessages[locale],\n    ...accountExperienceMessages[locale],",
+              "    ...baseMessages[locale],\n    ...contentMessages[locale],\n    ...accountExperienceMessages[locale],",
+              1,
+          )
+          p.write_text(text)
+
+          p = Path('resources/js/pages/Alliance/ContentManage.vue')
+          text = p.read_text().replace('accept="image/*"', 'accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"')
+          p.write_text(text)
+
+          Path('tests/Architecture/ContentExperienceTest.php').write_text(r'''<?php
+
+declare(strict_types=1);
+
+namespace Tests\Architecture;
+
+use PHPUnit\Framework\TestCase;
+
+final class ContentExperienceTest extends TestCase
+{
+    public function test_member_content_pages_use_shared_shell_and_real_routes(): void
+    {
+        $index = $this->read('resources/js/pages/Alliance/ContentIndex.vue');
+        $detail = $this->read('resources/js/pages/Alliance/ContentDetail.vue');
+        $manage = $this->read('resources/js/pages/Alliance/ContentManage.vue');
+
+        foreach ([$index, $detail, $manage] as $source) {
+            self::assertStringContainsString('AppLayout', $source);
+            self::assertStringContainsString(':has-active-alliance="true"', $source);
+            self::assertStringNotContainsString('<main', $source);
+            self::assertStringContainsString('<h1', $source);
+            self::assertStringNotContainsString('v-html', $source);
+        }
+
+        foreach ([
+            '/alliance/content',
+            '/alliance/content/manage',
+            '/alliance/content/${item.slug}',
+            '/alliance/public-profile',
+            '/alliance/content/categories',
+            '/alliance/content/${editingId.value}',
+            '/alliance/content/${id}/publish',
+            '/revisions/${revision.id}/restore',
+            '/alliance/media',
+            '/alliance/media/${asset.id}',
+        ] as $contract) {
+            self::assertStringContainsString($contract, $index.$detail.$manage);
+        }
+    }
+
+    public function test_content_visuals_use_only_recorded_publishing_state(): void
+    {
+        $source = $this->read('resources/js/pages/Alliance/ContentIndex.vue')
+            .$this->read('resources/js/pages/Alliance/ContentDetail.vue')
+            .$this->read('resources/js/pages/Alliance/ContentManage.vue');
+
+        foreach ([
+            'Views',
+            'Engagement',
+            'Conversion',
+            'Content Performance',
+            'Most popular',
+            'AI summary',
+            'AI writer',
+            'AI recommendations',
+            'social share count',
+        ] as $invented) {
+            self::assertStringNotContainsString($invented, $source);
+        }
+    }
+
+    public function test_content_catalogue_covers_all_supported_locales(): void
+    {
+        $source = $this->read('resources/js/localization/messages/content-experience.ts');
+        foreach (['en','ar','de','es','fr','id','it','ja','ko','pl','pt-BR','ru','th','tr','vi','zh-CN','zh-TW'] as $locale) {
+            self::assertStringContainsString("'".$locale."'", $source);
+        }
+        foreach (['hubTitle', 'manageContent', 'publicProfile', 'createContent', 'mediaLibrary', 'contentInventory'] as $key) {
+            self::assertStringContainsString($key.':', $source);
+        }
+    }
+
+    public function test_content_controllers_expose_authenticated_shell_identity_without_new_domain_state(): void
+    {
+        foreach ([
+            'app/Domain/Content/Http/Controllers/MemberContentController.php',
+            'app/Domain/Content/Http/Controllers/ContentManagementController.php',
+        ] as $path) {
+            $source = $this->read($path);
+            self::assertStringContainsString("'name' => (string) \\$user->name", $source);
+            self::assertStringContainsString("'email' => (string) \\$user->email", $source);
+        }
+
+        $manager = $this->read('app/Domain/Content/Http/Controllers/ContentManagementController.php');
+        self::assertStringContainsString('PermissionKey::ContentManage', $manager);
+        self::assertStringContainsString("'scheduled_for' => ['nullable', 'date']", $manager);
+        self::assertStringContainsString('RestoreContentRevision', $manager);
+        self::assertStringContainsString('UploadMediaAsset', $manager);
+    }
+
+    private function read(string $path): string
+    {
+        $source = file_get_contents(dirname(__DIR__, 2).'/'.$path);
+        self::assertIsString($source);
+
+        return $source;
+    }
+}
+''')
+          PY
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Apply pinned Prettier
+        run: npx prettier --write resources/js/pages/Alliance/ContentIndex.vue resources/js/pages/Alliance/ContentDetail.vue resources/js/pages/Alliance/ContentManage.vue resources/js/localization/messages/content-experience.ts resources/js/localization/messages/index.ts
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Apply Pint
+        run: vendor/bin/pint app/Domain/Content/Http/Controllers/MemberContentController.php app/Domain/Content/Http/Controllers/ContentManagementController.php tests/Architecture/ContentExperienceTest.php
+
+      - name: Commit content wiring
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/Domain/Content/Http/Controllers/MemberContentController.php app/Domain/Content/Http/Controllers/ContentManagementController.php resources/js/pages/Alliance/ContentIndex.vue resources/js/pages/Alliance/ContentDetail.vue resources/js/pages/Alliance/ContentManage.vue resources/js/localization/messages/content-experience.ts resources/js/localization/messages/index.ts tests/Architecture/ContentExperienceTest.php
+          if ! git diff --cached --quiet; then
+            git commit -m "Wire UX-P6 content experience"
+            git push origin HEAD:ux/ux-001-experience-localization
+          fi
