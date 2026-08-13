@@ -13,6 +13,7 @@ import en from './en';
 import { eventCoordinatorMessages } from './event-coordinator';
 import { eventDetailMessages } from './event-detail';
 import { integrationMessages } from './integration-experience';
+import { kingdomP7AMessages } from './kingdom-p7a';
 import { publicExtraMessages } from './public-extra';
 import { publicMessages } from './public';
 import { recruitmentMessages } from './recruitment';
@@ -162,6 +163,7 @@ const contributionOverrides = {
 type BaseMessageTree = StringLeaves<typeof en>;
 type ContentMessageTree = (typeof contentMessages)['en'];
 type IntegrationMessageTree = (typeof integrationMessages)['en'];
+type KingdomP7AMessageTree = (typeof kingdomP7AMessages)['en'];
 type AccountExperienceMessageTree = (typeof accountExperienceMessages)['en'];
 type AllianceOperationsMessageTree = (typeof allianceOperationsMessages)['en'];
 type ApplicationExtraMessageTree = (typeof applicationExtraMessages)['en'];
@@ -179,6 +181,7 @@ type ContributionMessageTree = { contributions: { [K in keyof typeof contributio
 export type MessageTree = BaseMessageTree &
   ContentMessageTree &
   IntegrationMessageTree &
+  KingdomP7AMessageTree &
   AccountExperienceMessageTree &
   AllianceOperationsMessageTree &
   ApplicationExtraMessageTree &
@@ -203,6 +206,7 @@ function catalogue(locale: LocaleCode) {
     ...baseMessages[locale],
     ...contentMessages[locale],
     ...integrationMessages[locale],
+    ...kingdomP7AMessages[locale],
     ...accountExperienceMessages[locale],
     ...allianceOperationsMessages[locale],
     ...applicationExtraMessages[locale],
