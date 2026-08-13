@@ -1,0 +1,57 @@
+name: Domain locale migration apply
+
+on:
+  push:
+    branches:
+      - perf/domain-locale-code-splitting
+    paths:
+      - '.perf-localization-apply'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: perf/domain-locale-code-splitting
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci
+
+      - name: Generate domain and locale catalogues
+        run: node scripts/migrate-localization-domains.mjs
+
+      - name: Format generated frontend and architecture files
+        run: |
+          npx prettier --write \
+            resources/js/app.ts \
+            resources/js/components/navigation/LocaleSwitcher.vue \
+            resources/js/localization \
+            resources/js/pages/Platform/Administration/Index.vue \
+            scripts/check-localization-chunks.mjs \
+            package.json
+
+      - name: Run frontend quality and chunk checks
+        run: npm run check
+
+      - name: Remove migration generator and trigger
+        run: rm -f scripts/migrate-localization-domains.mjs .perf-localization-apply
+
+      - name: Commit generated architecture
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Implement domain and locale code splitting'
+          git push origin HEAD:perf/domain-locale-code-splitting
