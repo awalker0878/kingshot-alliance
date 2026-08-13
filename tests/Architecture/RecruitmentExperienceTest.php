@@ -112,8 +112,8 @@ final class RecruitmentExperienceTest extends TestCase
             'app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php',
         ] as $path) {
             $source = $this->read($path);
-            self::assertStringContainsString("'name' => (string) $user->name", $source);
-            self::assertStringContainsString("'email' => (string) $user->email", $source);
+            self::assertStringContainsString("'name' => (string) \$user->name", $source);
+            self::assertStringContainsString("'email' => (string) \$user->email", $source);
             self::assertStringContainsString('PermissionKey::RecruitmentManage', $source);
         }
     }
