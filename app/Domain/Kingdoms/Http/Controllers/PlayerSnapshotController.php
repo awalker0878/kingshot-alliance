@@ -43,6 +43,10 @@ final class PlayerSnapshotController extends Controller
         $latest = $snapshots->latestForEntry($alliance, $rosterEntry);
 
         return Inertia::render('Alliance/RosterHistory', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'id' => (string) $alliance->id,
                 'name' => (string) $alliance->name,
