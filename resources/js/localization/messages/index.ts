@@ -3,16 +3,17 @@ import { accountExperienceMessages } from './account-extra';
 import { allianceOperationsMessages } from './alliance-operations';
 import { applicationExtraMessages } from './app-extra';
 import { authExtraMessages } from './auth-extra';
+import { additionalCatalogues } from './catalogues';
 import { contributionLocaleOverrides2 } from './contribution-extra-2';
 import { contributionLocaleOverrides3 } from './contribution-extra-3';
 import { contributionLocaleOverrides4 } from './contribution-extra-4';
 import { contributionLocaleOverrides } from './contribution-extra';
-import { additionalCatalogues } from './catalogues';
 import en from './en';
 import { eventCoordinatorMessages } from './event-coordinator';
 import { eventDetailMessages } from './event-detail';
 import { publicExtraMessages } from './public-extra';
 import { publicMessages } from './public';
+import { recruitmentMessages } from './recruitment';
 import { rosterManagementMessages } from './roster-management';
 import { rosterMessages } from './roster';
 import { rosterWorkflowOverrides } from './roster-workflow-overrides';
@@ -165,6 +166,7 @@ type EventCoordinatorMessageTree = (typeof eventCoordinatorMessages)['en'];
 type EventDetailMessageTree = (typeof eventDetailMessages)['en'];
 type PublicMessageTree = (typeof publicMessages)['en'];
 type PublicExtraMessageTree = (typeof publicExtraMessages)['en'];
+type RecruitmentMessageTree = (typeof recruitmentMessages)['en'];
 type RosterManagementMessageTree = (typeof rosterManagementMessages)['en'];
 type RosterMessageTree = (typeof rosterMessages)['en'];
 type RosterWorkflowMessageTree = (typeof rosterWorkflowMessages)['en'];
@@ -179,6 +181,7 @@ export type MessageTree = BaseMessageTree &
   EventDetailMessageTree &
   PublicMessageTree &
   PublicExtraMessageTree &
+  RecruitmentMessageTree &
   RosterManagementMessageTree &
   RosterMessageTree &
   RosterWorkflowMessageTree &
@@ -200,6 +203,7 @@ function catalogue(locale: LocaleCode) {
     ...eventDetailMessages[locale],
     ...publicMessages[locale],
     ...publicExtraMessages[locale],
+    ...recruitmentMessages[locale],
     ...rosterManagementMessages[locale],
     ...rosterMessages[locale],
     ...rosterWorkflowMessages[locale],
