@@ -60,6 +60,10 @@ final class TransferCompletionController extends Controller
             ->all();
 
         return Inertia::render('Alliance/TransferCompletionManage', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => $this->alliance($alliance),
             'plan' => $plan === null ? null : [
                 'id' => (string) $plan->id,

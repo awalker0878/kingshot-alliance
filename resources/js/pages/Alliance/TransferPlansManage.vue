@@ -2,6 +2,9 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, reactive } from 'vue';
 
+import AppLayout from '../../layouts/AppLayout.vue';
+import { useLocale } from '../../localization';
+
 type Plan = {
   id: string;
   label: string;
@@ -59,6 +62,7 @@ type MembershipOption = {
 };
 
 const props = defineProps<{
+  user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string | null };
   plans: Plan[];
   mutablePlan: Plan | null;
@@ -68,11 +72,9 @@ const props = defineProps<{
   memberships: MembershipOption[];
 }>();
 
-const createForm = useForm({
-  label: '',
-  starts_on: '',
-  ends_on: '',
-});
+const { t, formatDate } = useLocale();
+
+const createForm = useForm({ label: '', starts_on: '', ends_on: '' });
 const transitionForm = useForm<Record<string, string>>({});
 const groupForm = useForm({
   name: '',
@@ -166,14 +168,16 @@ function createPlan(): void {
 }
 
 function transition(plan: Plan, action: 'open' | 'lock' | 'close' | 'cancel'): void {
-  if (action === 'cancel' && !window.confirm(`Cancel transfer cycle “${plan.label}”?`)) return;
-
+  if (
+    action === 'cancel' &&
+    !window.confirm(t('kingdomP7D.cancelCycleConfirm', { label: plan.label }))
+  )
+    return;
   transitionForm.post(`/alliance/transfers/${plan.id}/${action}`, { preserveScroll: true });
 }
 
 function createGroup(): void {
   if (props.mutablePlan === null) return;
-
   groupForm.post(`/alliance/transfers/${props.mutablePlan.id}/groups`, {
     preserveScroll: true,
     onSuccess: () => groupForm.reset(),
@@ -182,20 +186,16 @@ function createGroup(): void {
 
 function saveGroup(group: Group): void {
   if (props.mutablePlan === null || group.state !== 'active') return;
-
   router.patch(
     `/alliance/transfers/${props.mutablePlan.id}/groups/${group.id}`,
     groupDrafts[group.id],
-    {
-      preserveScroll: true,
-    },
+    { preserveScroll: true },
   );
 }
 
 function archiveGroup(group: Group): void {
   if (props.mutablePlan === null || group.state !== 'active') return;
-  if (!window.confirm(`Archive transfer group “${group.name}”?`)) return;
-
+  if (!window.confirm(t('kingdomP7D.archiveGroupConfirm', { name: group.name }))) return;
   router.post(
     `/alliance/transfers/${props.mutablePlan.id}/groups/${group.id}/archive`,
     {},
@@ -205,7 +205,6 @@ function archiveGroup(group: Group): void {
 
 function createParticipant(): void {
   if (props.mutablePlan === null) return;
-
   participantForm.post(`/alliance/transfers/${props.mutablePlan.id}/participants`, {
     preserveScroll: true,
     onSuccess: () => participantForm.reset(),
@@ -214,7 +213,6 @@ function createParticipant(): void {
 
 function saveParticipant(participant: Participant): void {
   if (props.mutablePlan === null) return;
-
   router.patch(
     `/alliance/transfers/${props.mutablePlan.id}/participants/${participant.id}`,
     drafts[participant.id],
@@ -224,7 +222,6 @@ function saveParticipant(participant: Participant): void {
 
 function assignParticipantGroup(participant: Participant): void {
   if (props.mutablePlan === null || participant.withdrawnAt !== null) return;
-
   router.patch(
     `/alliance/transfers/${props.mutablePlan.id}/participants/${participant.id}/group`,
     { transfer_group_id: groupAssignments[participant.id] || null },
@@ -234,8 +231,7 @@ function assignParticipantGroup(participant: Participant): void {
 
 function withdrawParticipant(participant: Participant): void {
   if (props.mutablePlan === null || participant.withdrawnAt !== null) return;
-  if (!window.confirm(`Withdraw ${participant.name} from this transfer cycle?`)) return;
-
+  if (!window.confirm(t('kingdomP7D.withdrawConfirm', { name: participant.name }))) return;
   router.post(
     `/alliance/transfers/${props.mutablePlan.id}/participants/${participant.id}/withdraw`,
     {},
@@ -244,7 +240,25 @@ function withdrawParticipant(participant: Participant): void {
 }
 
 function stateLabel(state: string): string {
-  return state.charAt(0).toUpperCase() + state.slice(1);
+  const key: Record<string, string> = {
+    draft: 'stateDraft',
+    open: 'stateOpen',
+    locked: 'stateLocked',
+    closed: 'stateClosed',
+    cancelled: 'stateCancelled',
+    active: 'groupActive',
+    archived: 'groupArchived',
+  };
+  return t(`kingdomP7D.${key[state] ?? 'state'}`);
+}
+
+function directionLabel(direction: 'staying' | 'outgoing' | 'incoming'): string {
+  const key = {
+    staying: 'directionStaying',
+    outgoing: 'directionOutgoing',
+    incoming: 'directionIncoming',
+  } as const;
+  return t(`kingdomP7D.${key[direction]}`);
 }
 
 function canOpen(plan: Plan): boolean {
@@ -257,429 +271,371 @@ function isRosterBound(direction: string): boolean {
 
 function compatibleGroups(participant: Participant): Group[] {
   if (participant.direction === 'staying') return [];
-
   return activeGroups.value.filter((group) => {
     if (group.direction !== participant.direction) return false;
     if (group.direction === 'outgoing' && group.destinationKingdom !== null) {
       return group.destinationKingdom === participant.destinationKingdom;
     }
-
     return true;
   });
 }
+
+function dateOnly(value: string | null): string {
+  if (!value) return '—';
+  return formatDate(`${value}T12:00:00`, { dateStyle: 'medium' });
+}
+
+const inputClass =
+  'mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm text-[var(--ks-text)] disabled:cursor-not-allowed disabled:opacity-50';
+const labelClass =
+  'block text-xs font-semibold tracking-wide text-[var(--ks-text-muted)] uppercase';
 </script>
 
 <template>
-  <Head :title="`Manage transfers · ${alliance.name}`" />
-  <main>
-    <header>
-      <Link href="/alliance/transfers">← Transfer planning</Link>
-      <h1>Manage transfers</h1>
-      <p>{{ alliance.name }} · Kingdom {{ alliance.kingdom ?? 'not set' }}</p>
-      <Link href="/alliance/roster/manage">Manage roster</Link>
+  <Head :title="`${t('kingdomP7D.manageTitle')} · ${alliance.name}`" />
+
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+    <header class="flex flex-wrap items-start justify-between gap-5">
+      <div class="max-w-3xl">
+        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+          {{ t('kingdomP7D.manageEyebrow') }}
+        </p>
+        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
+          {{ t('kingdomP7D.manageTitle') }}
+        </h1>
+        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
+          {{
+            t('kingdomP7D.manageSubtitle', {
+              alliance: alliance.name,
+              kingdom: alliance.kingdom ?? t('kingdomP7D.notConfigured'),
+            })
+          }}
+        </p>
+      </div>
+      <nav :aria-label="t('kingdomP7D.overviewNavigation')" class="flex flex-wrap gap-2">
+        <Link
+          class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
+          href="/alliance/transfers"
+          >{{ t('kingdomP7D.title') }}</Link
+        >
+        <Link
+          class="rounded-lg border border-blue-400/30 px-3 py-2 text-sm font-semibold text-blue-200"
+          href="/alliance/transfers/readiness"
+          >{{ t('kingdomP7D.readinessBoard') }}</Link
+        >
+        <Link
+          class="rounded-lg border border-green-400/30 px-3 py-2 text-sm font-semibold text-green-200"
+          href="/alliance/transfers/completion"
+          >{{ t('kingdomP7D.completion') }}</Link
+        >
+        <Link
+          class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
+          href="/alliance/roster/manage"
+          >{{ t('kingdomP7D.manageRoster') }}</Link
+        >
+      </nav>
     </header>
 
-    <section>
-      <h2>Create transfer cycle</h2>
-      <p>
-        New cycles begin in Draft and capture the alliance's current Kingdom as planning context.
-      </p>
-      <form @submit.prevent="createPlan">
-        <div>
-          <label for="transfer-label">Cycle label</label>
-          <input
-            id="transfer-label"
-            v-model="createForm.label"
-            maxlength="160"
-            required
-            type="text"
-          />
-          <p v-if="createForm.errors.label">{{ createForm.errors.label }}</p>
-        </div>
-        <div>
-          <label for="transfer-start">Start date</label>
-          <input id="transfer-start" v-model="createForm.starts_on" type="date" />
-        </div>
-        <div>
-          <label for="transfer-end">End date</label>
-          <input id="transfer-end" v-model="createForm.ends_on" type="date" />
-        </div>
-        <button :disabled="createForm.processing" type="submit">Create draft</button>
-      </form>
-      <p v-if="createPlanError" role="alert">{{ createPlanError }}</p>
-    </section>
-
-    <section>
-      <h2>Transfer cycles</h2>
-      <p>
-        The normal lifecycle is Draft → Open → Locked → Closed. Draft, Open, or Locked may be
-        cancelled.
-      </p>
-      <p v-if="transitionForm.errors.plan" role="alert">{{ transitionForm.errors.plan }}</p>
-      <div v-if="plans.length" class="overflow-x-auto">
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Cycle</th>
-              <th scope="col">Home kingdom</th>
-              <th scope="col">Dates</th>
-              <th scope="col">State</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="plan in plans" :key="plan.id">
-              <td>{{ plan.label }}</td>
-              <td>{{ plan.homeKingdom }}</td>
-              <td>{{ plan.startsOn ?? '—' }} → {{ plan.endsOn ?? '—' }}</td>
-              <td>{{ stateLabel(plan.state) }}</td>
-              <td>
-                <button
-                  v-if="plan.state === 'draft'"
-                  :disabled="!canOpen(plan)"
-                  type="button"
-                  @click="transition(plan, 'open')"
-                >
-                  Open
-                </button>
-                <button
-                  v-if="plan.state === 'open'"
-                  type="button"
-                  @click="transition(plan, 'lock')"
-                >
-                  Lock
-                </button>
-                <button
-                  v-if="plan.state === 'locked'"
-                  type="button"
-                  @click="transition(plan, 'close')"
-                >
-                  Close
-                </button>
-                <button
-                  v-if="['draft', 'open', 'locked'].includes(plan.state)"
-                  type="button"
-                  @click="transition(plan, 'cancel')"
-                >
-                  Cancel
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p v-else>No transfer cycles have been created yet.</p>
-    </section>
-
-    <section v-if="mutablePlan">
-      <h2>Transfer groups · {{ mutablePlan.label }}</h2>
-      <p>
-        Groups coordinate incoming or outgoing players with compatible destinations. A coordinator
-        is workflow responsibility only and receives no additional permissions.
-      </p>
-
-      <form @submit.prevent="createGroup">
-        <div>
-          <label for="group-name">Group name</label>
-          <input id="group-name" v-model="groupForm.name" maxlength="160" required type="text" />
-          <p v-if="groupForm.errors.name">{{ groupForm.errors.name }}</p>
-        </div>
-        <div>
-          <label for="group-direction">Direction</label>
-          <select id="group-direction" v-model="groupForm.direction">
-            <option value="incoming">Incoming</option>
-            <option value="outgoing">Outgoing</option>
-          </select>
-        </div>
-        <div v-if="groupForm.direction === 'outgoing'">
-          <label for="group-destination">Destination Kingdom</label>
-          <input
-            id="group-destination"
-            v-model="groupForm.destination_kingdom"
-            inputmode="numeric"
-            type="text"
-          />
-          <p>Leave blank while the outgoing destination is undecided.</p>
-        </div>
-        <p v-else>Incoming destination is fixed to Kingdom {{ mutablePlan.homeKingdom }}.</p>
-        <div>
-          <label for="group-coordinator">Coordinator</label>
-          <select id="group-coordinator" v-model="groupForm.coordinator_membership_id">
-            <option value="">Unassigned</option>
-            <option v-for="membership in memberships" :key="membership.id" :value="membership.id">
-              {{ membership.name }} · {{ membership.email }}
-            </option>
-          </select>
-        </div>
-        <div>
-          <label for="group-notes">Manager notes</label>
-          <textarea id="group-notes" v-model="groupForm.manager_notes" maxlength="5000" rows="3" />
-        </div>
-        <button :disabled="groupForm.processing" type="submit">Create group</button>
-        <p v-if="groupError" role="alert">{{ groupError }}</p>
-        <p v-if="groupForm.hasErrors" role="alert">Correct the group fields above and try again.</p>
-      </form>
-
-      <div v-if="groups.length" class="overflow-x-auto">
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Group</th>
-              <th scope="col">Direction / destination</th>
-              <th scope="col">Coordinator</th>
-              <th scope="col">Manager notes</th>
-              <th scope="col">State</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="group in groups" :key="group.id">
-              <td>
-                <label :for="`group-name-${group.id}`">Name</label>
-                <input
-                  :id="`group-name-${group.id}`"
-                  v-model="groupDrafts[group.id].name"
-                  :disabled="group.state !== 'active'"
-                  maxlength="160"
-                  type="text"
-                />
-              </td>
-              <td>
-                <label :for="`group-direction-${group.id}`">Direction</label>
-                <select
-                  :id="`group-direction-${group.id}`"
-                  v-model="groupDrafts[group.id].direction"
-                  :disabled="group.state !== 'active'"
-                >
-                  <option value="incoming">Incoming</option>
-                  <option value="outgoing">Outgoing</option>
-                </select>
-                <template v-if="groupDrafts[group.id].direction === 'outgoing'">
-                  <label :for="`group-destination-${group.id}`">Destination Kingdom</label>
-                  <input
-                    :id="`group-destination-${group.id}`"
-                    v-model="groupDrafts[group.id].destination_kingdom"
-                    :disabled="group.state !== 'active'"
-                    inputmode="numeric"
-                    type="text"
-                  />
-                </template>
-                <span v-else>Kingdom {{ mutablePlan.homeKingdom }}</span>
-              </td>
-              <td>
-                <label :for="`group-coordinator-${group.id}`">Coordinator</label>
-                <select
-                  :id="`group-coordinator-${group.id}`"
-                  v-model="groupDrafts[group.id].coordinator_membership_id"
-                  :disabled="group.state !== 'active'"
-                >
-                  <option value="">Unassigned</option>
-                  <option
-                    v-for="membership in memberships"
-                    :key="membership.id"
-                    :value="membership.id"
-                  >
-                    {{ membership.name }}
-                  </option>
-                </select>
-              </td>
-              <td>
-                <label :for="`group-notes-${group.id}`">Manager notes</label>
-                <textarea
-                  :id="`group-notes-${group.id}`"
-                  v-model="groupDrafts[group.id].manager_notes"
-                  :disabled="group.state !== 'active'"
-                  maxlength="5000"
-                  rows="2"
-                />
-              </td>
-              <td>{{ stateLabel(group.state) }}</td>
-              <td>
-                <button v-if="group.state === 'active'" type="button" @click="saveGroup(group)">
-                  Save
-                </button>
-                <button v-if="group.state === 'active'" type="button" @click="archiveGroup(group)">
-                  Archive
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p v-else>No transfer groups have been created yet.</p>
-    </section>
-
-    <section v-if="mutablePlan">
-      <h2>Participants · {{ mutablePlan.label }}</h2>
-      <p>
-        Draft and Open cycles may be edited. Incoming players may exist before roster or site
-        membership.
-      </p>
-
-      <form @submit.prevent="createParticipant">
-        <div>
-          <label for="participant-direction">Direction</label>
-          <select id="participant-direction" v-model="participantForm.direction">
-            <option value="staying">Staying</option>
-            <option value="outgoing">Outgoing</option>
-            <option value="incoming">Incoming</option>
-          </select>
-        </div>
-        <div v-if="isRosterBound(participantForm.direction)">
-          <label for="participant-roster">Roster player</label>
-          <select id="participant-roster" v-model="participantForm.roster_entry_id" required>
-            <option value="">Select roster player</option>
-            <option v-for="entry in rosterOptions" :key="entry.id" :value="entry.id">
-              {{ entry.name }}
-            </option>
-          </select>
-        </div>
-        <div v-if="participantForm.direction === 'outgoing'">
-          <label for="participant-destination">Destination Kingdom</label>
-          <input
-            id="participant-destination"
-            v-model="participantForm.destination_kingdom"
-            inputmode="numeric"
-            type="text"
-          />
-          <p>Leave blank while the destination is undecided.</p>
-        </div>
-        <template v-if="participantForm.direction === 'incoming'">
-          <div>
-            <label for="participant-name">Incoming player name</label>
+    <section class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+      <div class="ks-surface p-5 sm:p-6">
+        <h2 class="text-xl font-semibold">{{ t('kingdomP7D.createCycle') }}</h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--ks-text-muted)]">
+          {{ t('kingdomP7D.createCycleHelp') }}
+        </p>
+        <form class="mt-5 grid gap-4 sm:grid-cols-2" @submit.prevent="createPlan">
+          <div class="sm:col-span-2">
+            <label :class="labelClass" for="transfer-label">{{ t('kingdomP7D.cycleLabel') }}</label>
             <input
-              id="participant-name"
-              v-model="participantForm.name"
+              id="transfer-label"
+              v-model="createForm.label"
+              :class="inputClass"
               maxlength="160"
+              required
               type="text"
+            />
+            <p v-if="createForm.errors.label" class="mt-1 text-xs text-red-200">
+              {{ createForm.errors.label }}
+            </p>
+          </div>
+          <div>
+            <label :class="labelClass" for="transfer-start">{{ t('kingdomP7D.startDate') }}</label
+            ><input
+              id="transfer-start"
+              v-model="createForm.starts_on"
+              :class="inputClass"
+              type="date"
             />
           </div>
           <div>
-            <label for="participant-game-id">Game player ID</label>
-            <input
-              id="participant-game-id"
-              v-model="participantForm.game_player_id"
-              maxlength="100"
-              type="text"
+            <label :class="labelClass" for="transfer-end">{{ t('kingdomP7D.endDate') }}</label
+            ><input
+              id="transfer-end"
+              v-model="createForm.ends_on"
+              :class="inputClass"
+              type="date"
             />
           </div>
+          <div class="sm:col-span-2">
+            <button
+              class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50"
+              :disabled="createForm.processing"
+              type="submit"
+            >
+              {{ t('kingdomP7D.createDraft') }}
+            </button>
+          </div>
+        </form>
+        <p v-if="createPlanError" role="alert" class="mt-3 text-sm text-red-200">
+          {{ createPlanError }}
+        </p>
+      </div>
+
+      <div class="ks-surface p-5 sm:p-6">
+        <h2 class="text-xl font-semibold">{{ t('kingdomP7D.transferCycles') }}</h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--ks-text-muted)]">
+          {{ t('kingdomP7D.cycleLifecycle') }}
+        </p>
+        <p v-if="transitionForm.errors.plan" role="alert" class="mt-3 text-sm text-red-200">
+          {{ transitionForm.errors.plan }}
+        </p>
+        <div
+          v-if="plans.length"
+          class="mt-5 overflow-x-auto rounded-xl border border-[var(--ks-border)]"
+        >
+          <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
+            <caption class="sr-only">
+              {{
+                t('kingdomP7D.transferCycles')
+              }}
+            </caption>
+            <thead class="bg-white/[0.03] text-xs text-[var(--ks-text-muted)] uppercase">
+              <tr>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.cycle') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.homeKingdom') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.dates') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.state') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr v-for="plan in plans" :key="plan.id">
+                <td class="px-3 py-4 font-semibold">{{ plan.label }}</td>
+                <td class="px-3 py-4">{{ plan.homeKingdom }}</td>
+                <td class="px-3 py-4 whitespace-nowrap">
+                  {{ dateOnly(plan.startsOn) }} → {{ dateOnly(plan.endsOn) }}
+                </td>
+                <td class="px-3 py-4">{{ stateLabel(plan.state) }}</td>
+                <td class="px-3 py-4">
+                  <div class="flex flex-wrap gap-2">
+                    <button
+                      v-if="plan.state === 'draft'"
+                      class="rounded-lg border border-blue-400/30 px-2.5 py-1.5 text-xs font-semibold text-blue-200 disabled:opacity-40"
+                      :disabled="!canOpen(plan)"
+                      type="button"
+                      @click="transition(plan, 'open')"
+                    >
+                      {{ t('kingdomP7D.open') }}</button
+                    ><button
+                      v-if="plan.state === 'open'"
+                      class="rounded-lg border border-amber-400/30 px-2.5 py-1.5 text-xs font-semibold text-amber-200"
+                      type="button"
+                      @click="transition(plan, 'lock')"
+                    >
+                      {{ t('kingdomP7D.lock') }}</button
+                    ><button
+                      v-if="plan.state === 'locked'"
+                      class="rounded-lg border border-green-400/30 px-2.5 py-1.5 text-xs font-semibold text-green-200"
+                      type="button"
+                      @click="transition(plan, 'close')"
+                    >
+                      {{ t('kingdomP7D.close') }}</button
+                    ><button
+                      v-if="['draft', 'open', 'locked'].includes(plan.state)"
+                      class="rounded-lg border border-red-400/30 px-2.5 py-1.5 text-xs font-semibold text-red-200"
+                      type="button"
+                      @click="transition(plan, 'cancel')"
+                    >
+                      {{ t('kingdomP7D.cancel') }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">
+          {{ t('kingdomP7D.noCycles') }}
+        </p>
+      </div>
+    </section>
+
+    <template v-if="mutablePlan">
+      <section class="ks-surface mt-6 p-5 sm:p-6" aria-labelledby="groups-manage-heading">
+        <h2 id="groups-manage-heading" class="text-xl font-semibold">
+          {{ t('kingdomP7D.groupsForCycle', { label: mutablePlan.label }) }}
+        </h2>
+        <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-muted)]">
+          {{ t('kingdomP7D.groupsHelp') }}
+        </p>
+        <form class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5" @submit.prevent="createGroup">
           <div>
-            <label for="participant-source">Source Kingdom</label>
-            <input
-              id="participant-source"
-              v-model="participantForm.source_kingdom"
+            <label :class="labelClass" for="group-name">{{ t('kingdomP7D.groupName') }}</label
+            ><input
+              id="group-name"
+              v-model="groupForm.name"
+              :class="inputClass"
+              maxlength="160"
+              required
+              type="text"
+            />
+            <p v-if="groupForm.errors.name" class="mt-1 text-xs text-red-200">
+              {{ groupForm.errors.name }}
+            </p>
+          </div>
+          <div>
+            <label :class="labelClass" for="group-direction">{{ t('kingdomP7D.direction') }}</label
+            ><select id="group-direction" v-model="groupForm.direction" :class="inputClass">
+              <option value="incoming">{{ t('kingdomP7D.directionIncoming') }}</option>
+              <option value="outgoing">{{ t('kingdomP7D.directionOutgoing') }}</option>
+            </select>
+          </div>
+          <div v-if="groupForm.direction === 'outgoing'">
+            <label :class="labelClass" for="group-destination">{{
+              t('kingdomP7D.destinationKingdom')
+            }}</label
+            ><input
+              id="group-destination"
+              v-model="groupForm.destination_kingdom"
+              :class="inputClass"
               inputmode="numeric"
               type="text"
             />
+            <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+              {{ t('kingdomP7D.outgoingDestinationHelp') }}
+            </p>
+          </div>
+          <div
+            v-else
+            class="rounded-lg border border-[var(--ks-border)] p-3 text-sm text-[var(--ks-text-secondary)]"
+          >
+            {{ t('kingdomP7D.incomingDestinationFixed', { kingdom: mutablePlan.homeKingdom }) }}
           </div>
           <div>
-            <label for="participant-membership">Site membership</label>
-            <select id="participant-membership" v-model="participantForm.membership_id">
-              <option value="">Not linked</option>
+            <label :class="labelClass" for="group-coordinator">{{
+              t('kingdomP7D.coordinator')
+            }}</label
+            ><select
+              id="group-coordinator"
+              v-model="groupForm.coordinator_membership_id"
+              :class="inputClass"
+            >
+              <option value="">{{ t('kingdomP7D.unassigned') }}</option>
               <option v-for="membership in memberships" :key="membership.id" :value="membership.id">
-                {{ membership.name }}
+                {{ membership.name }} · {{ membership.email }}
               </option>
             </select>
           </div>
-        </template>
-        <div>
-          <label for="participant-notes">Manager notes</label>
-          <textarea
-            id="participant-notes"
-            v-model="participantForm.manager_notes"
-            maxlength="5000"
-            rows="3"
-          />
-        </div>
-        <button :disabled="participantForm.processing" type="submit">Add participant</button>
-        <p v-if="participantError" role="alert">{{ participantError }}</p>
-        <p v-if="participantForm.hasErrors" role="alert">
-          Correct the participant fields above and try again.
-        </p>
-      </form>
+          <div>
+            <label :class="labelClass" for="group-notes">{{ t('kingdomP7D.managerNotes') }}</label
+            ><textarea
+              id="group-notes"
+              v-model="groupForm.manager_notes"
+              :class="inputClass"
+              maxlength="5000"
+              rows="3"
+            />
+          </div>
+          <div class="xl:col-span-5">
+            <button
+              class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50"
+              :disabled="groupForm.processing"
+              type="submit"
+            >
+              {{ t('kingdomP7D.createGroup') }}
+            </button>
+            <p v-if="groupError" role="alert" class="mt-2 text-sm text-red-200">{{ groupError }}</p>
+            <p v-if="groupForm.hasErrors" role="alert" class="mt-2 text-sm text-red-200">
+              {{ t('kingdomP7D.correctGroupFields') }}
+            </p>
+          </div>
+        </form>
 
-      <div v-if="participants.length" class="overflow-x-auto">
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Player</th>
-              <th scope="col">Direction / destination</th>
-              <th scope="col">Identity / linkage</th>
-              <th scope="col">Group</th>
-              <th scope="col">Manager notes</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="participant in participants" :key="participant.id">
-              <td>
-                <template v-if="participant.rosterEntryId">{{ participant.name }}</template>
-                <template v-else>
-                  <label :for="`incoming-name-${participant.id}`">Incoming name</label>
-                  <input
-                    :id="`incoming-name-${participant.id}`"
-                    v-model="drafts[participant.id].name"
+        <div
+          v-if="groups.length"
+          class="mt-6 overflow-x-auto rounded-xl border border-[var(--ks-border)]"
+        >
+          <table class="min-w-[1100px] divide-y divide-slate-800 text-left text-sm">
+            <caption class="sr-only">
+              {{
+                t('kingdomP7D.groupTableCaption')
+              }}
+            </caption>
+            <thead class="bg-white/[0.03] text-xs text-[var(--ks-text-muted)] uppercase">
+              <tr>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.group') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.directionDestination') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.coordinator') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.managerNotes') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.state') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr v-for="group in groups" :key="group.id" class="align-top">
+                <td class="px-3 py-4">
+                  <label class="sr-only" :for="`group-name-${group.id}`">{{
+                    t('kingdomP7D.name')
+                  }}</label
+                  ><input
+                    :id="`group-name-${group.id}`"
+                    v-model="groupDrafts[group.id].name"
+                    :class="inputClass"
+                    :disabled="group.state !== 'active'"
                     maxlength="160"
                     type="text"
                   />
-                </template>
-                <span v-if="participant.withdrawnAt"> Withdrawn</span>
-              </td>
-              <td>
-                <template v-if="participant.rosterEntryId">
-                  <label :for="`direction-${participant.id}`">Direction</label>
-                  <select
-                    :id="`direction-${participant.id}`"
-                    v-model="drafts[participant.id].direction"
-                    :disabled="participant.withdrawnAt !== null"
+                </td>
+                <td class="px-3 py-4">
+                  <label class="sr-only" :for="`group-direction-${group.id}`">{{
+                    t('kingdomP7D.direction')
+                  }}</label
+                  ><select
+                    :id="`group-direction-${group.id}`"
+                    v-model="groupDrafts[group.id].direction"
+                    :class="inputClass"
+                    :disabled="group.state !== 'active'"
                   >
-                    <option value="staying">Staying</option>
-                    <option value="outgoing">Outgoing</option>
-                  </select>
-                  <template v-if="drafts[participant.id].direction === 'outgoing'">
-                    <label :for="`destination-${participant.id}`">Destination Kingdom</label>
-                    <input
-                      :id="`destination-${participant.id}`"
-                      v-model="drafts[participant.id].destination_kingdom"
-                      :disabled="participant.withdrawnAt !== null"
+                    <option value="incoming">{{ t('kingdomP7D.directionIncoming') }}</option>
+                    <option value="outgoing">
+                      {{ t('kingdomP7D.directionOutgoing') }}
+                    </option></select
+                  ><template v-if="groupDrafts[group.id].direction === 'outgoing'"
+                    ><label class="sr-only" :for="`group-destination-${group.id}`">{{
+                      t('kingdomP7D.destinationKingdom')
+                    }}</label
+                    ><input
+                      :id="`group-destination-${group.id}`"
+                      v-model="groupDrafts[group.id].destination_kingdom"
+                      :class="inputClass"
+                      :disabled="group.state !== 'active'"
                       inputmode="numeric"
                       type="text"
-                    />
-                  </template>
-                </template>
-                <template v-else>
-                  Incoming → Kingdom {{ mutablePlan.homeKingdom }}
-                  <label :for="`source-${participant.id}`">Source Kingdom</label>
-                  <input
-                    :id="`source-${participant.id}`"
-                    v-model="drafts[participant.id].source_kingdom"
-                    :disabled="participant.withdrawnAt !== null"
-                    inputmode="numeric"
-                    type="text"
-                  />
-                </template>
-              </td>
-              <td>
-                <template v-if="participant.rosterEntryId">
-                  Roster-linked
-                  <input v-model="drafts[participant.id].roster_entry_id" type="hidden" />
-                </template>
-                <template v-else>
-                  <label :for="`game-id-${participant.id}`">Game player ID</label>
-                  <input
-                    :id="`game-id-${participant.id}`"
-                    v-model="drafts[participant.id].game_player_id"
-                    :disabled="participant.withdrawnAt !== null"
-                    maxlength="100"
-                    type="text"
-                  />
-                  <label :for="`membership-${participant.id}`">Site membership</label>
-                  <select
-                    :id="`membership-${participant.id}`"
-                    v-model="drafts[participant.id].membership_id"
-                    :disabled="participant.withdrawnAt !== null"
+                  /></template>
+                  <p v-else class="mt-2 text-xs text-[var(--ks-text-muted)]">
+                    {{ t('kingdomP7D.kingdomValue', { kingdom: mutablePlan.homeKingdom }) }}
+                  </p>
+                </td>
+                <td class="px-3 py-4">
+                  <label class="sr-only" :for="`group-coordinator-${group.id}`">{{
+                    t('kingdomP7D.coordinator')
+                  }}</label
+                  ><select
+                    :id="`group-coordinator-${group.id}`"
+                    v-model="groupDrafts[group.id].coordinator_membership_id"
+                    :class="inputClass"
+                    :disabled="group.state !== 'active'"
                   >
-                    <option value="">Not linked</option>
+                    <option value="">{{ t('kingdomP7D.unassigned') }}</option>
                     <option
                       v-for="membership in memberships"
                       :key="membership.id"
@@ -688,73 +644,398 @@ function compatibleGroups(participant: Participant): Group[] {
                       {{ membership.name }}
                     </option>
                   </select>
-                </template>
-              </td>
-              <td>
-                <template v-if="participant.direction === 'staying'">
-                  Staying participants cannot be assigned to moving groups.
-                </template>
-                <template v-else>
-                  <label :for="`group-${participant.id}`">Transfer group</label>
-                  <select
-                    :id="`group-${participant.id}`"
-                    v-model="groupAssignments[participant.id]"
-                    :disabled="participant.withdrawnAt !== null"
-                  >
-                    <option value="">Unassigned</option>
-                    <option
-                      v-for="group in compatibleGroups(participant)"
-                      :key="group.id"
-                      :value="group.id"
+                </td>
+                <td class="px-3 py-4">
+                  <label class="sr-only" :for="`group-notes-${group.id}`">{{
+                    t('kingdomP7D.managerNotes')
+                  }}</label
+                  ><textarea
+                    :id="`group-notes-${group.id}`"
+                    v-model="groupDrafts[group.id].manager_notes"
+                    :class="inputClass"
+                    :disabled="group.state !== 'active'"
+                    maxlength="5000"
+                    rows="2"
+                  />
+                </td>
+                <td class="px-3 py-4">{{ stateLabel(group.state) }}</td>
+                <td class="px-3 py-4">
+                  <div class="flex gap-2">
+                    <button
+                      v-if="group.state === 'active'"
+                      class="rounded-lg border border-blue-400/30 px-2.5 py-1.5 text-xs font-semibold text-blue-200"
+                      type="button"
+                      @click="saveGroup(group)"
                     >
-                      {{ group.name }}
-                    </option>
-                  </select>
-                  <button
-                    v-if="participant.withdrawnAt === null"
-                    type="button"
-                    @click="assignParticipantGroup(participant)"
-                  >
-                    Save group
-                  </button>
-                </template>
-              </td>
-              <td>
-                <label :for="`notes-${participant.id}`">Manager notes</label>
-                <textarea
-                  :id="`notes-${participant.id}`"
-                  v-model="drafts[participant.id].manager_notes"
-                  :disabled="participant.withdrawnAt !== null"
-                  maxlength="5000"
-                  rows="2"
-                />
-              </td>
-              <td>
-                <button
-                  v-if="participant.withdrawnAt === null"
-                  type="button"
-                  @click="saveParticipant(participant)"
-                >
-                  Save
-                </button>
-                <button
-                  v-if="participant.withdrawnAt === null"
-                  type="button"
-                  @click="withdrawParticipant(participant)"
-                >
-                  Withdraw
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p v-else>No participants have been added yet.</p>
-    </section>
+                      {{ t('kingdomP7D.save') }}</button
+                    ><button
+                      v-if="group.state === 'active'"
+                      class="rounded-lg border border-red-400/30 px-2.5 py-1.5 text-xs font-semibold text-red-200"
+                      type="button"
+                      @click="archiveGroup(group)"
+                    >
+                      {{ t('kingdomP7D.archive') }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">
+          {{ t('kingdomP7D.noGroups') }}
+        </p>
+      </section>
 
-    <section v-else>
-      <h2>Participants and groups</h2>
-      <p>Create a Draft cycle or keep a cycle Open to edit transfer groups and participants.</p>
+      <section class="ks-surface mt-6 p-5 sm:p-6" aria-labelledby="participants-manage-heading">
+        <h2 id="participants-manage-heading" class="text-xl font-semibold">
+          {{ t('kingdomP7D.participantsForCycle', { label: mutablePlan.label }) }}
+        </h2>
+        <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-muted)]">
+          {{ t('kingdomP7D.addParticipantHelp') }}
+        </p>
+        <form
+          class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+          @submit.prevent="createParticipant"
+        >
+          <div>
+            <label :class="labelClass" for="participant-direction">{{
+              t('kingdomP7D.direction')
+            }}</label
+            ><select
+              id="participant-direction"
+              v-model="participantForm.direction"
+              :class="inputClass"
+            >
+              <option value="staying">{{ t('kingdomP7D.directionStaying') }}</option>
+              <option value="outgoing">{{ t('kingdomP7D.directionOutgoing') }}</option>
+              <option value="incoming">{{ t('kingdomP7D.directionIncoming') }}</option>
+            </select>
+          </div>
+          <div v-if="isRosterBound(participantForm.direction)">
+            <label :class="labelClass" for="participant-roster">{{
+              t('kingdomP7D.rosterEntry')
+            }}</label
+            ><select
+              id="participant-roster"
+              v-model="participantForm.roster_entry_id"
+              :class="inputClass"
+              required
+            >
+              <option value="">{{ t('kingdomP7D.chooseRosterEntry') }}</option>
+              <option v-for="entry in rosterOptions" :key="entry.id" :value="entry.id">
+                {{ entry.name }}
+              </option>
+            </select>
+          </div>
+          <div v-if="participantForm.direction === 'outgoing'">
+            <label :class="labelClass" for="participant-destination">{{
+              t('kingdomP7D.destinationKingdom')
+            }}</label
+            ><input
+              id="participant-destination"
+              v-model="participantForm.destination_kingdom"
+              :class="inputClass"
+              inputmode="numeric"
+              type="text"
+            />
+            <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+              {{ t('kingdomP7D.outgoingDestinationHelp') }}
+            </p>
+          </div>
+          <template v-if="participantForm.direction === 'incoming'"
+            ><div>
+              <label :class="labelClass" for="participant-name">{{
+                t('kingdomP7D.observedName')
+              }}</label
+              ><input
+                id="participant-name"
+                v-model="participantForm.name"
+                :class="inputClass"
+                maxlength="160"
+                type="text"
+              />
+            </div>
+            <div>
+              <label :class="labelClass" for="participant-game-id">{{
+                t('kingdomP7D.gamePlayerId')
+              }}</label
+              ><input
+                id="participant-game-id"
+                v-model="participantForm.game_player_id"
+                :class="inputClass"
+                maxlength="100"
+                type="text"
+              />
+            </div>
+            <div>
+              <label :class="labelClass" for="participant-source">{{
+                t('kingdomP7D.sourceKingdom')
+              }}</label
+              ><input
+                id="participant-source"
+                v-model="participantForm.source_kingdom"
+                :class="inputClass"
+                inputmode="numeric"
+                type="text"
+              />
+            </div>
+            <div>
+              <label :class="labelClass" for="participant-membership">{{
+                t('kingdomP7D.allianceMembership')
+              }}</label
+              ><select
+                id="participant-membership"
+                v-model="participantForm.membership_id"
+                :class="inputClass"
+              >
+                <option value="">{{ t('kingdomP7D.noMembership') }}</option>
+                <option
+                  v-for="membership in memberships"
+                  :key="membership.id"
+                  :value="membership.id"
+                >
+                  {{ membership.name }}
+                </option>
+              </select>
+            </div></template
+          >
+          <div class="md:col-span-2">
+            <label :class="labelClass" for="participant-notes">{{
+              t('kingdomP7D.participantNotes')
+            }}</label
+            ><textarea
+              id="participant-notes"
+              v-model="participantForm.manager_notes"
+              :class="inputClass"
+              maxlength="5000"
+              rows="3"
+            />
+          </div>
+          <div class="md:col-span-2 xl:col-span-4">
+            <button
+              class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50"
+              :disabled="participantForm.processing"
+              type="submit"
+            >
+              {{ t('kingdomP7D.createParticipant') }}
+            </button>
+            <p v-if="participantError" role="alert" class="mt-2 text-sm text-red-200">
+              {{ participantError }}
+            </p>
+            <p v-if="participantForm.hasErrors" role="alert" class="mt-2 text-sm text-red-200">
+              {{ t('kingdomP7D.correctParticipantFields') }}
+            </p>
+          </div>
+        </form>
+
+        <div
+          v-if="participants.length"
+          class="mt-6 overflow-x-auto rounded-xl border border-[var(--ks-border)]"
+        >
+          <table class="min-w-[1350px] divide-y divide-slate-800 text-left text-sm">
+            <caption class="sr-only">
+              {{
+                t('kingdomP7D.participantTableCaption')
+              }}
+            </caption>
+            <thead class="bg-white/[0.03] text-xs text-[var(--ks-text-muted)] uppercase">
+              <tr>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.player') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.directionDestination') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.membership') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.groupAssignment') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.managerNotes') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr v-for="participant in participants" :key="participant.id" class="align-top">
+                <td class="px-3 py-4">
+                  <template v-if="participant.rosterEntryId"
+                    ><p class="font-semibold">{{ participant.name }}</p>
+                    <input
+                      v-model="drafts[participant.id].roster_entry_id"
+                      type="hidden" /></template
+                  ><template v-else
+                    ><label class="sr-only" :for="`incoming-name-${participant.id}`">{{
+                      t('kingdomP7D.observedName')
+                    }}</label
+                    ><input
+                      :id="`incoming-name-${participant.id}`"
+                      v-model="drafts[participant.id].name"
+                      :class="inputClass"
+                      :disabled="participant.withdrawnAt !== null"
+                      maxlength="160"
+                      type="text" /><label class="sr-only" :for="`game-id-${participant.id}`">{{
+                      t('kingdomP7D.gamePlayerId')
+                    }}</label
+                    ><input
+                      :id="`game-id-${participant.id}`"
+                      v-model="drafts[participant.id].game_player_id"
+                      :class="inputClass"
+                      :disabled="participant.withdrawnAt !== null"
+                      maxlength="100"
+                      type="text"
+                  /></template>
+                  <p
+                    v-if="participant.withdrawnAt"
+                    class="mt-2 text-xs font-semibold text-[var(--ks-text-muted)]"
+                  >
+                    {{ t('kingdomP7D.withdrawn') }}
+                  </p>
+                </td>
+                <td class="px-3 py-4">
+                  <template v-if="participant.rosterEntryId"
+                    ><label class="sr-only" :for="`direction-${participant.id}`">{{
+                      t('kingdomP7D.direction')
+                    }}</label
+                    ><select
+                      :id="`direction-${participant.id}`"
+                      v-model="drafts[participant.id].direction"
+                      :class="inputClass"
+                      :disabled="participant.withdrawnAt !== null"
+                    >
+                      <option value="staying">{{ t('kingdomP7D.directionStaying') }}</option>
+                      <option value="outgoing">
+                        {{ t('kingdomP7D.directionOutgoing') }}
+                      </option></select
+                    ><template v-if="drafts[participant.id].direction === 'outgoing'"
+                      ><label class="sr-only" :for="`destination-${participant.id}`">{{
+                        t('kingdomP7D.destinationKingdom')
+                      }}</label
+                      ><input
+                        :id="`destination-${participant.id}`"
+                        v-model="drafts[participant.id].destination_kingdom"
+                        :class="inputClass"
+                        :disabled="participant.withdrawnAt !== null"
+                        inputmode="numeric"
+                        type="text" /></template></template
+                  ><template v-else
+                    ><p class="text-sm">
+                      {{ directionLabel('incoming') }} →
+                      {{ t('kingdomP7D.kingdomValue', { kingdom: mutablePlan.homeKingdom }) }}
+                    </p>
+                    <label class="sr-only" :for="`source-${participant.id}`">{{
+                      t('kingdomP7D.sourceKingdom')
+                    }}</label
+                    ><input
+                      :id="`source-${participant.id}`"
+                      v-model="drafts[participant.id].source_kingdom"
+                      :class="inputClass"
+                      :disabled="participant.withdrawnAt !== null"
+                      inputmode="numeric"
+                      type="text"
+                  /></template>
+                </td>
+                <td class="px-3 py-4">
+                  <template v-if="participant.rosterEntryId"
+                    ><p class="text-sm text-[var(--ks-text-secondary)]">
+                      {{ t('kingdomP7D.rosterEntry') }} · {{ participant.name }}
+                    </p></template
+                  ><template v-else
+                    ><label class="sr-only" :for="`membership-${participant.id}`">{{
+                      t('kingdomP7D.allianceMembership')
+                    }}</label
+                    ><select
+                      :id="`membership-${participant.id}`"
+                      v-model="drafts[participant.id].membership_id"
+                      :class="inputClass"
+                      :disabled="participant.withdrawnAt !== null"
+                    >
+                      <option value="">{{ t('kingdomP7D.noMembership') }}</option>
+                      <option
+                        v-for="membership in memberships"
+                        :key="membership.id"
+                        :value="membership.id"
+                      >
+                        {{ membership.name }}
+                      </option>
+                    </select></template
+                  >
+                </td>
+                <td class="px-3 py-4">
+                  <template v-if="participant.direction === 'staying'"
+                    ><p class="text-sm text-[var(--ks-text-muted)]">
+                      {{ t('kingdomP7D.staying') }} · {{ t('kingdomP7D.noGroup') }}
+                    </p></template
+                  ><template v-else
+                    ><label class="sr-only" :for="`group-${participant.id}`">{{
+                      t('kingdomP7D.groupAssignment')
+                    }}</label
+                    ><select
+                      :id="`group-${participant.id}`"
+                      v-model="groupAssignments[participant.id]"
+                      :class="inputClass"
+                      :disabled="participant.withdrawnAt !== null"
+                    >
+                      <option value="">{{ t('kingdomP7D.unassigned') }}</option>
+                      <option
+                        v-for="group in compatibleGroups(participant)"
+                        :key="group.id"
+                        :value="group.id"
+                      >
+                        {{ group.name }}
+                      </option></select
+                    ><button
+                      v-if="participant.withdrawnAt === null"
+                      class="mt-2 rounded-lg border border-blue-400/30 px-2.5 py-1.5 text-xs font-semibold text-blue-200"
+                      type="button"
+                      @click="assignParticipantGroup(participant)"
+                    >
+                      {{ t('kingdomP7D.saveGroupAssignment') }}
+                    </button></template
+                  >
+                </td>
+                <td class="px-3 py-4">
+                  <label class="sr-only" :for="`notes-${participant.id}`">{{
+                    t('kingdomP7D.managerNotes')
+                  }}</label
+                  ><textarea
+                    :id="`notes-${participant.id}`"
+                    v-model="drafts[participant.id].manager_notes"
+                    :class="inputClass"
+                    :disabled="participant.withdrawnAt !== null"
+                    maxlength="5000"
+                    rows="2"
+                  />
+                </td>
+                <td class="px-3 py-4">
+                  <div class="flex flex-wrap gap-2">
+                    <button
+                      v-if="participant.withdrawnAt === null"
+                      class="rounded-lg border border-blue-400/30 px-2.5 py-1.5 text-xs font-semibold text-blue-200"
+                      type="button"
+                      @click="saveParticipant(participant)"
+                    >
+                      {{ t('kingdomP7D.save') }}</button
+                    ><button
+                      v-if="participant.withdrawnAt === null"
+                      class="rounded-lg border border-red-400/30 px-2.5 py-1.5 text-xs font-semibold text-red-200"
+                      type="button"
+                      @click="withdrawParticipant(participant)"
+                    >
+                      {{ t('kingdomP7D.withdraw') }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">
+          {{ t('kingdomP7D.noParticipants') }}
+        </p>
+      </section>
+    </template>
+
+    <section v-else class="ks-surface mt-6 p-6">
+      <h2 class="text-xl font-semibold">
+        {{ t('kingdomP7D.participants') }} &amp; {{ t('kingdomP7D.transferGroups') }}
+      </h2>
+      <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--ks-text-muted)]">
+        {{ t('kingdomP7D.noMutableCycle') }}
+      </p>
     </section>
-  </main>
+  </AppLayout>
 </template>

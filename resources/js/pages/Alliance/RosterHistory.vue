@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
+import AppLayout from '../../layouts/AppLayout.vue';
+import { useLocale } from '../../localization';
+
 type Snapshot = {
   id: string;
   observedName: string;
@@ -13,6 +16,7 @@ type Snapshot = {
 };
 
 const props = defineProps<{
+  user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string | null };
   entry: {
     id: string;
@@ -28,22 +32,48 @@ const props = defineProps<{
   staleAfterDays: number;
 }>();
 
+const { locale, t, formatDate, formatNumber } = useLocale();
+
 function localDateTimeValue(date = new Date()): string {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
   return local.toISOString().slice(0, 16);
 }
 
-function formatInteger(value: string): string {
-  return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+function formatPower(value: string): string {
+  try {
+    return new Intl.NumberFormat(locale.value).format(BigInt(value));
+  } catch {
+    return value;
+  }
 }
 
-function snapshotState(snapshot: Snapshot | null): string {
-  if (snapshot === null) {
-    return 'Missing';
-  }
+function formatCaptured(value: string): string {
+  return formatDate(value, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function snapshotState(snapshot: Snapshot | null): 'current' | 'stale' | 'missing' {
+  if (snapshot === null) return 'missing';
 
   const staleAt = Date.now() - props.staleAfterDays * 24 * 60 * 60 * 1000;
-  return new Date(snapshot.capturedAt).getTime() < staleAt ? 'Stale' : 'Current';
+  return new Date(snapshot.capturedAt).getTime() < staleAt ? 'stale' : 'current';
+}
+
+function stateLabel(value: string): string {
+  const key = `roster.${value}`;
+  const translated = t(key);
+  return translated === key ? value.replaceAll('_', ' ') : translated;
+}
+
+function freshnessTone(value: 'current' | 'stale' | 'missing'): string {
+  if (value === 'current') return 'border-green-400/25 bg-green-500/10 text-green-200';
+  if (value === 'stale') return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
+  return 'border-red-400/25 bg-red-500/10 text-red-200';
 }
 
 const snapshotForm = useForm({
@@ -73,179 +103,333 @@ function recordSnapshot(): void {
 </script>
 
 <template>
-  <Head :title="`Snapshot history · ${entry.name}`" />
+  <Head :title="`${t('rosterHistory.title')} · ${entry.name}`" />
 
-  <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 text-slate-100 lg:px-8">
-    <div class="flex flex-wrap items-start justify-between gap-4">
-      <div>
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+    <header class="flex flex-wrap items-start justify-between gap-4">
+      <div class="max-w-3xl min-w-0">
         <Link
-          class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+          class="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-white"
           href="/alliance/roster"
         >
-          ← Alliance roster
+          ← {{ t('roster.title') }}
         </Link>
-        <p class="mt-5 text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
-          Kingdom {{ alliance.kingdom ?? 'not set' }}
+        <p class="mt-4 text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+          {{ t('roster.eyebrow', { kingdom: alliance.kingdom ?? t('roster.kingdomNotSet') }) }}
         </p>
-        <h1 class="mt-2 text-3xl font-bold">{{ entry.name }}</h1>
-        <p class="mt-2 text-sm text-slate-400">
-          Game ID: {{ entry.gamePlayerId ?? 'unknown' }} · Role: {{ entry.gameRole ?? '—' }} ·
-          State: {{ entry.state }} · Linked member: {{ entry.membership?.name ?? 'unlinked' }}
-        </p>
+        <h1 class="ks-display mt-2 truncate text-3xl font-bold sm:text-4xl">{{ entry.name }}</h1>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span
+            class="rounded-full border border-[var(--ks-border)] bg-black/15 px-2.5 py-1 text-xs text-[var(--ks-text-secondary)]"
+          >
+            {{ t('roster.gameId') }}: {{ entry.gamePlayerId ?? t('rosterManage.unknown') }}
+          </span>
+          <span
+            v-if="entry.gameRole"
+            class="rounded-full border border-purple-400/20 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-200"
+          >
+            {{ entry.gameRole }}
+          </span>
+          <span
+            class="rounded-full border border-blue-400/20 bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-200"
+          >
+            {{ stateLabel(entry.state) }}
+          </span>
+          <span
+            class="rounded-full border border-[var(--ks-border)] bg-black/15 px-2.5 py-1 text-xs text-[var(--ks-text-secondary)]"
+          >
+            {{ entry.membership?.name ?? t('roster.unlinked') }}
+          </span>
+        </div>
       </div>
       <Link
         v-if="canManage"
-        class="rounded-lg border border-cyan-800 px-4 py-2 font-semibold text-cyan-300 hover:border-cyan-600"
+        class="inline-flex min-h-11 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-text-secondary)] transition hover:border-[var(--ks-gold)] hover:text-white"
         href="/alliance/roster/manage"
       >
-        Manage roster
+        {{ t('roster.manage') }}
       </Link>
-    </div>
+    </header>
 
-    <section class="mt-8 grid gap-4 md:grid-cols-4" aria-label="Latest player snapshot">
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-        <p class="text-sm text-slate-400">Snapshot state</p>
-        <p class="mt-2 text-2xl font-bold">{{ snapshotState(latest) }}</p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-        <p class="text-sm text-slate-400">Latest power</p>
-        <p class="mt-2 text-2xl font-bold">{{ latest ? formatInteger(latest.power) : '—' }}</p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-        <p class="text-sm text-slate-400">Progression / level</p>
-        <p class="mt-2 text-2xl font-bold">{{ latest?.progressionLevel ?? '—' }}</p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-        <p class="text-sm text-slate-400">Observed alliance / tag</p>
-        <p class="mt-2 text-2xl font-bold">{{ latest?.observedAllianceTag ?? '—' }}</p>
+    <section class="ks-surface-gold mt-6 overflow-hidden" :aria-label="t('rosterHistory.title')">
+      <div
+        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] md:grid-cols-4 md:divide-y-0"
+      >
+        <article class="p-4 sm:p-5">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
+            {{ t('roster.snapshotState') }}
+          </p>
+          <span
+            :class="freshnessTone(snapshotState(latest))"
+            class="mt-3 inline-flex rounded-full border px-3 py-1 text-sm font-semibold"
+          >
+            {{ stateLabel(snapshotState(latest)) }}
+          </span>
+        </article>
+        <article class="p-4 sm:p-5">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
+            {{ t('rosterManage.latestPower') }}
+          </p>
+          <p class="ks-display mt-2 text-3xl font-semibold text-[var(--ks-gold-strong)]">
+            {{ latest ? formatPower(latest.power) : '—' }}
+          </p>
+        </article>
+        <article class="p-4 sm:p-5">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
+            {{ t('roster.progression') }}
+          </p>
+          <p class="ks-display mt-2 text-2xl font-semibold">
+            {{ latest?.progressionLevel ?? '—' }}
+          </p>
+        </article>
+        <article class="p-4 sm:p-5">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
+            {{ t('roster.allianceTag') }}
+          </p>
+          <p class="ks-display mt-2 text-2xl font-semibold">
+            {{ latest?.observedAllianceTag ?? '—' }}
+          </p>
+        </article>
       </div>
     </section>
 
-    <p class="mt-3 text-xs text-slate-500">
-      Current means the latest recorded snapshot is no more than {{ staleAfterDays }} days old.
-      Missing means no snapshot has been recorded. Historical rows remain immutable observations.
+    <p class="mt-3 text-xs leading-5 text-[var(--ks-text-muted)]">
+      {{ t('rosterHistory.currentHelp', { days: staleAfterDays }) }}
     </p>
 
-    <section
-      v-if="canManage"
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6"
-      aria-labelledby="record-snapshot"
-    >
-      <h2 id="record-snapshot" class="text-xl font-semibold">Record snapshot</h2>
-      <p class="mt-2 text-sm text-slate-400">
-        Record what was observed at the capture time. Retrying the same accepted observation is
-        idempotent; a later capture time creates a new historical row.
-      </p>
+    <div class="mt-6 grid gap-5 xl:grid-cols-3">
+      <section
+        v-if="canManage"
+        class="ks-surface p-5 sm:p-6 xl:sticky xl:top-24 xl:col-span-1 xl:self-start"
+        aria-labelledby="record-snapshot"
+      >
+        <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
+          {{ t('rosterHistory.recordSnapshot') }}
+        </p>
+        <h2 id="record-snapshot" class="ks-display mt-1 text-xl font-semibold">
+          {{ entry.name }}
+        </h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
+          {{ t('rosterHistory.recordHelp') }}
+        </p>
 
-      <form class="mt-5 grid gap-4 md:grid-cols-2" @submit.prevent="recordSnapshot">
-        <div>
-          <label class="text-sm font-medium" for="snapshot-name">Observed player name</label>
-          <input
-            id="snapshot-name"
-            v-model="snapshotForm.observed_name"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            maxlength="160"
-            required
-          />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="snapshot-power">Power</label>
-          <input
-            id="snapshot-power"
-            v-model="snapshotForm.power"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            inputmode="numeric"
-            maxlength="19"
-            pattern="[0-9]+"
-            required
-          />
-          <p v-if="snapshotForm.errors.power" class="mt-1 text-sm text-rose-300">
-            {{ snapshotForm.errors.power }}
-          </p>
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="snapshot-level">Progression / level</label>
-          <input
-            id="snapshot-level"
-            v-model="snapshotForm.progression_level"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            maxlength="64"
-          />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="snapshot-tag">Observed alliance / tag</label>
-          <input
-            id="snapshot-tag"
-            v-model="snapshotForm.observed_alliance_tag"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            maxlength="32"
-          />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="snapshot-captured">Captured at</label>
-          <input
-            id="snapshot-captured"
-            v-model="snapshotForm.captured_at"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            type="datetime-local"
-            required
-          />
-          <p v-if="snapshotForm.errors.captured_at" class="mt-1 text-sm text-rose-300">
-            {{ snapshotForm.errors.captured_at }}
-          </p>
-        </div>
-        <div class="flex items-end">
+        <form class="mt-5 space-y-4" @submit.prevent="recordSnapshot">
+          <div>
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="snapshot-name"
+            >
+              {{ t('rosterHistory.observedPlayerName') }}
+            </label>
+            <input
+              id="snapshot-name"
+              v-model="snapshotForm.observed_name"
+              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              maxlength="160"
+              required
+            />
+          </div>
+          <div>
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="snapshot-power"
+            >
+              {{ t('roster.power') }}
+            </label>
+            <input
+              id="snapshot-power"
+              v-model="snapshotForm.power"
+              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              inputmode="numeric"
+              maxlength="19"
+              pattern="[0-9]+"
+              required
+            />
+            <p v-if="snapshotForm.errors.power" class="mt-1 text-sm text-red-300" role="alert">
+              {{ snapshotForm.errors.power }}
+            </p>
+          </div>
+          <div>
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="snapshot-level"
+            >
+              {{ t('roster.progression') }}
+            </label>
+            <input
+              id="snapshot-level"
+              v-model="snapshotForm.progression_level"
+              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              maxlength="64"
+            />
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="snapshot-tag">
+              {{ t('roster.allianceTag') }}
+            </label>
+            <input
+              id="snapshot-tag"
+              v-model="snapshotForm.observed_alliance_tag"
+              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              maxlength="32"
+            />
+          </div>
+          <div>
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="snapshot-captured"
+            >
+              {{ t('rosterHistory.capturedAt') }}
+            </label>
+            <input
+              id="snapshot-captured"
+              v-model="snapshotForm.captured_at"
+              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              type="datetime-local"
+              required
+            />
+            <p
+              v-if="snapshotForm.errors.captured_at"
+              class="mt-1 text-sm text-red-300"
+              role="alert"
+            >
+              {{ snapshotForm.errors.captured_at }}
+            </p>
+          </div>
           <button
-            class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
+            class="min-h-11 w-full rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--ks-blue-strong)] disabled:opacity-60"
             :disabled="snapshotForm.processing"
             type="submit"
           >
-            Record snapshot
+            {{ t('rosterHistory.recordAction') }}
           </button>
-        </div>
-      </form>
-    </section>
+        </form>
+      </section>
 
-    <section class="mt-8 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60">
-      <div class="border-b border-slate-800 px-5 py-4">
-        <h2 class="text-xl font-semibold">Snapshot history</h2>
-        <p class="mt-1 text-sm text-slate-400">
-          Newest capture first. Up to the latest 250 observations are shown.
+      <section
+        class="ks-surface min-w-0 overflow-hidden"
+        :class="canManage ? 'xl:col-span-2' : 'xl:col-span-3'"
+      >
+        <div class="border-b border-[var(--ks-border)] p-4 sm:p-5">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
+                {{ t('rosterHistory.historyHeading') }}
+              </p>
+              <h2 class="ks-display mt-1 text-xl font-semibold">
+                {{ formatNumber(snapshots.length) }}
+              </h2>
+            </div>
+            <p class="max-w-xl text-xs leading-5 text-[var(--ks-text-muted)]">
+              {{ t('rosterHistory.historyHelp') }}
+            </p>
+          </div>
+        </div>
+
+        <div v-if="snapshots.length" class="lg:hidden">
+          <article
+            v-for="snapshot in snapshots"
+            :key="snapshot.id"
+            class="border-b border-[var(--ks-border)] p-4 last:border-b-0"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="truncate font-semibold">{{ snapshot.observedName }}</p>
+                <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                  {{ formatCaptured(snapshot.capturedAt) }}
+                </p>
+              </div>
+              <p class="shrink-0 text-end">
+                <span
+                  class="block text-[0.65rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
+                >
+                  {{ t('roster.power') }}
+                </span>
+                <strong class="mt-1 block text-base">{{ formatPower(snapshot.power) }}</strong>
+              </p>
+            </div>
+            <dl class="mt-4 grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <dt class="text-[var(--ks-text-muted)]">{{ t('roster.progression') }}</dt>
+                <dd class="mt-1 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.progressionLevel ?? '—' }}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-[var(--ks-text-muted)]">{{ t('roster.allianceTag') }}</dt>
+                <dd class="mt-1 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.observedAllianceTag ?? '—' }}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-[var(--ks-text-muted)]">{{ t('rosterHistory.source') }}</dt>
+                <dd class="mt-1 text-[var(--ks-text-secondary)]">{{ snapshot.source }}</dd>
+              </div>
+              <div v-if="canManage">
+                <dt class="text-[var(--ks-text-muted)]">{{ t('rosterHistory.recordedBy') }}</dt>
+                <dd class="mt-1 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.actorName ?? '—' }}
+                </dd>
+              </div>
+            </dl>
+          </article>
+        </div>
+
+        <div v-if="snapshots.length" class="hidden overflow-x-auto lg:block">
+          <table class="w-full min-w-[58rem] text-sm">
+            <thead
+              class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
+            >
+              <tr>
+                <th class="px-4 py-3 text-start">{{ t('rosterHistory.capturedAt') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('roster.player') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('roster.power') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('roster.progression') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('roster.allianceTag') }}</th>
+                <th class="px-4 py-3 text-start">{{ t('rosterHistory.source') }}</th>
+                <th v-if="canManage" class="px-4 py-3 text-start">
+                  {{ t('rosterHistory.recordedBy') }}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[var(--ks-border)]">
+              <tr
+                v-for="snapshot in snapshots"
+                :key="snapshot.id"
+                class="transition hover:bg-white/[0.025]"
+              >
+                <td class="px-4 py-3.5 text-xs text-[var(--ks-text-muted)]">
+                  {{ formatCaptured(snapshot.capturedAt) }}
+                </td>
+                <td class="px-4 py-3.5 font-semibold">{{ snapshot.observedName }}</td>
+                <td class="px-4 py-3.5 font-semibold">{{ formatPower(snapshot.power) }}</td>
+                <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.progressionLevel ?? '—' }}
+                </td>
+                <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.observedAllianceTag ?? '—' }}
+                </td>
+                <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">{{ snapshot.source }}</td>
+                <td v-if="canManage" class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.actorName ?? '—' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p v-if="!snapshots.length" class="p-8 text-center text-sm text-[var(--ks-text-muted)]">
+          {{ t('rosterHistory.noSnapshots') }}
         </p>
-      </div>
-      <div v-if="snapshots.length" class="overflow-x-auto">
-        <table class="min-w-full text-left text-sm">
-          <thead class="bg-slate-950/60 text-slate-400">
-            <tr>
-              <th class="px-5 py-3">Captured</th>
-              <th class="px-5 py-3">Name</th>
-              <th class="px-5 py-3">Power</th>
-              <th class="px-5 py-3">Progression</th>
-              <th class="px-5 py-3">Alliance / tag</th>
-              <th class="px-5 py-3">Source</th>
-              <th v-if="canManage" class="px-5 py-3">Recorded by</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-800">
-            <tr v-for="snapshot in snapshots" :key="snapshot.id">
-              <td class="px-5 py-4 text-slate-400">
-                {{ new Date(snapshot.capturedAt).toLocaleString() }}
-              </td>
-              <td class="px-5 py-4 font-semibold">{{ snapshot.observedName }}</td>
-              <td class="px-5 py-4">{{ formatInteger(snapshot.power) }}</td>
-              <td class="px-5 py-4 text-slate-400">{{ snapshot.progressionLevel ?? '—' }}</td>
-              <td class="px-5 py-4 text-slate-400">{{ snapshot.observedAllianceTag ?? '—' }}</td>
-              <td class="px-5 py-4 text-slate-400">{{ snapshot.source }}</td>
-              <td v-if="canManage" class="px-5 py-4 text-slate-400">
-                {{ snapshot.actorName ?? '—' }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p v-else class="p-8 text-sm text-slate-400">
-        No snapshots have been recorded for this player.
-      </p>
-    </section>
-  </main>
+      </section>
+    </div>
+  </AppLayout>
 </template>

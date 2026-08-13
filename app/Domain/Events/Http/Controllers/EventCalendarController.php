@@ -72,6 +72,10 @@ final class EventCalendarController extends Controller
         }
 
         return Inertia::render('Alliance/Events/Index', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'id' => $alliance->id,
                 'name' => $alliance->name,
@@ -217,6 +221,10 @@ final class EventCalendarController extends Controller
         }
 
         return Inertia::render('Alliance/Events/Show', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'id' => $alliance->id,
                 'name' => $alliance->name,

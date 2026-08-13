@@ -2,6 +2,9 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, reactive, ref } from 'vue';
 
+import AppLayout from '../../layouts/AppLayout.vue';
+import { useLocale } from '../../localization';
+
 type Category = { id: string; name: string; slug: string; sortOrder: number };
 type Revision = { id: string; revisionNumber: number; title: string; createdAt: string | null };
 type ContentItem = {
@@ -34,6 +37,7 @@ type Media = {
 };
 
 const props = defineProps<{
+  user: { name: string; email: string };
   alliance: {
     id: string;
     name: string;
@@ -53,6 +57,8 @@ const props = defineProps<{
   media: Media[];
 }>();
 
+const { t, formatDate, formatNumber } = useLocale();
+
 const profileForm = useForm({
   name: props.alliance.name,
   language: props.alliance.language,
@@ -62,7 +68,6 @@ const profileForm = useForm({
   logo_media_id: props.alliance.logoMediaId ?? '',
   banner_media_id: props.alliance.bannerMediaId ?? '',
 });
-
 const categoryForm = useForm({ name: '', slug: '', sort_order: 0 });
 const categoryDrafts = reactive<Record<string, { name: string; slug: string; sort_order: number }>>(
   Object.fromEntries(
@@ -72,7 +77,6 @@ const categoryDrafts = reactive<Record<string, { name: string; slug: string; sor
     ]),
   ),
 );
-
 const editingId = ref<string | null>(null);
 const contentForm = useForm({
   category_id: '',
@@ -95,6 +99,13 @@ const brandingMedia = computed(() =>
       asset.scanStatus === 'clean' &&
       asset.mimeType.startsWith('image/'),
   ),
+);
+const publishedCount = computed(
+  () => props.content.filter((item) => item.status === 'published').length,
+);
+const draftCount = computed(() => props.content.filter((item) => item.status === 'draft').length);
+const activeMediaCount = computed(
+  () => props.media.filter((asset) => asset.lifecycleStatus === 'active').length,
 );
 
 function saveProfile(): void {
@@ -145,11 +156,7 @@ function editContent(item: ContentItem): void {
 }
 
 function saveContent(): void {
-  const options = {
-    preserveScroll: true,
-    onSuccess: () => resetContentForm(),
-  };
-
+  const options = { preserveScroll: true, onSuccess: () => resetContentForm() };
   if (editingId.value) {
     contentForm.patch(`/alliance/content/${editingId.value}`, options);
   } else {
@@ -164,7 +171,6 @@ function publishNow(id: string): void {
 function schedule(id: string): void {
   const value = scheduleValues[id];
   if (!value) return;
-
   router.post(
     `/alliance/content/${id}/publish`,
     { scheduled_for: new Date(value).toISOString() },
@@ -205,524 +211,636 @@ function archiveMedia(asset: Media): void {
   router.delete(`/alliance/media/${asset.id}`, { preserveScroll: true });
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+function bytes(value: number): string {
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function date(value: string | null): string {
+  return value ? formatDate(value, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+}
+
+function statusTone(status: string): string {
+  if (status === 'published' || status === 'clean' || status === 'active')
+    return 'border-green-400/25 bg-green-500/10 text-green-200';
+  if (status === 'scheduled' || status === 'pending')
+    return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
+  if (status === 'archived' || status === 'infected' || status === 'failed')
+    return 'border-red-400/25 bg-red-500/10 text-red-200';
+  return 'border-blue-400/25 bg-blue-500/10 text-blue-200';
 }
 </script>
 
 <template>
-  <Head :title="`Manage ${alliance.name} content`" />
+  <Head :title="`${t('contentExperience.manageContent')} · ${alliance.name}`" />
 
-  <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 text-slate-100 lg:px-8">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <div>
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+    <header class="flex flex-wrap items-start justify-between gap-4">
+      <div class="max-w-3xl">
         <Link
-          class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+          class="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-white"
           href="/alliance/content"
-          >← Content hub</Link
         >
-        <h1 class="mt-3 text-3xl font-bold">Manage public presence</h1>
-        <p class="mt-2 text-slate-400">
-          Profile, content revisions, publication, categories, and branding media. Recruitment
-          availability and Kingdom association are managed in their owning workspaces.
+          ← {{ t('contentExperience.backToHub') }}
+        </Link>
+        <p class="mt-4 text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+          {{ t('contentExperience.managementEyebrow') }}
+        </p>
+        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
+          {{ t('contentExperience.managementTitle') }}
+        </h1>
+        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
+          {{ t('contentExperience.managementSubtitle') }}
         </p>
       </div>
       <a
-        class="rounded-lg border border-cyan-800 px-4 py-2 font-semibold text-cyan-300 hover:border-cyan-600"
+        class="inline-flex min-h-11 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-gold)]/45 bg-[var(--ks-gold-soft)] px-4 py-2 text-sm font-semibold text-[var(--ks-gold-strong)]"
         :href="alliance.publicUrl"
         target="_blank"
         rel="noopener noreferrer"
       >
-        View public page
+        {{ t('contentExperience.viewPublicPage') }}
       </a>
-    </div>
+    </header>
 
-    <section
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6"
-      aria-labelledby="profile-heading"
-    >
-      <h2 id="profile-heading" class="text-xl font-semibold">Public alliance profile</h2>
-      <form class="mt-5 grid gap-4 sm:grid-cols-2" @submit.prevent="saveProfile">
-        <div>
-          <label class="text-sm font-medium" for="profile-name">Alliance name</label>
-          <input
-            id="profile-name"
-            v-model="profileForm.name"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            required
-            maxlength="120"
-          />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="profile-language">Language / locale</label>
-          <input
-            id="profile-language"
-            v-model="profileForm.language"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            required
-            maxlength="16"
-          />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="profile-timezone">Alliance time zone</label>
-          <input
-            id="profile-timezone"
-            v-model="profileForm.timezone"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            required
-            placeholder="America/Toronto"
-          />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="profile-color">Brand accent</label>
-          <input
-            id="profile-color"
-            v-model="profileForm.primary_color"
-            class="mt-1 h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
-            type="text"
-            placeholder="#22D3EE"
-            pattern="#[0-9A-Fa-f]{6}"
-          />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="profile-logo">Logo image</label>
-          <select
-            id="profile-logo"
-            v-model="profileForm.logo_media_id"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          >
-            <option value="">No logo</option>
-            <option v-for="asset in brandingMedia" :key="asset.id" :value="asset.id">
-              {{ asset.name }}
-            </option>
-          </select>
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="profile-banner">Banner image</label>
-          <select
-            id="profile-banner"
-            v-model="profileForm.banner_media_id"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          >
-            <option value="">No banner</option>
-            <option v-for="asset in brandingMedia" :key="asset.id" :value="asset.id">
-              {{ asset.name }}
-            </option>
-          </select>
-        </div>
-        <div class="sm:col-span-2">
-          <label class="text-sm font-medium" for="profile-description">Description</label>
-          <textarea
-            id="profile-description"
-            v-model="profileForm.description"
-            class="mt-1 min-h-28 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            maxlength="5000"
-          />
-        </div>
-        <div class="sm:col-span-2">
-          <button
-            class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
-            :disabled="profileForm.processing"
-            type="submit"
-          >
-            Save public profile
-          </button>
-          <p v-if="Object.keys(profileForm.errors).length" class="mt-2 text-sm text-rose-300">
-            Please correct the highlighted profile values.
-          </p>
-        </div>
-      </form>
-    </section>
-
-    <section
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6"
-      aria-labelledby="author-heading"
-    >
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="author-heading" class="text-xl font-semibold">
-          {{ editingId ? 'Edit content' : 'Create content' }}
-        </h2>
-        <button
-          v-if="editingId"
-          class="text-sm font-semibold text-cyan-300"
-          type="button"
-          @click="resetContentForm"
-        >
-          Cancel edit
-        </button>
-      </div>
-      <p
-        v-if="editingId"
-        class="mt-2 rounded-lg border border-amber-800 bg-amber-950/30 p-3 text-sm text-amber-100"
+    <section class="ks-surface-gold mt-6 overflow-hidden">
+      <dl
+        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] md:grid-cols-4 md:divide-y-0"
       >
-        Saving an existing published or archived item returns the revised copy to draft. Publish it
-        explicitly when the revision is ready.
-      </p>
-      <form class="mt-5 grid gap-4 sm:grid-cols-2" @submit.prevent="saveContent">
-        <div class="sm:col-span-2">
-          <label class="text-sm font-medium" for="content-title">Title</label>
-          <input
-            id="content-title"
-            v-model="contentForm.title"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            required
-            maxlength="180"
-          />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="content-slug">URL slug</label>
-          <input
-            id="content-slug"
-            v-model="contentForm.slug"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            required
-            pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-          />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="content-locale">Locale</label>
-          <input
-            id="content-locale"
-            v-model="contentForm.locale"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            required
-            maxlength="16"
-          />
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="content-type">Type</label>
-          <select
-            id="content-type"
-            v-model="contentForm.type"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+        <div class="p-4 sm:p-5">
+          <dt
+            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
           >
-            <option v-for="option in contentTypes" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
+            {{ t('contentExperience.contentItems') }}
+          </dt>
+          <dd class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(content.length) }}</dd>
         </div>
-        <div>
-          <label class="text-sm font-medium" for="content-visibility">Visibility</label>
-          <select
-            id="content-visibility"
-            v-model="contentForm.visibility"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+        <div class="p-4 sm:p-5">
+          <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-green-300 uppercase">
+            {{ t('contentExperience.publishedItems') }}
+          </dt>
+          <dd class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(publishedCount) }}</dd>
+        </div>
+        <div class="p-4 sm:p-5">
+          <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-blue-300 uppercase">
+            {{ t('contentExperience.draftItems') }}
+          </dt>
+          <dd class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(draftCount) }}</dd>
+        </div>
+        <div class="p-4 sm:p-5">
+          <dt
+            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
           >
-            <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
+            {{ t('contentExperience.activeMedia') }}
+          </dt>
+          <dd class="ks-display mt-2 text-3xl font-semibold">
+            {{ formatNumber(activeMediaCount) }}
+          </dd>
         </div>
-        <div>
-          <label class="text-sm font-medium" for="content-category">Category</label>
-          <select
-            id="content-category"
-            v-model="contentForm.category_id"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          >
-            <option value="">No category</option>
-            <option v-for="category in categories" :key="category.id" :value="category.id">
-              {{ category.name }}
-            </option>
-          </select>
-        </div>
-        <div>
-          <label class="text-sm font-medium" for="content-order">Sort order</label>
-          <input
-            id="content-order"
-            v-model.number="contentForm.sort_order"
-            class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            min="0"
-            type="number"
-          />
-        </div>
-        <div class="sm:col-span-2">
-          <label class="text-sm font-medium" for="content-summary">Summary</label>
-          <textarea
-            id="content-summary"
-            v-model="contentForm.summary"
-            class="mt-1 min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            maxlength="500"
-          />
-        </div>
-        <div class="sm:col-span-2">
-          <label class="text-sm font-medium" for="content-body">Content</label>
-          <textarea
-            id="content-body"
-            v-model="contentForm.body"
-            class="mt-1 min-h-64 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            required
-            maxlength="50000"
-          />
-          <p class="mt-1 text-xs text-slate-500">
-            Stored as sanitized plain text. HTML is not interpreted.
-          </p>
-        </div>
-        <div class="sm:col-span-2">
-          <button
-            class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
-            :disabled="contentForm.processing"
-            type="submit"
-          >
-            {{ editingId ? 'Save new revision' : 'Create draft' }}
-          </button>
-          <p v-if="Object.keys(contentForm.errors).length" class="mt-2 text-sm text-rose-300">
-            Please correct the content form values.
-          </p>
-        </div>
-      </form>
+      </dl>
     </section>
 
-    <section
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6"
-      aria-labelledby="existing-heading"
-    >
-      <h2 id="existing-heading" class="text-xl font-semibold">Content library</h2>
-      <div v-if="content.length" class="mt-5 space-y-5">
-        <article
-          v-for="item in content"
-          :key="item.id"
-          class="rounded-xl border border-slate-800 p-5"
-        >
-          <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <div class="flex flex-wrap gap-2 text-xs font-semibold text-slate-400 uppercase">
-                <span>{{ item.typeLabel }}</span
-                ><span>· {{ item.status }}</span
-                ><span>· {{ item.visibility }}</span
-                ><span>· rev {{ item.revisionNumber }}</span>
-              </div>
-              <h3 class="mt-2 text-lg font-semibold">{{ item.title }}</h3>
-              <p class="mt-1 text-sm text-slate-400">/{{ item.slug }}</p>
-            </div>
-            <div class="flex flex-wrap gap-3 text-sm font-semibold">
-              <button
-                class="text-cyan-300 hover:text-cyan-200"
-                type="button"
-                @click="editContent(item)"
-              >
-                Edit
-              </button>
-              <button
-                class="text-emerald-300 hover:text-emerald-200"
-                type="button"
-                @click="publishNow(item.id)"
-              >
-                Publish now
-              </button>
-              <button
-                class="text-rose-300 hover:text-rose-200"
-                type="button"
-                @click="archiveContent(item.id)"
-              >
-                Archive
-              </button>
-            </div>
+    <div class="mt-5 grid gap-5 xl:grid-cols-3">
+      <div class="space-y-5 xl:col-span-2">
+        <section class="ks-surface p-5 sm:p-6" aria-labelledby="author-heading">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="author-heading" class="ks-display text-xl font-semibold">
+              {{
+                editingId
+                  ? t('contentExperience.editContent')
+                  : t('contentExperience.createContent')
+              }}
+            </h2>
+            <button
+              v-if="editingId"
+              class="text-sm font-semibold text-[var(--ks-blue-strong)]"
+              type="button"
+              @click="resetContentForm"
+            >
+              {{ t('contentExperience.cancelEdit') }}
+            </button>
           </div>
-
-          <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
-            <div class="flex-1">
-              <label class="text-sm font-medium" :for="`schedule-${item.id}`"
-                >Schedule publication</label
+          <p
+            v-if="editingId"
+            class="mt-3 rounded-[var(--ks-radius-sm)] border border-amber-400/25 bg-amber-500/10 p-3 text-sm text-amber-100"
+          >
+            {{ t('contentExperience.revisedDraftHelp') }}
+          </p>
+          <form class="mt-5 grid gap-4 sm:grid-cols-2" @submit.prevent="saveContent">
+            <div class="sm:col-span-2">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="content-title"
+                >{{ t('contentExperience.title') }}</label
+              ><input
+                id="content-title"
+                v-model="contentForm.title"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                maxlength="180"
+                required
+              />
+            </div>
+            <div>
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="content-slug"
+                >{{ t('contentExperience.slug') }}</label
+              ><input
+                id="content-slug"
+                v-model="contentForm.slug"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                required
+              />
+            </div>
+            <div>
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="content-locale"
+                >{{ t('contentExperience.locale') }}</label
+              ><input
+                id="content-locale"
+                v-model="contentForm.locale"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                maxlength="16"
+                required
+              />
+            </div>
+            <div>
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="content-type"
+                >{{ t('contentExperience.type') }}</label
+              ><select
+                id="content-type"
+                v-model="contentForm.type"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
               >
-              <input
-                :id="`schedule-${item.id}`"
-                v-model="scheduleValues[item.id]"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                type="datetime-local"
+                <option v-for="option in contentTypes" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="content-visibility"
+                >{{ t('contentExperience.visibility') }}</label
+              ><select
+                id="content-visibility"
+                v-model="contentForm.visibility"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              >
+                <option
+                  v-for="option in visibilityOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="content-category"
+                >{{ t('contentExperience.category') }}</label
+              ><select
+                id="content-category"
+                v-model="contentForm.category_id"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              >
+                <option value="">{{ t('contentExperience.noCategory') }}</option>
+                <option v-for="category in categories" :key="category.id" :value="category.id">
+                  {{ category.name }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="content-sort"
+                >{{ t('contentExperience.sortOrder') }}</label
+              ><input
+                id="content-sort"
+                v-model.number="contentForm.sort_order"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                type="number"
+                min="0"
+                max="100000"
+              />
+            </div>
+            <div class="sm:col-span-2">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="content-summary"
+                >{{ t('contentExperience.summary') }}</label
+              ><textarea
+                id="content-summary"
+                v-model="contentForm.summary"
+                class="mt-1.5 min-h-20 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                maxlength="500"
+              />
+            </div>
+            <div class="sm:col-span-2">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="content-body"
+                >{{ t('contentExperience.body') }}</label
+              ><textarea
+                id="content-body"
+                v-model="contentForm.body"
+                class="mt-1.5 min-h-72 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 font-mono text-sm"
+                maxlength="50000"
+                required
               />
             </div>
             <button
-              class="rounded-lg border border-slate-700 px-4 py-2 font-semibold"
-              type="button"
-              @click="schedule(item.id)"
+              class="min-h-10 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white sm:col-span-2"
+              type="submit"
             >
-              Schedule
+              {{
+                editingId ? t('contentExperience.saveChanges') : t('contentExperience.saveDraft')
+              }}
             </button>
-          </div>
+          </form>
+        </section>
 
-          <details v-if="item.revisions.length" class="mt-4 rounded-lg bg-slate-950/60 p-4">
-            <summary class="cursor-pointer font-semibold">Revision history</summary>
-            <ul class="mt-3 space-y-2 text-sm">
-              <li
-                v-for="revision in item.revisions"
-                :key="revision.id"
-                class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-2 first:border-0 first:pt-0"
+        <section class="ks-surface overflow-hidden" aria-labelledby="inventory-heading">
+          <div class="border-b border-[var(--ks-border)] p-4 sm:p-5">
+            <h2 id="inventory-heading" class="ks-display text-xl font-semibold">
+              {{ t('contentExperience.contentInventory') }}
+            </h2>
+          </div>
+          <div v-if="content.length" class="space-y-px bg-[var(--ks-border)]">
+            <article
+              v-for="item in content"
+              :key="item.id"
+              class="bg-[var(--ks-surface-1)] p-4 sm:p-5"
+            >
+              <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="ks-display text-lg font-semibold">{{ item.title }}</h3>
+                    <span
+                      :class="statusTone(item.status)"
+                      class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
+                      >{{ item.status }}</span
+                    ><span
+                      class="rounded-full border border-[var(--ks-border)] px-2.5 py-1 text-xs text-[var(--ks-text-muted)]"
+                      >{{ item.visibility }}</span
+                    >
+                  </div>
+                  <p class="mt-2 text-xs text-[var(--ks-text-muted)]">
+                    {{ item.typeLabel }} · {{ item.locale }} · {{ t('contentExperience.revision') }}
+                    {{ item.revisionNumber }}
+                  </p>
+                  <p v-if="item.summary" class="mt-2 text-sm text-[var(--ks-text-secondary)]">
+                    {{ item.summary }}
+                  </p>
+                </div>
+                <button
+                  class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-1.5 text-xs font-semibold text-[var(--ks-blue-strong)]"
+                  type="button"
+                  @click="editContent(item)"
+                >
+                  {{ t('contentExperience.editContent') }}
+                </button>
+              </div>
+              <div class="mt-4 flex flex-wrap items-end gap-2">
+                <button
+                  class="min-h-9 rounded-[var(--ks-radius-sm)] border border-green-400/25 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-200"
+                  type="button"
+                  @click="publishNow(item.id)"
+                >
+                  {{ t('contentExperience.publishNow') }}
+                </button>
+                <label class="sr-only" :for="`schedule-${item.id}`">{{
+                  t('contentExperience.scheduledFor')
+                }}</label>
+                <input
+                  :id="`schedule-${item.id}`"
+                  v-model="scheduleValues[item.id]"
+                  class="min-h-9 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-1.5 text-xs"
+                  type="datetime-local"
+                />
+                <button
+                  class="min-h-9 rounded-[var(--ks-radius-sm)] border border-amber-400/25 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-200"
+                  type="button"
+                  @click="schedule(item.id)"
+                >
+                  {{ t('contentExperience.schedule') }}
+                </button>
+                <button
+                  class="min-h-9 rounded-[var(--ks-radius-sm)] border border-red-400/20 bg-red-500/5 px-3 py-1.5 text-xs font-semibold text-red-300"
+                  type="button"
+                  @click="archiveContent(item.id)"
+                >
+                  {{ t('contentExperience.archive') }}
+                </button>
+              </div>
+              <div
+                v-if="item.revisions.length"
+                class="mt-4 border-t border-[var(--ks-border)] pt-3"
               >
-                <span>Revision {{ revision.revisionNumber }} · {{ revision.title }}</span>
-                <button
-                  v-if="revision.revisionNumber !== item.revisionNumber"
-                  class="font-semibold text-cyan-300"
-                  type="button"
-                  @click="restoreRevision(item.id, revision)"
+                <p
+                  class="text-xs font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
                 >
-                  Restore as draft
-                </button>
-              </li>
-            </ul>
-          </details>
-        </article>
-      </div>
-      <p v-else class="mt-4 text-slate-400">No content has been created yet.</p>
-    </section>
-
-    <section
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6"
-      aria-labelledby="category-heading"
-    >
-      <h2 id="category-heading" class="text-xl font-semibold">Categories</h2>
-      <form
-        class="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_8rem_auto]"
-        @submit.prevent="createCategory"
-      >
-        <div>
-          <label class="sr-only" for="new-category-name">Category name</label>
-          <input
-            id="new-category-name"
-            v-model="categoryForm.name"
-            class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            placeholder="Category name"
-            required
-          />
-        </div>
-        <div>
-          <label class="sr-only" for="new-category-slug">Category slug</label>
-          <input
-            id="new-category-slug"
-            v-model="categoryForm.slug"
-            class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            placeholder="category-slug"
-            required
-            pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-          />
-        </div>
-        <div>
-          <label class="sr-only" for="new-category-order">Sort order</label>
-          <input
-            id="new-category-order"
-            v-model.number="categoryForm.sort_order"
-            class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            min="0"
-            type="number"
-          />
-        </div>
-        <button class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950" type="submit">
-          Add
-        </button>
-      </form>
-
-      <div class="mt-5 space-y-3">
-        <div
-          v-for="category in categories"
-          :key="category.id"
-          class="grid gap-3 rounded-xl border border-slate-800 p-4 sm:grid-cols-[1fr_1fr_8rem_auto]"
-        >
-          <label class="sr-only" :for="`category-name-${category.id}`">Category name</label>
-          <input
-            :id="`category-name-${category.id}`"
-            v-model="categoryDrafts[category.id].name"
-            class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          />
-          <label class="sr-only" :for="`category-slug-${category.id}`">Category slug</label>
-          <input
-            :id="`category-slug-${category.id}`"
-            v-model="categoryDrafts[category.id].slug"
-            class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          />
-          <label class="sr-only" :for="`category-order-${category.id}`">Sort order</label>
-          <input
-            :id="`category-order-${category.id}`"
-            v-model.number="categoryDrafts[category.id].sort_order"
-            class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            min="0"
-            type="number"
-          />
-          <div class="flex gap-3 sm:justify-end">
-            <button
-              class="font-semibold text-cyan-300"
-              type="button"
-              @click="updateCategory(category)"
-            >
-              Save
-            </button>
-            <button
-              class="font-semibold text-rose-300"
-              type="button"
-              @click="deleteCategory(category)"
-            >
-              Delete
-            </button>
+                  {{ t('contentExperience.revisions') }}
+                </p>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <button
+                    v-for="revision in item.revisions"
+                    :key="revision.id"
+                    class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-2.5 py-1.5 text-xs text-[var(--ks-text-secondary)]"
+                    type="button"
+                    @click="restoreRevision(item.id, revision)"
+                  >
+                    {{
+                      t('contentExperience.restoreRevision', { number: revision.revisionNumber })
+                    }}
+                  </button>
+                </div>
+              </div>
+              <p v-if="item.scheduledFor" class="mt-3 text-xs text-amber-300">
+                {{ t('contentExperience.scheduledFor') }}: {{ date(item.scheduledFor) }}
+              </p>
+              <p v-else-if="item.publishedAt" class="mt-3 text-xs text-[var(--ks-text-muted)]">
+                {{ t('contentExperience.published', { date: date(item.publishedAt) }) }}
+              </p>
+            </article>
           </div>
-        </div>
+          <p v-else class="p-8 text-center text-sm text-[var(--ks-text-muted)]">
+            {{ t('contentExperience.noContent') }}
+          </p>
+        </section>
       </div>
-    </section>
 
-    <section
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6"
-      aria-labelledby="media-heading"
-    >
-      <h2 id="media-heading" class="text-xl font-semibold">Media library</h2>
-      <p class="mt-2 text-sm text-slate-400">
-        Images and PDFs are privately stored, screened, and tenant-prefixed. Clean images can be
-        selected for public branding.
-      </p>
-      <form class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end" @submit.prevent="uploadMedia">
-        <div class="flex-1">
-          <label class="text-sm font-medium" for="media-upload">Upload media</label>
-          <input
-            id="media-upload"
-            class="mt-1 block w-full text-sm"
-            accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
-            type="file"
-            required
-            @change="chooseMedia"
-          />
-        </div>
-        <button
-          class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
-          :disabled="mediaForm.processing || !mediaForm.media"
-          type="submit"
-        >
-          Upload
-        </button>
-      </form>
-      <p v-if="mediaForm.errors.media" class="mt-2 text-sm text-rose-300">
-        {{ mediaForm.errors.media }}
-      </p>
+      <aside class="space-y-5 xl:col-span-1">
+        <section class="ks-surface p-5 xl:sticky xl:top-24" aria-labelledby="profile-heading">
+          <h2 id="profile-heading" class="ks-display text-xl font-semibold">
+            {{ t('contentExperience.publicProfile') }}
+          </h2>
+          <form class="mt-5 space-y-4" @submit.prevent="saveProfile">
+            <div>
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="profile-name"
+                >{{ t('contentExperience.allianceName') }}</label
+              ><input
+                id="profile-name"
+                v-model="profileForm.name"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                maxlength="120"
+                required
+              />
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+              <div>
+                <label
+                  class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                  for="profile-language"
+                  >{{ t('contentExperience.language') }}</label
+                ><input
+                  id="profile-language"
+                  v-model="profileForm.language"
+                  class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                  maxlength="16"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                  for="profile-timezone"
+                  >{{ t('contentExperience.timezone') }}</label
+                ><input
+                  id="profile-timezone"
+                  v-model="profileForm.timezone"
+                  class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="profile-color"
+                >{{ t('contentExperience.brandAccent') }}</label
+              ><input
+                id="profile-color"
+                v-model="profileForm.primary_color"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                pattern="#[0-9A-Fa-f]{6}"
+              />
+            </div>
+            <div>
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="profile-logo"
+                >{{ t('contentExperience.logoImage') }}</label
+              ><select
+                id="profile-logo"
+                v-model="profileForm.logo_media_id"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              >
+                <option value="">{{ t('contentExperience.noLogo') }}</option>
+                <option v-for="asset in brandingMedia" :key="asset.id" :value="asset.id">
+                  {{ asset.name }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="profile-banner"
+                >{{ t('contentExperience.bannerImage') }}</label
+              ><select
+                id="profile-banner"
+                v-model="profileForm.banner_media_id"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              >
+                <option value="">{{ t('contentExperience.noBanner') }}</option>
+                <option v-for="asset in brandingMedia" :key="asset.id" :value="asset.id">
+                  {{ asset.name }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="profile-description"
+                >{{ t('contentExperience.description') }}</label
+              ><textarea
+                id="profile-description"
+                v-model="profileForm.description"
+                class="mt-1.5 min-h-24 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+                maxlength="5000"
+              />
+            </div>
+            <button
+              class="min-h-10 w-full rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white"
+              type="submit"
+            >
+              {{ t('contentExperience.saveProfile') }}
+            </button>
+            <p
+              v-if="Object.keys(profileForm.errors).length"
+              class="text-sm text-red-300"
+              role="alert"
+            >
+              {{ t('contentExperience.profileError') }}
+            </p>
+          </form>
+        </section>
 
-      <div v-if="media.length" class="mt-5 overflow-x-auto">
-        <table class="min-w-full text-left text-sm">
-          <thead class="text-slate-400">
-            <tr>
-              <th class="pr-4 pb-3">Name</th>
-              <th class="pr-4 pb-3">Type</th>
-              <th class="pr-4 pb-3">Size</th>
-              <th class="pr-4 pb-3">State</th>
-              <th class="pb-3">Action</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-800">
-            <tr v-for="asset in media" :key="asset.id">
-              <td class="py-3 pr-4">{{ asset.name }}</td>
-              <td class="py-3 pr-4 text-slate-400">{{ asset.mimeType }}</td>
-              <td class="py-3 pr-4 text-slate-400">{{ formatBytes(asset.sizeBytes) }}</td>
-              <td class="py-3 pr-4">{{ asset.scanStatus }} / {{ asset.lifecycleStatus }}</td>
-              <td class="py-3">
+        <section class="ks-surface p-5" aria-labelledby="categories-heading">
+          <h2 id="categories-heading" class="ks-display text-xl font-semibold">
+            {{ t('contentExperience.categoryManagement') }}
+          </h2>
+          <form class="mt-4 grid gap-3" @submit.prevent="createCategory">
+            <label class="sr-only" for="category-name">{{ t('contentExperience.name') }}</label
+            ><input
+              id="category-name"
+              v-model="categoryForm.name"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              maxlength="100"
+              :placeholder="t('contentExperience.name')"
+              required
+            />
+            <label class="sr-only" for="category-slug">{{ t('contentExperience.slug') }}</label
+            ><input
+              id="category-slug"
+              v-model="categoryForm.slug"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+              :placeholder="t('contentExperience.slug')"
+              required
+            />
+            <label class="sr-only" for="category-sort">{{ t('contentExperience.sortOrder') }}</label
+            ><input
+              id="category-sort"
+              v-model.number="categoryForm.sort_order"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              type="number"
+              min="0"
+              max="100000"
+            />
+            <button
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-gold)]/45 bg-[var(--ks-gold-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-gold-strong)]"
+              type="submit"
+            >
+              {{ t('contentExperience.createCategory') }}
+            </button>
+          </form>
+          <div
+            v-if="categories.length"
+            class="mt-4 space-y-3 border-t border-[var(--ks-border)] pt-4"
+          >
+            <div
+              v-for="category in categories"
+              :key="category.id"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3"
+            >
+              <input
+                v-model="categoryDrafts[category.id].name"
+                class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-2.5 py-2 text-sm"
+              /><input
+                v-model="categoryDrafts[category.id].slug"
+                class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-2.5 py-2 text-sm"
+              /><input
+                v-model.number="categoryDrafts[category.id].sort_order"
+                class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-2.5 py-2 text-sm"
+                type="number"
+                min="0"
+                max="100000"
+              />
+              <div class="mt-2 flex gap-2">
                 <button
-                  v-if="asset.lifecycleStatus === 'active'"
-                  class="font-semibold text-rose-300"
+                  class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-2.5 py-1.5 text-xs font-semibold"
                   type="button"
-                  @click="archiveMedia(asset)"
+                  @click="updateCategory(category)"
                 >
-                  Archive
+                  {{ t('contentExperience.saveCategory') }}</button
+                ><button
+                  class="rounded-[var(--ks-radius-sm)] border border-red-400/20 px-2.5 py-1.5 text-xs font-semibold text-red-300"
+                  type="button"
+                  @click="deleteCategory(category)"
+                >
+                  {{ t('contentExperience.deleteCategory') }}
                 </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="ks-surface p-5" aria-labelledby="media-heading">
+          <h2 id="media-heading" class="ks-display text-xl font-semibold">
+            {{ t('contentExperience.mediaLibrary') }}
+          </h2>
+          <p class="mt-2 text-xs leading-5 text-[var(--ks-text-muted)]">
+            {{ t('contentExperience.mediaHelp') }}
+          </p>
+          <form class="mt-4" @submit.prevent="uploadMedia">
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="media-upload"
+              >{{ t('contentExperience.mediaFile') }}</label
+            ><input
+              id="media-upload"
+              accept="image/*"
+              class="mt-1.5 block w-full text-sm"
+              type="file"
+              required
+              @change="chooseMedia"
+            /><button
+              class="mt-3 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-3 py-2 text-sm font-semibold text-white"
+              type="submit"
+              :disabled="mediaForm.processing || !mediaForm.media"
+            >
+              {{ t('contentExperience.uploadMedia') }}
+            </button>
+          </form>
+          <div v-if="media.length" class="mt-4 space-y-3 border-t border-[var(--ks-border)] pt-4">
+            <article
+              v-for="asset in media"
+              :key="asset.id"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-semibold">{{ asset.name }}</p>
+                  <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                    {{ asset.mimeType }} · {{ bytes(asset.sizeBytes) }}
+                  </p>
+                </div>
+                <span
+                  :class="statusTone(asset.lifecycleStatus)"
+                  class="rounded-full border px-2 py-1 text-xs capitalize"
+                  >{{ asset.lifecycleStatus }}</span
+                >
+              </div>
+              <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                <span :class="statusTone(asset.scanStatus)" class="rounded-full border px-2 py-1"
+                  >{{ t('contentExperience.scan') }}: {{ asset.scanStatus }}</span
+                ><span class="text-[var(--ks-text-muted)]">{{ date(asset.createdAt) }}</span>
+              </div>
+              <button
+                v-if="asset.lifecycleStatus === 'active'"
+                class="mt-3 rounded-[var(--ks-radius-sm)] border border-red-400/20 px-2.5 py-1.5 text-xs font-semibold text-red-300"
+                type="button"
+                @click="archiveMedia(asset)"
+              >
+                {{ t('contentExperience.archiveMedia') }}
+              </button>
+            </article>
+          </div>
+          <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
+            {{ t('contentExperience.noMedia') }}
+          </p>
+        </section>
+      </aside>
+    </div>
+  </AppLayout>
 </template>

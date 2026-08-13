@@ -51,6 +51,10 @@ final class ContributionController extends Controller
         $membership = $context->membership();
 
         return Inertia::render('Alliance/Contributions/Index', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'id' => $alliance->id,
                 'name' => $alliance->name,
@@ -69,9 +73,12 @@ final class ContributionController extends Controller
         ContributionReportingQuery $reports,
     ): Response {
         [$user, $alliance] = $this->requireManager($request, $context, $authorization);
-        unset($user);
 
         return Inertia::render('Alliance/Contributions/Manage', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'id' => $alliance->id,
                 'name' => $alliance->name,

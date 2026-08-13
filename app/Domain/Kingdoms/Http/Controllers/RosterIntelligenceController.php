@@ -34,6 +34,10 @@ final class RosterIntelligenceController extends Controller
         $metrics = $intelligence->forAlliance($alliance);
 
         return Inertia::render('Alliance/RosterIntelligence', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'id' => (string) $alliance->id,
                 'name' => (string) $alliance->name,

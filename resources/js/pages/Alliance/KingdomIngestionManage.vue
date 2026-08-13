@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
+
+import AppLayout from '../../layouts/AppLayout.vue';
+import { useLocale } from '../../localization';
 
 type AdapterDefinition = {
   key: string;
@@ -9,7 +13,6 @@ type AdapterDefinition = {
   acquisitionEnabled: boolean;
   pollIntervalSeconds: number | null;
 };
-
 type LatestBatch = {
   id: string;
   state: string;
@@ -22,7 +25,6 @@ type LatestBatch = {
   failureCode: string | null;
   nextSourceCursor: string | null;
 };
-
 type SubscriptionRow = {
   id: string;
   adapterKey: string;
@@ -46,7 +48,6 @@ type SubscriptionRow = {
   rejectedCandidates: number;
   latestBatch: LatestBatch | null;
 };
-
 type CandidateRow = {
   id: string;
   subscriptionId: string;
@@ -61,19 +62,21 @@ type CandidateRow = {
 };
 
 const props = defineProps<{
-  alliance: {
-    id: string;
-    name: string;
-    kingdom: string | null;
-  };
+  user: { name: string; email: string };
+  alliance: { id: string; name: string; kingdom: string | null };
   adapters: AdapterDefinition[];
   subscriptions: SubscriptionRow[];
   candidates: CandidateRow[];
 }>();
 
-const createForm = useForm({
-  adapter_key: props.adapters[0]?.key ?? '',
-});
+const { t, formatDate, formatNumber } = useLocale();
+const createForm = useForm({ adapter_key: props.adapters[0]?.key ?? '' });
+const activeSubscriptions = computed(
+  () => props.subscriptions.filter((item) => item.state === 'active').length,
+);
+const quarantinedCount = computed(() =>
+  props.subscriptions.reduce((total, item) => total + item.quarantinedCandidates, 0),
+);
 
 function createSubscription(): void {
   createForm.post('/alliance/kingdom-ingestion/subscriptions', {
@@ -85,11 +88,9 @@ function createSubscription(): void {
 function transition(subscription: SubscriptionRow, state: 'active' | 'paused' | 'disabled'): void {
   if (
     state === 'disabled' &&
-    !window.confirm(`Disable automated ingestion for ${subscription.adapterLabel}?`)
-  ) {
+    !window.confirm(t('kingdomP7A.disableConfirm', { adapter: subscription.adapterLabel }))
+  )
     return;
-  }
-
   router.patch(
     `/alliance/kingdom-ingestion/subscriptions/${subscription.id}/state`,
     { state },
@@ -98,14 +99,7 @@ function transition(subscription: SubscriptionRow, state: 'active' | 'paused' | 
 }
 
 function replayCandidate(candidate: CandidateRow): void {
-  if (
-    !window.confirm(
-      'Replay this quarantined candidate through the existing Kingdoms promotion rules?',
-    )
-  ) {
-    return;
-  }
-
+  if (!window.confirm(t('kingdomP7A.replayConfirm'))) return;
   router.post(
     `/alliance/kingdom-ingestion/subscriptions/${candidate.subscriptionId}/candidates/${candidate.id}/replay`,
     {},
@@ -114,14 +108,7 @@ function replayCandidate(candidate: CandidateRow): void {
 }
 
 function rejectCandidate(candidate: CandidateRow): void {
-  if (
-    !window.confirm(
-      'Reject this quarantined ingestion candidate? Promoted Kingdoms history is not affected.',
-    )
-  ) {
-    return;
-  }
-
+  if (!window.confirm(t('kingdomP7A.rejectConfirm'))) return;
   router.post(
     `/alliance/kingdom-ingestion/subscriptions/${candidate.subscriptionId}/candidates/${candidate.id}/reject`,
     {},
@@ -129,184 +116,349 @@ function rejectCandidate(candidate: CandidateRow): void {
   );
 }
 
+function date(value: string | null): string {
+  return value ? formatDate(value, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+}
+
 function label(value: string): string {
-  return value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+  const known: Record<string, string> = {
+    active: t('kingdomP7A.active'),
+    paused: t('kingdomP7A.paused'),
+    disabled: t('kingdomP7A.disabled'),
+    pending: t('kingdomP7A.pending'),
+    quarantined: t('kingdomP7A.quarantined'),
+    rejected: t('kingdomP7A.rejected'),
+  };
+  return (
+    known[value] ?? value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+  );
+}
+
+function tone(value: string): string {
+  if (['active', 'completed', 'succeeded', 'promoted'].includes(value))
+    return 'border-green-400/25 bg-green-500/10 text-green-200';
+  if (['paused', 'pending', 'quarantined'].includes(value))
+    return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
+  if (['disabled', 'failed', 'rejected', 'blocked'].includes(value))
+    return 'border-red-400/25 bg-red-500/10 text-red-200';
+  return 'border-blue-400/25 bg-blue-500/10 text-blue-200';
 }
 </script>
 
 <template>
-  <Head title="Manage automated ingestion" />
-
-  <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 lg:px-8">
-    <header class="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
-          Kingdom intelligence
+  <Head :title="`${t('kingdomP7A.ingestionTitle')} · ${alliance.name}`" />
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+    <header class="flex flex-wrap items-start justify-between gap-5">
+      <div class="max-w-3xl">
+        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+          {{ t('kingdomP7A.eyebrow') }}
         </p>
-        <h1 class="mt-2 text-3xl font-bold">Automated ingestion</h1>
-        <p class="mt-2 max-w-3xl text-sm text-slate-400">
-          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. Approved
-          adapters can stage and promote factual player or game-alliance observations only through
-          existing Kingdoms relationships. Production remains empty-by-default until a concrete
-          source receives separate approval.
+        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
+          {{ t('kingdomP7A.ingestionTitle') }}
+        </h1>
+        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
+          {{ t('kingdomP7A.ingestionSubtitle', { alliance: alliance.name }) }}
         </p>
       </div>
-      <Link
-        class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200"
-        href="/alliance/kingdom-alliances/manage"
-      >
-        Kingdom alliances
-      </Link>
+      <div class="flex flex-wrap gap-2">
+        <Link
+          href="/alliance/kingdom-alliances"
+          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
+          >{{ t('kingdomP7A.overviewTitle') }}</Link
+        ><Link
+          href="/alliance/settings/kingdom"
+          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
+          >{{ t('kingdomP7A.settings') }}</Link
+        >
+      </div>
     </header>
 
-    <section class="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-      <h2 class="text-xl font-semibold">Approved source subscription</h2>
-      <p class="mt-1 text-sm text-slate-400">
-        Source network locations and authentication are operator-owned. Managers cannot enter URLs,
-        headers, cookies, or source credentials here.
-      </p>
+    <section class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Ingestion summary">
+      <article class="ks-surface p-4">
+        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
+          {{ t('kingdomP7A.currentKingdom') }}
+        </p>
+        <p class="ks-display mt-2 text-2xl font-bold text-[var(--ks-gold)]">
+          {{ alliance.kingdom ? `#${alliance.kingdom}` : t('kingdomP7A.notConfigured') }}
+        </p>
+      </article>
+      <article class="ks-surface p-4">
+        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
+          {{ t('kingdomP7A.approvedAdapters') }}
+        </p>
+        <p class="mt-2 text-2xl font-bold">{{ formatNumber(adapters.length) }}</p>
+      </article>
+      <article class="ks-surface p-4">
+        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
+          {{ t('kingdomP7A.subscriptionsCount') }}
+        </p>
+        <p class="mt-2 text-2xl font-bold">{{ formatNumber(subscriptions.length) }}</p>
+        <p class="mt-1 text-xs text-green-200">
+          {{ formatNumber(activeSubscriptions) }} {{ t('kingdomP7A.active') }}
+        </p>
+      </article>
+      <article class="ks-surface p-4">
+        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
+          {{ t('kingdomP7A.quarantinedCount') }}
+        </p>
+        <p
+          class="mt-2 text-2xl font-bold"
+          :class="quarantinedCount ? 'text-amber-200' : 'text-green-200'"
+        >
+          {{ formatNumber(quarantinedCount) }}
+        </p>
+      </article>
+    </section>
 
+    <section class="ks-surface mt-6 p-5" aria-labelledby="source-heading">
+      <h2 id="source-heading" class="ks-display text-xl font-semibold">
+        {{ t('kingdomP7A.approvedSource') }}
+      </h2>
+      <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--ks-text-secondary)]">
+        {{ t('kingdomP7A.approvedSourceHelp') }}
+      </p>
       <form
-        class="mt-6 grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
+        class="mt-5 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
         @submit.prevent="createSubscription"
       >
         <div>
-          <label class="block text-sm font-medium" for="ingestion-adapter">Source adapter</label>
-          <select
+          <label class="text-sm font-semibold" for="ingestion-adapter">{{
+            t('kingdomP7A.sourceAdapter')
+          }}</label
+          ><select
             id="ingestion-adapter"
             v-model="createForm.adapter_key"
-            class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/20 px-3 py-2.5"
             :disabled="adapters.length === 0"
           >
-            <option v-if="adapters.length === 0" value="">No source adapters approved</option>
+            <option v-if="adapters.length === 0" value="">{{ t('kingdomP7A.noAdapters') }}</option>
             <option v-for="adapter in adapters" :key="adapter.key" :value="adapter.key">
-              {{ adapter.label }} · {{ adapter.version }}
-              {{ adapter.acquisitionEnabled ? '· scheduled' : '· manual pipeline only' }}
+              {{ adapter.label }} · {{ adapter.version }} ·
+              {{
+                adapter.acquisitionEnabled
+                  ? t('kingdomP7A.scheduled')
+                  : t('kingdomP7A.manualPipelineOnly')
+              }}
             </option>
           </select>
-          <p v-if="createForm.errors.adapter_key" class="mt-1 text-sm text-rose-300" role="alert">
+          <p v-if="createForm.errors.adapter_key" class="mt-1 text-sm text-red-300" role="alert">
             {{ createForm.errors.adapter_key }}
           </p>
-          <p v-else class="mt-1 text-xs text-slate-500">
-            Scheduled adapters use repository-defined bounded polling; managers cannot change the
-            destination or frequency.
+          <p v-else class="mt-2 text-xs text-[var(--ks-text-muted)]">
+            {{ t('kingdomP7A.adapterHelp') }}
           </p>
         </div>
         <button
-          class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
+          class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
           :disabled="createForm.processing || adapters.length === 0 || alliance.kingdom === null"
           type="submit"
         >
-          Enable adapter
+          {{ t('kingdomP7A.enableAdapter') }}
         </button>
       </form>
     </section>
 
-    <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-      <h2 class="text-xl font-semibold">Subscriptions</h2>
-      <p class="mt-1 text-sm text-slate-400">
-        A captured Kingdom never silently follows a later Alliance Kingdom change. Scheduler claims,
-        bounded failure state, and circuit timing are visible without exposing source responses or
-        secrets.
+    <section class="ks-surface mt-6 p-5" aria-labelledby="subscriptions-heading">
+      <h2 id="subscriptions-heading" class="ks-display text-xl font-semibold">
+        {{ t('kingdomP7A.subscriptions') }}
+      </h2>
+      <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">
+        {{ t('kingdomP7A.subscriptionsHelp') }}
       </p>
+      <div v-if="subscriptions.length" class="mt-5 space-y-3 lg:hidden">
+        <article
+          v-for="subscription in subscriptions"
+          :key="subscription.id"
+          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-4"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="font-semibold">{{ subscription.adapterLabel }}</p>
+              <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                {{ subscription.adapterKey }} · {{ subscription.adapterVersion }}
+              </p>
+            </div>
+            <span
+              :class="tone(subscription.state)"
+              class="rounded-full border px-2 py-1 text-xs font-semibold"
+              >{{ label(subscription.state) }}</span
+            >
+          </div>
+          <p class="mt-3 text-sm">
+            #{{ subscription.kingdom
+            }}<span v-if="!subscription.contextCurrent" class="ms-2 text-xs text-amber-200">{{
+              t('kingdomP7A.historical')
+            }}</span>
+          </p>
+          <p class="mt-2 text-xs text-[var(--ks-text-secondary)]">
+            {{
+              t('kingdomP7A.candidateSummary', {
+                pending: formatNumber(subscription.pendingCandidates),
+                quarantined: formatNumber(subscription.quarantinedCandidates),
+                rejected: formatNumber(subscription.rejectedCandidates),
+              })
+            }}
+          </p>
+          <p class="mt-2 text-xs text-[var(--ks-text-muted)]">
+            {{
+              subscription.nextRunAt
+                ? `${t('kingdomP7A.nextRun')}: ${date(subscription.nextRunAt)}`
+                : t('kingdomP7A.notScheduled')
+            }}
+          </p>
+          <p v-if="subscription.latestBatch" class="mt-2 text-xs text-[var(--ks-text-secondary)]">
+            {{ label(subscription.latestBatch.state) }} ·
+            {{
+              t('kingdomP7A.latestBatchSummary', {
+                staged: formatNumber(subscription.latestBatch.recordsStaged),
+                quarantined: formatNumber(subscription.latestBatch.recordsQuarantined),
+              })
+            }}
+          </p>
+          <p v-if="subscription.lastFailureCode" class="mt-2 text-xs text-red-200">
+            {{ label(subscription.lastFailureCode) }} ·
+            {{ formatNumber(subscription.consecutiveFailures) }}
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <button
+              v-if="subscription.state === 'active'"
+              class="rounded border border-amber-400/25 px-3 py-1.5 text-xs font-semibold text-amber-200"
+              type="button"
+              @click="transition(subscription, 'paused')"
+            >
+              {{ t('kingdomP7A.pause') }}</button
+            ><button
+              v-else
+              class="rounded border border-blue-400/25 px-3 py-1.5 text-xs font-semibold text-blue-200 disabled:opacity-50"
+              :disabled="!subscription.contextCurrent"
+              type="button"
+              @click="transition(subscription, 'active')"
+            >
+              {{ t('kingdomP7A.enable') }}</button
+            ><button
+              v-if="subscription.state !== 'disabled'"
+              class="rounded border border-red-400/25 px-3 py-1.5 text-xs font-semibold text-red-200"
+              type="button"
+              @click="transition(subscription, 'disabled')"
+            >
+              {{ t('kingdomP7A.disable') }}
+            </button>
+          </div>
+        </article>
+      </div>
 
-      <div v-if="subscriptions.length" class="mt-6 overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
+      <div v-if="subscriptions.length" class="mt-5 hidden overflow-x-auto lg:block">
+        <table class="min-w-full text-left text-sm">
           <caption class="sr-only">
-            Automated ingestion subscriptions, scheduling, and health
+            {{
+              t('kingdomP7A.subscriptions')
+            }}
           </caption>
-          <thead class="text-xs tracking-wide text-slate-400 uppercase">
+          <thead class="text-xs text-[var(--ks-text-muted)] uppercase">
             <tr>
-              <th class="px-3 py-3 font-semibold">Adapter</th>
-              <th class="px-3 py-3 font-semibold">Kingdom</th>
-              <th class="px-3 py-3 font-semibold">State</th>
-              <th class="px-3 py-3 font-semibold">Scheduling</th>
-              <th class="px-3 py-3 font-semibold">Candidates</th>
-              <th class="px-3 py-3 font-semibold">Latest batch</th>
-              <th class="px-3 py-3 font-semibold">Actions</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.adapter') }}</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.kingdom') }}</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.state') }}</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.scheduling') }}</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.candidates') }}</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.latestBatch') }}</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.actions') }}</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800">
+          <tbody class="divide-y divide-[var(--ks-border)]">
             <tr v-for="subscription in subscriptions" :key="subscription.id">
-              <td class="px-3 py-4">
-                <p class="font-medium text-slate-100">{{ subscription.adapterLabel }}</p>
-                <p class="mt-1 text-xs text-slate-500">
+              <td class="px-3 py-4 align-top">
+                <p class="font-semibold">{{ subscription.adapterLabel }}</p>
+                <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
                   {{ subscription.adapterKey }} · {{ subscription.adapterVersion }}
                 </p>
               </td>
-              <td class="px-3 py-4 text-slate-300">
-                {{ subscription.kingdom }}
-                <span
+              <td class="px-3 py-4 align-top">
+                #{{ subscription.kingdom
+                }}<span
                   v-if="!subscription.contextCurrent"
-                  class="ml-2 rounded-full bg-amber-950 px-2 py-1 text-xs font-semibold text-amber-300"
+                  class="mt-1 block text-xs text-amber-200"
+                  >{{ t('kingdomP7A.historical') }}</span
                 >
-                  Historical
-                </span>
               </td>
-              <td class="px-3 py-4 text-slate-300">
-                <p>{{ label(subscription.state) }}</p>
-                <p v-if="subscription.lastFailureCode" class="mt-1 text-xs text-amber-300">
-                  {{ label(subscription.lastFailureCode) }} · {{ subscription.consecutiveFailures }}
-                  failure(s)
+              <td class="px-3 py-4 align-top">
+                <span
+                  :class="tone(subscription.state)"
+                  class="rounded-full border px-2 py-1 text-xs font-semibold"
+                  >{{ label(subscription.state) }}</span
+                >
+                <p v-if="subscription.lastFailureCode" class="mt-2 text-xs text-red-200">
+                  {{ label(subscription.lastFailureCode) }} ·
+                  {{ formatNumber(subscription.consecutiveFailures) }}
                 </p>
               </td>
-              <td class="px-3 py-4 text-slate-300">
-                <p v-if="subscription.nextRunAt">Next: {{ subscription.nextRunAt }}</p>
-                <p v-else class="text-slate-500">Not scheduled</p>
-                <p v-if="subscription.circuitOpenUntil" class="mt-1 text-xs text-amber-300">
-                  Circuit until {{ subscription.circuitOpenUntil }}
+              <td class="px-3 py-4 align-top text-[var(--ks-text-secondary)]">
+                <p>
+                  {{
+                    subscription.nextRunAt
+                      ? `${t('kingdomP7A.nextRun')}: ${date(subscription.nextRunAt)}`
+                      : t('kingdomP7A.notScheduled')
+                  }}
                 </p>
-                <p v-else-if="subscription.lastClaimedAt" class="mt-1 text-xs text-slate-500">
-                  Last claimed {{ subscription.lastClaimedAt }}
+                <p v-if="subscription.circuitOpenUntil" class="mt-1 text-xs text-amber-200">
+                  {{ t('kingdomP7A.circuitUntil', { date: date(subscription.circuitOpenUntil) }) }}
+                </p>
+                <p
+                  v-else-if="subscription.lastClaimedAt"
+                  class="mt-1 text-xs text-[var(--ks-text-muted)]"
+                >
+                  {{ t('kingdomP7A.lastClaimed', { date: date(subscription.lastClaimedAt) }) }}
                 </p>
               </td>
-              <td class="px-3 py-4 text-slate-300">
-                {{ subscription.pendingCandidates }} pending ·
-                {{ subscription.quarantinedCandidates }} quarantined ·
-                {{ subscription.rejectedCandidates }} rejected
+              <td class="px-3 py-4 align-top text-[var(--ks-text-secondary)]">
+                {{
+                  t('kingdomP7A.candidateSummary', {
+                    pending: formatNumber(subscription.pendingCandidates),
+                    quarantined: formatNumber(subscription.quarantinedCandidates),
+                    rejected: formatNumber(subscription.rejectedCandidates),
+                  })
+                }}
               </td>
-              <td class="px-3 py-4 text-slate-300">
-                <template v-if="subscription.latestBatch">
-                  <p>{{ label(subscription.latestBatch.state) }}</p>
-                  <p class="mt-1 text-xs text-slate-500">
-                    {{ subscription.latestBatch.recordsStaged }} staged ·
-                    {{ subscription.latestBatch.recordsQuarantined }} quarantined
+              <td class="px-3 py-4 align-top text-[var(--ks-text-secondary)]">
+                <template v-if="subscription.latestBatch"
+                  ><p>{{ label(subscription.latestBatch.state) }}</p>
+                  <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                    {{
+                      t('kingdomP7A.latestBatchSummary', {
+                        staged: formatNumber(subscription.latestBatch.recordsStaged),
+                        quarantined: formatNumber(subscription.latestBatch.recordsQuarantined),
+                      })
+                    }}
                   </p>
-                  <p
-                    v-if="subscription.latestBatch.failureCode"
-                    class="mt-1 text-xs text-amber-300"
-                  >
+                  <p v-if="subscription.latestBatch.failureCode" class="mt-1 text-xs text-red-200">
                     {{ label(subscription.latestBatch.failureCode) }}
-                  </p>
-                </template>
-                <span v-else class="text-slate-500">No batches yet</span>
+                  </p></template
+                ><span v-else>{{ t('kingdomP7A.noBatches') }}</span>
               </td>
-              <td class="px-3 py-4">
+              <td class="px-3 py-4 align-top">
                 <div class="flex flex-wrap gap-2">
                   <button
                     v-if="subscription.state === 'active'"
-                    class="rounded border border-amber-700 px-3 py-1.5 text-xs font-semibold text-amber-300"
+                    class="rounded border border-amber-400/25 px-3 py-1.5 text-xs font-semibold text-amber-200"
                     type="button"
                     @click="transition(subscription, 'paused')"
                   >
-                    Pause
-                  </button>
-                  <button
+                    {{ t('kingdomP7A.pause') }}</button
+                  ><button
                     v-else
-                    class="rounded border border-cyan-700 px-3 py-1.5 text-xs font-semibold text-cyan-300 disabled:opacity-50"
+                    class="rounded border border-blue-400/25 px-3 py-1.5 text-xs font-semibold text-blue-200 disabled:opacity-50"
                     :disabled="!subscription.contextCurrent"
                     type="button"
                     @click="transition(subscription, 'active')"
                   >
-                    Enable
-                  </button>
-                  <button
+                    {{ t('kingdomP7A.enable') }}</button
+                  ><button
                     v-if="subscription.state !== 'disabled'"
-                    class="rounded border border-rose-800 px-3 py-1.5 text-xs font-semibold text-rose-300"
+                    class="rounded border border-red-400/25 px-3 py-1.5 text-xs font-semibold text-red-200"
                     type="button"
                     @click="transition(subscription, 'disabled')"
                   >
-                    Disable
+                    {{ t('kingdomP7A.disable') }}
                   </button>
                 </div>
               </td>
@@ -314,71 +466,75 @@ function label(value: string): string {
           </tbody>
         </table>
       </div>
-      <p v-else class="mt-6 text-sm text-slate-500">
-        No automated-ingestion subscriptions configured.
-      </p>
+      <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">{{ t('kingdomP7A.noBatches') }}</p>
     </section>
 
-    <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-      <h2 class="text-xl font-semibold">Recent candidates</h2>
-      <p class="mt-1 text-sm text-slate-400">
-        Only bounded provenance/status is displayed here. Raw source responses and source secrets
-        are not retained as candidate data. Replay re-runs the existing stable-ID and tenant checks.
+    <section class="ks-surface mt-6 p-5" aria-labelledby="candidates-heading">
+      <h2 id="candidates-heading" class="ks-display text-xl font-semibold">
+        {{ t('kingdomP7A.recentCandidates') }}
+      </h2>
+      <p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">
+        {{ t('kingdomP7A.candidatesHelp') }}
       </p>
-
-      <div v-if="candidates.length" class="mt-6 overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
+      <div v-if="candidates.length" class="mt-5 overflow-x-auto">
+        <table class="min-w-full text-left text-sm">
           <caption class="sr-only">
-            Recent normalized automated-ingestion candidates
+            {{
+              t('kingdomP7A.recentCandidates')
+            }}
           </caption>
-          <thead class="text-xs tracking-wide text-slate-400 uppercase">
+          <thead class="text-xs text-[var(--ks-text-muted)] uppercase">
             <tr>
-              <th class="px-3 py-3 font-semibold">Adapter</th>
-              <th class="px-3 py-3 font-semibold">Target</th>
-              <th class="px-3 py-3 font-semibold">Stable game ID</th>
-              <th class="px-3 py-3 font-semibold">Captured</th>
-              <th class="px-3 py-3 font-semibold">State</th>
-              <th class="px-3 py-3 font-semibold">Actions</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.adapter') }}</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.target') }}</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.stableGameId') }}</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.captured') }}</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.state') }}</th>
+              <th class="px-3 py-3">{{ t('kingdomP7A.actions') }}</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800">
+          <tbody class="divide-y divide-[var(--ks-border)]">
             <tr v-for="candidate in candidates" :key="candidate.id">
-              <td class="px-3 py-4 text-slate-300">{{ candidate.adapterKey }}</td>
-              <td class="px-3 py-4 text-slate-300">{{ label(candidate.targetKind) }}</td>
-              <td class="px-3 py-4 text-slate-300">
-                {{ candidate.stableGameId ?? 'Missing' }}
-              </td>
-              <td class="px-3 py-4 text-slate-300">{{ candidate.capturedAt }}</td>
-              <td class="px-3 py-4 text-slate-300">
-                {{ label(candidate.state) }}
-                <span v-if="candidate.quarantineCode" class="mt-1 block text-xs text-amber-300">
-                  {{ label(candidate.quarantineCode) }}
-                </span>
+              <td class="px-3 py-4">{{ candidate.adapterKey }}</td>
+              <td class="px-3 py-4">{{ label(candidate.targetKind) }}</td>
+              <td class="px-3 py-4">{{ candidate.stableGameId ?? t('kingdomP7A.missing') }}</td>
+              <td class="px-3 py-4">{{ date(candidate.capturedAt) }}</td>
+              <td class="px-3 py-4">
+                <span
+                  :class="tone(candidate.state)"
+                  class="rounded-full border px-2 py-1 text-xs font-semibold"
+                  >{{ label(candidate.state) }}</span
+                ><span v-if="candidate.quarantineCode" class="mt-2 block text-xs text-amber-200">{{
+                  label(candidate.quarantineCode)
+                }}</span>
               </td>
               <td class="px-3 py-4">
                 <div v-if="candidate.state === 'quarantined'" class="flex flex-wrap gap-2">
                   <button
-                    class="rounded border border-cyan-700 px-3 py-1.5 text-xs font-semibold text-cyan-300"
+                    class="rounded border border-blue-400/25 px-3 py-1.5 text-xs font-semibold text-blue-200"
                     type="button"
                     @click="replayCandidate(candidate)"
                   >
-                    Replay
-                  </button>
-                  <button
-                    class="rounded border border-rose-800 px-3 py-1.5 text-xs font-semibold text-rose-300"
+                    {{ t('kingdomP7A.replay') }}</button
+                  ><button
+                    class="rounded border border-red-400/25 px-3 py-1.5 text-xs font-semibold text-red-200"
                     type="button"
                     @click="rejectCandidate(candidate)"
                   >
-                    Reject
+                    {{ t('kingdomP7A.reject') }}
                   </button>
                 </div>
-                <span v-else class="text-xs text-slate-500">No manager action</span>
+                <span v-else class="text-xs text-[var(--ks-text-muted)]">{{
+                  t('kingdomP7A.noManagerAction')
+                }}</span>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p v-else class="mt-6 text-sm text-slate-500">No normalized candidates have been staged.</p>
+      <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">
+        {{ t('kingdomP7A.noCandidates') }}
+      </p>
     </section>
-  </main>
+  </AppLayout>
 </template>

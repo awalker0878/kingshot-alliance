@@ -50,6 +50,10 @@ final class KingdomIngestionController extends Controller
         }
 
         return Inertia::render('Alliance/KingdomIngestionManage', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => $this->allianceSummary($alliance),
             'adapters' => $definitions,
             'subscriptions' => $ingestion->subscriptionsForAlliance($alliance)

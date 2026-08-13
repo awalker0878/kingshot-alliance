@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 
+import AppLayout from '../../layouts/AppLayout.vue';
+import { useLocale } from '../../localization';
+
 defineProps<{
+  user: { name: string; email: string };
   alliance: { name: string; slug: string; timezone: string };
   viewerTimezone: string;
   content: {
@@ -16,39 +20,55 @@ defineProps<{
   };
 }>();
 
-function formatPublished(value: string | null): string {
-  if (!value) return '';
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'long', timeStyle: 'short' }).format(
-    new Date(value),
-  );
+const { t, formatDate } = useLocale();
+
+function published(value: string | null): string {
+  return value ? formatDate(value, { dateStyle: 'long', timeStyle: 'short' }) : '';
 }
 </script>
 
 <template>
   <Head :title="`${content.title} · ${alliance.name}`" />
 
-  <main class="mx-auto min-h-screen max-w-4xl px-6 py-12 text-slate-100 lg:px-8">
-    <Link class="text-sm font-semibold text-cyan-300 hover:text-cyan-200" href="/alliance/content">
-      ← Content hub
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+    <Link
+      class="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-white"
+      href="/alliance/content"
+    >
+      ← {{ t('contentExperience.backToHub') }}
     </Link>
 
-    <article class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 sm:p-10">
+    <article class="ks-surface-gold mx-auto mt-5 max-w-4xl overflow-hidden">
+      <header class="border-b border-[var(--ks-border)] p-6 sm:p-8 lg:p-10">
+        <div
+          class="flex flex-wrap gap-2 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
+        >
+          <span>{{ content.typeLabel }}</span>
+          <span v-if="content.category">· {{ content.category.name }}</span>
+          <span>· {{ content.locale }}</span>
+          <span v-if="content.visibility === 'members'" class="text-amber-300">
+            · {{ t('contentExperience.membersOnly') }}
+          </span>
+        </div>
+        <h1 class="ks-display mt-3 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+          {{ content.title }}
+        </h1>
+        <p
+          v-if="content.summary"
+          class="mt-4 max-w-3xl text-lg leading-7 text-[var(--ks-text-secondary)]"
+        >
+          {{ content.summary }}
+        </p>
+        <p v-if="content.publishedAt" class="mt-5 text-xs text-[var(--ks-text-muted)]">
+          {{ t('contentExperience.published', { date: published(content.publishedAt) }) }} ·
+          {{ t('contentExperience.displayedIn', { timezone: viewerTimezone }) }}
+        </p>
+      </header>
       <div
-        class="flex flex-wrap gap-2 text-xs font-semibold tracking-wide text-slate-400 uppercase"
+        class="p-6 text-base leading-8 whitespace-pre-wrap text-[var(--ks-text-secondary)] sm:p-8 lg:p-10"
       >
-        <span>{{ content.typeLabel }}</span>
-        <span v-if="content.category">· {{ content.category.name }}</span>
-        <span>· {{ content.locale }}</span>
-        <span v-if="content.visibility === 'members'" class="text-amber-300">· Members only</span>
-      </div>
-      <h1 class="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{{ content.title }}</h1>
-      <p v-if="content.summary" class="mt-4 text-lg text-slate-300">{{ content.summary }}</p>
-      <p v-if="content.publishedAt" class="mt-4 text-sm text-slate-500">
-        Published {{ formatPublished(content.publishedAt) }} · Displayed in {{ viewerTimezone }}
-      </p>
-      <div class="mt-8 text-base leading-8 whitespace-pre-wrap text-slate-200">
         {{ content.body }}
       </div>
     </article>
-  </main>
+  </AppLayout>
 </template>

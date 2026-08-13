@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import AppLayout from '../../../layouts/AppLayout.vue';
+import { useLocale } from '../../../localization';
 
 type Category = {
   id: string;
   name: string;
-  slug: string;
   description: string | null;
   unit: string;
   period: string;
-  periodStart: string | null;
-  periodEnd: string | null;
   goal: number | null;
   approvedTotal: number;
   evidenceRequired: boolean;
@@ -21,26 +21,44 @@ type Category = {
   calculationDescription: string | null;
   active: boolean;
 };
-
-type RecordRow = {
+type Row = {
   id: string;
-  membershipId: string;
   memberName: string | null;
-  categoryId: string;
   categoryName: string | null;
   unit: string | null;
   value: number;
   source: string;
-  dataClass: string;
   status: string;
   evidence: string | null;
   recordedAt: string;
-  reversalReason: string | null;
-  correctionReason: string | null;
-  calculationVersion: string | null;
 };
-
+type Flag = { id: string; severity: string; message: string; detectedAt: string };
+type Board = {
+  categoryId: string;
+  name: string;
+  unit: string;
+  calculationDescription: string;
+  entries: Array<{ membershipId: string; name: string; value: number }>;
+};
+type Schedule = {
+  id: string;
+  name: string;
+  recipientMembershipId: string;
+  cadence: string;
+  timezone: string;
+  nextDueAt: string;
+  enabled: boolean;
+};
+type Run = {
+  id: string;
+  format: string;
+  status: string;
+  reportVersion: string;
+  rowCount: number | null;
+  checksum: string | null;
+};
 const props = defineProps<{
+  user: { name: string; email: string };
   alliance: { id: string; name: string; timezone: string };
   periods: string[];
   dataClasses: string[];
@@ -59,50 +77,18 @@ const props = defineProps<{
     };
     categories: Category[];
     members: Array<{ id: string; name: string; email: string }>;
-    pendingRecords: RecordRow[];
-    recentRecords: RecordRow[];
-    dataQualityFlags: Array<{
-      id: string;
-      membershipId: string | null;
-      categoryId: string | null;
-      recordId: string | null;
-      code: string;
-      severity: string;
-      message: string;
-      detectedAt: string;
-    }>;
-    leaderboards: Array<{
-      categoryId: string;
-      name: string;
-      unit: string;
-      calculationDescription: string;
-      calculationVersion: string | null;
-      entries: Array<{ membershipId: string; name: string; value: number }>;
-    }>;
-    reportSchedules: Array<{
-      id: string;
-      name: string;
-      recipientMembershipId: string;
-      cadence: string;
-      timezone: string;
-      nextDueAt: string;
-      reportVersion: string;
-      enabled: boolean;
-      lastQueuedAt: string | null;
-    }>;
-    recentReportRuns: Array<{
-      id: string;
-      format: string;
-      status: string;
-      reportVersion: string;
-      rowCount: number | null;
-      checksum: string | null;
-      queuedAt: string | null;
-      completedAt: string | null;
-    }>;
+    pendingRecords: Row[];
+    recentRecords: Row[];
+    dataQualityFlags: Flag[];
+    leaderboards: Board[];
+    reportSchedules: Schedule[];
+    recentReportRuns: Run[];
   };
 }>();
-
+const { t, formatDate, formatNumber } = useLocale();
+const recordable = computed(() =>
+  props.reporting.categories.filter((c) => c.active && c.calculationKey !== 'event_attendance'),
+);
 const categoryForm = useForm({
   name: '',
   description: '',
@@ -132,523 +118,581 @@ const scheduleForm = useForm({
   timezone: props.alliance.timezone,
   next_due_at: '',
 });
-
-function createCategory(): void {
+function createCategory() {
   categoryForm.post('/alliance/contributions/categories', {
     preserveScroll: true,
     onSuccess: () => categoryForm.reset(),
   });
 }
-function recordContribution(): void {
+function recordContribution() {
   recordForm.post('/alliance/contributions/records', {
     preserveScroll: true,
     onSuccess: () => recordForm.reset(),
   });
 }
-function approve(id: string): void {
+function approve(id: string) {
   router.patch(`/alliance/contributions/records/${id}/approve`, {}, { preserveScroll: true });
 }
-function correct(row: RecordRow): void {
-  const value = window.prompt(
-    `Correct ${row.memberName ?? 'member'} ${row.categoryName ?? 'contribution'} value:`,
-    String(row.value),
+function correct(r: Row) {
+  const v = window.prompt(
+    t('contributions.correctValuePrompt', {
+      member: r.memberName ?? t('contributions.member'),
+      category: r.categoryName ?? t('contributions.category'),
+    }),
+    String(r.value),
   );
-  if (value === null) return;
-  const reason = window.prompt('Why is this correction required?');
-  if (!reason) return;
-  router.post(
-    `/alliance/contributions/records/${row.id}/correct`,
-    { value: Number(value), reason, evidence: row.evidence ?? '' },
-    { preserveScroll: true },
-  );
+  if (v === null) return;
+  const reason = window.prompt(t('contributions.correctionReasonPrompt'));
+  if (reason)
+    router.post(
+      `/alliance/contributions/records/${r.id}/correct`,
+      { value: Number(v), reason, evidence: r.evidence ?? '' },
+      { preserveScroll: true },
+    );
 }
-function reverse(row: RecordRow): void {
-  const reason = window.prompt('Why should this record be reversed?');
-  if (!reason) return;
-  router.patch(
-    `/alliance/contributions/records/${row.id}/reverse`,
-    { reason },
-    { preserveScroll: true },
-  );
+function reverse(r: Row) {
+  const reason = window.prompt(t('contributions.reverseReasonPrompt'));
+  if (reason)
+    router.patch(
+      `/alliance/contributions/records/${r.id}/reverse`,
+      { reason },
+      { preserveScroll: true },
+    );
 }
-function reconcileEvents(): void {
+function reconcile() {
   router.post('/alliance/contributions/reconcile-events', {}, { preserveScroll: true });
 }
-function refreshQuality(): void {
+function refresh() {
   router.post('/alliance/contributions/data-quality/refresh', {}, { preserveScroll: true });
 }
-function resolveFlag(id: string): void {
+function resolve(id: string) {
   router.patch(`/alliance/contributions/data-quality/${id}/resolve`, {}, { preserveScroll: true });
 }
-function createSchedule(): void {
+function schedule() {
   scheduleForm.post('/alliance/contributions/report-schedules', {
     preserveScroll: true,
     onSuccess: () => scheduleForm.reset('recipient_membership_id', 'next_due_at'),
   });
 }
-function pct(value: number | null): string {
-  return value === null ? '—' : `${Math.round(value * 100)}%`;
+function pct(v: number | null) {
+  return v === null ? '—' : `${Math.round(v * 100)}%`;
+}
+function text(v: string) {
+  return v.replaceAll('_', ' ');
+}
+function date(v: string) {
+  return formatDate(v, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+function amount(v: number, u: string | null) {
+  return `${formatNumber(v, { maximumFractionDigits: 2 })}${u ? ` ${u}` : ''}`;
+}
+function member(id: string) {
+  return props.reporting.members.find((m) => m.id === id)?.name ?? id;
 }
 </script>
 
 <template>
-  <Head :title="`${alliance.name} contribution reporting`" />
-  <main class="mx-auto min-h-screen max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-    <div class="flex flex-wrap items-start justify-between gap-4">
+  <Head :title="`${t('contributions.managerTitle')} · ${alliance.name}`" />
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+    <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <Link
-          class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+          class="text-sm font-semibold text-[var(--ks-blue-strong)]"
           href="/alliance/contributions"
-          >← Member view</Link
+          >← {{ t('contributions.memberView') }}</Link
         >
-        <h1 class="mt-4 text-3xl font-bold sm:text-4xl">Contribution reporting</h1>
-        <p class="mt-2 max-w-3xl text-slate-400">
-          Explainable records, attendance reconciliation, data quality, exports, and scheduled
-          reporting for {{ alliance.name }}.
+        <p class="mt-4 text-xs font-bold tracking-[.2em] text-[var(--ks-gold)] uppercase">
+          {{ t('contributions.eyebrow') }}
+        </p>
+        <h1 class="ks-display mt-2 text-3xl font-bold">{{ t('contributions.managerTitle') }}</h1>
+        <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
+          {{ t('contributions.managerSubtitle', { alliance: alliance.name }) }}
         </p>
       </div>
       <div class="flex gap-2">
-        <a
-          class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold hover:border-cyan-400"
-          href="/alliance/contributions/export.csv"
-          >CSV</a
-        >
-        <a
-          class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold hover:border-cyan-400"
+        <a class="btn" href="/alliance/contributions/export.csv">{{
+          t('contributions.exportCsv')
+        }}</a
+        ><a
+          class="btn border-[var(--ks-gold)]/50 text-[var(--ks-gold-strong)]"
           href="/alliance/contributions/export.xls"
-          >Spreadsheet</a
+          >{{ t('contributions.exportSpreadsheet') }}</a
         >
       </div>
-    </div>
+    </header>
 
     <section
-      class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
-      aria-label="Operational reporting metrics"
+      class="ks-surface-gold mt-6 overflow-hidden"
+      :aria-label="t('contributions.operationalMetrics')"
     >
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-        <p class="text-sm text-slate-400">Active members</p>
-        <p class="mt-1 text-2xl font-bold">{{ reporting.metrics.activeMembers }}</p>
-        <p class="text-xs text-slate-500">
-          +{{ reporting.metrics.joinedLast30Days }} / -{{ reporting.metrics.leftLast30Days }} in 30d
-        </p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-        <p class="text-sm text-slate-400">Attendance</p>
-        <p class="mt-1 text-2xl font-bold">{{ pct(reporting.metrics.attendanceRate) }}</p>
-        <p class="text-xs text-slate-500">
-          {{ reporting.metrics.attendanceLast30Days }} attended ·
-          {{ reporting.metrics.noShowsLast30Days }} no-show
-        </p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-        <p class="text-sm text-slate-400">Recruitment</p>
-        <p class="mt-1 text-2xl font-bold">
-          {{ reporting.metrics.recruitmentJoined }}/{{ reporting.metrics.recruitmentTotal }}
-        </p>
-        <p class="text-xs text-slate-500">joined / candidates</p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-        <p class="text-sm text-slate-400">Pending approvals</p>
-        <p class="mt-1 text-2xl font-bold">{{ reporting.metrics.pendingContributionApprovals }}</p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-        <p class="text-sm text-slate-400">Data issues</p>
-        <p class="mt-1 text-2xl font-bold">{{ reporting.metrics.openDataQualityFlags }}</p>
+      <div
+        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] xl:grid-cols-5 xl:divide-y-0"
+      >
+        <article class="metric">
+          <small>{{ t('contributions.activeMembers') }}</small
+          ><b>{{ formatNumber(reporting.metrics.activeMembers) }}</b
+          ><small>{{
+            t('contributions.memberMovement30', {
+              joined: reporting.metrics.joinedLast30Days,
+              left: reporting.metrics.leftLast30Days,
+            })
+          }}</small>
+        </article>
+        <article class="metric">
+          <small>{{ t('contributions.attendance') }}</small
+          ><b>{{ pct(reporting.metrics.attendanceRate) }}</b
+          ><small>{{
+            t('contributions.attendanceBreakdown', {
+              attended: reporting.metrics.attendanceLast30Days,
+              noShows: reporting.metrics.noShowsLast30Days,
+            })
+          }}</small>
+        </article>
+        <article class="metric">
+          <small>{{ t('contributions.recruitment') }}</small
+          ><b>{{ reporting.metrics.recruitmentJoined }}/{{ reporting.metrics.recruitmentTotal }}</b>
+        </article>
+        <article class="metric">
+          <small>{{ t('contributions.pendingApprovals') }}</small
+          ><b class="text-amber-200">{{ reporting.metrics.pendingContributionApprovals }}</b>
+        </article>
+        <article class="metric col-span-2 xl:col-span-1">
+          <small>{{ t('contributions.dataIssues') }}</small
+          ><b class="text-red-200">{{ reporting.metrics.openDataQualityFlags }}</b>
+        </article>
       </div>
     </section>
 
-    <section class="mt-8 grid gap-6 xl:grid-cols-2">
-      <form
-        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
-        @submit.prevent="createCategory"
-      >
-        <h2 class="text-xl font-semibold">New contribution category</h2>
-        <div class="mt-4 grid gap-3 sm:grid-cols-2">
-          <label class="text-sm"
-            >Name<input
-              v-model="categoryForm.name"
-              required
-              maxlength="120"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          /></label>
-          <label class="text-sm"
-            >Unit<input
-              v-model="categoryForm.unit"
-              required
-              maxlength="40"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          /></label>
-          <label class="text-sm"
-            >Period<select
-              v-model="categoryForm.period"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            >
-              <option v-for="period in periods" :key="period" :value="period">{{ period }}</option>
+    <section class="mt-5 grid gap-5 xl:grid-cols-2">
+      <form class="ks-surface p-5" @submit.prevent="createCategory">
+        <h2 class="ks-display text-xl font-semibold">{{ t('contributions.newCategory') }}</h2>
+        <div class="formgrid">
+          <label
+            >{{ t('contributions.name')
+            }}<input v-model="categoryForm.name" required maxlength="120" class="field" /></label
+          ><label
+            >{{ t('contributions.unit')
+            }}<input v-model="categoryForm.unit" required maxlength="40" class="field" /></label
+          ><label
+            >{{ t('contributions.period')
+            }}<select v-model="categoryForm.period" class="field">
+              <option v-for="p in periods" :key="p" :value="p">{{ text(p) }}</option>
             </select></label
-          >
-          <label class="text-sm"
-            >Goal per member<input
+          ><label
+            >{{ t('contributions.goalPerMember')
+            }}<input
               v-model.number="categoryForm.goal_value"
               min="0"
-              step="0.01"
+              step=".01"
               type="number"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          /></label>
-          <label v-if="['season', 'custom'].includes(categoryForm.period)" class="text-sm"
-            >Period start<input
+              class="field" /></label
+          ><label v-if="['season', 'custom'].includes(categoryForm.period)"
+            >{{ t('contributions.periodStart')
+            }}<input
               v-model="categoryForm.period_start"
               required
               type="date"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          /></label>
-          <label v-if="['season', 'custom'].includes(categoryForm.period)" class="text-sm"
-            >Period end<input
-              v-model="categoryForm.period_end"
-              required
-              type="date"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          /></label>
-          <label class="text-sm"
-            >Data class<select
-              v-model="categoryForm.data_class"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            >
-              <option v-for="value in dataClasses" :key="value" :value="value">
-                {{ value.replaceAll('_', ' ') }}
-              </option>
+              class="field" /></label
+          ><label v-if="['season', 'custom'].includes(categoryForm.period)"
+            >{{ t('contributions.periodEnd')
+            }}<input v-model="categoryForm.period_end" required type="date" class="field" /></label
+          ><label
+            >{{ t('contributions.dataClass')
+            }}<select v-model="categoryForm.data_class" class="field">
+              <option v-for="d in dataClasses" :key="d" :value="d">{{ text(d) }}</option>
             </select></label
-          >
-          <label class="text-sm sm:col-span-2"
-            >Description<textarea
-              v-model="categoryForm.description"
-              maxlength="4000"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            />
-          </label>
-          <template v-if="categoryForm.data_class === 'calculated_metric'">
-            <label class="text-sm"
-              >Calculation key<input
-                v-model="categoryForm.calculation_key"
-                required
-                placeholder="event_attendance"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            /></label>
-            <label class="text-sm"
-              >Calculation version<input
-                v-model="categoryForm.calculation_version"
-                required
-                placeholder="1"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            /></label>
-            <label class="text-sm sm:col-span-2"
-              >Calculation explanation<textarea
+          ><label class="sm:col-span-2"
+            >{{ t('contributions.description')
+            }}<textarea v-model="categoryForm.description" maxlength="4000" class="field" /></label
+          ><template v-if="categoryForm.data_class === 'calculated_metric'"
+            ><label
+              >{{ t('contributions.calculationKey')
+              }}<input v-model="categoryForm.calculation_key" required class="field" /></label
+            ><label
+              >{{ t('contributions.calculationVersionField')
+              }}<input v-model="categoryForm.calculation_version" required class="field" /></label
+            ><label class="sm:col-span-2"
+              >{{ t('contributions.calculationExplanation')
+              }}<textarea
                 v-model="categoryForm.calculation_description"
                 required
                 maxlength="4000"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              />
-            </label>
-          </template>
+                class="field"
+              /></label
+          ></template>
         </div>
-        <div class="mt-4 flex flex-wrap gap-4 text-sm">
+        <div class="mt-4 flex flex-wrap gap-4 text-xs">
           <label
-            ><input v-model="categoryForm.evidence_required" type="checkbox" /> Evidence
-            required</label
-          >
-          <label
-            ><input v-model="categoryForm.allow_self_report" type="checkbox" /> Allow
-            self-report</label
-          >
-          <label
-            ><input v-model="categoryForm.leaderboard_enabled" type="checkbox" /> Leaderboard
-            enabled</label
+            ><input v-model="categoryForm.evidence_required" type="checkbox" />
+            {{ t('contributions.evidenceRequired') }}</label
+          ><label
+            ><input v-model="categoryForm.allow_self_report" type="checkbox" />
+            {{ t('contributions.allowSelfReport') }}</label
+          ><label
+            ><input v-model="categoryForm.leaderboard_enabled" type="checkbox" />
+            {{ t('contributions.leaderboardEnabled') }}</label
           >
         </div>
-        <button
-          type="submit"
-          class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950"
-          :disabled="categoryForm.processing"
-        >
-          Create category
+        <button type="submit" class="primary" :disabled="categoryForm.processing">
+          {{ t('contributions.createCategory') }}
         </button>
       </form>
-
-      <form
-        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
-        @submit.prevent="recordContribution"
-      >
-        <h2 class="text-xl font-semibold">Manual contribution</h2>
-        <div class="mt-4 grid gap-3">
-          <label class="text-sm"
-            >Member<select
-              v-model="recordForm.membership_id"
-              required
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            >
-              <option value="" disabled>Select member</option>
-              <option v-for="member in reporting.members" :key="member.id" :value="member.id">
-                {{ member.name }}
+      <form class="ks-surface p-5 xl:self-start" @submit.prevent="recordContribution">
+        <h2 class="ks-display text-xl font-semibold">
+          {{ t('contributions.manualContribution') }}
+        </h2>
+        <div class="mt-4 space-y-3">
+          <label
+            >{{ t('contributions.member')
+            }}<select v-model="recordForm.membership_id" required class="field">
+              <option value="" disabled>{{ t('contributions.selectMember') }}</option>
+              <option v-for="m in reporting.members" :key="m.id" :value="m.id">
+                {{ m.name }} · {{ m.email }}
               </option>
             </select></label
-          >
-          <label class="text-sm"
-            >Category<select
-              v-model="recordForm.category_id"
-              required
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            >
-              <option value="" disabled>Select category</option>
-              <option
-                v-for="category in reporting.categories.filter(
-                  (item) => item.active && item.calculationKey !== 'event_attendance',
-                )"
-                :key="category.id"
-                :value="category.id"
-              >
-                {{ category.name }}
+          ><label
+            >{{ t('contributions.category')
+            }}<select v-model="recordForm.category_id" required class="field">
+              <option value="" disabled>{{ t('contributions.selectCategory') }}</option>
+              <option v-for="c in recordable" :key="c.id" :value="c.id">
+                {{ c.name }} ({{ c.unit }})
               </option>
             </select></label
-          >
-          <label class="text-sm"
-            >Value<input
+          ><label
+            >{{ t('contributions.value')
+            }}<input
               v-model.number="recordForm.value"
               required
               min="0"
-              step="0.01"
+              step=".01"
               type="number"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          /></label>
-          <label class="text-sm"
-            >Evidence or note<textarea
-              v-model="recordForm.evidence"
-              maxlength="4000"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            />
-          </label>
+              class="field" /></label
+          ><label
+            >{{ t('contributions.evidenceNote')
+            }}<textarea v-model="recordForm.evidence" maxlength="4000" class="field" /></label
+          ><button type="submit" class="primary" :disabled="recordForm.processing">
+            {{ t('contributions.recordPending') }}
+          </button>
         </div>
-        <button
-          type="submit"
-          class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950"
-          :disabled="recordForm.processing"
-        >
-          Record pending contribution
-        </button>
       </form>
     </section>
 
-    <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-      <div class="flex flex-wrap items-center justify-between gap-3">
+    <section class="ks-surface mt-5 p-5">
+      <div class="flex flex-wrap justify-between gap-3">
         <div>
-          <h2 class="text-xl font-semibold">Attendance &amp; data quality</h2>
-          <p class="mt-1 text-sm text-slate-400">
-            Derived records use the category calculation version; refreshing flags never changes
-            contribution totals.
+          <h2 class="ks-display text-xl font-semibold">
+            {{ t('contributions.attendanceQuality') }}
+          </h2>
+          <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
+            {{ t('contributions.attendanceQualityHelp') }}
           </p>
         </div>
         <div class="flex gap-2">
-          <button
-            type="button"
-            class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold"
-            @click="reconcileEvents"
-          >
-            Reconcile attendance</button
-          ><button
-            type="button"
-            class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold"
-            @click="refreshQuality"
-          >
-            Refresh data quality
+          <button type="button" class="btn" @click="reconcile">
+            {{ t('contributions.reconcileAttendance') }}</button
+          ><button type="button" class="btn" @click="refresh">
+            {{ t('contributions.refreshQuality') }}
           </button>
         </div>
       </div>
-      <div class="mt-4 space-y-2">
+      <div v-if="reporting.dataQualityFlags.length" class="mt-4 space-y-2">
         <div
-          v-for="flag in reporting.dataQualityFlags"
-          :key="flag.id"
-          class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 px-4 py-3"
+          v-for="f in reporting.dataQualityFlags"
+          :key="f.id"
+          class="flex justify-between gap-3 rounded-md border border-[var(--ks-border)] p-3"
         >
           <div>
-            <span
-              class="text-xs font-semibold uppercase"
-              :class="flag.severity === 'error' ? 'text-rose-300' : 'text-amber-300'"
-              >{{ flag.severity }}</span
-            >
-            <p class="text-sm">{{ flag.message }}</p>
+            <strong :class="f.severity === 'error' ? 'text-red-300' : 'text-amber-300'">{{
+              f.severity
+            }}</strong>
+            <p>{{ f.message }}</p>
+            <small>{{ date(f.detectedAt) }}</small>
           </div>
-          <button
-            type="button"
-            class="text-sm font-semibold text-cyan-300"
-            @click="resolveFlag(flag.id)"
-          >
-            Resolve
+          <button type="button" class="text-[var(--ks-gold-strong)]" @click="resolve(f.id)">
+            {{ t('contributions.resolve') }}
           </button>
         </div>
-        <p v-if="!reporting.dataQualityFlags.length" class="text-sm text-slate-500">
-          No open data-quality flags.
-        </p>
       </div>
+      <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
+        {{ t('contributions.noFlags') }}
+      </p>
     </section>
 
-    <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-      <h2 class="text-xl font-semibold">Pending approvals</h2>
-      <div class="mt-4 overflow-x-auto">
-        <table class="min-w-full text-left text-sm">
-          <thead class="text-slate-400">
+    <section class="ks-surface mt-5 overflow-hidden">
+      <h2 class="section-title">{{ t('contributions.approvalQueue') }}</h2>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
             <tr>
-              <th class="px-3 py-2">Member</th>
-              <th class="px-3 py-2">Category</th>
-              <th class="px-3 py-2">Value</th>
-              <th class="px-3 py-2">Source</th>
-              <th class="px-3 py-2">Actions</th>
+              <th>{{ t('contributions.member') }}</th>
+              <th>{{ t('contributions.category') }}</th>
+              <th>{{ t('contributions.value') }}</th>
+              <th>{{ t('contributions.source') }}</th>
+              <th>{{ t('contributions.actions') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="row in reporting.pendingRecords"
-              :key="row.id"
-              class="border-t border-slate-800"
-            >
-              <td class="px-3 py-3">{{ row.memberName }}</td>
-              <td class="px-3 py-3">{{ row.categoryName }}</td>
-              <td class="px-3 py-3">{{ row.value }} {{ row.unit }}</td>
-              <td class="px-3 py-3">{{ row.source.replaceAll('_', ' ') }}</td>
-              <td class="px-3 py-3">
-                <div class="flex gap-3">
-                  <button
-                    type="button"
-                    class="font-semibold text-emerald-300"
-                    @click="approve(row.id)"
-                  >
-                    Approve</button
-                  ><button type="button" class="font-semibold text-cyan-300" @click="correct(row)">
-                    Correct</button
-                  ><button type="button" class="font-semibold text-rose-300" @click="reverse(row)">
-                    Reverse
-                  </button>
-                </div>
+            <tr v-for="r in reporting.pendingRecords" :key="r.id">
+              <td>{{ r.memberName }}</td>
+              <td>{{ r.categoryName }}</td>
+              <td>{{ amount(r.value, r.unit) }}</td>
+              <td>{{ text(r.source) }}</td>
+              <td>
+                <button type="button" class="me-3 text-green-300" @click="approve(r.id)">
+                  {{ t('contributions.approve') }}</button
+                ><button
+                  type="button"
+                  class="me-3 text-[var(--ks-blue-strong)]"
+                  @click="correct(r)"
+                >
+                  {{ t('contributions.correct') }}</button
+                ><button type="button" class="text-red-300" @click="reverse(r)">
+                  {{ t('contributions.reverse') }}
+                </button>
               </td>
             </tr>
-            <tr v-if="!reporting.pendingRecords.length">
-              <td class="px-3 py-4 text-slate-500" colspan="5">No pending approvals.</td>
+          </tbody>
+        </table>
+      </div>
+      <p v-if="!reporting.pendingRecords.length" class="p-5 text-sm text-[var(--ks-text-muted)]">
+        {{ t('contributions.noPending') }}
+      </p>
+    </section>
+
+    <section class="mt-5 grid gap-5 xl:grid-cols-3">
+      <form class="ks-surface p-5" @submit.prevent="schedule">
+        <h2 class="ks-display text-xl font-semibold">{{ t('contributions.scheduledReport') }}</h2>
+        <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
+          {{ t('contributions.scheduleHelp') }}
+        </p>
+        <div class="mt-3 space-y-2">
+          <label
+            >{{ t('contributions.recipient')
+            }}<select v-model="scheduleForm.recipient_membership_id" required class="field">
+              <option value="" disabled>{{ t('contributions.selectMember') }}</option>
+              <option v-for="m in reporting.members" :key="m.id" :value="m.id">{{ m.name }}</option>
+            </select></label
+          ><label
+            >{{ t('contributions.name')
+            }}<input v-model="scheduleForm.name" required class="field" /></label
+          ><label
+            >{{ t('contributions.cadence')
+            }}<select v-model="scheduleForm.cadence" class="field">
+              <option value="daily">daily</option>
+              <option value="weekly">weekly</option>
+              <option value="monthly">monthly</option>
+            </select></label
+          ><label
+            >{{ t('contributions.timezone')
+            }}<input v-model="scheduleForm.timezone" required class="field" /></label
+          ><label
+            >{{ t('contributions.firstDelivery')
+            }}<input
+              v-model="scheduleForm.next_due_at"
+              required
+              type="datetime-local"
+              class="field" /></label
+          ><button type="submit" class="primary">{{ t('contributions.createSchedule') }}</button>
+        </div>
+      </form>
+      <div class="ks-surface p-5">
+        <h2 class="ks-display text-xl font-semibold">{{ t('contributions.reportSchedules') }}</h2>
+        <article v-for="s in reporting.reportSchedules" :key="s.id" class="card">
+          <strong>{{ s.name }}</strong>
+          <p>{{ member(s.recipientMembershipId) }} · {{ text(s.cadence) }} · {{ s.timezone }}</p>
+          <small>{{ t('contributions.nextDue') }}: {{ date(s.nextDueAt) }}</small>
+        </article>
+        <p v-if="!reporting.reportSchedules.length">{{ t('contributions.noSchedules') }}</p>
+      </div>
+      <div class="ks-surface p-5">
+        <h2 class="ks-display text-xl font-semibold">{{ t('contributions.reportHistory') }}</h2>
+        <article v-for="run in reporting.recentReportRuns" :key="run.id" class="card">
+          <div class="flex justify-between">
+            <strong>{{ run.format }}</strong
+            ><span>{{ text(run.status) }}</span>
+          </div>
+          <small>{{
+            t('contributions.reportVersionRows', {
+              version: run.reportVersion,
+              rows: run.rowCount ?? t('contributions.queued'),
+            })
+          }}</small>
+          <p v-if="run.checksum" class="font-mono text-[10px] break-all">
+            sha256 {{ run.checksum }}
+          </p>
+        </article>
+        <p v-if="!reporting.recentReportRuns.length">{{ t('contributions.noReportRuns') }}</p>
+      </div>
+    </section>
+
+    <section class="mt-5 grid gap-5 xl:grid-cols-2">
+      <div class="ks-surface p-5">
+        <h2 class="ks-display text-xl font-semibold">
+          {{ t('contributions.configuredCategories') }}
+        </h2>
+        <article v-for="c in reporting.categories" :key="c.id" class="card">
+          <div class="flex justify-between">
+            <strong>{{ c.name }}</strong
+            ><strong>{{ amount(c.approvedTotal, c.unit) }}</strong>
+          </div>
+          <small
+            >{{ text(c.dataClass) }} · {{ text(c.period) }} · {{ t('contributions.goal') }}
+            {{ c.goal ?? t('contributions.noGoal') }}</small
+          >
+          <p v-if="c.calculationDescription">{{ c.calculationDescription }}</p>
+          <small v-if="!c.leaderboardEnabled" class="text-amber-300">{{
+            t('contributions.leaderboardOptOut')
+          }}</small>
+        </article>
+      </div>
+      <div class="ks-surface p-5">
+        <h2 class="ks-display text-xl font-semibold">
+          {{ t('contributions.categoryLeaderboards') }}
+        </h2>
+        <article v-for="b in reporting.leaderboards" :key="b.categoryId" class="card">
+          <strong>{{ b.name }}</strong
+          ><small>{{ b.calculationDescription }}</small>
+          <ol>
+            <li
+              v-for="(e, i) in b.entries.slice(0, 10)"
+              :key="e.membershipId"
+              class="flex justify-between"
+            >
+              <span>{{ i + 1 }}. {{ e.name }}</span
+              ><strong>{{ amount(e.value, b.unit) }}</strong>
+            </li>
+          </ol>
+        </article>
+        <p v-if="!reporting.leaderboards.length">{{ t('contributions.noLeaderboards') }}</p>
+      </div>
+    </section>
+
+    <section class="ks-surface mt-5 overflow-hidden">
+      <h2 class="section-title">{{ t('contributions.recentRecords') }}</h2>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>{{ t('contributions.member') }}</th>
+              <th>{{ t('contributions.category') }}</th>
+              <th>{{ t('contributions.value') }}</th>
+              <th>{{ t('contributions.status') }}</th>
+              <th>{{ t('contributions.source') }}</th>
+              <th>{{ t('contributions.recorded') }}</th>
+              <th>{{ t('contributions.actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in reporting.recentRecords" :key="r.id">
+              <td>{{ r.memberName }}</td>
+              <td>{{ r.categoryName }}</td>
+              <td>{{ amount(r.value, r.unit) }}</td>
+              <td>{{ text(r.status) }}</td>
+              <td>{{ text(r.source) }}</td>
+              <td>{{ date(r.recordedAt) }}</td>
+              <td>
+                <button type="button" class="me-3 text-[var(--ks-blue-strong)]" @click="correct(r)">
+                  {{ t('contributions.correct') }}</button
+                ><button
+                  v-if="r.status !== 'reversed'"
+                  type="button"
+                  class="text-red-300"
+                  @click="reverse(r)"
+                >
+                  {{ t('contributions.reverse') }}
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
-
-    <section class="mt-8 grid gap-6 xl:grid-cols-2">
-      <form
-        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
-        @submit.prevent="createSchedule"
-      >
-        <h2 class="text-xl font-semibold">Scheduled report</h2>
-        <p class="mt-1 text-sm text-slate-400">
-          Schedules queue versioned report requests through the notification outbox.
-        </p>
-        <div class="mt-4 grid gap-3">
-          <label class="text-sm"
-            >Recipient<select
-              v-model="scheduleForm.recipient_membership_id"
-              required
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            >
-              <option value="" disabled>Select member</option>
-              <option v-for="member in reporting.members" :key="member.id" :value="member.id">
-                {{ member.name }}
-              </option>
-            </select></label
-          >
-          <label class="text-sm"
-            >Name<input
-              v-model="scheduleForm.name"
-              required
-              maxlength="120"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          /></label>
-          <label class="text-sm"
-            >Cadence<select
-              v-model="scheduleForm.cadence"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            >
-              <option value="daily">daily</option>
-              <option value="weekly">weekly</option>
-              <option value="monthly">monthly</option>
-            </select></label
-          >
-          <label class="text-sm"
-            >Time zone<input
-              v-model="scheduleForm.timezone"
-              required
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          /></label>
-          <label class="text-sm"
-            >First delivery<input
-              v-model="scheduleForm.next_due_at"
-              required
-              type="datetime-local"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-          /></label>
-        </div>
-        <button
-          type="submit"
-          class="mt-5 rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950"
-        >
-          Create schedule
-        </button>
-      </form>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <h2 class="text-xl font-semibold">Report history</h2>
-        <div class="mt-4 space-y-3">
-          <div
-            v-for="run in reporting.recentReportRuns"
-            :key="run.id"
-            class="rounded-lg border border-slate-800 px-4 py-3"
-          >
-            <div class="flex justify-between gap-3">
-              <strong>{{ run.format }}</strong
-              ><span class="text-sm text-slate-400 capitalize">{{ run.status }}</span>
-            </div>
-            <p class="mt-1 text-xs text-slate-500">
-              Version {{ run.reportVersion }} · {{ run.rowCount ?? 'queued' }} rows
-            </p>
-            <p v-if="run.checksum" class="mt-1 font-mono text-[10px] break-all text-slate-600">
-              sha256 {{ run.checksum }}
-            </p>
-          </div>
-          <p v-if="!reporting.recentReportRuns.length" class="text-sm text-slate-500">
-            No report runs yet.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-      <h2 class="text-xl font-semibold">Configured categories</h2>
-      <div class="mt-4 grid gap-3 lg:grid-cols-2">
-        <article
-          v-for="category in reporting.categories"
-          :key="category.id"
-          class="rounded-lg border border-slate-800 p-4"
-        >
-          <div class="flex justify-between gap-3">
-            <strong>{{ category.name }}</strong
-            ><span class="text-sm text-slate-400"
-              >{{ category.approvedTotal }} {{ category.unit }}</span
-            >
-          </div>
-          <p class="mt-1 text-sm text-slate-400">
-            {{ category.dataClass.replaceAll('_', ' ') }} · {{ category.period }} · goal
-            {{ category.goal ?? 'none' }}
-          </p>
-          <p v-if="category.calculationDescription" class="mt-2 text-sm text-slate-300">
-            {{ category.calculationDescription }}
-            <span class="text-slate-500">v{{ category.calculationVersion }}</span>
-          </p>
-          <p v-if="!category.leaderboardEnabled" class="mt-2 text-xs text-amber-300">
-            Leaderboard opted out
-          </p>
-        </article>
-      </div>
-    </section>
-  </main>
+  </AppLayout>
 </template>
+<style scoped>
+label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ks-text-secondary);
+}
+.field {
+  margin-top: 0.25rem;
+  width: 100%;
+  border: 1px solid var(--ks-border);
+  border-radius: 0.375rem;
+  background: var(--ks-bg);
+  padding: 0.5rem 0.75rem;
+}
+.formgrid {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+@media (min-width: 640px) {
+  .formgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.primary {
+  margin-top: 0.75rem;
+  border-radius: 0.375rem;
+  background: var(--ks-blue);
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  color: white;
+}
+.btn {
+  border: 1px solid var(--ks-border);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+}
+.metric {
+  padding: 1rem;
+}
+.metric b {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 1.875rem;
+}
+.metric small,
+.card small {
+  color: var(--ks-text-muted);
+}
+.section-title {
+  border-bottom: 1px solid var(--ks-border);
+  padding: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.table {
+  min-width: 52rem;
+  width: 100%;
+  font-size: 0.875rem;
+}
+.table th,
+.table td {
+  padding: 0.75rem 1rem;
+  text-align: start;
+}
+.table thead {
+  background: rgb(0 0 0/0.25);
+  color: var(--ks-text-muted);
+}
+.table tbody tr {
+  border-top: 1px solid var(--ks-border);
+}
+.card {
+  margin-top: 0.75rem;
+  border: 1px solid var(--ks-border);
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+}
+</style>

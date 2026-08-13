@@ -52,6 +52,10 @@ final class MemberContentController extends Controller
             ->get(['id', 'name', 'slug']);
 
         return Inertia::render('Alliance/ContentIndex', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,
@@ -87,6 +91,10 @@ final class MemberContentController extends Controller
         abort_unless($item !== null, 404);
 
         return Inertia::render('Alliance/ContentDetail', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,

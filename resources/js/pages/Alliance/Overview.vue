@@ -2,7 +2,11 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 
+import AppLayout from '../../layouts/AppLayout.vue';
+import { useLocale } from '../../localization';
+
 const props = defineProps<{
+  user: { name: string; email: string };
   alliance: {
     id: string;
     name: string;
@@ -61,10 +65,8 @@ const props = defineProps<{
   };
 }>();
 
-const inviteForm = useForm({
-  email: '',
-});
-
+const { t, formatDate } = useLocale();
+const inviteForm = useForm({ email: '' });
 const statusSelections = reactive<Record<string, string>>(
   Object.fromEntries(
     props.membershipManagement.members.map((member) => [member.id, member.status]),
@@ -118,15 +120,25 @@ function removeRole(membershipId: string, roleId: string): void {
 }
 
 function leaveAlliance(): void {
-  if (!window.confirm(`Leave ${props.alliance.name}? You will lose your current alliance roles.`)) {
+  if (
+    !window.confirm(
+      t('allianceOperations.overview.leaveConfirm', { alliance: props.alliance.name }),
+    )
+  ) {
     return;
   }
 
   router.delete('/alliance/membership');
 }
 
-function formatActivityTime(startsAt: string, timeZone: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function statusLabel(value: string): string {
+  const key = `allianceOperations.status.${value === 'no_show' ? 'noShow' : value}`;
+  const translated = t(key);
+  return translated === key ? value.replaceAll('_', ' ') : translated;
+}
+
+function formatInZone(value: string, timeZone: string): string {
+  return formatDate(value, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -134,234 +146,300 @@ function formatActivityTime(startsAt: string, timeZone: string): string {
     minute: '2-digit',
     timeZone,
     timeZoneName: 'short',
-  }).format(new Date(startsAt));
+  });
 }
 </script>
 
 <template>
   <Head :title="alliance.name" />
 
-  <main class="mx-auto min-h-screen max-w-5xl px-6 py-12 lg:px-8">
-    <Link class="text-sm font-semibold text-cyan-300 hover:text-cyan-200" href="/dashboard">
-      ← Back to dashboard
-    </Link>
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+    <header class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+      <div>
+        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+          {{ t('allianceOperations.overview.eyebrow') }}
+        </p>
+        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">{{ alliance.name }}</h1>
+        <p class="mt-2 text-sm text-[var(--ks-text-muted)]">
+          {{ t('navigation.kingdom') }}
+          {{ alliance.kingdom ?? t('allianceOperations.overview.notSet') }}
+        </p>
+      </div>
+      <a
+        class="inline-flex min-h-11 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-strong)] bg-[var(--ks-gold-soft)] px-4 py-2.5 text-sm font-semibold text-[var(--ks-gold-strong)] transition hover:bg-[rgba(226,180,77,0.18)]"
+        :href="alliance.publicUrl"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        {{ t('allianceOperations.overview.publicPage') }}
+      </a>
+    </header>
 
-    <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-8">
-      <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">Active alliance</p>
-      <h1 class="mt-3 text-4xl font-bold">{{ alliance.name }}</h1>
-      <dl class="mt-8 grid gap-4 sm:grid-cols-2">
-        <div class="rounded-xl border border-slate-800 p-4">
-          <dt class="text-sm text-slate-400">Kingdom</dt>
-          <dd class="mt-1 font-semibold">{{ alliance.kingdom || 'Not set' }}</dd>
+    <section class="ks-surface-gold mt-7 p-6 sm:p-7" aria-labelledby="alliance-context-heading">
+      <h2 id="alliance-context-heading" class="sr-only">{{ alliance.name }}</h2>
+      <dl class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/45 p-4"
+        >
+          <dt class="text-xs font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+            {{ t('navigation.kingdom') }}
+          </dt>
+          <dd class="mt-2 font-semibold">
+            {{ alliance.kingdom ?? t('allianceOperations.overview.notSet') }}
+          </dd>
         </div>
-        <div class="rounded-xl border border-slate-800 p-4">
-          <dt class="text-sm text-slate-400">Time zone</dt>
-          <dd class="mt-1 font-semibold">{{ alliance.timezone }}</dd>
+        <div
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/45 p-4"
+        >
+          <dt class="text-xs font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+            {{ t('application.dashboard.timezone') }}
+          </dt>
+          <dd class="mt-2 font-semibold">{{ alliance.timezone }}</dd>
         </div>
-        <div class="rounded-xl border border-slate-800 p-4">
-          <dt class="text-sm text-slate-400">Language</dt>
-          <dd class="mt-1 font-semibold">{{ alliance.language }}</dd>
+        <div
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/45 p-4"
+        >
+          <dt class="text-xs font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+            {{ t('common.language') }}
+          </dt>
+          <dd class="mt-2 font-semibold">{{ alliance.language }}</dd>
         </div>
-        <div class="rounded-xl border border-slate-800 p-4">
-          <dt class="text-sm text-slate-400">Your roles</dt>
-          <dd class="mt-1 font-semibold">
-            {{ membership.roles.map((role) => role.name).join(', ') || 'None' }}
+        <div
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/45 p-4"
+        >
+          <dt class="text-xs font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+            {{ t('allianceOperations.overview.yourRoles') }}
+          </dt>
+          <dd class="mt-2 font-semibold">
+            {{
+              membership.roles.map((role) => role.name).join(', ') ||
+              t('application.dashboard.noRoles')
+            }}
           </dd>
         </div>
       </dl>
-      <div class="mt-6 flex flex-wrap gap-4 text-sm font-semibold">
-        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/content">Content hub</Link>
-        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/events">Events</Link>
-        <Link class="text-cyan-300 hover:text-cyan-200" href="/alliance/contributions"
-          >Contributions</Link
-        >
-        <Link
-          v-if="contentHub.canManageIntegrations"
-          class="text-cyan-300 hover:text-cyan-200"
-          href="/alliance/integrations"
-          >Integrations</Link
-        >
+
+      <nav
+        class="mt-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-4"
+        :aria-label="t('navigation.allianceOperations')"
+      >
+        <Link class="ks-command-link" href="/alliance/events">{{ t('navigation.events') }}</Link>
+        <Link class="ks-command-link" href="/alliance/content">{{ t('navigation.content') }}</Link>
+        <Link class="ks-command-link" href="/alliance/contributions">{{
+          t('navigation.contributions')
+        }}</Link>
         <Link
           v-if="contentHub.canManageRecruitment"
-          class="text-cyan-300 hover:text-cyan-200"
+          class="ks-command-link"
           href="/alliance/recruitment"
-          >Recruitment</Link
         >
+          {{ t('navigation.recruitment') }}
+        </Link>
         <Link
-          v-if="contentHub.canManage"
-          class="text-cyan-300 hover:text-cyan-200"
-          href="/alliance/content/manage"
-          >Manage content</Link
+          v-if="contentHub.canManageIntegrations"
+          class="ks-command-link"
+          href="/alliance/integrations"
         >
+          {{ t('navigation.integrations') }}
+        </Link>
+        <Link v-if="contentHub.canManage" class="ks-command-link" href="/alliance/content/manage">
+          {{ t('navigation.content') }}
+        </Link>
         <Link
           v-if="contentHub.canManageEvents"
-          class="text-cyan-300 hover:text-cyan-200"
+          class="ks-command-link"
           href="/alliance/events/manage"
-          >Coordinate events</Link
         >
-        <a
-          class="text-cyan-300 hover:text-cyan-200"
-          :href="alliance.publicUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Public page</a
-        >
-      </div>
-      <button
-        class="mt-6 text-sm font-semibold text-rose-300 hover:text-rose-200"
-        type="button"
-        @click="leaveAlliance"
-      >
-        Leave alliance
-      </button>
+          {{ t('allianceOperations.events.coordinate') }}
+        </Link>
+      </nav>
     </section>
 
-    <section class="mt-8 grid gap-6 lg:grid-cols-2" aria-label="Alliance information hub">
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <div class="flex items-center justify-between gap-3">
-          <h2 class="text-xl font-semibold">Current notices</h2>
+    <div class="mt-8 grid gap-6 xl:grid-cols-2">
+      <section class="ks-surface p-6" aria-labelledby="notices-heading">
+        <div class="flex items-center justify-between gap-4">
+          <h2 id="notices-heading" class="ks-display text-xl font-semibold">
+            {{ t('allianceOperations.overview.notices') }}
+          </h2>
           <Link
-            class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+            class="text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-white"
             href="/alliance/content"
-            >View all</Link
           >
+            {{ t('allianceOperations.overview.viewAll') }}
+          </Link>
         </div>
-        <div v-if="contentHub.notices.length" class="mt-4 space-y-4">
+        <div v-if="contentHub.notices.length" class="mt-5 space-y-3">
           <article
             v-for="notice in contentHub.notices"
             :key="notice.id"
-            class="rounded-xl border border-slate-800 p-4"
+            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-4"
           >
-            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase">
-              <span>{{ notice.visibility === 'members' ? 'Members only' : 'Public' }}</span>
-            </div>
-            <h3 class="mt-1 font-semibold">
-              <Link class="hover:text-cyan-200" :href="`/alliance/content/${notice.slug}`">{{
-                notice.title
-              }}</Link>
-            </h3>
-            <p v-if="notice.summary" class="mt-2 text-sm text-slate-400">{{ notice.summary }}</p>
-          </article>
-        </div>
-        <p v-else class="mt-4 text-sm text-slate-500">No published notices yet.</p>
-      </div>
-
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <div class="flex items-center justify-between gap-3">
-          <h2 class="text-xl font-semibold">Upcoming activities</h2>
-          <Link
-            class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
-            href="/alliance/events"
-            >View all</Link
-          >
-        </div>
-        <div v-if="contentHub.upcomingActivities.length" class="mt-4 space-y-3">
-          <article
-            v-for="activity in contentHub.upcomingActivities"
-            :key="activity.id"
-            class="rounded-xl border border-slate-800 p-4"
-          >
-            <h3 class="font-semibold">
-              <Link class="hover:text-cyan-200" :href="`/alliance/events/${activity.id}`">
-                {{ activity.title }}
+            <span class="text-xs font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase">
+              {{
+                notice.visibility === 'members'
+                  ? t('allianceOperations.overview.membersOnly')
+                  : t('allianceOperations.overview.public')
+              }}
+            </span>
+            <h3 class="mt-2 font-semibold">
+              <Link
+                class="hover:text-[var(--ks-blue-strong)]"
+                :href="`/alliance/content/${notice.slug}`"
+              >
+                {{ notice.title }}
               </Link>
             </h3>
-            <p class="mt-1 text-sm text-slate-400">
-              {{ formatActivityTime(activity.startsAt, activity.allianceTimezone) }}
+            <p v-if="notice.summary" class="mt-2 text-sm leading-6 text-[var(--ks-text-muted)]">
+              {{ notice.summary }}
             </p>
           </article>
         </div>
-        <p v-else class="mt-4 text-sm text-slate-500">No scheduled events in the next 30 days.</p>
-      </div>
-    </section>
+        <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">
+          {{ t('allianceOperations.overview.noNotices') }}
+        </p>
+      </section>
+
+      <section class="ks-surface p-6" aria-labelledby="upcoming-heading">
+        <div class="flex items-center justify-between gap-4">
+          <h2 id="upcoming-heading" class="ks-display text-xl font-semibold">
+            {{ t('allianceOperations.overview.upcoming') }}
+          </h2>
+          <Link
+            class="text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-white"
+            href="/alliance/events"
+          >
+            {{ t('allianceOperations.overview.viewAll') }}
+          </Link>
+        </div>
+        <div v-if="contentHub.upcomingActivities.length" class="mt-5 space-y-3">
+          <article
+            v-for="activity in contentHub.upcomingActivities"
+            :key="activity.id"
+            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-4"
+          >
+            <h3 class="font-semibold">
+              <Link
+                class="hover:text-[var(--ks-blue-strong)]"
+                :href="`/alliance/events/${activity.id}`"
+              >
+                {{ activity.title }}
+              </Link>
+            </h3>
+            <p class="mt-2 text-sm text-[var(--ks-text-muted)]">
+              {{ formatInZone(activity.startsAt, activity.allianceTimezone) }}
+            </p>
+          </article>
+        </div>
+        <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">
+          {{ t('allianceOperations.overview.noUpcoming') }}
+        </p>
+      </section>
+    </div>
 
     <section
-      v-if="props.invitationManagement.allowed"
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-8"
+      v-if="invitationManagement.allowed"
+      class="ks-surface mt-8 p-6 sm:p-7"
+      aria-labelledby="invitations-heading"
     >
-      <h2 class="text-2xl font-semibold">Invitations</h2>
-      <p class="mt-2 text-sm text-slate-400">
-        Invite an account by email. Resending rotates the token so older links stop working.
+      <h2 id="invitations-heading" class="ks-display text-2xl font-semibold">
+        {{ t('allianceOperations.overview.invitations') }}
+      </h2>
+      <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--ks-text-muted)]">
+        {{ t('allianceOperations.overview.invitationsIntro') }}
       </p>
 
       <div
-        v-if="props.invitationManagement.issuedLink"
-        class="mt-5 rounded-lg border border-emerald-800 bg-emerald-950/30 p-4 text-sm text-emerald-100"
+        v-if="invitationManagement.issuedLink"
+        class="mt-5 rounded-[var(--ks-radius-md)] border border-emerald-500/25 bg-emerald-500/10 p-4 text-sm text-emerald-100"
       >
-        New invitation link:
+        <p class="font-semibold">{{ t('allianceOperations.overview.newInvitationLink') }}</p>
         <a
-          class="ml-1 font-semibold break-all underline"
-          :href="props.invitationManagement.issuedLink"
+          class="mt-1 block break-all underline"
+          :href="invitationManagement.issuedLink"
           rel="noopener noreferrer"
           target="_blank"
+          >{{ invitationManagement.issuedLink }}</a
         >
-          {{ props.invitationManagement.issuedLink }}
-        </a>
       </div>
 
       <form class="mt-6 flex flex-col gap-3 sm:flex-row" @submit.prevent="sendInvitation">
         <div class="flex-1">
-          <label class="sr-only" for="invite-email">Email address</label>
+          <label class="sr-only" for="invite-email">{{ t('auth.login.email') }}</label>
           <input
             id="invite-email"
             v-model="inviteForm.email"
-            class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            class="ks-input"
             placeholder="member@example.com"
             required
             type="email"
           />
-          <p v-if="inviteForm.errors.email" class="mt-1 text-sm text-rose-300">
+          <p v-if="inviteForm.errors.email" class="mt-1.5 text-sm text-[var(--ks-red)]">
             {{ inviteForm.errors.email }}
           </p>
         </div>
         <button
-          class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
+          class="min-h-11 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2.5 font-semibold text-white transition hover:bg-[var(--ks-blue-strong)] disabled:opacity-60"
           :disabled="inviteForm.processing"
           type="submit"
         >
-          Send invitation
+          {{ t('allianceOperations.overview.sendInvitation') }}
         </button>
       </form>
 
-      <div class="mt-8 overflow-x-auto">
-        <table class="min-w-full text-left text-sm">
-          <thead class="text-slate-400">
+      <div class="mt-7 overflow-x-auto">
+        <table class="min-w-full text-start text-sm">
+          <thead class="border-b border-[var(--ks-border)] text-[var(--ks-text-muted)]">
             <tr>
-              <th class="pr-5 pb-3 font-medium">Email</th>
-              <th class="pr-5 pb-3 font-medium">Status</th>
-              <th class="pr-5 pb-3 font-medium">Expires</th>
-              <th class="pb-3 font-medium">Actions</th>
+              <th class="px-3 py-3 text-start font-medium">{{ t('auth.login.email') }}</th>
+              <th class="px-3 py-3 text-start font-medium">
+                {{ t('allianceOperations.overview.status') }}
+              </th>
+              <th class="px-3 py-3 text-start font-medium">
+                {{ t('allianceOperations.overview.expires') }}
+              </th>
+              <th class="px-3 py-3 text-start font-medium">
+                {{ t('allianceOperations.overview.actions') }}
+              </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800">
-            <tr v-for="invitation in props.invitationManagement.invitations" :key="invitation.id">
-              <td class="py-4 pr-5">{{ invitation.email }}</td>
-              <td class="py-4 pr-5 capitalize">{{ invitation.status }}</td>
-              <td class="py-4 pr-5 text-slate-400">
-                {{ invitation.expiresAt ? new Date(invitation.expiresAt).toLocaleString() : '—' }}
+          <tbody class="divide-y divide-[var(--ks-border)]">
+            <tr v-for="invitation in invitationManagement.invitations" :key="invitation.id">
+              <td class="px-3 py-4">{{ invitation.email }}</td>
+              <td class="px-3 py-4 text-[var(--ks-text-secondary)]">
+                {{ statusLabel(invitation.status) }}
               </td>
-              <td class="py-4">
-                <div v-if="['pending', 'expired'].includes(invitation.status)" class="flex gap-3">
+              <td class="px-3 py-4 text-[var(--ks-text-muted)]">
+                {{
+                  invitation.expiresAt ? formatInZone(invitation.expiresAt, alliance.timezone) : '—'
+                }}
+              </td>
+              <td class="px-3 py-4">
+                <div
+                  v-if="['pending', 'expired'].includes(invitation.status)"
+                  class="flex flex-wrap gap-3"
+                >
                   <button
-                    class="font-semibold text-cyan-300 hover:text-cyan-200"
+                    class="font-semibold text-[var(--ks-blue-strong)] hover:text-white"
                     type="button"
                     @click="resendInvitation(invitation.id)"
                   >
-                    Resend
+                    {{ t('allianceOperations.overview.resend') }}
                   </button>
                   <button
                     v-if="invitation.status === 'pending'"
-                    class="font-semibold text-rose-300 hover:text-rose-200"
+                    class="font-semibold text-[var(--ks-red)] hover:text-red-200"
                     type="button"
                     @click="revokeInvitation(invitation.id)"
                   >
-                    Revoke
+                    {{ t('allianceOperations.overview.revoke') }}
                   </button>
                 </div>
               </td>
             </tr>
-            <tr v-if="props.invitationManagement.invitations.length === 0">
-              <td class="py-5 text-slate-500" colspan="4">No invitations yet.</td>
+            <tr v-if="invitationManagement.invitations.length === 0">
+              <td class="px-3 py-5 text-[var(--ks-text-muted)]" colspan="4">
+                {{ t('allianceOperations.overview.noInvitations') }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -369,57 +447,64 @@ function formatActivityTime(startsAt: string, timeZone: string): string {
     </section>
 
     <section
-      v-if="props.membershipManagement.allowed || props.membershipManagement.rolesAllowed"
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-8"
+      v-if="membershipManagement.allowed || membershipManagement.rolesAllowed"
+      class="ks-surface mt-8 p-6 sm:p-7"
+      aria-labelledby="membership-admin-heading"
     >
-      <h2 class="text-2xl font-semibold">Membership administration</h2>
-      <p class="mt-2 text-sm text-slate-400">
-        Status changes follow the alliance role hierarchy. Only owners can change role assignments.
+      <h2 id="membership-admin-heading" class="ks-display text-2xl font-semibold">
+        {{ t('allianceOperations.overview.membershipAdmin') }}
+      </h2>
+      <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--ks-text-muted)]">
+        {{ t('allianceOperations.overview.membershipIntro') }}
       </p>
 
-      <div class="mt-6 space-y-4">
+      <div class="mt-6 grid gap-4 xl:grid-cols-2">
         <article
-          v-for="member in props.membershipManagement.members"
+          v-for="member in membershipManagement.members"
           :key="member.id"
-          class="rounded-xl border border-slate-800 p-5"
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-5"
         >
           <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
+            <div class="min-w-0">
               <h3 class="font-semibold">
                 {{ member.user.name }}
                 <span
-                  v-if="member.user.id === props.membershipManagement.currentUserId"
-                  class="text-slate-500"
+                  v-if="member.user.id === membershipManagement.currentUserId"
+                  class="text-[var(--ks-text-muted)]"
                 >
-                  (you)
+                  ({{ t('allianceOperations.overview.you') }})
                 </span>
               </h3>
-              <p class="mt-1 text-sm text-slate-400">{{ member.user.email }}</p>
-              <p class="mt-2 text-xs text-slate-500 capitalize">Status: {{ member.status }}</p>
+              <p class="mt-1 truncate text-sm text-[var(--ks-text-muted)]">
+                {{ member.user.email }}
+              </p>
+              <p class="mt-2 text-xs font-semibold text-[var(--ks-blue-strong)]">
+                {{ statusLabel(member.status) }}
+              </p>
             </div>
 
             <div
               v-if="
-                props.membershipManagement.allowed &&
-                member.user.id !== props.membershipManagement.currentUserId
+                membershipManagement.allowed &&
+                member.user.id !== membershipManagement.currentUserId
               "
-              class="flex gap-2"
+              class="flex flex-wrap gap-2"
             >
               <select
                 v-model="statusSelections[member.id]"
-                :aria-label="`Membership status for ${member.user.name}`"
-                class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                class="ks-input w-auto min-w-36 text-sm"
+                :aria-label="`${t('allianceOperations.overview.status')} ${member.user.name}`"
               >
-                <option value="active">Active</option>
-                <option value="suspended">Suspended</option>
-                <option value="removed">Removed</option>
+                <option value="active">{{ statusLabel('active') }}</option>
+                <option value="suspended">{{ statusLabel('suspended') }}</option>
+                <option value="removed">{{ statusLabel('removed') }}</option>
               </select>
               <button
-                class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold"
+                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold hover:border-[var(--ks-border-strong)]"
                 type="button"
                 @click="updateMembershipStatus(member.id)"
               >
-                Apply
+                {{ t('allianceOperations.overview.update') }}
               </button>
             </div>
           </div>
@@ -428,13 +513,16 @@ function formatActivityTime(startsAt: string, timeZone: string): string {
             <span
               v-for="role in member.roles"
               :key="role.id"
-              class="inline-flex items-center gap-2 rounded-full bg-slate-800 px-3 py-1 text-xs"
+              class="inline-flex items-center gap-2 rounded-full border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-3 py-1.5 text-xs font-semibold"
             >
               {{ role.name }}
               <button
-                v-if="props.membershipManagement.rolesAllowed"
-                class="font-bold text-rose-300"
-                :aria-label="`Remove ${role.name} from ${member.user.name}`"
+                v-if="
+                  membershipManagement.rolesAllowed &&
+                  member.user.id !== membershipManagement.currentUserId
+                "
+                class="text-[var(--ks-red)] hover:text-red-200"
+                :aria-label="`${t('allianceOperations.overview.removeRole')} ${role.name}`"
                 type="button"
                 @click="removeRole(member.id, role.id)"
               >
@@ -443,15 +531,15 @@ function formatActivityTime(startsAt: string, timeZone: string): string {
             </span>
           </div>
 
-          <div v-if="props.membershipManagement.rolesAllowed" class="mt-4 flex flex-wrap gap-2">
+          <div v-if="membershipManagement.rolesAllowed" class="mt-4 flex flex-wrap gap-2">
             <select
               v-model="roleSelections[member.id]"
-              :aria-label="`Role to add for ${member.user.name}`"
-              class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+              class="ks-input min-w-48 flex-1 text-sm"
+              :aria-label="`${t('allianceOperations.overview.selectRole')} ${member.user.name}`"
             >
-              <option value="">Choose role</option>
+              <option value="">{{ t('allianceOperations.overview.selectRole') }}</option>
               <option
-                v-for="role in props.membershipManagement.roleCatalog"
+                v-for="role in membershipManagement.roleCatalog"
                 :key="role.id"
                 :disabled="member.roles.some((assigned) => assigned.id === role.id)"
                 :value="role.id"
@@ -460,15 +548,26 @@ function formatActivityTime(startsAt: string, timeZone: string): string {
               </option>
             </select>
             <button
-              class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-strong)] bg-[var(--ks-gold-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-gold-strong)] disabled:opacity-50"
+              :disabled="!roleSelections[member.id]"
               type="button"
               @click="assignRole(member.id)"
             >
-              Add role
+              {{ t('allianceOperations.overview.assign') }}
             </button>
           </div>
         </article>
       </div>
     </section>
-  </main>
+
+    <section class="mt-8 rounded-[var(--ks-radius-lg)] border border-red-500/20 bg-red-500/5 p-5">
+      <button
+        class="font-semibold text-[var(--ks-red)] hover:text-red-200"
+        type="button"
+        @click="leaveAlliance"
+      >
+        {{ t('allianceOperations.overview.leaveAlliance') }}
+      </button>
+    </section>
+  </AppLayout>
 </template>

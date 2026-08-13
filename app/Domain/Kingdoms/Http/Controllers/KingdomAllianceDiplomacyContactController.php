@@ -41,6 +41,10 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         $tracked = $contacts->tracking($alliance, $tracking);
 
         return Inertia::render('Alliance/KingdomAllianceDiplomacyContacts', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => $this->allianceSummary($alliance),
             'tracking' => $this->trackingSummary($tracked, $alliance),
             'channels' => [

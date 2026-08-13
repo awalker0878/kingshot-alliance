@@ -11,14 +11,30 @@ final class KingdomAccessibilityTest extends TestCase
     public function test_kingdoms_surfaces_keep_semantic_landmarks_and_native_controls(): void
     {
         $root = dirname(__DIR__, 2).'/resources/js/pages/Alliance/';
-
-        foreach ([
-            'KingdomSettings.vue',
+        $sharedShellPages = [
             'Roster.vue',
             'RosterManage.vue',
             'RosterHistory.vue',
             'RosterIntelligence.vue',
             'RosterImport.vue',
+            'KingdomSettings.vue',
+            'KingdomAlliances.vue',
+            'KingdomIngestionManage.vue',
+            'KingdomAllianceHistory.vue',
+            'KingdomAllianceDiplomacy.vue',
+            'KingdomAllianceDiplomacyContacts.vue',
+            'KingdomAllianceIntelligence.vue',
+            'KingdomSharing.vue',
+            'KingdomSharingManage.vue',
+            'TransferPlans.vue',
+            'TransferPlansManage.vue',
+            'TransferReadinessManage.vue',
+            'TransferCompletionManage.vue',
+        ];
+
+        foreach ([
+            'KingdomSettings.vue',
+            ...$sharedShellPages,
             'KingdomAlliances.vue',
             'KingdomAlliancesManage.vue',
             'KingdomAllianceHistory.vue',
@@ -35,7 +51,12 @@ final class KingdomAccessibilityTest extends TestCase
         ] as $page) {
             $source = file_get_contents($root.$page);
             self::assertIsString($source);
-            self::assertStringContainsString('<main', $source, $page.' must retain a main landmark.');
+            if (in_array($page, $sharedShellPages, true)) {
+                self::assertStringContainsString('AppLayout', $source, $page.' must inherit the shared app landmark.');
+                self::assertStringNotContainsString('<main', $source, $page.' must not duplicate the shared main landmark.');
+            } else {
+                self::assertStringContainsString('<main', $source, $page.' must retain a main landmark.');
+            }
             self::assertStringContainsString('<h1', $source, $page.' must retain a primary heading.');
             self::assertStringNotContainsString('role="button"', $source, $page.' must use native interactive controls.');
         }
@@ -70,7 +91,7 @@ final class KingdomAccessibilityTest extends TestCase
         $import = file_get_contents($root.'RosterImport.vue');
         self::assertIsString($import);
         self::assertStringContainsString(':aria-label="resolutionLabel(row)"', $import);
-        self::assertStringContainsString('Resolution for CSV row', $import);
+        self::assertStringContainsString("t('rosterImport.resolutionErrors')", $import);
         self::assertStringContainsString('aria-live="polite"', $import);
         self::assertStringContainsString('role="alert"', $import);
 
@@ -169,7 +190,7 @@ final class KingdomAccessibilityTest extends TestCase
 
         self::assertStringContainsString(':for="`roster-result-${participant.id}`"', $completion);
         self::assertStringContainsString(':id="`roster-result-${participant.id}`"', $completion);
-        self::assertStringContainsString('Record actual completion', $completion);
+        self::assertStringContainsString("t('kingdomP7D.recordCompletion')", $completion);
     }
 
     public function test_roster_transfer_and_kingdom_alliance_tables_keep_narrow_viewport_overflow(): void

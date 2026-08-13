@@ -2,6 +2,9 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { reactive, ref } from 'vue';
 
+import AppLayout from '../../../layouts/AppLayout.vue';
+import { useLocale } from '../../../localization';
+
 type Candidate = {
   id: string;
   name: string;
@@ -35,6 +38,7 @@ type QuestionEdit = {
 };
 
 const props = defineProps<{
+  user: { name: string; email: string };
   alliance: { id: string; name: string; slug: string };
   settings: {
     mode: string;
@@ -78,6 +82,8 @@ const props = defineProps<{
   issuedApplicationLink: string | null;
 }>();
 
+const { t, formatDate, formatNumber } = useLocale();
+
 const settingsForm = useForm({
   mode: props.settings?.mode ?? 'public',
   title: props.settings?.title ?? 'Join our alliance',
@@ -107,6 +113,7 @@ for (const question of props.questions) {
     active: question.active,
   };
 }
+
 const candidatePlaceholder = '{{candidate_name}}';
 const alliancePlaceholder = '{{alliance_name}}';
 const inviteForm = useForm({ email: '', ttl_hours: 72 });
@@ -203,140 +210,236 @@ function createOnboardingItem(): void {
   });
 }
 
-function formatDate(value: string | null): string {
-  if (!value) return '—';
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(
-    new Date(value),
-  );
+function date(value: string | null): string {
+  return value ? formatDate(value) : '—';
 }
 
 function percentage(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
+
+function stageTone(stage: string): string {
+  if (stage === 'accepted' || stage === 'joined')
+    return 'border-green-400/25 bg-green-500/10 text-green-200';
+  if (stage === 'declined' || stage === 'withdrawn')
+    return 'border-red-400/25 bg-red-500/10 text-red-200';
+  if (stage === 'reviewing' || stage === 'interview')
+    return 'border-blue-400/25 bg-blue-500/10 text-blue-200';
+  return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
+}
 </script>
 
 <template>
-  <Head :title="`${alliance.name} recruitment`" />
+  <Head :title="`${t('recruitment.title')} · ${alliance.name}`" />
 
-  <main class="mx-auto min-h-screen max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-    <div class="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <Link class="text-sm font-semibold text-cyan-300 hover:text-cyan-200" href="/alliance">
-          ← Alliance home
-        </Link>
-        <h1 class="mt-4 text-3xl font-bold sm:text-4xl">Recruitment</h1>
-        <p class="mt-2 max-w-3xl text-slate-400">
-          Manage applications, candidate progress, onboarding, and retention for
-          {{ alliance.name }}.
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+    <header class="flex flex-wrap items-start justify-between gap-4">
+      <div class="max-w-3xl">
+        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+          {{ t('recruitment.eyebrow') }}
+        </p>
+        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">{{ t('recruitment.title') }}</h1>
+        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
+          {{ t('recruitment.subtitle', { alliance: alliance.name }) }}
         </p>
       </div>
       <a
         v-if="settings?.mode === 'public' && settings.open"
-        class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold hover:border-cyan-400"
+        class="inline-flex min-h-11 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-gold)]/45 bg-[var(--ks-gold-soft)] px-4 py-2 text-sm font-semibold text-[var(--ks-gold-strong)] transition hover:border-[var(--ks-gold)] hover:text-white"
         :href="`/alliances/${alliance.slug}/apply`"
         target="_blank"
         rel="noopener noreferrer"
       >
-        Open public form
+        {{ t('recruitment.publicForm') }}
       </a>
-    </div>
+    </header>
 
-    <section class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Recruitment metrics">
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-        <p class="text-sm text-slate-400">Candidates</p>
-        <p class="mt-1 text-2xl font-bold">{{ metrics.total }}</p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-        <p class="text-sm text-slate-400">Average response</p>
-        <p class="mt-1 text-2xl font-bold">
-          {{ metrics.averageResponseHours ?? '—'
-          }}<span v-if="metrics.averageResponseHours !== null" class="text-sm"> h</span>
-        </p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-        <p class="text-sm text-slate-400">Accepted</p>
-        <p class="mt-1 text-2xl font-bold">{{ percentage(metrics.acceptedRate) }}</p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-        <p class="text-sm text-slate-400">Joined</p>
-        <p class="mt-1 text-2xl font-bold">{{ percentage(metrics.joinedRate) }}</p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-        <p class="text-sm text-slate-400">Sources</p>
-        <p class="mt-1 text-sm font-semibold">{{ Object.keys(metrics.bySource).length }}</p>
+    <section class="ks-surface-gold mt-6 overflow-hidden" :aria-label="t('recruitment.title')">
+      <div
+        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] md:grid-cols-5 md:divide-y-0"
+      >
+        <article class="p-4 sm:p-5">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
+          >
+            {{ t('recruitment.candidates') }}
+          </p>
+          <p class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(metrics.total) }}</p>
+        </article>
+        <article class="p-4 sm:p-5">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
+          >
+            {{ t('recruitment.averageResponse') }}
+          </p>
+          <p class="ks-display mt-2 text-3xl font-semibold">
+            {{ metrics.averageResponseHours ?? '—'
+            }}<span v-if="metrics.averageResponseHours !== null" class="ms-1 text-sm">{{
+              t('recruitment.hours')
+            }}</span>
+          </p>
+        </article>
+        <article class="p-4 sm:p-5">
+          <p class="text-[0.68rem] font-bold tracking-[0.1em] text-green-300 uppercase">
+            {{ t('recruitment.accepted') }}
+          </p>
+          <p class="ks-display mt-2 text-3xl font-semibold">
+            {{ percentage(metrics.acceptedRate) }}
+          </p>
+        </article>
+        <article class="p-4 sm:p-5">
+          <p class="text-[0.68rem] font-bold tracking-[0.1em] text-blue-300 uppercase">
+            {{ t('recruitment.joined') }}
+          </p>
+          <p class="ks-display mt-2 text-3xl font-semibold">{{ percentage(metrics.joinedRate) }}</p>
+        </article>
+        <article class="col-span-2 p-4 sm:p-5 md:col-span-1">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
+          >
+            {{ t('recruitment.sources') }}
+          </p>
+          <p class="ks-display mt-2 text-3xl font-semibold">
+            {{ formatNumber(Object.keys(metrics.bySource).length) }}
+          </p>
+        </article>
       </div>
     </section>
 
-    <section
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
-      aria-labelledby="pipeline-heading"
-    >
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p class="text-xs font-semibold tracking-[0.16em] text-cyan-300 uppercase">
-            Private recruiter view
-          </p>
-          <h2 id="pipeline-heading" class="mt-1 text-2xl font-semibold">Candidate pipeline</h2>
-        </div>
-        <div class="flex flex-wrap gap-2 text-xs">
-          <span
-            v-for="stage in candidateStages"
-            :key="stage"
-            class="rounded-full bg-slate-800 px-2.5 py-1 capitalize"
-          >
-            {{ stage }} {{ metrics.byStage[stage] ?? 0 }}
-          </span>
+    <section class="ks-surface mt-5 overflow-hidden" aria-labelledby="pipeline-heading">
+      <div class="border-b border-[var(--ks-border)] p-4 sm:p-5">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
+              {{ t('recruitment.privateRecruiterView') }}
+            </p>
+            <h2 id="pipeline-heading" class="ks-display mt-1 text-2xl font-semibold">
+              {{ t('recruitment.pipeline') }}
+            </h2>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span
+              v-for="stage in candidateStages"
+              :key="stage"
+              :class="stageTone(stage)"
+              class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
+            >
+              {{ stage }} {{ metrics.byStage[stage] ?? 0 }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div v-if="candidates.length" class="mt-5 overflow-x-auto">
-        <table class="min-w-full text-left text-sm">
-          <thead class="text-slate-400">
+      <div v-if="candidates.length" class="lg:hidden">
+        <article
+          v-for="candidate in candidates"
+          :key="candidate.id"
+          class="border-b border-[var(--ks-border)] p-4 last:border-b-0"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <Link
+                class="block truncate font-semibold text-[var(--ks-blue-strong)] hover:text-white"
+                :href="`/alliance/recruitment/${candidate.id}`"
+              >
+                {{ candidate.name }}
+              </Link>
+              <p class="mt-1 truncate text-xs text-[var(--ks-text-muted)]">{{ candidate.email }}</p>
+              <p class="mt-2 text-xs text-[var(--ks-text-secondary)]">
+                {{ candidate.source || t('recruitment.unspecified') }}
+              </p>
+            </div>
+            <span
+              :class="stageTone(candidate.stage)"
+              class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
+              >{{ candidate.stage }}</span
+            >
+          </div>
+          <dl class="mt-4 grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <dt class="text-[var(--ks-text-muted)]">{{ t('recruitment.submitted') }}</dt>
+              <dd class="mt-1 text-[var(--ks-text-secondary)]">
+                {{ date(candidate.submittedAt) }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-[var(--ks-text-muted)]">{{ t('recruitment.nextAction') }}</dt>
+              <dd class="mt-1 text-[var(--ks-text-secondary)]">
+                {{ date(candidate.nextActionAt) }}
+              </dd>
+            </div>
+          </dl>
+        </article>
+      </div>
+
+      <div v-if="candidates.length" class="hidden overflow-x-auto lg:block">
+        <table class="w-full min-w-[60rem] text-sm">
+          <thead
+            class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
+          >
             <tr>
-              <th class="pr-5 pb-3 font-medium">Candidate</th>
-              <th class="pr-5 pb-3 font-medium">Stage</th>
-              <th class="pr-5 pb-3 font-medium">Source</th>
-              <th class="pr-5 pb-3 font-medium">Submitted</th>
-              <th class="pb-3 font-medium">Next action</th>
+              <th class="px-4 py-3 text-start">{{ t('recruitment.candidate') }}</th>
+              <th class="px-4 py-3 text-start">{{ t('recruitment.stage') }}</th>
+              <th class="px-4 py-3 text-start">{{ t('recruitment.source') }}</th>
+              <th class="px-4 py-3 text-start">{{ t('recruitment.submitted') }}</th>
+              <th class="px-4 py-3 text-start">{{ t('recruitment.nextAction') }}</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800">
-            <tr v-for="candidate in candidates" :key="candidate.id">
-              <td class="py-4 pr-5">
+          <tbody class="divide-y divide-[var(--ks-border)]">
+            <tr
+              v-for="candidate in candidates"
+              :key="candidate.id"
+              class="transition hover:bg-white/[0.025]"
+            >
+              <td class="px-4 py-3.5">
                 <Link
-                  class="font-semibold hover:text-cyan-200"
+                  class="font-semibold text-[var(--ks-blue-strong)] hover:text-white"
                   :href="`/alliance/recruitment/${candidate.id}`"
+                  >{{ candidate.name }}</Link
                 >
-                  {{ candidate.name }}
-                </Link>
-                <p class="mt-1 text-xs text-slate-500">{{ candidate.email }}</p>
+                <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ candidate.email }}</p>
               </td>
-              <td class="py-4 pr-5 capitalize">{{ candidate.stage }}</td>
-              <td class="py-4 pr-5">{{ candidate.source || 'Unspecified' }}</td>
-              <td class="py-4 pr-5 text-slate-400">{{ formatDate(candidate.submittedAt) }}</td>
-              <td class="py-4 text-slate-400">{{ formatDate(candidate.nextActionAt) }}</td>
+              <td class="px-4 py-3.5">
+                <span
+                  :class="stageTone(candidate.stage)"
+                  class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"
+                  >{{ candidate.stage }}</span
+                >
+              </td>
+              <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+                {{ candidate.source || t('recruitment.unspecified') }}
+              </td>
+              <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+                {{ date(candidate.submittedAt) }}
+              </td>
+              <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+                {{ date(candidate.nextActionAt) }}
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p v-else class="mt-5 text-sm text-slate-500">No active recruitment candidates yet.</p>
+      <p v-if="!candidates.length" class="p-8 text-center text-sm text-[var(--ks-text-muted)]">
+        {{ t('recruitment.noCandidates') }}
+      </p>
     </section>
 
-    <div class="mt-8 grid gap-6 xl:grid-cols-2">
-      <section
-        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
-        aria-labelledby="application-settings-heading"
-      >
-        <h2 id="application-settings-heading" class="text-xl font-semibold">
-          Application settings
+    <div class="mt-5 grid gap-5 xl:grid-cols-2">
+      <section class="ks-surface p-5 sm:p-6" aria-labelledby="settings-heading">
+        <h2 id="settings-heading" class="ks-display text-xl font-semibold">
+          {{ t('recruitment.settings') }}
         </h2>
         <form class="mt-5 space-y-4" @submit.prevent="saveSettings">
           <div>
-            <label class="text-sm font-medium" for="recruitment-mode">Application mode</label>
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="recruitment-mode"
+              >{{ t('recruitment.applicationMode') }}</label
+            >
             <select
               id="recruitment-mode"
               v-model="settingsForm.mode"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
             >
               <option v-for="mode in applicationModes" :key="mode" :value="mode" class="capitalize">
                 {{ mode }}
@@ -344,85 +447,97 @@ function percentage(value: number): string {
             </select>
           </div>
           <div>
-            <label class="text-sm font-medium" for="recruitment-title">Public title</label>
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="recruitment-title"
+              >{{ t('recruitment.publicTitle') }}</label
+            >
             <input
               id="recruitment-title"
               v-model="settingsForm.title"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
               maxlength="160"
               required
             />
           </div>
           <div>
-            <label class="text-sm font-medium" for="recruitment-introduction">Introduction</label>
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="recruitment-introduction"
+              >{{ t('recruitment.introduction') }}</label
+            >
             <textarea
               id="recruitment-introduction"
               v-model="settingsForm.introduction"
-              class="mt-1 min-h-28 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              class="mt-1.5 min-h-28 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
               maxlength="5000"
             />
           </div>
           <div class="grid gap-4 sm:grid-cols-2">
             <div>
-              <label class="text-sm font-medium" for="retention-days"
-                >Unsuccessful retention days</label
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="retention-days"
+                >{{ t('recruitment.retentionDays') }}</label
               >
               <input
                 id="retention-days"
                 v-model.number="settingsForm.retention_days"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
                 type="number"
                 min="1"
                 max="3650"
                 required
               />
             </div>
-            <label class="flex items-center gap-2 pt-7 text-sm">
-              <input v-model="settingsForm.open" type="checkbox" /> Applications open
-            </label>
+            <label class="flex items-center gap-2 pt-6 text-sm text-[var(--ks-text-secondary)]"
+              ><input v-model="settingsForm.open" type="checkbox" />
+              {{ t('recruitment.applicationsOpen') }}</label
+            >
           </div>
           <button
-            class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950"
+            class="min-h-10 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white"
             type="submit"
           >
-            Save settings
+            {{ t('recruitment.saveSettings') }}
           </button>
         </form>
 
-        <form class="mt-8 border-t border-slate-800 pt-6" @submit.prevent="issueInvite">
-          <h3 class="font-semibold">Invitation-only application link</h3>
-          <p class="mt-1 text-sm text-slate-400">
-            Issue an expiring one-time application link, optionally restricted to one email.
+        <form class="mt-6 border-t border-[var(--ks-border)] pt-5" @submit.prevent="issueInvite">
+          <h3 class="font-semibold">{{ t('recruitment.inviteLink') }}</h3>
+          <p class="mt-1 text-sm leading-6 text-[var(--ks-text-secondary)]">
+            {{ t('recruitment.inviteHelp') }}
           </p>
           <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_8rem_auto]">
             <input
               v-model="inviteForm.email"
-              class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
               type="email"
-              placeholder="Optional email"
+              :placeholder="t('recruitment.optionalEmail')"
             />
             <input
               v-model.number="inviteForm.ttl_hours"
-              class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
               type="number"
               min="1"
               max="720"
-              aria-label="Invitation lifetime in hours"
+              :aria-label="t('recruitment.lifetimeHours')"
             />
             <button
-              class="rounded-lg border border-slate-700 px-4 py-2 font-semibold"
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold"
               type="submit"
             >
-              Issue
+              {{ t('recruitment.issue') }}
             </button>
           </div>
           <div
             v-if="issuedApplicationLink"
-            class="mt-4 rounded-xl border border-emerald-800 bg-emerald-950/30 p-4 text-sm"
+            class="mt-4 rounded-[var(--ks-radius-sm)] border border-green-400/25 bg-green-500/10 p-4 text-sm text-green-200"
+            role="status"
           >
-            <p class="font-semibold text-emerald-100">New application link</p>
+            <p class="font-semibold">{{ t('recruitment.issuedLink') }}</p>
             <a
-              class="mt-1 block break-all text-emerald-200 underline"
+              class="mt-2 block break-all underline"
               :href="issuedApplicationLink"
               target="_blank"
               rel="noopener noreferrer"
@@ -432,321 +547,276 @@ function percentage(value: number): string {
         </form>
       </section>
 
-      <section
-        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
-        aria-labelledby="questions-heading"
-      >
-        <h2 id="questions-heading" class="text-xl font-semibold">Application questions</h2>
-        <div v-if="questions.length" class="mt-4 space-y-3">
-          <article
-            v-for="question in questions"
-            :key="question.id"
-            class="rounded-xl border border-slate-800 p-4"
-          >
-            <div class="grid gap-3">
-              <div>
-                <label
-                  class="text-xs font-medium text-slate-400"
-                  :for="`edit-question-${question.id}`"
-                  >Prompt</label
-                >
-                <input
-                  :id="`edit-question-${question.id}`"
-                  v-model="questionEdit(question.id).prompt"
-                  class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                  maxlength="240"
-                  required
-                />
-              </div>
-              <div class="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label
-                    class="text-xs font-medium text-slate-400"
-                    :for="`edit-type-${question.id}`"
-                    >Type</label
-                  >
-                  <select
-                    :id="`edit-type-${question.id}`"
-                    v-model="questionEdit(question.id).type"
-                    class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                  >
-                    <option v-for="type in questionTypes" :key="type" :value="type">
-                      {{ type.replace('_', ' ') }}
-                    </option>
-                  </select>
-                </div>
-                <div>
-                  <label
-                    class="text-xs font-medium text-slate-400"
-                    :for="`edit-position-${question.id}`"
-                    >Position</label
-                  >
-                  <input
-                    :id="`edit-position-${question.id}`"
-                    v-model.number="questionEdit(question.id).position"
-                    class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                    type="number"
-                    min="0"
-                    max="65535"
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label class="text-xs font-medium text-slate-400" :for="`edit-help-${question.id}`"
-                  >Help text</label
-                >
-                <input
-                  :id="`edit-help-${question.id}`"
-                  v-model="questionEdit(question.id).helpText"
-                  class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                  maxlength="2000"
-                />
-              </div>
-              <div v-if="['select', 'multi_select'].includes(questionEdit(question.id).type)">
-                <label
-                  class="text-xs font-medium text-slate-400"
-                  :for="`edit-options-${question.id}`"
-                  >Options, one per line</label
-                >
-                <textarea
-                  :id="`edit-options-${question.id}`"
-                  v-model="questionEdit(question.id).optionsText"
-                  class="mt-1 min-h-24 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                />
-              </div>
-              <div class="flex flex-wrap items-center gap-5 text-sm">
-                <label class="flex items-center gap-2"
-                  ><input v-model="questionEdit(question.id).required" type="checkbox" />
-                  Required</label
-                >
-                <label class="flex items-center gap-2"
-                  ><input v-model="questionEdit(question.id).active" type="checkbox" />
-                  Active</label
-                >
-                <button
-                  class="rounded-lg border border-slate-700 px-3 py-2 font-semibold"
-                  type="button"
-                  @click="saveQuestion(question.id)"
-                >
-                  Save question
-                </button>
-              </div>
-            </div>
-          </article>
-        </div>
-        <form
-          class="mt-6 space-y-4 border-t border-slate-800 pt-5"
-          @submit.prevent="createQuestion"
-        >
-          <div>
-            <label class="text-sm font-medium" for="question-prompt">New question</label>
-            <input
+      <section class="ks-surface p-5 sm:p-6" aria-labelledby="questions-heading">
+        <h2 id="questions-heading" class="ks-display text-xl font-semibold">
+          {{ t('recruitment.questions') }}
+        </h2>
+        <form class="mt-5 grid gap-3 sm:grid-cols-2" @submit.prevent="createQuestion">
+          <div class="sm:col-span-2">
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="question-prompt"
+              >{{ t('recruitment.prompt') }}</label
+            ><input
               id="question-prompt"
               v-model="questionForm.prompt"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
               maxlength="240"
               required
             />
           </div>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label class="text-sm font-medium" for="question-type">Type</label>
-              <select
-                id="question-type"
-                v-model="questionForm.type"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              >
-                <option v-for="type in questionTypes" :key="type" :value="type">
-                  {{ type.replace('_', ' ') }}
-                </option>
-              </select>
-            </div>
-            <div>
-              <label class="text-sm font-medium" for="question-position">Position</label>
-              <input
-                id="question-position"
-                v-model.number="questionForm.position"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                type="number"
-                min="0"
-                max="65535"
-              />
-            </div>
-          </div>
           <div>
-            <label class="text-sm font-medium" for="question-help">Help text</label>
-            <input
-              id="question-help"
-              v-model="questionForm.help_text"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              maxlength="2000"
-            />
-          </div>
-          <div v-if="['select', 'multi_select'].includes(questionForm.type)">
-            <label class="text-sm font-medium" for="question-options">Options, one per line</label>
-            <textarea
-              id="question-options"
-              v-model="questionOptions"
-              class="mt-1 min-h-28 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            />
-          </div>
-          <div class="flex flex-wrap gap-5 text-sm">
-            <label class="flex items-center gap-2"
-              ><input v-model="questionForm.required" type="checkbox" /> Required</label
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="question-type"
+              >{{ t('recruitment.questionType') }}</label
+            ><select
+              id="question-type"
+              v-model="questionForm.type"
+              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
             >
-            <label class="flex items-center gap-2"
-              ><input v-model="questionForm.active" type="checkbox" /> Active</label
-            >
-          </div>
-          <button class="rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="submit">
-            Add question
-          </button>
-        </form>
-      </section>
-
-      <section
-        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
-        aria-labelledby="decision-templates-heading"
-      >
-        <h2 id="decision-templates-heading" class="text-xl font-semibold">Decision templates</h2>
-        <div v-if="decisionTemplates.length" class="mt-4 space-y-3">
-          <article
-            v-for="template in decisionTemplates"
-            :key="template.id"
-            class="rounded-xl border border-slate-800 p-4"
-          >
-            <p class="text-xs font-semibold text-slate-500 uppercase">
-              {{ template.decisionStage }} · {{ template.active ? 'active' : 'inactive' }}
-            </p>
-            <h3 class="mt-1 font-semibold">{{ template.name }}</h3>
-            <p class="mt-1 text-sm text-slate-400">{{ template.subject }}</p>
-          </article>
-        </div>
-        <form
-          class="mt-6 space-y-4 border-t border-slate-800 pt-5"
-          @submit.prevent="createDecisionTemplate"
-        >
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label class="text-sm font-medium" for="decision-name">Template name</label
-              ><input
-                id="decision-name"
-                v-model="decisionForm.name"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                required
-              />
-            </div>
-            <div>
-              <label class="text-sm font-medium" for="decision-stage">Decision</label
-              ><select
-                id="decision-stage"
-                v-model="decisionForm.decision_stage"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              >
-                <option value="accepted">Accepted</option>
-                <option value="declined">Declined</option>
-              </select>
-            </div>
+              <option v-for="type in questionTypes" :key="type" :value="type">{{ type }}</option>
+            </select>
           </div>
           <div>
-            <label class="text-sm font-medium" for="decision-subject">Subject</label
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="question-position"
+              >{{ t('recruitment.position') }}</label
             ><input
-              id="decision-subject"
-              v-model="decisionForm.subject"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              required
-            />
-          </div>
-          <div>
-            <label class="text-sm font-medium" for="decision-body">Message</label
-            ><textarea
-              id="decision-body"
-              v-model="decisionForm.body"
-              class="mt-1 min-h-32 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              required
-            />
-          </div>
-          <p class="text-xs text-slate-500">
-            Supported placeholders: <code>{{ candidatePlaceholder }}</code> and
-            <code>{{ alliancePlaceholder }}</code
-            >.
-          </p>
-          <label class="flex items-center gap-2 text-sm"
-            ><input v-model="decisionForm.active" type="checkbox" /> Active</label
-          >
-          <button class="rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="submit">
-            Add template
-          </button>
-        </form>
-      </section>
-
-      <section
-        class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
-        aria-labelledby="onboarding-heading"
-      >
-        <h2 id="onboarding-heading" class="text-xl font-semibold">Onboarding checklist</h2>
-        <div v-if="onboardingItems.length" class="mt-4 space-y-3">
-          <article
-            v-for="item in onboardingItems"
-            :key="item.id"
-            class="rounded-xl border border-slate-800 p-4"
-          >
-            <p class="text-xs text-slate-500">
-              Position {{ item.position }} · {{ item.required ? 'required' : 'optional' }} ·
-              {{ item.active ? 'active' : 'inactive' }}
-            </p>
-            <h3 class="mt-1 font-semibold">{{ item.name }}</h3>
-            <p v-if="item.description" class="mt-1 text-sm text-slate-400">
-              {{ item.description }}
-            </p>
-          </article>
-        </div>
-        <form
-          class="mt-6 space-y-4 border-t border-slate-800 pt-5"
-          @submit.prevent="createOnboardingItem"
-        >
-          <div>
-            <label class="text-sm font-medium" for="onboarding-name">Item name</label
-            ><input
-              id="onboarding-name"
-              v-model="onboardingForm.name"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              required
-            />
-          </div>
-          <div>
-            <label class="text-sm font-medium" for="onboarding-description">Description</label
-            ><textarea
-              id="onboarding-description"
-              v-model="onboardingForm.description"
-              class="mt-1 min-h-24 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-            />
-          </div>
-          <div>
-            <label class="text-sm font-medium" for="onboarding-position">Position</label
-            ><input
-              id="onboarding-position"
-              v-model.number="onboardingForm.position"
-              class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              id="question-position"
+              v-model.number="questionForm.position"
+              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
               type="number"
               min="0"
               max="65535"
             />
           </div>
-          <div class="flex flex-wrap gap-5 text-sm">
-            <label class="flex items-center gap-2"
-              ><input v-model="onboardingForm.required" type="checkbox" /> Required</label
-            >
-            <label class="flex items-center gap-2"
-              ><input v-model="onboardingForm.active" type="checkbox" /> Active</label
-            >
+          <div class="sm:col-span-2">
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="question-help"
+              >{{ t('recruitment.helpText') }}</label
+            ><textarea
+              id="question-help"
+              v-model="questionForm.help_text"
+              class="mt-1.5 min-h-20 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+              maxlength="2000"
+            />
           </div>
-          <button class="rounded-lg border border-slate-700 px-4 py-2 font-semibold" type="submit">
-            Add onboarding item
+          <div class="sm:col-span-2">
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="question-options"
+              >{{ t('recruitment.options') }}</label
+            ><textarea
+              id="question-options"
+              v-model="questionOptions"
+              class="mt-1.5 min-h-20 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            />
+          </div>
+          <label class="flex items-center gap-2 text-sm"
+            ><input v-model="questionForm.required" type="checkbox" />
+            {{ t('recruitment.required') }}</label
+          >
+          <label class="flex items-center gap-2 text-sm"
+            ><input v-model="questionForm.active" type="checkbox" />
+            {{ t('recruitment.active') }}</label
+          >
+          <button
+            class="min-h-10 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white sm:col-span-2"
+            type="submit"
+          >
+            {{ t('recruitment.createQuestion') }}
           </button>
         </form>
+
+        <div v-if="questions.length" class="mt-6 space-y-3 border-t border-[var(--ks-border)] pt-5">
+          <article
+            v-for="question in questions"
+            :key="question.id"
+            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
+          >
+            <div class="grid gap-3 sm:grid-cols-2">
+              <input
+                v-model="questionEdit(question.id).prompt"
+                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm sm:col-span-2"
+              />
+              <select
+                v-model="questionEdit(question.id).type"
+                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm"
+              >
+                <option v-for="type in questionTypes" :key="type" :value="type">{{ type }}</option>
+              </select>
+              <input
+                v-model.number="questionEdit(question.id).position"
+                class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm"
+                type="number"
+                min="0"
+                max="65535"
+              />
+              <textarea
+                v-model="questionEdit(question.id).helpText"
+                class="min-h-16 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm sm:col-span-2"
+              />
+              <textarea
+                v-model="questionEdit(question.id).optionsText"
+                class="min-h-16 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm sm:col-span-2"
+              />
+              <label class="flex items-center gap-2 text-sm"
+                ><input v-model="questionEdit(question.id).required" type="checkbox" />
+                {{ t('recruitment.required') }}</label
+              >
+              <label class="flex items-center gap-2 text-sm"
+                ><input v-model="questionEdit(question.id).active" type="checkbox" />
+                {{ t('recruitment.active') }}</label
+              >
+            </div>
+            <button
+              class="mt-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-gold)]/45 bg-[var(--ks-gold-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-gold-strong)]"
+              type="button"
+              @click="saveQuestion(question.id)"
+            >
+              {{ t('recruitment.saveQuestion') }}
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <section class="ks-surface p-5 sm:p-6" aria-labelledby="templates-heading">
+        <h2 id="templates-heading" class="ks-display text-xl font-semibold">
+          {{ t('recruitment.decisionTemplates') }}
+        </h2>
+        <p class="mt-2 text-xs text-[var(--ks-text-muted)]">
+          {{
+            t('recruitment.placeholders', {
+              candidate: candidatePlaceholder,
+              alliance: alliancePlaceholder,
+            })
+          }}
+        </p>
+        <form class="mt-5 space-y-3" @submit.prevent="createDecisionTemplate">
+          <input
+            v-model="decisionForm.name"
+            class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            :placeholder="t('recruitment.templateName')"
+            maxlength="120"
+            required
+          />
+          <select
+            v-model="decisionForm.decision_stage"
+            class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+          >
+            <option value="accepted">accepted</option>
+            <option value="declined">declined</option>
+          </select>
+          <input
+            v-model="decisionForm.subject"
+            class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            :placeholder="t('recruitment.subject')"
+            maxlength="200"
+            required
+          />
+          <textarea
+            v-model="decisionForm.body"
+            class="min-h-28 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            :placeholder="t('recruitment.body')"
+            maxlength="10000"
+            required
+          />
+          <label class="flex items-center gap-2 text-sm"
+            ><input v-model="decisionForm.active" type="checkbox" />
+            {{ t('recruitment.active') }}</label
+          >
+          <button
+            class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white"
+            type="submit"
+          >
+            {{ t('recruitment.createTemplate') }}
+          </button>
+        </form>
+        <div
+          v-if="decisionTemplates.length"
+          class="mt-5 space-y-2 border-t border-[var(--ks-border)] pt-4"
+        >
+          <div
+            v-for="template in decisionTemplates"
+            :key="template.id"
+            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3 text-sm"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <strong>{{ template.name }}</strong
+              ><span class="text-xs text-[var(--ks-text-muted)] capitalize"
+                >{{ template.decisionStage }} ·
+                {{ template.active ? t('recruitment.active') : 'inactive' }}</span
+              >
+            </div>
+            <p class="mt-1 text-[var(--ks-text-secondary)]">{{ template.subject }}</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="ks-surface p-5 sm:p-6" aria-labelledby="onboarding-heading">
+        <h2 id="onboarding-heading" class="ks-display text-xl font-semibold">
+          {{ t('recruitment.onboarding') }}
+        </h2>
+        <form class="mt-5 space-y-3" @submit.prevent="createOnboardingItem">
+          <input
+            v-model="onboardingForm.name"
+            class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            :placeholder="t('recruitment.itemName')"
+            maxlength="160"
+            required
+          />
+          <textarea
+            v-model="onboardingForm.description"
+            class="min-h-24 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            :placeholder="t('recruitment.description')"
+            maxlength="5000"
+          />
+          <input
+            v-model.number="onboardingForm.position"
+            class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            type="number"
+            min="0"
+            max="65535"
+            :aria-label="t('recruitment.position')"
+          />
+          <div class="flex flex-wrap gap-5">
+            <label class="flex items-center gap-2 text-sm"
+              ><input v-model="onboardingForm.required" type="checkbox" />
+              {{ t('recruitment.required') }}</label
+            ><label class="flex items-center gap-2 text-sm"
+              ><input v-model="onboardingForm.active" type="checkbox" />
+              {{ t('recruitment.active') }}</label
+            >
+          </div>
+          <button
+            class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white"
+            type="submit"
+          >
+            {{ t('recruitment.createItem') }}
+          </button>
+        </form>
+        <div
+          v-if="onboardingItems.length"
+          class="mt-5 space-y-2 border-t border-[var(--ks-border)] pt-4"
+        >
+          <div
+            v-for="item in onboardingItems"
+            :key="item.id"
+            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3 text-sm"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <strong>{{ item.name }}</strong
+              ><span class="text-xs text-[var(--ks-text-muted)]">#{{ item.position }}</span>
+            </div>
+            <p v-if="item.description" class="mt-1 text-[var(--ks-text-secondary)]">
+              {{ item.description }}
+            </p>
+          </div>
+        </div>
       </section>
     </div>
-  </main>
+  </AppLayout>
 </template>

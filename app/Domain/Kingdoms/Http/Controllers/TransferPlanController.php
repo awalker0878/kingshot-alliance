@@ -54,6 +54,10 @@ final class TransferPlanController extends Controller
         $current = $plans->currentForAlliance($alliance);
 
         return Inertia::render('Alliance/TransferPlans', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => $this->alliance($alliance),
             'canManage' => $authorization->allows($user, $alliance, PermissionKey::KingdomManage),
             'plan' => $current === null ? null : $this->plan($current),
@@ -117,6 +121,10 @@ final class TransferPlanController extends Controller
             ->all();
 
         return Inertia::render('Alliance/TransferPlansManage', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => $this->alliance($alliance),
             'plans' => $plans->forAlliance($alliance)
                 ->map(fn (TransferPlan $plan): array => $this->plan($plan))
