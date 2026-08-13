@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 
+import AuthLayout from '../../layouts/AuthLayout.vue';
+import { useLocale } from '../../localization';
+
 const props = defineProps<{
   invitation: {
     token: string;
@@ -15,58 +18,79 @@ const props = defineProps<{
   authenticatedEmail: string | null;
 }>();
 
+const { t, formatDate } = useLocale();
+
 function accept(): void {
   router.post(`/invitations/${props.invitation.token}/accept`);
+}
+
+function invitationExpiry(): string {
+  return props.invitation.expiresAt
+    ? formatDate(props.invitation.expiresAt, { dateStyle: 'medium', timeStyle: 'short' })
+    : '';
 }
 </script>
 
 <template>
-  <Head title="Alliance invitation" />
+  <Head :title="t('auth.invitation.title')" />
 
-  <main class="mx-auto flex min-h-screen max-w-xl items-center px-6 py-16">
-    <section class="w-full rounded-2xl border border-slate-800 bg-slate-900/70 p-8">
-      <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">Invitation</p>
-      <h1 class="mt-3 text-3xl font-bold">Join {{ invitation.alliance.name }}</h1>
-      <p class="mt-3 text-sm text-slate-300">
-        This invitation is for <strong>{{ invitation.email }}</strong
-        >.
-      </p>
-      <p v-if="invitation.expiresAt" class="mt-2 text-xs text-slate-500">
-        Expires {{ new Date(invitation.expiresAt).toLocaleString() }}
-      </p>
+  <AuthLayout>
+    <template #headline>
+      {{ t('authExperience.invitation.join', { alliance: invitation.alliance.name }) }}
+    </template>
+    <template #intro>{{ t('auth.invitation.title') }}</template>
 
-      <div v-if="authenticated" class="mt-8">
-        <p
-          v-if="authenticatedEmail?.toLowerCase() !== invitation.email.toLowerCase()"
-          class="rounded-lg border border-rose-800 bg-rose-950/30 p-4 text-sm text-rose-200"
-        >
-          You are signed in as {{ authenticatedEmail }}. Sign in with the invited email address to
-          accept this invitation.
+    <div>
+      <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+        {{ t('auth.invitation.title') }}
+      </p>
+      <h2 class="ks-display mt-2 text-2xl font-semibold sm:text-3xl">
+        {{ t('authExperience.invitation.join', { alliance: invitation.alliance.name }) }}
+      </h2>
+
+      <div
+        class="mt-6 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[rgba(8,17,31,0.58)] p-4"
+      >
+        <p class="text-sm leading-6 text-[var(--ks-text-secondary)]">
+          {{ t('authExperience.invitation.forEmail', { email: invitation.email }) }}
         </p>
+        <p v-if="invitation.expiresAt" class="mt-2 text-xs text-[var(--ks-text-muted)]">
+          {{ t('authExperience.invitation.expires', { date: invitationExpiry() }) }}
+        </p>
+      </div>
+
+      <div v-if="authenticated" class="mt-7">
+        <div
+          v-if="authenticatedEmail?.toLowerCase() !== invitation.email.toLowerCase()"
+          class="rounded-[var(--ks-radius-sm)] border border-rose-800 bg-rose-950/25 p-4 text-sm leading-6 text-rose-100"
+          role="alert"
+        >
+          {{ t('authExperience.invitation.wrongAccount', { email: authenticatedEmail ?? '' }) }}
+        </div>
         <button
           v-else
-          class="w-full rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950"
+          class="w-full rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-5 py-3 font-bold text-slate-950 transition hover:bg-[var(--ks-gold-strong)]"
           type="button"
           @click="accept"
         >
-          Accept invitation
+          {{ t('auth.invitation.accept') }}
         </button>
       </div>
 
-      <div v-else class="mt-8 grid gap-3">
+      <div v-else class="mt-7 grid gap-3">
         <Link
-          class="rounded-lg bg-cyan-300 px-4 py-2 text-center font-semibold text-slate-950"
+          class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-5 py-3 text-center font-bold text-slate-950 transition hover:bg-[var(--ks-gold-strong)]"
           :href="`/register?invitation=${encodeURIComponent(invitation.token)}`"
         >
-          Create account and join
+          {{ t('authExperience.invitation.createAndJoin') }}
         </Link>
         <Link
-          class="rounded-lg border border-slate-700 px-4 py-2 text-center font-semibold"
+          class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[rgba(8,17,31,0.48)] px-5 py-3 text-center font-semibold transition hover:border-[var(--ks-border-strong)] hover:bg-[var(--ks-surface-1)]"
           :href="`/login?invitation=${encodeURIComponent(invitation.token)}`"
         >
-          Sign in to accept
+          {{ t('authExperience.invitation.signInAccept') }}
         </Link>
       </div>
-    </section>
-  </main>
+    </div>
+  </AuthLayout>
 </template>
