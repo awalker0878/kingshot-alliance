@@ -1,0 +1,2416 @@
+
+  [37;44m INFO [39;49m Configuration cache cleared successfully.  
+
+ParaTest v7.20.0 upon PHPUnit 12.5.33 by Sebastian Bergmann and contributors.
+
+Processes:     4
+Runtime:       PHP 8.5.9
+Configuration: /home/runner/work/kingshot-alliance/kingshot-alliance/phpunit.xml
+
+................................[41;37mF[0m..............................  63 / 473 ( 13%)
+....................[41;37mF[0m............................[41;37mF[0m[41;37mF[0m............ 126 / 473 ( 26%)
+............................................................... 189 / 473 ( 39%)
+............................................................... 252 / 473 ( 53%)
+............................................................... 315 / 473 ( 66%)
+......................................................[41;37mF[0m........ 378 / 473 ( 79%)
+............................................................... 441 / 473 ( 93%)
+................................                                473 / 473 (100%)
+
+Time: 00:27.820, Memory: 46.50 MB
+
+There were 5 failures:
+
+1) Tests\Architecture\HomepageExperienceTest::test_homepage_strings_are_available_for_every_supported_locale
+en
+Failed asserting that 'import type { LocaleCode } from '../locales';\n
+\n
+export const publicMessages = {\n
+  en: {\n
+    home: {\n
+      heroLine1: 'Coordinate your alliance.',\n
+      heroLine2: 'Win together.',\n
+      body: 'Plan events, manage members, recruit players, coordinate your kingdom, and prepare transfers from one place.',\n
+      featuresTitle: 'Everything your alliance needs',\n
+      eventsDesc: 'Coordinate events, registrations, formations, rallies, and attendance.',\n
+      rosterDesc: 'Keep member rosters, history, imports, and intelligence organized.',\n
+      recruitmentDesc: 'Manage applications, reviewers, communications, and onboarding.',\n
+      kingdomDesc: 'Track kingdom alliances, diplomacy, intelligence, and sharing.',\n
+      transfersDesc: 'Plan transfer cycles, destinations, readiness, and completion.',\n
+      contentDesc: 'Publish alliance announcements, guides, rules, and reference content.',\n
+      publicPagesTitle: 'Public alliance pages',\n
+      publicPagesDesc: 'Present your alliance, public content, and recruitment application.',\n
+      multilingualTitle: 'Multilingual support',\n
+      multilingualDesc: 'Use Kingshot Alliance in the major languages of the Kingshot community.',\n
+      ctaTitle: 'Coordinate better. Lead together.',\n
+      ctaBody: 'Sign in to manage your alliance or create an account to get started.',\n
+    },\n
+  },\n
+  fr: {\n
+    home: {\n
+      heroLine1: 'Coordonnez votre alliance.',\n
+      heroLine2: 'Gagnez ensemble.',\n
+      body: 'Planifiez les événements, gérez les membres, recrutez des joueurs, coordonnez votre royaume et préparez les transferts depuis un seul endroit.',\n
+      featuresTitle: 'Tout ce dont votre alliance a besoin',\n
+      eventsDesc: 'Coordonnez les événements, inscriptions, formations, ralliements et présences.',\n
+      rosterDesc: 'Organisez les membres, l’historique, les imports et le renseignement.',\n
+      recruitmentDesc: 'Gérez les candidatures, évaluateurs, communications et l’intégration.',\n
+      kingdomDesc:\n
+        'Suivez les alliances du royaume, la diplomatie, le renseignement et le partage.',\n
+      transfersDesc:\n
+        'Planifiez les cycles de transfert, destinations, préparation et finalisation.',\n
+      contentDesc: 'Publiez annonces, guides, règles et contenus de référence de l’alliance.',\n
+      publicPagesTitle: 'Pages publiques d’alliance',\n
+      publicPagesDesc:\n
+        'Présentez votre alliance, son contenu public et sa candidature de recrutement.',\n
+      multilingualTitle: 'Prise en charge multilingue',\n
+      multilingualDesc:\n
+        'Utilisez Kingshot Alliance dans les principales langues de la communauté Kingshot.',\n
+      ctaTitle: 'Mieux coordonner. Diriger ensemble.',\n
+      ctaBody: 'Connectez-vous pour gérer votre alliance ou créez un compte pour commencer.',\n
+    },\n
+  },\n
+  'pt-BR': {\n
+    home: {\n
+      heroLine1: 'Coordene sua aliança.',\n
+      heroLine2: 'Vença junto.',\n
+      body: 'Planeje eventos, gerencie membros, recrute jogadores, coordene seu reino e prepare transferências em um só lugar.',\n
+      featuresTitle: 'Tudo o que sua aliança precisa',\n
+      eventsDesc: 'Coordene eventos, inscrições, formações, rallies e presença.',\n
+      rosterDesc: 'Organize membros, histórico, importações e inteligência.',\n
+      recruitmentDesc: 'Gerencie candidaturas, revisores, comunicações e integração.',\n
+      kingdomDesc: 'Acompanhe alianças do reino, diplomacia, inteligência e compartilhamento.',\n
+      transfersDesc: 'Planeje ciclos de transferência, destinos, prontidão e conclusão.',\n
+      contentDesc: 'Publique anúncios, guias, regras e conteúdo de referência da aliança.',\n
+      publicPagesTitle: 'Páginas públicas da aliança',\n
+      publicPagesDesc: 'Apresente sua aliança, conteúdo público e formulário de recrutamento.',\n
+      multilingualTitle: 'Suporte multilíngue',\n
+      multilingualDesc: 'Use o Kingshot Alliance nos principais idiomas da comunidade Kingshot.',\n
+      ctaTitle: 'Coordene melhor. Lidere junto.',\n
+      ctaBody: 'Entre para gerenciar sua aliança ou crie uma conta para começar.',\n
+    },\n
+  },\n
+  es: {\n
+    home: {\n
+      heroLine1: 'Coordina tu alianza.',\n
+      heroLine2: 'Ganen juntos.',\n
+      body: 'Planifica eventos, gestiona miembros, recluta jugadores, coordina tu reino y prepara traslados desde un solo lugar.',\n
+      featuresTitle: 'Todo lo que tu alianza necesita',\n
+      eventsDesc: 'Coordina eventos, inscripciones, formaciones, rallies y asistencia.',\n
+      rosterDesc: 'Organiza miembros, historial, importaciones e inteligencia.',\n
+      recruitmentDesc: 'Gestiona solicitudes, revisores, comunicaciones e incorporación.',\n
+      kingdomDesc: 'Sigue alianzas del reino, diplomacia, inteligencia y uso compartido.',\n
+      transfersDesc: 'Planifica ciclos de traslado, destinos, preparación y finalización.',\n
+      contentDesc: 'Publica anuncios, guías, reglas y contenido de referencia de la alianza.',\n
+      publicPagesTitle: 'Páginas públicas de alianza',\n
+      publicPagesDesc: 'Presenta tu alianza, contenido público y solicitud de reclutamiento.',\n
+      multilingualTitle: 'Compatibilidad multilingüe',\n
+      multilingualDesc:\n
+        'Usa Kingshot Alliance en los principales idiomas de la comunidad Kingshot.',\n
+      ctaTitle: 'Coordina mejor. Lideren juntos.',\n
+      ctaBody: 'Inicia sesión para gestionar tu alianza o crea una cuenta para empezar.',\n
+    },\n
+  },\n
+  de: {\n
+    home: {\n
+      heroLine1: 'Koordiniere deine Allianz.',\n
+      heroLine2: 'Gewinnt gemeinsam.',\n
+      body: 'Plane Events, verwalte Mitglieder, rekrutiere Spieler, koordiniere dein Königreich und bereite Transfers an einem Ort vor.',\n
+      featuresTitle: 'Alles, was deine Allianz braucht',\n
+      eventsDesc: 'Koordiniere Events, Anmeldungen, Formationen, Rallyes und Anwesenheit.',\n
+      rosterDesc: 'Organisiere Mitglieder, Verlauf, Importe und Informationen.',\n
+      recruitmentDesc: 'Verwalte Bewerbungen, Prüfer, Kommunikation und Onboarding.',\n
+      kingdomDesc: 'Verfolge Königreichsallianzen, Diplomatie, Informationen und Freigaben.',\n
+      transfersDesc: 'Plane Transferzyklen, Ziele, Bereitschaft und Abschluss.',\n
+      contentDesc: 'Veröffentliche Allianz-Ankündigungen, Leitfäden, Regeln und Referenzen.',\n
+      publicPagesTitle: 'Öffentliche Allianzseiten',\n
+      publicPagesDesc:\n
+        'Präsentiere deine Allianz, öffentliche Inhalte und die Rekrutierungsbewerbung.',\n
+      multilingualTitle: 'Mehrsprachige Unterstützung',\n
+      multilingualDesc:\n
+        'Nutze Kingshot Alliance in den wichtigsten Sprachen der Kingshot-Community.',\n
+      ctaTitle: 'Besser koordinieren. Gemeinsam führen.',\n
+      ctaBody: 'Melde dich an, um deine Allianz zu verwalten, oder erstelle ein Konto.',\n
+    },\n
+  },\n
+  ar: {\n
+    home: {\n
+      heroLine1: 'نسّق تحالفك.',\n
+      heroLine2: 'وانتصروا معًا.',\n
+      body: 'خطط للأحداث، وأدر الأعضاء، وجنّد اللاعبين، ونسّق مملكتك، وجهّز الانتقالات من مكان واحد.',\n
+      featuresTitle: 'كل ما يحتاجه تحالفك',\n
+      eventsDesc: 'نسّق الأحداث والتسجيلات والتشكيلات والتجمعات والحضور.',\n
+      rosterDesc: 'نظّم الأعضاء والسجل والاستيراد والمعلومات.',\n
+      recruitmentDesc: 'أدر الطلبات والمراجعين والتواصل والانضمام.',\n
+      kingdomDesc: 'تابع تحالفات المملكة والدبلوماسية والمعلومات والمشاركة.',\n
+      transfersDesc: 'خطط لدورات الانتقال والوجهات والجاهزية والإكمال.',\n
+      contentDesc: 'انشر إعلانات التحالف والأدلة والقواعد والمحتوى المرجعي.',\n
+      publicPagesTitle: 'صفحات التحالف العامة',\n
+      publicPagesDesc: 'اعرض تحالفك ومحتواه العام وطلب التجنيد.',\n
+      multilingualTitle: 'دعم متعدد اللغات',\n
+      multilingualDesc: 'استخدم Kingshot Alliance بأهم لغات مجتمع Kingshot.',\n
+      ctaTitle: 'نسّق أفضل. وقُد معًا.',\n
+      ctaBody: 'سجّل الدخول لإدارة تحالفك أو أنشئ حسابًا للبدء.',\n
+    },\n
+  },\n
+  ja: {\n
+    home: {\n
+      heroLine1: '同盟を連携させよう。',\n
+      heroLine2: '共に勝利を掴もう。',\n
+      body: 'イベント計画、メンバー管理、募集、王国連携、移民準備を一か所で行えます。',\n
+      featuresTitle: '同盟運営に必要なすべて',\n
+      eventsDesc: 'イベント、参加登録、編成、集結、出席をまとめて管理。',\n
+      rosterDesc: 'メンバー名簿、履歴、インポート、情報を整理。',\n
+      recruitmentDesc: '応募、審査担当、連絡、加入手続きを管理。',\n
+      kingdomDesc: '王国同盟、外交、情報、共有を追跡。',\n
+      transfersDesc: '移民サイクル、移民先、準備状況、完了まで計画。',\n
+      contentDesc: '同盟のお知らせ、ガイド、ルール、参考情報を公開。',\n
+      publicPagesTitle: '公開同盟ページ',\n
+      publicPagesDesc: '同盟、公開コンテンツ、募集応募ページを紹介。',\n
+      multilingualTitle: '多言語対応',\n
+      multilingualDesc: 'Kingshotコミュニティの主要言語でKingshot Allianceを利用できます。',\n
+      ctaTitle: 'より良く連携し、共に導こう。',\n
+      ctaBody: 'ログインして同盟を管理するか、アカウントを作成して始めましょう。',\n
+    },\n
+  },\n
+  ko: {\n
+    home: {\n
+      heroLine1: '연맹을 하나로 조율하세요.',\n
+      heroLine2: '함께 승리하세요.',\n
+      body: '이벤트 계획, 멤버 관리, 모집, 왕국 협력, 이민 준비를 한곳에서 처리하세요.',\n
+      featuresTitle: '연맹 운영에 필요한 모든 것',\n
+      eventsDesc: '이벤트, 등록, 편성, 집결, 출석을 조율합니다.',\n
+      rosterDesc: '멤버 명단, 기록, 가져오기, 정보를 정리합니다.',\n
+      recruitmentDesc: '지원서, 검토자, 연락, 온보딩을 관리합니다.',\n
+      kingdomDesc: '왕국 연맹, 외교, 정보, 공유를 추적합니다.',\n
+      transfersDesc: '이민 주기, 목적지, 준비 상태, 완료를 계획합니다.',\n
+      contentDesc: '연맹 공지, 가이드, 규칙, 참고 자료를 게시합니다.',\n
+      publicPagesTitle: '공개 연맹 페이지',\n
+      publicPagesDesc: '연맹, 공개 콘텐츠, 모집 지원 페이지를 소개합니다.',\n
+      multilingualTitle: '다국어 지원',\n
+      multilingualDesc: 'Kingshot 커뮤니티의 주요 언어로 Kingshot Alliance를 이용하세요.',\n
+      ctaTitle: '더 잘 조율하고 함께 이끄세요.',\n
+      ctaBody: '로그인해 연맹을 관리하거나 계정을 만들어 시작하세요.',\n
+    },\n
+  },\n
+  'zh-CN': {\n
+    home: {\n
+      heroLine1: '协调你的联盟。',\n
+      heroLine2: '携手取胜。',\n
+      body: '在一个地方规划活动、管理成员、招募玩家、协调王国并准备转服。',\n
+      featuresTitle: '联盟所需的一切',\n
+      eventsDesc: '协调活动、报名、编队、集结和出勤。',\n
+      rosterDesc: '整理成员名单、历史、导入和情报。',\n
+      recruitmentDesc: '管理申请、审核人员、沟通和入盟流程。',\n
+      kingdomDesc: '跟踪王国联盟、外交、情报和共享。',\n
+      transfersDesc: '规划转服周期、目的地、准备度和完成流程。',\n
+      contentDesc: '发布联盟公告、指南、规则和参考内容。',\n
+      publicPagesTitle: '联盟公开页面',\n
+      publicPagesDesc: '展示你的联盟、公开内容和招募申请。',\n
+      multilingualTitle: '多语言支持',\n
+      multilingualDesc: '使用 Kingshot 社区的主要语言体验 Kingshot Alliance。',\n
+      ctaTitle: '更好协调，共同领导。',\n
+      ctaBody: '登录以管理联盟，或创建账户开始使用。',\n
+    },\n
+  },\n
+  'zh-TW': {\n
+    home: {\n
+      heroLine1: '協調你的聯盟。',\n
+      heroLine2: '攜手取勝。',\n
+      body: '在一個地方規劃活動、管理成員、招募玩家、協調王國並準備轉服。',\n
+      featuresTitle: '聯盟所需的一切',\n
+      eventsDesc: '協調活動、報名、編隊、集結與出勤。',\n
+      rosterDesc: '整理成員名單、歷史、匯入與情報。',\n
+      recruitmentDesc: '管理申請、審核人員、溝通與入盟流程。',\n
+      kingdomDesc: '追蹤王國聯盟、外交、情報與分享。',\n
+      transfersDesc: '規劃轉服週期、目的地、準備度與完成流程。',\n
+      contentDesc: '發布聯盟公告、指南、規則與參考內容。',\n
+      publicPagesTitle: '聯盟公開頁面',\n
+      publicPagesDesc: '展示你的聯盟、公開內容與招募申請。',\n
+      multilingualTitle: '多語言支援',\n
+      multilingualDesc: '使用 Kingshot 社群的主要語言體驗 Kingshot Alliance。',\n
+      ctaTitle: '更好協調，共同領導。',\n
+      ctaBody: '登入以管理聯盟，或建立帳戶開始使用。',\n
+    },\n
+  },\n
+  ru: {\n
+    home: {\n
+      heroLine1: 'Координируйте свой альянс.',\n
+      heroLine2: 'Побеждайте вместе.',\n
+      body: 'Планируйте события, управляйте участниками, набирайте игроков, координируйте королевство и готовьте переносы в одном месте.',\n
+      featuresTitle: 'Всё необходимое вашему альянсу',\n
+      eventsDesc: 'Координируйте события, регистрации, построения, сборы и посещаемость.',\n
+      rosterDesc: 'Организуйте состав, историю, импорт и разведданные.',\n
+      recruitmentDesc: 'Управляйте заявками, проверяющими, общением и адаптацией.',\n
+      kingdomDesc: 'Отслеживайте альянсы королевства, дипломатию, разведданные и обмен.',\n
+      transfersDesc: 'Планируйте циклы переноса, назначения, готовность и завершение.',\n
+      contentDesc: 'Публикуйте объявления, руководства, правила и справочные материалы.',\n
+      publicPagesTitle: 'Публичные страницы альянса',\n
+      publicPagesDesc: 'Представьте альянс, публичные материалы и форму набора.',\n
+      multilingualTitle: 'Многоязычная поддержка',\n
+      multilingualDesc: 'Используйте Kingshot Alliance на основных языках сообщества Kingshot.',\n
+      ctaTitle: 'Лучше координация. Вместе к лидерству.',\n
+      ctaBody: 'Войдите для управления альянсом или создайте аккаунт.',\n
+    },\n
+  },\n
+  tr: {\n
+    home: {\n
+      heroLine1: 'İttifakını koordine et.',\n
+      heroLine2: 'Birlikte kazan.',\n
+      body: 'Etkinlikleri planla, üyeleri yönet, oyuncu topla, krallığını koordine et ve transferleri tek yerden hazırla.',\n
+      featuresTitle: 'İttifakının ihtiyaç duyduğu her şey',\n
+      eventsDesc: 'Etkinlikleri, kayıtları, dizilimleri, rallileri ve katılımı koordine et.',\n
+      rosterDesc: 'Üye listesini, geçmişi, içe aktarmaları ve istihbaratı düzenle.',\n
+      recruitmentDesc: 'Başvuruları, inceleyenleri, iletişimi ve katılım sürecini yönet.',\n
+      kingdomDesc: 'Krallık ittifaklarını, diplomasiyi, istihbaratı ve paylaşımı takip et.',\n
+      transfersDesc: 'Transfer döngülerini, hedefleri, hazırlığı ve tamamlamayı planla.',\n
+      contentDesc: 'İttifak duyuruları, rehberler, kurallar ve referans içerikleri yayınla.',\n
+      publicPagesTitle: 'Herkese açık ittifak sayfaları',\n
+      publicPagesDesc: 'İttifakını, açık içeriklerini ve katılım başvurusunu tanıt.',\n
+      multilingualTitle: 'Çok dilli destek',\n
+      multilingualDesc: "Kingshot Alliance'ı Kingshot topluluğunun başlıca dillerinde kullan.",\n
+      ctaTitle: 'Daha iyi koordine et. Birlikte liderlik et.',\n
+      ctaBody: 'İttifakını yönetmek için giriş yap veya başlamak için hesap oluştur.',\n
+    },\n
+  },\n
+  vi: {\n
+    home: {\n
+      heroLine1: 'Phối hợp liên minh của bạn.',\n
+      heroLine2: 'Cùng nhau chiến thắng.',\n
+      body: 'Lên kế hoạch sự kiện, quản lý thành viên, tuyển người chơi, phối hợp vương quốc và chuẩn bị chuyển vương quốc tại một nơi.',\n
+      featuresTitle: 'Mọi thứ liên minh của bạn cần',\n
+      eventsDesc: 'Phối hợp sự kiện, đăng ký, đội hình, rally và điểm danh.',\n
+      rosterDesc: 'Sắp xếp danh sách thành viên, lịch sử, nhập dữ liệu và tình báo.',\n
+      recruitmentDesc: 'Quản lý đơn ứng tuyển, người xét duyệt, liên lạc và hội nhập.',\n
+      kingdomDesc: 'Theo dõi liên minh trong vương quốc, ngoại giao, tình báo và chia sẻ.',\n
+      transfersDesc: 'Lập kế hoạch chu kỳ chuyển, điểm đến, mức sẵn sàng và hoàn tất.',\n
+      contentDesc: 'Đăng thông báo, hướng dẫn, quy tắc và nội dung tham khảo của liên minh.',\n
+      publicPagesTitle: 'Trang liên minh công khai',\n
+      publicPagesDesc: 'Giới thiệu liên minh, nội dung công khai và đơn tuyển thành viên.',\n
+      multilingualTitle: 'Hỗ trợ đa ngôn ngữ',\n
+      multilingualDesc: 'Dùng Kingshot Alliance bằng các ngôn ngữ chính của cộng đồng Kingshot.',\n
+      ctaTitle: 'Phối hợp tốt hơn. Cùng nhau dẫn dắt.',\n
+      ctaBody: 'Đăng nhập để quản lý liên minh hoặc tạo tài khoản để bắt đầu.',\n
+    },\n
+  },\n
+  th: {\n
+    home: {\n
+      heroLine1: 'ประสานงานพันธมิตรของคุณ',\n
+      heroLine2: 'คว้าชัยไปด้วยกัน',\n
+      body: 'วางแผนอีเวนต์ จัดการสมาชิก รับสมัครผู้เล่น ประสานงานอาณาจักร และเตรียมย้ายอาณาจักรได้ในที่เดียว',\n
+      featuresTitle: 'ทุกอย่างที่พันธมิตรของคุณต้องการ',\n
+      eventsDesc: 'จัดการอีเวนต์ การลงทะเบียน การจัดทัพ แรลลี่ และการเข้าร่วม',\n
+      rosterDesc: 'จัดระเบียบสมาชิก ประวัติ การนำเข้า และข้อมูลข่าวกรอง',\n
+      recruitmentDesc: 'จัดการใบสมัคร ผู้ตรวจสอบ การสื่อสาร และการเข้าร่วมพันธมิตร',\n
+      kingdomDesc: 'ติดตามพันธมิตรในอาณาจักร การทูต ข่าวกรอง และการแบ่งปัน',\n
+      transfersDesc: 'วางแผนรอบการย้าย ปลายทาง ความพร้อม และการดำเนินการให้เสร็จ',\n
+      contentDesc: 'เผยแพร่ประกาศ คู่มือ กฎ และเนื้อหาอ้างอิงของพันธมิตร',\n
+      publicPagesTitle: 'หน้าพันธมิตรสาธารณะ',\n
+      publicPagesDesc: 'นำเสนอพันธมิตร เนื้อหาสาธารณะ และใบสมัครเข้าร่วม',\n
+      multilingualTitle: 'รองรับหลายภาษา',\n
+      multilingualDesc: 'ใช้ Kingshot Alliance ในภาษาหลักของชุมชน Kingshot',\n
+      ctaTitle: 'ประสานงานให้ดีขึ้น นำไปด้วยกัน',\n
+      ctaBody: 'เข้าสู่ระบบเพื่อจัดการพันธมิตร หรือสร้างบัญชีเพื่อเริ่มต้น',\n
+    },\n
+  },\n
+  id: {\n
+    home: {\n
+      heroLine1: 'Koordinasikan aliansimu.',\n
+      heroLine2: 'Menang bersama.',\n
+      body: 'Rencanakan acara, kelola anggota, rekrut pemain, koordinasikan kerajaan, dan siapkan transfer dari satu tempat.',\n
+      featuresTitle: 'Semua yang dibutuhkan aliansimu',\n
+      eventsDesc: 'Koordinasikan acara, pendaftaran, formasi, rally, dan kehadiran.',\n
+      rosterDesc: 'Atur anggota, riwayat, impor, dan intelijen.',\n
+      recruitmentDesc: 'Kelola lamaran, peninjau, komunikasi, dan onboarding.',\n
+      kingdomDesc: 'Pantau aliansi kerajaan, diplomasi, intelijen, dan berbagi.',\n
+      transfersDesc: 'Rencanakan siklus transfer, tujuan, kesiapan, dan penyelesaian.',\n
+      contentDesc: 'Terbitkan pengumuman, panduan, aturan, dan referensi aliansi.',\n
+      publicPagesTitle: 'Halaman aliansi publik',\n
+      publicPagesDesc: 'Tampilkan aliansimu, konten publik, dan formulir rekrutmen.',\n
+      multilingualTitle: 'Dukungan multibahasa',\n
+      multilingualDesc: 'Gunakan Kingshot Alliance dalam bahasa utama komunitas Kingshot.',\n
+      ctaTitle: 'Koordinasi lebih baik. Pimpin bersama.',\n
+      ctaBody: 'Masuk untuk mengelola aliansi atau buat akun untuk memulai.',\n
+    },\n
+  },\n
+  it: {\n
+    home: {\n
+      heroLine1: 'Coordina la tua alleanza.',\n
+      heroLine2: 'Vincete insieme.',\n
+      body: 'Pianifica eventi, gestisci membri, recluta giocatori, coordina il regno e prepara i trasferimenti in un solo posto.',\n
+      featuresTitle: 'Tutto ciò che serve alla tua alleanza',\n
+      eventsDesc: 'Coordina eventi, iscrizioni, formazioni, rally e presenze.',\n
+      rosterDesc: 'Organizza membri, cronologia, importazioni e intelligence.',\n
+      recruitmentDesc: 'Gestisci candidature, revisori, comunicazioni e onboarding.',\n
+      kingdomDesc: 'Monitora alleanze del regno, diplomazia, intelligence e condivisione.',\n
+      transfersDesc:\n
+        'Pianifica cicli di trasferimento, destinazioni, preparazione e completamento.',\n
+      contentDesc: 'Pubblica annunci, guide, regole e contenuti di riferimento dell’alleanza.',\n
+      publicPagesTitle: 'Pagine pubbliche dell’alleanza',\n
+      publicPagesDesc:\n
+        'Presenta la tua alleanza, i contenuti pubblici e la domanda di reclutamento.',\n
+      multilingualTitle: 'Supporto multilingue',\n
+      multilingualDesc: 'Usa Kingshot Alliance nelle principali lingue della community Kingshot.',\n
+      ctaTitle: 'Coordina meglio. Guidate insieme.',\n
+      ctaBody: 'Accedi per gestire la tua alleanza o crea un account per iniziare.',\n
+    },\n
+  },\n
+  pl: {\n
+    home: {\n
+      heroLine1: 'Koordynuj swój sojusz.',\n
+      heroLine2: 'Wygrywajcie razem.',\n
+      body: 'Planuj wydarzenia, zarządzaj członkami, rekrutuj graczy, koordynuj królestwo i przygotuj transfery w jednym miejscu.',\n
+      featuresTitle: 'Wszystko, czego potrzebuje twój sojusz',\n
+      eventsDesc: 'Koordynuj wydarzenia, zapisy, formacje, rajdy i obecność.',\n
+      rosterDesc: 'Porządkuj członków, historię, importy i informacje.',\n
+      recruitmentDesc: 'Zarządzaj zgłoszeniami, recenzentami, komunikacją i wdrożeniem.',\n
+      kingdomDesc: 'Śledź sojusze królestwa, dyplomację, informacje i udostępnianie.',\n
+      transfersDesc: 'Planuj cykle transferów, cele, gotowość i zakończenie.',\n
+      contentDesc: 'Publikuj ogłoszenia, poradniki, zasady i materiały referencyjne sojuszu.',\n
+      publicPagesTitle: 'Publiczne strony sojuszu',\n
+      publicPagesDesc: 'Zaprezentuj sojusz, treści publiczne i formularz rekrutacyjny.',\n
+      multilingualTitle: 'Obsługa wielu języków',\n
+      multilingualDesc: 'Korzystaj z Kingshot Alliance w głównych językach społeczności Kingshot.',\n
+      ctaTitle: 'Lepsza koordynacja. Wspólne przywództwo.',\n
+      ctaBody: 'Zaloguj się, aby zarządzać sojuszem, lub utwórz konto.',\n
+    },\n
+  },\n
+} as const satisfies Record<LocaleCode, { home: Record<string, string> }>;\n
+' [UTF-8](length: 24207) contains ""en":" [ASCII](length: 5).
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/tests/Architecture/HomepageExperienceTest.php:60
+
+2) Tests\Feature\Recruitment\RecruitmentAccessibilityGuardTest::test_phase_four_pages_keep_structural_accessibility_guards@public recruitment application with data ('resources/js/pages/Public/Rec...ly.vue')
+resources/js/pages/Public/RecruitmentApply.vue must expose a main landmark.
+Failed asserting that '<script setup lang="ts">\n
+import { Head, Link, useForm } from '@inertiajs/vue3';\n
+\n
+import PublicLayout from '../../layouts/PublicLayout.vue';\n
+import { useLocale } from '../../localization';\n
+\n
+type Question = {\n
+  id: string;\n
+  prompt: string;\n
+  helpText: string | null;\n
+  type: 'short_text' | 'long_text' | 'select' | 'multi_select' | 'checkbox';\n
+  options: string[];\n
+  required: boolean;\n
+};\n
+\n
+const props = defineProps<{\n
+  alliance: { name: string; slug: string; kingdom: string | null };\n
+  application: {\n
+    open: boolean;\n
+    mode: string;\n
+    title: string;\n
+    introduction: string | null;\n
+    token: string | null;\n
+  };\n
+  questions: Question[];\n
+  prefill: { name: string; email: string; emailLocked: boolean };\n
+  submitted: boolean;\n
+}>();\n
+\n
+const { t } = useLocale();\n
+\n
+const initialAnswers: Record<string, string | boolean | string[]> = {};\n
+for (const question of props.questions) {\n
+  initialAnswers[question.id] =\n
+    question.type === 'multi_select' ? [] : question.type === 'checkbox' ? false : '';\n
+}\n
+\n
+const form = useForm({\n
+  full_name: props.prefill.name,\n
+  email: props.prefill.email,\n
+  contact_handle: '',\n
+  source: '',\n
+  application_token: props.application.token,\n
+  answers: initialAnswers,\n
+});\n
+\n
+function submit(): void {\n
+  form.post(`/alliances/${props.alliance.slug}/apply`, {\n
+    preserveScroll: true,\n
+  });\n
+}\n
+\n
+function formError(key: string): string | undefined {\n
+  return (form.errors as Record<string, string | undefined>)[key];\n
+}\n
+\n
+function answerError(questionId: string): string | undefined {\n
+  return formError(`answers.${questionId}`);\n
+}\n
+\n
+function stringAnswer(questionId: string): string {\n
+  const value = form.answers[questionId];\n
+  return typeof value === 'string' ? value : '';\n
+}\n
+\n
+function setStringAnswer(questionId: string, event: Event): void {\n
+  const target = event.target;\n
+  if (\n
+    target instanceof HTMLInputElement ||\n
+    target instanceof HTMLTextAreaElement ||\n
+    target instanceof HTMLSelectElement\n
+  ) {\n
+    form.answers[questionId] = target.value;\n
+  }\n
+}\n
+</script>\n
+\n
+<template>\n
+  <Head :title="`${application.title} · ${alliance.name}`" />\n
+\n
+  <PublicLayout>\n
+    <section class="relative isolate overflow-hidden border-b border-[var(--ks-border)]">\n
+      <div\n
+        class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_10%,rgba(226,180,77,0.14),transparent_28rem),linear-gradient(180deg,rgba(11,22,38,0.72),rgba(5,11,20,0.94))]"\n
+      />\n
+      <div class="mx-auto max-w-7xl px-5 py-10 sm:py-14 lg:px-8 lg:py-16">\n
+        <Link\n
+          class="inline-flex items-center gap-2 text-sm font-semibold text-[var(--ks-gold)] transition hover:text-[var(--ks-gold-strong)]"\n
+          :href="`/alliances/${alliance.slug}`"\n
+        >\n
+          <span aria-hidden="true">←</span>\n
+          {{ t('publicContent.backToAlliance') }} · {{ alliance.name }}\n
+        </Link>\n
+\n
+        <div class="mt-8 grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:gap-12">\n
+          <aside class="lg:pt-4">\n
+            <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">\n
+              {{ t('navigation.recruitment') }}\n
+            </p>\n
+            <h1 class="ks-display mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">\n
+              {{ application.title }}\n
+            </h1>\n
+            <p\n
+              v-if="alliance.kingdom"\n
+              class="mt-4 text-sm font-semibold text-[var(--ks-text-secondary)]"\n
+            >\n
+              {{ t('publicAlliance.kingdom') }} {{ alliance.kingdom }}\n
+            </p>\n
+            <p\n
+              v-if="application.introduction"\n
+              class="mt-6 text-base leading-8 whitespace-pre-line text-[var(--ks-text-secondary)]"\n
+            >\n
+              {{ application.introduction }}\n
+            </p>\n
+\n
+            <div class="ks-surface mt-8 p-5">\n
+              <p class="text-xs font-bold tracking-[0.16em] text-[var(--ks-text-muted)] uppercase">\n
+                {{ t('publicAlliance.recruitment') }}\n
+              </p>\n
+              <p class="mt-2 text-lg font-bold">\n
+                {{\n
+                  application.open\n
+                    ? t('publicAlliance.statusOpen')\n
+                    : application.mode === 'invitation'\n
+                      ? t('publicAlliance.statusInvitationOnly')\n
+                      : t('publicAlliance.statusClosed')\n
+                }}\n
+              </p>\n
+            </div>\n
+          </aside>\n
+\n
+          <div class="ks-surface-gold p-6 sm:p-8 lg:p-9">\n
+            <div\n
+              v-if="submitted"\n
+              class="rounded-[var(--ks-radius-md)] border border-emerald-700/60 bg-emerald-950/30 p-5"\n
+              role="status"\n
+            >\n
+              <h2 class="text-lg font-bold text-emerald-100">\n
+                {{ t('publicRecruitment.receivedTitle') }}\n
+              </h2>\n
+              <p class="mt-2 leading-7 text-emerald-100/80">\n
+                {{ t('publicRecruitment.receivedBody') }}\n
+              </p>\n
+            </div>\n
+\n
+            <div\n
+              v-else-if="!application.open"\n
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)] p-5"\n
+            >\n
+              <h2 class="text-lg font-bold">{{ t('publicRecruitment.closedTitle') }}</h2>\n
+              <p class="mt-2 leading-7 text-[var(--ks-text-muted)]">\n
+                {{ t('publicRecruitment.closedBody') }}\n
+              </p>\n
+            </div>\n
+\n
+            <form v-else class="space-y-7" @submit.prevent="submit">\n
+              <div class="grid gap-5 sm:grid-cols-2">\n
+                <div>\n
+                  <label class="text-sm font-semibold" for="recruitment-name">{{\n
+                    t('auth.register.name')\n
+                  }}</label>\n
+                  <input\n
+                    id="recruitment-name"\n
+                    v-model="form.full_name"\n
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"\n
+                    maxlength="160"\n
+                    required\n
+                    autocomplete="name"\n
+                  />\n
+                  <p v-if="form.errors.full_name" class="mt-2 text-sm text-rose-300" role="alert">\n
+                    {{ form.errors.full_name }}\n
+                  </p>\n
+                </div>\n
+                <div>\n
+                  <label class="text-sm font-semibold" for="recruitment-email">{{\n
+                    t('auth.register.email')\n
+                  }}</label>\n
+                  <input\n
+                    id="recruitment-email"\n
+                    v-model="form.email"\n
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)] disabled:cursor-not-allowed disabled:opacity-60"\n
+                    type="email"\n
+                    maxlength="320"\n
+                    required\n
+                    autocomplete="email"\n
+                    :disabled="prefill.emailLocked"\n
+                  />\n
+                  <p v-if="form.errors.email" class="mt-2 text-sm text-rose-300" role="alert">\n
+                    {{ form.errors.email }}\n
+                  </p>\n
+                </div>\n
+              </div>\n
+\n
+              <div class="grid gap-5 sm:grid-cols-2">\n
+                <div>\n
+                  <label class="text-sm font-semibold" for="recruitment-handle">\n
+                    {{ t('publicRecruitment.contactHandle') }}\n
+                  </label>\n
+                  <input\n
+                    id="recruitment-handle"\n
+                    v-model="form.contact_handle"\n
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"\n
+                    maxlength="160"\n
+                    :placeholder="t('publicRecruitment.optional')"\n
+                  />\n
+                </div>\n
+                <div>\n
+                  <label class="text-sm font-semibold" for="recruitment-source">\n
+                    {{ t('publicRecruitment.source') }}\n
+                  </label>\n
+                  <input\n
+                    id="recruitment-source"\n
+                    v-model="form.source"\n
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"\n
+                    maxlength="120"\n
+                    :placeholder="t('publicRecruitment.sourcePlaceholder')"\n
+                  />\n
+                </div>\n
+              </div>\n
+\n
+              <section\n
+                v-if="questions.length"\n
+                class="space-y-6 border-t border-[var(--ks-border)] pt-7"\n
+                aria-labelledby="recruitment-questions-heading"\n
+              >\n
+                <h2 id="recruitment-questions-heading" class="ks-display text-2xl font-semibold">\n
+                  {{ t('publicRecruitment.questions') }}\n
+                </h2>\n
+\n
+                <div v-for="question in questions" :key="question.id">\n
+                  <fieldset\n
+                    v-if="question.type === 'multi_select'"\n
+                    class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[rgba(5,11,20,0.42)] p-4"\n
+                  >\n
+                    <legend class="px-1 font-semibold">\n
+                      {{ question.prompt\n
+                      }}<span v-if="question.required" aria-hidden="true"> *</span>\n
+                    </legend>\n
+                    <p v-if="question.helpText" class="mt-1 text-sm text-[var(--ks-text-muted)]">\n
+                      {{ question.helpText }}\n
+                    </p>\n
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2">\n
+                      <label\n
+                        v-for="option in question.options"\n
+                        :key="option"\n
+                        class="flex items-center gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2.5 text-sm"\n
+                      >\n
+                        <input\n
+                          v-model="form.answers[question.id]"\n
+                          type="checkbox"\n
+                          :value="option"\n
+                        />\n
+                        <span>{{ option }}</span>\n
+                      </label>\n
+                    </div>\n
+                    <p\n
+                      v-if="answerError(question.id)"\n
+                      class="mt-2 text-sm text-rose-300"\n
+                      role="alert"\n
+                    >\n
+                      {{ answerError(question.id) }}\n
+                    </p>\n
+                  </fieldset>\n
+\n
+                  <label\n
+                    v-else-if="question.type === 'checkbox'"\n
+                    class="flex gap-3 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[rgba(5,11,20,0.42)] p-4"\n
+                  >\n
+                    <input\n
+                      v-model="form.answers[question.id]"\n
+                      class="mt-1"\n
+                      type="checkbox"\n
+                      :required="question.required"\n
+                    />\n
+                    <span>\n
+                      <span class="font-semibold">{{ question.prompt }}</span>\n
+                      <span\n
+                        v-if="question.helpText"\n
+                        class="mt-1 block text-sm leading-6 text-[var(--ks-text-muted)]"\n
+                      >\n
+                        {{ question.helpText }}\n
+                      </span>\n
+                      <span\n
+                        v-if="answerError(question.id)"\n
+                        class="mt-1 block text-sm text-rose-300"\n
+                        role="alert"\n
+                      >\n
+                        {{ answerError(question.id) }}\n
+                      </span>\n
+                    </span>\n
+                  </label>\n
+\n
+                  <div v-else>\n
+                    <label class="font-semibold" :for="`question-${question.id}`">\n
+                      {{ question.prompt\n
+                      }}<span v-if="question.required" aria-hidden="true"> *</span>\n
+                    </label>\n
+                    <p\n
+                      v-if="question.helpText"\n
+                      class="mt-1 text-sm leading-6 text-[var(--ks-text-muted)]"\n
+                    >\n
+                      {{ question.helpText }}\n
+                    </p>\n
+                    <textarea\n
+                      v-if="question.type === 'long_text'"\n
+                      :id="`question-${question.id}`"\n
+                      :value="stringAnswer(question.id)"\n
+                      class="mt-2 min-h-32 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"\n
+                      :required="question.required"\n
+                      @input="setStringAnswer(question.id, $event)"\n
+                    />\n
+                    <select\n
+                      v-else-if="question.type === 'select'"\n
+                      :id="`question-${question.id}`"\n
+                      :value="stringAnswer(question.id)"\n
+                      class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5"\n
+                      :required="question.required"\n
+                      @change="setStringAnswer(question.id, $event)"\n
+                    >\n
+                      <option value="">{{ t('publicRecruitment.chooseOption') }}</option>\n
+                      <option v-for="option in question.options" :key="option" :value="option">\n
+                        {{ option }}\n
+                      </option>\n
+                    </select>\n
+                    <input\n
+                      v-else\n
+                      :id="`question-${question.id}`"\n
+                      :value="stringAnswer(question.id)"\n
+                      class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"\n
+                      :required="question.required"\n
+                      @input="setStringAnswer(question.id, $event)"\n
+                    />\n
+                    <p\n
+                      v-if="answerError(question.id)"\n
+                      class="mt-2 text-sm text-rose-300"\n
+                      role="alert"\n
+                    >\n
+                      {{ answerError(question.id) }}\n
+                    </p>\n
+                  </div>\n
+                </div>\n
+              </section>\n
+\n
+              <p v-if="formError('application')" class="text-sm text-rose-300" role="alert">\n
+                {{ formError('application') }}\n
+              </p>\n
+              <p v-if="formError('application_token')" class="text-sm text-rose-300" role="alert">\n
+                {{ formError('application_token') }}\n
+              </p>\n
+\n
+              <button\n
+                class="w-full rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-5 py-3 font-bold text-slate-950 transition hover:bg-[var(--ks-gold-strong)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"\n
+                type="submit"\n
+                :disabled="form.processing"\n
+              >\n
+                {{\n
+                  form.processing\n
+                    ? t('publicRecruitment.submitting')\n
+                    : t('publicRecruitment.submit')\n
+                }}\n
+              </button>\n
+            </form>\n
+          </div>\n
+        </div>\n
+      </div>\n
+    </section>\n
+  </PublicLayout>\n
+</template>\n
+' [UTF-8](length: 15728) contains "<main" [ASCII](length: 5).
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/tests/Feature/Recruitment/RecruitmentAccessibilityGuardTest.php:28
+
+3) Tests\Architecture\UserExperienceLocalizationFoundationTest::test_major_kingshot_locale_catalogue_is_declared_and_complete
+ar
+Failed asserting that 'export const additionalCatalogues = {\n
+  ar: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'اللغة',\n
+      signIn: 'تسجيل الدخول',\n
+      signOut: 'تسجيل الخروج',\n
+      createAccount: 'إنشاء حساب',\n
+      continue: 'متابعة',\n
+      cancel: 'إلغاء',\n
+      save: 'حفظ',\n
+      close: 'إغلاق',\n
+      loading: 'جارٍ التحميل',\n
+      menu: 'القائمة',\n
+      openNavigation: 'فتح التنقل',\n
+      closeNavigation: 'إغلاق التنقل',\n
+      currentAlliance: 'التحالف الحالي',\n
+      noActiveAlliance: 'اختر تحالفًا لفتح أدوات التحالف.',\n
+      skipToContent: 'تخطي إلى المحتوى',\n
+    },\n
+    navigation: {\n
+      home: 'الرئيسية',\n
+      dashboard: 'لوحة التحكم',\n
+      alliance: 'التحالف',\n
+      events: 'الأحداث',\n
+      roster: 'قائمة الأعضاء',\n
+      recruitment: 'التجنيد',\n
+      content: 'المحتوى',\n
+      contributions: 'المساهمات',\n
+      kingdom: 'المملكة',\n
+      transfers: 'الانتقالات',\n
+      integrations: 'التكاملات',\n
+      profile: 'الملف الشخصي',\n
+      settings: 'الإعدادات',\n
+      allianceOperations: 'عمليات التحالف',\n
+      kingdomOperations: 'عمليات المملكة',\n
+      account: 'الحساب',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'تسجيل الدخول',\n
+        email: 'البريد الإلكتروني',\n
+        password: 'كلمة المرور',\n
+        remember: 'تذكرني',\n
+        forgotPassword: 'نسيت كلمة المرور؟',\n
+        submit: 'تسجيل الدخول',\n
+        createAccount: 'إنشاء حساب',\n
+        invitation: 'لديك دعوة؟',\n
+      },\n
+      register: {\n
+        title: 'إنشاء حساب',\n
+        name: 'الاسم',\n
+        email: 'البريد الإلكتروني',\n
+        password: 'كلمة المرور',\n
+        passwordConfirmation: 'تأكيد كلمة المرور',\n
+        submit: 'إنشاء حساب',\n
+        existingAccount: 'لديك حساب بالفعل؟',\n
+      },\n
+      password: {\n
+        forgotTitle: 'إعادة تعيين كلمة المرور',\n
+        forgotDescription: 'أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.',\n
+        sendResetLink: 'إرسال رابط إعادة تعيين كلمة المرور',\n
+        resetTitle: 'اختر كلمة مرور جديدة',\n
+        resetSubmit: 'إعادة تعيين كلمة المرور',\n
+        confirmTitle: 'تأكيد كلمة المرور',\n
+      },\n
+      verification: { title: 'تحقق من بريدك الإلكتروني', resend: 'إعادة إرسال رسالة التحقق' },\n
+      twoFactor: {\n
+        title: 'المصادقة الثنائية',\n
+        code: 'رمز المصادقة',\n
+        recoveryCode: 'رمز الاسترداد',\n
+        submit: 'متابعة',\n
+      },\n
+      invitation: { title: 'دعوة التحالف', accept: 'قبول الدعوة' },\n
+    },\n
+  },\n
+  de: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'Sprache',\n
+      signIn: 'Anmelden',\n
+      signOut: 'Abmelden',\n
+      createAccount: 'Konto erstellen',\n
+      continue: 'Weiter',\n
+      cancel: 'Abbrechen',\n
+      save: 'Speichern',\n
+      close: 'Schließen',\n
+      loading: 'Laden',\n
+      menu: 'Menü',\n
+      openNavigation: 'Navigation öffnen',\n
+      closeNavigation: 'Navigation schließen',\n
+      currentAlliance: 'Aktuelle Allianz',\n
+      noActiveAlliance: 'Wähle eine Allianz, um Allianz-Werkzeuge zu öffnen.',\n
+      skipToContent: 'Zum Inhalt springen',\n
+    },\n
+    navigation: {\n
+      home: 'Startseite',\n
+      dashboard: 'Übersicht',\n
+      alliance: 'Allianz',\n
+      events: 'Ereignisse',\n
+      roster: 'Mitglieder',\n
+      recruitment: 'Rekrutierung',\n
+      content: 'Inhalte',\n
+      contributions: 'Beiträge',\n
+      kingdom: 'Königreich',\n
+      transfers: 'Transfers',\n
+      integrations: 'Integrationen',\n
+      profile: 'Profil',\n
+      settings: 'Einstellungen',\n
+      allianceOperations: 'Allianzverwaltung',\n
+      kingdomOperations: 'Königreich',\n
+      account: 'Konto',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'Anmelden',\n
+        email: 'E-Mail',\n
+        password: 'Passwort',\n
+        remember: 'Angemeldet bleiben',\n
+        forgotPassword: 'Passwort vergessen?',\n
+        submit: 'Anmelden',\n
+        createAccount: 'Konto erstellen',\n
+        invitation: 'Du hast eine Einladung?',\n
+      },\n
+      register: {\n
+        title: 'Konto erstellen',\n
+        name: 'Name',\n
+        email: 'E-Mail',\n
+        password: 'Passwort',\n
+        passwordConfirmation: 'Passwort bestätigen',\n
+        submit: 'Konto erstellen',\n
+        existingAccount: 'Du hast bereits ein Konto?',\n
+      },\n
+      password: {\n
+        forgotTitle: 'Passwort zurücksetzen',\n
+        forgotDescription:\n
+          'Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen des Passworts.',\n
+        sendResetLink: 'Link zum Zurücksetzen senden',\n
+        resetTitle: 'Neues Passwort wählen',\n
+        resetSubmit: 'Passwort zurücksetzen',\n
+        confirmTitle: 'Passwort bestätigen',\n
+      },\n
+      verification: { title: 'E-Mail bestätigen', resend: 'Bestätigungs-E-Mail erneut senden' },\n
+      twoFactor: {\n
+        title: 'Zwei-Faktor-Authentifizierung',\n
+        code: 'Authentifizierungscode',\n
+        recoveryCode: 'Wiederherstellungscode',\n
+        submit: 'Weiter',\n
+      },\n
+      invitation: { title: 'Allianz-Einladung', accept: 'Einladung annehmen' },\n
+    },\n
+  },\n
+  es: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'Idioma',\n
+      signIn: 'Iniciar sesión',\n
+      signOut: 'Cerrar sesión',\n
+      createAccount: 'Crear cuenta',\n
+      continue: 'Continuar',\n
+      cancel: 'Cancelar',\n
+      save: 'Guardar',\n
+      close: 'Cerrar',\n
+      loading: 'Cargando',\n
+      menu: 'Menú',\n
+      openNavigation: 'Abrir navegación',\n
+      closeNavigation: 'Cerrar navegación',\n
+      currentAlliance: 'Alianza actual',\n
+      noActiveAlliance: 'Selecciona una alianza para abrir las herramientas de alianza.',\n
+      skipToContent: 'Saltar al contenido',\n
+    },\n
+    navigation: {\n
+      home: 'Inicio',\n
+      dashboard: 'Panel',\n
+      alliance: 'Alianza',\n
+      events: 'Eventos',\n
+      roster: 'Miembros',\n
+      recruitment: 'Reclutamiento',\n
+      content: 'Contenido',\n
+      contributions: 'Contribuciones',\n
+      kingdom: 'Reino',\n
+      transfers: 'Traslados',\n
+      integrations: 'Integraciones',\n
+      profile: 'Perfil',\n
+      settings: 'Ajustes',\n
+      allianceOperations: 'Operaciones de alianza',\n
+      kingdomOperations: 'Operaciones del reino',\n
+      account: 'Cuenta',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'Iniciar sesión',\n
+        email: 'Correo electrónico',\n
+        password: 'Contraseña',\n
+        remember: 'Recordarme',\n
+        forgotPassword: '¿Olvidaste la contraseña?',\n
+        submit: 'Iniciar sesión',\n
+        createAccount: 'Crear cuenta',\n
+        invitation: '¿Tienes una invitación?',\n
+      },\n
+      register: {\n
+        title: 'Crear cuenta',\n
+        name: 'Nombre',\n
+        email: 'Correo electrónico',\n
+        password: 'Contraseña',\n
+        passwordConfirmation: 'Confirmar contraseña',\n
+        submit: 'Crear cuenta',\n
+        existingAccount: '¿Ya tienes una cuenta?',\n
+      },\n
+      password: {\n
+        forgotTitle: 'Restablecer tu contraseña',\n
+        forgotDescription:\n
+          'Introduce tu correo y te enviaremos un enlace para restablecer la contraseña.',\n
+        sendResetLink: 'Enviar enlace de restablecimiento',\n
+        resetTitle: 'Elige una nueva contraseña',\n
+        resetSubmit: 'Restablecer contraseña',\n
+        confirmTitle: 'Confirmar contraseña',\n
+      },\n
+      verification: {\n
+        title: 'Verifica tu correo electrónico',\n
+        resend: 'Reenviar correo de verificación',\n
+      },\n
+      twoFactor: {\n
+        title: 'Autenticación de dos factores',\n
+        code: 'Código de autenticación',\n
+        recoveryCode: 'Código de recuperación',\n
+        submit: 'Continuar',\n
+      },\n
+      invitation: { title: 'Invitación de alianza', accept: 'Aceptar invitación' },\n
+    },\n
+  },\n
+  fr: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'Langue',\n
+      signIn: 'Se connecter',\n
+      signOut: 'Se déconnecter',\n
+      createAccount: 'Créer un compte',\n
+      continue: 'Continuer',\n
+      cancel: 'Annuler',\n
+      save: 'Enregistrer',\n
+      close: 'Fermer',\n
+      loading: 'Chargement',\n
+      menu: 'Menu',\n
+      openNavigation: 'Ouvrir la navigation',\n
+      closeNavigation: 'Fermer la navigation',\n
+      currentAlliance: 'Alliance actuelle',\n
+      noActiveAlliance: 'Sélectionnez une alliance pour ouvrir les outils d’alliance.',\n
+      skipToContent: 'Aller au contenu',\n
+    },\n
+    navigation: {\n
+      home: 'Accueil',\n
+      dashboard: 'Tableau de bord',\n
+      alliance: 'Alliance',\n
+      events: 'Événements',\n
+      roster: 'Membres',\n
+      recruitment: 'Recrutement',\n
+      content: 'Contenu',\n
+      contributions: 'Contributions',\n
+      kingdom: 'Royaume',\n
+      transfers: 'Transferts',\n
+      integrations: 'Intégrations',\n
+      profile: 'Profil',\n
+      settings: 'Paramètres',\n
+      allianceOperations: 'Opérations d’alliance',\n
+      kingdomOperations: 'Opérations du royaume',\n
+      account: 'Compte',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'Se connecter',\n
+        email: 'E-mail',\n
+        password: 'Mot de passe',\n
+        remember: 'Se souvenir de moi',\n
+        forgotPassword: 'Mot de passe oublié ?',\n
+        submit: 'Se connecter',\n
+        createAccount: 'Créer un compte',\n
+        invitation: 'Vous avez une invitation ?',\n
+      },\n
+      register: {\n
+        title: 'Créer un compte',\n
+        name: 'Nom',\n
+        email: 'E-mail',\n
+        password: 'Mot de passe',\n
+        passwordConfirmation: 'Confirmer le mot de passe',\n
+        submit: 'Créer un compte',\n
+        existingAccount: 'Vous avez déjà un compte ?',\n
+      },\n
+      password: {\n
+        forgotTitle: 'Réinitialiser votre mot de passe',\n
+        forgotDescription:\n
+          'Saisissez votre adresse e-mail et nous vous enverrons un lien de réinitialisation.',\n
+        sendResetLink: 'Envoyer le lien de réinitialisation',\n
+        resetTitle: 'Choisissez un nouveau mot de passe',\n
+        resetSubmit: 'Réinitialiser le mot de passe',\n
+        confirmTitle: 'Confirmer votre mot de passe',\n
+      },\n
+      verification: { title: 'Vérifiez votre e-mail', resend: 'Renvoyer l’e-mail de vérification' },\n
+      twoFactor: {\n
+        title: 'Authentification à deux facteurs',\n
+        code: 'Code d’authentification',\n
+        recoveryCode: 'Code de récupération',\n
+        submit: 'Continuer',\n
+      },\n
+      invitation: { title: 'Invitation d’alliance', accept: 'Accepter l’invitation' },\n
+    },\n
+  },\n
+  id: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'Bahasa',\n
+      signIn: 'Masuk',\n
+      signOut: 'Keluar',\n
+      createAccount: 'Buat akun',\n
+      continue: 'Lanjutkan',\n
+      cancel: 'Batal',\n
+      save: 'Simpan',\n
+      close: 'Tutup',\n
+      loading: 'Memuat',\n
+      menu: 'Menu',\n
+      openNavigation: 'Buka navigasi',\n
+      closeNavigation: 'Tutup navigasi',\n
+      currentAlliance: 'Aliansi saat ini',\n
+      noActiveAlliance: 'Pilih aliansi untuk membuka alat aliansi.',\n
+      skipToContent: 'Lewati ke konten',\n
+    },\n
+    navigation: {\n
+      home: 'Beranda',\n
+      dashboard: 'Dasbor',\n
+      alliance: 'Aliansi',\n
+      events: 'Acara',\n
+      roster: 'Anggota',\n
+      recruitment: 'Rekrutmen',\n
+      content: 'Konten',\n
+      contributions: 'Kontribusi',\n
+      kingdom: 'Kerajaan',\n
+      transfers: 'Transfer',\n
+      integrations: 'Integrasi',\n
+      profile: 'Profil',\n
+      settings: 'Pengaturan',\n
+      allianceOperations: 'Operasi aliansi',\n
+      kingdomOperations: 'Operasi kerajaan',\n
+      account: 'Akun',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'Masuk',\n
+        email: 'Email',\n
+        password: 'Kata sandi',\n
+        remember: 'Ingat saya',\n
+        forgotPassword: 'Lupa kata sandi?',\n
+        submit: 'Masuk',\n
+        createAccount: 'Buat akun',\n
+        invitation: 'Punya undangan?',\n
+      },\n
+      register: {\n
+        title: 'Buat akun',\n
+        name: 'Nama',\n
+        email: 'Email',\n
+        password: 'Kata sandi',\n
+        passwordConfirmation: 'Konfirmasi kata sandi',\n
+        submit: 'Buat akun',\n
+        existingAccount: 'Sudah punya akun?',\n
+      },\n
+      password: {\n
+        forgotTitle: 'Atur ulang kata sandi',\n
+        forgotDescription:\n
+          'Masukkan alamat email dan kami akan mengirim tautan untuk mengatur ulang kata sandi.',\n
+        sendResetLink: 'Kirim tautan atur ulang',\n
+        resetTitle: 'Pilih kata sandi baru',\n
+        resetSubmit: 'Atur ulang kata sandi',\n
+        confirmTitle: 'Konfirmasi kata sandi',\n
+      },\n
+      verification: { title: 'Verifikasi email Anda', resend: 'Kirim ulang email verifikasi' },\n
+      twoFactor: {\n
+        title: 'Autentikasi dua faktor',\n
+        code: 'Kode autentikasi',\n
+        recoveryCode: 'Kode pemulihan',\n
+        submit: 'Lanjutkan',\n
+      },\n
+      invitation: { title: 'Undangan aliansi', accept: 'Terima undangan' },\n
+    },\n
+  },\n
+  it: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'Lingua',\n
+      signIn: 'Accedi',\n
+      signOut: 'Esci',\n
+      createAccount: 'Crea account',\n
+      continue: 'Continua',\n
+      cancel: 'Annulla',\n
+      save: 'Salva',\n
+      close: 'Chiudi',\n
+      loading: 'Caricamento',\n
+      menu: 'Menu',\n
+      openNavigation: 'Apri navigazione',\n
+      closeNavigation: 'Chiudi navigazione',\n
+      currentAlliance: 'Alleanza attuale',\n
+      noActiveAlliance: "Seleziona un'alleanza per aprire gli strumenti dell'alleanza.",\n
+      skipToContent: 'Vai al contenuto',\n
+    },\n
+    navigation: {\n
+      home: 'Home',\n
+      dashboard: 'Dashboard',\n
+      alliance: 'Alleanza',\n
+      events: 'Eventi',\n
+      roster: 'Membri',\n
+      recruitment: 'Reclutamento',\n
+      content: 'Contenuti',\n
+      contributions: 'Contributi',\n
+      kingdom: 'Regno',\n
+      transfers: 'Trasferimenti',\n
+      integrations: 'Integrazioni',\n
+      profile: 'Profilo',\n
+      settings: 'Impostazioni',\n
+      allianceOperations: 'Operazioni alleanza',\n
+      kingdomOperations: 'Operazioni regno',\n
+      account: 'Account',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'Accedi',\n
+        email: 'Email',\n
+        password: 'Password',\n
+        remember: 'Ricordami',\n
+        forgotPassword: 'Password dimenticata?',\n
+        submit: 'Accedi',\n
+        createAccount: 'Crea account',\n
+        invitation: 'Hai un invito?',\n
+      },\n
+      register: {\n
+        title: 'Crea account',\n
+        name: 'Nome',\n
+        email: 'Email',\n
+        password: 'Password',\n
+        passwordConfirmation: 'Conferma password',\n
+        submit: 'Crea account',\n
+        existingAccount: 'Hai già un account?',\n
+      },\n
+      password: {\n
+        forgotTitle: 'Reimposta la password',\n
+        forgotDescription:\n
+          'Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.',\n
+        sendResetLink: 'Invia link di reimpostazione',\n
+        resetTitle: 'Scegli una nuova password',\n
+        resetSubmit: 'Reimposta password',\n
+        confirmTitle: 'Conferma la password',\n
+      },\n
+      verification: {\n
+        title: 'Verifica la tua email',\n
+        resend: "Invia di nuovo l'email di verifica",\n
+      },\n
+      twoFactor: {\n
+        title: 'Autenticazione a due fattori',\n
+        code: 'Codice di autenticazione',\n
+        recoveryCode: 'Codice di recupero',\n
+        submit: 'Continua',\n
+      },\n
+      invitation: { title: "Invito all'alleanza", accept: 'Accetta invito' },\n
+    },\n
+  },\n
+  ja: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: '言語',\n
+      signIn: 'ログイン',\n
+      signOut: 'ログアウト',\n
+      createAccount: 'アカウント作成',\n
+      continue: '続ける',\n
+      cancel: 'キャンセル',\n
+      save: '保存',\n
+      close: '閉じる',\n
+      loading: '読み込み中',\n
+      menu: 'メニュー',\n
+      openNavigation: 'ナビゲーションを開く',\n
+      closeNavigation: 'ナビゲーションを閉じる',\n
+      currentAlliance: '現在の同盟',\n
+      noActiveAlliance: '同盟ツールを開くには同盟を選択してください。',\n
+      skipToContent: 'コンテンツへ移動',\n
+    },\n
+    navigation: {\n
+      home: 'ホーム',\n
+      dashboard: 'ダッシュボード',\n
+      alliance: '同盟',\n
+      events: 'イベント',\n
+      roster: 'メンバー',\n
+      recruitment: '募集',\n
+      content: 'コンテンツ',\n
+      contributions: '貢献',\n
+      kingdom: '王国',\n
+      transfers: '移民',\n
+      integrations: '連携',\n
+      profile: 'プロフィール',\n
+      settings: '設定',\n
+      allianceOperations: '同盟運営',\n
+      kingdomOperations: '王国運営',\n
+      account: 'アカウント',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'ログイン',\n
+        email: 'メールアドレス',\n
+        password: 'パスワード',\n
+        remember: 'ログイン状態を保持',\n
+        forgotPassword: 'パスワードを忘れましたか？',\n
+        submit: 'ログイン',\n
+        createAccount: 'アカウント作成',\n
+        invitation: '招待をお持ちですか？',\n
+      },\n
+      register: {\n
+        title: 'アカウント作成',\n
+        name: '名前',\n
+        email: 'メールアドレス',\n
+        password: 'パスワード',\n
+        passwordConfirmation: 'パスワード確認',\n
+        submit: 'アカウント作成',\n
+        existingAccount: 'すでにアカウントをお持ちですか？',\n
+      },\n
+      password: {\n
+        forgotTitle: 'パスワードをリセット',\n
+        forgotDescription: 'メールアドレスを入力すると、パスワード再設定リンクを送信します。',\n
+        sendResetLink: '再設定リンクを送信',\n
+        resetTitle: '新しいパスワードを選択',\n
+        resetSubmit: 'パスワードをリセット',\n
+        confirmTitle: 'パスワードを確認',\n
+      },\n
+      verification: { title: 'メールアドレスを確認', resend: '確認メールを再送' },\n
+      twoFactor: {\n
+        title: '二要素認証',\n
+        code: '認証コード',\n
+        recoveryCode: 'リカバリーコード',\n
+        submit: '続ける',\n
+      },\n
+      invitation: { title: '同盟招待', accept: '招待を承認' },\n
+    },\n
+  },\n
+  ko: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: '언어',\n
+      signIn: '로그인',\n
+      signOut: '로그아웃',\n
+      createAccount: '계정 만들기',\n
+      continue: '계속',\n
+      cancel: '취소',\n
+      save: '저장',\n
+      close: '닫기',\n
+      loading: '불러오는 중',\n
+      menu: '메뉴',\n
+      openNavigation: '탐색 열기',\n
+      closeNavigation: '탐색 닫기',\n
+      currentAlliance: '현재 연맹',\n
+      noActiveAlliance: '연맹 도구를 열려면 연맹을 선택하세요.',\n
+      skipToContent: '콘텐츠로 건너뛰기',\n
+    },\n
+    navigation: {\n
+      home: '홈',\n
+      dashboard: '대시보드',\n
+      alliance: '연맹',\n
+      events: '이벤트',\n
+      roster: '멤버',\n
+      recruitment: '모집',\n
+      content: '콘텐츠',\n
+      contributions: '기여',\n
+      kingdom: '왕국',\n
+      transfers: '이민',\n
+      integrations: '연동',\n
+      profile: '프로필',\n
+      settings: '설정',\n
+      allianceOperations: '연맹 운영',\n
+      kingdomOperations: '왕국 운영',\n
+      account: '계정',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: '로그인',\n
+        email: '이메일',\n
+        password: '비밀번호',\n
+        remember: '로그인 상태 유지',\n
+        forgotPassword: '비밀번호를 잊으셨나요?',\n
+        submit: '로그인',\n
+        createAccount: '계정 만들기',\n
+        invitation: '초대장이 있나요?',\n
+      },\n
+      register: {\n
+        title: '계정 만들기',\n
+        name: '이름',\n
+        email: '이메일',\n
+        password: '비밀번호',\n
+        passwordConfirmation: '비밀번호 확인',\n
+        submit: '계정 만들기',\n
+        existingAccount: '이미 계정이 있나요?',\n
+      },\n
+      password: {\n
+        forgotTitle: '비밀번호 재설정',\n
+        forgotDescription: '이메일 주소를 입력하면 비밀번호 재설정 링크를 보내드립니다.',\n
+        sendResetLink: '재설정 링크 보내기',\n
+        resetTitle: '새 비밀번호 선택',\n
+        resetSubmit: '비밀번호 재설정',\n
+        confirmTitle: '비밀번호 확인',\n
+      },\n
+      verification: { title: '이메일 확인', resend: '확인 이메일 다시 보내기' },\n
+      twoFactor: {\n
+        title: '2단계 인증',\n
+        code: '인증 코드',\n
+        recoveryCode: '복구 코드',\n
+        submit: '계속',\n
+      },\n
+      invitation: { title: '연맹 초대', accept: '초대 수락' },\n
+    },\n
+  },\n
+  pl: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'Język',\n
+      signIn: 'Zaloguj się',\n
+      signOut: 'Wyloguj się',\n
+      createAccount: 'Utwórz konto',\n
+      continue: 'Dalej',\n
+      cancel: 'Anuluj',\n
+      save: 'Zapisz',\n
+      close: 'Zamknij',\n
+      loading: 'Ładowanie',\n
+      menu: 'Menu',\n
+      openNavigation: 'Otwórz nawigację',\n
+      closeNavigation: 'Zamknij nawigację',\n
+      currentAlliance: 'Bieżący sojusz',\n
+      noActiveAlliance: 'Wybierz sojusz, aby otworzyć narzędzia sojuszu.',\n
+      skipToContent: 'Przejdź do treści',\n
+    },\n
+    navigation: {\n
+      home: 'Strona główna',\n
+      dashboard: 'Panel',\n
+      alliance: 'Sojusz',\n
+      events: 'Wydarzenia',\n
+      roster: 'Członkowie',\n
+      recruitment: 'Rekrutacja',\n
+      content: 'Treści',\n
+      contributions: 'Wkład',\n
+      kingdom: 'Królestwo',\n
+      transfers: 'Transfery',\n
+      integrations: 'Integracje',\n
+      profile: 'Profil',\n
+      settings: 'Ustawienia',\n
+      allianceOperations: 'Operacje sojuszu',\n
+      kingdomOperations: 'Operacje królestwa',\n
+      account: 'Konto',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'Zaloguj się',\n
+        email: 'E-mail',\n
+        password: 'Hasło',\n
+        remember: 'Zapamiętaj mnie',\n
+        forgotPassword: 'Nie pamiętasz hasła?',\n
+        submit: 'Zaloguj się',\n
+        createAccount: 'Utwórz konto',\n
+        invitation: 'Masz zaproszenie?',\n
+      },\n
+      register: {\n
+        title: 'Utwórz konto',\n
+        name: 'Nazwa',\n
+        email: 'E-mail',\n
+        password: 'Hasło',\n
+        passwordConfirmation: 'Potwierdź hasło',\n
+        submit: 'Utwórz konto',\n
+        existingAccount: 'Masz już konto?',\n
+      },\n
+      password: {\n
+        forgotTitle: 'Zresetuj hasło',\n
+        forgotDescription: 'Podaj adres e-mail, a wyślemy link do zresetowania hasła.',\n
+        sendResetLink: 'Wyślij link resetujący',\n
+        resetTitle: 'Wybierz nowe hasło',\n
+        resetSubmit: 'Zresetuj hasło',\n
+        confirmTitle: 'Potwierdź hasło',\n
+      },\n
+      verification: { title: 'Zweryfikuj e-mail', resend: 'Wyślij ponownie e-mail weryfikacyjny' },\n
+      twoFactor: {\n
+        title: 'Uwierzytelnianie dwuskładnikowe',\n
+        code: 'Kod uwierzytelniający',\n
+        recoveryCode: 'Kod odzyskiwania',\n
+        submit: 'Dalej',\n
+      },\n
+      invitation: { title: 'Zaproszenie do sojuszu', accept: 'Przyjmij zaproszenie' },\n
+    },\n
+  },\n
+  'pt-BR': {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'Idioma',\n
+      signIn: 'Entrar',\n
+      signOut: 'Sair',\n
+      createAccount: 'Criar conta',\n
+      continue: 'Continuar',\n
+      cancel: 'Cancelar',\n
+      save: 'Salvar',\n
+      close: 'Fechar',\n
+      loading: 'Carregando',\n
+      menu: 'Menu',\n
+      openNavigation: 'Abrir navegação',\n
+      closeNavigation: 'Fechar navegação',\n
+      currentAlliance: 'Aliança atual',\n
+      noActiveAlliance: 'Selecione uma aliança para abrir as ferramentas da aliança.',\n
+      skipToContent: 'Ir para o conteúdo',\n
+    },\n
+    navigation: {\n
+      home: 'Início',\n
+      dashboard: 'Painel',\n
+      alliance: 'Aliança',\n
+      events: 'Eventos',\n
+      roster: 'Membros',\n
+      recruitment: 'Recrutamento',\n
+      content: 'Conteúdo',\n
+      contributions: 'Contribuições',\n
+      kingdom: 'Reino',\n
+      transfers: 'Transferências',\n
+      integrations: 'Integrações',\n
+      profile: 'Perfil',\n
+      settings: 'Configurações',\n
+      allianceOperations: 'Operações da aliança',\n
+      kingdomOperations: 'Operações do reino',\n
+      account: 'Conta',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'Entrar',\n
+        email: 'E-mail',\n
+        password: 'Senha',\n
+        remember: 'Lembrar de mim',\n
+        forgotPassword: 'Esqueceu a senha?',\n
+        submit: 'Entrar',\n
+        createAccount: 'Criar conta',\n
+        invitation: 'Tem um convite?',\n
+      },\n
+      register: {\n
+        title: 'Criar conta',\n
+        name: 'Nome',\n
+        email: 'E-mail',\n
+        password: 'Senha',\n
+        passwordConfirmation: 'Confirmar senha',\n
+        submit: 'Criar conta',\n
+        existingAccount: 'Já tem uma conta?',\n
+      },\n
+      password: {\n
+        forgotTitle: 'Redefinir sua senha',\n
+        forgotDescription: 'Digite seu e-mail e enviaremos um link para redefinir sua senha.',\n
+        sendResetLink: 'Enviar link de redefinição',\n
+        resetTitle: 'Escolha uma nova senha',\n
+        resetSubmit: 'Redefinir senha',\n
+        confirmTitle: 'Confirmar sua senha',\n
+      },\n
+      verification: { title: 'Verifique seu e-mail', resend: 'Reenviar e-mail de verificação' },\n
+      twoFactor: {\n
+        title: 'Autenticação de dois fatores',\n
+        code: 'Código de autenticação',\n
+        recoveryCode: 'Código de recuperação',\n
+        submit: 'Continuar',\n
+      },\n
+      invitation: { title: 'Convite da aliança', accept: 'Aceitar convite' },\n
+    },\n
+  },\n
+  ru: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'Язык',\n
+      signIn: 'Войти',\n
+      signOut: 'Выйти',\n
+      createAccount: 'Создать аккаунт',\n
+      continue: 'Продолжить',\n
+      cancel: 'Отмена',\n
+      save: 'Сохранить',\n
+      close: 'Закрыть',\n
+      loading: 'Загрузка',\n
+      menu: 'Меню',\n
+      openNavigation: 'Открыть навигацию',\n
+      closeNavigation: 'Закрыть навигацию',\n
+      currentAlliance: 'Текущий альянс',\n
+      noActiveAlliance: 'Выберите альянс, чтобы открыть инструменты альянса.',\n
+      skipToContent: 'Перейти к содержимому',\n
+    },\n
+    navigation: {\n
+      home: 'Главная',\n
+      dashboard: 'Панель',\n
+      alliance: 'Альянс',\n
+      events: 'События',\n
+      roster: 'Участники',\n
+      recruitment: 'Набор',\n
+      content: 'Контент',\n
+      contributions: 'Вклад',\n
+      kingdom: 'Королевство',\n
+      transfers: 'Переносы',\n
+      integrations: 'Интеграции',\n
+      profile: 'Профиль',\n
+      settings: 'Настройки',\n
+      allianceOperations: 'Управление альянсом',\n
+      kingdomOperations: 'Управление королевством',\n
+      account: 'Аккаунт',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'Войти',\n
+        email: 'Эл. почта',\n
+        password: 'Пароль',\n
+        remember: 'Запомнить меня',\n
+        forgotPassword: 'Забыли пароль?',\n
+        submit: 'Войти',\n
+        createAccount: 'Создать аккаунт',\n
+        invitation: 'Есть приглашение?',\n
+      },\n
+      register: {\n
+        title: 'Создать аккаунт',\n
+        name: 'Имя',\n
+        email: 'Эл. почта',\n
+        password: 'Пароль',\n
+        passwordConfirmation: 'Подтвердите пароль',\n
+        submit: 'Создать аккаунт',\n
+        existingAccount: 'Уже есть аккаунт?',\n
+      },\n
+      password: {\n
+        forgotTitle: 'Сбросить пароль',\n
+        forgotDescription:\n
+          'Введите адрес электронной почты, и мы отправим ссылку для сброса пароля.',\n
+        sendResetLink: 'Отправить ссылку для сброса',\n
+        resetTitle: 'Выберите новый пароль',\n
+        resetSubmit: 'Сбросить пароль',\n
+        confirmTitle: 'Подтвердите пароль',\n
+      },\n
+      verification: {\n
+        title: 'Подтвердите электронную почту',\n
+        resend: 'Отправить письмо подтверждения снова',\n
+      },\n
+      twoFactor: {\n
+        title: 'Двухфакторная аутентификация',\n
+        code: 'Код аутентификации',\n
+        recoveryCode: 'Код восстановления',\n
+        submit: 'Продолжить',\n
+      },\n
+      invitation: { title: 'Приглашение в альянс', accept: 'Принять приглашение' },\n
+    },\n
+  },\n
+  th: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'ภาษา',\n
+      signIn: 'เข้าสู่ระบบ',\n
+      signOut: 'ออกจากระบบ',\n
+      createAccount: 'สร้างบัญชี',\n
+      continue: 'ดำเนินการต่อ',\n
+      cancel: 'ยกเลิก',\n
+      save: 'บันทึก',\n
+      close: 'ปิด',\n
+      loading: 'กำลังโหลด',\n
+      menu: 'เมนู',\n
+      openNavigation: 'เปิดเมนูนำทาง',\n
+      closeNavigation: 'ปิดเมนูนำทาง',\n
+      currentAlliance: 'พันธมิตรปัจจุบัน',\n
+      noActiveAlliance: 'เลือกพันธมิตรเพื่อเปิดเครื่องมือพันธมิตร',\n
+      skipToContent: 'ข้ามไปยังเนื้อหา',\n
+    },\n
+    navigation: {\n
+      home: 'หน้าหลัก',\n
+      dashboard: 'แดชบอร์ด',\n
+      alliance: 'พันธมิตร',\n
+      events: 'กิจกรรม',\n
+      roster: 'สมาชิก',\n
+      recruitment: 'รับสมัคร',\n
+      content: 'เนื้อหา',\n
+      contributions: 'ผลงาน',\n
+      kingdom: 'อาณาจักร',\n
+      transfers: 'ย้ายอาณาจักร',\n
+      integrations: 'การเชื่อมต่อ',\n
+      profile: 'โปรไฟล์',\n
+      settings: 'การตั้งค่า',\n
+      allianceOperations: 'การจัดการพันธมิตร',\n
+      kingdomOperations: 'การจัดการอาณาจักร',\n
+      account: 'บัญชี',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'เข้าสู่ระบบ',\n
+        email: 'อีเมล',\n
+        password: 'รหัสผ่าน',\n
+        remember: 'จดจำฉัน',\n
+        forgotPassword: 'ลืมรหัสผ่าน?',\n
+        submit: 'เข้าสู่ระบบ',\n
+        createAccount: 'สร้างบัญชี',\n
+        invitation: 'มีคำเชิญหรือไม่?',\n
+      },\n
+      register: {\n
+        title: 'สร้างบัญชี',\n
+        name: 'ชื่อ',\n
+        email: 'อีเมล',\n
+        password: 'รหัสผ่าน',\n
+        passwordConfirmation: 'ยืนยันรหัสผ่าน',\n
+        submit: 'สร้างบัญชี',\n
+        existingAccount: 'มีบัญชีอยู่แล้ว?',\n
+      },\n
+      password: {\n
+        forgotTitle: 'รีเซ็ตรหัสผ่าน',\n
+        forgotDescription: 'กรอกอีเมลของคุณ แล้วเราจะส่งลิงก์รีเซ็ตรหัสผ่านให้',\n
+        sendResetLink: 'ส่งลิงก์รีเซ็ต',\n
+        resetTitle: 'เลือกรหัสผ่านใหม่',\n
+        resetSubmit: 'รีเซ็ตรหัสผ่าน',\n
+        confirmTitle: 'ยืนยันรหัสผ่าน',\n
+      },\n
+      verification: { title: 'ยืนยันอีเมลของคุณ', resend: 'ส่งอีเมลยืนยันอีกครั้ง' },\n
+      twoFactor: {\n
+        title: 'การยืนยันตัวตนสองขั้นตอน',\n
+        code: 'รหัสยืนยัน',\n
+        recoveryCode: 'รหัสกู้คืน',\n
+        submit: 'ดำเนินการต่อ',\n
+      },\n
+      invitation: { title: 'คำเชิญเข้าพันธมิตร', accept: 'ยอมรับคำเชิญ' },\n
+    },\n
+  },\n
+  tr: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'Dil',\n
+      signIn: 'Giriş yap',\n
+      signOut: 'Çıkış yap',\n
+      createAccount: 'Hesap oluştur',\n
+      continue: 'Devam et',\n
+      cancel: 'İptal',\n
+      save: 'Kaydet',\n
+      close: 'Kapat',\n
+      loading: 'Yükleniyor',\n
+      menu: 'Menü',\n
+      openNavigation: 'Navigasyonu aç',\n
+      closeNavigation: 'Navigasyonu kapat',\n
+      currentAlliance: 'Geçerli ittifak',\n
+      noActiveAlliance: 'İttifak araçlarını açmak için bir ittifak seçin.',\n
+      skipToContent: 'İçeriğe atla',\n
+    },\n
+    navigation: {\n
+      home: 'Ana sayfa',\n
+      dashboard: 'Panel',\n
+      alliance: 'İttifak',\n
+      events: 'Etkinlikler',\n
+      roster: 'Üyeler',\n
+      recruitment: 'Üye alımı',\n
+      content: 'İçerik',\n
+      contributions: 'Katkılar',\n
+      kingdom: 'Krallık',\n
+      transfers: 'Transferler',\n
+      integrations: 'Entegrasyonlar',\n
+      profile: 'Profil',\n
+      settings: 'Ayarlar',\n
+      allianceOperations: 'İttifak işlemleri',\n
+      kingdomOperations: 'Krallık işlemleri',\n
+      account: 'Hesap',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'Giriş yap',\n
+        email: 'E-posta',\n
+        password: 'Şifre',\n
+        remember: 'Beni hatırla',\n
+        forgotPassword: 'Şifrenizi mi unuttunuz?',\n
+        submit: 'Giriş yap',\n
+        createAccount: 'Hesap oluştur',\n
+        invitation: 'Davetiniz var mı?',\n
+      },\n
+      register: {\n
+        title: 'Hesap oluştur',\n
+        name: 'Ad',\n
+        email: 'E-posta',\n
+        password: 'Şifre',\n
+        passwordConfirmation: 'Şifreyi onayla',\n
+        submit: 'Hesap oluştur',\n
+        existingAccount: 'Zaten hesabınız var mı?',\n
+      },\n
+      password: {\n
+        forgotTitle: 'Şifrenizi sıfırlayın',\n
+        forgotDescription: 'E-posta adresinizi girin, size şifre sıfırlama bağlantısı gönderelim.',\n
+        sendResetLink: 'Sıfırlama bağlantısı gönder',\n
+        resetTitle: 'Yeni bir şifre seçin',\n
+        resetSubmit: 'Şifreyi sıfırla',\n
+        confirmTitle: 'Şifrenizi onaylayın',\n
+      },\n
+      verification: {\n
+        title: 'E-postanızı doğrulayın',\n
+        resend: 'Doğrulama e-postasını yeniden gönder',\n
+      },\n
+      twoFactor: {\n
+        title: 'İki faktörlü kimlik doğrulama',\n
+        code: 'Kimlik doğrulama kodu',\n
+        recoveryCode: 'Kurtarma kodu',\n
+        submit: 'Devam et',\n
+      },\n
+      invitation: { title: 'İttifak daveti', accept: 'Daveti kabul et' },\n
+    },\n
+  },\n
+  vi: {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: 'Ngôn ngữ',\n
+      signIn: 'Đăng nhập',\n
+      signOut: 'Đăng xuất',\n
+      createAccount: 'Tạo tài khoản',\n
+      continue: 'Tiếp tục',\n
+      cancel: 'Hủy',\n
+      save: 'Lưu',\n
+      close: 'Đóng',\n
+      loading: 'Đang tải',\n
+      menu: 'Menu',\n
+      openNavigation: 'Mở điều hướng',\n
+      closeNavigation: 'Đóng điều hướng',\n
+      currentAlliance: 'Liên minh hiện tại',\n
+      noActiveAlliance: 'Chọn một liên minh để mở công cụ liên minh.',\n
+      skipToContent: 'Chuyển đến nội dung',\n
+    },\n
+    navigation: {\n
+      home: 'Trang chủ',\n
+      dashboard: 'Bảng điều khiển',\n
+      alliance: 'Liên minh',\n
+      events: 'Sự kiện',\n
+      roster: 'Thành viên',\n
+      recruitment: 'Tuyển thành viên',\n
+      content: 'Nội dung',\n
+      contributions: 'Đóng góp',\n
+      kingdom: 'Vương quốc',\n
+      transfers: 'Chuyển vương quốc',\n
+      integrations: 'Tích hợp',\n
+      profile: 'Hồ sơ',\n
+      settings: 'Cài đặt',\n
+      allianceOperations: 'Vận hành liên minh',\n
+      kingdomOperations: 'Vận hành vương quốc',\n
+      account: 'Tài khoản',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: 'Đăng nhập',\n
+        email: 'Email',\n
+        password: 'Mật khẩu',\n
+        remember: 'Ghi nhớ tôi',\n
+        forgotPassword: 'Quên mật khẩu?',\n
+        submit: 'Đăng nhập',\n
+        createAccount: 'Tạo tài khoản',\n
+        invitation: 'Bạn có lời mời?',\n
+      },\n
+      register: {\n
+        title: 'Tạo tài khoản',\n
+        name: 'Tên',\n
+        email: 'Email',\n
+        password: 'Mật khẩu',\n
+        passwordConfirmation: 'Xác nhận mật khẩu',\n
+        submit: 'Tạo tài khoản',\n
+        existingAccount: 'Đã có tài khoản?',\n
+      },\n
+      password: {\n
+        forgotTitle: 'Đặt lại mật khẩu',\n
+        forgotDescription: 'Nhập địa chỉ email và chúng tôi sẽ gửi liên kết đặt lại mật khẩu.',\n
+        sendResetLink: 'Gửi liên kết đặt lại',\n
+        resetTitle: 'Chọn mật khẩu mới',\n
+        resetSubmit: 'Đặt lại mật khẩu',\n
+        confirmTitle: 'Xác nhận mật khẩu',\n
+      },\n
+      verification: { title: 'Xác minh email', resend: 'Gửi lại email xác minh' },\n
+      twoFactor: {\n
+        title: 'Xác thực hai yếu tố',\n
+        code: 'Mã xác thực',\n
+        recoveryCode: 'Mã khôi phục',\n
+        submit: 'Tiếp tục',\n
+      },\n
+      invitation: { title: 'Lời mời liên minh', accept: 'Chấp nhận lời mời' },\n
+    },\n
+  },\n
+  'zh-CN': {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: '语言',\n
+      signIn: '登录',\n
+      signOut: '退出登录',\n
+      createAccount: '创建账户',\n
+      continue: '继续',\n
+      cancel: '取消',\n
+      save: '保存',\n
+      close: '关闭',\n
+      loading: '加载中',\n
+      menu: '菜单',\n
+      openNavigation: '打开导航',\n
+      closeNavigation: '关闭导航',\n
+      currentAlliance: '当前联盟',\n
+      noActiveAlliance: '请选择联盟以打开联盟工具。',\n
+      skipToContent: '跳到内容',\n
+    },\n
+    navigation: {\n
+      home: '首页',\n
+      dashboard: '控制台',\n
+      alliance: '联盟',\n
+      events: '活动',\n
+      roster: '成员',\n
+      recruitment: '招募',\n
+      content: '内容',\n
+      contributions: '贡献',\n
+      kingdom: '王国',\n
+      transfers: '转服',\n
+      integrations: '集成',\n
+      profile: '个人资料',\n
+      settings: '设置',\n
+      allianceOperations: '联盟运营',\n
+      kingdomOperations: '王国运营',\n
+      account: '账户',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: '登录',\n
+        email: '电子邮箱',\n
+        password: '密码',\n
+        remember: '记住我',\n
+        forgotPassword: '忘记密码？',\n
+        submit: '登录',\n
+        createAccount: '创建账户',\n
+        invitation: '有邀请吗？',\n
+      },\n
+      register: {\n
+        title: '创建账户',\n
+        name: '名称',\n
+        email: '电子邮箱',\n
+        password: '密码',\n
+        passwordConfirmation: '确认密码',\n
+        submit: '创建账户',\n
+        existingAccount: '已有账户？',\n
+      },\n
+      password: {\n
+        forgotTitle: '重置密码',\n
+        forgotDescription: '输入你的电子邮箱，我们会发送密码重置链接。',\n
+        sendResetLink: '发送重置链接',\n
+        resetTitle: '设置新密码',\n
+        resetSubmit: '重置密码',\n
+        confirmTitle: '确认密码',\n
+      },\n
+      verification: { title: '验证电子邮箱', resend: '重新发送验证邮件' },\n
+      twoFactor: {\n
+        title: '双重身份验证',\n
+        code: '验证码',\n
+        recoveryCode: '恢复代码',\n
+        submit: '继续',\n
+      },\n
+      invitation: { title: '联盟邀请', accept: '接受邀请' },\n
+    },\n
+  },\n
+  'zh-TW': {\n
+    common: {\n
+      appName: 'Kingshot Alliance',\n
+      language: '語言',\n
+      signIn: '登入',\n
+      signOut: '登出',\n
+      createAccount: '建立帳戶',\n
+      continue: '繼續',\n
+      cancel: '取消',\n
+      save: '儲存',\n
+      close: '關閉',\n
+      loading: '載入中',\n
+      menu: '選單',\n
+      openNavigation: '開啟導覽',\n
+      closeNavigation: '關閉導覽',\n
+      currentAlliance: '目前聯盟',\n
+      noActiveAlliance: '請選擇聯盟以開啟聯盟工具。',\n
+      skipToContent: '跳到內容',\n
+    },\n
+    navigation: {\n
+      home: '首頁',\n
+      dashboard: '控制台',\n
+      alliance: '聯盟',\n
+      events: '活動',\n
+      roster: '成員',\n
+      recruitment: '招募',\n
+      content: '內容',\n
+      contributions: '貢獻',\n
+      kingdom: '王國',\n
+      transfers: '轉服',\n
+      integrations: '整合',\n
+      profile: '個人資料',\n
+      settings: '設定',\n
+      allianceOperations: '聯盟營運',\n
+      kingdomOperations: '王國營運',\n
+      account: '帳戶',\n
+    },\n
+    auth: {\n
+      login: {\n
+        title: '登入',\n
+        email: '電子郵件',\n
+        password: '密碼',\n
+        remember: '記住我',\n
+        forgotPassword: '忘記密碼？',\n
+        submit: '登入',\n
+        createAccount: '建立帳戶',\n
+        invitation: '有邀請嗎？',\n
+      },\n
+      register: {\n
+        title: '建立帳戶',\n
+        name: '名稱',\n
+        email: '電子郵件',\n
+        password: '密碼',\n
+        passwordConfirmation: '確認密碼',\n
+        submit: '建立帳戶',\n
+        existingAccount: '已有帳戶？',\n
+      },\n
+      password: {\n
+        forgotTitle: '重設密碼',\n
+        forgotDescription: '輸入你的電子郵件，我們會寄送密碼重設連結。',\n
+        sendResetLink: '寄送重設連結',\n
+        resetTitle: '設定新密碼',\n
+        resetSubmit: '重設密碼',\n
+        confirmTitle: '確認密碼',\n
+      },\n
+      verification: { title: '驗證電子郵件', resend: '重新寄送驗證郵件' },\n
+      twoFactor: { title: '雙重驗證', code: '驗證碼', recoveryCode: '復原代碼', submit: '繼續' },\n
+      invitation: { title: '聯盟邀請', accept: '接受邀請' },\n
+    },\n
+  },\n
+} as const;\n
+' [UTF-8](length: 42159) contains ""ar":" [ASCII](length: 5).
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/tests/Architecture/UserExperienceLocalizationFoundationTest.php:51
+
+4) Tests\Feature\Content\ContentAccessibilityGuardTest::test_phase_two_pages_keep_structural_accessibility_guards@public alliance with data ('resources/js/pages/Public/Alliance.vue')
+resources/js/pages/Public/Alliance.vue must expose a main landmark.
+Failed asserting that '<script setup lang="ts">\n
+import { Head, Link, router } from '@inertiajs/vue3';\n
+import { reactive } from 'vue';\n
+\n
+import PublicLayout from '../../layouts/PublicLayout.vue';\n
+import { useLocale } from '../../localization';\n
+import { locales } from '../../localization/locales';\n
+\n
+type ContentCard = {\n
+  id: string;\n
+  type: string;\n
+  typeLabel: string;\n
+  visibility: string;\n
+  status: string;\n
+  title: string;\n
+  slug: string;\n
+  summary: string | null;\n
+  locale: string;\n
+  publishedAt: string | null;\n
+  category: { id: string; name: string; slug: string } | null;\n
+};\n
+\n
+const props = defineProps<{\n
+  alliance: {\n
+    name: string;\n
+    slug: string;\n
+    kingdom: string | null;\n
+    language: string;\n
+    timezone: string;\n
+    description: string | null;\n
+    recruitmentStatus: string;\n
+    primaryColor: string | null;\n
+    logoUrl: string | null;\n
+    bannerUrl: string | null;\n
+    recruitmentApplicationUrl: string | null;\n
+  };\n
+  filters: { q: string; type: string; category: string; locale: string };\n
+  categories: Array<{ name: string; slug: string }>;\n
+  content: ContentCard[];\n
+}>();\n
+\n
+const { t, formatDate } = useLocale();\n
+const filters = reactive({ ...props.filters });\n
+\n
+const typeOptions = [\n
+  { value: 'announcement', key: 'publicAlliance.announcement' },\n
+  { value: 'guide', key: 'publicAlliance.guide' },\n
+  { value: 'rule', key: 'publicAlliance.rule' },\n
+  { value: 'event_instruction', key: 'publicAlliance.eventInstruction' },\n
+  { value: 'reference_page', key: 'publicAlliance.referencePage' },\n
+];\n
+\n
+function applyFilters(): void {\n
+  router.get(\n
+    `/alliances/${props.alliance.slug}`,\n
+    Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== '')),\n
+    { preserveState: true, preserveScroll: true, replace: true },\n
+  );\n
+}\n
+\n
+function clearFilters(): void {\n
+  filters.q = '';\n
+  filters.type = '';\n
+  filters.category = '';\n
+  filters.locale = '';\n
+  applyFilters();\n
+}\n
+\n
+function formatPublished(value: string | null): string {\n
+  return value ? formatDate(value, { dateStyle: 'medium', timeStyle: 'short' }) : '';\n
+}\n
+\n
+function recruitmentStatusLabel(status: string): string {\n
+  if (status === 'open') return t('publicAlliance.statusOpen');\n
+  if (status === 'invitation_only') return t('publicAlliance.statusInvitationOnly');\n
+  return t('publicAlliance.statusClosed');\n
+}\n
+\n
+function contentTypeLabel(type: string, fallback: string): string {\n
+  const option = typeOptions.find((item) => item.value === type);\n
+  return option ? t(option.key) : fallback;\n
+}\n
+\n
+function localeName(code: string): string {\n
+  return locales.find((item) => item.code === code)?.nativeName ?? code;\n
+}\n
+</script>\n
+\n
+<template>\n
+  <Head :title="alliance.name" />\n
+\n
+  <PublicLayout>\n
+    <section class="relative isolate overflow-hidden border-b border-[var(--ks-border)]">\n
+      <img\n
+        v-if="alliance.bannerUrl"\n
+        class="absolute inset-0 -z-20 h-full w-full object-cover opacity-45"\n
+        :src="alliance.bannerUrl"\n
+        :alt="`${alliance.name} banner`"\n
+      />\n
+      <div\n
+        class="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,11,20,0.98),rgba(5,11,20,0.82),rgba(5,11,20,0.55))]"\n
+      />\n
+      <div class="mx-auto max-w-7xl px-5 py-12 sm:py-16 lg:px-8 lg:py-20">\n
+        <div class="flex max-w-4xl flex-col gap-7 sm:flex-row sm:items-center">\n
+          <div\n
+            class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--ks-radius-lg)] border border-[var(--ks-border-strong)] bg-[var(--ks-surface-1)] shadow-[var(--ks-shadow-gold)] sm:h-28 sm:w-28"\n
+          >\n
+            <img\n
+              v-if="alliance.logoUrl"\n
+              class="h-full w-full object-cover"\n
+              :src="alliance.logoUrl"\n
+              :alt="`${alliance.name} logo`"\n
+            />\n
+            <span\n
+              v-else\n
+              class="ks-display text-3xl font-bold text-[var(--ks-gold)]"\n
+              aria-hidden="true"\n
+            >\n
+              {{ alliance.name.slice(0, 2).toUpperCase() }}\n
+            </span>\n
+          </div>\n
+\n
+          <div class="min-w-0">\n
+            <p class="text-xs font-bold tracking-[0.22em] text-[var(--ks-gold)] uppercase">\n
+              {{ t('publicAlliance.publicAlliance') }}\n
+            </p>\n
+            <h1\n
+              class="ks-display mt-2 text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl"\n
+            >\n
+              {{ alliance.name }}\n
+            </h1>\n
+            <div\n
+              class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--ks-text-secondary)]"\n
+            >\n
+              <span v-if="alliance.kingdom">\n
+                <strong class="text-[var(--ks-text)]">{{ t('publicAlliance.kingdom') }}</strong>\n
+                {{ alliance.kingdom }}\n
+              </span>\n
+              <span>\n
+                <strong class="text-[var(--ks-text)]">{{ t('publicAlliance.language') }}</strong>\n
+                {{ alliance.language }}\n
+              </span>\n
+              <span>\n
+                <strong class="text-[var(--ks-text)]">{{ t('publicAlliance.timezone') }}</strong>\n
+                {{ alliance.timezone }}\n
+              </span>\n
+            </div>\n
+          </div>\n
+        </div>\n
+\n
+        <p\n
+          v-if="alliance.description"\n
+          class="mt-8 max-w-3xl text-base leading-7 whitespace-pre-line text-[var(--ks-text-secondary)] sm:text-lg"\n
+        >\n
+          {{ alliance.description }}\n
+        </p>\n
+\n
+        <div class="mt-8 flex flex-wrap items-center gap-3">\n
+          <span\n
+            class="inline-flex items-center gap-2 rounded-full border border-[var(--ks-border)] bg-[rgba(8,17,31,0.78)] px-4 py-2 text-sm font-semibold"\n
+          >\n
+            <span class="h-2 w-2 rounded-full bg-[var(--ks-gold)]" aria-hidden="true" />\n
+            {{ t('publicAlliance.recruitment') }}:\n
+            {{ recruitmentStatusLabel(alliance.recruitmentStatus) }}\n
+          </span>\n
+          <Link\n
+            v-if="alliance.recruitmentApplicationUrl"\n
+            class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-[var(--ks-gold-strong)]"\n
+            :href="alliance.recruitmentApplicationUrl"\n
+          >\n
+            {{ t('publicAlliance.applyToJoin') }}\n
+          </Link>\n
+          <Link\n
+            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[rgba(8,17,31,0.68)] px-5 py-2.5 text-sm font-semibold transition hover:border-[var(--ks-border-strong)] hover:bg-[var(--ks-surface-1)]"\n
+            href="/login"\n
+          >\n
+            {{ t('common.signIn') }}\n
+          </Link>\n
+        </div>\n
+      </div>\n
+    </section>\n
+\n
+    <section\n
+      class="mx-auto max-w-7xl px-5 py-10 sm:py-14 lg:px-8 lg:py-16"\n
+      aria-labelledby="content-heading"\n
+    >\n
+      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">\n
+        <div>\n
+          <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">\n
+            {{ t('publicAlliance.publicHub') }}\n
+          </p>\n
+          <h2 id="content-heading" class="ks-display mt-2 text-3xl font-semibold sm:text-4xl">\n
+            {{ t('publicAlliance.allianceContent') }}\n
+          </h2>\n
+        </div>\n
+        <p class="text-sm font-medium text-[var(--ks-text-muted)]">\n
+          {{ t('publicAlliance.results', { count: content.length }) }}\n
+        </p>\n
+      </div>\n
+\n
+      <form class="ks-surface mt-7 grid gap-4 p-5 lg:grid-cols-12" @submit.prevent="applyFilters">\n
+        <div class="lg:col-span-5">\n
+          <label class="text-sm font-semibold" for="public-search">{{\n
+            t('publicAlliance.searchContent')\n
+          }}</label>\n
+          <input\n
+            id="public-search"\n
+            v-model="filters.q"\n
+            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 text-sm transition outline-none placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"\n
+            type="search"\n
+            :placeholder="t('publicAlliance.searchPlaceholder')"\n
+          />\n
+        </div>\n
+        <div class="lg:col-span-2">\n
+          <label class="text-sm font-semibold" for="public-type">{{\n
+            t('publicAlliance.contentType')\n
+          }}</label>\n
+          <select\n
+            id="public-type"\n
+            v-model="filters.type"\n
+            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"\n
+          >\n
+            <option value="">{{ t('publicAlliance.allTypes') }}</option>\n
+            <option v-for="option in typeOptions" :key="option.value" :value="option.value">\n
+              {{ t(option.key) }}\n
+            </option>\n
+          </select>\n
+        </div>\n
+        <div class="lg:col-span-2">\n
+          <label class="text-sm font-semibold" for="public-category">{{\n
+            t('publicAlliance.category')\n
+          }}</label>\n
+          <select\n
+            id="public-category"\n
+            v-model="filters.category"\n
+            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"\n
+          >\n
+            <option value="">{{ t('publicAlliance.allCategories') }}</option>\n
+            <option v-for="category in categories" :key="category.slug" :value="category.slug">\n
+              {{ category.name }}\n
+            </option>\n
+          </select>\n
+        </div>\n
+        <div class="lg:col-span-3">\n
+          <label class="text-sm font-semibold" for="public-locale">{{\n
+            t('publicAlliance.contentLanguage')\n
+          }}</label>\n
+          <select\n
+            id="public-locale"\n
+            v-model="filters.locale"\n
+            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"\n
+          >\n
+            <option value="">{{ t('publicAlliance.allLanguages') }}</option>\n
+            <option v-for="item in locales" :key="item.code" :value="item.code">\n
+              {{ item.nativeName }}\n
+            </option>\n
+          </select>\n
+        </div>\n
+        <div class="flex flex-wrap gap-3 lg:col-span-12">\n
+          <button\n
+            class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[var(--ks-blue-strong)]"\n
+            type="submit"\n
+          >\n
+            {{ t('publicAlliance.applyFilters') }}\n
+          </button>\n
+          <button\n
+            class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-4 py-2.5 text-sm font-semibold transition hover:border-[var(--ks-border-strong)] hover:bg-[var(--ks-surface-2)]"\n
+            type="button"\n
+            @click="clearFilters"\n
+          >\n
+            {{ t('publicAlliance.clearFilters') }}\n
+          </button>\n
+        </div>\n
+      </form>\n
+\n
+      <div v-if="content.length" class="mt-7 grid gap-4 lg:grid-cols-2">\n
+        <article\n
+          v-for="item in content"\n
+          :key="item.id"\n
+          class="group rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[linear-gradient(180deg,rgba(16,29,46,0.82),rgba(8,17,31,0.88))] p-6 transition hover:-translate-y-0.5 hover:border-[var(--ks-border-strong)]"\n
+        >\n
+          <div\n
+            class="flex flex-wrap items-center gap-2 text-xs font-bold tracking-wide text-[var(--ks-text-muted)] uppercase"\n
+          >\n
+            <span class="text-[var(--ks-gold)]">{{\n
+              contentTypeLabel(item.type, item.typeLabel)\n
+            }}</span>\n
+            <span v-if="item.category">· {{ item.category.name }}</span>\n
+            <span>· {{ localeName(item.locale) }}</span>\n
+          </div>\n
+          <h3 class="mt-3 text-xl font-bold sm:text-2xl">\n
+            <Link\n
+              class="transition group-hover:text-[var(--ks-gold-strong)]"\n
+              :href="`/alliances/${alliance.slug}/content/${item.slug}`"\n
+            >\n
+              {{ item.title }}\n
+            </Link>\n
+          </h3>\n
+          <p\n
+            v-if="item.summary"\n
+            class="mt-3 line-clamp-3 leading-7 text-[var(--ks-text-secondary)]"\n
+          >\n
+            {{ item.summary }}\n
+          </p>\n
+          <p v-if="item.publishedAt" class="mt-5 text-xs text-[var(--ks-text-muted)]">\n
+            {{ t('publicAlliance.published') }} {{ formatPublished(item.publishedAt) }}\n
+          </p>\n
+        </article>\n
+      </div>\n
+\n
+      <div\n
+        v-else\n
+        class="mt-7 rounded-[var(--ks-radius-lg)] border border-dashed border-[var(--ks-border)] bg-[rgba(8,17,31,0.45)] px-6 py-14 text-center text-[var(--ks-text-muted)]"\n
+      >\n
+        {{ t('publicAlliance.noMatches') }}\n
+      </div>\n
+    </section>\n
+  </PublicLayout>\n
+</template>\n
+' [UTF-8](length: 12535) contains "<main" [ASCII](length: 5).
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/tests/Feature/Content/ContentAccessibilityGuardTest.php:31
+
+5) Tests\Feature\Content\ContentAccessibilityGuardTest::test_phase_two_pages_keep_structural_accessibility_guards@public content with data ('resources/js/pages/Public/Content.vue')
+resources/js/pages/Public/Content.vue must expose a main landmark.
+Failed asserting that '<script setup lang="ts">\n
+import { Head, Link } from '@inertiajs/vue3';\n
+\n
+import PublicLayout from '../../layouts/PublicLayout.vue';\n
+import { useLocale } from '../../localization';\n
+import { locales } from '../../localization/locales';\n
+\n
+const props = defineProps<{\n
+  alliance: { name: string; slug: string; timezone: string };\n
+  content: {\n
+    type: string;\n
+    typeLabel: string;\n
+    title: string;\n
+    summary: string | null;\n
+    body: string;\n
+    locale: string;\n
+    publishedAt: string | null;\n
+    category: { name: string; slug: string } | null;\n
+  };\n
+  viewerTimezone?: string | null;\n
+}>();\n
+\n
+const { t, formatDate } = useLocale();\n
+\n
+const typeKeys: Record<string, string> = {\n
+  announcement: 'publicAlliance.announcement',\n
+  guide: 'publicAlliance.guide',\n
+  rule: 'publicAlliance.rule',\n
+  event_instruction: 'publicAlliance.eventInstruction',\n
+  reference_page: 'publicAlliance.referencePage',\n
+};\n
+\n
+function formatPublished(value: string | null): string {\n
+  return value ? formatDate(value, { dateStyle: 'long', timeStyle: 'short' }) : '';\n
+}\n
+\n
+function contentTypeLabel(): string {\n
+  const key = typeKeys[props.content.type];\n
+  return key ? t(key) : props.content.typeLabel;\n
+}\n
+\n
+function localeName(code: string): string {\n
+  return locales.find((item) => item.code === code)?.nativeName ?? code;\n
+}\n
+</script>\n
+\n
+<template>\n
+  <Head :title="`${content.title} · ${alliance.name}`" />\n
+\n
+  <PublicLayout>\n
+    <section class="border-b border-[var(--ks-border)] bg-[rgba(8,17,31,0.58)]">\n
+      <div class="mx-auto max-w-5xl px-5 py-8 lg:px-8">\n
+        <Link\n
+          class="inline-flex items-center gap-2 text-sm font-semibold text-[var(--ks-gold)] transition hover:text-[var(--ks-gold-strong)]"\n
+          :href="`/alliances/${alliance.slug}`"\n
+        >\n
+          <span aria-hidden="true">←</span>\n
+          {{ t('publicContent.backToAlliance') }} · {{ alliance.name }}\n
+        </Link>\n
+      </div>\n
+    </section>\n
+\n
+    <article class="mx-auto max-w-5xl px-5 py-10 sm:py-14 lg:px-8 lg:py-16">\n
+      <div class="ks-surface-gold overflow-hidden">\n
+        <header class="border-b border-[var(--ks-border)] px-6 py-8 sm:px-10 sm:py-10 lg:px-12">\n
+          <div\n
+            class="flex flex-wrap items-center gap-2 text-xs font-bold tracking-wide text-[var(--ks-text-muted)] uppercase"\n
+          >\n
+            <span class="text-[var(--ks-gold)]">{{ contentTypeLabel() }}</span>\n
+            <span v-if="content.category">· {{ content.category.name }}</span>\n
+            <span>· {{ localeName(content.locale) }}</span>\n
+          </div>\n
+\n
+          <h1\n
+            class="ks-display mt-4 max-w-4xl text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl"\n
+          >\n
+            {{ content.title }}\n
+          </h1>\n
+          <p\n
+            v-if="content.summary"\n
+            class="mt-5 max-w-3xl text-lg leading-8 text-[var(--ks-text-secondary)]"\n
+          >\n
+            {{ content.summary }}\n
+          </p>\n
+          <div\n
+            v-if="content.publishedAt"\n
+            class="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-[var(--ks-text-muted)]"\n
+          >\n
+            <span\n
+              >{{ t('publicAlliance.published') }} {{ formatPublished(content.publishedAt) }}</span\n
+            >\n
+            <span>· {{ t('publicContent.allianceTimezone') }}: {{ alliance.timezone }}</span>\n
+          </div>\n
+        </header>\n
+\n
+        <div class="px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">\n
+          <div\n
+            class="max-w-none text-base leading-8 whitespace-pre-wrap text-[var(--ks-text-secondary)] sm:text-[1.05rem]"\n
+          >\n
+            {{ content.body }}\n
+          </div>\n
+        </div>\n
+      </div>\n
+    </article>\n
+  </PublicLayout>\n
+</template>\n
+' [UTF-8](length: 3656) contains "<main" [ASCII](length: 5).
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/tests/Feature/Content/ContentAccessibilityGuardTest.php:31
+
+[37;41mFAILURES![0m
+[37;41mTests: 473[0m[37;41m, Assertions: 10578[0m[37;41m, Failures: 5[0m[37;41m.[0m
+Script @php artisan test --parallel handling the test:parallel event returned with error code 1
