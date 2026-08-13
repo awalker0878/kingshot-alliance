@@ -35,7 +35,7 @@ final class RosterCsvController extends Controller
         $alliance = $context->alliance()->load('kingdom');
         $this->authorizeManage($authorization, $user, $alliance);
 
-        return $this->page($alliance, null);
+        return $this->page($alliance, $user, null);
     }
 
     public function show(
@@ -52,7 +52,7 @@ final class RosterCsvController extends Controller
             ->where('alliance_id', $alliance->id)
             ->findOrFail($import);
 
-        return $this->page($alliance, $record);
+        return $this->page($alliance, $user, $record);
     }
 
     public function preview(
@@ -130,9 +130,13 @@ final class RosterCsvController extends Controller
         ]);
     }
 
-    private function page(Alliance $alliance, ?RosterImport $import): Response
+    private function page(Alliance $alliance, User $user, ?RosterImport $import): Response
     {
         return Inertia::render('Alliance/RosterImport', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'id' => (string) $alliance->id,
                 'name' => (string) $alliance->name,
