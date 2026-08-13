@@ -2,6 +2,9 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { reactive, ref } from 'vue';
 
+import AppLayout from '../../layouts/AppLayout.vue';
+import { useLocale } from '../../localization';
+
 type SharedTarget = {
   id: string;
   trackingId: string;
@@ -42,6 +45,7 @@ type TrackableTarget = {
 };
 
 const props = defineProps<{
+  user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string | null };
   passwordConfirmUrl: string;
   sharing: {
@@ -50,6 +54,8 @@ const props = defineProps<{
     trackableTargets: TrackableTarget[];
   };
 }>();
+
+const { t, formatDate: localeFormatDate, formatNumber } = useLocale();
 
 const invitationToken = ref<string | null>(null);
 const invitationError = ref<string | null>(null);
@@ -89,8 +95,7 @@ async function createInvitation(): Promise<void> {
     }
 
     if (!response.ok) {
-      invitationError.value =
-        'The invitation could not be created. Confirm your password and try again.';
+      invitationError.value = t('kingdomP7C.invitationCreateFailed');
       return;
     }
 
@@ -98,7 +103,7 @@ async function createInvitation(): Promise<void> {
     invitationToken.value = body.token;
     router.reload({ only: ['sharing'] });
   } catch {
-    invitationError.value = 'The invitation could not be created. Try again.';
+    invitationError.value = t('kingdomP7C.invitationTryAgain');
   } finally {
     invitationBusy.value = false;
   }
@@ -169,38 +174,38 @@ function removeTarget(shareId: string, targetId: string): void {
 }
 
 function formatDate(value: string | null): string {
-  if (!value) return '—';
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value));
+  return value ? localeFormatDate(value, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
 }
 </script>
 
 <template>
-  <Head title="Manage shared Kingdom intelligence" />
+  <Head :title="`${t('kingdomP7C.manageTitle')} · ${alliance.name}`" />
 
-  <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 lg:px-8">
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
-          Shared intelligence
+        <p class="text-sm font-semibold tracking-[0.2em] text-[var(--ks-blue-strong)] uppercase">
+          {{ t('kingdomP7C.manageEyebrow') }}
         </p>
-        <h1 class="mt-2 text-3xl font-bold">Manage sharing</h1>
-        <p class="mt-2 max-w-3xl text-sm text-slate-400">
-          {{ alliance.name }} · current Kingdom {{ alliance.kingdom ?? 'not configured' }}. Sharing
-          is directional, same-Kingdom, and explicit per tracked game alliance.
+        <h1 class="mt-2 text-3xl font-bold">{{ t('kingdomP7C.manageTitle') }}</h1>
+        <p class="mt-2 max-w-3xl text-sm text-[var(--ks-text-muted)]">
+          {{
+            t('kingdomP7C.manageSubtitle', {
+              alliance: alliance.name,
+              kingdom: alliance.kingdom ?? t('kingdomP7C.notConfigured'),
+            })
+          }}
         </p>
       </div>
       <nav aria-label="Sharing navigation" class="flex flex-wrap gap-3">
         <Link
-          class="rounded-lg border border-cyan-800 px-4 py-2 text-sm font-semibold text-cyan-300"
+          class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-blue-strong)]"
           href="/alliance/kingdom-sharing"
         >
-          Shared facts
+          {{ t('kingdomP7C.receivedFacts') }}
         </Link>
         <Link
-          class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200"
+          class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-text)]"
           href="/dashboard"
         >
           Dashboard
@@ -208,188 +213,191 @@ function formatDate(value: string | null): string {
       </nav>
     </header>
 
-    <section
-      aria-labelledby="invite-heading"
-      class="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
-    >
-      <h2 id="invite-heading" class="text-xl font-semibold">Invite another Alliance</h2>
-      <p class="mt-1 max-w-3xl text-sm text-slate-400">
-        The invitation secret is shown only after creation. Send it to an authorized manager of the
-        intended Alliance using a channel you trust. The token alone does not expose intelligence.
+    <section aria-labelledby="invite-heading" class="ks-surface mt-6 p-5 sm:p-6">
+      <h2 id="invite-heading" class="text-xl font-semibold">
+        {{ t('kingdomP7C.inviteAlliance') }}
+      </h2>
+      <p class="mt-1 max-w-3xl text-sm text-[var(--ks-text-muted)]">
+        {{ t('kingdomP7C.inviteHelp') }}
       </p>
 
       <button
-        class="mt-5 rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+        class="mt-5 rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
         type="button"
         :disabled="invitationBusy || alliance.kingdom === null"
         @click="createInvitation"
       >
-        {{ invitationBusy ? 'Creating…' : 'Create one-time invitation' }}
+        {{ invitationBusy ? t('kingdomP7C.creating') : t('kingdomP7C.createInvitation') }}
       </button>
 
-      <p v-if="alliance.kingdom === null" class="mt-3 text-sm text-amber-300">
-        Configure the Alliance Kingdom before creating a sharing invitation.
+      <p v-if="alliance.kingdom === null" class="mt-3 text-sm text-amber-200">
+        {{ t('kingdomP7C.kingdomRequired') }}
       </p>
-      <p v-if="invitationError" role="alert" class="mt-3 text-sm text-rose-300">
+      <p v-if="invitationError" role="alert" class="mt-3 text-sm text-red-200">
         {{ invitationError }}
       </p>
 
       <div
         v-if="invitationToken"
-        class="mt-5 rounded-xl border border-amber-700 bg-amber-950/40 p-4"
+        class="mt-5 rounded-xl border border-amber-400/30 bg-amber-500/10 p-4"
         role="status"
       >
         <label class="block text-sm font-semibold text-amber-200" for="issued-sharing-token">
-          One-time invitation token
+          {{ t('kingdomP7C.issuedInvitation') }}
         </label>
         <input
           id="issued-sharing-token"
-          class="mt-2 w-full rounded-lg border border-amber-800 bg-slate-950 px-3 py-2 font-mono text-sm text-amber-100"
+          class="mt-2 w-full rounded-lg border border-amber-400/30 bg-[var(--ks-bg)] px-3 py-2 font-mono text-sm text-amber-100"
           readonly
           :value="invitationToken"
         />
         <div class="mt-3 flex flex-wrap items-center gap-3">
           <button
-            class="rounded-lg border border-amber-700 px-3 py-2 text-sm font-semibold text-amber-200"
+            class="rounded-lg border border-amber-400/30 px-3 py-2 text-sm font-semibold text-amber-200"
             type="button"
             @click="copyInvitationToken"
           >
-            Copy token
+            {{ t('kingdomP7C.copyInvitation') }}
           </button>
           <button
-            class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-300"
+            class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold text-[var(--ks-text-secondary)]"
             type="button"
             @click="invitationToken = null"
           >
-            Clear from this page
+            {{ t('kingdomP7C.clearInvitation') }}
           </button>
         </div>
       </div>
     </section>
 
-    <section
-      aria-labelledby="redeem-heading"
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
-    >
-      <h2 id="redeem-heading" class="text-xl font-semibold">Respond to an invitation</h2>
-      <p class="mt-1 text-sm text-slate-400">
-        Enter the one-time token supplied by another Alliance manager. Acceptance succeeds only when
-        both Alliances are currently in the captured Kingdom.
+    <section aria-labelledby="redeem-heading" class="ks-surface mt-6 p-5 sm:p-6">
+      <h2 id="redeem-heading" class="text-xl font-semibold">
+        {{ t('kingdomP7C.respondInvitation') }}
+      </h2>
+      <p class="mt-1 text-sm text-[var(--ks-text-muted)]">
+        {{ t('kingdomP7C.respondHelp') }}
       </p>
-      <label class="mt-5 block text-sm font-semibold text-slate-200" for="sharing-consent-token">
-        Invitation token
+      <label
+        class="mt-5 block text-sm font-semibold text-[var(--ks-text)]"
+        for="sharing-consent-token"
+      >
+        {{ t('kingdomP7C.invitationValue') }}
       </label>
       <input
         id="sharing-consent-token"
         v-model.trim="consentToken"
         autocomplete="off"
-        class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-sm text-slate-100"
+        class="mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 font-mono text-sm text-[var(--ks-text)]"
         maxlength="64"
         spellcheck="false"
       />
       <div class="mt-3 flex flex-wrap gap-3">
         <button
-          class="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-60"
+          class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-60"
           type="button"
           :disabled="consentToken.length !== 64"
           @click="acceptInvitation"
         >
-          Accept invitation
+          {{ t('kingdomP7C.acceptInvitation') }}
         </button>
         <button
-          class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 disabled:opacity-60"
+          class="rounded-lg border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-text)] disabled:opacity-60"
           type="button"
           :disabled="consentToken.length !== 64"
           @click="declineInvitation"
         >
-          Decline invitation
+          {{ t('kingdomP7C.declineInvitation') }}
         </button>
       </div>
     </section>
 
-    <section
-      aria-labelledby="outbound-heading"
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
-    >
+    <section aria-labelledby="outbound-heading" class="ks-surface mt-6 p-5 sm:p-6">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="outbound-heading" class="text-xl font-semibold">Outbound sharing</h2>
-          <p class="mt-1 text-sm text-slate-400">
-            An active agreement still shares nothing until you explicitly grant a tracked game
-            alliance.
+          <h2 id="outbound-heading" class="text-xl font-semibold">
+            {{ t('kingdomP7C.outboundSharing') }}
+          </h2>
+          <p class="mt-1 text-sm text-[var(--ks-text-muted)]">
+            {{ t('kingdomP7C.outboundHelp') }}
           </p>
         </div>
-        <p class="text-sm text-slate-400">{{ sharing.outbound.length }} agreement(s)</p>
+        <p class="text-sm text-[var(--ks-text-muted)]">
+          {{ formatNumber(sharing.outbound.length) }} {{ t('kingdomP7C.agreements') }}
+        </p>
       </div>
 
       <div v-if="sharing.outbound.length" class="mt-6 space-y-5">
         <article
           v-for="share in sharing.outbound"
           :key="share.id"
-          class="rounded-xl border border-slate-800 bg-slate-950/60 p-5"
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-white/[0.02] p-5"
         >
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h3 class="font-semibold text-slate-100">
-                {{ share.recipientAlliance?.name ?? 'Pending recipient' }}
+              <h3 class="font-semibold text-[var(--ks-text)]">
+                {{ share.recipientAlliance?.name ?? t('kingdomP7C.pendingRecipient') }}
               </h3>
-              <p class="mt-1 text-sm text-slate-400">
-                State {{ share.state }} · invitation expires
-                {{ formatDate(share.invitationExpiresAt) }}
+              <p class="mt-1 text-sm text-[var(--ks-text-muted)]">
+                {{ t('kingdomP7C.state') }} {{ share.state }} ·
+                {{
+                  t('kingdomP7C.invitationExpires', { date: formatDate(share.invitationExpiresAt) })
+                }}
               </p>
             </div>
             <button
               v-if="share.state === 'pending' || share.state === 'active'"
-              class="rounded-lg border border-rose-800 px-3 py-2 text-sm font-semibold text-rose-300"
+              class="rounded-lg border border-red-400/30 px-3 py-2 text-sm font-semibold text-red-200"
               type="button"
               @click="revokeShare(share.id)"
             >
-              Revoke
+              {{ t('kingdomP7C.revoke') }}
             </button>
           </div>
 
-          <div v-if="share.state === 'active'" class="mt-5 border-t border-slate-800 pt-5">
-            <h4 class="text-sm font-semibold text-slate-200">Explicit targets</h4>
+          <div v-if="share.state === 'active'" class="mt-5 border-t border-[var(--ks-border)] pt-5">
+            <h4 class="text-sm font-semibold text-[var(--ks-text)]">
+              {{ t('kingdomP7C.explicitTargets') }}
+            </h4>
             <ul v-if="share.targets.length" class="mt-3 space-y-2" aria-label="Shared targets">
               <li
                 v-for="target in share.targets"
                 :key="target.id"
-                class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 px-3 py-3"
+                class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--ks-border)] px-3 py-3"
               >
                 <div>
-                  <p class="font-medium text-slate-200">{{ target.name }}</p>
-                  <p class="text-xs text-slate-400">
-                    {{ target.tag ?? 'No tag' }} · {{ target.state }}
+                  <p class="font-medium text-[var(--ks-text)]">{{ target.name }}</p>
+                  <p class="text-xs text-[var(--ks-text-muted)]">
+                    {{ target.tag ?? t('kingdomP7C.noTagShort') }} · {{ target.state }}
                   </p>
                 </div>
                 <button
                   v-if="target.state === 'active'"
-                  class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-300"
+                  class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold text-[var(--ks-text-secondary)]"
                   type="button"
                   @click="removeTarget(share.id, target.id)"
                 >
-                  Remove
+                  {{ t('kingdomP7C.remove') }}
                 </button>
               </li>
             </ul>
-            <p v-else class="mt-3 text-sm text-slate-400">
-              No targets are shared by this agreement.
+            <p v-else class="mt-3 text-sm text-[var(--ks-text-muted)]">
+              {{ t('kingdomP7C.noTargets') }}
             </p>
 
             <div class="mt-4 flex flex-wrap items-end gap-3">
               <div class="min-w-64 flex-1">
                 <label
-                  class="block text-sm font-semibold text-slate-200"
+                  class="block text-sm font-semibold text-[var(--ks-text)]"
                   :for="`target-${share.id}`"
                 >
-                  Grant tracked game alliance
+                  {{ t('kingdomP7C.grantTarget') }}
                 </label>
                 <select
                   :id="`target-${share.id}`"
                   v-model="targetSelections[share.id]"
-                  class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+                  class="mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm text-[var(--ks-text)]"
                 >
-                  <option value="">Choose a tracked game alliance</option>
+                  <option value="">{{ t('kingdomP7C.chooseTarget') }}</option>
                   <option
                     v-for="target in sharing.trackableTargets"
                     :key="target.id"
@@ -400,32 +408,35 @@ function formatDate(value: string | null): string {
                 </select>
               </div>
               <button
-                class="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-60"
+                class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-60"
                 type="button"
                 :disabled="!targetSelections[share.id]"
                 @click="addTarget(share.id)"
               >
-                Share target
+                {{ t('kingdomP7C.shareTarget') }}
               </button>
             </div>
           </div>
         </article>
       </div>
-      <p v-else class="mt-6 text-sm text-slate-400">No outbound sharing agreements yet.</p>
+      <p v-else class="mt-6 text-sm text-[var(--ks-text-muted)]">
+        {{ t('kingdomP7C.noOutbound') }}
+      </p>
     </section>
 
-    <section
-      aria-labelledby="inbound-heading"
-      class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
-    >
+    <section aria-labelledby="inbound-heading" class="ks-surface mt-6 p-5 sm:p-6">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="inbound-heading" class="text-xl font-semibold">Inbound sharing</h2>
-          <p class="mt-1 text-sm text-slate-400">
-            Active sources may share only targets they explicitly grant.
+          <h2 id="inbound-heading" class="text-xl font-semibold">
+            {{ t('kingdomP7C.inboundSharing') }}
+          </h2>
+          <p class="mt-1 text-sm text-[var(--ks-text-muted)]">
+            {{ t('kingdomP7C.inboundHelp') }}
           </p>
         </div>
-        <p class="text-sm text-slate-400">{{ sharing.inbound.length }} agreement(s)</p>
+        <p class="text-sm text-[var(--ks-text-muted)]">
+          {{ formatNumber(sharing.inbound.length) }} {{ t('kingdomP7C.agreements') }}
+        </p>
       </div>
 
       <div v-if="sharing.inbound.length" class="mt-6 overflow-x-auto">
@@ -433,37 +444,41 @@ function formatDate(value: string | null): string {
           <caption class="sr-only">
             Inbound shared-intelligence agreements
           </caption>
-          <thead class="text-xs tracking-wide text-slate-400 uppercase">
+          <thead class="text-xs tracking-wide text-[var(--ks-text-muted)] uppercase">
             <tr>
-              <th class="px-3 py-3 font-semibold">Source Alliance</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomP7C.sourceAllianceManage') }}</th>
               <th class="px-3 py-3 font-semibold">State</th>
-              <th class="px-3 py-3 font-semibold">Accepted</th>
-              <th class="px-3 py-3 font-semibold">Action</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomP7C.acceptedAt') }}</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomP7C.action') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800">
             <tr v-for="share in sharing.inbound" :key="share.id">
-              <td class="px-3 py-4 font-medium text-slate-200">
+              <td class="px-3 py-4 font-medium text-[var(--ks-text)]">
                 {{ share.sourceAlliance.name }}
               </td>
-              <td class="px-3 py-4 text-slate-300">{{ share.state }}</td>
-              <td class="px-3 py-4 text-slate-300">{{ formatDate(share.acceptedAt) }}</td>
+              <td class="px-3 py-4 text-[var(--ks-text-secondary)]">{{ share.state }}</td>
+              <td class="px-3 py-4 text-[var(--ks-text-secondary)]">
+                {{ formatDate(share.acceptedAt) }}
+              </td>
               <td class="px-3 py-4">
                 <button
                   v-if="share.state === 'active'"
-                  class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-300"
+                  class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold text-[var(--ks-text-secondary)]"
                   type="button"
                   @click="leaveShare(share.id)"
                 >
-                  Leave sharing
+                  {{ t('kingdomP7C.leaveSharing') }}
                 </button>
-                <span v-else class="text-slate-500">Terminal</span>
+                <span v-else class="text-[var(--ks-text-muted)]">{{
+                  t('kingdomP7C.terminal')
+                }}</span>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p v-else class="mt-6 text-sm text-slate-400">No inbound sharing agreements yet.</p>
+      <p v-else class="mt-6 text-sm text-[var(--ks-text-muted)]">{{ t('kingdomP7C.noInbound') }}</p>
     </section>
-  </main>
+  </AppLayout>
 </template>
