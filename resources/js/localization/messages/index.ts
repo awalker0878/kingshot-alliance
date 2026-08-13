@@ -49,29 +49,30 @@ const baseMessages: Record<LocaleCode, BaseMessageTree> = {
   ...additionalCatalogues,
 };
 
-export const messages = Object.fromEntries(
-  (Object.keys(baseMessages) as LocaleCode[]).map((locale) => [
-    locale,
-    {
-      ...baseMessages[locale],
-      ...accountExperienceMessages[locale],
-      ...allianceOperationsMessages[locale],
-      ...applicationExtraMessages[locale],
-      ...authExtraMessages[locale],
-      ...eventCoordinatorMessages[locale],
-      ...eventDetailMessages[locale],
-      ...publicMessages[locale],
-      ...publicExtraMessages[locale],
-      ...rosterManagementMessages[locale],
-      rosterManage: {
-        ...rosterManagementMessages[locale].rosterManage,
-        trackedPlayers: rosterMessages[locale].roster.trackedPlayers,
-      },
-      ...rosterMessages[locale],
-      ...rosterWorkflowMessages[locale],
-      ...(rosterWorkflowOverrides[locale] ?? {}),
+function catalogue(locale: LocaleCode): MessageTree {
+  return {
+    ...baseMessages[locale],
+    ...accountExperienceMessages[locale],
+    ...allianceOperationsMessages[locale],
+    ...applicationExtraMessages[locale],
+    ...authExtraMessages[locale],
+    ...eventCoordinatorMessages[locale],
+    ...eventDetailMessages[locale],
+    ...publicMessages[locale],
+    ...publicExtraMessages[locale],
+    ...rosterManagementMessages[locale],
+    rosterManage: {
+      ...rosterManagementMessages[locale].rosterManage,
+      trackedPlayers: rosterMessages[locale].roster.trackedPlayers,
     },
-  ]),
+    ...rosterMessages[locale],
+    ...rosterWorkflowMessages[locale],
+    ...(rosterWorkflowOverrides[locale] ?? {}),
+  };
+}
+
+export const messages: Record<LocaleCode, MessageTree> = Object.fromEntries(
+  (Object.keys(baseMessages) as LocaleCode[]).map((locale) => [locale, catalogue(locale)]),
 ) as Record<LocaleCode, MessageTree>;
 
 export function hasMessageCatalogue(locale: LocaleCode): boolean {
