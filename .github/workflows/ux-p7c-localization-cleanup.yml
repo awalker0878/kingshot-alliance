@@ -5,7 +5,7 @@ on:
     branches:
       - ux/ux-001-experience-localization
     paths:
-      - .ux-p7c-localization-trigger
+      - .github/workflows/ux-p7c-localization-cleanup.yml
 
 permissions:
   contents: write
