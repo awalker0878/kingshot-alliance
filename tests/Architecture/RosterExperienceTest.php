@@ -45,6 +45,24 @@ final class RosterExperienceTest extends TestCase
         }
     }
 
+    public function test_roster_views_have_intentional_mobile_and_desktop_presentations(): void
+    {
+        $roster = $this->read('resources/js/pages/Alliance/Roster.vue');
+        $intelligence = $this->read('resources/js/pages/Alliance/RosterIntelligence.vue');
+
+        foreach ([$roster, $intelligence] as $source) {
+            self::assertStringContainsString('lg:hidden', $source);
+            self::assertStringContainsString('hidden overflow-x-auto lg:block', $source);
+            self::assertStringContainsString('xl:sticky xl:top-24', $source);
+            self::assertStringContainsString('ks-surface-gold', $source);
+        }
+
+        self::assertStringContainsString('linkedResults', $roster);
+        self::assertStringContainsString('snapshotPercent', $roster);
+        self::assertStringContainsString('snapshotTone', $intelligence);
+        self::assertStringContainsString('rosterStateTone', $intelligence);
+    }
+
     public function test_roster_intelligence_only_presents_recorded_metrics(): void
     {
         $source = $this->read('resources/js/pages/Alliance/RosterIntelligence.vue');
