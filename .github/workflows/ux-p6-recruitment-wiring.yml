@@ -1,0 +1,235 @@
+name: UX P6 Recruitment wiring
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .ux-p6-recruitment-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ux/ux-001-experience-localization
+
+      - name: Wire shell identity, locale catalogue, and accessibility guards
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str):
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f'missing patch anchor in {path}: {old[:80]!r}')
+              p.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              'app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php',
+              "        return Inertia::render('Alliance/Recruitment/Manage', [\n            'alliance' => [",
+              "        return Inertia::render('Alliance/Recruitment/Manage', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' => [",
+          )
+          replace_once(
+              'app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php',
+              "        return Inertia::render('Alliance/Recruitment/Candidate', [\n            'alliance' => [",
+              "        return Inertia::render('Alliance/Recruitment/Candidate', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' => [",
+          )
+
+          p = Path('resources/js/localization/messages/index.ts')
+          text = p.read_text()
+          text = text.replace(
+              "import { publicMessages } from './public';\n",
+              "import { publicMessages } from './public';\nimport { recruitmentMessages } from './recruitment';\n",
+              1,
+          )
+          text = text.replace(
+              "type PublicExtraMessageTree = (typeof publicExtraMessages)['en'];\n",
+              "type PublicExtraMessageTree = (typeof publicExtraMessages)['en'];\ntype RecruitmentMessageTree = (typeof recruitmentMessages)['en'];\n",
+              1,
+          )
+          text = text.replace(
+              "  PublicExtraMessageTree &\n  RosterManagementMessageTree &",
+              "  PublicExtraMessageTree &\n  RecruitmentMessageTree &\n  RosterManagementMessageTree &",
+              1,
+          )
+          text = text.replace(
+              "    ...publicExtraMessages[locale],\n    ...rosterManagementMessages[locale],",
+              "    ...publicExtraMessages[locale],\n    ...recruitmentMessages[locale],\n    ...rosterManagementMessages[locale],",
+              1,
+          )
+          p.write_text(text)
+
+          p = Path('tests/Feature/Recruitment/RecruitmentAccessibilityGuardTest.php')
+          text = p.read_text()
+          old = """        if (str_contains($source, '<main')) {\n            return;\n        }\n\n        self::assertStringContainsString(\n            \"import PublicLayout from '../../layouts/PublicLayout.vue';\",\n            $source,\n            \"{$path} must either own a main landmark or use the shared public layout.\",\n        );\n"""
+          new = """        if (str_contains($source, '<main')) {\n            return;\n        }\n\n        if (str_contains($source, 'AppLayout')) {\n            self::assertStringContainsString('<AppLayout', $source, \"{$path} must render the shared app layout.\");\n            $layout = file_get_contents(base_path('resources/js/layouts/AppLayout.vue'));\n            self::assertIsString($layout);\n            self::assertStringContainsString('<main', $layout, 'AppLayout must expose the main landmark.');\n\n            return;\n        }\n\n        self::assertStringContainsString(\n            \"import PublicLayout from '../../layouts/PublicLayout.vue';\",\n            $source,\n            \"{$path} must either own a main landmark or use a shared layout.\",\n        );\n"""
+          if old not in text:
+              raise SystemExit('missing accessibility anchor')
+          p.write_text(text.replace(old, new, 1))
+
+          Path('tests/Architecture/RecruitmentExperienceTest.php').write_text(r'''<?php
+
+declare(strict_types=1);
+
+namespace Tests\Architecture;
+
+use PHPUnit\Framework\TestCase;
+
+final class RecruitmentExperienceTest extends TestCase
+{
+    public function test_private_recruitment_pages_use_shared_shell_and_existing_routes(): void
+    {
+        $manage = $this->read('resources/js/pages/Alliance/Recruitment/Manage.vue');
+        $candidate = $this->read('resources/js/pages/Alliance/Recruitment/Candidate.vue');
+
+        foreach ([$manage, $candidate] as $source) {
+            self::assertStringContainsString('AppLayout', $source);
+            self::assertStringContainsString(':has-active-alliance="true"', $source);
+            self::assertStringNotContainsString('<main', $source);
+            self::assertStringContainsString('<h1', $source);
+            self::assertStringNotContainsString('role="button"', $source);
+        }
+
+        foreach ([
+            '/alliance/recruitment/settings',
+            '/alliance/recruitment/questions',
+            '/alliance/recruitment/application-invites',
+            '/alliance/recruitment/decision-templates',
+            '/alliance/recruitment/onboarding-items',
+            '/alliance/recruitment/${candidate.id}',
+        ] as $route) {
+            self::assertStringContainsString($route, $manage.$candidate);
+        }
+
+        foreach ([
+            '/stage',
+            '/reviewers/',
+            '/notes',
+            '/tags',
+            '/merge/',
+            '/communications/',
+            '/convert',
+            '/alliance/recruitment/onboarding/',
+        ] as $contract) {
+            self::assertStringContainsString($contract, $candidate);
+        }
+    }
+
+    public function test_recruitment_visuals_do_not_introduce_mockup_only_features(): void
+    {
+        $source = $this->read('resources/js/pages/Alliance/Recruitment/Manage.vue').$this->read('resources/js/pages/Alliance/Recruitment/Candidate.vue');
+
+        foreach ([
+            'Campaign Performance',
+            'Active Campaigns',
+            'Applications Trend',
+            'Top Sources (7 Days)',
+            'automated scoring',
+            'AI score',
+            'AI recommendation',
+            'Discord Bot',
+            'QR Code',
+            'views',
+            'clicks',
+        ] as $invented) {
+            self::assertStringNotContainsString($invented, $source);
+        }
+    }
+
+    public function test_recruitment_catalogue_covers_all_supported_locales(): void
+    {
+        $source = $this->read('resources/js/localization/messages/recruitment.ts');
+
+        foreach (['en','ar','de','es','fr','id','it','ja','ko','pl','pt-BR','ru','th','tr','vi','zh-CN','zh-TW'] as $locale) {
+            self::assertStringContainsString("'".$locale."'", $source);
+        }
+
+        foreach (['title', 'pipeline', 'settings', 'questions', 'candidateRecord', 'privateNotes', 'stageHistory'] as $key) {
+            self::assertStringContainsString($key.':', $source);
+        }
+    }
+
+    public function test_recruitment_controllers_only_add_authenticated_shell_identity(): void
+    {
+        foreach ([
+            'app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php',
+            'app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php',
+        ] as $path) {
+            $source = $this->read($path);
+            self::assertStringContainsString("'name' => (string) $user->name", $source);
+            self::assertStringContainsString("'email' => (string) $user->email", $source);
+            self::assertStringContainsString('PermissionKey::RecruitmentManage', $source);
+        }
+    }
+
+    private function read(string $path): string
+    {
+        $source = file_get_contents(dirname(__DIR__, 2).'/'.$path);
+        self::assertIsString($source);
+
+        return $source;
+    }
+}
+''')
+          PY
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Format recruitment frontend
+        run: >-
+          npx prettier --write
+          resources/js/pages/Alliance/Recruitment/Manage.vue
+          resources/js/pages/Alliance/Recruitment/Candidate.vue
+          resources/js/localization/messages/recruitment.ts
+          resources/js/localization/messages/index.ts
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Format recruitment PHP
+        run: >-
+          vendor/bin/pint
+          app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php
+          app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php
+          tests/Feature/Recruitment/RecruitmentAccessibilityGuardTest.php
+          tests/Architecture/RecruitmentExperienceTest.php
+
+      - name: Commit recruitment wiring
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/Domain/Recruitment/Http/Controllers/RecruitmentManagementController.php \
+            app/Domain/Recruitment/Http/Controllers/RecruitmentCandidateController.php \
+            resources/js/pages/Alliance/Recruitment/Manage.vue \
+            resources/js/pages/Alliance/Recruitment/Candidate.vue \
+            resources/js/localization/messages/recruitment.ts \
+            resources/js/localization/messages/index.ts \
+            tests/Feature/Recruitment/RecruitmentAccessibilityGuardTest.php \
+            tests/Architecture/RecruitmentExperienceTest.php
+          if ! git diff --cached --quiet; then
+            git commit -m "Wire UX-P6 recruitment experience"
+            git push origin HEAD:ux/ux-001-experience-localization
+          fi
