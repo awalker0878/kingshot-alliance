@@ -343,7 +343,7 @@ function stateTone(value: string): string {
         <div class="flex flex-wrap items-end justify-between gap-3 px-1">
           <div>
             <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
-              {{ t('rosterManage.trackedPlayers') }}
+              {{ t('roster.trackedPlayers') }}
             </p>
             <h2 id="roster-existing" class="ks-display mt-1 text-2xl font-semibold">
               {{ formatNumber(entries.length) }}
