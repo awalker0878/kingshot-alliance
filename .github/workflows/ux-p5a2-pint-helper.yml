@@ -1,0 +1,36 @@
+name: UX P5A2 Pint Helper
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .github/workflows/ux-p5a2-pint-helper.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ux/ux-001-experience-localization
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Format EventCalendarController
+        run: vendor/bin/pint app/Domain/Events/Http/Controllers/EventCalendarController.php
+      - name: Commit formatting
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/Domain/Events/Http/Controllers/EventCalendarController.php
+          git diff --cached --quiet && exit 0
+          git commit -m "Format UX-P5 event controller"
+          git push origin HEAD:ux/ux-001-experience-localization
