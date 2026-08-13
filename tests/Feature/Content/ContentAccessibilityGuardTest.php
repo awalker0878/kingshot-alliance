@@ -48,15 +48,29 @@ final class ContentAccessibilityGuardTest extends TestCase
             return;
         }
 
-        self::assertStringContainsString(
-            "import PublicLayout from '../../layouts/PublicLayout.vue';",
-            $source,
-            "{$path} must either own a main landmark or use the shared public layout.",
-        );
-        self::assertStringContainsString('<PublicLayout>', $source, "{$path} must render the shared public layout.");
+        if (str_contains($source, 'PublicLayout')) {
+            self::assertStringContainsString('<PublicLayout>', $source, "{$path} must render the shared public layout.");
 
-        $layout = file_get_contents(base_path('resources/js/layouts/PublicLayout.vue'));
+            $layout = file_get_contents(base_path('resources/js/layouts/PublicLayout.vue'));
+            self::assertIsString($layout);
+            self::assertStringContainsString(
+                '<main id="public-content">',
+                $layout,
+                'PublicLayout must expose the main landmark.',
+            );
+
+            return;
+        }
+
+        self::assertStringContainsString('AppLayout', $source, "{$path} must use the shared application layout.");
+        self::assertStringContainsString('<AppLayout', $source, "{$path} must render the shared application layout.");
+
+        $layout = file_get_contents(base_path('resources/js/layouts/AppLayout.vue'));
         self::assertIsString($layout);
-        self::assertStringContainsString('<main id="public-content">', $layout, 'PublicLayout must expose the main landmark.');
+        self::assertStringContainsString(
+            '<main id="main-content"',
+            $layout,
+            'AppLayout must expose the main landmark.',
+        );
     }
 }
