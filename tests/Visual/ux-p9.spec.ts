@@ -62,7 +62,6 @@ test('login Arabic RTL baseline', async ({ page }) => {
 });
 
 test('authenticated application shell English baseline', async ({ page }) => {
-  await useLocale(page, 'en');
   await signIn(page);
   await settle(page);
 
@@ -71,7 +70,6 @@ test('authenticated application shell English baseline', async ({ page }) => {
 });
 
 test('authenticated application shell Arabic RTL baseline', async ({ page }) => {
-  await useLocale(page, 'en');
   await signIn(page);
   await page.evaluate(() => window.localStorage.setItem('kingshot.locale', 'ar'));
   await page.reload();
@@ -85,7 +83,6 @@ test('authenticated application shell Arabic RTL baseline', async ({ page }) => 
 test('keyboard skip link reaches the main application content', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'Keyboard focus traversal is asserted once on desktop.');
 
-  await useLocale(page, 'en');
   await signIn(page);
   await page.keyboard.press('Tab');
 
