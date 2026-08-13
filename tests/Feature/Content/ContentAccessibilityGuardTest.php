@@ -54,9 +54,14 @@ final class ContentAccessibilityGuardTest extends TestCase
             $layout = file_get_contents(base_path('resources/js/layouts/PublicLayout.vue'));
             self::assertIsString($layout);
             self::assertStringContainsString(
-                '<main id="public-content">',
+                '<main id="public-content"',
                 $layout,
                 'PublicLayout must expose the main landmark.',
+            );
+            self::assertStringContainsString(
+                'tabindex="-1"',
+                $layout,
+                'PublicLayout main must accept skip-link focus.',
             );
 
             return;
