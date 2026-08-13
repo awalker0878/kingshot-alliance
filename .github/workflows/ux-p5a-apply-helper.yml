@@ -1,0 +1,65 @@
+name: UX P5A Apply Helper
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .github/workflows/ux-p5a-apply-helper.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ux/ux-001-experience-localization
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Wire presentation-only user props
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          patches = {
+              'app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php': (
+                  "return Inertia::render('Alliance/Overview', [\n            'alliance' => [",
+                  "return Inertia::render('Alliance/Overview', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' => [",
+              ),
+              'app/Domain/Events/Http/Controllers/EventCalendarController.php': (
+                  "return Inertia::render('Alliance/Events/Index', [\n            'alliance' => [",
+                  "return Inertia::render('Alliance/Events/Index', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' => [",
+              ),
+          }
+
+          for path, (old, new) in patches.items():
+              file = Path(path)
+              source = file.read_text()
+              if old not in source:
+                  raise SystemExit(f'expected patch target missing: {path}')
+              file.write_text(source.replace(old, new, 1))
+
+          overview = Path('resources/js/pages/Alliance/Overview.vue')
+          source = overview.read_text()
+          source = source.replace("t('publicAlliance.content.manage')", "t('navigation.content')")
+          overview.write_text(source)
+          PY
+      - name: Format UX-P5A frontend
+        run: npx prettier --write resources/js/localization/messages/alliance-operations.ts resources/js/localization/messages/index.ts resources/js/pages/Alliance/Overview.vue resources/js/pages/Alliance/Events/Index.vue
+      - name: Commit exact helper output
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php app/Domain/Events/Http/Controllers/EventCalendarController.php resources/js/localization/messages/alliance-operations.ts resources/js/localization/messages/index.ts resources/js/pages/Alliance/Overview.vue resources/js/pages/Alliance/Events/Index.vue
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Format and wire UX-P5 alliance operations"
+          git push origin HEAD:ux/ux-001-experience-localization
