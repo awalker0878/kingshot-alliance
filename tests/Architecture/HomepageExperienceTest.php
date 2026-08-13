@@ -36,7 +36,7 @@ final class HomepageExperienceTest extends TestCase
     public function test_homepage_strings_are_available_for_every_supported_locale(): void
     {
         $messages = $this->read('resources/js/localization/messages/public.ts');
-        $runtime = $this->read('resources/js/localization/index.ts');
+        $messageIndex = $this->read('resources/js/localization/messages/index.ts');
 
         foreach ([
             'en',
@@ -57,7 +57,7 @@ final class HomepageExperienceTest extends TestCase
             'zh-CN',
             'zh-TW',
         ] as $locale) {
-            self::assertStringContainsString('"'.$locale.'":', $messages, $locale);
+            $this->assertTypeScriptObjectKey($messages, $locale);
         }
 
         foreach ([
@@ -72,11 +72,20 @@ final class HomepageExperienceTest extends TestCase
             'publicPagesTitle',
             'multilingualTitle',
         ] as $key) {
-            self::assertStringContainsString('"'.$key.'":', $messages, $key);
+            $this->assertTypeScriptObjectKey($messages, $key);
         }
 
-        self::assertStringContainsString("import { publicMessages } from './messages/public';", $runtime);
-        self::assertStringContainsString('publicCatalogueFor(currentLocale.value)', $runtime);
+        self::assertStringContainsString("import { publicMessages } from './public';", $messageIndex);
+        self::assertStringContainsString('...publicMessages[locale]', $messageIndex);
+    }
+
+    private function assertTypeScriptObjectKey(string $source, string $key): void
+    {
+        self::assertMatchesRegularExpression(
+            '/(?:^|\s)[\'\"]?'.preg_quote($key, '/').'[\'\"]?\s*:/m',
+            $source,
+            $key,
+        );
     }
 
     private function read(string $path): string
