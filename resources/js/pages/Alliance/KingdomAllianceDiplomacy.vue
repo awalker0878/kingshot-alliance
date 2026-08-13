@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
+import AppLayout from '../../layouts/AppLayout.vue';
+import { useLocale } from '../../localization';
+
 type CurrentDiplomacy = {
   exists: boolean;
   state: string;
@@ -27,11 +30,8 @@ type DiplomacyTransition = {
 };
 
 const props = defineProps<{
-  alliance: {
-    id: string;
-    name: string;
-    kingdom: string | null;
-  };
+  user: { name: string; email: string };
+  alliance: { id: string; name: string; kingdom: string | null };
   tracking: {
     id: string;
     name: string;
@@ -46,12 +46,12 @@ const props = defineProps<{
   history: DiplomacyTransition[];
 }>();
 
+const { t, formatDate } = useLocale();
+
 function toLocalInput(value: string | null, fallbackNow = false): string {
   if (value === null && !fallbackNow) return '';
-
   const date = value === null ? new Date() : new Date(value);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
 function toIso(value: string): string {
@@ -62,17 +62,26 @@ function toNullableIso(value: string): string | null {
   return value.trim() === '' ? null : toIso(value);
 }
 
-function stateLabel(value: string): string {
-  if (value === 'nap') return 'NAP';
-  return value.charAt(0).toUpperCase() + value.slice(1).replaceAll('_', ' ');
+function date(value: string | null): string {
+  return value ? formatDate(value, { dateStyle: 'medium', timeStyle: 'short' }) : t('kingdomP7B.notSet');
 }
 
-function formatDate(value: string | null): string {
-  if (value === null) return 'Not set';
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value));
+function stateLabel(value: string): string {
+  if (value === 'unknown') return t('kingdomP7B.unknown');
+  if (value === 'neutral') return t('kingdomP7B.neutral');
+  if (value === 'friendly') return t('kingdomP7B.friendly');
+  if (value === 'nap') return t('kingdomP7B.nap');
+  if (value === 'ally') return t('kingdomP7B.ally');
+  if (value === 'rival') return t('kingdomP7B.rival');
+  return value.replaceAll('_', ' ');
+}
+
+function stateTone(value: string): string {
+  if (value === 'ally' || value === 'friendly') return 'border-green-400/25 bg-green-500/10 text-green-200';
+  if (value === 'rival') return 'border-red-400/25 bg-red-500/10 text-red-200';
+  if (value === 'nap') return 'border-purple-400/25 bg-purple-500/10 text-purple-200';
+  if (value === 'neutral') return 'border-blue-400/25 bg-blue-500/10 text-blue-200';
+  return 'border-[var(--ks-border)] bg-white/5 text-[var(--ks-text-secondary)]';
 }
 
 const form = useForm({
@@ -105,281 +114,125 @@ function submitTransition(): void {
 </script>
 
 <template>
-  <Head :title="`Diplomacy · ${tracking.name}`" />
+  <Head :title="`${t('kingdomP7B.diplomacyTitle', { alliance: tracking.name })} · ${alliance.name}`" />
 
-  <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 lg:px-8">
-    <header class="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
-          Kingdom diplomacy
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+    <header class="flex flex-wrap items-start justify-between gap-5">
+      <div class="max-w-3xl">
+        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+          {{ t('kingdomP7B.eyebrow') }}
         </p>
-        <h1 class="mt-2 text-3xl font-bold">{{ tracking.name }} diplomacy</h1>
-        <p class="mt-2 max-w-3xl text-sm text-slate-400">
-          {{ alliance.name }} · Kingdom {{ tracking.kingdom }}. Diplomacy is explicitly maintained
-          by authorized managers. Observations, power changes, review dates, and expiry dates never
-          change relationship state automatically.
+        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
+          {{ t('kingdomP7B.diplomacyTitle', { alliance: tracking.name }) }}
+        </h1>
+        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
+          {{ t('kingdomP7B.diplomacySubtitle', { kingdom: tracking.kingdom }) }}
         </p>
       </div>
-      <div class="flex flex-wrap gap-3">
-        <Link
-          class="rounded-lg border border-cyan-800 px-4 py-2 text-sm font-semibold text-cyan-300"
-          :href="`/alliance/kingdom-alliances/${tracking.id}/diplomacy/contacts`"
-        >
-          Diplomacy contacts
-        </Link>
-        <Link
-          class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200"
-          :href="`/alliance/kingdom-alliances/${tracking.id}/history`"
-        >
-          Observation history
-        </Link>
-        <Link
-          class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200"
-          href="/alliance/kingdom-alliances/manage"
-        >
-          Tracking workspace
-        </Link>
-      </div>
+      <nav class="flex flex-wrap gap-2" aria-label="Diplomacy workspace">
+        <Link class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold" :href="`/alliance/kingdom-alliances/${tracking.id}/diplomacy/contacts`">{{ t('kingdomP7B.contacts') }}</Link>
+        <Link class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold" :href="`/alliance/kingdom-alliances/${tracking.id}/history`">{{ t('kingdomP7B.observationHistory') }}</Link>
+        <Link class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold" href="/alliance/kingdom-alliances/manage">{{ t('kingdomP7B.trackingWorkspace') }}</Link>
+      </nav>
     </header>
 
-    <section class="mt-10 grid gap-6 lg:grid-cols-3">
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 lg:col-span-1">
-        <h2 class="text-xl font-semibold">Current relationship</h2>
-        <dl class="mt-5 space-y-4 text-sm">
-          <div>
-            <dt class="text-slate-500">State</dt>
-            <dd class="mt-1 font-semibold text-slate-100">{{ stateLabel(current.state) }}</dd>
-          </div>
-          <div>
-            <dt class="text-slate-500">Effective</dt>
-            <dd class="mt-1 text-slate-300">{{ formatDate(current.effectiveAt) }}</dd>
-          </div>
-          <div>
-            <dt class="text-slate-500">Review</dt>
-            <dd class="mt-1 text-slate-300">{{ formatDate(current.reviewAt) }}</dd>
-          </div>
-          <div>
-            <dt class="text-slate-500">Expiry</dt>
-            <dd class="mt-1 text-slate-300">{{ formatDate(current.expiresAt) }}</dd>
-          </div>
-          <div>
-            <dt class="text-slate-500">Review status</dt>
-            <dd class="mt-1">
-              <span
-                v-if="current.needsReview"
-                class="rounded-full bg-amber-950 px-2 py-1 text-xs font-semibold text-amber-300"
-              >
-                Human review due
-              </span>
-              <span v-else class="text-slate-300">No review due</span>
-            </dd>
-          </div>
-          <div>
-            <dt class="text-slate-500">Last changed by</dt>
-            <dd class="mt-1 text-slate-300">
-              {{ current.lastActorName ?? 'No explicit transition yet' }}
-            </dd>
-          </div>
-        </dl>
-      </div>
-
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 lg:col-span-2">
-        <h2 class="text-xl font-semibold">Record explicit relationship state</h2>
-        <p class="mt-1 text-sm text-slate-400">
-          Repeating the exact current state and metadata is idempotent. Changing state or metadata
-          appends a new transition and preserves the prior record.
-        </p>
-
-        <div
-          v-if="tracking.state !== 'active' || !tracking.contextCurrent"
-          class="mt-5 rounded-xl border border-amber-900 bg-amber-950/30 p-4 text-sm text-amber-200"
-        >
-          This tracking record is read-only because it is archived or belongs to historical Kingdom
-          context. Existing diplomacy history remains available below.
+    <section class="mt-6 grid gap-4 xl:grid-cols-[0.85fr_1.6fr]">
+      <article class="ks-surface p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 class="ks-display text-xl font-semibold">{{ t('kingdomP7B.currentRelationship') }}</h2>
+          <span class="rounded-full border px-2.5 py-1 text-xs font-bold uppercase" :class="stateTone(current.state)">{{ stateLabel(current.state) }}</span>
         </div>
-
-        <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="submitTransition">
+        <dl class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+          <div><dt class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7B.effective') }}</dt><dd class="mt-1 text-sm">{{ date(current.effectiveAt) }}</dd></div>
+          <div><dt class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7B.review') }}</dt><dd class="mt-1 text-sm">{{ date(current.reviewAt) }}</dd></div>
+          <div><dt class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7B.expiry') }}</dt><dd class="mt-1 text-sm">{{ date(current.expiresAt) }}</dd></div>
           <div>
-            <label class="block text-sm font-medium" for="diplomacy-state"
-              >Relationship state</label
-            >
-            <select
-              id="diplomacy-state"
-              v-model="form.state"
-              class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
-            >
-              <option v-for="state in states" :key="state" :value="state">
-                {{ stateLabel(state) }}
-              </option>
+            <dt class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7B.reviewStatus') }}</dt>
+            <dd class="mt-1 text-sm">
+              <span v-if="current.needsReview" class="rounded-full border border-amber-400/25 bg-amber-500/10 px-2 py-1 text-xs font-semibold text-amber-200">{{ t('kingdomP7B.reviewDue') }}</span>
+              <span v-else>{{ t('kingdomP7B.noReviewDue') }}</span>
+            </dd>
+          </div>
+          <div><dt class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7B.lastChangedBy') }}</dt><dd class="mt-1 text-sm">{{ current.lastActorName ?? t('kingdomP7B.noTransition') }}</dd></div>
+        </dl>
+        <div v-if="current.terms || current.rationale" class="mt-5 space-y-4 border-t border-[var(--ks-border)] pt-4">
+          <div v-if="current.terms"><p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7B.terms') }}</p><p class="mt-1 whitespace-pre-wrap text-sm text-[var(--ks-text-secondary)]">{{ current.terms }}</p></div>
+          <div v-if="current.rationale"><p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7B.rationale') }}</p><p class="mt-1 whitespace-pre-wrap text-sm text-[var(--ks-text-secondary)]">{{ current.rationale }}</p></div>
+        </div>
+      </article>
+
+      <article class="ks-surface p-5">
+        <h2 class="ks-display text-xl font-semibold">{{ t('kingdomP7B.recordState') }}</h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">{{ t('kingdomP7B.recordStateHelp') }}</p>
+        <p v-if="tracking.state !== 'active' || !tracking.contextCurrent" class="mt-4 rounded-[var(--ks-radius-sm)] border border-amber-400/25 bg-amber-500/10 p-3 text-sm text-amber-100">{{ t('kingdomP7B.readOnlyHistorical') }}</p>
+
+        <form class="mt-5 grid gap-4 md:grid-cols-2" @submit.prevent="submitTransition">
+          <div>
+            <label class="text-sm font-semibold" for="diplomacy-state">{{ t('kingdomP7B.relationshipState') }}</label>
+            <select id="diplomacy-state" v-model="form.state" class="ks-input mt-2 w-full" :disabled="tracking.state !== 'active' || !tracking.contextCurrent">
+              <option v-for="state in states" :key="state" :value="state">{{ stateLabel(state) }}</option>
             </select>
-            <p v-if="form.errors.state" class="mt-1 text-sm text-rose-300">
-              {{ form.errors.state }}
-            </p>
+            <p v-if="form.errors.state" class="mt-1 text-sm text-red-300">{{ form.errors.state }}</p>
           </div>
-
           <div>
-            <label class="block text-sm font-medium" for="diplomacy-effective"
-              >Effective time</label
-            >
-            <input
-              id="diplomacy-effective"
-              v-model="form.effective_at"
-              class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
-              required
-              type="datetime-local"
-            />
-            <p v-if="form.errors.effective_at" class="mt-1 text-sm text-rose-300">
-              {{ form.errors.effective_at }}
-            </p>
+            <label class="text-sm font-semibold" for="diplomacy-effective">{{ t('kingdomP7B.effectiveTime') }}</label>
+            <input id="diplomacy-effective" v-model="form.effective_at" class="ks-input mt-2 w-full" :disabled="tracking.state !== 'active' || !tracking.contextCurrent" required type="datetime-local" />
+            <p v-if="form.errors.effective_at" class="mt-1 text-sm text-red-300">{{ form.errors.effective_at }}</p>
           </div>
-
           <div>
-            <label class="block text-sm font-medium" for="diplomacy-review">Review time</label>
-            <input
-              id="diplomacy-review"
-              v-model="form.review_at"
-              class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
-              type="datetime-local"
-            />
-            <p class="mt-1 text-xs text-slate-500">
-              Advisory only; reaching this time never changes state.
-            </p>
-            <p v-if="form.errors.review_at" class="mt-1 text-sm text-rose-300">
-              {{ form.errors.review_at }}
-            </p>
+            <label class="text-sm font-semibold" for="diplomacy-review">{{ t('kingdomP7B.reviewTime') }}</label>
+            <input id="diplomacy-review" v-model="form.review_at" class="ks-input mt-2 w-full" :disabled="tracking.state !== 'active' || !tracking.contextCurrent" type="datetime-local" />
+            <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.reviewAdvisory') }}</p>
+            <p v-if="form.errors.review_at" class="mt-1 text-sm text-red-300">{{ form.errors.review_at }}</p>
           </div>
-
           <div>
-            <label class="block text-sm font-medium" for="diplomacy-expiry">Expiry time</label>
-            <input
-              id="diplomacy-expiry"
-              v-model="form.expires_at"
-              class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
-              type="datetime-local"
-            />
-            <p class="mt-1 text-xs text-slate-500">
-              Advisory only; expiry creates a review indicator.
-            </p>
-            <p v-if="form.errors.expires_at" class="mt-1 text-sm text-rose-300">
-              {{ form.errors.expires_at }}
-            </p>
+            <label class="text-sm font-semibold" for="diplomacy-expiry">{{ t('kingdomP7B.expiryTime') }}</label>
+            <input id="diplomacy-expiry" v-model="form.expires_at" class="ks-input mt-2 w-full" :disabled="tracking.state !== 'active' || !tracking.contextCurrent" type="datetime-local" />
+            <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.expiryAdvisory') }}</p>
+            <p v-if="form.errors.expires_at" class="mt-1 text-sm text-red-300">{{ form.errors.expires_at }}</p>
           </div>
-
           <div>
-            <label class="block text-sm font-medium" for="diplomacy-terms">Private terms</label>
-            <textarea
-              id="diplomacy-terms"
-              v-model="form.terms"
-              class="mt-2 min-h-28 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
-              maxlength="5000"
-            />
-            <p class="mt-1 text-xs text-slate-500">
-              Manager-private; excluded from audit/outbox payloads.
-            </p>
-            <p v-if="form.errors.terms" class="mt-1 text-sm text-rose-300">
-              {{ form.errors.terms }}
-            </p>
+            <label class="text-sm font-semibold" for="diplomacy-terms">{{ t('kingdomP7B.privateTerms') }}</label>
+            <textarea id="diplomacy-terms" v-model="form.terms" class="ks-input mt-2 min-h-28 w-full" :disabled="tracking.state !== 'active' || !tracking.contextCurrent" maxlength="5000" />
+            <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.privateTermsHelp') }}</p>
+            <p v-if="form.errors.terms" class="mt-1 text-sm text-red-300">{{ form.errors.terms }}</p>
           </div>
-
           <div>
-            <label class="block text-sm font-medium" for="diplomacy-rationale"
-              >Private rationale</label
-            >
-            <textarea
-              id="diplomacy-rationale"
-              v-model="form.rationale"
-              class="mt-2 min-h-28 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-              :disabled="tracking.state !== 'active' || !tracking.contextCurrent"
-              maxlength="5000"
-            />
-            <p class="mt-1 text-xs text-slate-500">
-              Manager-private explanation for the explicit decision.
-            </p>
-            <p v-if="form.errors.rationale" class="mt-1 text-sm text-rose-300">
-              {{ form.errors.rationale }}
-            </p>
+            <label class="text-sm font-semibold" for="diplomacy-rationale">{{ t('kingdomP7B.privateRationale') }}</label>
+            <textarea id="diplomacy-rationale" v-model="form.rationale" class="ks-input mt-2 min-h-28 w-full" :disabled="tracking.state !== 'active' || !tracking.contextCurrent" maxlength="5000" />
+            <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.privateRationaleHelp') }}</p>
+            <p v-if="form.errors.rationale" class="mt-1 text-sm text-red-300">{{ form.errors.rationale }}</p>
           </div>
-
           <div class="md:col-span-2">
-            <p v-if="diplomacyError()" class="mb-3 text-sm text-rose-300">
-              {{ diplomacyError() }}
-            </p>
-            <button
-              class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
-              :disabled="form.processing || tracking.state !== 'active' || !tracking.contextCurrent"
-              type="submit"
-            >
-              Record transition
-            </button>
+            <p v-if="diplomacyError()" class="mb-3 text-sm text-red-300">{{ diplomacyError() }}</p>
+            <button class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 font-semibold text-white disabled:opacity-50" :disabled="form.processing || tracking.state !== 'active' || !tracking.contextCurrent" type="submit">{{ t('kingdomP7B.recordTransition') }}</button>
           </div>
         </form>
-      </div>
+      </article>
     </section>
 
-    <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+    <section class="ks-surface mt-6 p-5">
       <div class="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 class="text-xl font-semibold">Transition history</h2>
-          <p class="mt-1 text-sm text-slate-400">
-            Append-oriented manager history. State, dates, terms, rationale, actor, and recorded
-            time are preserved for each material change.
-          </p>
-        </div>
-        <p class="text-sm text-slate-500">Up to {{ historyLimit }} most recent transitions</p>
+        <div><h2 class="ks-display text-xl font-semibold">{{ t('kingdomP7B.transitionHistory') }}</h2><p class="mt-2 max-w-3xl text-sm text-[var(--ks-text-secondary)]">{{ t('kingdomP7B.transitionHistoryHelp') }}</p></div>
+        <p class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.historyLimit', { count: historyLimit }) }}</p>
       </div>
 
-      <div v-if="history.length" class="mt-6 overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
-          <thead class="text-xs tracking-wide text-slate-400 uppercase">
-            <tr>
-              <th class="px-3 py-3 font-semibold">Transition</th>
-              <th class="px-3 py-3 font-semibold">Effective / review</th>
-              <th class="px-3 py-3 font-semibold">Private context</th>
-              <th class="px-3 py-3 font-semibold">Attribution</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-800">
-            <tr v-for="transition in history" :key="transition.id">
-              <td class="px-3 py-4 text-slate-200">
-                {{ stateLabel(transition.fromState) }} → {{ stateLabel(transition.toState) }}
-              </td>
-              <td class="px-3 py-4 text-slate-300">
-                <p>Effective {{ formatDate(transition.effectiveAt) }}</p>
-                <p class="mt-1 text-xs text-slate-500">
-                  Review {{ formatDate(transition.reviewAt) }}
-                </p>
-                <p class="mt-1 text-xs text-slate-500">
-                  Expiry {{ formatDate(transition.expiresAt) }}
-                </p>
-              </td>
-              <td class="px-3 py-4 text-slate-300">
-                <p class="whitespace-pre-wrap">{{ transition.terms ?? 'No terms recorded' }}</p>
-                <p class="mt-2 text-xs whitespace-pre-wrap text-slate-500">
-                  {{ transition.rationale ?? 'No rationale recorded' }}
-                </p>
-              </td>
-              <td class="px-3 py-4 text-slate-300">
-                <p>{{ transition.actorName ?? 'Former/deleted user' }}</p>
-                <p class="mt-1 text-xs text-slate-500">
-                  Recorded {{ formatDate(transition.recordedAt) }}
-                </p>
-              </td>
-            </tr>
-          </tbody>
+      <div v-if="history.length" class="mt-5 grid gap-3 lg:hidden">
+        <article v-for="item in history" :key="item.id" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/10 p-4">
+          <div class="flex flex-wrap items-center justify-between gap-2"><p class="font-semibold">{{ stateLabel(item.fromState) }} → {{ stateLabel(item.toState) }}</p><span class="text-xs text-[var(--ks-text-muted)]">{{ date(item.recordedAt) }}</span></div>
+          <dl class="mt-3 grid gap-2 text-sm sm:grid-cols-2"><div><dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.effective') }}</dt><dd>{{ date(item.effectiveAt) }}</dd></div><div><dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.review') }}</dt><dd>{{ date(item.reviewAt) }}</dd></div><div><dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.expiry') }}</dt><dd>{{ date(item.expiresAt) }}</dd></div><div><dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.attribution') }}</dt><dd>{{ item.actorName ?? t('kingdomP7B.unavailableActor') }}</dd></div></dl>
+          <p v-if="item.terms" class="mt-3 whitespace-pre-wrap text-sm text-[var(--ks-text-secondary)]">{{ item.terms }}</p><p v-if="item.rationale" class="mt-2 whitespace-pre-wrap text-sm text-[var(--ks-text-muted)]">{{ item.rationale }}</p>
+        </article>
+      </div>
+
+      <div v-if="history.length" class="mt-5 hidden overflow-x-auto lg:block">
+        <table class="min-w-full text-left text-sm">
+          <caption class="sr-only">{{ t('kingdomP7B.transitionHistory') }}</caption>
+          <thead class="border-b border-[var(--ks-border)] text-xs font-semibold text-[var(--ks-text-muted)] uppercase"><tr><th class="px-3 py-3">{{ t('kingdomP7B.transition') }}</th><th class="px-3 py-3">{{ t('kingdomP7B.effectiveReview') }}</th><th class="px-3 py-3">{{ t('kingdomP7B.privateContext') }}</th><th class="px-3 py-3">{{ t('kingdomP7B.attribution') }}</th></tr></thead>
+          <tbody class="divide-y divide-[var(--ks-border)]"><tr v-for="item in history" :key="item.id"><td class="px-3 py-4 font-semibold">{{ stateLabel(item.fromState) }} → {{ stateLabel(item.toState) }}</td><td class="px-3 py-4 text-[var(--ks-text-secondary)]"><p>{{ date(item.effectiveAt) }}</p><p class="mt-1 text-xs">{{ t('kingdomP7B.review') }} {{ date(item.reviewAt) }}</p><p class="mt-1 text-xs">{{ t('kingdomP7B.expiry') }} {{ date(item.expiresAt) }}</p></td><td class="max-w-md px-3 py-4 text-[var(--ks-text-secondary)]"><p v-if="item.terms" class="whitespace-pre-wrap">{{ item.terms }}</p><p v-if="item.rationale" class="mt-2 whitespace-pre-wrap text-xs text-[var(--ks-text-muted)]">{{ item.rationale }}</p><span v-if="!item.terms && !item.rationale">—</span></td><td class="px-3 py-4 text-[var(--ks-text-secondary)]"><p>{{ item.actorName ?? t('kingdomP7B.unavailableActor') }}</p><p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ date(item.recordedAt) }}</p></td></tr></tbody>
         </table>
       </div>
-      <p
-        v-else
-        class="mt-6 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-400"
-      >
-        No explicit diplomacy transitions have been recorded yet. The member-safe default is
-        Unknown.
-      </p>
+      <p v-else class="mt-5 rounded-[var(--ks-radius-sm)] border border-dashed border-[var(--ks-border)] p-4 text-sm text-[var(--ks-text-muted)]">{{ t('kingdomP7B.noHistory') }}</p>
     </section>
-  </main>
+  </AppLayout>
 </template>
