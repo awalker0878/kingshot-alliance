@@ -1,6 +1,6 @@
 <?php
 
-use App\Support\Localization\Locale;
+declare(strict_types=1);
 
 it('keeps pages and localization catalogues code split by domain and locale', function (): void {
     $app = file_get_contents(resource_path('js/app.ts'));
