@@ -2,6 +2,9 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
+import AppLayout from '../../layouts/AppLayout.vue';
+import { useLocale } from '../../localization';
+
 type Observation = {
   id?: string;
   observedName: string;
@@ -18,6 +21,7 @@ type Observation = {
 };
 
 const props = defineProps<{
+  user: { name: string; email: string };
   alliance: {
     id: string;
     name: string;
@@ -43,6 +47,8 @@ function localDateTimeNow(): string {
   return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
+const { t, formatDate: localeDate, formatNumber } = useLocale();
+
 const recordForm = useForm({
   observed_name: props.tracking.name,
   observed_tag: props.tracking.tag ?? '',
@@ -65,10 +71,7 @@ const canMutate = computed(
 );
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value));
+  return localeDate(value, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 function recordObservation(): void {
@@ -137,16 +140,20 @@ function invalidateObservation(): void {
 </script>
 
 <template>
-  <Head :title="`${tracking.name} observation history`" />
+  <Head
+    :title="`${t('kingdomP7B.historyTitle', { alliance: tracking.name })} · ${alliance.name}`"
+  />
 
-  <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 lg:px-8">
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300 uppercase">
+        <p class="text-sm font-semibold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
           Kingdom intelligence
         </p>
-        <h1 class="mt-2 text-3xl font-bold">{{ tracking.name }} observation history</h1>
-        <p class="mt-2 max-w-3xl text-sm text-slate-400">
+        <h1 class="mt-2 text-3xl font-bold">
+          {{ t('kingdomP7B.historyTitle', { alliance: tracking.name }) }}
+        </h1>
+        <p class="mt-2 max-w-3xl text-sm text-[var(--ks-text-secondary)]">
           Kingdom {{ tracking.kingdom }} · {{ tracking.tag ?? 'no tag recorded' }}. Observations are
           factual historical records and do not imply threat, ranking, or diplomacy state.
         </p>
@@ -160,34 +167,48 @@ function invalidateObservation(): void {
     </header>
 
     <section class="mt-8 grid gap-4 md:grid-cols-3">
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-        <p class="text-xs font-semibold tracking-wide text-slate-400 uppercase">Freshness</p>
+      <div class="ks-surface p-5">
+        <p class="text-xs font-semibold tracking-wide text-[var(--ks-text-secondary)] uppercase">
+          {{ t('kingdomP7B.freshness') }}
+        </p>
         <p class="mt-2 text-xl font-semibold">{{ freshness }}</p>
-        <p class="mt-1 text-xs text-slate-500">
+        <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
           Current means captured within {{ freshDays }} days.
         </p>
       </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-        <p class="text-xs font-semibold tracking-wide text-slate-400 uppercase">Latest power</p>
-        <p class="mt-2 text-xl font-semibold">{{ latest?.power ?? 'missing' }}</p>
-        <p class="mt-1 text-xs text-slate-500">Missing is distinct from zero.</p>
+      <div class="ks-surface p-5">
+        <p class="text-xs font-semibold tracking-wide text-[var(--ks-text-secondary)] uppercase">
+          {{ t('kingdomP7B.latestPower') }}
+        </p>
+        <p class="mt-2 text-xl font-semibold">{{ latest?.power ?? t('kingdomP7B.missing') }}</p>
+        <p class="mt-1 text-xs text-[var(--ks-text-muted)]">Missing is distinct from zero.</p>
       </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-        <p class="text-xs font-semibold tracking-wide text-slate-400 uppercase">Latest members</p>
-        <p class="mt-2 text-xl font-semibold">{{ latest?.memberCount ?? 'missing' }}</p>
-        <p v-if="latest" class="mt-1 text-xs text-slate-500">
+      <div class="ks-surface p-5">
+        <p class="text-xs font-semibold tracking-wide text-[var(--ks-text-secondary)] uppercase">
+          {{ t('kingdomP7B.latestMembers') }}
+        </p>
+        <p class="mt-2 text-xl font-semibold">
+          {{
+            latest?.memberCount === null || latest?.memberCount === undefined
+              ? t('kingdomP7B.missing')
+              : formatNumber(latest.memberCount)
+          }}
+        </p>
+        <p v-if="latest" class="mt-1 text-xs text-[var(--ks-text-muted)]">
           Captured {{ formatDate(latest.capturedAt) }}
         </p>
       </div>
     </section>
 
-    <section v-if="canManage" class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+    <section v-if="canManage" class="ks-surface mt-8 p-6">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 class="text-xl font-semibold">
-            {{ recordForm.corrects_observation_id ? 'Record correction' : 'Record observation' }}
+            {{ recordForm.corrects_observation_id ? '{{ t('kingdomP7B.recordCorrection') }}' : '{{
+              t('kingdomP7B.recordObservation')
+            }}' }}
           </h2>
-          <p class="mt-1 text-sm text-slate-400">
+          <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
             Exact retries are idempotent. A correction appends a new row and invalidates the
             original; it never rewrites history.
           </p>
@@ -198,7 +219,7 @@ function invalidateObservation(): void {
           type="button"
           @click="cancelCorrection"
         >
-          Cancel correction
+          {{ t('kingdomP7B.cancelCorrection') }}
         </button>
       </div>
 
@@ -212,11 +233,13 @@ function invalidateObservation(): void {
 
       <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="recordObservation">
         <div>
-          <label class="block text-sm font-medium" for="observation-name">Observed name</label>
+          <label class="block text-sm font-medium" for="observation-name">{{
+            t('kingdomP7B.observedName')
+          }}</label>
           <input
             id="observation-name"
             v-model="recordForm.observed_name"
-            class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            class="ks-input mt-2 w-full"
             maxlength="160"
             required
             type="text"
@@ -227,11 +250,13 @@ function invalidateObservation(): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="observation-tag">Observed tag</label>
+          <label class="block text-sm font-medium" for="observation-tag">{{
+            t('kingdomP7B.observedTag')
+          }}</label>
           <input
             id="observation-tag"
             v-model="recordForm.observed_tag"
-            class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            class="ks-input mt-2 w-full"
             maxlength="32"
             type="text"
           />
@@ -242,7 +267,7 @@ function invalidateObservation(): void {
           <input
             id="observation-power"
             v-model="recordForm.power"
-            class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            class="ks-input mt-2 w-full"
             inputmode="numeric"
             pattern="[0-9]*"
             placeholder="Leave blank if unknown"
@@ -254,11 +279,13 @@ function invalidateObservation(): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="observation-members">Member count</label>
+          <label class="block text-sm font-medium" for="observation-members">{{
+            t('kingdomP7B.members')
+          }}</label>
           <input
             id="observation-members"
             v-model="recordForm.member_count"
-            class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            class="ks-input mt-2 w-full"
             min="0"
             placeholder="Leave blank if unknown"
             type="number"
@@ -269,11 +296,13 @@ function invalidateObservation(): void {
         </div>
 
         <div>
-          <label class="block text-sm font-medium" for="observation-captured">Captured at</label>
+          <label class="block text-sm font-medium" for="observation-captured">{{
+            t('kingdomP7B.capturedAt')
+          }}</label>
           <input
             id="observation-captured"
             v-model="recordForm.captured_at"
-            class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            class="ks-input mt-2 w-full"
             required
             type="datetime-local"
           />
@@ -284,16 +313,16 @@ function invalidateObservation(): void {
 
         <div v-if="recordForm.corrects_observation_id">
           <label class="block text-sm font-medium" for="correction-reason">
-            Correction reason
+            {{ t('kingdomP7B.correctionReason') }}
           </label>
           <textarea
             id="correction-reason"
             v-model="recordForm.correction_reason"
-            class="mt-2 min-h-24 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            class="ks-input mt-2 min-h-24 w-full"
             maxlength="5000"
             placeholder="Manager-private context"
           />
-          <p class="mt-1 text-xs text-slate-500">
+          <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
             Private management detail; excluded from member payloads and event metadata.
           </p>
         </div>
@@ -303,20 +332,22 @@ function invalidateObservation(): void {
             {{ recordDomainError }}
           </p>
           <button
-            class="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
+            class="rounded-lg bg-[var(--ks-blue)] px-4 py-2 font-semibold text-white disabled:opacity-60"
             :disabled="recordForm.processing || !canMutate"
             type="submit"
           >
-            {{ recordForm.corrects_observation_id ? 'Record correction' : 'Record observation' }}
+            {{ recordForm.corrects_observation_id ? '{{ t('kingdomP7B.recordCorrection') }}' : '{{
+              t('kingdomP7B.recordObservation')
+            }}' }}
           </button>
         </div>
       </form>
     </section>
 
-    <section class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+    <section class="ks-surface mt-8 p-6">
       <div>
-        <h2 class="text-xl font-semibold">Historical observations</h2>
-        <p class="mt-1 text-sm text-slate-400">
+        <h2 class="text-xl font-semibold">{{ t('kingdomP7B.historicalObservations') }}</h2>
+        <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
           Up to the latest 250 records are shown, ordered by capture time. Managers also see
           invalidated records and provenance.
         </p>
@@ -324,14 +355,18 @@ function invalidateObservation(): void {
 
       <div v-if="history.length" class="mt-6 overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
-          <thead class="text-xs tracking-wide text-slate-400 uppercase">
+          <thead class="text-xs tracking-wide text-[var(--ks-text-secondary)] uppercase">
             <tr>
-              <th class="px-3 py-3 font-semibold">Captured</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.capturedAt') }}</th>
               <th class="px-3 py-3 font-semibold">Observed identity</th>
-              <th class="px-3 py-3 font-semibold">Power</th>
-              <th class="px-3 py-3 font-semibold">Members</th>
-              <th v-if="canManage" class="px-3 py-3 font-semibold">Provenance</th>
-              <th v-if="canManage" class="px-3 py-3 font-semibold">Actions</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.power') }}</th>
+              <th class="px-3 py-3 font-semibold">{{ t('kingdomP7B.members') }}</th>
+              <th v-if="canManage" class="px-3 py-3 font-semibold">
+                {{ t('kingdomP7B.provenance') }}
+              </th>
+              <th v-if="canManage" class="px-3 py-3 font-semibold">
+                {{ t('kingdomP7B.actions') }}
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800">
@@ -342,25 +377,37 @@ function invalidateObservation(): void {
                   v-if="observation.invalidatedAt"
                   class="ml-2 rounded-full bg-rose-950 px-2 py-1 text-xs font-semibold text-rose-300"
                 >
-                  Invalidated
+                  {{ t('kingdomP7B.invalidated') }}
                 </span>
               </td>
               <td class="px-3 py-4">
                 <p class="font-medium text-slate-100">{{ observation.observedName }}</p>
-                <p class="mt-1 text-xs text-slate-400">{{ observation.observedTag ?? 'No tag' }}</p>
+                <p class="mt-1 text-xs text-[var(--ks-text-secondary)]">
+                  {{ observation.observedTag ?? 'No tag' }}
+                </p>
               </td>
               <td class="px-3 py-4 text-slate-300">{{ observation.power ?? 'missing' }}</td>
               <td class="px-3 py-4 text-slate-300">{{ observation.memberCount ?? 'missing' }}</td>
               <td v-if="canManage" class="px-3 py-4 text-slate-300">
                 <p>{{ observation.actorName ?? 'Unavailable actor' }} · {{ observation.source }}</p>
-                <p v-if="observation.correctsObservationId" class="mt-1 text-xs text-slate-500">
+                <p
+                  v-if="observation.correctsObservationId"
+                  class="mt-1 text-xs text-[var(--ks-text-muted)]"
+                >
                   Correction of {{ observation.correctsObservationId }}
                 </p>
-                <p v-if="observation.invalidatedAt" class="mt-1 text-xs text-slate-500">
-                  Invalidated by {{ observation.invalidatedByName ?? 'unavailable actor' }} on
+                <p
+                  v-if="observation.invalidatedAt"
+                  class="mt-1 text-xs text-[var(--ks-text-muted)]"
+                >
+                  {{ t('kingdomP7B.invalidated') }} by
+                  {{ observation.invalidatedByName ?? 'unavailable actor' }} on
                   {{ formatDate(observation.invalidatedAt) }}
                 </p>
-                <p v-if="observation.invalidationReason" class="mt-1 text-xs text-slate-500">
+                <p
+                  v-if="observation.invalidationReason"
+                  class="mt-1 text-xs text-[var(--ks-text-muted)]"
+                >
                   {{ observation.invalidationReason }}
                 </p>
               </td>
@@ -371,14 +418,14 @@ function invalidateObservation(): void {
                     type="button"
                     @click="beginCorrection(observation)"
                   >
-                    Correct
+                    {{ t('kingdomP7B.correct') }}
                   </button>
                   <button
                     class="rounded-lg border border-rose-900 px-3 py-2 text-xs font-semibold text-rose-300"
                     type="button"
                     @click="beginInvalidation(observation)"
                   >
-                    Invalidate
+                    {{ t('kingdomP7B.invalidate') }}
                   </button>
                 </div>
               </td>
@@ -389,7 +436,7 @@ function invalidateObservation(): void {
 
       <p
         v-else
-        class="mt-6 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-400"
+        class="mt-6 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-[var(--ks-text-secondary)]"
       >
         No accepted observations have been recorded yet.
       </p>
@@ -400,7 +447,7 @@ function invalidateObservation(): void {
       class="mt-8 rounded-2xl border border-rose-900 bg-slate-900/70 p-6"
     >
       <h2 class="text-xl font-semibold">Invalidate observation</h2>
-      <p class="mt-1 text-sm text-slate-400">
+      <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
         The original row remains historical and is excluded from latest/freshness projections.
       </p>
       <form class="mt-5" @submit.prevent="invalidateObservation">
@@ -408,7 +455,7 @@ function invalidateObservation(): void {
         <textarea
           id="invalidation-reason"
           v-model="invalidateForm.reason"
-          class="mt-2 min-h-24 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+          class="ks-input mt-2 min-h-24 w-full"
           maxlength="5000"
           required
         />
@@ -433,5 +480,5 @@ function invalidateObservation(): void {
         </div>
       </form>
     </section>
-  </main>
+  </AppLayout>
 </template>

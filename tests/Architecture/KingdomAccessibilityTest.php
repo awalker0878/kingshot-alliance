@@ -20,6 +20,10 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomSettings.vue',
             'KingdomAlliances.vue',
             'KingdomIngestionManage.vue',
+            'KingdomAllianceHistory.vue',
+            'KingdomAllianceDiplomacy.vue',
+            'KingdomAllianceDiplomacyContacts.vue',
+            'KingdomAllianceIntelligence.vue',
         ];
 
         foreach ([

@@ -36,6 +36,10 @@ final class KingdomAllianceIntelligenceController extends Controller
         $canManage = $authorization->allows($user, $alliance, PermissionKey::KingdomManage);
 
         return Inertia::render('Alliance/KingdomAllianceIntelligence', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => $this->allianceSummary($alliance),
             'canManage' => $canManage,
             'intelligence' => $intelligence->forAlliance(

@@ -14,6 +14,7 @@ import { eventCoordinatorMessages } from './event-coordinator';
 import { eventDetailMessages } from './event-detail';
 import { integrationMessages } from './integration-experience';
 import { kingdomP7AMessages } from './kingdom-p7a';
+import { kingdomP7BMessages } from './kingdom-p7b';
 import { publicExtraMessages } from './public-extra';
 import { publicMessages } from './public';
 import { recruitmentMessages } from './recruitment';
@@ -164,6 +165,7 @@ type BaseMessageTree = StringLeaves<typeof en>;
 type ContentMessageTree = (typeof contentMessages)['en'];
 type IntegrationMessageTree = (typeof integrationMessages)['en'];
 type KingdomP7AMessageTree = (typeof kingdomP7AMessages)['en'];
+type KingdomP7BMessageTree = (typeof kingdomP7BMessages)['en'];
 type AccountExperienceMessageTree = (typeof accountExperienceMessages)['en'];
 type AllianceOperationsMessageTree = (typeof allianceOperationsMessages)['en'];
 type ApplicationExtraMessageTree = (typeof applicationExtraMessages)['en'];
@@ -182,6 +184,7 @@ export type MessageTree = BaseMessageTree &
   ContentMessageTree &
   IntegrationMessageTree &
   KingdomP7AMessageTree &
+  KingdomP7BMessageTree &
   AccountExperienceMessageTree &
   AllianceOperationsMessageTree &
   ApplicationExtraMessageTree &
@@ -207,6 +210,7 @@ function catalogue(locale: LocaleCode) {
     ...contentMessages[locale],
     ...integrationMessages[locale],
     ...kingdomP7AMessages[locale],
+    ...kingdomP7BMessages[locale],
     ...accountExperienceMessages[locale],
     ...allianceOperationsMessages[locale],
     ...applicationExtraMessages[locale],

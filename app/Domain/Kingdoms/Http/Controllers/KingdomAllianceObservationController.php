@@ -42,6 +42,10 @@ final class KingdomAllianceObservationController extends Controller
         $history = $observations->history($alliance, $tracking, $canManage);
 
         return Inertia::render('Alliance/KingdomAllianceHistory', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => $this->allianceSummary($alliance),
             'canManage' => $canManage,
             'tracking' => $this->trackingSummary($tracked, $alliance, $canManage),
