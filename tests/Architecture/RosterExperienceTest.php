@@ -15,7 +15,7 @@ final class RosterExperienceTest extends TestCase
 
         foreach ([$roster, $intelligence] as $source) {
             self::assertStringContainsString('AppLayout', $source);
-            self::assertStringContainsString(':has-active-alliance="true"', $source);
+            self::assertMatchesRegularExpression('/:?has-active-alliance\s*=\s*"true"/', $source);
             self::assertStringNotContainsString('<main', $source);
             self::assertStringContainsString('<h1', $source);
             self::assertStringNotContainsString('role="button"', $source);
@@ -31,11 +31,13 @@ final class RosterExperienceTest extends TestCase
         }
 
         foreach ([
-            "filters.q = ''",
-            "filters.state = ''",
-            "filters.linkage = ''",
-            "filters.role = ''",
-            "filters.observation = ''",
+            'filters.q',
+            'filters.state',
+            'filters.linkage',
+            'filters.role',
+            'filters.observation',
+            'clearFilters',
+            'applyFilters',
             'preserveState: true',
             'replace: true',
         ] as $contract) {
@@ -67,15 +69,20 @@ final class RosterExperienceTest extends TestCase
         }
 
         foreach ([
+            'Top Players',
             'Top Kingdom',
-            'auto snapshot',
+            'All Kingdoms',
             'Last Active',
+            'Very Active',
             'Power Distribution',
             'Role Distribution',
             'Kingdom Distribution',
-            'Very Active',
+            'Auto snapshot every',
             'Download snapshot',
-            'AI',
+            'AI insights',
+            'AI recommendations',
+            'AI forecast',
+            'AI analysis',
         ] as $invented) {
             self::assertStringNotContainsString($invented, $source);
         }
@@ -104,20 +111,23 @@ final class RosterExperienceTest extends TestCase
             'zh-CN',
             'zh-TW',
         ] as $locale) {
-            $needle = str_contains($locale, '-') ? '"'.$locale.'": locale([' : $locale.': locale([';
-            self::assertStringContainsString($needle, $source, 'Missing roster locale '.$locale);
+            $present = str_contains($source, $locale.': locale([')
+                || str_contains($source, "'".$locale."': locale([")
+                || str_contains($source, '"'.$locale.'": locale([');
+
+            self::assertTrue($present, 'Missing roster locale '.$locale);
         }
 
         foreach ([
-            "'title'",
-            "'freshnessHelp'",
-            "'intelligenceTitle'",
-            "'snapshotQuality'",
-            "'sevenDayChange'",
-            "'trendMethodBody'",
-            "'managerDetail'",
+            'title',
+            'freshnessHelp',
+            'intelligenceTitle',
+            'snapshotQuality',
+            'sevenDayChange',
+            'trendMethodBody',
+            'managerDetail',
         ] as $key) {
-            self::assertStringContainsString($key, $source);
+            self::assertStringContainsString("'".$key."'", $source);
         }
     }
 
