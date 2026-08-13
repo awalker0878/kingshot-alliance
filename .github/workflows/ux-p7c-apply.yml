@@ -1,0 +1,54 @@
+name: UX P7C Apply
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .ux-p7c-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply P7-C catalogue wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin defc0d74485009d5b898ecfd38ade3e50cec077c
+          git checkout defc0d74485009d5b898ecfd38ade3e50cec077c -- resources/js/localization/messages/kingdom-p7c.ts
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('resources/js/localization/messages/index.ts')
+          text = path.read_text()
+          text = text.replace(
+              "import { kingdomP7BMessages } from './kingdom-p7b';",
+              "import { kingdomP7BMessages } from './kingdom-p7b';\nimport { kingdomP7CMessages } from './kingdom-p7c';",
+          )
+          text = text.replace(
+              "type KingdomP7BMessageTree = (typeof kingdomP7BMessages)['en'];",
+              "type KingdomP7BMessageTree = (typeof kingdomP7BMessages)['en'];\ntype KingdomP7CMessageTree = (typeof kingdomP7CMessages)['en'];",
+          )
+          text = text.replace(
+              "  KingdomP7BMessageTree &\n  AccountExperienceMessageTree &",
+              "  KingdomP7BMessageTree &\n  KingdomP7CMessageTree &\n  AccountExperienceMessageTree &",
+          )
+          text = text.replace(
+              "    ...kingdomP7BMessages[locale],\n    ...accountExperienceMessages[locale],",
+              "    ...kingdomP7BMessages[locale],\n    ...kingdomP7CMessages[locale],\n    ...accountExperienceMessages[locale],",
+          )
+          path.write_text(text)
+          PY
+          npm ci
+          npx prettier --write resources/js/localization/messages/index.ts resources/js/localization/messages/kingdom-p7c.ts resources/js/pages/Alliance/KingdomSharing.vue
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add resources/js/localization/messages/index.ts resources/js/localization/messages/kingdom-p7c.ts resources/js/pages/Alliance/KingdomSharing.vue
+          git commit -m "UX-P7-C: wire received intelligence catalogue"
+          git push
