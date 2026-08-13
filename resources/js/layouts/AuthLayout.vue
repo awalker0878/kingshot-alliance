@@ -19,9 +19,13 @@ import LocaleSwitcher from '../components/navigation/LocaleSwitcher.vue';
       <LocaleSwitcher />
     </header>
 
-    <main class="relative z-10 mx-auto grid min-h-[calc(100vh-90px)] max-w-7xl items-center gap-10 px-5 py-8 lg:grid-cols-[1fr_0.9fr] lg:px-12 lg:py-12">
+    <main
+      class="relative z-10 mx-auto grid min-h-[calc(100vh-90px)] max-w-7xl items-center gap-10 px-5 py-8 lg:grid-cols-[1fr_0.9fr] lg:px-12 lg:py-12"
+    >
       <section class="hidden lg:block">
-        <p class="text-sm font-semibold tracking-[0.2em] text-[var(--ks-gold)] uppercase">Kingshot Alliance</p>
+        <p class="text-sm font-semibold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+          Kingshot Alliance
+        </p>
         <h1 class="ks-display mt-5 max-w-xl text-5xl leading-[1.05] font-semibold xl:text-6xl">
           <slot name="headline">Built for alliances.</slot>
         </h1>

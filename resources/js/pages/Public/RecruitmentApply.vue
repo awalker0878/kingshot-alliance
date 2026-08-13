@@ -100,12 +100,15 @@ function setStringAnswer(questionId: string, event: Event): void {
             <h1 class="ks-display mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
               {{ application.title }}
             </h1>
-            <p v-if="alliance.kingdom" class="mt-4 text-sm font-semibold text-[var(--ks-text-secondary)]">
+            <p
+              v-if="alliance.kingdom"
+              class="mt-4 text-sm font-semibold text-[var(--ks-text-secondary)]"
+            >
               {{ t('publicAlliance.kingdom') }} {{ alliance.kingdom }}
             </p>
             <p
               v-if="application.introduction"
-              class="mt-6 whitespace-pre-line text-base leading-8 text-[var(--ks-text-secondary)]"
+              class="mt-6 text-base leading-8 whitespace-pre-line text-[var(--ks-text-secondary)]"
             >
               {{ application.introduction }}
             </p>
@@ -132,8 +135,12 @@ function setStringAnswer(questionId: string, event: Event): void {
               class="rounded-[var(--ks-radius-md)] border border-emerald-700/60 bg-emerald-950/30 p-5"
               role="status"
             >
-              <h2 class="text-lg font-bold text-emerald-100">{{ t('publicRecruitment.receivedTitle') }}</h2>
-              <p class="mt-2 leading-7 text-emerald-100/80">{{ t('publicRecruitment.receivedBody') }}</p>
+              <h2 class="text-lg font-bold text-emerald-100">
+                {{ t('publicRecruitment.receivedTitle') }}
+              </h2>
+              <p class="mt-2 leading-7 text-emerald-100/80">
+                {{ t('publicRecruitment.receivedBody') }}
+              </p>
             </div>
 
             <div
@@ -141,17 +148,21 @@ function setStringAnswer(questionId: string, event: Event): void {
               class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)] p-5"
             >
               <h2 class="text-lg font-bold">{{ t('publicRecruitment.closedTitle') }}</h2>
-              <p class="mt-2 leading-7 text-[var(--ks-text-muted)]">{{ t('publicRecruitment.closedBody') }}</p>
+              <p class="mt-2 leading-7 text-[var(--ks-text-muted)]">
+                {{ t('publicRecruitment.closedBody') }}
+              </p>
             </div>
 
             <form v-else class="space-y-7" @submit.prevent="submit">
               <div class="grid gap-5 sm:grid-cols-2">
                 <div>
-                  <label class="text-sm font-semibold" for="recruitment-name">{{ t('auth.register.name') }}</label>
+                  <label class="text-sm font-semibold" for="recruitment-name">{{
+                    t('auth.register.name')
+                  }}</label>
                   <input
                     id="recruitment-name"
                     v-model="form.full_name"
-                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
                     maxlength="160"
                     required
                     autocomplete="name"
@@ -161,11 +172,13 @@ function setStringAnswer(questionId: string, event: Event): void {
                   </p>
                 </div>
                 <div>
-                  <label class="text-sm font-semibold" for="recruitment-email">{{ t('auth.register.email') }}</label>
+                  <label class="text-sm font-semibold" for="recruitment-email">{{
+                    t('auth.register.email')
+                  }}</label>
                   <input
                     id="recruitment-email"
                     v-model="form.email"
-                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition disabled:cursor-not-allowed disabled:opacity-60 hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)] disabled:cursor-not-allowed disabled:opacity-60"
                     type="email"
                     maxlength="320"
                     required
@@ -186,7 +199,7 @@ function setStringAnswer(questionId: string, event: Event): void {
                   <input
                     id="recruitment-handle"
                     v-model="form.contact_handle"
-                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
                     maxlength="160"
                     :placeholder="t('publicRecruitment.optional')"
                   />
@@ -198,7 +211,7 @@ function setStringAnswer(questionId: string, event: Event): void {
                   <input
                     id="recruitment-source"
                     v-model="form.source"
-                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
                     maxlength="120"
                     :placeholder="t('publicRecruitment.sourcePlaceholder')"
                   />
@@ -220,7 +233,8 @@ function setStringAnswer(questionId: string, event: Event): void {
                     class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[rgba(5,11,20,0.42)] p-4"
                   >
                     <legend class="px-1 font-semibold">
-                      {{ question.prompt }}<span v-if="question.required" aria-hidden="true"> *</span>
+                      {{ question.prompt
+                      }}<span v-if="question.required" aria-hidden="true"> *</span>
                     </legend>
                     <p v-if="question.helpText" class="mt-1 text-sm text-[var(--ks-text-muted)]">
                       {{ question.helpText }}
@@ -231,11 +245,19 @@ function setStringAnswer(questionId: string, event: Event): void {
                         :key="option"
                         class="flex items-center gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2.5 text-sm"
                       >
-                        <input v-model="form.answers[question.id]" type="checkbox" :value="option" />
+                        <input
+                          v-model="form.answers[question.id]"
+                          type="checkbox"
+                          :value="option"
+                        />
                         <span>{{ option }}</span>
                       </label>
                     </div>
-                    <p v-if="answerError(question.id)" class="mt-2 text-sm text-rose-300" role="alert">
+                    <p
+                      v-if="answerError(question.id)"
+                      class="mt-2 text-sm text-rose-300"
+                      role="alert"
+                    >
                       {{ answerError(question.id) }}
                     </p>
                   </fieldset>
@@ -252,7 +274,10 @@ function setStringAnswer(questionId: string, event: Event): void {
                     />
                     <span>
                       <span class="font-semibold">{{ question.prompt }}</span>
-                      <span v-if="question.helpText" class="mt-1 block text-sm leading-6 text-[var(--ks-text-muted)]">
+                      <span
+                        v-if="question.helpText"
+                        class="mt-1 block text-sm leading-6 text-[var(--ks-text-muted)]"
+                      >
                         {{ question.helpText }}
                       </span>
                       <span
@@ -267,16 +292,20 @@ function setStringAnswer(questionId: string, event: Event): void {
 
                   <div v-else>
                     <label class="font-semibold" :for="`question-${question.id}`">
-                      {{ question.prompt }}<span v-if="question.required" aria-hidden="true"> *</span>
+                      {{ question.prompt
+                      }}<span v-if="question.required" aria-hidden="true"> *</span>
                     </label>
-                    <p v-if="question.helpText" class="mt-1 text-sm leading-6 text-[var(--ks-text-muted)]">
+                    <p
+                      v-if="question.helpText"
+                      class="mt-1 text-sm leading-6 text-[var(--ks-text-muted)]"
+                    >
                       {{ question.helpText }}
                     </p>
                     <textarea
                       v-if="question.type === 'long_text'"
                       :id="`question-${question.id}`"
                       :value="stringAnswer(question.id)"
-                      class="mt-2 min-h-32 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                      class="mt-2 min-h-32 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
                       :required="question.required"
                       @input="setStringAnswer(question.id, $event)"
                     />
@@ -297,11 +326,15 @@ function setStringAnswer(questionId: string, event: Event): void {
                       v-else
                       :id="`question-${question.id}`"
                       :value="stringAnswer(question.id)"
-                      class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                      class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
                       :required="question.required"
                       @input="setStringAnswer(question.id, $event)"
                     />
-                    <p v-if="answerError(question.id)" class="mt-2 text-sm text-rose-300" role="alert">
+                    <p
+                      v-if="answerError(question.id)"
+                      class="mt-2 text-sm text-rose-300"
+                      role="alert"
+                    >
                       {{ answerError(question.id) }}
                     </p>
                   </div>
@@ -320,7 +353,11 @@ function setStringAnswer(questionId: string, event: Event): void {
                 type="submit"
                 :disabled="form.processing"
               >
-                {{ form.processing ? t('publicRecruitment.submitting') : t('publicRecruitment.submit') }}
+                {{
+                  form.processing
+                    ? t('publicRecruitment.submitting')
+                    : t('publicRecruitment.submit')
+                }}
               </button>
             </form>
           </div>

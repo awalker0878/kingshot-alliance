@@ -80,7 +80,9 @@ export function initializeLocale(preferredLocale?: string | null): void {
 
   const locale = candidates
     .map((candidate) => normalizeLocale(candidate))
-    .find((candidate): candidate is LocaleCode => candidate !== null && hasMessageCatalogue(candidate));
+    .find(
+      (candidate): candidate is LocaleCode => candidate !== null && hasMessageCatalogue(candidate),
+    );
 
   setLocale(locale ?? defaultLocale, false);
 }
@@ -112,7 +114,9 @@ export function formatRelativeTime(value: number, unit: Intl.RelativeTimeFormatU
 
 export function useLocale() {
   const definition = computed(() => localeDefinition(currentLocale.value));
-  const availableLocales = computed(() => locales.filter((locale) => hasMessageCatalogue(locale.code)));
+  const availableLocales = computed(() =>
+    locales.filter((locale) => hasMessageCatalogue(locale.code)),
+  );
 
   return {
     locale: readonly(currentLocale),

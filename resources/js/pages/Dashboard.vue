@@ -34,7 +34,9 @@ const props = defineProps<{
 }>();
 
 const activeMembership = computed(
-  () => props.memberships.find((membership) => membership.alliance.id === props.activeAllianceId) ?? null,
+  () =>
+    props.memberships.find((membership) => membership.alliance.id === props.activeAllianceId) ??
+    null,
 );
 
 const allianceForm = useForm({
@@ -107,7 +109,11 @@ function activateAlliance(allianceId: string): void {
           v-for="membership in memberships"
           :key="membership.id"
           class="ks-surface p-5"
-          :class="activeAllianceId === membership.alliance.id ? 'ring-1 ring-[var(--ks-border-strong)]' : ''"
+          :class="
+            activeAllianceId === membership.alliance.id
+              ? 'ring-1 ring-[var(--ks-border-strong)]'
+              : ''
+          "
         >
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">

@@ -27,8 +27,15 @@ function closeMobile(): void {
     <header
       class="sticky top-0 z-40 border-b border-[var(--ks-border)] bg-[rgba(5,11,20,0.9)] backdrop-blur-xl"
     >
-      <div class="mx-auto flex min-h-18 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-5 lg:px-8">
-        <Link href="/" class="min-w-0 shrink" aria-label="Kingshot Alliance home" @click="closeMobile">
+      <div
+        class="mx-auto flex min-h-18 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-5 lg:px-8"
+      >
+        <Link
+          href="/"
+          class="min-w-0 shrink"
+          aria-label="Kingshot Alliance home"
+          @click="closeMobile"
+        >
           <BrandMark class="hidden sm:inline-flex" />
           <BrandMark compact class="sm:hidden" />
         </Link>

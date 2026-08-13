@@ -57,11 +57,27 @@ const navigationGroups: NavigationGroup[] = [
     labelKey: 'navigation.allianceOperations',
     items: [
       { key: 'navigation.dashboard', href: '/dashboard', icon: 'dashboard', exact: true },
-      { key: 'navigation.alliance', href: '/alliance', icon: 'alliance', allianceScoped: true, exact: true },
+      {
+        key: 'navigation.alliance',
+        href: '/alliance',
+        icon: 'alliance',
+        allianceScoped: true,
+        exact: true,
+      },
       { key: 'navigation.events', href: '/alliance/events', icon: 'events', allianceScoped: true },
       { key: 'navigation.roster', href: '/alliance/roster', icon: 'roster', allianceScoped: true },
-      { key: 'navigation.recruitment', href: '/alliance/recruitment', icon: 'recruitment', allianceScoped: true },
-      { key: 'navigation.content', href: '/alliance/content', icon: 'content', allianceScoped: true },
+      {
+        key: 'navigation.recruitment',
+        href: '/alliance/recruitment',
+        icon: 'recruitment',
+        allianceScoped: true,
+      },
+      {
+        key: 'navigation.content',
+        href: '/alliance/content',
+        icon: 'content',
+        allianceScoped: true,
+      },
       {
         key: 'navigation.contributions',
         href: '/alliance/contributions',
@@ -148,8 +164,12 @@ const initials = computed(() =>
       </div>
 
       <div class="px-4 py-4">
-        <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-3">
-          <p class="text-[0.68rem] font-bold tracking-[0.18em] text-[var(--ks-text-muted)] uppercase">
+        <div
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-3"
+        >
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.18em] text-[var(--ks-text-muted)] uppercase"
+          >
             {{ t('common.currentAlliance') }}
           </p>
           <p v-if="hasActiveAlliance && allianceName" class="mt-1.5 truncate text-sm font-semibold">
@@ -163,7 +183,9 @@ const initials = computed(() =>
 
       <nav class="flex-1 overflow-y-auto px-3 pb-5" :aria-label="t('common.menu')">
         <section v-for="group in navigationGroups" :key="group.labelKey" class="mb-5">
-          <h2 class="px-3 pb-2 text-[0.68rem] font-bold tracking-[0.17em] text-[var(--ks-text-muted)] uppercase">
+          <h2
+            class="px-3 pb-2 text-[0.68rem] font-bold tracking-[0.17em] text-[var(--ks-text-muted)] uppercase"
+          >
             {{ t(group.labelKey) }}
           </h2>
 
@@ -184,7 +206,7 @@ const initials = computed(() =>
                 class="flex items-center gap-3 rounded-[var(--ks-radius-sm)] px-3 py-2.5 text-sm font-medium transition"
                 :class="
                   isActive(item)
-                    ? 'bg-[var(--ks-blue-soft)] text-[var(--ks-blue-strong)] ring-1 ring-inset ring-[rgba(75,143,247,0.26)]'
+                    ? 'bg-[var(--ks-blue-soft)] text-[var(--ks-blue-strong)] ring-1 ring-[rgba(75,143,247,0.26)] ring-inset'
                     : 'text-[var(--ks-text-secondary)] hover:bg-[var(--ks-surface-1)] hover:text-[var(--ks-text)]'
                 "
               >
@@ -208,7 +230,9 @@ const initials = computed(() =>
           </span>
           <span class="min-w-0 flex-1">
             <span class="block truncate text-sm font-semibold">{{ user.name }}</span>
-            <span v-if="user.email" class="block truncate text-xs text-[var(--ks-text-muted)]">{{ user.email }}</span>
+            <span v-if="user.email" class="block truncate text-xs text-[var(--ks-text-muted)]">{{
+              user.email
+            }}</span>
           </span>
           <NavIcon name="profile" class="text-[var(--ks-text-muted)]" />
         </Link>
@@ -233,9 +257,7 @@ const initials = computed(() =>
             <p v-if="hasActiveAlliance && allianceName" class="truncate text-sm font-semibold">
               {{ allianceName }}
             </p>
-            <p v-else class="truncate text-sm text-[var(--ks-text-muted)]">
-              Kingshot Alliance
-            </p>
+            <p v-else class="truncate text-sm text-[var(--ks-text-muted)]">Kingshot Alliance</p>
           </div>
 
           <LocaleSwitcher />
@@ -283,7 +305,9 @@ const initials = computed(() =>
         <aside
           class="absolute inset-y-0 start-0 flex w-[min(88vw,22rem)] flex-col border-e border-[var(--ks-border)] bg-[var(--ks-bg-elevated)] shadow-2xl"
         >
-          <div class="flex items-center justify-between gap-4 border-b border-[var(--ks-border)] px-5 py-4">
+          <div
+            class="flex items-center justify-between gap-4 border-b border-[var(--ks-border)] px-5 py-4"
+          >
             <Link href="/dashboard" @click="closeMobile">
               <BrandMark />
             </Link>
@@ -298,11 +322,18 @@ const initials = computed(() =>
           </div>
 
           <div class="px-4 py-4">
-            <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-3">
-              <p class="text-[0.68rem] font-bold tracking-[0.18em] text-[var(--ks-text-muted)] uppercase">
+            <div
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-3"
+            >
+              <p
+                class="text-[0.68rem] font-bold tracking-[0.18em] text-[var(--ks-text-muted)] uppercase"
+              >
                 {{ t('common.currentAlliance') }}
               </p>
-              <p v-if="hasActiveAlliance && allianceName" class="mt-1.5 truncate text-sm font-semibold">
+              <p
+                v-if="hasActiveAlliance && allianceName"
+                class="mt-1.5 truncate text-sm font-semibold"
+              >
                 {{ allianceName }}
               </p>
               <p v-else class="mt-1.5 text-xs leading-5 text-[var(--ks-text-muted)]">
@@ -313,7 +344,9 @@ const initials = computed(() =>
 
           <nav class="flex-1 overflow-y-auto px-3 pb-5" :aria-label="t('common.menu')">
             <section v-for="group in navigationGroups" :key="group.labelKey" class="mb-5">
-              <h2 class="px-3 pb-2 text-[0.68rem] font-bold tracking-[0.17em] text-[var(--ks-text-muted)] uppercase">
+              <h2
+                class="px-3 pb-2 text-[0.68rem] font-bold tracking-[0.17em] text-[var(--ks-text-muted)] uppercase"
+              >
                 {{ t(group.labelKey) }}
               </h2>
               <div class="space-y-1">

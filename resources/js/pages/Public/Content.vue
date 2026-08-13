@@ -63,23 +63,32 @@ function localeName(code: string): string {
     <article class="mx-auto max-w-5xl px-5 py-10 sm:py-14 lg:px-8 lg:py-16">
       <div class="ks-surface-gold overflow-hidden">
         <header class="border-b border-[var(--ks-border)] px-6 py-8 sm:px-10 sm:py-10 lg:px-12">
-          <div class="flex flex-wrap items-center gap-2 text-xs font-bold tracking-wide text-[var(--ks-text-muted)] uppercase">
+          <div
+            class="flex flex-wrap items-center gap-2 text-xs font-bold tracking-wide text-[var(--ks-text-muted)] uppercase"
+          >
             <span class="text-[var(--ks-gold)]">{{ contentTypeLabel() }}</span>
             <span v-if="content.category">· {{ content.category.name }}</span>
             <span>· {{ localeName(content.locale) }}</span>
           </div>
 
-          <h1 class="ks-display mt-4 max-w-4xl text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
+          <h1
+            class="ks-display mt-4 max-w-4xl text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl"
+          >
             {{ content.title }}
           </h1>
-          <p v-if="content.summary" class="mt-5 max-w-3xl text-lg leading-8 text-[var(--ks-text-secondary)]">
+          <p
+            v-if="content.summary"
+            class="mt-5 max-w-3xl text-lg leading-8 text-[var(--ks-text-secondary)]"
+          >
             {{ content.summary }}
           </p>
           <div
             v-if="content.publishedAt"
             class="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-[var(--ks-text-muted)]"
           >
-            <span>{{ t('publicAlliance.published') }} {{ formatPublished(content.publishedAt) }}</span>
+            <span
+              >{{ t('publicAlliance.published') }} {{ formatPublished(content.publishedAt) }}</span
+            >
             <span>· {{ t('publicContent.allianceTimezone') }}: {{ alliance.timezone }}</span>
           </div>
         </header>

@@ -111,7 +111,11 @@ function localeName(code: string): string {
               :src="alliance.logoUrl"
               :alt="`${alliance.name} logo`"
             />
-            <span v-else class="ks-display text-3xl font-bold text-[var(--ks-gold)]" aria-hidden="true">
+            <span
+              v-else
+              class="ks-display text-3xl font-bold text-[var(--ks-gold)]"
+              aria-hidden="true"
+            >
               {{ alliance.name.slice(0, 2).toUpperCase() }}
             </span>
           </div>
@@ -120,10 +124,14 @@ function localeName(code: string): string {
             <p class="text-xs font-bold tracking-[0.22em] text-[var(--ks-gold)] uppercase">
               {{ t('publicAlliance.publicAlliance') }}
             </p>
-            <h1 class="ks-display mt-2 text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+            <h1
+              class="ks-display mt-2 text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl"
+            >
               {{ alliance.name }}
             </h1>
-            <div class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--ks-text-secondary)]">
+            <div
+              class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--ks-text-secondary)]"
+            >
               <span v-if="alliance.kingdom">
                 <strong class="text-[var(--ks-text)]">{{ t('publicAlliance.kingdom') }}</strong>
                 {{ alliance.kingdom }}
@@ -142,7 +150,7 @@ function localeName(code: string): string {
 
         <p
           v-if="alliance.description"
-          class="mt-8 max-w-3xl whitespace-pre-line text-base leading-7 text-[var(--ks-text-secondary)] sm:text-lg"
+          class="mt-8 max-w-3xl text-base leading-7 whitespace-pre-line text-[var(--ks-text-secondary)] sm:text-lg"
         >
           {{ alliance.description }}
         </p>
@@ -172,7 +180,10 @@ function localeName(code: string): string {
       </div>
     </section>
 
-    <section class="mx-auto max-w-7xl px-5 py-10 sm:py-14 lg:px-8 lg:py-16" aria-labelledby="content-heading">
+    <section
+      class="mx-auto max-w-7xl px-5 py-10 sm:py-14 lg:px-8 lg:py-16"
+      aria-labelledby="content-heading"
+    >
       <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
@@ -189,17 +200,21 @@ function localeName(code: string): string {
 
       <form class="ks-surface mt-7 grid gap-4 p-5 lg:grid-cols-12" @submit.prevent="applyFilters">
         <div class="lg:col-span-5">
-          <label class="text-sm font-semibold" for="public-search">{{ t('publicAlliance.searchContent') }}</label>
+          <label class="text-sm font-semibold" for="public-search">{{
+            t('publicAlliance.searchContent')
+          }}</label>
           <input
             id="public-search"
             v-model="filters.q"
-            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 text-sm outline-none transition placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 text-sm transition outline-none placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
             type="search"
             :placeholder="t('publicAlliance.searchPlaceholder')"
           />
         </div>
         <div class="lg:col-span-2">
-          <label class="text-sm font-semibold" for="public-type">{{ t('publicAlliance.contentType') }}</label>
+          <label class="text-sm font-semibold" for="public-type">{{
+            t('publicAlliance.contentType')
+          }}</label>
           <select
             id="public-type"
             v-model="filters.type"
@@ -212,7 +227,9 @@ function localeName(code: string): string {
           </select>
         </div>
         <div class="lg:col-span-2">
-          <label class="text-sm font-semibold" for="public-category">{{ t('publicAlliance.category') }}</label>
+          <label class="text-sm font-semibold" for="public-category">{{
+            t('publicAlliance.category')
+          }}</label>
           <select
             id="public-category"
             v-model="filters.category"
@@ -225,14 +242,18 @@ function localeName(code: string): string {
           </select>
         </div>
         <div class="lg:col-span-3">
-          <label class="text-sm font-semibold" for="public-locale">{{ t('publicAlliance.contentLanguage') }}</label>
+          <label class="text-sm font-semibold" for="public-locale">{{
+            t('publicAlliance.contentLanguage')
+          }}</label>
           <select
             id="public-locale"
             v-model="filters.locale"
             class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
           >
             <option value="">{{ t('publicAlliance.allLanguages') }}</option>
-            <option v-for="item in locales" :key="item.code" :value="item.code">{{ item.nativeName }}</option>
+            <option v-for="item in locales" :key="item.code" :value="item.code">
+              {{ item.nativeName }}
+            </option>
           </select>
         </div>
         <div class="flex flex-wrap gap-3 lg:col-span-12">
@@ -258,8 +279,12 @@ function localeName(code: string): string {
           :key="item.id"
           class="group rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[linear-gradient(180deg,rgba(16,29,46,0.82),rgba(8,17,31,0.88))] p-6 transition hover:-translate-y-0.5 hover:border-[var(--ks-border-strong)]"
         >
-          <div class="flex flex-wrap items-center gap-2 text-xs font-bold tracking-wide text-[var(--ks-text-muted)] uppercase">
-            <span class="text-[var(--ks-gold)]">{{ contentTypeLabel(item.type, item.typeLabel) }}</span>
+          <div
+            class="flex flex-wrap items-center gap-2 text-xs font-bold tracking-wide text-[var(--ks-text-muted)] uppercase"
+          >
+            <span class="text-[var(--ks-gold)]">{{
+              contentTypeLabel(item.type, item.typeLabel)
+            }}</span>
             <span v-if="item.category">· {{ item.category.name }}</span>
             <span>· {{ localeName(item.locale) }}</span>
           </div>
@@ -271,7 +296,10 @@ function localeName(code: string): string {
               {{ item.title }}
             </Link>
           </h3>
-          <p v-if="item.summary" class="mt-3 line-clamp-3 leading-7 text-[var(--ks-text-secondary)]">
+          <p
+            v-if="item.summary"
+            class="mt-3 line-clamp-3 leading-7 text-[var(--ks-text-secondary)]"
+          >
             {{ item.summary }}
           </p>
           <p v-if="item.publishedAt" class="mt-5 text-xs text-[var(--ks-text-muted)]">

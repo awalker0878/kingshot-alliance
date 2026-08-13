@@ -41,7 +41,12 @@ export const locales: readonly LocaleDefinition[] = [
   { code: 'ja', nativeName: '日本語', englishName: 'Japanese', direction: 'ltr' },
   { code: 'ko', nativeName: '한국어', englishName: 'Korean', direction: 'ltr' },
   { code: 'pl', nativeName: 'Polski', englishName: 'Polish', direction: 'ltr' },
-  { code: 'pt-BR', nativeName: 'Português (Brasil)', englishName: 'Portuguese (Brazil)', direction: 'ltr' },
+  {
+    code: 'pt-BR',
+    nativeName: 'Português (Brasil)',
+    englishName: 'Portuguese (Brazil)',
+    direction: 'ltr',
+  },
   { code: 'ru', nativeName: 'Русский', englishName: 'Russian', direction: 'ltr' },
   { code: 'th', nativeName: 'ไทย', englishName: 'Thai', direction: 'ltr' },
   { code: 'tr', nativeName: 'Türkçe', englishName: 'Turkish', direction: 'ltr' },
