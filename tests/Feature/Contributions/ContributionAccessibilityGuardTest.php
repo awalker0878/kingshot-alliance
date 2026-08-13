@@ -139,7 +139,11 @@ final class ContributionAccessibilityGuardTest extends TestCase
         foreach ([
             'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW',
         ] as $locale) {
-            self::assertStringContainsString($locale.':', $overrides, 'Missing contribution locale '.$locale);
+            $present = str_contains($overrides, $locale.':')
+                || str_contains($overrides, "'".$locale."':")
+                || str_contains($overrides, '"'.$locale.'":');
+
+            self::assertTrue($present, 'Missing contribution locale '.$locale);
         }
     }
 
