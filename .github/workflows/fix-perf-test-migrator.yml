@@ -26,42 +26,47 @@ jobs:
 
           path = Path('.github/workflows/perf-localization-test-contracts.yml')
           source = path.read_text()
-          old = """              depth = 0
-              end = None
-              for i in range(brace, len(source)):
-                  if source[i] == '{':
-                      depth += 1
-                  elif source[i] == '}':
-                      depth -= 1
-                      if depth == 0:
-                          end = i
-                          break
-          """
-          new = """              depth = 0
-              end = None
-              quote = None
-              escaped = False
-              for i in range(brace, len(source)):
-                  char = source[i]
-                  if quote is not None:
-                      if escaped:
-                          escaped = False
-                      elif char == '\\\\':
-                          escaped = True
-                      elif char == quote:
-                          quote = None
-                      continue
-                  if char in (chr(39), chr(34)):
-                      quote = char
-                      continue
-                  if char == '{':
-                      depth += 1
-                  elif char == '}':
-                      depth -= 1
-                      if depth == 0:
-                          end = i
-                          break
-          """
+          indent = '              '
+          old_lines = [
+              'depth = 0',
+              'end = None',
+              'for i in range(brace, len(source)):',
+              "    if source[i] == '{':",
+              '        depth += 1',
+              "    elif source[i] == '}':",
+              '        depth -= 1',
+              '        if depth == 0:',
+              '            end = i',
+              '            break',
+          ]
+          new_lines = [
+              'depth = 0',
+              'end = None',
+              'quote = None',
+              'escaped = False',
+              'for i in range(brace, len(source)):',
+              '    char = source[i]',
+              '    if quote is not None:',
+              '        if escaped:',
+              '            escaped = False',
+              "        elif char == '\\\\':",
+              '            escaped = True',
+              '        elif char == quote:',
+              '            quote = None',
+              '        continue',
+              "    if char in (chr(39), chr(34)):",
+              '        quote = char',
+              '        continue',
+              "    if char == '{':",
+              '        depth += 1',
+              "    elif char == '}':",
+              '        depth -= 1',
+              '        if depth == 0:',
+              '            end = i',
+              '            break',
+          ]
+          old = '\n'.join(indent + line for line in old_lines) + '\n'
+          new = '\n'.join(indent + line for line in new_lines) + '\n'
           if old not in source:
               raise RuntimeError('Expected scanner block not found')
           source = source.replace(old, new)
