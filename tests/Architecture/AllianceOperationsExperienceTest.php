@@ -70,12 +70,84 @@ final class AllianceOperationsExperienceTest extends TestCase
         }
     }
 
+    public function test_event_detail_uses_shared_shell_and_only_existing_event_capabilities(): void
+    {
+        $source = $this->read('resources/js/pages/Alliance/Events/Show.vue');
+
+        self::assertStringContainsString("import AppLayout from '../../../layouts/AppLayout.vue';", $source);
+        self::assertStringContainsString("import { useLocale } from '../../../localization';", $source);
+        self::assertStringContainsString('<AppLayout', $source);
+        self::assertStringNotContainsString('<main', $source);
+
+        foreach ([
+            'router.post(`/alliance/events/${props.event.id}/registration`',
+            'router.delete(`/alliance/events/${props.event.id}/registration`',
+            ".post('/alliance/formations'",
+            'recommendedFormations',
+            'rallyGroups',
+            'savedFormations',
+            'event.registeredCount',
+            'event.waitlistedCount',
+            'event.instructions',
+            'href="/alliance/events/manage"',
+        ] as $contract) {
+            self::assertStringContainsString($contract, $source, $contract);
+        }
+
+        foreach ([
+            'Invite Others',
+            'Manage Reminders',
+            'Share Event Link',
+            'Contact Organizer',
+            'Attendance tab',
+            'Activity tab',
+            'Google Calendar',
+            'Discord event',
+        ] as $unsupported) {
+            self::assertStringNotContainsString($unsupported, $source, $unsupported);
+        }
+    }
+
     public function test_alliance_operations_catalogue_covers_every_supported_locale(): void
     {
         $messages = $this->read('resources/js/localization/messages/alliance-operations.ts');
         $index = $this->read('resources/js/localization/messages/index.ts');
 
-        foreach ([
+        foreach ($this->locales() as $locale) {
+            self::assertMatchesRegularExpression(
+                '/(?:^|\s)[\'\"]?'.preg_quote($locale, '/').'[\'\"]?\s*:/m',
+                $messages,
+                $locale,
+            );
+        }
+
+        self::assertStringContainsString('Record<LocaleCode, AllianceOperationsTree>', $messages);
+        self::assertStringContainsString("import { allianceOperationsMessages } from './alliance-operations';", $index);
+        self::assertStringContainsString('...allianceOperationsMessages[locale]', $index);
+    }
+
+    public function test_event_detail_catalogue_covers_every_supported_locale(): void
+    {
+        $messages = $this->read('resources/js/localization/messages/event-detail.ts');
+        $index = $this->read('resources/js/localization/messages/index.ts');
+
+        foreach ($this->locales() as $locale) {
+            self::assertMatchesRegularExpression(
+                '/(?:^|\s)[\'\"]?'.preg_quote($locale, '/').'[\'\"]?\s*:/m',
+                $messages,
+                $locale,
+            );
+        }
+
+        self::assertStringContainsString('Record<LocaleCode, EventDetailTree>', $messages);
+        self::assertStringContainsString("import { eventDetailMessages } from './event-detail';", $index);
+        self::assertStringContainsString('...eventDetailMessages[locale]', $index);
+    }
+
+    /** @return list<string> */
+    private function locales(): array
+    {
+        return [
             'en',
             'ar',
             'de',
@@ -93,17 +165,7 @@ final class AllianceOperationsExperienceTest extends TestCase
             'vi',
             'zh-CN',
             'zh-TW',
-        ] as $locale) {
-            self::assertMatchesRegularExpression(
-                '/(?:^|\s)[\'\"]?'.preg_quote($locale, '/').'[\'\"]?\s*:/m',
-                $messages,
-                $locale,
-            );
-        }
-
-        self::assertStringContainsString('Record<LocaleCode, AllianceOperationsTree>', $messages);
-        self::assertStringContainsString("import { allianceOperationsMessages } from './alliance-operations';", $index);
-        self::assertStringContainsString('...allianceOperationsMessages[locale]', $index);
+        ];
     }
 
     private function read(string $path): string
