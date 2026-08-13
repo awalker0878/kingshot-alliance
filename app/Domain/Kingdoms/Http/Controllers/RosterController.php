@@ -114,6 +114,10 @@ final class RosterController extends Controller
             ->values();
 
         return Inertia::render('Alliance/RosterManage', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'id' => (string) $alliance->id,
                 'name' => (string) $alliance->name,
