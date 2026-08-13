@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { reactive } from 'vue';
+import { computed, reactive } from 'vue';
+
+import AppLayout from '../../layouts/AppLayout.vue';
+import { useLocale } from '../../localization';
 
 type Direction = 'staying' | 'outgoing' | 'incoming';
 type Readiness = 'not_started' | 'preparing' | 'ready' | 'blocked' | 'confirmed' | 'withdrawn';
@@ -16,12 +19,7 @@ type Plan = {
 type Completion = {
   completedAt: string;
   completedBy: { name: string } | null;
-  rosterEntry: {
-    id: string;
-    name: string;
-    state: string;
-    gamePlayerId: string | null;
-  } | null;
+  rosterEntry: { id: string; name: string; state: string; gamePlayerId: string | null } | null;
 };
 
 type Participant = {
@@ -44,11 +42,14 @@ type RosterOption = {
 };
 
 const props = defineProps<{
+  user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string | null };
   plan: Plan | null;
   participants: Participant[];
   rosterOptions: RosterOption[];
 }>();
+
+const { t, formatDate, formatNumber } = useLocale();
 
 const rosterDrafts = reactive(
   Object.fromEntries(props.participants.map((participant) => [participant.id, ''])) as Record<
@@ -57,29 +58,61 @@ const rosterDrafts = reactive(
   >,
 );
 
+const completionCounts = computed(() => ({
+  completed: props.participants.filter((participant) => participant.completion !== null).length,
+  confirmed: props.participants.filter(
+    (participant) =>
+      participant.readiness === 'confirmed' &&
+      participant.completion === null &&
+      participant.withdrawnAt === null,
+  ).length,
+  withdrawn: props.participants.filter((participant) => participant.withdrawnAt !== null).length,
+}));
+
 function stateLabel(state: string): string {
-  return state
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  const key: Record<string, string> = {
+    draft: 'stateDraft',
+    open: 'stateOpen',
+    locked: 'stateLocked',
+    closed: 'stateClosed',
+    cancelled: 'stateCancelled',
+    active: 'rosterActive',
+    tracked: 'rosterTracked',
+    left: 'rosterLeft',
+  };
+  return t(`kingdomP7D.${key[state] ?? 'state'}`);
+}
+
+function readinessLabel(state: Readiness): string {
+  const key: Record<Readiness, string> = {
+    not_started: 'readinessNotStarted',
+    preparing: 'readinessPreparing',
+    ready: 'readinessReady',
+    blocked: 'readinessBlocked',
+    confirmed: 'readinessConfirmed',
+    withdrawn: 'readinessWithdrawn',
+  };
+  return t(`kingdomP7D.${key[state]}`);
 }
 
 function directionLabel(direction: Direction): string {
-  return direction.charAt(0).toUpperCase() + direction.slice(1);
+  const key = {
+    staying: 'directionStaying',
+    outgoing: 'directionOutgoing',
+    incoming: 'directionIncoming',
+  } as const;
+  return t(`kingdomP7D.${key[direction]}`);
 }
 
 function destinationLabel(participant: Participant): string {
-  if (participant.direction === 'staying') return 'Staying';
-  if (participant.direction === 'outgoing' && participant.destinationKingdom === null) {
-    return 'Undecided';
-  }
-
+  if (participant.direction === 'staying') return t('kingdomP7D.staying');
+  if (participant.direction === 'outgoing' && participant.destinationKingdom === null)
+    return t('kingdomP7D.undecided');
   return participant.destinationKingdom ?? '—';
 }
 
 function eligibleRosterOptions(participant: Participant): RosterOption[] {
   if (participant.gamePlayerId === null) return props.rosterOptions;
-
   return props.rosterOptions.filter((option) => option.gamePlayerId === participant.gamePlayerId);
 }
 
@@ -94,185 +127,258 @@ function canComplete(participant: Participant): boolean {
 }
 
 function confirmationText(participant: Participant): string {
-  if (participant.direction === 'incoming') {
-    return `Confirm that ${participant.name} has actually arrived and hand this participant off to the alliance roster?`;
-  }
-
-  if (participant.direction === 'outgoing') {
-    return `Confirm that ${participant.name} has actually left and mark the accepted roster entry Left?`;
-  }
-
-  return `Confirm that ${participant.name} is staying? This records completion but does not change roster lifecycle state.`;
+  if (participant.direction === 'incoming')
+    return t('kingdomP7D.completeIncomingConfirm', { name: participant.name });
+  if (participant.direction === 'outgoing')
+    return t('kingdomP7D.completeOutgoingConfirm', { name: participant.name });
+  return t('kingdomP7D.completeStayingConfirm', { name: participant.name });
 }
 
 function completeParticipant(participant: Participant): void {
   if (props.plan === null || !canComplete(participant)) return;
   if (!window.confirm(confirmationText(participant))) return;
-
   const rosterEntryId = participant.direction === 'incoming' ? rosterDrafts[participant.id] : '';
-
   router.post(
     `/alliance/transfers/${props.plan.id}/participants/${participant.id}/complete`,
     { roster_entry_id: rosterEntryId || null },
     { preserveScroll: true },
   );
 }
+
+function timestamp(value: string): string {
+  return formatDate(value, { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+const inputClass =
+  'mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm text-[var(--ks-text)] disabled:cursor-not-allowed disabled:opacity-50';
 </script>
 
 <template>
-  <Head :title="`Transfer completion · ${alliance.name}`" />
+  <Head :title="`${t('kingdomP7D.completionTitle')} · ${alliance.name}`" />
 
-  <main class="mx-auto min-h-screen max-w-6xl px-6 py-12 text-slate-100 lg:px-8">
-    <header class="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <Link
-          class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
-          href="/alliance/transfers"
-        >
-          ← Transfer planning
-        </Link>
-        <h1 class="mt-3 text-3xl font-bold">Explicit transfer completion</h1>
-        <p class="mt-2 text-sm text-slate-400">
-          {{ alliance.name }} · Kingdom {{ alliance.kingdom ?? 'not set' }}
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+    <header class="flex flex-wrap items-start justify-between gap-5">
+      <div class="max-w-3xl">
+        <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+          {{ t('kingdomP7D.completionEyebrow') }}
+        </p>
+        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
+          {{ t('kingdomP7D.completionTitle') }}
+        </h1>
+        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
+          {{
+            t('kingdomP7D.completionSubtitle', {
+              alliance: alliance.name,
+              kingdom: alliance.kingdom ?? t('kingdomP7D.notConfigured'),
+            })
+          }}
         </p>
       </div>
-      <div class="flex flex-wrap gap-3">
+      <nav :aria-label="t('kingdomP7D.overviewNavigation')" class="flex flex-wrap gap-2">
         <Link
-          class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold hover:border-slate-500"
+          class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold"
+          href="/alliance/transfers"
+          >{{ t('kingdomP7D.title') }}</Link
+        >
+        <Link
+          class="rounded-lg border border-blue-400/30 px-3 py-2 text-sm font-semibold text-blue-200"
           href="/alliance/transfers/readiness"
+          >{{ t('kingdomP7D.readinessBoard') }}</Link
         >
-          Readiness board
-        </Link>
         <Link
-          class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold hover:border-slate-500"
+          class="rounded-lg bg-[var(--ks-gold)] px-3 py-2 text-sm font-bold text-slate-950"
           href="/alliance/transfers/manage"
+          >{{ t('kingdomP7D.manageTransfers') }}</Link
         >
-          Manage transfers
-        </Link>
-      </div>
+      </nav>
     </header>
 
-    <section v-if="plan" class="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+    <section
+      v-if="plan"
+      class="mt-6 grid gap-3 sm:grid-cols-4"
+      :aria-label="t('kingdomP7D.summary')"
+    >
+      <article class="ks-surface p-4">
+        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
+          {{ t('kingdomP7D.cycle') }}
+        </p>
+        <p class="mt-2 text-lg font-bold">{{ plan.label }}</p>
+        <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ stateLabel(plan.state) }}</p>
+      </article>
+      <article class="ks-surface p-4">
+        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
+          {{ t('kingdomP7D.participants') }}
+        </p>
+        <p class="mt-2 text-2xl font-bold">{{ formatNumber(participants.length) }}</p>
+      </article>
+      <article class="ks-surface p-4">
+        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
+          {{ t('kingdomP7D.readinessConfirmed') }}
+        </p>
+        <p class="mt-2 text-2xl font-bold text-green-200">
+          {{ formatNumber(completionCounts.confirmed) }}
+        </p>
+      </article>
+      <article class="ks-surface p-4">
+        <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
+          {{ t('kingdomP7D.completed') }}
+        </p>
+        <p class="mt-2 text-2xl font-bold text-green-200">
+          {{ formatNumber(completionCounts.completed) }}
+        </p>
+      </article>
+    </section>
+
+    <section v-if="plan" class="ks-surface mt-6 p-5 sm:p-6">
       <h2 class="text-xl font-semibold">{{ plan.label }}</h2>
-      <p class="mt-2 text-sm text-slate-400">
-        Home Kingdom {{ plan.homeKingdom }} · {{ stateLabel(plan.state) }}
+      <p class="mt-2 text-sm text-[var(--ks-text-muted)]">
+        {{ t('kingdomP7D.homeKingdom') }} {{ plan.homeKingdom }} · {{ stateLabel(plan.state) }}
       </p>
-      <p class="mt-4 text-sm text-slate-300">
-        Readiness confirmation is still planning state. Roster handoff happens only when a manager
-        explicitly records the real-world outcome here. Each participant is completed separately;
-        there is no automatic or bulk completion action.
+      <p class="mt-4 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">
+        {{ t('kingdomP7D.completionHelp') }}
       </p>
-      <p v-if="!plan.completable" class="mt-3 text-sm font-semibold text-amber-200">
-        Lock this transfer cycle before recording actual completion. Participant planning remains
-        editable only before the cycle is Locked.
+      <p
+        v-if="!plan.completable"
+        class="mt-3 rounded-lg border border-amber-400/25 bg-amber-500/10 p-3 text-sm font-semibold text-amber-200"
+      >
+        {{ t('kingdomP7D.completionLockedHelp') }}
       </p>
     </section>
 
-    <section v-if="plan && participants.length" class="mt-8 grid gap-6">
+    <section v-if="plan && participants.length" class="mt-6 grid gap-5">
       <article
         v-for="participant in participants"
         :key="participant.id"
-        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6"
+        class="ks-surface p-5 sm:p-6"
       >
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 class="text-xl font-semibold">{{ participant.name }}</h2>
-            <p class="mt-1 text-sm text-slate-400">
-              {{ directionLabel(participant.direction) }} · Destination
-              {{ destinationLabel(participant) }} · Readiness
-              {{ stateLabel(participant.readiness) }}
+            <p class="mt-1 text-sm text-[var(--ks-text-muted)]">
+              {{ directionLabel(participant.direction) }} · {{ t('kingdomP7D.destination') }}
+              {{ destinationLabel(participant) }} · {{ t('kingdomP7D.readiness') }}
+              {{ readinessLabel(participant.readiness) }}
             </p>
-            <p v-if="participant.gamePlayerId" class="mt-1 text-xs text-slate-500">
-              Stable game ID {{ participant.gamePlayerId }}
+            <p v-if="participant.gamePlayerId" class="mt-1 text-xs text-[var(--ks-text-muted)]">
+              {{ t('kingdomP7D.stableGameId', { id: participant.gamePlayerId }) }}
             </p>
           </div>
-          <span class="rounded-full border border-slate-700 px-3 py-1 text-sm font-semibold">
-            {{ participant.completion ? 'Completed' : 'Not completed' }}
-          </span>
+          <span
+            :class="
+              participant.completion
+                ? 'border-green-400/25 bg-green-500/10 text-green-200'
+                : 'border-[var(--ks-border)] bg-white/5 text-[var(--ks-text-secondary)]'
+            "
+            class="rounded-full border px-3 py-1 text-sm font-semibold"
+            >{{
+              participant.completion
+                ? t('kingdomP7D.completedStatus')
+                : t('kingdomP7D.notCompletedStatus')
+            }}</span
+          >
         </div>
 
         <section
           v-if="participant.completion"
-          class="mt-5 rounded-xl border border-emerald-900/70 bg-emerald-950/20 p-4"
+          class="mt-5 rounded-xl border border-green-400/20 bg-green-500/[0.06] p-4"
         >
-          <h3 class="font-semibold">Roster handoff recorded</h3>
-          <p class="mt-2 text-sm text-slate-300">
-            {{ participant.completion.completedAt }} ·
-            {{ participant.completion.completedBy?.name ?? 'Unknown actor' }}
+          <h3 class="font-semibold text-green-200">{{ t('kingdomP7D.rosterHandoffRecorded') }}</h3>
+          <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
+            {{ timestamp(participant.completion.completedAt) }} ·
+            {{ participant.completion.completedBy?.name ?? t('kingdomP7D.unknownActor') }}
           </p>
-          <p v-if="participant.completion.rosterEntry" class="mt-2 text-sm text-slate-300">
-            Roster result: {{ participant.completion.rosterEntry.name }} ·
-            {{ stateLabel(participant.completion.rosterEntry.state) }}
+          <p
+            v-if="participant.completion.rosterEntry"
+            class="mt-2 text-sm text-[var(--ks-text-secondary)]"
+          >
+            {{
+              t('kingdomP7D.rosterResult', {
+                name: participant.completion.rosterEntry.name,
+                state: stateLabel(participant.completion.rosterEntry.state),
+              })
+            }}
           </p>
-          <p class="mt-2 text-xs text-slate-500">
-            Completion is idempotent. Retrying this participant does not repeat roster lifecycle
-            mutations.
+          <p class="mt-2 text-xs leading-5 text-[var(--ks-text-muted)]">
+            {{ t('kingdomP7D.completionIdempotent') }}
           </p>
         </section>
 
-        <section v-else-if="participant.withdrawnAt !== null" class="mt-5 text-sm text-slate-400">
-          This participant was withdrawn and cannot be completed.
+        <section
+          v-else-if="participant.withdrawnAt !== null"
+          class="mt-5 rounded-xl border border-[var(--ks-border)] p-4 text-sm text-[var(--ks-text-muted)]"
+        >
+          {{ t('kingdomP7D.withdrawnCannotComplete') }}
         </section>
 
-        <section v-else class="mt-5 rounded-xl border border-slate-800 p-4">
+        <section
+          v-else
+          class="mt-5 rounded-xl border border-[var(--ks-border)] bg-white/[0.02] p-4"
+        >
           <template v-if="participant.direction === 'incoming'">
-            <label :for="`roster-result-${participant.id}`" class="block text-sm font-semibold">
-              Existing roster result (optional)
-            </label>
+            <label :for="`roster-result-${participant.id}`" class="block text-sm font-semibold">{{
+              t('kingdomP7D.existingRosterResult')
+            }}</label>
             <select
               :id="`roster-result-${participant.id}`"
               v-model="rosterDrafts[participant.id]"
               :disabled="!canComplete(participant)"
-              class="mt-2 text-slate-950"
+              :class="inputClass"
             >
-              <option value="">Create a new accepted roster entry</option>
+              <option value="">{{ t('kingdomP7D.createAcceptedRosterEntry') }}</option>
               <option
                 v-for="option in eligibleRosterOptions(participant)"
                 :key="option.id"
                 :value="option.id"
               >
-                {{ option.name }} · {{ stateLabel(option.state) }}
-                {{ option.gamePlayerId ? `· ID ${option.gamePlayerId}` : '' }}
+                {{ option.name }} · {{ stateLabel(option.state)
+                }}{{ option.gamePlayerId ? ` · ID ${option.gamePlayerId}` : '' }}
               </option>
             </select>
-            <p class="mt-2 text-xs text-slate-500">
-              Existing roster entries are selected explicitly. The system never links an incoming
-              player by display name alone. Existing accepted roster/private fields are preserved.
+            <p class="mt-2 text-xs leading-5 text-[var(--ks-text-muted)]">
+              {{ t('kingdomP7D.incomingRosterHelp') }}
             </p>
           </template>
-
-          <p v-if="participant.direction === 'outgoing'" class="text-sm text-slate-300">
-            Completion delegates to the accepted roster mark-left action. Existing snapshots and
-            neutral identity are preserved.
+          <p
+            v-if="participant.direction === 'outgoing'"
+            class="text-sm leading-6 text-[var(--ks-text-secondary)]"
+          >
+            {{ t('kingdomP7D.outgoingCompletionHelp') }}
           </p>
-          <p v-if="participant.direction === 'staying'" class="text-sm text-slate-300">
-            Completion records the planning outcome only. It performs no roster lifecycle mutation.
+          <p
+            v-if="participant.direction === 'staying'"
+            class="text-sm leading-6 text-[var(--ks-text-secondary)]"
+          >
+            {{ t('kingdomP7D.stayingCompletionHelp') }}
           </p>
 
           <button
-            class="mt-4"
+            class="mt-4 rounded-lg bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40"
             :disabled="!canComplete(participant)"
             type="button"
             @click="completeParticipant(participant)"
           >
-            Record actual completion
+            {{ t('kingdomP7D.recordCompletion') }}
           </button>
-          <p v-if="participant.readiness !== 'confirmed'" class="mt-2 text-xs text-amber-200">
-            This participant must be explicitly Confirmed before completion.
+          <p
+            v-if="participant.readiness !== 'confirmed'"
+            class="mt-2 text-xs font-semibold text-amber-200"
+          >
+            {{ t('kingdomP7D.mustConfirm') }}
           </p>
         </section>
       </article>
     </section>
 
-    <section v-else-if="plan" class="mt-8 rounded-2xl border border-slate-800 p-6">
-      <p>No participants are recorded for this transfer cycle.</p>
-    </section>
-
-    <section v-else class="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-      <h2 class="text-xl font-semibold">No current transfer cycle</h2>
-      <p class="mt-2 text-sm text-slate-400">
-        Create and manage a transfer cycle before recording completion.
+    <section v-else-if="plan" class="ks-surface mt-6 p-6">
+      <p class="text-sm text-[var(--ks-text-muted)]">
+        {{ t('kingdomP7D.noCompletionParticipants') }}
       </p>
     </section>
-  </main>
+    <section v-else class="ks-surface mt-6 p-6">
+      <h2 class="text-xl font-semibold">{{ t('kingdomP7D.noCompletionCycle') }}</h2>
+      <p class="mt-2 text-sm text-[var(--ks-text-muted)]">
+        {{ t('kingdomP7D.noCompletionCycleHelp') }}
+      </p>
+    </section>
+  </AppLayout>
 </template>

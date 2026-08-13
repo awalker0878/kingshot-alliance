@@ -196,6 +196,9 @@ const base = {
   blockerResolved: 'Resolved',
   groupActive: 'Active',
   groupArchived: 'Archived',
+  rosterActive: 'Active',
+  rosterTracked: 'Tracked',
+  rosterLeft: 'Left',
 } as const;
 
 type Copy = { [K in keyof typeof base]: string };
@@ -268,9 +271,27 @@ const overrides: Partial<Record<LocaleCode, PartialCopy>> = {
     completionTitle: 'Finalisation explicite du transfert',
   },
   id: { title: 'Perencanaan transfer', readinessBoard: 'Kesiapan', completion: 'Penyelesaian' },
-  it: { title: 'Pianificazione trasferimenti', readinessBoard: 'Preparazione', completion: 'Completamento' },
-  ja: { title: '移転計画', readinessBoard: '準備状況', completion: '完了', incoming: '受入', outgoing: '転出', staying: '残留' },
-  ko: { title: '이전 계획', readinessBoard: '준비 상태', completion: '완료', incoming: '유입', outgoing: '유출', staying: '잔류' },
+  it: {
+    title: 'Pianificazione trasferimenti',
+    readinessBoard: 'Preparazione',
+    completion: 'Completamento',
+  },
+  ja: {
+    title: '移転計画',
+    readinessBoard: '準備状況',
+    completion: '完了',
+    incoming: '受入',
+    outgoing: '転出',
+    staying: '残留',
+  },
+  ko: {
+    title: '이전 계획',
+    readinessBoard: '준비 상태',
+    completion: '완료',
+    incoming: '유입',
+    outgoing: '유출',
+    staying: '잔류',
+  },
   pl: { title: 'Planowanie transferów', readinessBoard: 'Gotowość', completion: 'Zakończenie' },
   'pt-BR': {
     title: 'Planejamento de transferências',
@@ -289,9 +310,27 @@ const overrides: Partial<Record<LocaleCode, PartialCopy>> = {
   ru: { title: 'Планирование переходов', readinessBoard: 'Готовность', completion: 'Завершение' },
   th: { title: 'การวางแผนย้าย', readinessBoard: 'ความพร้อม', completion: 'เสร็จสิ้น' },
   tr: { title: 'Transfer planlaması', readinessBoard: 'Hazırlık', completion: 'Tamamlama' },
-  vi: { title: 'Lập kế hoạch chuyển vương quốc', readinessBoard: 'Sẵn sàng', completion: 'Hoàn tất' },
-  'zh-CN': { title: '转服规划', readinessBoard: '准备状态', completion: '完成', incoming: '转入', outgoing: '转出', staying: '留守' },
-  'zh-TW': { title: '轉服規劃', readinessBoard: '準備狀態', completion: '完成', incoming: '轉入', outgoing: '轉出', staying: '留守' },
+  vi: {
+    title: 'Lập kế hoạch chuyển vương quốc',
+    readinessBoard: 'Sẵn sàng',
+    completion: 'Hoàn tất',
+  },
+  'zh-CN': {
+    title: '转服规划',
+    readinessBoard: '准备状态',
+    completion: '完成',
+    incoming: '转入',
+    outgoing: '转出',
+    staying: '留守',
+  },
+  'zh-TW': {
+    title: '轉服規劃',
+    readinessBoard: '準備狀態',
+    completion: '完成',
+    incoming: '轉入',
+    outgoing: '轉出',
+    staying: '留守',
+  },
 };
 
 const locales: LocaleCode[] = [

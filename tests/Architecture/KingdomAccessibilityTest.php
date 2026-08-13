@@ -26,6 +26,10 @@ final class KingdomAccessibilityTest extends TestCase
             'KingdomAllianceIntelligence.vue',
             'KingdomSharing.vue',
             'KingdomSharingManage.vue',
+            'TransferPlans.vue',
+            'TransferPlansManage.vue',
+            'TransferReadinessManage.vue',
+            'TransferCompletionManage.vue',
         ];
 
         foreach ([
@@ -186,7 +190,7 @@ final class KingdomAccessibilityTest extends TestCase
 
         self::assertStringContainsString(':for="`roster-result-${participant.id}`"', $completion);
         self::assertStringContainsString(':id="`roster-result-${participant.id}`"', $completion);
-        self::assertStringContainsString('Record actual completion', $completion);
+        self::assertStringContainsString("t('kingdomP7D.recordCompletion')", $completion);
     }
 
     public function test_roster_transfer_and_kingdom_alliance_tables_keep_narrow_viewport_overflow(): void
