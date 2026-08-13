@@ -27,9 +27,10 @@ function closeMobile(): void {
     <header
       class="sticky top-0 z-40 border-b border-[var(--ks-border)] bg-[rgba(5,11,20,0.9)] backdrop-blur-xl"
     >
-      <div class="mx-auto flex min-h-18 max-w-7xl items-center justify-between gap-4 px-5 py-3 lg:px-8">
+      <div class="mx-auto flex min-h-18 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-5 lg:px-8">
         <Link href="/" class="min-w-0 shrink" aria-label="Kingshot Alliance home" @click="closeMobile">
-          <BrandMark />
+          <BrandMark class="hidden sm:inline-flex" />
+          <BrandMark compact class="sm:hidden" />
         </Link>
 
         <div class="hidden items-center gap-3 sm:flex">
@@ -48,10 +49,10 @@ function closeMobile(): void {
           </Link>
         </div>
 
-        <div class="flex items-center gap-2 sm:hidden">
+        <div class="flex min-w-0 items-center gap-2 sm:hidden">
           <LocaleSwitcher />
           <button
-            class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg-elevated)]"
+            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg-elevated)]"
             type="button"
             :aria-label="mobileOpen ? t('common.closeNavigation') : t('common.openNavigation')"
             :aria-expanded="mobileOpen"
