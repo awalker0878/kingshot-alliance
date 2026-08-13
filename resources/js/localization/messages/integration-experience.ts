@@ -1,0 +1,86 @@
+import type { LocaleCode } from '../locales';
+
+const base = {
+  eyebrow: 'Alliance integrations',
+  title: 'API credentials & webhooks',
+  subtitle: 'Manage scoped API access, signed webhook subscriptions, platform limits, and recent delivery outcomes for {alliance}.',
+  activeCredentials: 'Active credentials',
+  credentialLimit: 'Credential limit',
+  activeWebhooks: 'Active webhooks',
+  webhookLimit: 'Webhook limit',
+  recentDeliveries: 'Recent deliveries',
+  saveCredentialNow: 'Save this API credential now',
+  credentialOneTime: 'The token cannot be retrieved again after this response.',
+  saveWebhookNow: 'Save this webhook signing secret now',
+  webhookOneTime: 'Use this secret to verify the X-Kingshot-Signature header. It cannot be retrieved again.',
+  apiCredentials: 'API credentials',
+  apiEnabled: 'API access is enabled.',
+  apiDisabled: 'API access is disabled by the platform.',
+  apiLimitHelp: 'Up to {limit} active credentials are allowed by the current entitlement.',
+  createCredential: 'Create credential',
+  name: 'Name',
+  expiresAt: 'Expires at',
+  optional: 'Optional',
+  scopes: 'Scopes',
+  prefix: 'Prefix',
+  lastUsed: 'Last used',
+  never: 'Never',
+  state: 'State',
+  active: 'Active',
+  revoked: 'Revoked',
+  revoke: 'Revoke',
+  noCredentials: 'No API credentials have been created.',
+  webhookSubscriptions: 'Webhook subscriptions',
+  webhooksEnabled: 'Webhooks are enabled.',
+  webhooksDisabled: 'Webhooks are disabled by the platform.',
+  webhookLimitHelp: 'Up to {limit} active subscriptions are allowed. HTTPS endpoints are required.',
+  createWebhook: 'Create webhook',
+  httpsEndpoint: 'HTTPS endpoint',
+  events: 'Events',
+  eventsHelp: 'Comma or newline separated',
+  noWebhooks: 'No webhook subscriptions have been created.',
+  deliveryLog: 'Recent delivery log',
+  deliveryHelp: 'Latest recorded webhook delivery attempts. This view does not trigger retries.',
+  event: 'Event',
+  status: 'Status',
+  attempts: 'Attempts',
+  responseCode: 'HTTP',
+  lastAttempt: 'Last attempt',
+  deliveredAt: 'Delivered',
+  lastError: 'Last error',
+  noError: 'No recorded error',
+  noDeliveries: 'No webhook deliveries have been recorded.',
+  enabled: 'Enabled',
+  disabled: 'Disabled',
+} as const;
+
+type IntegrationCopy = { [K in keyof typeof base]: string };
+type PartialCopy = Partial<IntegrationCopy>;
+
+const overrides: Partial<Record<LocaleCode, PartialCopy>> = {
+  ar: { eyebrow: 'تكاملات التحالف', title: 'بيانات API وخطافات الويب', activeCredentials: 'بيانات الاعتماد النشطة', activeWebhooks: 'خطافات الويب النشطة', recentDeliveries: 'عمليات التسليم الأخيرة', apiCredentials: 'بيانات اعتماد API', createCredential: 'إنشاء بيانات اعتماد', webhookSubscriptions: 'اشتراكات خطاف الويب', createWebhook: 'إنشاء خطاف ويب', deliveryLog: 'سجل التسليم الأخير', event: 'الحدث', status: 'الحالة', attempts: 'المحاولات', lastError: 'آخر خطأ', revoke: 'إلغاء' },
+  de: { eyebrow: 'Allianz-Integrationen', title: 'API-Zugangsdaten & Webhooks', activeCredentials: 'Aktive Zugangsdaten', activeWebhooks: 'Aktive Webhooks', recentDeliveries: 'Letzte Zustellungen', apiCredentials: 'API-Zugangsdaten', createCredential: 'Zugangsdaten erstellen', webhookSubscriptions: 'Webhook-Abonnements', createWebhook: 'Webhook erstellen', deliveryLog: 'Letztes Zustellprotokoll', event: 'Ereignis', status: 'Status', attempts: 'Versuche', lastError: 'Letzter Fehler', revoke: 'Widerrufen' },
+  es: { eyebrow: 'Integraciones de la alianza', title: 'Credenciales API y webhooks', activeCredentials: 'Credenciales activas', activeWebhooks: 'Webhooks activos', recentDeliveries: 'Entregas recientes', apiCredentials: 'Credenciales API', createCredential: 'Crear credencial', webhookSubscriptions: 'Suscripciones webhook', createWebhook: 'Crear webhook', deliveryLog: 'Registro de entregas recientes', event: 'Evento', status: 'Estado', attempts: 'Intentos', lastError: 'Último error', revoke: 'Revocar' },
+  fr: { eyebrow: 'Intégrations de l’alliance', title: 'Identifiants API et webhooks', activeCredentials: 'Identifiants actifs', activeWebhooks: 'Webhooks actifs', recentDeliveries: 'Livraisons récentes', apiCredentials: 'Identifiants API', createCredential: 'Créer un identifiant', webhookSubscriptions: 'Abonnements webhook', createWebhook: 'Créer un webhook', deliveryLog: 'Journal des livraisons récentes', event: 'Événement', status: 'Statut', attempts: 'Tentatives', lastError: 'Dernière erreur', revoke: 'Révoquer' },
+  id: { eyebrow: 'Integrasi aliansi', title: 'Kredensial API & webhook', activeCredentials: 'Kredensial aktif', activeWebhooks: 'Webhook aktif', recentDeliveries: 'Pengiriman terbaru', apiCredentials: 'Kredensial API', createCredential: 'Buat kredensial', webhookSubscriptions: 'Langganan webhook', createWebhook: 'Buat webhook', deliveryLog: 'Log pengiriman terbaru', event: 'Peristiwa', status: 'Status', attempts: 'Percobaan', lastError: 'Error terakhir', revoke: 'Cabut' },
+  it: { eyebrow: 'Integrazioni alleanza', title: 'Credenziali API e webhook', activeCredentials: 'Credenziali attive', activeWebhooks: 'Webhook attivi', recentDeliveries: 'Consegne recenti', apiCredentials: 'Credenziali API', createCredential: 'Crea credenziale', webhookSubscriptions: 'Sottoscrizioni webhook', createWebhook: 'Crea webhook', deliveryLog: 'Registro consegne recenti', event: 'Evento', status: 'Stato', attempts: 'Tentativi', lastError: 'Ultimo errore', revoke: 'Revoca' },
+  ja: { eyebrow: '同盟インテグレーション', title: 'API認証情報とWebhook', activeCredentials: '有効な認証情報', activeWebhooks: '有効なWebhook', recentDeliveries: '最近の配信', apiCredentials: 'API認証情報', createCredential: '認証情報を作成', webhookSubscriptions: 'Webhook購読', createWebhook: 'Webhookを作成', deliveryLog: '最近の配信ログ', event: 'イベント', status: '状態', attempts: '試行回数', lastError: '最新エラー', revoke: '無効化' },
+  ko: { eyebrow: '연맹 통합', title: 'API 자격 증명 및 웹훅', activeCredentials: '활성 자격 증명', activeWebhooks: '활성 웹훅', recentDeliveries: '최근 전송', apiCredentials: 'API 자격 증명', createCredential: '자격 증명 생성', webhookSubscriptions: '웹훅 구독', createWebhook: '웹훅 생성', deliveryLog: '최근 전송 로그', event: '이벤트', status: '상태', attempts: '시도', lastError: '최근 오류', revoke: '취소' },
+  pl: { eyebrow: 'Integracje sojuszu', title: 'Poświadczenia API i webhooki', activeCredentials: 'Aktywne poświadczenia', activeWebhooks: 'Aktywne webhooki', recentDeliveries: 'Ostatnie dostarczenia', apiCredentials: 'Poświadczenia API', createCredential: 'Utwórz poświadczenie', webhookSubscriptions: 'Subskrypcje webhook', createWebhook: 'Utwórz webhook', deliveryLog: 'Dziennik ostatnich dostarczeń', event: 'Zdarzenie', status: 'Status', attempts: 'Próby', lastError: 'Ostatni błąd', revoke: 'Unieważnij' },
+  'pt-BR': { eyebrow: 'Integrações da aliança', title: 'Credenciais de API e webhooks', activeCredentials: 'Credenciais ativas', activeWebhooks: 'Webhooks ativos', recentDeliveries: 'Entregas recentes', apiCredentials: 'Credenciais de API', createCredential: 'Criar credencial', webhookSubscriptions: 'Assinaturas de webhook', createWebhook: 'Criar webhook', deliveryLog: 'Registro de entregas recentes', event: 'Evento', status: 'Status', attempts: 'Tentativas', lastError: 'Último erro', revoke: 'Revogar' },
+  ru: { eyebrow: 'Интеграции альянса', title: 'Учётные данные API и вебхуки', activeCredentials: 'Активные учётные данные', activeWebhooks: 'Активные вебхуки', recentDeliveries: 'Последние доставки', apiCredentials: 'Учётные данные API', createCredential: 'Создать учётные данные', webhookSubscriptions: 'Подписки вебхуков', createWebhook: 'Создать вебхук', deliveryLog: 'Журнал последних доставок', event: 'Событие', status: 'Статус', attempts: 'Попытки', lastError: 'Последняя ошибка', revoke: 'Отозвать' },
+  th: { eyebrow: 'การเชื่อมต่อพันธมิตร', title: 'ข้อมูลรับรอง API และเว็บฮุก', activeCredentials: 'ข้อมูลรับรองที่ใช้งาน', activeWebhooks: 'เว็บฮุกที่ใช้งาน', recentDeliveries: 'การส่งล่าสุด', apiCredentials: 'ข้อมูลรับรอง API', createCredential: 'สร้างข้อมูลรับรอง', webhookSubscriptions: 'การสมัครเว็บฮุก', createWebhook: 'สร้างเว็บฮุก', deliveryLog: 'บันทึกการส่งล่าสุด', event: 'เหตุการณ์', status: 'สถานะ', attempts: 'จำนวนครั้ง', lastError: 'ข้อผิดพลาดล่าสุด', revoke: 'เพิกถอน' },
+  tr: { eyebrow: 'İttifak entegrasyonları', title: 'API kimlik bilgileri ve webhooklar', activeCredentials: 'Etkin kimlik bilgileri', activeWebhooks: 'Etkin webhooklar', recentDeliveries: 'Son teslimatlar', apiCredentials: 'API kimlik bilgileri', createCredential: 'Kimlik bilgisi oluştur', webhookSubscriptions: 'Webhook abonelikleri', createWebhook: 'Webhook oluştur', deliveryLog: 'Son teslimat günlüğü', event: 'Olay', status: 'Durum', attempts: 'Denemeler', lastError: 'Son hata', revoke: 'İptal et' },
+  vi: { eyebrow: 'Tích hợp liên minh', title: 'Thông tin API và webhook', activeCredentials: 'Thông tin xác thực đang hoạt động', activeWebhooks: 'Webhook đang hoạt động', recentDeliveries: 'Lần gửi gần đây', apiCredentials: 'Thông tin xác thực API', createCredential: 'Tạo thông tin xác thực', webhookSubscriptions: 'Đăng ký webhook', createWebhook: 'Tạo webhook', deliveryLog: 'Nhật ký gửi gần đây', event: 'Sự kiện', status: 'Trạng thái', attempts: 'Lần thử', lastError: 'Lỗi gần nhất', revoke: 'Thu hồi' },
+  'zh-CN': { eyebrow: '联盟集成', title: 'API 凭据与 Webhook', activeCredentials: '有效凭据', activeWebhooks: '有效 Webhook', recentDeliveries: '最近投递', apiCredentials: 'API 凭据', createCredential: '创建凭据', webhookSubscriptions: 'Webhook 订阅', createWebhook: '创建 Webhook', deliveryLog: '最近投递日志', event: '事件', status: '状态', attempts: '尝试次数', lastError: '最近错误', revoke: '撤销' },
+  'zh-TW': { eyebrow: '聯盟整合', title: 'API 憑證與 Webhook', activeCredentials: '有效憑證', activeWebhooks: '有效 Webhook', recentDeliveries: '最近投遞', apiCredentials: 'API 憑證', createCredential: '建立憑證', webhookSubscriptions: 'Webhook 訂閱', createWebhook: '建立 Webhook', deliveryLog: '最近投遞記錄', event: '事件', status: '狀態', attempts: '嘗試次數', lastError: '最近錯誤', revoke: '撤銷' },
+};
+
+export type IntegrationMessageTree = { integrationExperience: IntegrationCopy };
+
+export const integrationMessages: Record<LocaleCode, IntegrationMessageTree> = Object.fromEntries(
+  (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as LocaleCode[]).map((locale) => [
+    locale,
+    { integrationExperience: { ...base, ...(overrides[locale] ?? {}) } },
+  ]),
+) as Record<LocaleCode, IntegrationMessageTree>;
