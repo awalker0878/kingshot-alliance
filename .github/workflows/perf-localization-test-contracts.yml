@@ -46,10 +46,24 @@ jobs:
               brace = source.index('{', start)
               depth = 0
               end = None
+              quote = None
+              escaped = False
               for i in range(brace, len(source)):
-                  if source[i] == '{':
+                  char = source[i]
+                  if quote is not None:
+                      if escaped:
+                          escaped = False
+                      elif char == '\\':
+                          escaped = True
+                      elif char == quote:
+                          quote = None
+                      continue
+                  if char in (chr(39), chr(34)):
+                      quote = char
+                      continue
+                  if char == '{':
                       depth += 1
-                  elif source[i] == '}':
+                  elif char == '}':
                       depth -= 1
                       if depth == 0:
                           end = i
@@ -126,8 +140,8 @@ jobs:
                   foreach (['KingdomAllianceController.php', 'KingdomSettingsController.php', 'KingdomIngestionController.php'] as $controller) {
                       $source = file_get_contents($root.'/app/Domain/Kingdoms/Http/Controllers/'.$controller);
                       self::assertIsString($source);
-                      self::assertStringContainsString("'name' => (string) $user->name", $source);
-                      self::assertStringContainsString("'email' => (string) $user->email", $source);
+                      self::assertStringContainsString("'name' => (string) \\$user->name", $source);
+                      self::assertStringContainsString("'email' => (string) \\$user->email", $source);
                   }
               }'''
           replace_method(
