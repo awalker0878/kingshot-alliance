@@ -1,0 +1,43 @@
+name: UX P5A2 Restore Controller
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .github/workflows/ux-p5a2-restore-controller.yml
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ux/ux-001-experience-localization
+          fetch-depth: 0
+      - name: Restore last-green controller and add presentation user prop
+        run: |
+          path='app/Domain/Events/Http/Controllers/EventCalendarController.php'
+          git show c04d5029ff84745288f6d1b41158ff43b72e1203:"$path" > "$path"
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('app/Domain/Events/Http/Controllers/EventCalendarController.php')
+          text = path.read_text()
+          needle = "        return Inertia::render('Alliance/Events/Show', [\n            'alliance' => ["
+          replacement = "        return Inertia::render('Alliance/Events/Show', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' => ["
+          if text.count(needle) != 1:
+              raise SystemExit(f'Expected one Show payload insertion point, found {text.count(needle)}')
+          path.write_text(text.replace(needle, replacement, 1))
+          PY
+      - name: Commit exact controller restoration
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/Domain/Events/Http/Controllers/EventCalendarController.php
+          git diff --cached --quiet && exit 0
+          git commit -m "Restore UX-P5 event controller contract"
+          git push origin HEAD:ux/ux-001-experience-localization
