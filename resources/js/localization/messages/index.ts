@@ -5,6 +5,7 @@ import { applicationExtraMessages } from './app-extra';
 import { authExtraMessages } from './auth-extra';
 import { additionalCatalogues } from './catalogues';
 import en from './en';
+import { eventCoordinatorMessages } from './event-coordinator';
 import { eventDetailMessages } from './event-detail';
 import { publicExtraMessages } from './public-extra';
 import { publicMessages } from './public';
@@ -18,6 +19,7 @@ type AccountExperienceMessageTree = (typeof accountExperienceMessages)['en'];
 type AllianceOperationsMessageTree = (typeof allianceOperationsMessages)['en'];
 type ApplicationExtraMessageTree = (typeof applicationExtraMessages)['en'];
 type AuthExtraMessageTree = (typeof authExtraMessages)['en'];
+type EventCoordinatorMessageTree = (typeof eventCoordinatorMessages)['en'];
 type EventDetailMessageTree = (typeof eventDetailMessages)['en'];
 type PublicMessageTree = (typeof publicMessages)['en'];
 type PublicExtraMessageTree = (typeof publicExtraMessages)['en'];
@@ -27,6 +29,7 @@ export type MessageTree = BaseMessageTree &
   AllianceOperationsMessageTree &
   ApplicationExtraMessageTree &
   AuthExtraMessageTree &
+  EventCoordinatorMessageTree &
   EventDetailMessageTree &
   PublicMessageTree &
   PublicExtraMessageTree;
@@ -45,6 +48,7 @@ export const messages = Object.fromEntries(
       ...allianceOperationsMessages[locale],
       ...applicationExtraMessages[locale],
       ...authExtraMessages[locale],
+      ...eventCoordinatorMessages[locale],
       ...eventDetailMessages[locale],
       ...publicMessages[locale],
       ...publicExtraMessages[locale],
