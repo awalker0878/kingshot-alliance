@@ -71,9 +71,9 @@ final class EventCoordinatorExperienceTest extends TestCase
         $source = $this->read('app/Domain/Events/Http/Controllers/EventManagementController.php');
 
         self::assertStringContainsString("Inertia::render('Alliance/Events/Manage'", $source);
-        self::assertStringContainsString("'name' => (string) $user->name", $source);
-        self::assertStringContainsString("'email' => (string) $user->email", $source);
-        self::assertStringContainsString("PermissionKey::EventManage", $source);
+        self::assertStringContainsString("'name' => (string) \$user->name", $source);
+        self::assertStringContainsString("'email' => (string) \$user->email", $source);
+        self::assertStringContainsString('PermissionKey::EventManage', $source);
     }
 
     /** @return list<string> */
