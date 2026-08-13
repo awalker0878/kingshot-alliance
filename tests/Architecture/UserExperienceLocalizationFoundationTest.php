@@ -48,8 +48,10 @@ final class UserExperienceLocalizationFoundationTest extends TestCase
             self::assertStringContainsString("'".$locale."'", $locales, $locale);
 
             if ($locale !== 'en') {
-                self::assertStringContainsString('"'.$locale.'":', $catalogues, $locale);
+                $this->assertTypeScriptObjectKey($catalogues, $locale);
             }
+
+            $this->assertTypeScriptObjectKey($publicExtra, $locale);
         }
 
         self::assertStringContainsString("code: 'ar'", $locales);
@@ -229,6 +231,15 @@ final class UserExperienceLocalizationFoundationTest extends TestCase
         self::assertStringContainsString('answerError(question.id)', $page);
         self::assertStringNotContainsString('Google', $page);
         self::assertStringNotContainsString('Magic link', $page);
+    }
+
+    private function assertTypeScriptObjectKey(string $source, string $key): void
+    {
+        self::assertMatchesRegularExpression(
+            '/(?:^|\s)[\'\"]?'.preg_quote($key, '/').'[\'\"]?\s*:/m',
+            $source,
+            $key,
+        );
     }
 
     private function read(string $path): string
