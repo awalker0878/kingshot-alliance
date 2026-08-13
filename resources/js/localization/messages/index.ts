@@ -21,7 +21,8 @@ type StringLeaves<T> = {
 const contributionCopy = {
   eyebrow: 'Alliance contributions',
   title: 'Contributions & progress',
-  subtitle: 'Recorded facts, approved progress, corrections, and calculation details for {alliance}.',
+  subtitle:
+    'Recorded facts, approved progress, corrections, and calculation details for {alliance}.',
   manageReporting: 'Manage reporting',
   overview: 'Contributions overview',
   activeCategories: 'Active categories',
@@ -61,7 +62,8 @@ const contributionCopy = {
   noApprovedRecords: 'No approved records for this period.',
   memberView: 'Member view',
   managerTitle: 'Contribution reporting',
-  managerSubtitle: 'Explainable records, attendance reconciliation, data quality, exports, and scheduled reporting for {alliance}.',
+  managerSubtitle:
+    'Explainable records, attendance reconciliation, data quality, exports, and scheduled reporting for {alliance}.',
   exportCsv: 'CSV export',
   exportSpreadsheet: 'Spreadsheet export',
   operationalMetrics: 'Operational reporting metrics',
@@ -93,7 +95,8 @@ const contributionCopy = {
   selectMember: 'Select member',
   recordPending: 'Record pending contribution',
   attendanceQuality: 'Attendance & data quality',
-  attendanceQualityHelp: 'Derived records use the category calculation version; refreshing flags never changes contribution totals.',
+  attendanceQualityHelp:
+    'Derived records use the category calculation version; refreshing flags never changes contribution totals.',
   reconcileAttendance: 'Reconcile attendance',
   refreshQuality: 'Refresh data quality',
   resolve: 'Resolve',
