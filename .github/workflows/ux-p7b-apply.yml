@@ -1,0 +1,243 @@
+name: UX P7B apply
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .ux-p7b-apply-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out UX branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ux/ux-001-experience-localization
+          fetch-depth: 0
+
+      - name: Apply P7-B presentation wiring
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          def once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f'missing expected text in {path}: {old[:80]!r}')
+              p.write_text(text.replace(old, new, 1))
+
+          def many(path: str, pairs: list[tuple[str, str]]) -> None:
+              p = Path(path)
+              text = p.read_text()
+              for old, new in pairs:
+                  text = text.replace(old, new)
+              p.write_text(text)
+
+          index = 'resources/js/localization/messages/index.ts'
+          once(index, "import { kingdomP7AMessages } from './kingdom-p7a';", "import { kingdomP7AMessages } from './kingdom-p7a';\nimport { kingdomP7BMessages } from './kingdom-p7b';")
+          once(index, "type KingdomP7AMessageTree = (typeof kingdomP7AMessages)['en'];", "type KingdomP7AMessageTree = (typeof kingdomP7AMessages)['en'];\ntype KingdomP7BMessageTree = (typeof kingdomP7BMessages)['en'];")
+          once(index, "  KingdomP7AMessageTree &", "  KingdomP7AMessageTree &\n  KingdomP7BMessageTree &")
+          once(index, "    ...kingdomP7AMessages[locale],", "    ...kingdomP7AMessages[locale],\n    ...kingdomP7BMessages[locale],")
+
+          for path, render in [
+              ('app/Domain/Kingdoms/Http/Controllers/KingdomAllianceDiplomacyController.php', "Alliance/KingdomAllianceDiplomacy"),
+              ('app/Domain/Kingdoms/Http/Controllers/KingdomAllianceDiplomacyContactController.php', "Alliance/KingdomAllianceDiplomacyContacts"),
+              ('app/Domain/Kingdoms/Http/Controllers/KingdomAllianceObservationController.php', "Alliance/KingdomAllianceHistory"),
+              ('app/Domain/Kingdoms/Http/Controllers/KingdomAllianceIntelligenceController.php', "Alliance/KingdomAllianceIntelligence"),
+          ]:
+              once(path, f"        return Inertia::render('{render}', [\n            'alliance' =>", f"        return Inertia::render('{render}', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' =>")
+
+          access = 'tests/Architecture/KingdomAccessibilityTest.php'
+          once(access, "            'KingdomIngestionManage.vue',\n        ];", "            'KingdomIngestionManage.vue',\n            'KingdomAllianceHistory.vue',\n            'KingdomAllianceDiplomacy.vue',\n            'KingdomAllianceDiplomacyContacts.vue',\n            'KingdomAllianceIntelligence.vue',\n        ];")
+
+          contacts = 'resources/js/pages/Alliance/KingdomAllianceDiplomacyContacts.vue'
+          once(contacts, "import { ref } from 'vue';", "import { computed, ref } from 'vue';\n\nimport AppLayout from '../../layouts/AppLayout.vue';\nimport { useLocale } from '../../localization';")
+          once(contacts, "const props = defineProps<{\n  alliance:", "const props = defineProps<{\n  user: { name: string; email: string };\n  alliance:")
+          once(contacts, "const editingId = ref<string | null>(null);", "const { t, formatDate: localeDate, formatNumber } = useLocale();\nconst editingId = ref<string | null>(null);\nconst activeCount = computed(() => props.contacts.filter((contact) => contact.state === 'active').length);")
+          text = Path(contacts).read_text()
+          text = re.sub(r"function formatDate\(value: string \| null\): string \{.*?\n\}", "function formatDate(value: string | null): string {\n  return value === null ? t('kingdomP7B.notSet') : localeDate(value, { dateStyle: 'medium', timeStyle: 'short' });\n}", text, flags=re.S)
+          text = re.sub(r"function channelLabel\(value: string\): string \{.*?\n\}", "function channelLabel(value: string): string {\n  if (value === 'in_game') return t('kingdomP7B.inGame');\n  if (value === 'discord') return t('kingdomP7B.discord');\n  if (value === 'other_handle') return t('kingdomP7B.otherHandle');\n  return props.channels.find((channel) => channel.value === value)?.label ?? value;\n}", text, flags=re.S)
+          text = text.replace("if (!window.confirm(`Deactivate ${contact.displayName} as a diplomacy contact?`)) return;", "if (!window.confirm(t('kingdomP7B.deactivateConfirm', { name: contact.displayName }))) return;")
+          Path(contacts).write_text(text)
+          many(contacts, [
+              ('<Head :title="`Diplomacy contacts · ${tracking.name}`" />', '<Head :title="`${t(\'kingdomP7B.contactsTitle\', { alliance: tracking.name })} · ${alliance.name}`" />'),
+              ('<main class="mx-auto min-h-screen max-w-6xl px-6 py-12 lg:px-8">', '<AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">'),
+              ('</main>\n</template>', '</AppLayout>\n</template>'),
+              ('Diplomacy coordination', "{{ t('kingdomP7B.contactsEyebrow') }}"),
+              ('{{ tracking.name }} contacts', "{{ t('kingdomP7B.contactsTitle', { alliance: tracking.name }) }}"),
+              ('Diplomacy contacts', "{{ t('kingdomP7B.contacts') }}"),
+              ('Observation history', "{{ t('kingdomP7B.observationHistory') }}"),
+              ('Tracking workspace', "{{ t('kingdomP7B.trackingWorkspace') }}"),
+              ('Add contact', "{{ t('kingdomP7B.addContact') }}"),
+              ('Edit contact', "{{ t('kingdomP7B.editContact') }}"),
+              ('Display name', "{{ t('kingdomP7B.displayName') }}"),
+              ('Game-side role/title', "{{ t('kingdomP7B.gameRole') }}"),
+              ('Contact channel', "{{ t('kingdomP7B.contactChannel') }}"),
+              ('Handle / identifier', "{{ t('kingdomP7B.handle') }}"),
+              ('Last verified', "{{ t('kingdomP7B.lastVerified') }}"),
+              ('Private manager notes', "{{ t('kingdomP7B.managerNotes') }}"),
+              ('Save contact', "{{ t('kingdomP7B.saveContact') }}"),
+              ('Cancel edit', "{{ t('kingdomP7B.cancelEdit') }}"),
+              ('Private contact directory', "{{ t('kingdomP7B.directory') }}"),
+              ('Contact</th>', "{{ t('kingdomP7B.contact') }}</th>"),
+              ('Channel</th>', "{{ t('kingdomP7B.channel') }}</th>"),
+              ('Verification</th>', "{{ t('kingdomP7B.verification') }}</th>"),
+              ('Lifecycle</th>', "{{ t('kingdomP7B.lifecycle') }}</th>"),
+              ('Actions</th>', "{{ t('kingdomP7B.actions') }}</th>"),
+              ('Edit\n', "{{ t('kingdomP7B.edit') }}\n"),
+              ('Deactivate\n', "{{ t('kingdomP7B.deactivate') }}\n"),
+              ('rounded-2xl border border-slate-800 bg-slate-900/70', 'ks-surface'),
+              ('rounded-lg border border-slate-700 bg-slate-950 px-3 py-2', 'ks-input'),
+              ('bg-cyan-300 px-4 py-2 font-semibold text-slate-950', 'bg-[var(--ks-blue)] px-4 py-2 font-semibold text-white'),
+              ('text-cyan-300', 'text-[var(--ks-gold)]'),
+              ('text-slate-400', 'text-[var(--ks-text-secondary)]'),
+              ('text-slate-500', 'text-[var(--ks-text-muted)]'),
+              ('border-slate-800', 'border-[var(--ks-border)]'),
+          ])
+          once(contacts, "    <div class=\"mt-8 rounded-xl border border-amber-900", "    <section class=\"mt-6 grid gap-3 sm:grid-cols-3\" aria-label=\"Contact summary\">\n      <article class=\"ks-surface p-4\"><p class=\"text-xs font-semibold text-[var(--ks-text-muted)] uppercase\">{{ t('kingdomP7B.directory') }}</p><p class=\"mt-2 text-2xl font-bold\">{{ formatNumber(contacts.length) }}</p><p class=\"mt-1 text-xs text-[var(--ks-text-muted)]\">{{ t('kingdomP7B.contactLimit', { count: contactLimit }) }}</p></article>\n      <article class=\"ks-surface p-4\"><p class=\"text-xs font-semibold text-[var(--ks-text-muted)] uppercase\">{{ t('kingdomP7B.active') }}</p><p class=\"mt-2 text-2xl font-bold text-green-200\">{{ formatNumber(activeCount) }}</p></article>\n      <article class=\"ks-surface p-4\"><p class=\"text-xs font-semibold text-[var(--ks-text-muted)] uppercase\">{{ t('kingdomP7B.inactive') }}</p><p class=\"mt-2 text-2xl font-bold\">{{ formatNumber(contacts.length - activeCount) }}</p></article>\n    </section>\n\n    <div class=\"mt-4 rounded-xl border border-amber-900")
+
+          history = 'resources/js/pages/Alliance/KingdomAllianceHistory.vue'
+          once(history, "import { computed, ref } from 'vue';", "import { computed, ref } from 'vue';\n\nimport AppLayout from '../../layouts/AppLayout.vue';\nimport { useLocale } from '../../localization';")
+          once(history, "const props = defineProps<{\n  alliance:", "const props = defineProps<{\n  user: { name: string; email: string };\n  alliance:")
+          once(history, "const recordForm = useForm({", "const { t, formatDate: localeDate, formatNumber } = useLocale();\n\nconst recordForm = useForm({")
+          text = Path(history).read_text()
+          text = re.sub(r"function formatDate\(value: string\): string \{.*?\n\}", "function formatDate(value: string): string {\n  return localeDate(value, { dateStyle: 'medium', timeStyle: 'short' });\n}", text, flags=re.S)
+          Path(history).write_text(text)
+          many(history, [
+              ('<Head :title="`${tracking.name} observation history`" />', '<Head :title="`${t(\'kingdomP7B.historyTitle\', { alliance: tracking.name })} · ${alliance.name}`" />'),
+              ('<main class="mx-auto min-h-screen max-w-6xl px-6 py-12 lg:px-8">', '<AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">'),
+              ('</main>\n</template>', '</AppLayout>\n</template>'),
+              ('{{ tracking.name }} observation history', "{{ t('kingdomP7B.historyTitle', { alliance: tracking.name }) }}"),
+              ('Freshness', "{{ t('kingdomP7B.freshness') }}"),
+              ('Latest power', "{{ t('kingdomP7B.latestPower') }}"),
+              ('Latest members', "{{ t('kingdomP7B.latestMembers') }}"),
+              ('Record observation', "{{ t('kingdomP7B.recordObservation') }}"),
+              ('Record correction', "{{ t('kingdomP7B.recordCorrection') }}"),
+              ('Cancel correction', "{{ t('kingdomP7B.cancelCorrection') }}"),
+              ('Observed name', "{{ t('kingdomP7B.observedName') }}"),
+              ('Observed tag', "{{ t('kingdomP7B.observedTag') }}"),
+              ('Member count', "{{ t('kingdomP7B.members') }}"),
+              ('Captured at', "{{ t('kingdomP7B.capturedAt') }}"),
+              ('Correction reason', "{{ t('kingdomP7B.correctionReason') }}"),
+              ('Historical observations', "{{ t('kingdomP7B.historicalObservations') }}"),
+              ('Captured</th>', "{{ t('kingdomP7B.capturedAt') }}</th>"),
+              ('Power</th>', "{{ t('kingdomP7B.power') }}</th>"),
+              ('Members</th>', "{{ t('kingdomP7B.members') }}</th>"),
+              ('Provenance</th>', "{{ t('kingdomP7B.provenance') }}</th>"),
+              ('Actions</th>', "{{ t('kingdomP7B.actions') }}</th>"),
+              ('Invalidated', "{{ t('kingdomP7B.invalidated') }}"),
+              ('Correct\n', "{{ t('kingdomP7B.correct') }}\n"),
+              ('Invalidate\n', "{{ t('kingdomP7B.invalidate') }}\n"),
+              ('rounded-2xl border border-slate-800 bg-slate-900/70', 'ks-surface'),
+              ('rounded-lg border border-slate-700 bg-slate-950 px-3 py-2', 'ks-input'),
+              ('bg-cyan-300 px-4 py-2 font-semibold text-slate-950', 'bg-[var(--ks-blue)] px-4 py-2 font-semibold text-white'),
+              ('text-cyan-300', 'text-[var(--ks-gold)]'),
+              ('text-slate-400', 'text-[var(--ks-text-secondary)]'),
+              ('text-slate-500', 'text-[var(--ks-text-muted)]'),
+              ('border-slate-800', 'border-[var(--ks-border)]'),
+          ])
+          once(history, "{{ latest?.memberCount ?? 'missing' }}", "{{ latest?.memberCount === null || latest?.memberCount === undefined ? t('kingdomP7B.missing') : formatNumber(latest.memberCount) }}")
+          once(history, "{{ latest?.power ?? 'missing' }}", "{{ latest?.power ?? t('kingdomP7B.missing') }}")
+
+          intel = 'resources/js/pages/Alliance/KingdomAllianceIntelligence.vue'
+          once(intel, "import { reactive } from 'vue';", "import { reactive } from 'vue';\n\nimport AppLayout from '../../layouts/AppLayout.vue';\nimport { useLocale } from '../../localization';")
+          once(intel, "const props = defineProps<{\n  alliance:", "const props = defineProps<{\n  user: { name: string; email: string };\n  alliance:")
+          once(intel, "const filters = reactive<Filters>({ ...props.intelligence.filters });", "const { t, formatDate: localeDate, formatNumber } = useLocale();\nconst filters = reactive<Filters>({ ...props.intelligence.filters });")
+          text = Path(intel).read_text()
+          text = re.sub(r"function formatDate\(value: string \| null\): string \{.*?\n\}", "function formatDate(value: string | null): string {\n  return value === null ? t('kingdomP7B.notSet') : localeDate(value, { dateStyle: 'medium', timeStyle: 'short' });\n}", text, flags=re.S)
+          text = re.sub(r"function stateLabel\(value: string\): string \{.*?\n\}", "function stateLabel(value: string): string {\n  if (value === 'unknown') return t('kingdomP7B.unknown');\n  if (value === 'neutral') return t('kingdomP7B.neutral');\n  if (value === 'friendly') return t('kingdomP7B.friendly');\n  if (value === 'nap') return t('kingdomP7B.nap');\n  if (value === 'ally') return t('kingdomP7B.ally');\n  if (value === 'rival') return t('kingdomP7B.rival');\n  return value.charAt(0).toUpperCase() + value.slice(1).replaceAll('_', ' ');\n}", text, flags=re.S)
+          text = re.sub(r"function changeText\(change: Change \| null\): string \{.*?\n\}", "function changeText(change: Change | null): string {\n  if (change === null) return t('kingdomP7B.insufficientHistory');\n  return `Power ${formatSignedDecimal(change.powerChange)} · Members ${formatSignedNumber(change.memberChange)} · ${t('kingdomP7B.baseline', { date: formatDate(change.baselineCapturedAt) })}`;\n}", text, flags=re.S)
+          Path(intel).write_text(text)
+          many(intel, [
+              ('<Head :title="`Alliance intelligence · ${alliance.name}`" />', '<Head :title="`${t(\'kingdomP7B.intelligenceTitle\')} · ${alliance.name}`" />'),
+              ('<main class="mx-auto min-h-screen max-w-7xl px-6 py-12 text-slate-100 lg:px-8">', '<AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">'),
+              ('</main>\n</template>', '</AppLayout>\n</template>'),
+              ('Alliance intelligence', "{{ t('kingdomP7B.intelligenceTitle') }}"),
+              ('Active tracked alliances', "{{ t('kingdomP7B.activeTracked') }}"),
+              ('Current observations', "{{ t('kingdomP7B.currentObservations') }}"),
+              ('Stale / missing observations', "{{ t('kingdomP7B.staleMissing') }}"),
+              ('Relationships requiring review', "{{ t('kingdomP7B.relationshipsReview') }}"),
+              ('Current diplomacy states', "{{ t('kingdomP7B.diplomacyStates') }}"),
+              ('Tracked alliances with an active contact', "{{ t('kingdomP7B.activeContact') }}"),
+              ('Tracked alliances with contact verification due', "{{ t('kingdomP7B.verificationDue') }}"),
+              ('Manager-private diagnostic only.', "{{ t('kingdomP7B.managerDiagnostic') }}"),
+              ('Filter and factual sorting', "{{ t('kingdomP7B.filtersTitle') }}"),
+              ('Tracking state', "{{ t('kingdomP7B.trackingState') }}"),
+              ('Observation freshness', "{{ t('kingdomP7B.observationFreshness') }}"),
+              ('Diplomacy state', "{{ t('kingdomP7B.diplomacyState') }}"),
+              ('Sort by', "{{ t('kingdomP7B.sortBy') }}"),
+              ('Direction', "{{ t('kingdomP7B.direction') }}"),
+              ('>Apply<', ">{{ t('kingdomP7B.apply') }}<"),
+              ('>Reset<', ">{{ t('kingdomP7B.reset') }}<"),
+              ('How descriptive trend windows work', "{{ t('kingdomP7B.trendRules') }}"),
+              ('Descriptive alliance detail', "{{ t('kingdomP7B.allianceIntelligence') }}"),
+              ('Alliance</th>', "{{ t('kingdomP7B.name') }}</th>"),
+              ('Latest facts</th>', "{{ t('kingdomP7B.latestFacts') }}</th>"),
+              ('Prior change</th>', "{{ t('kingdomP7B.priorChange') }}</th>"),
+              ('7-day change</th>', "{{ t('kingdomP7B.sevenDay') }}</th>"),
+              ('30-day change</th>', "{{ t('kingdomP7B.thirtyDay') }}</th>"),
+              ('Diplomacy</th>', "{{ t('kingdomP7B.diplomacy') }}</th>"),
+              ('Private contacts</th>', "{{ t('kingdomP7B.contactsColumn') }}</th>"),
+              ('Manage tracking', "{{ t('kingdomP7B.manageTracking') }}"),
+              ('rounded-2xl border border-slate-800 bg-slate-900/60', 'ks-surface'),
+              ('rounded-lg border border-slate-700 bg-slate-950 px-3 py-2', 'ks-input'),
+              ('bg-cyan-300 px-4 py-2 font-semibold text-slate-950', 'bg-[var(--ks-blue)] px-4 py-2 font-semibold text-white'),
+              ('text-cyan-300', 'text-[var(--ks-gold)]'),
+              ('text-cyan-200', 'text-[var(--ks-gold)]'),
+              ('text-slate-400', 'text-[var(--ks-text-secondary)]'),
+              ('text-slate-500', 'text-[var(--ks-text-muted)]'),
+              ('border-slate-800', 'border-[var(--ks-border)]'),
+          ])
+          once(intel, '<div v-if="intelligence.rows.length" class="overflow-x-auto">', '<div v-if="intelligence.rows.length" class="overflow-x-auto">')
+
+          PY
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Format frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npx prettier --write \
+            resources/js/pages/Alliance/KingdomAllianceDiplomacy.vue \
+            resources/js/pages/Alliance/KingdomAllianceDiplomacyContacts.vue \
+            resources/js/pages/Alliance/KingdomAllianceHistory.vue \
+            resources/js/pages/Alliance/KingdomAllianceIntelligence.vue \
+            resources/js/localization/messages/index.ts \
+            resources/js/localization/messages/kingdom-p7b.ts
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Format PHP
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          vendor/bin/pint \
+            app/Domain/Kingdoms/Http/Controllers/KingdomAllianceDiplomacyController.php \
+            app/Domain/Kingdoms/Http/Controllers/KingdomAllianceDiplomacyContactController.php \
+            app/Domain/Kingdoms/Http/Controllers/KingdomAllianceObservationController.php \
+            app/Domain/Kingdoms/Http/Controllers/KingdomAllianceIntelligenceController.php \
+            tests/Architecture/KingdomAccessibilityTest.php
+
+      - name: Commit P7-B implementation
+        run: |
+          git config user.name awalker0878
+          git config user.email 52688461+awalker0878@users.noreply.github.com
+          git add app/Domain/Kingdoms/Http/Controllers resources/js/pages/Alliance/KingdomAllianceDiplomacy.vue resources/js/pages/Alliance/KingdomAllianceDiplomacyContacts.vue resources/js/pages/Alliance/KingdomAllianceHistory.vue resources/js/pages/Alliance/KingdomAllianceIntelligence.vue resources/js/localization/messages/index.ts resources/js/localization/messages/kingdom-p7b.ts tests/Architecture/KingdomAccessibilityTest.php
+          git commit -m "Implement UX-P7-B diplomacy and intelligence experience"
+          git push origin HEAD:ux/ux-001-experience-localization
