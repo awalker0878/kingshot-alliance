@@ -4,6 +4,7 @@ import { allianceOperationsMessages } from './alliance-operations';
 import { applicationExtraMessages } from './app-extra';
 import { authExtraMessages } from './auth-extra';
 import { additionalCatalogues } from './catalogues';
+import { contentMessages } from './content-experience';
 import { contributionLocaleOverrides2 } from './contribution-extra-2';
 import { contributionLocaleOverrides3 } from './contribution-extra-3';
 import { contributionLocaleOverrides4 } from './contribution-extra-4';
@@ -158,6 +159,7 @@ const contributionOverrides = {
 };
 
 type BaseMessageTree = StringLeaves<typeof en>;
+type ContentMessageTree = (typeof contentMessages)['en'];
 type AccountExperienceMessageTree = (typeof accountExperienceMessages)['en'];
 type AllianceOperationsMessageTree = (typeof allianceOperationsMessages)['en'];
 type ApplicationExtraMessageTree = (typeof applicationExtraMessages)['en'];
@@ -173,6 +175,7 @@ type RosterWorkflowMessageTree = (typeof rosterWorkflowMessages)['en'];
 type ContributionMessageTree = { contributions: { [K in keyof typeof contributionCopy]: string } };
 
 export type MessageTree = BaseMessageTree &
+  ContentMessageTree &
   AccountExperienceMessageTree &
   AllianceOperationsMessageTree &
   ApplicationExtraMessageTree &
@@ -195,6 +198,7 @@ const baseMessages: Record<LocaleCode, BaseMessageTree> = {
 function catalogue(locale: LocaleCode) {
   return {
     ...baseMessages[locale],
+    ...contentMessages[locale],
     ...accountExperienceMessages[locale],
     ...allianceOperationsMessages[locale],
     ...applicationExtraMessages[locale],
