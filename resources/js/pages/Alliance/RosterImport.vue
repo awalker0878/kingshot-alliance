@@ -96,7 +96,9 @@ function commitImport(): void {
 }
 
 function formatBytes(bytes: number): string {
-  return new Intl.NumberFormat(locale.value, { maximumFractionDigits: 0 }).format(bytes / 1024) + ' KiB';
+  return (
+    new Intl.NumberFormat(locale.value, { maximumFractionDigits: 0 }).format(bytes / 1024) + ' KiB'
+  );
 }
 
 function formatPower(value: string): string {
@@ -139,7 +141,9 @@ function statusTone(status: string): string {
         <p class="mt-4 text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
           {{ t('roster.eyebrow', { kingdom: alliance.kingdom ?? t('roster.kingdomNotSet') }) }}
         </p>
-        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">{{ t('rosterImport.title') }}</h1>
+        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">
+          {{ t('rosterImport.title') }}
+        </h1>
         <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">
           {{ t('rosterImport.subtitle') }}
         </p>
@@ -215,7 +219,9 @@ function statusTone(status: string): string {
         <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
           {{ t('rosterImport.requiredColumns') }}
         </p>
-        <code class="mt-3 block overflow-x-auto rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/25 p-3 text-xs text-[var(--ks-text-secondary)]">
+        <code
+          class="mt-3 block overflow-x-auto rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/25 p-3 text-xs text-[var(--ks-text-secondary)]"
+        >
           {{ schema.headers.join(',') }}
         </code>
         <p class="mt-4 text-xs leading-5 text-[var(--ks-text-muted)]">
@@ -226,12 +232,16 @@ function statusTone(status: string): string {
 
     <template v-if="importRecord">
       <section class="ks-surface-gold mt-6 overflow-hidden">
-        <div class="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--ks-border)] p-4 sm:p-5">
+        <div
+          class="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--ks-border)] p-4 sm:p-5"
+        >
           <div class="min-w-0">
             <h2 class="ks-display truncate text-xl font-semibold">
               {{ t('rosterImport.preview', { filename: importRecord.filename }) }}
             </h2>
-            <p class="mt-1 truncate text-xs text-[var(--ks-text-muted)]">SHA-256 {{ importRecord.checksum }}</p>
+            <p class="mt-1 truncate text-xs text-[var(--ks-text-muted)]">
+              SHA-256 {{ importRecord.checksum }}
+            </p>
           </div>
           <span
             :class="statusTone(importRecord.status)"
@@ -241,26 +251,50 @@ function statusTone(status: string): string {
           </span>
         </div>
 
-        <dl class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] sm:grid-cols-5 sm:divide-y-0">
+        <dl
+          class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] sm:grid-cols-5 sm:divide-y-0"
+        >
           <div class="p-4">
-            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase">{{ t('rosterImport.rows') }}</dt>
-            <dd class="ks-display mt-2 text-2xl font-semibold">{{ formatNumber(importRecord.rowCount) }}</dd>
+            <dt
+              class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
+            >
+              {{ t('rosterImport.rows') }}
+            </dt>
+            <dd class="ks-display mt-2 text-2xl font-semibold">
+              {{ formatNumber(importRecord.rowCount) }}
+            </dd>
           </div>
           <div class="p-4">
-            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-green-300 uppercase">{{ t('rosterImport.creates') }}</dt>
-            <dd class="ks-display mt-2 text-2xl font-semibold">{{ formatNumber(importRecord.createCount) }}</dd>
+            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-green-300 uppercase">
+              {{ t('rosterImport.creates') }}
+            </dt>
+            <dd class="ks-display mt-2 text-2xl font-semibold">
+              {{ formatNumber(importRecord.createCount) }}
+            </dd>
           </div>
           <div class="p-4">
-            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-blue-300 uppercase">{{ t('rosterImport.updates') }}</dt>
-            <dd class="ks-display mt-2 text-2xl font-semibold">{{ formatNumber(importRecord.updateCount) }}</dd>
+            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-blue-300 uppercase">
+              {{ t('rosterImport.updates') }}
+            </dt>
+            <dd class="ks-display mt-2 text-2xl font-semibold">
+              {{ formatNumber(importRecord.updateCount) }}
+            </dd>
           </div>
           <div class="p-4">
-            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-amber-300 uppercase">{{ t('rosterImport.ambiguous') }}</dt>
-            <dd class="ks-display mt-2 text-2xl font-semibold">{{ formatNumber(importRecord.ambiguousCount) }}</dd>
+            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-amber-300 uppercase">
+              {{ t('rosterImport.ambiguous') }}
+            </dt>
+            <dd class="ks-display mt-2 text-2xl font-semibold">
+              {{ formatNumber(importRecord.ambiguousCount) }}
+            </dd>
           </div>
           <div class="col-span-2 p-4 sm:col-span-1">
-            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-red-300 uppercase">{{ t('rosterImport.rejected') }}</dt>
-            <dd class="ks-display mt-2 text-2xl font-semibold">{{ formatNumber(importRecord.rejectedCount) }}</dd>
+            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-red-300 uppercase">
+              {{ t('rosterImport.rejected') }}
+            </dt>
+            <dd class="ks-display mt-2 text-2xl font-semibold">
+              {{ formatNumber(importRecord.rejectedCount) }}
+            </dd>
           </div>
         </dl>
       </section>
@@ -290,7 +324,9 @@ function statusTone(status: string): string {
           >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
-                <p class="text-xs text-[var(--ks-text-muted)]">{{ t('rosterImport.csvRow') }} {{ row.row }}</p>
+                <p class="text-xs text-[var(--ks-text-muted)]">
+                  {{ t('rosterImport.csvRow') }} {{ row.row }}
+                </p>
                 <p class="mt-1 truncate font-semibold">{{ row.data.name }}</p>
                 <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
                   {{ row.data.game_player_id ?? t('rosterImport.gameIdNotSupplied') }}
@@ -334,17 +370,24 @@ function statusTone(status: string): string {
                   }}
                 </option>
               </select>
-              <p v-else-if="row.outcome === 'update'" class="text-sm text-[var(--ks-text-secondary)]">
+              <p
+                v-else-if="row.outcome === 'update'"
+                class="text-sm text-[var(--ks-text-secondary)]"
+              >
                 {{ t('rosterImport.stableMatch', { entry: row.target_entry_id ?? '—' }) }}
               </p>
-              <p v-else class="text-sm text-[var(--ks-text-secondary)]">{{ t('rosterImport.newIdentity') }}</p>
+              <p v-else class="text-sm text-[var(--ks-text-secondary)]">
+                {{ t('rosterImport.newIdentity') }}
+              </p>
             </div>
           </article>
         </div>
 
         <div v-if="importRecord.rows.length" class="hidden overflow-x-auto lg:block">
           <table class="w-full min-w-[64rem] text-sm">
-            <thead class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase">
+            <thead
+              class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
+            >
               <tr>
                 <th class="px-4 py-3 text-start">{{ t('rosterImport.csvRow') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('roster.player') }}</th>
@@ -355,7 +398,11 @@ function statusTone(status: string): string {
               </tr>
             </thead>
             <tbody class="divide-y divide-[var(--ks-border)]">
-              <tr v-for="row in importRecord.rows" :key="row.row" class="align-top transition hover:bg-white/[0.025]">
+              <tr
+                v-for="row in importRecord.rows"
+                :key="row.row"
+                class="align-top transition hover:bg-white/[0.025]"
+              >
                 <td class="px-4 py-4 text-[var(--ks-text-muted)]">{{ row.row }}</td>
                 <td class="px-4 py-4">
                   <span class="font-semibold">{{ row.data.name }}</span>
@@ -400,10 +447,15 @@ function statusTone(status: string): string {
                       }}
                     </option>
                   </select>
-                  <span v-else-if="row.outcome === 'update'" class="text-[var(--ks-text-secondary)]">
+                  <span
+                    v-else-if="row.outcome === 'update'"
+                    class="text-[var(--ks-text-secondary)]"
+                  >
                     {{ t('rosterImport.stableMatch', { entry: row.target_entry_id ?? '—' }) }}
                   </span>
-                  <span v-else class="text-[var(--ks-text-secondary)]">{{ t('rosterImport.newIdentity') }}</span>
+                  <span v-else class="text-[var(--ks-text-secondary)]">{{
+                    t('rosterImport.newIdentity')
+                  }}</span>
                 </td>
               </tr>
             </tbody>
@@ -420,13 +472,19 @@ function statusTone(status: string): string {
         </p>
         <button
           class="mt-3 min-h-10 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--ks-blue-strong)] disabled:opacity-60"
-          :disabled="commitForm.processing || importRecord.rejectedCount > 0 || unresolvedAmbiguous > 0"
+          :disabled="
+            commitForm.processing || importRecord.rejectedCount > 0 || unresolvedAmbiguous > 0
+          "
           type="button"
           @click="commitImport"
         >
           {{ t('rosterImport.confirmAtomic') }}
         </button>
-        <p v-if="Object.keys(commitForm.errors).length" class="mt-3 text-sm text-red-300" role="alert">
+        <p
+          v-if="Object.keys(commitForm.errors).length"
+          class="mt-3 text-sm text-red-300"
+          role="alert"
+        >
           {{ t('rosterImport.commitError') }}
         </p>
       </section>

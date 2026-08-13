@@ -107,7 +107,7 @@ function recordSnapshot(): void {
 
   <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-4">
-      <div class="min-w-0 max-w-3xl">
+      <div class="max-w-3xl min-w-0">
         <Link
           class="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-white"
           href="/alliance/roster"
@@ -119,16 +119,25 @@ function recordSnapshot(): void {
         </p>
         <h1 class="ks-display mt-2 truncate text-3xl font-bold sm:text-4xl">{{ entry.name }}</h1>
         <div class="mt-3 flex flex-wrap gap-2">
-          <span class="rounded-full border border-[var(--ks-border)] bg-black/15 px-2.5 py-1 text-xs text-[var(--ks-text-secondary)]">
+          <span
+            class="rounded-full border border-[var(--ks-border)] bg-black/15 px-2.5 py-1 text-xs text-[var(--ks-text-secondary)]"
+          >
             {{ t('roster.gameId') }}: {{ entry.gamePlayerId ?? t('rosterManage.unknown') }}
           </span>
-          <span v-if="entry.gameRole" class="rounded-full border border-purple-400/20 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-200">
+          <span
+            v-if="entry.gameRole"
+            class="rounded-full border border-purple-400/20 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-200"
+          >
             {{ entry.gameRole }}
           </span>
-          <span class="rounded-full border border-blue-400/20 bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-200">
+          <span
+            class="rounded-full border border-blue-400/20 bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-200"
+          >
             {{ stateLabel(entry.state) }}
           </span>
-          <span class="rounded-full border border-[var(--ks-border)] bg-black/15 px-2.5 py-1 text-xs text-[var(--ks-text-secondary)]">
+          <span
+            class="rounded-full border border-[var(--ks-border)] bg-black/15 px-2.5 py-1 text-xs text-[var(--ks-text-secondary)]"
+          >
             {{ entry.membership?.name ?? t('roster.unlinked') }}
           </span>
         </div>
@@ -143,9 +152,13 @@ function recordSnapshot(): void {
     </header>
 
     <section class="ks-surface-gold mt-6 overflow-hidden" :aria-label="t('rosterHistory.title')">
-      <div class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] md:grid-cols-4 md:divide-y-0">
+      <div
+        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] md:grid-cols-4 md:divide-y-0"
+      >
         <article class="p-4 sm:p-5">
-          <p class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
             {{ t('roster.snapshotState') }}
           </p>
           <span
@@ -156,7 +169,9 @@ function recordSnapshot(): void {
           </span>
         </article>
         <article class="p-4 sm:p-5">
-          <p class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
             {{ t('rosterManage.latestPower') }}
           </p>
           <p class="ks-display mt-2 text-3xl font-semibold text-[var(--ks-gold-strong)]">
@@ -164,16 +179,24 @@ function recordSnapshot(): void {
           </p>
         </article>
         <article class="p-4 sm:p-5">
-          <p class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
             {{ t('roster.progression') }}
           </p>
-          <p class="ks-display mt-2 text-2xl font-semibold">{{ latest?.progressionLevel ?? '—' }}</p>
+          <p class="ks-display mt-2 text-2xl font-semibold">
+            {{ latest?.progressionLevel ?? '—' }}
+          </p>
         </article>
         <article class="p-4 sm:p-5">
-          <p class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
             {{ t('roster.allianceTag') }}
           </p>
-          <p class="ks-display mt-2 text-2xl font-semibold">{{ latest?.observedAllianceTag ?? '—' }}</p>
+          <p class="ks-display mt-2 text-2xl font-semibold">
+            {{ latest?.observedAllianceTag ?? '—' }}
+          </p>
         </article>
       </div>
     </section>
@@ -185,7 +208,7 @@ function recordSnapshot(): void {
     <div class="mt-6 grid gap-5 xl:grid-cols-3">
       <section
         v-if="canManage"
-        class="ks-surface p-5 sm:p-6 xl:col-span-1 xl:self-start xl:sticky xl:top-24"
+        class="ks-surface p-5 sm:p-6 xl:sticky xl:top-24 xl:col-span-1 xl:self-start"
         aria-labelledby="record-snapshot"
       >
         <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
@@ -200,7 +223,10 @@ function recordSnapshot(): void {
 
         <form class="mt-5 space-y-4" @submit.prevent="recordSnapshot">
           <div>
-            <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="snapshot-name">
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="snapshot-name"
+            >
               {{ t('rosterHistory.observedPlayerName') }}
             </label>
             <input
@@ -212,7 +238,10 @@ function recordSnapshot(): void {
             />
           </div>
           <div>
-            <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="snapshot-power">
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="snapshot-power"
+            >
               {{ t('roster.power') }}
             </label>
             <input
@@ -229,7 +258,10 @@ function recordSnapshot(): void {
             </p>
           </div>
           <div>
-            <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="snapshot-level">
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="snapshot-level"
+            >
               {{ t('roster.progression') }}
             </label>
             <input
@@ -251,7 +283,10 @@ function recordSnapshot(): void {
             />
           </div>
           <div>
-            <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="snapshot-captured">
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="snapshot-captured"
+            >
               {{ t('rosterHistory.capturedAt') }}
             </label>
             <input
@@ -261,7 +296,11 @@ function recordSnapshot(): void {
               type="datetime-local"
               required
             />
-            <p v-if="snapshotForm.errors.captured_at" class="mt-1 text-sm text-red-300" role="alert">
+            <p
+              v-if="snapshotForm.errors.captured_at"
+              class="mt-1 text-sm text-red-300"
+              role="alert"
+            >
               {{ snapshotForm.errors.captured_at }}
             </p>
           </div>
@@ -275,14 +314,19 @@ function recordSnapshot(): void {
         </form>
       </section>
 
-      <section class="ks-surface min-w-0 overflow-hidden" :class="canManage ? 'xl:col-span-2' : 'xl:col-span-3'">
+      <section
+        class="ks-surface min-w-0 overflow-hidden"
+        :class="canManage ? 'xl:col-span-2' : 'xl:col-span-3'"
+      >
         <div class="border-b border-[var(--ks-border)] p-4 sm:p-5">
           <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
                 {{ t('rosterHistory.historyHeading') }}
               </p>
-              <h2 class="ks-display mt-1 text-xl font-semibold">{{ formatNumber(snapshots.length) }}</h2>
+              <h2 class="ks-display mt-1 text-xl font-semibold">
+                {{ formatNumber(snapshots.length) }}
+              </h2>
             </div>
             <p class="max-w-xl text-xs leading-5 text-[var(--ks-text-muted)]">
               {{ t('rosterHistory.historyHelp') }}
@@ -299,10 +343,14 @@ function recordSnapshot(): void {
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
                 <p class="truncate font-semibold">{{ snapshot.observedName }}</p>
-                <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ formatCaptured(snapshot.capturedAt) }}</p>
+                <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                  {{ formatCaptured(snapshot.capturedAt) }}
+                </p>
               </div>
               <p class="shrink-0 text-end">
-                <span class="block text-[0.65rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase">
+                <span
+                  class="block text-[0.65rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
+                >
                   {{ t('roster.power') }}
                 </span>
                 <strong class="mt-1 block text-base">{{ formatPower(snapshot.power) }}</strong>
@@ -311,11 +359,15 @@ function recordSnapshot(): void {
             <dl class="mt-4 grid grid-cols-2 gap-3 text-xs">
               <div>
                 <dt class="text-[var(--ks-text-muted)]">{{ t('roster.progression') }}</dt>
-                <dd class="mt-1 text-[var(--ks-text-secondary)]">{{ snapshot.progressionLevel ?? '—' }}</dd>
+                <dd class="mt-1 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.progressionLevel ?? '—' }}
+                </dd>
               </div>
               <div>
                 <dt class="text-[var(--ks-text-muted)]">{{ t('roster.allianceTag') }}</dt>
-                <dd class="mt-1 text-[var(--ks-text-secondary)]">{{ snapshot.observedAllianceTag ?? '—' }}</dd>
+                <dd class="mt-1 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.observedAllianceTag ?? '—' }}
+                </dd>
               </div>
               <div>
                 <dt class="text-[var(--ks-text-muted)]">{{ t('rosterHistory.source') }}</dt>
@@ -323,7 +375,9 @@ function recordSnapshot(): void {
               </div>
               <div v-if="canManage">
                 <dt class="text-[var(--ks-text-muted)]">{{ t('rosterHistory.recordedBy') }}</dt>
-                <dd class="mt-1 text-[var(--ks-text-secondary)]">{{ snapshot.actorName ?? '—' }}</dd>
+                <dd class="mt-1 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.actorName ?? '—' }}
+                </dd>
               </div>
             </dl>
           </article>
@@ -331,7 +385,9 @@ function recordSnapshot(): void {
 
         <div v-if="snapshots.length" class="hidden overflow-x-auto lg:block">
           <table class="w-full min-w-[58rem] text-sm">
-            <thead class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase">
+            <thead
+              class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
+            >
               <tr>
                 <th class="px-4 py-3 text-start">{{ t('rosterHistory.capturedAt') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('roster.player') }}</th>
@@ -339,18 +395,32 @@ function recordSnapshot(): void {
                 <th class="px-4 py-3 text-start">{{ t('roster.progression') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('roster.allianceTag') }}</th>
                 <th class="px-4 py-3 text-start">{{ t('rosterHistory.source') }}</th>
-                <th v-if="canManage" class="px-4 py-3 text-start">{{ t('rosterHistory.recordedBy') }}</th>
+                <th v-if="canManage" class="px-4 py-3 text-start">
+                  {{ t('rosterHistory.recordedBy') }}
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[var(--ks-border)]">
-              <tr v-for="snapshot in snapshots" :key="snapshot.id" class="transition hover:bg-white/[0.025]">
-                <td class="px-4 py-3.5 text-xs text-[var(--ks-text-muted)]">{{ formatCaptured(snapshot.capturedAt) }}</td>
+              <tr
+                v-for="snapshot in snapshots"
+                :key="snapshot.id"
+                class="transition hover:bg-white/[0.025]"
+              >
+                <td class="px-4 py-3.5 text-xs text-[var(--ks-text-muted)]">
+                  {{ formatCaptured(snapshot.capturedAt) }}
+                </td>
                 <td class="px-4 py-3.5 font-semibold">{{ snapshot.observedName }}</td>
                 <td class="px-4 py-3.5 font-semibold">{{ formatPower(snapshot.power) }}</td>
-                <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">{{ snapshot.progressionLevel ?? '—' }}</td>
-                <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">{{ snapshot.observedAllianceTag ?? '—' }}</td>
+                <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.progressionLevel ?? '—' }}
+                </td>
+                <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.observedAllianceTag ?? '—' }}
+                </td>
                 <td class="px-4 py-3.5 text-[var(--ks-text-secondary)]">{{ snapshot.source }}</td>
-                <td v-if="canManage" class="px-4 py-3.5 text-[var(--ks-text-secondary)]">{{ snapshot.actorName ?? '—' }}</td>
+                <td v-if="canManage" class="px-4 py-3.5 text-[var(--ks-text-secondary)]">
+                  {{ snapshot.actorName ?? '—' }}
+                </td>
               </tr>
             </tbody>
           </table>

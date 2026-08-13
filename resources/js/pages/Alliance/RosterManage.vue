@@ -169,7 +169,10 @@ function stateTone(value: string): string {
       </Link>
     </header>
 
-    <section class="ks-surface-gold mt-6 grid gap-px overflow-hidden bg-[var(--ks-border)] md:grid-cols-2" aria-label="Roster linkage gaps">
+    <section
+      class="ks-surface-gold mt-6 grid gap-px overflow-hidden bg-[var(--ks-border)] md:grid-cols-2"
+      aria-label="Roster linkage gaps"
+    >
       <article class="bg-[var(--ks-surface-1)] p-5 sm:p-6">
         <p class="text-xs font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
           {{ t('rosterManage.profilesWithoutMembership') }}
@@ -185,21 +188,29 @@ function stateTone(value: string): string {
         <p class="ks-display mt-3 text-4xl font-semibold">
           {{ formatNumber(gaps.membershipsWithoutRoster.length) }}
         </p>
-        <ul v-if="gaps.membershipsWithoutRoster.length" class="mt-4 space-y-2 text-sm text-[var(--ks-text-secondary)]">
+        <ul
+          v-if="gaps.membershipsWithoutRoster.length"
+          class="mt-4 space-y-2 text-sm text-[var(--ks-text-secondary)]"
+        >
           <li
             v-for="membership in gaps.membershipsWithoutRoster"
             :key="membership.id"
             class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2"
           >
             <span class="font-semibold text-[var(--ks-text)]">{{ membership.name }}</span>
-            <span class="block truncate text-xs text-[var(--ks-text-muted)]">{{ membership.email }}</span>
+            <span class="block truncate text-xs text-[var(--ks-text-muted)]">{{
+              membership.email
+            }}</span>
           </li>
         </ul>
       </article>
     </section>
 
     <div class="mt-6 grid gap-5 xl:grid-cols-3">
-      <section class="ks-surface p-5 sm:p-6 xl:col-span-1 xl:self-start xl:sticky xl:top-24" aria-labelledby="add-roster-player">
+      <section
+        class="ks-surface p-5 sm:p-6 xl:sticky xl:top-24 xl:col-span-1 xl:self-start"
+        aria-labelledby="add-roster-player"
+      >
         <div class="border-b border-[var(--ks-border)] pb-4">
           <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
             {{ t('rosterManage.addPlayer') }}
@@ -217,13 +228,16 @@ function stateTone(value: string): string {
             <input
               id="roster-name"
               v-model="createForm.name"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--ks-blue-strong)]"
+              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm transition outline-none focus:border-[var(--ks-blue-strong)]"
               maxlength="160"
               required
             />
           </div>
           <div>
-            <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-game-id">
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="roster-game-id"
+            >
               {{ t('rosterManage.stableGameId') }}
             </label>
             <input
@@ -234,7 +248,10 @@ function stateTone(value: string): string {
             />
           </div>
           <div>
-            <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-member">
+            <label
+              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+              for="roster-member"
+            >
               {{ t('rosterManage.applicationMember') }}
             </label>
             <select
@@ -267,7 +284,10 @@ function stateTone(value: string): string {
           </div>
           <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-state">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-state"
+              >
                 {{ t('roster.state') }}
               </label>
               <select
@@ -275,11 +295,16 @@ function stateTone(value: string): string {
                 v-model="createForm.state"
                 class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
               >
-                <option v-for="state in states" :key="state" :value="state">{{ stateLabel(state) }}</option>
+                <option v-for="state in states" :key="state" :value="state">
+                  {{ stateLabel(state) }}
+                </option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-joined">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-joined"
+              >
                 {{ t('rosterManage.joinedDate') }}
               </label>
               <input
@@ -350,7 +375,9 @@ function stateTone(value: string): string {
                 </p>
               </div>
               <div class="text-end">
-                <p class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase">
+                <p
+                  class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
+                >
                   {{ t('rosterManage.latestPower') }}
                 </p>
                 <p class="mt-1 text-lg font-semibold">
@@ -386,7 +413,10 @@ function stateTone(value: string): string {
 
           <div class="grid gap-4 p-4 sm:grid-cols-2 sm:p-5">
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" :for="`name-${entry.id}`">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                :for="`name-${entry.id}`"
+              >
                 {{ t('rosterManage.observedName') }}
               </label>
               <input
@@ -397,7 +427,10 @@ function stateTone(value: string): string {
               />
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" :for="`member-${entry.id}`">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                :for="`member-${entry.id}`"
+              >
                 {{ t('roster.linkedMember') }}
               </label>
               <select
@@ -413,12 +446,19 @@ function stateTone(value: string): string {
                   :value="membership.id"
                 >
                   {{ membership.name }} · {{ membership.email }}
-                  {{ membershipUnavailable(membership, entry.id) ? ` · ${t('rosterManage.alreadyLinked')}` : '' }}
+                  {{
+                    membershipUnavailable(membership, entry.id)
+                      ? ` · ${t('rosterManage.alreadyLinked')}`
+                      : ''
+                  }}
                 </option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" :for="`role-${entry.id}`">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                :for="`role-${entry.id}`"
+              >
                 {{ t('roster.role') }}
               </label>
               <input
@@ -429,7 +469,10 @@ function stateTone(value: string): string {
               />
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" :for="`state-${entry.id}`">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                :for="`state-${entry.id}`"
+              >
                 {{ t('roster.state') }}
               </label>
               <select
@@ -437,11 +480,16 @@ function stateTone(value: string): string {
                 v-model="drafts[entry.id].state"
                 class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
               >
-                <option v-for="state in states" :key="state" :value="state">{{ stateLabel(state) }}</option>
+                <option v-for="state in states" :key="state" :value="state">
+                  {{ stateLabel(state) }}
+                </option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" :for="`joined-${entry.id}`">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                :for="`joined-${entry.id}`"
+              >
                 {{ t('rosterManage.joinedDate') }}
               </label>
               <input
@@ -452,7 +500,10 @@ function stateTone(value: string): string {
               />
             </div>
             <div class="sm:col-span-2">
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" :for="`notes-${entry.id}`">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                :for="`notes-${entry.id}`"
+              >
                 {{ t('rosterManage.managerNotes') }}
               </label>
               <textarea
@@ -474,7 +525,10 @@ function stateTone(value: string): string {
           </div>
         </article>
 
-        <p v-if="!entries.length" class="ks-surface p-8 text-center text-sm text-[var(--ks-text-muted)]">
+        <p
+          v-if="!entries.length"
+          class="ks-surface p-8 text-center text-sm text-[var(--ks-text-muted)]"
+        >
           {{ t('rosterManage.noEntries') }}
         </p>
       </section>

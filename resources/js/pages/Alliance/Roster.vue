@@ -55,7 +55,9 @@ const snapshotCounts = computed(() => {
   return counts;
 });
 
-const linkedResults = computed(() => props.entries.filter((entry) => entry.membership !== null).length);
+const linkedResults = computed(
+  () => props.entries.filter((entry) => entry.membership !== null).length,
+);
 
 function applyFilters(): void {
   router.get(
@@ -153,10 +155,7 @@ function snapshotPercent(value: number): string {
       </div>
     </header>
 
-    <section
-      class="ks-surface-gold mt-6 overflow-hidden"
-      :aria-label="t('roster.freshness')"
-    >
+    <section class="ks-surface-gold mt-6 overflow-hidden" :aria-label="t('roster.freshness')">
       <div class="border-b border-[var(--ks-border)] px-4 py-3 sm:px-5">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
@@ -167,9 +166,13 @@ function snapshotPercent(value: number): string {
           </p>
         </div>
       </div>
-      <div class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] sm:grid-cols-4 sm:divide-y-0">
+      <div
+        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] sm:grid-cols-4 sm:divide-y-0"
+      >
         <article class="p-4 sm:p-5">
-          <p class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
             {{ t('roster.results') }}
           </p>
           <p class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(entries.length) }}</p>
@@ -216,19 +219,25 @@ function snapshotPercent(value: number): string {
             @submit.prevent="applyFilters"
           >
             <div class="md:col-span-2 xl:col-span-2">
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-search">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-search"
+              >
                 {{ t('roster.search') }}
               </label>
               <input
                 id="roster-search"
                 v-model="filters.q"
-                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--ks-blue-strong)]"
+                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm transition outline-none focus:border-[var(--ks-blue-strong)]"
                 maxlength="160"
                 :placeholder="t('roster.searchPlaceholder')"
               />
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-state-filter">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-state-filter"
+              >
                 {{ t('roster.state') }}
               </label>
               <select
@@ -243,7 +252,10 @@ function snapshotPercent(value: number): string {
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-linkage-filter">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-linkage-filter"
+              >
                 {{ t('roster.linkage') }}
               </label>
               <select
@@ -257,7 +269,10 @@ function snapshotPercent(value: number): string {
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-role-filter">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-role-filter"
+              >
                 {{ t('roster.role') }}
               </label>
               <select
@@ -270,7 +285,10 @@ function snapshotPercent(value: number): string {
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-observation-filter">
+              <label
+                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
+                for="roster-observation-filter"
+              >
                 {{ t('roster.freshness') }}
               </label>
               <select
@@ -303,7 +321,9 @@ function snapshotPercent(value: number): string {
         </section>
 
         <section class="ks-surface overflow-hidden">
-          <div class="flex items-center justify-between gap-4 border-b border-[var(--ks-border)] px-4 py-3 sm:px-5">
+          <div
+            class="flex items-center justify-between gap-4 border-b border-[var(--ks-border)] px-4 py-3 sm:px-5"
+          >
             <div>
               <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
                 {{ t('roster.title') }}
@@ -333,7 +353,9 @@ function snapshotPercent(value: number): string {
                   </p>
                 </div>
                 <p class="shrink-0 text-end">
-                  <span class="block text-[0.65rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase">
+                  <span
+                    class="block text-[0.65rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
+                  >
                     {{ t('roster.power') }}
                   </span>
                   <strong class="mt-1 block text-base">
@@ -385,7 +407,9 @@ function snapshotPercent(value: number): string {
                 <div>
                   <dt class="text-[var(--ks-text-muted)]">{{ t('roster.snapshotCaptured') }}</dt>
                   <dd class="mt-1 font-medium text-[var(--ks-text-secondary)]">
-                    {{ entry.latestSnapshot ? formatCaptured(entry.latestSnapshot.capturedAt) : '—' }}
+                    {{
+                      entry.latestSnapshot ? formatCaptured(entry.latestSnapshot.capturedAt) : '—'
+                    }}
                   </dd>
                 </div>
               </dl>
@@ -394,7 +418,9 @@ function snapshotPercent(value: number): string {
 
           <div v-if="entries.length" class="hidden overflow-x-auto lg:block">
             <table class="w-full min-w-[70rem] text-start text-sm">
-              <thead class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase">
+              <thead
+                class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
+              >
                 <tr>
                   <th class="px-4 py-3 text-start">{{ t('roster.player') }}</th>
                   <th class="px-4 py-3 text-start">{{ t('roster.gameId') }}</th>
@@ -408,7 +434,11 @@ function snapshotPercent(value: number): string {
                 </tr>
               </thead>
               <tbody class="divide-y divide-[var(--ks-border)]">
-                <tr v-for="entry in entries" :key="entry.id" class="transition hover:bg-white/[0.025]">
+                <tr
+                  v-for="entry in entries"
+                  :key="entry.id"
+                  class="transition hover:bg-white/[0.025]"
+                >
                   <td class="px-4 py-3.5 font-semibold">
                     <Link
                       class="text-[var(--ks-blue-strong)] hover:text-white"
@@ -455,7 +485,11 @@ function snapshotPercent(value: number): string {
                         {{ stateLabel(snapshotState(entry)) }}
                       </span>
                       <span class="text-xs text-[var(--ks-text-muted)]">
-                        {{ entry.latestSnapshot ? formatCaptured(entry.latestSnapshot.capturedAt) : '—' }}
+                        {{
+                          entry.latestSnapshot
+                            ? formatCaptured(entry.latestSnapshot.capturedAt)
+                            : '—'
+                        }}
                       </span>
                     </div>
                   </td>
@@ -521,7 +555,9 @@ function snapshotPercent(value: number): string {
 
           <div class="my-5 border-t border-[var(--ks-border)]" />
 
-          <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4">
+          <div
+            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
+          >
             <p class="text-xs font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase">
               {{ t('roster.membershipLinkage') }}
             </p>

@@ -150,26 +150,42 @@ function rosterStateTone(value: string): string {
       </div>
     </header>
 
-    <section class="ks-surface-gold mt-6 overflow-hidden" :aria-label="t('roster.intelligenceTitle')">
+    <section
+      class="ks-surface-gold mt-6 overflow-hidden"
+      :aria-label="t('roster.intelligenceTitle')"
+    >
       <div class="border-b border-[var(--ks-border)] px-4 py-3 sm:px-5">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">
             {{ t('roster.intelligenceTitle') }}
           </p>
           <p class="text-xs text-[var(--ks-text-muted)]">
-            {{ t('roster.recordedPlayers', { recorded: metrics.recordedPowerPlayers, total: metrics.trackedPlayers }) }}
+            {{
+              t('roster.recordedPlayers', {
+                recorded: metrics.recordedPowerPlayers,
+                total: metrics.trackedPlayers,
+              })
+            }}
           </p>
         </div>
       </div>
-      <div class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] lg:grid-cols-4 lg:divide-y-0">
+      <div
+        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] lg:grid-cols-4 lg:divide-y-0"
+      >
         <article class="p-4 sm:p-5">
-          <p class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
             {{ t('roster.trackedPlayers') }}
           </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(metrics.trackedPlayers) }}</p>
+          <p class="ks-display mt-2 text-3xl font-semibold">
+            {{ formatNumber(metrics.trackedPlayers) }}
+          </p>
         </article>
         <article class="p-4 sm:p-5">
-          <p class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
             {{ t('roster.totalRecordedPower') }}
           </p>
           <p class="ks-display mt-2 text-3xl font-semibold text-[var(--ks-gold-strong)]">
@@ -177,18 +193,28 @@ function rosterStateTone(value: string): string {
           </p>
         </article>
         <article class="p-4 sm:p-5">
-          <p class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
             {{ t('roster.averagePower') }}
           </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">{{ formatDecimal(metrics.averagePower) }}</p>
+          <p class="ks-display mt-2 text-3xl font-semibold">
+            {{ formatDecimal(metrics.averagePower) }}
+          </p>
           <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ t('roster.roundedPower') }}</p>
         </article>
         <article class="p-4 sm:p-5">
-          <p class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase">
+          <p
+            class="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--ks-text-muted)] uppercase"
+          >
             {{ t('roster.medianPower') }}
           </p>
-          <p class="ks-display mt-2 text-3xl font-semibold">{{ formatDecimal(metrics.medianPower) }}</p>
-          <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ t('roster.latestSnapshotOnly') }}</p>
+          <p class="ks-display mt-2 text-3xl font-semibold">
+            {{ formatDecimal(metrics.medianPower) }}
+          </p>
+          <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+            {{ t('roster.latestSnapshotOnly') }}
+          </p>
         </article>
       </div>
     </section>
@@ -209,12 +235,16 @@ function rosterStateTone(value: string): string {
                   {{ formatSigned(metrics.sevenDayTrend.change) }}
                 </p>
               </div>
-              <span class="rounded-full border border-[var(--ks-border)] bg-black/20 px-3 py-1 text-xs text-[var(--ks-text-muted)]">
+              <span
+                class="rounded-full border border-[var(--ks-border)] bg-black/20 px-3 py-1 text-xs text-[var(--ks-text-muted)]"
+              >
                 {{ metrics.sevenDayTrend.days }}
               </span>
             </div>
             <p class="mt-4 text-sm text-[var(--ks-text-secondary)]">
-              {{ t('roster.comparablePlayers', { count: metrics.sevenDayTrend.comparablePlayers }) }}
+              {{
+                t('roster.comparablePlayers', { count: metrics.sevenDayTrend.comparablePlayers })
+              }}
             </p>
           </article>
 
@@ -231,12 +261,16 @@ function rosterStateTone(value: string): string {
                   {{ formatSigned(metrics.thirtyDayTrend.change) }}
                 </p>
               </div>
-              <span class="rounded-full border border-[var(--ks-border)] bg-black/20 px-3 py-1 text-xs text-[var(--ks-text-muted)]">
+              <span
+                class="rounded-full border border-[var(--ks-border)] bg-black/20 px-3 py-1 text-xs text-[var(--ks-text-muted)]"
+              >
                 {{ metrics.thirtyDayTrend.days }}
               </span>
             </div>
             <p class="mt-4 text-sm text-[var(--ks-text-secondary)]">
-              {{ t('roster.comparablePlayers', { count: metrics.thirtyDayTrend.comparablePlayers }) }}
+              {{
+                t('roster.comparablePlayers', { count: metrics.thirtyDayTrend.comparablePlayers })
+              }}
             </p>
           </article>
         </section>
@@ -285,7 +319,9 @@ function rosterStateTone(value: string): string {
                   </div>
                 </div>
                 <p class="shrink-0 text-end">
-                  <span class="block text-[0.65rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase">
+                  <span
+                    class="block text-[0.65rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
+                  >
                     {{ t('roster.currentPower') }}
                   </span>
                   <strong class="mt-1 block text-base">
@@ -295,13 +331,25 @@ function rosterStateTone(value: string): string {
               </div>
 
               <dl class="mt-4 grid gap-3 sm:grid-cols-2">
-                <div class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3">
-                  <dt class="text-xs font-semibold text-[var(--ks-text-muted)]">{{ t('roster.sevenDayChange') }}</dt>
-                  <dd class="mt-1 text-sm text-[var(--ks-text-secondary)]">{{ comparisonText(comparison.sevenDay) }}</dd>
+                <div
+                  class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3"
+                >
+                  <dt class="text-xs font-semibold text-[var(--ks-text-muted)]">
+                    {{ t('roster.sevenDayChange') }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-[var(--ks-text-secondary)]">
+                    {{ comparisonText(comparison.sevenDay) }}
+                  </dd>
                 </div>
-                <div class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3">
-                  <dt class="text-xs font-semibold text-[var(--ks-text-muted)]">{{ t('roster.thirtyDayChange') }}</dt>
-                  <dd class="mt-1 text-sm text-[var(--ks-text-secondary)]">{{ comparisonText(comparison.thirtyDay) }}</dd>
+                <div
+                  class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3"
+                >
+                  <dt class="text-xs font-semibold text-[var(--ks-text-muted)]">
+                    {{ t('roster.thirtyDayChange') }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-[var(--ks-text-secondary)]">
+                    {{ comparisonText(comparison.thirtyDay) }}
+                  </dd>
                 </div>
               </dl>
               <p class="mt-3 text-xs text-[var(--ks-text-muted)]">
@@ -315,7 +363,9 @@ function rosterStateTone(value: string): string {
 
           <div v-if="metrics.comparisons.length" class="hidden overflow-x-auto lg:block">
             <table class="w-full min-w-[68rem] text-sm">
-              <thead class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase">
+              <thead
+                class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"
+              >
                 <tr>
                   <th class="px-4 py-3 text-start">{{ t('roster.player') }}</th>
                   <th class="px-4 py-3 text-start">{{ t('roster.state') }}</th>
@@ -379,7 +429,10 @@ function rosterStateTone(value: string): string {
             </table>
           </div>
 
-          <p v-if="!metrics.comparisons.length" class="p-8 text-center text-sm text-[var(--ks-text-muted)]">
+          <p
+            v-if="!metrics.comparisons.length"
+            class="p-8 text-center text-sm text-[var(--ks-text-muted)]"
+          >
             {{ t('roster.noComparisonRows') }}
           </p>
         </section>
@@ -434,13 +487,25 @@ function rosterStateTone(value: string): string {
 
           <h2 class="ks-display text-xl font-semibold">{{ t('roster.recentMovement') }}</h2>
           <div class="mt-4 grid grid-cols-2 gap-3">
-            <div class="rounded-[var(--ks-radius-md)] border border-green-400/20 bg-green-500/5 p-4 text-center">
-              <p class="text-[0.68rem] font-bold tracking-[0.1em] text-green-300 uppercase">{{ t('roster.joined') }}</p>
-              <p class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(metrics.recentRoster.joins) }}</p>
+            <div
+              class="rounded-[var(--ks-radius-md)] border border-green-400/20 bg-green-500/5 p-4 text-center"
+            >
+              <p class="text-[0.68rem] font-bold tracking-[0.1em] text-green-300 uppercase">
+                {{ t('roster.joined') }}
+              </p>
+              <p class="ks-display mt-2 text-3xl font-semibold">
+                {{ formatNumber(metrics.recentRoster.joins) }}
+              </p>
             </div>
-            <div class="rounded-[var(--ks-radius-md)] border border-red-400/20 bg-red-500/5 p-4 text-center">
-              <p class="text-[0.68rem] font-bold tracking-[0.1em] text-red-300 uppercase">{{ t('roster.departed') }}</p>
-              <p class="ks-display mt-2 text-3xl font-semibold">{{ formatNumber(metrics.recentRoster.departures) }}</p>
+            <div
+              class="rounded-[var(--ks-radius-md)] border border-red-400/20 bg-red-500/5 p-4 text-center"
+            >
+              <p class="text-[0.68rem] font-bold tracking-[0.1em] text-red-300 uppercase">
+                {{ t('roster.departed') }}
+              </p>
+              <p class="ks-display mt-2 text-3xl font-semibold">
+                {{ formatNumber(metrics.recentRoster.departures) }}
+              </p>
             </div>
           </div>
           <p class="mt-3 text-xs text-[var(--ks-text-muted)]">
@@ -454,7 +519,12 @@ function rosterStateTone(value: string): string {
             {{ metrics.linkage.percent === null ? '—' : `${metrics.linkage.percent}%` }}
           </p>
           <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
-            {{ t('roster.linkedOfTotal', { linked: metrics.linkage.linked, total: metrics.linkage.total }) }}
+            {{
+              t('roster.linkedOfTotal', {
+                linked: metrics.linkage.linked,
+                total: metrics.linkage.total,
+              })
+            }}
           </p>
         </section>
       </aside>

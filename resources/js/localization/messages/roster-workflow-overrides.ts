@@ -54,7 +54,8 @@ export const rosterWorkflowOverrides: OverrideMap = {
       capturedAt: 'Czas przechwycenia',
       recordAction: 'Zapisz migawkę',
       historyHeading: 'Historia migawek',
-      historyHelp: 'Najnowsze przechwycenie najpierw. Wyświetlanych jest do 250 ostatnich obserwacji.',
+      historyHelp:
+        'Najnowsze przechwycenie najpierw. Wyświetlanych jest do 250 ostatnich obserwacji.',
       source: 'Źródło',
       recordedBy: 'Zapisane przez',
       noSnapshots: 'Nie zapisano migawek dla tego gracza.',
@@ -206,7 +207,8 @@ export const rosterWorkflowOverrides: OverrideMap = {
         'Reddedilen bir satır varken bu toplu işlem onaylanamaz. CSV dosyasını düzeltip yeniden yükleyin.',
       unresolvedRows: 'Onaydan önce {count} belirsiz satırı çözün.',
       confirmAtomic: 'Atomik içe aktarmayı onayla',
-      commitError: 'İçe aktarma onaylanamadı. Satır çözümlerini inceleyin veya yeni önizleme oluşturun.',
+      commitError:
+        'İçe aktarma onaylanamadı. Satır çözümlerini inceleyin veya yeni önizleme oluşturun.',
     },
     rosterHistory: {
       title: 'Anlık görüntü geçmişi',
@@ -257,11 +259,11 @@ export const rosterWorkflowOverrides: OverrideMap = {
       updateCandidate: 'Cập nhật {name} · {gameId} · {state}',
       stableMatch: 'ID game ổn định khớp với mục roster {entry}.',
       newIdentity: 'Danh tính roster mới.',
-      rejectedBlock:
-        'Không thể xác nhận lô khi còn dòng bị từ chối. Hãy sửa CSV và tải lên lại.',
+      rejectedBlock: 'Không thể xác nhận lô khi còn dòng bị từ chối. Hãy sửa CSV và tải lên lại.',
       unresolvedRows: 'Xử lý {count} dòng mơ hồ trước khi xác nhận.',
       confirmAtomic: 'Xác nhận nhập nguyên tử',
-      commitError: 'Không thể xác nhận nhập. Hãy xem lại xử lý từng dòng hoặc tạo bản xem trước mới.',
+      commitError:
+        'Không thể xác nhận nhập. Hãy xem lại xử lý từng dòng hoặc tạo bản xem trước mới.',
     },
     rosterHistory: {
       title: 'Lịch sử snapshot',
