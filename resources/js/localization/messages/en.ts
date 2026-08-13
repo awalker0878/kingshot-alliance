@@ -1,0 +1,70 @@
+const en = {
+  common: {
+    appName: 'Kingshot Alliance',
+    language: 'Language',
+    signIn: 'Sign in',
+    createAccount: 'Create account',
+    continue: 'Continue',
+    cancel: 'Cancel',
+    save: 'Save',
+    close: 'Close',
+    loading: 'Loading',
+  },
+  navigation: {
+    home: 'Home',
+    alliance: 'Alliance',
+    events: 'Events',
+    roster: 'Roster',
+    recruitment: 'Recruitment',
+    content: 'Content',
+    kingdom: 'Kingdom',
+    transfers: 'Transfers',
+    integrations: 'Integrations',
+    profile: 'Profile',
+  },
+  auth: {
+    login: {
+      title: 'Sign in',
+      email: 'Email',
+      password: 'Password',
+      remember: 'Remember me',
+      forgotPassword: 'Forgot password?',
+      submit: 'Sign in',
+      createAccount: 'Create account',
+      invitation: 'Have an invitation?',
+    },
+    register: {
+      title: 'Create account',
+      name: 'Name',
+      email: 'Email',
+      password: 'Password',
+      passwordConfirmation: 'Confirm password',
+      submit: 'Create account',
+      existingAccount: 'Already have an account?',
+    },
+    password: {
+      forgotTitle: 'Reset your password',
+      forgotDescription: 'Enter your email address and we will send you a password reset link.',
+      sendResetLink: 'Send password reset link',
+      resetTitle: 'Choose a new password',
+      resetSubmit: 'Reset password',
+      confirmTitle: 'Confirm your password',
+    },
+    verification: {
+      title: 'Verify your email',
+      resend: 'Resend verification email',
+    },
+    twoFactor: {
+      title: 'Two-factor authentication',
+      code: 'Authentication code',
+      recoveryCode: 'Recovery code',
+      submit: 'Continue',
+    },
+    invitation: {
+      title: 'Alliance invitation',
+      accept: 'Accept invitation',
+    },
+  },
+} as const;
+
+export default en;
