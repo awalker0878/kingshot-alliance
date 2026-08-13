@@ -45,6 +45,10 @@ final class IntegrationManagementController extends Controller
             : true;
 
         return Inertia::render('Alliance/Integrations/Manage', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => ['id' => (string) $alliance->id, 'name' => (string) $alliance->name],
             'settings' => [
                 'apiAccessEnabled' => $apiAccessEnabled,
