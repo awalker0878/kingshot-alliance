@@ -1,0 +1,500 @@
+2) Tests\Architecture\KingdomAccessibilityTest::test_forms_and_csv_ambiguity_controls_remain_explicitly_labelled
+Failed asserting that '<script setup lang="ts">\n
+import { Head, Link, useForm } from '@inertiajs/vue3';\n
+import { computed, reactive } from 'vue';\n
+\n
+import AppLayout from '../../layouts/AppLayout.vue';\n
+import { useLocale } from '../../localization';\n
+\n
+type Candidate = {\n
+  entry_id: string;\n
+  name: string;\n
+  game_player_id: string | null;\n
+  state: string;\n
+};\n
+\n
+type PreviewRow = {\n
+  row: number;\n
+  data: {\n
+    game_player_id: string | null;\n
+    name: string;\n
+    power: string;\n
+    progression_level: string | null;\n
+    alliance_tag: string | null;\n
+    game_role: string | null;\n
+    state: string;\n
+    joined_at: string | null;\n
+    captured_at: string;\n
+  };\n
+  outcome: 'create' | 'update' | 'ambiguous' | 'rejected';\n
+  target_entry_id: string | null;\n
+  candidates: Candidate[];\n
+  errors: string[];\n
+};\n
+\n
+type ImportRecord = {\n
+  id: string;\n
+  status: string;\n
+  filename: string;\n
+  checksum: string;\n
+  rowCount: number;\n
+  createCount: number;\n
+  updateCount: number;\n
+  ambiguousCount: number;\n
+  rejectedCount: number;\n
+  rows: PreviewRow[];\n
+  resolutions: Record<string, string>;\n
+  committedSummary: {\n
+    rows_committed: number;\n
+    roster_entries_created: number;\n
+    roster_entries_updated: number;\n
+    snapshots_created: number;\n
+  } | null;\n
+  committedAt: string | null;\n
+};\n
+\n
+const props = defineProps<{\n
+  user: { name: string; email: string };\n
+  alliance: { id: string; name: string; kingdom: string | null };\n
+  schema: { version: string; headers: string[]; maxBytes: number; maxRows: number };\n
+  importRecord: ImportRecord | null;\n
+}>();\n
+\n
+const { locale, t, formatNumber } = useLocale();\n
+const uploadForm = useForm<{ file: File | null }>({ file: null });\n
+const resolutionDrafts = reactive<Record<string, string>>({\n
+  ...(props.importRecord?.resolutions ?? {}),\n
+});\n
+const commitForm = useForm<{ resolutions: Record<string, string> }>({ resolutions: {} });\n
+\n
+const unresolvedAmbiguous = computed(() => {\n
+  if (!props.importRecord) return 0;\n
+\n
+  return props.importRecord.rows.filter(\n
+    (row) => row.outcome === 'ambiguous' && !resolutionDrafts[String(row.row)],\n
+  ).length;\n
+});\n
+\n
+function selectFile(event: Event): void {\n
+  const input = event.target as HTMLInputElement;\n
+  uploadForm.file = input.files?.[0] ?? null;\n
+}\n
+\n
+function preview(): void {\n
+  uploadForm.post('/alliance/roster/import/preview', {\n
+    forceFormData: true,\n
+    preserveScroll: true,\n
+  });\n
+}\n
+\n
+function commitImport(): void {\n
+  if (!props.importRecord) return;\n
+\n
+  commitForm.resolutions = { ...resolutionDrafts };\n
+  commitForm.post(`/alliance/roster/import/${props.importRecord.id}/commit`, {\n
+    preserveScroll: true,\n
+  });\n
+}\n
+\n
+function formatBytes(bytes: number): string {\n
+  return (\n
+    new Intl.NumberFormat(locale.value, { maximumFractionDigits: 0 }).format(bytes / 1024) + ' KiB'\n
+  );\n
+}\n
+\n
+function formatPower(value: string): string {\n
+  try {\n
+    return new Intl.NumberFormat(locale.value).format(BigInt(value));\n
+  } catch {\n
+    return value;\n
+  }\n
+}\n
+\n
+function resolutionLabel(row: PreviewRow): string {\n
+  return `${t('rosterImport.resolutionErrors')}: ${row.row}, ${row.data.name}`;\n
+}\n
+\n
+function outcomeTone(outcome: PreviewRow['outcome']): string {\n
+  if (outcome === 'create') return 'border-green-400/25 bg-green-500/10 text-green-200';\n
+  if (outcome === 'update') return 'border-blue-400/25 bg-blue-500/10 text-blue-200';\n
+  if (outcome === 'ambiguous') return 'border-amber-400/25 bg-amber-500/10 text-amber-200';\n
+  return 'border-red-400/25 bg-red-500/10 text-red-200';\n
+}\n
+\n
+function statusTone(status: string): string {\n
+  if (status === 'committed') return 'border-green-400/25 bg-green-500/10 text-green-200';\n
+  return 'border-[var(--ks-border)] bg-black/15 text-[var(--ks-text-secondary)]';\n
+}\n
+</script>\n
+\n
+<template>\n
+  <Head :title="`${t('rosterImport.title')} · ${alliance.name}`" />\n
+\n
+  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">\n
+    <header class="flex flex-wrap items-start justify-between gap-4">\n
+      <div class="max-w-3xl">\n
+        <Link\n
+          class="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-white"\n
+          href="/alliance/roster/manage"\n
+        >\n
+          ← {{ t('roster.manage') }}\n
+        </Link>\n
+        <p class="mt-4 text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">\n
+          {{ t('roster.eyebrow', { kingdom: alliance.kingdom ?? t('roster.kingdomNotSet') }) }}\n
+        </p>\n
+        <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">\n
+          {{ t('rosterImport.title') }}\n
+        </h1>\n
+        <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">\n
+          {{ t('rosterImport.subtitle') }}\n
+        </p>\n
+      </div>\n
+      <div class="flex flex-wrap gap-2">\n
+        <a\n
+          class="inline-flex min-h-10 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-xs font-semibold text-[var(--ks-text-secondary)] transition hover:border-[var(--ks-border-strong)] hover:text-white"\n
+          href="/alliance/roster/export.csv?scope=member"\n
+        >\n
+          {{ t('rosterImport.exportCurrent') }}\n
+        </a>\n
+        <a\n
+          class="inline-flex min-h-10 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-gold)]/45 bg-[var(--ks-gold-soft)] px-3 py-2 text-xs font-semibold text-[var(--ks-gold-strong)] transition hover:border-[var(--ks-gold)] hover:text-white"\n
+          href="/alliance/roster/export.csv?scope=management"\n
+        >\n
+          {{ t('rosterImport.exportManager') }}\n
+        </a>\n
+      </div>\n
+    </header>\n
+\n
+    <section class="mt-6 grid gap-5 xl:grid-cols-3">\n
+      <article class="ks-surface-gold p-5 sm:p-6 xl:col-span-2">\n
+        <div class="flex flex-wrap items-start justify-between gap-4">\n
+          <div>\n
+            <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">\n
+              {{ t('rosterImport.uploadPreview') }}\n
+            </p>\n
+            <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">\n
+              {{\n
+                t('rosterImport.schemaHelp', {\n
+                  version: schema.version,\n
+                  rows: formatNumber(schema.maxRows),\n
+                  bytes: formatBytes(schema.maxBytes),\n
+                })\n
+              }}\n
+            </p>\n
+          </div>\n
+        </div>\n
+\n
+        <form class="mt-5" @submit.prevent="preview">\n
+          <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-csv">\n
+            {{ t('rosterImport.csvFile') }}\n
+          </label>\n
+          <input\n
+            id="roster-csv"\n
+            accept=".csv,text/csv"\n
+            :aria-describedby="uploadForm.errors.file ? 'roster-csv-error' : undefined"\n
+            :aria-invalid="uploadForm.errors.file ? 'true' : undefined"\n
+            class="mt-2 block w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm file:me-3 file:rounded-md file:border-0 file:bg-[var(--ks-blue-soft)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[var(--ks-blue-strong)]"\n
+            required\n
+            type="file"\n
+            @change="selectFile"\n
+          />\n
+          <button\n
+            class="mt-4 min-h-10 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--ks-blue-strong)] disabled:opacity-60"\n
+            :disabled="uploadForm.processing || uploadForm.file === null"\n
+            type="submit"\n
+          >\n
+            {{ t('rosterImport.validatePreview') }}\n
+          </button>\n
+          <p\n
+            v-if="uploadForm.errors.file"\n
+            id="roster-csv-error"\n
+            class="mt-3 text-sm text-red-300"\n
+            role="alert"\n
+          >\n
+            {{ uploadForm.errors.file }}\n
+          </p>\n
+        </form>\n
+      </article>\n
+\n
+      <aside class="ks-surface p-5 sm:p-6">\n
+        <p class="text-xs font-bold tracking-[0.15em] text-[var(--ks-gold)] uppercase">\n
+          {{ t('rosterImport.requiredColumns') }}\n
+        </p>\n
+        <code\n
+          class="mt-3 block overflow-x-auto rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/25 p-3 text-xs text-[var(--ks-text-secondary)]"\n
+        >\n
+          {{ schema.headers.join(',') }}\n
+        </code>\n
+        <p class="mt-4 text-xs leading-5 text-[var(--ks-text-muted)]">\n
+          {{ t('rosterImport.requirementsHelp') }}\n
+        </p>\n
+      </aside>\n
+    </section>\n
+\n
+    <template v-if="importRecord">\n
+      <section class="ks-surface-gold mt-6 overflow-hidden">\n
+        <div\n
+          class="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--ks-border)] p-4 sm:p-5"\n
+        >\n
+          <div class="min-w-0">\n
+            <h2 class="ks-display truncate text-xl font-semibold">\n
+              {{ t('rosterImport.preview', { filename: importRecord.filename }) }}\n
+            </h2>\n
+            <p class="mt-1 truncate text-xs text-[var(--ks-text-muted)]">\n
+              SHA-256 {{ importRecord.checksum }}\n
+            </p>\n
+          </div>\n
+          <span\n
+            :class="statusTone(importRecord.status)"\n
+            class="rounded-full border px-3 py-1 text-xs font-semibold capitalize"\n
+          >\n
+            {{ importRecord.status }}\n
+          </span>\n
+        </div>\n
+\n
+        <dl\n
+          class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] sm:grid-cols-5 sm:divide-y-0"\n
+        >\n
+          <div class="p-4">\n
+            <dt\n
+              class="text-[0.68rem] font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"\n
+            >\n
+              {{ t('rosterImport.rows') }}\n
+            </dt>\n
+            <dd class="ks-display mt-2 text-2xl font-semibold">\n
+              {{ formatNumber(importRecord.rowCount) }}\n
+            </dd>\n
+          </div>\n
+          <div class="p-4">\n
+            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-green-300 uppercase">\n
+              {{ t('rosterImport.creates') }}\n
+            </dt>\n
+            <dd class="ks-display mt-2 text-2xl font-semibold">\n
+              {{ formatNumber(importRecord.createCount) }}\n
+            </dd>\n
+          </div>\n
+          <div class="p-4">\n
+            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-blue-300 uppercase">\n
+              {{ t('rosterImport.updates') }}\n
+            </dt>\n
+            <dd class="ks-display mt-2 text-2xl font-semibold">\n
+              {{ formatNumber(importRecord.updateCount) }}\n
+            </dd>\n
+          </div>\n
+          <div class="p-4">\n
+            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-amber-300 uppercase">\n
+              {{ t('rosterImport.ambiguous') }}\n
+            </dt>\n
+            <dd class="ks-display mt-2 text-2xl font-semibold">\n
+              {{ formatNumber(importRecord.ambiguousCount) }}\n
+            </dd>\n
+          </div>\n
+          <div class="col-span-2 p-4 sm:col-span-1">\n
+            <dt class="text-[0.68rem] font-bold tracking-[0.1em] text-red-300 uppercase">\n
+              {{ t('rosterImport.rejected') }}\n
+            </dt>\n
+            <dd class="ks-display mt-2 text-2xl font-semibold">\n
+              {{ formatNumber(importRecord.rejectedCount) }}\n
+            </dd>\n
+          </div>\n
+        </dl>\n
+      </section>\n
+\n
+      <div\n
+        v-if="importRecord.status === 'committed' && importRecord.committedSummary"\n
+        class="mt-4 rounded-[var(--ks-radius-md)] border border-green-400/25 bg-green-500/10 p-4 text-sm text-green-200"\n
+        role="status"\n
+        aria-live="polite"\n
+      >\n
+        {{\n
+          t('rosterImport.committedSummary', {\n
+            rows: importRecord.committedSummary.rows_committed,\n
+            creates: importRecord.committedSummary.roster_entries_created,\n
+            updates: importRecord.committedSummary.roster_entries_updated,\n
+            snapshots: importRecord.committedSummary.snapshots_created,\n
+          })\n
+        }}\n
+      </div>\n
+\n
+      <section class="ks-surface mt-4 overflow-hidden">\n
+        <div v-if="importRecord.rows.length" class="lg:hidden">\n
+          <article\n
+            v-for="row in importRecord.rows"\n
+            :key="row.row"\n
+            class="border-b border-[var(--ks-border)] p-4 last:border-b-0"\n
+          >\n
+            <div class="flex items-start justify-between gap-3">\n
+              <div class="min-w-0">\n
+                <p class="text-xs text-[var(--ks-text-muted)]">\n
+                  {{ t('rosterImport.csvRow') }} {{ row.row }}\n
+                </p>\n
+                <p class="mt-1 truncate font-semibold">{{ row.data.name }}</p>\n
+                <p class="mt-1 text-xs text-[var(--ks-text-muted)]">\n
+                  {{ row.data.game_player_id ?? t('rosterImport.gameIdNotSupplied') }}\n
+                </p>\n
+              </div>\n
+              <div class="text-end">\n
+                <strong>{{ formatPower(row.data.power) }}</strong>\n
+                <span\n
+                  :class="outcomeTone(row.outcome)"\n
+                  class="mt-2 block rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"\n
+                >\n
+                  {{ row.outcome }}\n
+                </span>\n
+              </div>\n
+            </div>\n
+\n
+            <div class="mt-4">\n
+              <ul v-if="row.errors.length" class="space-y-1 text-sm text-red-300" role="alert">\n
+                <li v-for="error in row.errors" :key="error">{{ error }}</li>\n
+              </ul>\n
+              <select\n
+                v-else-if="row.outcome === 'ambiguous'"\n
+                v-model="resolutionDrafts[String(row.row)]"\n
+                :aria-label="resolutionLabel(row)"\n
+                class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"\n
+                :disabled="importRecord.status === 'committed'"\n
+              >\n
+                <option value="">{{ t('rosterImport.chooseResolution') }}</option>\n
+                <option value="create">{{ t('rosterImport.createNewIdentity') }}</option>\n
+                <option\n
+                  v-for="candidate in row.candidates"\n
+                  :key="candidate.entry_id"\n
+                  :value="candidate.entry_id"\n
+                >\n
+                  {{\n
+                    t('rosterImport.updateCandidate', {\n
+                      name: candidate.name,\n
+                      gameId: candidate.game_player_id ?? '—',\n
+                      state: candidate.state,\n
+                    })\n
+                  }}\n
+                </option>\n
+              </select>\n
+              <p\n
+                v-else-if="row.outcome === 'update'"\n
+                class="text-sm text-[var(--ks-text-secondary)]"\n
+              >\n
+                {{ t('rosterImport.stableMatch', { entry: row.target_entry_id ?? '—' }) }}\n
+              </p>\n
+              <p v-else class="text-sm text-[var(--ks-text-secondary)]">\n
+                {{ t('rosterImport.newIdentity') }}\n
+              </p>\n
+            </div>\n
+          </article>\n
+        </div>\n
+\n
+        <div v-if="importRecord.rows.length" class="hidden overflow-x-auto lg:block">\n
+          <table class="w-full min-w-[64rem] text-sm">\n
+            <thead\n
+              class="bg-black/25 text-[0.68rem] font-bold tracking-[0.08em] text-[var(--ks-text-muted)] uppercase"\n
+            >\n
+              <tr>\n
+                <th class="px-4 py-3 text-start">{{ t('rosterImport.csvRow') }}</th>\n
+                <th class="px-4 py-3 text-start">{{ t('roster.player') }}</th>\n
+                <th class="px-4 py-3 text-start">{{ t('roster.power') }}</th>\n
+                <th class="px-4 py-3 text-start">{{ t('roster.state') }}</th>\n
+                <th class="px-4 py-3 text-start">{{ t('rosterImport.previewOutcome') }}</th>\n
+                <th class="px-4 py-3 text-start">{{ t('rosterImport.resolutionErrors') }}</th>\n
+              </tr>\n
+            </thead>\n
+            <tbody class="divide-y divide-[var(--ks-border)]">\n
+              <tr\n
+                v-for="row in importRecord.rows"\n
+                :key="row.row"\n
+                class="align-top transition hover:bg-white/[0.025]"\n
+              >\n
+                <td class="px-4 py-4 text-[var(--ks-text-muted)]">{{ row.row }}</td>\n
+                <td class="px-4 py-4">\n
+                  <span class="font-semibold">{{ row.data.name }}</span>\n
+                  <span class="mt-1 block text-xs text-[var(--ks-text-muted)]">\n
+                    {{ row.data.game_player_id ?? t('rosterImport.gameIdNotSupplied') }}\n
+                  </span>\n
+                </td>\n
+                <td class="px-4 py-4 font-semibold">{{ formatPower(row.data.power) }}</td>\n
+                <td class="px-4 py-4 text-[var(--ks-text-secondary)]">{{ row.data.state }}</td>\n
+                <td class="px-4 py-4">\n
+                  <span\n
+                    :class="outcomeTone(row.outcome)"\n
+                    class="rounded-full border px-2.5 py-1 text-xs font-semibold capitalize"\n
+                  >\n
+                    {{ row.outcome }}\n
+                  </span>\n
+                </td>\n
+                <td class="min-w-72 px-4 py-4">\n
+                  <ul v-if="row.errors.length" class="space-y-1 text-red-300" role="alert">\n
+                    <li v-for="error in row.errors" :key="error">{{ error }}</li>\n
+                  </ul>\n
+                  <select\n
+                    v-else-if="row.outcome === 'ambiguous'"\n
+                    v-model="resolutionDrafts[String(row.row)]"\n
+                    :aria-label="resolutionLabel(row)"\n
+                    class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"\n
+                    :disabled="importRecord.status === 'committed'"\n
+                  >\n
+                    <option value="">{{ t('rosterImport.chooseResolution') }}</option>\n
+                    <option value="create">{{ t('rosterImport.createNewIdentity') }}</option>\n
+                    <option\n
+                      v-for="candidate in row.candidates"\n
+                      :key="candidate.entry_id"\n
+                      :value="candidate.entry_id"\n
+                    >\n
+                      {{\n
+                        t('rosterImport.updateCandidate', {\n
+                          name: candidate.name,\n
+                          gameId: candidate.game_player_id ?? '—',\n
+                          state: candidate.state,\n
+                        })\n
+                      }}\n
+                    </option>\n
+                  </select>\n
+                  <span\n
+                    v-else-if="row.outcome === 'update'"\n
+                    class="text-[var(--ks-text-secondary)]"\n
+                  >\n
+                    {{ t('rosterImport.stableMatch', { entry: row.target_entry_id ?? '—' }) }}\n
+                  </span>\n
+                  <span v-else class="text-[var(--ks-text-secondary)]">{{\n
+                    t('rosterImport.newIdentity')\n
+                  }}</span>\n
+                </td>\n
+              </tr>\n
+            </tbody>\n
+          </table>\n
+        </div>\n
+      </section>\n
+\n
+      <section v-if="importRecord.status !== 'committed'" class="ks-surface mt-4 p-5">\n
+        <p v-if="importRecord.rejectedCount" class="text-sm text-red-300" role="alert">\n
+          {{ t('rosterImport.rejectedBlock') }}\n
+        </p>\n
+        <p v-else-if="unresolvedAmbiguous" class="text-sm text-amber-300" role="status">\n
+          {{ t('rosterImport.unresolvedRows', { count: unresolvedAmbiguous }) }}\n
+        </p>\n
+        <button\n
+          class="mt-3 min-h-10 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--ks-blue-strong)] disabled:opacity-60"\n
+          :disabled="\n
+            commitForm.processing || importRecord.rejectedCount > 0 || unresolvedAmbiguous > 0\n
+          "\n
+          type="button"\n
+          @click="commitImport"\n
+        >\n
+          {{ t('rosterImport.confirmAtomic') }}\n
+        </button>\n
+        <p\n
+          v-if="Object.keys(commitForm.errors).length"\n
+          class="mt-3 text-sm text-red-300"\n
+          role="alert"\n
+        >\n
+          {{ t('rosterImport.commitError') }}\n
+        </p>\n
+      </section>\n
+    </template>\n
+  </AppLayout>\n
+</template>\n
+' [UTF-8](length: 19907) contains "Resolution for CSV row" [ASCII](length: 22).
+
+/home/runner/work/kingshot-alliance/kingshot-alliance/tests/Architecture/KingdomAccessibilityTest.php:78
+
+[37;41mFAILURES![0m
+[37;41mTests: 498[0m[37;41m, Assertions: 11197[0m[37;41m, Failures: 2[0m[37;41m.[0m
