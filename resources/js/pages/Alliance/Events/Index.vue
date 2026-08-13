@@ -55,8 +55,10 @@ function canJoin(event: EventItem): boolean {
   if (event.registration && event.registration.status !== 'cancelled') return false;
 
   const now = Date.now();
-  if (event.registrationOpensAt && now < new Date(event.registrationOpensAt).getTime()) return false;
-  if (event.registrationClosesAt && now > new Date(event.registrationClosesAt).getTime()) return false;
+  if (event.registrationOpensAt && now < new Date(event.registrationOpensAt).getTime())
+    return false;
+  if (event.registrationClosesAt && now > new Date(event.registrationClosesAt).getTime())
+    return false;
 
   return new Date(event.startsAt).getTime() > now;
 }
@@ -110,16 +112,19 @@ function registrationLabel(event: EventItem): string {
         <a
           class="inline-flex min-h-11 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold text-[var(--ks-text-secondary)] transition hover:border-[var(--ks-border-strong)] hover:text-white"
           :href="exports.csvUrl"
-        >{{ t('allianceOperations.events.exportCsv') }}</a>
+          >{{ t('allianceOperations.events.exportCsv') }}</a
+        >
         <a
           class="inline-flex min-h-11 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold text-[var(--ks-text-secondary)] transition hover:border-[var(--ks-border-strong)] hover:text-white"
           :href="exports.icalUrl"
-        >{{ t('allianceOperations.events.icalFeed') }}</a>
+          >{{ t('allianceOperations.events.icalFeed') }}</a
+        >
         <Link
           v-if="canManage"
           class="inline-flex min-h-11 items-center justify-center rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--ks-blue-strong)]"
           href="/alliance/events/manage"
-        >{{ t('allianceOperations.events.coordinate') }}</Link>
+          >{{ t('allianceOperations.events.coordinate') }}</Link
+        >
       </div>
     </header>
 
@@ -138,7 +143,9 @@ function registrationLabel(event: EventItem): string {
             {{ t('allianceOperations.events.recentReminders') }}
           </h2>
         </div>
-        <span class="rounded-full border border-blue-400/20 bg-blue-400/5 px-3 py-1 text-xs text-[var(--ks-text-muted)]">
+        <span
+          class="rounded-full border border-blue-400/20 bg-blue-400/5 px-3 py-1 text-xs text-[var(--ks-text-muted)]"
+        >
           {{ formatNumber(eventReminders.length) }}
         </span>
       </div>
@@ -151,15 +158,24 @@ function registrationLabel(event: EventItem): string {
         >
           <h3 class="font-semibold">{{ reminder.title }}</h3>
           <p class="mt-2 text-sm text-[var(--ks-text-secondary)]">
-            {{ t('allianceOperations.events.starts', { time: formatInZone(reminder.startsAt, userTimezone) }) }}
+            {{
+              t('allianceOperations.events.starts', {
+                time: formatInZone(reminder.startsAt, userTimezone),
+              })
+            }}
           </p>
           <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-            {{ t('allianceOperations.events.delivered', { time: formatInZone(reminder.sentAt, userTimezone) }) }}
+            {{
+              t('allianceOperations.events.delivered', {
+                time: formatInZone(reminder.sentAt, userTimezone),
+              })
+            }}
           </p>
           <Link
             class="mt-4 inline-flex min-h-10 items-center rounded-[var(--ks-radius-sm)] border border-blue-400/30 px-3 py-2 text-sm font-semibold text-[var(--ks-blue-strong)] transition hover:bg-blue-400/10 hover:text-white"
             :href="`/alliance/events/${reminder.occurrenceId}`"
-          >{{ t('allianceOperations.events.openEvent') }}</Link>
+            >{{ t('allianceOperations.events.openEvent') }}</Link
+          >
         </article>
       </div>
     </section>
@@ -184,32 +200,54 @@ function registrationLabel(event: EventItem): string {
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <h3 class="text-xl font-semibold sm:text-2xl">
-                  <Link class="hover:text-[var(--ks-blue-strong)]" :href="`/alliance/events/${event.id}`">
+                  <Link
+                    class="hover:text-[var(--ks-blue-strong)]"
+                    :href="`/alliance/events/${event.id}`"
+                  >
                     {{ event.title }}
                   </Link>
                 </h3>
                 <span
                   class="rounded-full border border-[var(--ks-border)] bg-[var(--ks-surface-2)] px-2.5 py-1 text-xs font-semibold text-[var(--ks-text-secondary)]"
-                >{{ registrationLabel(event) }}</span>
+                  >{{ registrationLabel(event) }}</span
+                >
               </div>
 
               <dl class="mt-5 grid gap-3 lg:grid-cols-2">
-                <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-4">
-                  <dt class="text-xs font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase">
+                <div
+                  class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-4"
+                >
+                  <dt
+                    class="text-xs font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
+                  >
                     {{ t('allianceOperations.events.yourTime', { zone: userTimezone }) }}
                   </dt>
-                  <dd class="mt-2 font-semibold">{{ formatInZone(event.startsAt, userTimezone) }}</dd>
+                  <dd class="mt-2 font-semibold">
+                    {{ formatInZone(event.startsAt, userTimezone) }}
+                  </dd>
                 </div>
-                <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-4">
-                  <dt class="text-xs font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase">
-                    {{ t('allianceOperations.events.allianceTime', { zone: event.allianceTimezone }) }}
+                <div
+                  class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-4"
+                >
+                  <dt
+                    class="text-xs font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase"
+                  >
+                    {{
+                      t('allianceOperations.events.allianceTime', { zone: event.allianceTimezone })
+                    }}
                   </dt>
-                  <dd class="mt-2 font-semibold">{{ formatInZone(event.startsAt, event.allianceTimezone) }}</dd>
+                  <dd class="mt-2 font-semibold">
+                    {{ formatInZone(event.startsAt, event.allianceTimezone) }}
+                  </dd>
                 </div>
               </dl>
 
               <p v-if="event.capacity" class="mt-3 text-sm text-[var(--ks-text-muted)]">
-                {{ t('allianceOperations.events.capacity', { capacity: formatNumber(event.capacity) }) }}
+                {{
+                  t('allianceOperations.events.capacity', {
+                    capacity: formatNumber(event.capacity),
+                  })
+                }}
               </p>
             </div>
 
@@ -219,24 +257,31 @@ function registrationLabel(event: EventItem): string {
                 class="min-h-11 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--ks-blue-strong)]"
                 type="button"
                 @click="register(event.id)"
-              >{{ t('allianceOperations.events.join') }}</button>
+              >
+                {{ t('allianceOperations.events.join') }}
+              </button>
               <button
                 v-if="canCancel(event)"
                 class="min-h-11 rounded-[var(--ks-radius-sm)] border border-red-400/30 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-500/20"
                 type="button"
                 @click="cancel(event.id)"
-              >{{ t('allianceOperations.events.cancelRegistration') }}</button>
+              >
+                {{ t('allianceOperations.events.cancelRegistration') }}
+              </button>
               <Link
                 class="inline-flex min-h-11 items-center justify-center rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold text-[var(--ks-text-secondary)] transition hover:border-[var(--ks-border-strong)] hover:text-white"
                 :href="`/alliance/events/${event.id}`"
-              >{{ t('allianceOperations.events.details') }}</Link>
+                >{{ t('allianceOperations.events.details') }}</Link
+              >
             </div>
           </div>
         </article>
       </div>
 
       <div v-else class="ks-surface mt-5 border-dashed p-10 text-center">
-        <h2 class="ks-display text-xl font-semibold">{{ t('allianceOperations.events.noEvents') }}</h2>
+        <h2 class="ks-display text-xl font-semibold">
+          {{ t('allianceOperations.events.noEvents') }}
+        </h2>
         <p class="mx-auto mt-2 max-w-xl text-sm leading-6 text-[var(--ks-text-muted)]">
           {{ t('allianceOperations.events.noEventsIntro') }}
         </p>
