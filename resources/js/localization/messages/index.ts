@@ -3,6 +3,10 @@ import { accountExperienceMessages } from './account-extra';
 import { allianceOperationsMessages } from './alliance-operations';
 import { applicationExtraMessages } from './app-extra';
 import { authExtraMessages } from './auth-extra';
+import { contributionLocaleOverrides2 } from './contribution-extra-2';
+import { contributionLocaleOverrides3 } from './contribution-extra-3';
+import { contributionLocaleOverrides4 } from './contribution-extra-4';
+import { contributionLocaleOverrides } from './contribution-extra';
 import { additionalCatalogues } from './catalogues';
 import en from './en';
 import { eventCoordinatorMessages } from './event-coordinator';
@@ -145,6 +149,13 @@ const contributionCopy = {
   leaderboardOff: 'Leaderboard off',
 } as const;
 
+const contributionOverrides = {
+  ...contributionLocaleOverrides,
+  ...contributionLocaleOverrides2,
+  ...contributionLocaleOverrides3,
+  ...contributionLocaleOverrides4,
+};
+
 type BaseMessageTree = StringLeaves<typeof en>;
 type AccountExperienceMessageTree = (typeof accountExperienceMessages)['en'];
 type AllianceOperationsMessageTree = (typeof allianceOperationsMessages)['en'];
@@ -193,7 +204,7 @@ function catalogue(locale: LocaleCode) {
     ...rosterMessages[locale],
     ...rosterWorkflowMessages[locale],
     ...(rosterWorkflowOverrides[locale] ?? {}),
-    contributions: { ...contributionCopy },
+    contributions: { ...contributionCopy, ...(contributionOverrides[locale] ?? {}) },
   };
 }
 
