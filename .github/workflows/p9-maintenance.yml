@@ -1,0 +1,75 @@
+name: P9 Maintenance
+
+on:
+  push:
+    paths:
+      - '.p9-maintenance'
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out UX branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ux/ux-001-experience-localization
+
+      - name: Align P9 test contracts
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          content = Path('tests/Feature/Content/ContentAccessibilityGuardTest.php')
+          source = content.read_text()
+          source = source.replace(
+              '<main id="public-content">',
+              '<main id="public-content"',
+              1,
+          )
+          marker = "                'PublicLayout must expose the main landmark.',\n            );\n"
+          addition = marker + "            self::assertStringContainsString(\n                'tabindex=\"-1\"',\n                $layout,\n                'PublicLayout main must accept skip-link focus.',\n            );\n"
+          if 'PublicLayout main must accept skip-link focus.' not in source:
+              source = source.replace(marker, addition, 1)
+          content.write_text(source)
+
+          structure = Path('tests/Architecture/RepositoryStructureTest.php')
+          source = structure.read_text().replace(
+              "['Architecture', 'Feature', 'Integration', 'Performance', 'TenantIsolation', 'Unit']",
+              "['Architecture', 'Feature', 'Integration', 'Performance', 'TenantIsolation', 'Unit', 'Visual']",
+              1,
+          )
+          structure.write_text(source)
+
+          config = Path('playwright.config.ts')
+          source = config.read_text().replace("testDir: './browser-tests'", "testDir: './tests/Visual'", 1)
+          config.write_text(source)
+
+          for path in [
+              Path('browser-tests/.gitkeep'),
+              Path('browser-tests/README.md'),
+              Path('browser-tests/NOTICE.md'),
+          ]:
+              if path.exists():
+                  path.unlink()
+          browser = Path('browser-tests')
+          if browser.exists():
+              try:
+                  browser.rmdir()
+              except OSError:
+                  pass
+          PY
+
+      - name: Commit aligned P9 test contracts
+        shell: bash
+        run: |
+          rm -f .p9-maintenance
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'Align P9 visual test group and accessibility guards'
+          git push origin HEAD:ux/ux-001-experience-localization
