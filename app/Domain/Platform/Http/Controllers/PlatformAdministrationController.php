@@ -65,6 +65,10 @@ final class PlatformAdministrationController extends Controller
         }
 
         return Inertia::render('Platform/Administration/Index', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'platform' => $dashboard,
             'selectedAlliance' => $selectedAlliance,
             'currentUserId' => (int) $user->id,
