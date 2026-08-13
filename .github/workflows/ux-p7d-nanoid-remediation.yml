@@ -5,7 +5,7 @@ on:
     branches:
       - ux/ux-001-experience-localization
     paths:
-      - .ux-p7d-nanoid-remediation-trigger
+      - .ux-p7d-nanoid-remediation-run
 
 permissions:
   contents: write
@@ -51,7 +51,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git rm -f .github/workflows/ux-p7d-nanoid-remediation.yml .ux-p7d-nanoid-remediation-trigger
+          git rm -f .github/workflows/ux-p7d-nanoid-remediation.yml .ux-p7d-nanoid-remediation-run
           test -z "$(git diff --name-only -- package.json)" || { echo 'package.json changed unexpectedly'; exit 1; }
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
