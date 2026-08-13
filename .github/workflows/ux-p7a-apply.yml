@@ -1,0 +1,447 @@
+name: UX P7A apply
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .ux-p7a-apply-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out UX branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ux/ux-001-experience-localization
+          fetch-depth: 0
+
+      - name: Wire shell identity and accessibility contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path: str, old: str, new: str) -> None:
+              file = Path(path)
+              text = file.read_text()
+              if old not in text:
+                  raise SystemExit(f'missing expected text in {path}')
+              file.write_text(text.replace(old, new, 1))
+
+          replace(
+              'app/Domain/Kingdoms/Http/Controllers/KingdomAllianceController.php',
+              "        return Inertia::render('Alliance/KingdomAlliances', [\n            'alliance' => $this->allianceSummary($alliance),",
+              "        return Inertia::render('Alliance/KingdomAlliances', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' => $this->allianceSummary($alliance),",
+          )
+          replace(
+              'app/Domain/Kingdoms/Http/Controllers/KingdomSettingsController.php',
+              "        return Inertia::render('Alliance/KingdomSettings', [\n            'alliance' => [",
+              "        return Inertia::render('Alliance/KingdomSettings', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' => [",
+          )
+          replace(
+              'app/Domain/Kingdoms/Http/Controllers/KingdomIngestionController.php',
+              "        return Inertia::render('Alliance/KingdomIngestionManage', [\n            'alliance' => $this->allianceSummary($alliance),",
+              "        return Inertia::render('Alliance/KingdomIngestionManage', [\n            'user' => [\n                'name' => (string) $user->name,\n                'email' => (string) $user->email,\n            ],\n            'alliance' => $this->allianceSummary($alliance),",
+          )
+          replace(
+              'tests/Architecture/KingdomAccessibilityTest.php',
+              "            'RosterImport.vue',\n        ];",
+              "            'RosterImport.vue',\n            'KingdomSettings.vue',\n            'KingdomAlliances.vue',\n            'KingdomIngestionManage.vue',\n        ];",
+          )
+          PY
+
+      - name: Write Kingdom overview
+        run: |
+          cat > resources/js/pages/Alliance/KingdomAlliances.vue <<'EOF'
+          <script setup lang="ts">
+          import { Head, Link } from '@inertiajs/vue3';
+          import { computed } from 'vue';
+
+          import AppLayout from '../../layouts/AppLayout.vue';
+          import { useLocale } from '../../localization';
+
+          type LatestObservation = {
+            observedName: string;
+            observedTag: string | null;
+            power: string | null;
+            memberCount: number | null;
+            capturedAt: string;
+            source: string;
+          };
+
+          type TrackingSummary = {
+            name: string;
+            tag: string | null;
+            state: string;
+            kingdom: string;
+            contextCurrent: boolean;
+            historyUrl: string;
+            freshness: 'current' | 'stale' | 'missing';
+            latestObservation: LatestObservation | null;
+            diplomacyState: string;
+            diplomacyNeedsReview: boolean;
+          };
+
+          const props = defineProps<{
+            user: { name: string; email: string };
+            alliance: { id: string; name: string; kingdom: string | null };
+            canManage: boolean;
+            tracking: TrackingSummary[];
+          }>();
+
+          const { t, formatDate, formatNumber } = useLocale();
+          const currentCount = computed(() => props.tracking.filter((entry) => entry.freshness === 'current').length);
+          const attentionCount = computed(() => props.tracking.length - currentCount.value);
+          const reviewCount = computed(() => props.tracking.filter((entry) => entry.diplomacyNeedsReview).length);
+
+          function date(value: string): string {
+            return formatDate(value, { dateStyle: 'medium', timeStyle: 'short' });
+          }
+
+          function label(value: string): string {
+            if (value === 'nap') return 'NAP';
+            return value.charAt(0).toUpperCase() + value.slice(1).replaceAll('_', ' ');
+          }
+
+          function freshnessLabel(value: TrackingSummary['freshness']): string {
+            if (value === 'current') return t('kingdomP7A.current');
+            if (value === 'stale') return t('kingdomP7A.stale');
+            return t('kingdomP7A.missing');
+          }
+
+          function freshnessTone(value: TrackingSummary['freshness']): string {
+            if (value === 'current') return 'border-green-400/25 bg-green-500/10 text-green-200';
+            if (value === 'stale') return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
+            return 'border-red-400/25 bg-red-500/10 text-red-200';
+          }
+          </script>
+
+          <template>
+            <Head :title="`${t('kingdomP7A.overviewTitle')} · ${alliance.name}`" />
+            <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+              <header class="flex flex-wrap items-start justify-between gap-5">
+                <div class="max-w-3xl">
+                  <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">{{ t('kingdomP7A.eyebrow') }}</p>
+                  <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">{{ t('kingdomP7A.overviewTitle') }}</h1>
+                  <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">{{ t('kingdomP7A.overviewSubtitle', { alliance: alliance.name }) }}</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <Link v-if="canManage" href="/alliance/kingdom-alliances/manage" class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-3 py-2 text-sm font-semibold text-white">{{ t('kingdomP7A.manageTracking') }}</Link>
+                  <Link href="/alliance/kingdom-alliances/intelligence" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold">{{ t('kingdomP7A.intelligence') }}</Link>
+                  <Link v-if="canManage" href="/alliance/settings/kingdom" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold">{{ t('kingdomP7A.settings') }}</Link>
+                  <Link v-if="canManage" href="/alliance/kingdom-ingestion/manage" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold">{{ t('kingdomP7A.ingestion') }}</Link>
+                </div>
+              </header>
+
+              <section class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Kingdom summary">
+                <article class="ks-surface p-4"><p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7A.currentKingdom') }}</p><p class="ks-display mt-2 text-2xl font-bold text-[var(--ks-gold)]">{{ alliance.kingdom ? `#${alliance.kingdom}` : t('kingdomP7A.notConfigured') }}</p></article>
+                <article class="ks-surface p-4"><p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7A.trackedAlliances') }}</p><p class="mt-2 text-2xl font-bold">{{ formatNumber(tracking.length) }}</p></article>
+                <article class="ks-surface p-4"><p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7A.currentObservations') }}</p><p class="mt-2 text-2xl font-bold text-green-200">{{ formatNumber(currentCount) }}</p><p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ formatNumber(attentionCount) }} · {{ t('kingdomP7A.staleOrMissing') }}</p></article>
+                <article class="ks-surface p-4"><p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7A.reviewDue') }}</p><p class="mt-2 text-2xl font-bold" :class="reviewCount ? 'text-amber-200' : 'text-green-200'">{{ formatNumber(reviewCount) }}</p></article>
+              </section>
+
+              <section class="ks-surface mt-6 p-4 sm:p-5" aria-labelledby="tracking-heading">
+                <div class="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--ks-border)] pb-4">
+                  <div class="max-w-3xl"><h2 id="tracking-heading" class="ks-display text-xl font-semibold">{{ t('kingdomP7A.allianceTracking') }}</h2><p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">{{ t('kingdomP7A.trackingHelp') }}</p></div>
+                  <p class="text-sm text-[var(--ks-text-muted)]">{{ formatNumber(tracking.length) }} {{ t('kingdomP7A.trackedAlliances') }}</p>
+                </div>
+
+                <div v-if="tracking.length" class="mt-4 space-y-3 lg:hidden">
+                  <article v-for="(entry, index) in tracking" :key="`${entry.name}-${entry.kingdom}-${index}`" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-4">
+                    <div class="flex items-start justify-between gap-3"><div class="min-w-0"><Link :href="entry.historyUrl" class="font-semibold text-[var(--ks-blue-soft)] hover:underline">{{ entry.name }}</Link><p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ entry.tag ?? t('kingdomP7A.noTag') }}</p></div><span :class="freshnessTone(entry.freshness)" class="rounded-full border px-2 py-1 text-xs font-semibold">{{ freshnessLabel(entry.freshness) }}</span></div>
+                    <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+                      <p><span class="block text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7A.latestFacts') }}</span><span v-if="entry.latestObservation">{{ t('kingdomP7A.power') }} {{ entry.latestObservation.power ?? t('kingdomP7A.missing') }} · {{ t('kingdomP7A.members') }} {{ entry.latestObservation.memberCount ?? t('kingdomP7A.missing') }}</span><span v-else>{{ t('kingdomP7A.noAcceptedObservation') }}</span></p>
+                      <p><span class="block text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7A.diplomacy') }}</span>{{ label(entry.diplomacyState) }}<span v-if="entry.diplomacyNeedsReview" class="block text-xs text-amber-200">{{ t('kingdomP7A.reviewDueShort') }}</span></p>
+                      <p><span class="block text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7A.kingdomContext') }}</span>#{{ entry.kingdom }}<span v-if="!entry.contextCurrent" class="block text-xs text-amber-200">{{ t('kingdomP7A.historicalContext') }}</span></p>
+                      <p><span class="block text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7A.trackingState') }}</span>{{ label(entry.state) }}</p>
+                    </div>
+                    <p v-if="entry.latestObservation" class="mt-3 text-xs text-[var(--ks-text-muted)]">{{ date(entry.latestObservation.capturedAt) }}</p>
+                  </article>
+                </div>
+
+                <div v-if="tracking.length" class="mt-4 hidden overflow-x-auto lg:block">
+                  <table class="min-w-full text-left text-sm">
+                    <caption class="sr-only">{{ t('kingdomP7A.allianceTracking') }}</caption>
+                    <thead class="text-xs text-[var(--ks-text-muted)] uppercase"><tr><th class="px-3 py-3 font-semibold">{{ t('kingdomP7A.alliance') }}</th><th class="px-3 py-3 font-semibold">{{ t('kingdomP7A.latestFacts') }}</th><th class="px-3 py-3 font-semibold">{{ t('kingdomP7A.freshness') }}</th><th class="px-3 py-3 font-semibold">{{ t('kingdomP7A.diplomacy') }}</th><th class="px-3 py-3 font-semibold">{{ t('kingdomP7A.kingdomContext') }}</th><th class="px-3 py-3 font-semibold">{{ t('kingdomP7A.trackingState') }}</th></tr></thead>
+                    <tbody class="divide-y divide-[var(--ks-border)]"><tr v-for="(entry, index) in tracking" :key="`${entry.name}-${entry.kingdom}-${index}`"><td class="px-3 py-4 align-top"><Link :href="entry.historyUrl" class="font-semibold text-[var(--ks-blue-soft)] hover:underline">{{ entry.name }}</Link><p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ entry.tag ?? t('kingdomP7A.noTag') }}</p></td><td class="px-3 py-4 align-top text-[var(--ks-text-secondary)]"><template v-if="entry.latestObservation"><p>{{ t('kingdomP7A.power') }} {{ entry.latestObservation.power ?? t('kingdomP7A.missing') }} · {{ t('kingdomP7A.members') }} {{ entry.latestObservation.memberCount ?? t('kingdomP7A.missing') }}</p><p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ date(entry.latestObservation.capturedAt) }}</p></template><span v-else>{{ t('kingdomP7A.noAcceptedObservation') }}</span></td><td class="px-3 py-4 align-top"><span :class="freshnessTone(entry.freshness)" class="rounded-full border px-2 py-1 text-xs font-semibold">{{ freshnessLabel(entry.freshness) }}</span></td><td class="px-3 py-4 align-top">{{ label(entry.diplomacyState) }}<span v-if="entry.diplomacyNeedsReview" class="mt-2 block text-xs font-semibold text-amber-200">{{ t('kingdomP7A.reviewDueShort') }}</span></td><td class="px-3 py-4 align-top">#{{ entry.kingdom }}<span v-if="!entry.contextCurrent" class="mt-2 block text-xs font-semibold text-amber-200">{{ t('kingdomP7A.historicalContext') }}</span></td><td class="px-3 py-4 align-top">{{ label(entry.state) }}</td></tr></tbody>
+                  </table>
+                </div>
+                <p v-else class="mt-5 rounded-[var(--ks-radius-sm)] border border-dashed border-[var(--ks-border)] p-5 text-sm text-[var(--ks-text-muted)]">{{ t('kingdomP7A.noTracking') }}</p>
+              </section>
+            </AppLayout>
+          </template>
+          EOF
+
+      - name: Write Kingdom settings
+        run: |
+          cat > resources/js/pages/Alliance/KingdomSettings.vue <<'EOF'
+          <script setup lang="ts">
+          import { Head, Link, useForm } from '@inertiajs/vue3';
+          import { computed } from 'vue';
+
+          import AppLayout from '../../layouts/AppLayout.vue';
+          import { useLocale } from '../../localization';
+
+          const props = defineProps<{
+            user: { name: string; email: string };
+            alliance: { id: string; name: string; kingdom: string | null };
+          }>();
+
+          const { t } = useLocale();
+          const form = useForm({ kingdom: props.alliance.kingdom ?? '' });
+          const kingdomDescription = computed(() => form.errors.kingdom ? 'kingdom-number-help kingdom-number-error' : 'kingdom-number-help');
+
+          function saveKingdom(): void {
+            form.patch('/alliance/settings/kingdom', { preserveScroll: true });
+          }
+          </script>
+
+          <template>
+            <Head :title="`${t('kingdomP7A.settingsTitle')} · ${alliance.name}`" />
+            <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+              <header class="flex flex-wrap items-start justify-between gap-5">
+                <div class="max-w-3xl">
+                  <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">{{ t('kingdomP7A.settingsEyebrow') }}</p>
+                  <h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">{{ t('kingdomP7A.settingsTitle') }}</h1>
+                  <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">{{ t('kingdomP7A.settingsSubtitle', { alliance: alliance.name }) }}</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <Link href="/alliance/kingdom-alliances" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold">{{ t('kingdomP7A.overviewTitle') }}</Link>
+                  <Link href="/alliance/kingdom-ingestion/manage" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold">{{ t('kingdomP7A.ingestion') }}</Link>
+                </div>
+              </header>
+
+              <div class="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.38fr)]">
+                <section class="ks-surface p-5" aria-labelledby="kingdom-settings-heading">
+                  <h2 id="kingdom-settings-heading" class="ks-display text-xl font-semibold">{{ t('kingdomP7A.settingsTitle') }}</h2>
+                  <form class="mt-5" @submit.prevent="saveKingdom">
+                    <label class="text-sm font-semibold" for="kingdom-number">{{ t('kingdomP7A.kingdomNumber') }}</label>
+                    <input id="kingdom-number" v-model="form.kingdom" :aria-describedby="kingdomDescription" :aria-invalid="form.errors.kingdom ? 'true' : undefined" class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/20 px-3 py-2.5" inputmode="numeric" pattern="[1-9][0-9]*" type="text" />
+                    <p id="kingdom-number-help" class="mt-2 text-xs leading-5 text-[var(--ks-text-muted)]">{{ t('kingdomP7A.kingdomNumberHelp') }}</p>
+                    <p v-if="form.errors.kingdom" id="kingdom-number-error" class="mt-2 text-sm text-red-300" role="alert">{{ form.errors.kingdom }}</p>
+                    <button class="mt-5 rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60" :disabled="form.processing" type="submit">{{ t('kingdomP7A.saveKingdom') }}</button>
+                  </form>
+                </section>
+
+                <aside class="ks-surface p-5">
+                  <p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7A.association') }}</p>
+                  <p class="ks-display mt-3 text-3xl font-bold text-[var(--ks-gold)]">{{ alliance.kingdom ? `#${alliance.kingdom}` : t('kingdomP7A.notConfigured') }}</p>
+                  <p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">{{ t('kingdomP7A.kingdomNumberHelp') }}</p>
+                </aside>
+              </div>
+            </AppLayout>
+          </template>
+          EOF
+
+      - name: Write Kingdom ingestion
+        run: |
+          cat > resources/js/pages/Alliance/KingdomIngestionManage.vue <<'EOF'
+          <script setup lang="ts">
+          import { Head, Link, router, useForm } from '@inertiajs/vue3';
+          import { computed } from 'vue';
+
+          import AppLayout from '../../layouts/AppLayout.vue';
+          import { useLocale } from '../../localization';
+
+          type AdapterDefinition = { key: string; version: string; label: string; targetKinds: string[]; acquisitionEnabled: boolean; pollIntervalSeconds: number | null };
+          type LatestBatch = { id: string; state: string; startedAt: string; completedAt: string | null; recordsReceived: number; recordsStaged: number; recordsQuarantined: number; recordsRejected: number; failureCode: string | null; nextSourceCursor: string | null };
+          type SubscriptionRow = { id: string; adapterKey: string; adapterVersion: string; adapterLabel: string; state: string; kingdom: string; contextCurrent: boolean; sourceCursor: string | null; nextRunAt: string | null; lastClaimedAt: string | null; lastSucceededAt: string | null; lastFailedAt: string | null; consecutiveFailures: number; circuitOpenUntil: string | null; lastFailureCode: string | null; blockedAt: string | null; blockedReason: string | null; pendingCandidates: number; quarantinedCandidates: number; rejectedCandidates: number; latestBatch: LatestBatch | null };
+          type CandidateRow = { id: string; subscriptionId: string; adapterKey: string; targetKind: string; stableGameId: string | null; sourceRecordId: string | null; capturedAt: string; state: string; quarantineCode: string | null; rejectionCode: string | null };
+
+          const props = defineProps<{
+            user: { name: string; email: string };
+            alliance: { id: string; name: string; kingdom: string | null };
+            adapters: AdapterDefinition[];
+            subscriptions: SubscriptionRow[];
+            candidates: CandidateRow[];
+          }>();
+
+          const { t, formatDate, formatNumber } = useLocale();
+          const createForm = useForm({ adapter_key: props.adapters[0]?.key ?? '' });
+          const activeSubscriptions = computed(() => props.subscriptions.filter((item) => item.state === 'active').length);
+          const quarantinedCount = computed(() => props.subscriptions.reduce((total, item) => total + item.quarantinedCandidates, 0));
+
+          function createSubscription(): void {
+            createForm.post('/alliance/kingdom-ingestion/subscriptions', { preserveScroll: true, onSuccess: () => createForm.reset() });
+          }
+
+          function transition(subscription: SubscriptionRow, state: 'active' | 'paused' | 'disabled'): void {
+            if (state === 'disabled' && !window.confirm(t('kingdomP7A.disableConfirm', { adapter: subscription.adapterLabel }))) return;
+            router.patch(`/alliance/kingdom-ingestion/subscriptions/${subscription.id}/state`, { state }, { preserveScroll: true });
+          }
+
+          function replayCandidate(candidate: CandidateRow): void {
+            if (!window.confirm(t('kingdomP7A.replayConfirm'))) return;
+            router.post(`/alliance/kingdom-ingestion/subscriptions/${candidate.subscriptionId}/candidates/${candidate.id}/replay`, {}, { preserveScroll: true });
+          }
+
+          function rejectCandidate(candidate: CandidateRow): void {
+            if (!window.confirm(t('kingdomP7A.rejectConfirm'))) return;
+            router.post(`/alliance/kingdom-ingestion/subscriptions/${candidate.subscriptionId}/candidates/${candidate.id}/reject`, {}, { preserveScroll: true });
+          }
+
+          function date(value: string | null): string {
+            return value ? formatDate(value, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+          }
+
+          function label(value: string): string {
+            const known: Record<string, string> = { active: t('kingdomP7A.active'), paused: t('kingdomP7A.paused'), disabled: t('kingdomP7A.disabled'), pending: t('kingdomP7A.pending'), quarantined: t('kingdomP7A.quarantined'), rejected: t('kingdomP7A.rejected') };
+            return known[value] ?? value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+          }
+
+          function tone(value: string): string {
+            if (['active', 'completed', 'succeeded', 'promoted'].includes(value)) return 'border-green-400/25 bg-green-500/10 text-green-200';
+            if (['paused', 'pending', 'quarantined'].includes(value)) return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
+            if (['disabled', 'failed', 'rejected', 'blocked'].includes(value)) return 'border-red-400/25 bg-red-500/10 text-red-200';
+            return 'border-blue-400/25 bg-blue-500/10 text-blue-200';
+          }
+          </script>
+
+          <template>
+            <Head :title="`${t('kingdomP7A.ingestionTitle')} · ${alliance.name}`" />
+            <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+              <header class="flex flex-wrap items-start justify-between gap-5">
+                <div class="max-w-3xl"><p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">{{ t('kingdomP7A.eyebrow') }}</p><h1 class="ks-display mt-2 text-3xl font-bold sm:text-4xl">{{ t('kingdomP7A.ingestionTitle') }}</h1><p class="mt-3 text-sm leading-6 text-[var(--ks-text-secondary)]">{{ t('kingdomP7A.ingestionSubtitle', { alliance: alliance.name }) }}</p></div>
+                <div class="flex flex-wrap gap-2"><Link href="/alliance/kingdom-alliances" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold">{{ t('kingdomP7A.overviewTitle') }}</Link><Link href="/alliance/settings/kingdom" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold">{{ t('kingdomP7A.settings') }}</Link></div>
+              </header>
+
+              <section class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Ingestion summary">
+                <article class="ks-surface p-4"><p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7A.currentKingdom') }}</p><p class="ks-display mt-2 text-2xl font-bold text-[var(--ks-gold)]">{{ alliance.kingdom ? `#${alliance.kingdom}` : t('kingdomP7A.notConfigured') }}</p></article>
+                <article class="ks-surface p-4"><p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7A.approvedAdapters') }}</p><p class="mt-2 text-2xl font-bold">{{ formatNumber(adapters.length) }}</p></article>
+                <article class="ks-surface p-4"><p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7A.subscriptionsCount') }}</p><p class="mt-2 text-2xl font-bold">{{ formatNumber(subscriptions.length) }}</p><p class="mt-1 text-xs text-green-200">{{ formatNumber(activeSubscriptions) }} {{ t('kingdomP7A.active') }}</p></article>
+                <article class="ks-surface p-4"><p class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">{{ t('kingdomP7A.quarantinedCount') }}</p><p class="mt-2 text-2xl font-bold" :class="quarantinedCount ? 'text-amber-200' : 'text-green-200'">{{ formatNumber(quarantinedCount) }}</p></article>
+              </section>
+
+              <section class="ks-surface mt-6 p-5" aria-labelledby="source-heading">
+                <h2 id="source-heading" class="ks-display text-xl font-semibold">{{ t('kingdomP7A.approvedSource') }}</h2><p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--ks-text-secondary)]">{{ t('kingdomP7A.approvedSourceHelp') }}</p>
+                <form class="mt-5 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end" @submit.prevent="createSubscription">
+                  <div><label class="text-sm font-semibold" for="ingestion-adapter">{{ t('kingdomP7A.sourceAdapter') }}</label><select id="ingestion-adapter" v-model="createForm.adapter_key" class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/20 px-3 py-2.5" :disabled="adapters.length === 0"><option v-if="adapters.length === 0" value="">{{ t('kingdomP7A.noAdapters') }}</option><option v-for="adapter in adapters" :key="adapter.key" :value="adapter.key">{{ adapter.label }} · {{ adapter.version }} · {{ adapter.acquisitionEnabled ? t('kingdomP7A.scheduled') : t('kingdomP7A.manualPipelineOnly') }}</option></select><p v-if="createForm.errors.adapter_key" class="mt-1 text-sm text-red-300" role="alert">{{ createForm.errors.adapter_key }}</p><p v-else class="mt-2 text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7A.adapterHelp') }}</p></div>
+                  <button class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50" :disabled="createForm.processing || adapters.length === 0 || alliance.kingdom === null" type="submit">{{ t('kingdomP7A.enableAdapter') }}</button>
+                </form>
+              </section>
+
+              <section class="ks-surface mt-6 p-5" aria-labelledby="subscriptions-heading">
+                <h2 id="subscriptions-heading" class="ks-display text-xl font-semibold">{{ t('kingdomP7A.subscriptions') }}</h2><p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">{{ t('kingdomP7A.subscriptionsHelp') }}</p>
+                <div v-if="subscriptions.length" class="mt-5 space-y-3 lg:hidden"><article v-for="subscription in subscriptions" :key="subscription.id" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-4"><div class="flex items-start justify-between gap-3"><div><p class="font-semibold">{{ subscription.adapterLabel }}</p><p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ subscription.adapterKey }} · {{ subscription.adapterVersion }}</p></div><span :class="tone(subscription.state)" class="rounded-full border px-2 py-1 text-xs font-semibold">{{ label(subscription.state) }}</span></div><p class="mt-3 text-sm">#{{ subscription.kingdom }}<span v-if="!subscription.contextCurrent" class="ms-2 text-xs text-amber-200">{{ t('kingdomP7A.historical') }}</span></p><p class="mt-2 text-xs text-[var(--ks-text-secondary)]">{{ t('kingdomP7A.candidateSummary', { pending: formatNumber(subscription.pendingCandidates), quarantined: formatNumber(subscription.quarantinedCandidates), rejected: formatNumber(subscription.rejectedCandidates) }) }}</p><p class="mt-2 text-xs text-[var(--ks-text-muted)]">{{ subscription.nextRunAt ? `${t('kingdomP7A.nextRun')}: ${date(subscription.nextRunAt)}` : t('kingdomP7A.notScheduled') }}</p><p v-if="subscription.latestBatch" class="mt-2 text-xs text-[var(--ks-text-secondary)]">{{ label(subscription.latestBatch.state) }} · {{ t('kingdomP7A.latestBatchSummary', { staged: formatNumber(subscription.latestBatch.recordsStaged), quarantined: formatNumber(subscription.latestBatch.recordsQuarantined) }) }}</p><p v-if="subscription.lastFailureCode" class="mt-2 text-xs text-red-200">{{ label(subscription.lastFailureCode) }} · {{ formatNumber(subscription.consecutiveFailures) }}</p><div class="mt-4 flex flex-wrap gap-2"><button v-if="subscription.state === 'active'" class="rounded border border-amber-400/25 px-3 py-1.5 text-xs font-semibold text-amber-200" type="button" @click="transition(subscription, 'paused')">{{ t('kingdomP7A.pause') }}</button><button v-else class="rounded border border-blue-400/25 px-3 py-1.5 text-xs font-semibold text-blue-200 disabled:opacity-50" :disabled="!subscription.contextCurrent" type="button" @click="transition(subscription, 'active')">{{ t('kingdomP7A.enable') }}</button><button v-if="subscription.state !== 'disabled'" class="rounded border border-red-400/25 px-3 py-1.5 text-xs font-semibold text-red-200" type="button" @click="transition(subscription, 'disabled')">{{ t('kingdomP7A.disable') }}</button></div></article></div>
+
+                <div v-if="subscriptions.length" class="mt-5 hidden overflow-x-auto lg:block"><table class="min-w-full text-left text-sm"><caption class="sr-only">{{ t('kingdomP7A.subscriptions') }}</caption><thead class="text-xs text-[var(--ks-text-muted)] uppercase"><tr><th class="px-3 py-3">{{ t('kingdomP7A.adapter') }}</th><th class="px-3 py-3">{{ t('kingdomP7A.kingdom') }}</th><th class="px-3 py-3">{{ t('kingdomP7A.state') }}</th><th class="px-3 py-3">{{ t('kingdomP7A.scheduling') }}</th><th class="px-3 py-3">{{ t('kingdomP7A.candidates') }}</th><th class="px-3 py-3">{{ t('kingdomP7A.latestBatch') }}</th><th class="px-3 py-3">{{ t('kingdomP7A.actions') }}</th></tr></thead><tbody class="divide-y divide-[var(--ks-border)]"><tr v-for="subscription in subscriptions" :key="subscription.id"><td class="px-3 py-4 align-top"><p class="font-semibold">{{ subscription.adapterLabel }}</p><p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ subscription.adapterKey }} · {{ subscription.adapterVersion }}</p></td><td class="px-3 py-4 align-top">#{{ subscription.kingdom }}<span v-if="!subscription.contextCurrent" class="mt-1 block text-xs text-amber-200">{{ t('kingdomP7A.historical') }}</span></td><td class="px-3 py-4 align-top"><span :class="tone(subscription.state)" class="rounded-full border px-2 py-1 text-xs font-semibold">{{ label(subscription.state) }}</span><p v-if="subscription.lastFailureCode" class="mt-2 text-xs text-red-200">{{ label(subscription.lastFailureCode) }} · {{ formatNumber(subscription.consecutiveFailures) }}</p></td><td class="px-3 py-4 align-top text-[var(--ks-text-secondary)]"><p>{{ subscription.nextRunAt ? `${t('kingdomP7A.nextRun')}: ${date(subscription.nextRunAt)}` : t('kingdomP7A.notScheduled') }}</p><p v-if="subscription.circuitOpenUntil" class="mt-1 text-xs text-amber-200">{{ t('kingdomP7A.circuitUntil', { date: date(subscription.circuitOpenUntil) }) }}</p><p v-else-if="subscription.lastClaimedAt" class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7A.lastClaimed', { date: date(subscription.lastClaimedAt) }) }}</p></td><td class="px-3 py-4 align-top text-[var(--ks-text-secondary)]">{{ t('kingdomP7A.candidateSummary', { pending: formatNumber(subscription.pendingCandidates), quarantined: formatNumber(subscription.quarantinedCandidates), rejected: formatNumber(subscription.rejectedCandidates) }) }}</td><td class="px-3 py-4 align-top text-[var(--ks-text-secondary)]"><template v-if="subscription.latestBatch"><p>{{ label(subscription.latestBatch.state) }}</p><p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7A.latestBatchSummary', { staged: formatNumber(subscription.latestBatch.recordsStaged), quarantined: formatNumber(subscription.latestBatch.recordsQuarantined) }) }}</p><p v-if="subscription.latestBatch.failureCode" class="mt-1 text-xs text-red-200">{{ label(subscription.latestBatch.failureCode) }}</p></template><span v-else>{{ t('kingdomP7A.noBatches') }}</span></td><td class="px-3 py-4 align-top"><div class="flex flex-wrap gap-2"><button v-if="subscription.state === 'active'" class="rounded border border-amber-400/25 px-3 py-1.5 text-xs font-semibold text-amber-200" type="button" @click="transition(subscription, 'paused')">{{ t('kingdomP7A.pause') }}</button><button v-else class="rounded border border-blue-400/25 px-3 py-1.5 text-xs font-semibold text-blue-200 disabled:opacity-50" :disabled="!subscription.contextCurrent" type="button" @click="transition(subscription, 'active')">{{ t('kingdomP7A.enable') }}</button><button v-if="subscription.state !== 'disabled'" class="rounded border border-red-400/25 px-3 py-1.5 text-xs font-semibold text-red-200" type="button" @click="transition(subscription, 'disabled')">{{ t('kingdomP7A.disable') }}</button></div></td></tr></tbody></table></div>
+                <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">{{ t('kingdomP7A.noBatches') }}</p>
+              </section>
+
+              <section class="ks-surface mt-6 p-5" aria-labelledby="candidates-heading">
+                <h2 id="candidates-heading" class="ks-display text-xl font-semibold">{{ t('kingdomP7A.recentCandidates') }}</h2><p class="mt-2 max-w-4xl text-sm leading-6 text-[var(--ks-text-secondary)]">{{ t('kingdomP7A.candidatesHelp') }}</p>
+                <div v-if="candidates.length" class="mt-5 overflow-x-auto"><table class="min-w-full text-left text-sm"><caption class="sr-only">{{ t('kingdomP7A.recentCandidates') }}</caption><thead class="text-xs text-[var(--ks-text-muted)] uppercase"><tr><th class="px-3 py-3">{{ t('kingdomP7A.adapter') }}</th><th class="px-3 py-3">{{ t('kingdomP7A.target') }}</th><th class="px-3 py-3">{{ t('kingdomP7A.stableGameId') }}</th><th class="px-3 py-3">{{ t('kingdomP7A.captured') }}</th><th class="px-3 py-3">{{ t('kingdomP7A.state') }}</th><th class="px-3 py-3">{{ t('kingdomP7A.actions') }}</th></tr></thead><tbody class="divide-y divide-[var(--ks-border)]"><tr v-for="candidate in candidates" :key="candidate.id"><td class="px-3 py-4">{{ candidate.adapterKey }}</td><td class="px-3 py-4">{{ label(candidate.targetKind) }}</td><td class="px-3 py-4">{{ candidate.stableGameId ?? t('kingdomP7A.missing') }}</td><td class="px-3 py-4">{{ date(candidate.capturedAt) }}</td><td class="px-3 py-4"><span :class="tone(candidate.state)" class="rounded-full border px-2 py-1 text-xs font-semibold">{{ label(candidate.state) }}</span><span v-if="candidate.quarantineCode" class="mt-2 block text-xs text-amber-200">{{ label(candidate.quarantineCode) }}</span></td><td class="px-3 py-4"><div v-if="candidate.state === 'quarantined'" class="flex flex-wrap gap-2"><button class="rounded border border-blue-400/25 px-3 py-1.5 text-xs font-semibold text-blue-200" type="button" @click="replayCandidate(candidate)">{{ t('kingdomP7A.replay') }}</button><button class="rounded border border-red-400/25 px-3 py-1.5 text-xs font-semibold text-red-200" type="button" @click="rejectCandidate(candidate)">{{ t('kingdomP7A.reject') }}</button></div><span v-else class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7A.noManagerAction') }}</span></td></tr></tbody></table></div>
+                <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">{{ t('kingdomP7A.noCandidates') }}</p>
+              </section>
+            </AppLayout>
+          </template>
+          EOF
+
+      - name: Add P7-A architecture guards
+        run: |
+          cat > tests/Architecture/KingdomP7AExperienceTest.php <<'EOF'
+          <?php
+
+          declare(strict_types=1);
+
+          namespace Tests\Architecture;
+
+          use PHPUnit\Framework\TestCase;
+
+          final class KingdomP7AExperienceTest extends TestCase
+          {
+              public function test_p7a_surfaces_use_shared_shell_and_real_kingdom_contracts(): void
+              {
+                  $root = dirname(__DIR__, 2);
+                  foreach (['KingdomAlliances.vue', 'KingdomSettings.vue', 'KingdomIngestionManage.vue'] as $page) {
+                      $source = file_get_contents($root.'/resources/js/pages/Alliance/'.$page);
+                      self::assertIsString($source);
+                      self::assertStringContainsString('AppLayout', $source);
+                      self::assertStringContainsString('kingdomP7A.', $source);
+                      self::assertStringNotContainsString('<main', $source);
+                  }
+
+                  $overview = file_get_contents($root.'/resources/js/pages/Alliance/KingdomAlliances.vue');
+                  self::assertIsString($overview);
+                  self::assertStringContainsString('/alliance/kingdom-alliances/manage', $overview);
+                  self::assertStringContainsString('/alliance/kingdom-alliances/intelligence', $overview);
+                  self::assertStringContainsString('latestObservation', $overview);
+                  self::assertStringContainsString('diplomacyNeedsReview', $overview);
+
+                  $settings = file_get_contents($root.'/resources/js/pages/Alliance/KingdomSettings.vue');
+                  self::assertIsString($settings);
+                  self::assertStringContainsString("form.patch('/alliance/settings/kingdom'", $settings);
+
+                  $ingestion = file_get_contents($root.'/resources/js/pages/Alliance/KingdomIngestionManage.vue');
+                  self::assertIsString($ingestion);
+                  foreach (['/alliance/kingdom-ingestion/subscriptions', '/state', '/replay', '/reject'] as $contract) {
+                      self::assertStringContainsString($contract, $ingestion);
+                  }
+              }
+
+              public function test_p7a_rejects_visual_target_only_analytics_and_controls(): void
+              {
+                  $root = dirname(__DIR__, 2).'/resources/js/pages/Alliance/';
+                  $source = file_get_contents($root.'KingdomAlliances.vue').file_get_contents($root.'KingdomSettings.vue').file_get_contents($root.'KingdomIngestionManage.vue');
+                  self::assertIsString($source);
+                  foreach (['Kingdom Power Trend', 'Recent Kingdom Activity', 'Export Kingdom Data', 'AI-powered', 'Predicted power', 'Cross-kingdom ranking', 'Auto-snapshot'] as $unsupported) {
+                      self::assertStringNotContainsString($unsupported, $source);
+                  }
+              }
+
+              public function test_p7a_catalogue_covers_all_supported_locales_and_controllers_supply_shell_identity(): void
+              {
+                  $root = dirname(__DIR__, 2);
+                  $catalogue = file_get_contents($root.'/resources/js/localization/messages/kingdom-p7a.ts');
+                  self::assertIsString($catalogue);
+                  foreach (['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'] as $locale) {
+                      self::assertStringContainsString("'{$locale}'", $catalogue);
+                  }
+
+                  foreach (['KingdomAllianceController.php', 'KingdomSettingsController.php', 'KingdomIngestionController.php'] as $controller) {
+                      $source = file_get_contents($root.'/app/Domain/Kingdoms/Http/Controllers/'.$controller);
+                      self::assertIsString($source);
+                      self::assertStringContainsString("'name' => (string) \$user->name", $source);
+                      self::assertStringContainsString("'email' => (string) \$user->email", $source);
+                  }
+              }
+          }
+          EOF
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Format frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npx prettier --write resources/js/pages/Alliance/KingdomAlliances.vue resources/js/pages/Alliance/KingdomSettings.vue resources/js/pages/Alliance/KingdomIngestionManage.vue resources/js/localization/messages/kingdom-p7a.ts resources/js/localization/messages/index.ts
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Format PHP
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          vendor/bin/pint app/Domain/Kingdoms/Http/Controllers/KingdomAllianceController.php app/Domain/Kingdoms/Http/Controllers/KingdomSettingsController.php app/Domain/Kingdoms/Http/Controllers/KingdomIngestionController.php tests/Architecture/KingdomAccessibilityTest.php tests/Architecture/KingdomP7AExperienceTest.php
+
+      - name: Commit P7-A implementation
+        run: |
+          git config user.name "awalker0878"
+          git config user.email "52688461+awalker0878@users.noreply.github.com"
+          git add app/Domain/Kingdoms/Http/Controllers/KingdomAllianceController.php app/Domain/Kingdoms/Http/Controllers/KingdomSettingsController.php app/Domain/Kingdoms/Http/Controllers/KingdomIngestionController.php resources/js/pages/Alliance/KingdomAlliances.vue resources/js/pages/Alliance/KingdomSettings.vue resources/js/pages/Alliance/KingdomIngestionManage.vue resources/js/localization/messages/kingdom-p7a.ts resources/js/localization/messages/index.ts tests/Architecture/KingdomAccessibilityTest.php tests/Architecture/KingdomP7AExperienceTest.php
+          if ! git diff --cached --quiet; then
+            git commit -m "UX-P7-A implement kingdom overview settings and ingestion"
+            git push origin HEAD:ux/ux-001-experience-localization
+          fi
