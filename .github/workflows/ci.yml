@@ -5,66 +5,21 @@ on:
   push:
     branches:
       - main
-      - ux/ux-001-experience-localization
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  p5c-format:
-    name: UX P5-C formatter
-    if: github.event_name == 'push' && github.ref == 'refs/heads/ux/ux-001-experience-localization'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out UX branch
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-        with:
-          ref: ux/ux-001-experience-localization
-      - name: Configure Node.js
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: '24'
-          cache: npm
-      - name: Install locked frontend dependencies
-        run: npm ci --no-audit --no-fund
-      - name: Wire contribution locale overrides
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('resources/js/localization/messages/index.ts')
-          source = path.read_text()
-          if "./contribution-extra-2" not in source:
-              anchor = "import { authExtraMessages } from './auth-extra';\n"
-              imports = "import { contributionLocaleOverrides2 } from './contribution-extra-2';\nimport { contributionLocaleOverrides3 } from './contribution-extra-3';\nimport { contributionLocaleOverrides4 } from './contribution-extra-4';\nimport { contributionLocaleOverrides } from './contribution-extra';\n"
-              source = source.replace(anchor, anchor + imports)
-              marker = 'type BaseMessageTree = StringLeaves<typeof en>;'
-              overrides = "const contributionOverrides = {\n  ...contributionLocaleOverrides,\n  ...contributionLocaleOverrides2,\n  ...contributionLocaleOverrides3,\n  ...contributionLocaleOverrides4,\n};\n\n"
-              source = source.replace(marker, overrides + marker)
-              source = source.replace('contributions: { ...contributionCopy },', 'contributions: { ...contributionCopy, ...(contributionOverrides[locale] ?? {}) },')
-              path.write_text(source)
-          PY
-      - name: Format P5-C files
-        run: npx prettier --write resources/js/localization/messages/index.ts resources/js/localization/messages/contribution-extra*.ts resources/js/pages/Alliance/Contributions/Index.vue resources/js/pages/Alliance/Contributions/Manage.vue
-      - name: Commit formatting and locale wiring
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add resources/js/localization/messages/index.ts resources/js/localization/messages/contribution-extra*.ts resources/js/pages/Alliance/Contributions/Index.vue resources/js/pages/Alliance/Contributions/Manage.vue
-          if ! git diff --cached --quiet; then
-            git commit -m "Wire and format UX-P5-C contribution locales"
-            git push origin HEAD:ux/ux-001-experience-localization
-          fi
-
   backend:
     name: PHP quality and tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
     services:
       postgres:
         image: postgres:18-alpine
@@ -88,6 +43,7 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
+
     env:
       APP_ENV: testing
       APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
@@ -103,26 +59,34 @@ jobs:
       SESSION_DRIVER: array
       REDIS_HOST: 127.0.0.1
       PULSE_ENABLED: false
+
     steps:
       - name: Check out repository
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
       - name: Verify Composer lockfile
         run: test -f composer.lock
+
       - name: Configure PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
           extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
           coverage: none
           tools: composer:v2
+
       - name: Validate Composer manifest and lockfile
         run: composer validate --strict
+
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
+
       - name: Check dependency advisories
         run: composer audit
+
       - name: Run migrations
         run: php artisan migrate --force
+
       - name: Run PHP checks
         run: composer check
 
@@ -130,20 +94,26 @@ jobs:
     name: Frontend quality and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
       - name: Check out repository
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
       - name: Verify npm lockfile
         run: test -f package-lock.json
+
       - name: Configure Node.js
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '24'
           cache: npm
+
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
+
       - name: Check dependency advisories
         run: npm audit --audit-level=high
+
       - name: Run frontend checks
         run: npm run check
 
@@ -151,10 +121,14 @@ jobs:
     name: Container, staging, and recovery
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [backend, frontend]
+    needs:
+      - backend
+      - frontend
+
     steps:
       - name: Check out repository
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
       - name: Create CI staging environment
         shell: bash
         run: |
@@ -197,71 +171,184 @@ jobs:
           ALLOW_TRUST_ALL_PROXIES=false
           ALLOW_INSECURE_LOOPBACK_STAGING=true
           EOF
+
           chmod 600 .env.staging.ci
           echo "APP_IMAGE=kingshot-alliance:${GITHUB_SHA}" >> "$GITHUB_ENV"
           echo "STAGING_ENV_FILE=.env.staging.ci" >> "$GITHUB_ENV"
           echo "STAGING_HTTP_PORT=18080" >> "$GITHUB_ENV"
+
       - name: Validate scripts, exclusions, and Compose configurations
         run: |
-          for script in bin/*; do sh -n "$script"; done
+          for script in bin/*; do
+            sh -n "$script"
+          done
+
           sh bin/check-build-context
           test "$(stat -c '%a' .env.staging.ci)" = "600"
           cp .env.example .env
           docker compose config --quiet
           docker compose --env-file .env.staging.ci -f docker-compose.staging.yml config --quiet
+
       - name: Build and identify production image
         shell: bash
         run: |
-          docker build --target runtime --build-arg APP_VERSION="${GITHUB_REF_NAME}" --build-arg RELEASE_SHA="${GITHUB_SHA}" --tag "${APP_IMAGE}" .
+          docker build \
+            --target runtime \
+            --build-arg APP_VERSION="${GITHUB_REF_NAME}" \
+            --build-arg RELEASE_SHA="${GITHUB_SHA}" \
+            --tag "${APP_IMAGE}" \
+            .
+
           image_id="$(docker image inspect --format '{{.Id}}' "$APP_IMAGE")"
           version="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.version"}}' "$APP_IMAGE")"
           revision="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$APP_IMAGE")"
           license="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.licenses"}}' "$APP_IMAGE")"
-          test -n "$version"; test "$version" != "dev"; test "$revision" = "$GITHUB_SHA"; test "$license" = "GPL-3.0-only"
+
+          test -n "$version"
+          test "$version" != "dev"
+          test "$revision" = "$GITHUB_SHA"
+          test "$license" = "GPL-3.0-only"
+
           echo "APP_IMAGE_ID=$image_id" >> "$GITHUB_ENV"
           echo "APP_IMAGE_VERSION=$version" >> "$GITHUB_ENV"
+          {
+            echo "### Phase 0 immutable image evidence"
+            echo "- Reference: \`$APP_IMAGE\`"
+            echo "- Image ID: \`$image_id\`"
+            echo "- Application version: \`$version\`"
+            echo "- Source revision: \`$revision\`"
+            echo "- License: \`$license\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Run ephemeral staging deployment
         shell: bash
         run: |
           compose=(docker compose --env-file .env.staging.ci -f docker-compose.staging.yml)
           "${compose[@]}" --profile release run --rm release
           "${compose[@]}" up -d app web worker scheduler
+
           for attempt in $(seq 1 30); do
-            running_services="$("${compose[@]}" ps --status running --services)"; services_ready=true; images_ready=true; metadata_ready=true
+            running_services="$("${compose[@]}" ps --status running --services)"
+            services_ready=true
+            images_ready=true
+            metadata_ready=true
+
             for service in app web worker scheduler; do
-              if ! grep -qx "$service" <<< "$running_services"; then services_ready=false; continue; fi
-              container_id="$("${compose[@]}" ps -q "$service")"; actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id")"; container_environment="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$container_id")"; actual_release_sha="$(sed -n 's/^RELEASE_SHA=//p' <<< "$container_environment" | tail -n 1)"; actual_version="$(sed -n 's/^APP_VERSION=//p' <<< "$container_environment" | tail -n 1)"
-              if [ "$actual_image_id" != "$APP_IMAGE_ID" ]; then images_ready=false; fi
-              if [ "$actual_release_sha" != "$GITHUB_SHA" ] || [ "$actual_version" != "$APP_IMAGE_VERSION" ]; then metadata_ready=false; fi
+              if ! grep -qx "$service" <<< "$running_services"; then
+                services_ready=false
+                continue
+              fi
+
+              container_id="$("${compose[@]}" ps -q "$service")"
+              actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id")"
+              container_environment="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$container_id")"
+              actual_release_sha="$(sed -n 's/^RELEASE_SHA=//p' <<< "$container_environment" | tail -n 1)"
+              actual_version="$(sed -n 's/^APP_VERSION=//p' <<< "$container_environment" | tail -n 1)"
+
+              if [ "$actual_image_id" != "$APP_IMAGE_ID" ]; then
+                images_ready=false
+              fi
+
+              if [ "$actual_release_sha" != "$GITHUB_SHA" ] || [ "$actual_version" != "$APP_IMAGE_VERSION" ]; then
+                metadata_ready=false
+              fi
             done
+
             platform_status="$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:18080/platform || true)"
-            if [ "$services_ready" = true ] && [ "$images_ready" = true ] && [ "$metadata_ready" = true ] && curl --fail --silent http://127.0.0.1:18080/up >/dev/null && curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null && [ "$platform_status" = "302" ]; then exit 0; fi
+
+            if [ "$services_ready" = true ] \
+              && [ "$images_ready" = true ] \
+              && [ "$metadata_ready" = true ] \
+              && curl --fail --silent http://127.0.0.1:18080/up >/dev/null \
+              && curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null \
+              && [ "$platform_status" = "302" ]; then
+              exit 0
+            fi
             sleep 2
           done
+
+          "${compose[@]}" ps
+          for service in app web worker scheduler; do
+            container_id="$("${compose[@]}" ps -q "$service" 2>/dev/null || true)"
+            if [ -n "$container_id" ]; then
+              docker inspect --format "$service: {{.Config.Image}} {{.Image}}" "$container_id"
+            fi
+          done
           exit 1
+
       - name: Demonstrate backup and restore
         shell: bash
         run: |
-          export COMPOSE_FILE=docker-compose.staging.yml ENV_FILE=.env.staging.ci BACKUP_DIR="${RUNNER_TEMP}/backups"
+          export COMPOSE_FILE=docker-compose.staging.yml
+          export ENV_FILE=.env.staging.ci
+          export BACKUP_DIR="${RUNNER_TEMP}/backups"
+
           ./bin/backup
-          backup_file="$(find "$BACKUP_DIR" -name 'database-*.sql.gz' -print -quit)"; manifest_file="$(find "$BACKUP_DIR" -name 'manifest-*.txt' -print -quit)"
-          test -n "$backup_file"; test -n "$manifest_file"; test "$(stat -c '%a' "$backup_file")" = "600"; test "$(stat -c '%a' "$manifest_file")" = "600"
-          grep -Fx "database_file=$(basename "$backup_file")" "$manifest_file"; grep -Eq '^database_sha256=[a-f0-9]{64}$' "$manifest_file"; grep -Fx "release_sha=$GITHUB_SHA" "$manifest_file"; grep -Fx "image_ref=$APP_IMAGE" "$manifest_file"
+          backup_file="$(find "$BACKUP_DIR" -name 'database-*.sql.gz' -print -quit)"
+          manifest_file="$(find "$BACKUP_DIR" -name 'manifest-*.txt' -print -quit)"
+          test -n "$backup_file"
+          test -n "$manifest_file"
+          test "$(stat -c '%a' "$backup_file")" = "600"
+          test "$(stat -c '%a' "$manifest_file")" = "600"
+          grep -Fx "database_file=$(basename "$backup_file")" "$manifest_file"
+          grep -Eq '^database_sha256=[a-f0-9]{64}$' "$manifest_file"
+          grep -Fx "release_sha=$GITHUB_SHA" "$manifest_file"
+          grep -Fx "image_ref=$APP_IMAGE" "$manifest_file"
+
           CONFIRM_RESTORE=YES ./bin/restore "$backup_file"
+
           compose=(docker compose --env-file .env.staging.ci -f docker-compose.staging.yml)
-          for attempt in $(seq 1 30); do if curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null; then exit 0; fi; sleep 2; done
+          for attempt in $(seq 1 30); do
+            running_services="$("${compose[@]}" ps --status running --services)"
+            services_ready=true
+            images_ready=true
+            metadata_ready=true
+
+            for service in app web worker scheduler; do
+              if ! grep -qx "$service" <<< "$running_services"; then
+                services_ready=false
+                continue
+              fi
+
+              container_id="$("${compose[@]}" ps -q "$service")"
+              actual_image_id="$(docker inspect --format '{{.Image}}' "$container_id")"
+              container_environment="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$container_id")"
+              actual_release_sha="$(sed -n 's/^RELEASE_SHA=//p' <<< "$container_environment" | tail -n 1)"
+              actual_version="$(sed -n 's/^APP_VERSION=//p' <<< "$container_environment" | tail -n 1)"
+
+              if [ "$actual_image_id" != "$APP_IMAGE_ID" ]; then
+                images_ready=false
+              fi
+
+              if [ "$actual_release_sha" != "$GITHUB_SHA" ] || [ "$actual_version" != "$APP_IMAGE_VERSION" ]; then
+                metadata_ready=false
+              fi
+            done
+
+            if [ "$services_ready" = true ] \
+              && [ "$images_ready" = true ] \
+              && [ "$metadata_ready" = true ] \
+              && curl --fail --silent http://127.0.0.1:18080/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+
           exit 1
+
       - name: Scan image
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ env.APP_IMAGE }}
           format: table
           exit-code: '1'
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+
       - name: Show staging logs on failure
         if: failure()
         run: docker compose --env-file .env.staging.ci -f docker-compose.staging.yml logs --tail=150
+
       - name: Remove ephemeral staging environment
         if: always()
         run: docker compose --env-file .env.staging.ci -f docker-compose.staging.yml down -v --remove-orphans
