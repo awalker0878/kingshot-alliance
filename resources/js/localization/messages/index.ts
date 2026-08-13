@@ -49,7 +49,7 @@ const baseMessages: Record<LocaleCode, BaseMessageTree> = {
   ...additionalCatalogues,
 };
 
-function catalogue(locale: LocaleCode): MessageTree {
+function catalogue(locale: LocaleCode) {
   return {
     ...baseMessages[locale],
     ...accountExperienceMessages[locale],
