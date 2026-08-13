@@ -61,10 +61,6 @@ function catalogue(locale: LocaleCode): MessageTree {
     ...publicMessages[locale],
     ...publicExtraMessages[locale],
     ...rosterManagementMessages[locale],
-    rosterManage: {
-      ...rosterManagementMessages[locale].rosterManage,
-      trackedPlayers: rosterMessages[locale].roster.trackedPlayers,
-    },
     ...rosterMessages[locale],
     ...rosterWorkflowMessages[locale],
     ...(rosterWorkflowOverrides[locale] ?? {}),
