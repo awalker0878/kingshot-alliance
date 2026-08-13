@@ -32,15 +32,32 @@ jobs:
           cache: npm
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
+      - name: Wire contribution locale overrides
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('resources/js/localization/messages/index.ts')
+          source = path.read_text()
+          if "./contribution-extra-2" not in source:
+              anchor = "import { authExtraMessages } from './auth-extra';\n"
+              imports = "import { contributionLocaleOverrides2 } from './contribution-extra-2';\nimport { contributionLocaleOverrides3 } from './contribution-extra-3';\nimport { contributionLocaleOverrides4 } from './contribution-extra-4';\nimport { contributionLocaleOverrides } from './contribution-extra';\n"
+              source = source.replace(anchor, anchor + imports)
+              marker = 'type BaseMessageTree = StringLeaves<typeof en>;'
+              overrides = "const contributionOverrides = {\n  ...contributionLocaleOverrides,\n  ...contributionLocaleOverrides2,\n  ...contributionLocaleOverrides3,\n  ...contributionLocaleOverrides4,\n};\n\n"
+              source = source.replace(marker, overrides + marker)
+              source = source.replace('contributions: { ...contributionCopy },', 'contributions: { ...contributionCopy, ...(contributionOverrides[locale] ?? {}) },')
+              path.write_text(source)
+          PY
       - name: Format P5-C files
-        run: npx prettier --write resources/js/localization/messages/index.ts resources/js/pages/Alliance/Contributions/Index.vue resources/js/pages/Alliance/Contributions/Manage.vue
-      - name: Commit formatting
+        run: npx prettier --write resources/js/localization/messages/index.ts resources/js/localization/messages/contribution-extra*.ts resources/js/pages/Alliance/Contributions/Index.vue resources/js/pages/Alliance/Contributions/Manage.vue
+      - name: Commit formatting and locale wiring
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add resources/js/localization/messages/index.ts resources/js/pages/Alliance/Contributions/Index.vue resources/js/pages/Alliance/Contributions/Manage.vue
+          git add resources/js/localization/messages/index.ts resources/js/localization/messages/contribution-extra*.ts resources/js/pages/Alliance/Contributions/Index.vue resources/js/pages/Alliance/Contributions/Manage.vue
           if ! git diff --cached --quiet; then
-            git commit -m "Format UX-P5-C contribution files"
+            git commit -m "Wire and format UX-P5-C contribution locales"
             git push origin HEAD:ux/ux-001-experience-localization
           fi
 
