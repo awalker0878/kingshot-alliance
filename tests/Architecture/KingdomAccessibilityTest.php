@@ -35,7 +35,12 @@ final class KingdomAccessibilityTest extends TestCase
         ] as $page) {
             $source = file_get_contents($root.$page);
             self::assertIsString($source);
-            self::assertStringContainsString('<main', $source, $page.' must retain a main landmark.');
+            if (in_array($page, ['Roster.vue', 'RosterIntelligence.vue'], true)) {
+                self::assertStringContainsString('AppLayout', $source, $page.' must inherit the shared app landmark.');
+                self::assertStringNotContainsString('<main', $source, $page.' must not duplicate the shared main landmark.');
+            } else {
+                self::assertStringContainsString('<main', $source, $page.' must retain a main landmark.');
+            }
             self::assertStringContainsString('<h1', $source, $page.' must retain a primary heading.');
             self::assertStringNotContainsString('role="button"', $source, $page.' must use native interactive controls.');
         }

@@ -9,6 +9,7 @@ import { eventCoordinatorMessages } from './event-coordinator';
 import { eventDetailMessages } from './event-detail';
 import { publicExtraMessages } from './public-extra';
 import { publicMessages } from './public';
+import { rosterMessages } from './roster';
 
 type StringLeaves<T> = {
   [K in keyof T]: T[K] extends string ? string : T[K] extends object ? StringLeaves<T[K]> : never;
@@ -23,6 +24,7 @@ type EventCoordinatorMessageTree = (typeof eventCoordinatorMessages)['en'];
 type EventDetailMessageTree = (typeof eventDetailMessages)['en'];
 type PublicMessageTree = (typeof publicMessages)['en'];
 type PublicExtraMessageTree = (typeof publicExtraMessages)['en'];
+type RosterMessageTree = (typeof rosterMessages)['en'];
 
 export type MessageTree = BaseMessageTree &
   AccountExperienceMessageTree &
@@ -32,7 +34,8 @@ export type MessageTree = BaseMessageTree &
   EventCoordinatorMessageTree &
   EventDetailMessageTree &
   PublicMessageTree &
-  PublicExtraMessageTree;
+  PublicExtraMessageTree &
+  RosterMessageTree;
 
 const baseMessages: Record<LocaleCode, BaseMessageTree> = {
   en,
@@ -52,6 +55,7 @@ export const messages = Object.fromEntries(
       ...eventDetailMessages[locale],
       ...publicMessages[locale],
       ...publicExtraMessages[locale],
+      ...rosterMessages[locale],
     },
   ]),
 ) as Record<LocaleCode, MessageTree>;

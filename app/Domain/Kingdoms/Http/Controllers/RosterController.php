@@ -52,6 +52,10 @@ final class RosterController extends Controller
         $latestSnapshots = $snapshots->latestForEntries($alliance, $entries);
 
         return Inertia::render('Alliance/Roster', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => [
                 'id' => (string) $alliance->id,
                 'name' => (string) $alliance->name,
