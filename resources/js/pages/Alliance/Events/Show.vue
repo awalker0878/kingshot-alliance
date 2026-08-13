@@ -221,13 +221,17 @@ function ratioStyle(value: number): Record<string, string> {
           </div>
 
           <dl class="mt-6 grid gap-3 sm:grid-cols-2">
-            <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-4">
+            <div
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-4"
+            >
               <dt class="text-xs font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase">
                 {{ t('allianceOperations.events.yourTime', { zone: userTimezone }) }}
               </dt>
               <dd class="mt-2 font-semibold">{{ formatInZone(event.startsAt, userTimezone) }}</dd>
             </div>
-            <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-4">
+            <div
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-4"
+            >
               <dt class="text-xs font-bold tracking-[0.1em] text-[var(--ks-text-muted)] uppercase">
                 {{ t('allianceOperations.events.allianceTime', { zone: event.allianceTimezone }) }}
               </dt>
@@ -245,7 +249,9 @@ function ratioStyle(value: number): Record<string, string> {
           </div>
         </div>
 
-        <aside class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/45 p-5">
+        <aside
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/45 p-5"
+        >
           <div class="flex flex-wrap gap-2">
             <button
               v-if="canJoin()"
@@ -267,12 +273,20 @@ function ratioStyle(value: number): Record<string, string> {
 
           <dl class="mt-5 grid grid-cols-2 gap-3">
             <div class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-3">
-              <dt class="text-xs text-[var(--ks-text-muted)]">{{ t('eventDetail.registeredCount', { count: '' }) }}</dt>
-              <dd class="ks-display mt-1 text-2xl font-semibold">{{ formatNumber(event.registeredCount) }}</dd>
+              <dt class="text-xs text-[var(--ks-text-muted)]">
+                {{ t('eventDetail.registeredCount', { count: '' }) }}
+              </dt>
+              <dd class="ks-display mt-1 text-2xl font-semibold">
+                {{ formatNumber(event.registeredCount) }}
+              </dd>
             </div>
             <div class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] p-3">
-              <dt class="text-xs text-[var(--ks-text-muted)]">{{ t('eventDetail.waitlistedCount', { count: '' }) }}</dt>
-              <dd class="ks-display mt-1 text-2xl font-semibold">{{ formatNumber(event.waitlistedCount) }}</dd>
+              <dt class="text-xs text-[var(--ks-text-muted)]">
+                {{ t('eventDetail.waitlistedCount', { count: '' }) }}
+              </dt>
+              <dd class="ks-display mt-1 text-2xl font-semibold">
+                {{ formatNumber(event.waitlistedCount) }}
+              </dd>
             </div>
           </dl>
 
@@ -281,7 +295,9 @@ function ratioStyle(value: number): Record<string, string> {
               {{ t('allianceOperations.events.capacity', { capacity: '' }) }}
             </p>
             <p class="mt-1 font-semibold">
-              {{ event.capacity === null ? t('eventDetail.noLimit') : formatNumber(event.capacity) }}
+              {{
+                event.capacity === null ? t('eventDetail.noLimit') : formatNumber(event.capacity)
+              }}
             </p>
           </div>
         </aside>
@@ -313,11 +329,16 @@ function ratioStyle(value: number): Record<string, string> {
             <div>
               <h3 class="text-lg font-semibold">{{ formation.name }}</h3>
               <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                {{ t('eventDetail.assignmentRole') }} · {{ formation.assignmentRole.replaceAll('_', ' ') }}
+                {{ t('eventDetail.assignmentRole') }} ·
+                {{ formation.assignmentRole.replaceAll('_', ' ') }}
               </p>
             </div>
-            <span class="rounded-full border border-purple-400/25 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-200">
-              {{ formation.infantryPercent }}/{{ formation.cavalryPercent }}/{{ formation.archerPercent }}
+            <span
+              class="rounded-full border border-purple-400/25 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-200"
+            >
+              {{ formation.infantryPercent }}/{{ formation.cavalryPercent }}/{{
+                formation.archerPercent
+              }}
             </span>
           </div>
 
@@ -328,25 +349,38 @@ function ratioStyle(value: number): Record<string, string> {
                 <span>{{ formatNumber(formation.infantryPercent) }}%</span>
               </div>
               <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-black/30">
-                <div class="h-full rounded-full bg-red-400" :style="ratioStyle(formation.infantryPercent)" />
+                <div
+                  class="h-full rounded-full bg-red-400"
+                  :style="ratioStyle(formation.infantryPercent)"
+                />
               </div>
             </div>
-            <div class="rounded-[var(--ks-radius-sm)] border border-amber-400/20 bg-amber-500/5 p-3">
+            <div
+              class="rounded-[var(--ks-radius-sm)] border border-amber-400/20 bg-amber-500/5 p-3"
+            >
               <div class="flex items-center justify-between gap-2 text-xs">
                 <span class="font-semibold text-amber-200">{{ t('eventDetail.cavalry') }}</span>
                 <span>{{ formatNumber(formation.cavalryPercent) }}%</span>
               </div>
               <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-black/30">
-                <div class="h-full rounded-full bg-amber-400" :style="ratioStyle(formation.cavalryPercent)" />
+                <div
+                  class="h-full rounded-full bg-amber-400"
+                  :style="ratioStyle(formation.cavalryPercent)"
+                />
               </div>
             </div>
-            <div class="rounded-[var(--ks-radius-sm)] border border-green-400/20 bg-green-500/5 p-3">
+            <div
+              class="rounded-[var(--ks-radius-sm)] border border-green-400/20 bg-green-500/5 p-3"
+            >
               <div class="flex items-center justify-between gap-2 text-xs">
                 <span class="font-semibold text-green-200">{{ t('eventDetail.archers') }}</span>
                 <span>{{ formatNumber(formation.archerPercent) }}%</span>
               </div>
               <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-black/30">
-                <div class="h-full rounded-full bg-green-400" :style="ratioStyle(formation.archerPercent)" />
+                <div
+                  class="h-full rounded-full bg-green-400"
+                  :style="ratioStyle(formation.archerPercent)"
+                />
               </div>
             </div>
           </div>
@@ -378,13 +412,19 @@ function ratioStyle(value: number): Record<string, string> {
               {{ t('eventDetail.guidance') }}
             </p>
             <p class="mt-1 font-semibold">{{ formation.guidance.name }}</p>
-            <p v-if="formation.guidance.rationale" class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
+            <p
+              v-if="formation.guidance.rationale"
+              class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]"
+            >
               {{ formation.guidance.rationale }}
             </p>
             <p v-if="formation.guidance.source" class="mt-3 text-xs text-[var(--ks-text-muted)]">
               {{ t('eventDetail.source') }}: {{ formation.guidance.source }}
             </p>
-            <p v-if="formation.guidance.effectiveFrom" class="mt-1 text-xs text-[var(--ks-text-muted)]">
+            <p
+              v-if="formation.guidance.effectiveFrom"
+              class="mt-1 text-xs text-[var(--ks-text-muted)]"
+            >
               {{
                 t('eventDetail.effective', {
                   date: formatGuidanceDate(formation.guidance.effectiveFrom),
@@ -423,9 +463,14 @@ function ratioStyle(value: number): Record<string, string> {
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h3 class="text-lg font-semibold">{{ group.name }}</h3>
-              <p v-if="group.notes" class="mt-1 text-sm text-[var(--ks-text-muted)]">{{ group.notes }}</p>
+              <p v-if="group.notes" class="mt-1 text-sm text-[var(--ks-text-muted)]">
+                {{ group.notes }}
+              </p>
             </div>
-            <span v-if="group.maxJoiners" class="rounded-full border border-[var(--ks-border)] px-2.5 py-1 text-xs text-[var(--ks-text-muted)]">
+            <span
+              v-if="group.maxJoiners"
+              class="rounded-full border border-[var(--ks-border)] px-2.5 py-1 text-xs text-[var(--ks-text-muted)]"
+            >
               {{ t('eventDetail.maxJoiners', { count: formatNumber(group.maxJoiners) }) }}
             </span>
           </div>
@@ -438,14 +483,17 @@ function ratioStyle(value: number): Record<string, string> {
             >
               <span class="font-semibold">{{ assignment.memberName }}</span>
               <span class="text-[var(--ks-text-secondary)]">
-                {{ assignment.role.replaceAll('_', ' ') }}<span v-if="assignment.slotNumber">
+                {{ assignment.role.replaceAll('_', ' ')
+                }}<span v-if="assignment.slotNumber">
                   #{{ formatNumber(assignment.slotNumber) }}</span
                 >
                 · {{ statusLabel(assignment.status) }}
               </span>
             </li>
           </ul>
-          <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">{{ t('eventDetail.noAssigned') }}</p>
+          <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
+            {{ t('eventDetail.noAssigned') }}
+          </p>
         </article>
       </div>
 
@@ -454,7 +502,10 @@ function ratioStyle(value: number): Record<string, string> {
       </div>
     </section>
 
-    <section class="mt-9 grid gap-6 xl:grid-cols-[minmax(0,1fr)_26rem]" aria-labelledby="saved-formations-heading">
+    <section
+      class="mt-9 grid gap-6 xl:grid-cols-[minmax(0,1fr)_26rem]"
+      aria-labelledby="saved-formations-heading"
+    >
       <div class="ks-surface p-5 sm:p-6">
         <div class="flex items-center justify-between gap-4">
           <h2 id="saved-formations-heading" class="ks-display text-xl font-semibold">
@@ -495,14 +546,18 @@ function ratioStyle(value: number): Record<string, string> {
             </p>
           </article>
         </div>
-        <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">{{ t('eventDetail.noSavedFormations') }}</p>
+        <p v-else class="mt-4 text-sm text-[var(--ks-text-muted)]">
+          {{ t('eventDetail.noSavedFormations') }}
+        </p>
       </div>
 
       <form class="ks-surface p-5 sm:p-6" @submit.prevent="saveFormation">
         <h2 class="ks-display text-xl font-semibold">{{ t('eventDetail.saveFormation') }}</h2>
         <div class="mt-5 space-y-4">
           <div>
-            <label class="text-sm font-medium" for="formation-name">{{ t('eventDetail.formationName') }}</label>
+            <label class="text-sm font-medium" for="formation-name">{{
+              t('eventDetail.formationName')
+            }}</label>
             <input
               id="formation-name"
               v-model="formationForm.name"
@@ -512,7 +567,9 @@ function ratioStyle(value: number): Record<string, string> {
             />
           </div>
           <div>
-            <label class="text-sm font-medium" for="formation-heroes">{{ t('eventDetail.heroes') }}</label>
+            <label class="text-sm font-medium" for="formation-heroes">{{
+              t('eventDetail.heroes')
+            }}</label>
             <input
               id="formation-heroes"
               v-model="formationForm.heroes_text"
@@ -556,7 +613,9 @@ function ratioStyle(value: number): Record<string, string> {
             </div>
           </fieldset>
           <div>
-            <label class="text-sm font-medium" for="formation-notes">{{ t('eventDetail.notes') }}</label>
+            <label class="text-sm font-medium" for="formation-notes">{{
+              t('eventDetail.notes')
+            }}</label>
             <textarea
               id="formation-notes"
               v-model="formationForm.notes"
@@ -568,7 +627,11 @@ function ratioStyle(value: number): Record<string, string> {
             <input v-model="formationForm.is_default" type="checkbox" />
             {{ t('eventDetail.makeDefault') }}
           </label>
-          <p v-if="Object.keys(formationForm.errors).length" class="text-sm text-red-300" role="alert">
+          <p
+            v-if="Object.keys(formationForm.errors).length"
+            class="text-sm text-red-300"
+            role="alert"
+          >
             {{ t('eventDetail.formationValidation') }}
           </p>
           <button
