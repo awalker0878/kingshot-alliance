@@ -41,7 +41,7 @@ function submit(): void {
             id="password"
             v-model="form.password"
             autocomplete="current-password"
-            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
             required
             type="password"
           />

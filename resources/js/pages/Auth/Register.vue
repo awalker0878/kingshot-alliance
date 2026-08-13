@@ -70,12 +70,14 @@ function submit(): void {
       >
         <div class="grid gap-5 sm:grid-cols-2">
           <div>
-            <label class="block text-sm font-semibold" for="name">{{ t('auth.register.name') }}</label>
+            <label class="block text-sm font-semibold" for="name">{{
+              t('auth.register.name')
+            }}</label>
             <input
               id="name"
               v-model="form.name"
               autocomplete="name"
-              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
               required
               type="text"
             />
@@ -91,7 +93,7 @@ function submit(): void {
             <input
               id="timezone"
               v-model="form.timezone"
-              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
               required
               type="text"
             />
@@ -102,12 +104,14 @@ function submit(): void {
         </div>
 
         <div>
-          <label class="block text-sm font-semibold" for="email">{{ t('auth.register.email') }}</label>
+          <label class="block text-sm font-semibold" for="email">{{
+            t('auth.register.email')
+          }}</label>
           <input
             id="email"
             v-model="form.email"
             autocomplete="email"
-            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)] disabled:cursor-not-allowed disabled:opacity-70"
+            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)] disabled:cursor-not-allowed disabled:opacity-70"
             :disabled="Boolean(props.invitationToken)"
             required
             type="email"
@@ -127,7 +131,7 @@ function submit(): void {
               id="password"
               v-model="form.password"
               autocomplete="new-password"
-              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
               minlength="12"
               required
               type="password"
@@ -148,7 +152,7 @@ function submit(): void {
               id="password_confirmation"
               v-model="form.password_confirmation"
               autocomplete="new-password"
-              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
               required
               type="password"
             />

@@ -52,7 +52,7 @@ function submitRecoveryCode(): void {
           id="two-factor-code"
           v-model="form.code"
           autocomplete="one-time-code"
-          class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-3 text-center font-mono text-lg tracking-[0.32em] outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+          class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-3 text-center font-mono text-lg tracking-[0.32em] transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
           inputmode="numeric"
           maxlength="6"
           pattern="\d{6}"
@@ -84,7 +84,7 @@ function submitRecoveryCode(): void {
           id="recovery-code"
           v-model="form.recovery_code"
           autocomplete="off"
-          class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 font-mono outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+          class="w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 font-mono transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
           placeholder="xxxx-xxxx-xxxx-xxxx"
           type="text"
         />

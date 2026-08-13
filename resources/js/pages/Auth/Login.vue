@@ -57,7 +57,7 @@ function submit(): void {
             id="email"
             v-model="form.email"
             autocomplete="email"
-            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
             required
             type="email"
           />
@@ -82,7 +82,7 @@ function submit(): void {
             id="password"
             v-model="form.password"
             autocomplete="current-password"
-            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+            class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
             required
             type="password"
           />
@@ -91,7 +91,9 @@ function submit(): void {
           </p>
         </div>
 
-        <label class="flex cursor-pointer items-center gap-3 text-sm text-[var(--ks-text-secondary)]">
+        <label
+          class="flex cursor-pointer items-center gap-3 text-sm text-[var(--ks-text-secondary)]"
+        >
           <input
             v-model="form.remember"
             class="h-4 w-4 rounded border-[var(--ks-border)] bg-[var(--ks-bg)] text-[var(--ks-gold)] focus:ring-[var(--ks-blue)]"
