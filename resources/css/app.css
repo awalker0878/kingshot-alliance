@@ -103,6 +103,50 @@ a {
   box-shadow: var(--ks-shadow-gold);
 }
 
+.ks-input {
+  width: 100%;
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius-sm);
+  background: var(--ks-bg);
+  padding: 0.625rem 0.75rem;
+  color: var(--ks-text);
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.ks-input:hover {
+  border-color: rgba(148, 163, 184, 0.34);
+}
+
+.ks-input:focus {
+  border-color: var(--ks-blue);
+}
+
+.ks-command-link {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius-sm);
+  padding: 0.625rem 0.875rem;
+  color: var(--ks-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.ks-command-link:hover {
+  border-color: var(--ks-border-strong);
+  background: var(--ks-surface-2);
+  color: var(--ks-text);
+}
+
 .ks-muted {
   color: var(--ks-text-muted);
 }
