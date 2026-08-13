@@ -1,0 +1,56 @@
+name: UX P7C Localization Cleanup
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .ux-p7c-localization-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove remaining hard-coded sharing labels
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          locale = Path('resources/js/localization/messages/kingdom-p7c.ts')
+          text = locale.read_text()
+          if "dashboard: 'Dashboard'" not in text:
+              text = text.replace(
+                  "  noInbound: 'No inbound sharing agreements yet.',\n} as const;",
+                  "  noInbound: 'No inbound sharing agreements yet.',\n  dashboard: 'Dashboard',\n  sharingNavigation: 'Sharing navigation',\n  sharingSummary: 'Sharing summary',\n  sharedTargetsAria: 'Explicit shared targets',\n  inboundCaption: 'Inbound shared-intelligence agreements',\n} as const;",
+                  1,
+              )
+          locale.write_text(text)
+
+          member = Path('resources/js/pages/Alliance/KingdomSharing.vue')
+          text = member.read_text()
+          text = text.replace('aria-label="Sharing summary"', ':aria-label="t(\'kingdomP7C.sharingSummary\')"')
+          text = text.replace("{{ t('kingdomP7C.sharedTargets').toLowerCase() }}", "{{ t('kingdomP7C.sharedTargets') }}")
+          member.write_text(text)
+
+          manage = Path('resources/js/pages/Alliance/KingdomSharingManage.vue')
+          text = manage.read_text()
+          text = text.replace('aria-label="Sharing navigation"', ':aria-label="t(\'kingdomP7C.sharingNavigation\')"')
+          text = text.replace('>\n          Dashboard\n        </Link>', ">\n          {{ t('kingdomP7C.dashboard') }}\n        </Link>", 1)
+          text = text.replace('aria-label="Shared targets"', ':aria-label="t(\'kingdomP7C.sharedTargetsAria\')"')
+          text = text.replace('<th class="px-3 py-3 font-semibold">State</th>', '<th class="px-3 py-3 font-semibold">{{ t(\'kingdomP7C.state\') }}</th>')
+          text = text.replace('Inbound shared-intelligence agreements', "{{ t('kingdomP7C.inboundCaption') }}")
+          manage.write_text(text)
+          PY
+          npm ci
+          npx prettier --write resources/js/localization/messages/kingdom-p7c.ts resources/js/pages/Alliance/KingdomSharing.vue resources/js/pages/Alliance/KingdomSharingManage.vue
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add resources/js/localization/messages/kingdom-p7c.ts resources/js/pages/Alliance/KingdomSharing.vue resources/js/pages/Alliance/KingdomSharingManage.vue
+          git commit -m "UX-P7-C: finish sharing localization"
+          git push
