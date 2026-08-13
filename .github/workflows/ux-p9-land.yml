@@ -1,0 +1,151 @@
+name: UX P9 Land
+
+on:
+  push:
+    paths:
+      - '.ux-p9-land-run'
+
+permissions:
+  contents: write
+
+jobs:
+  land:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: kingshot_visual
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_visual"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      APP_DEBUG: false
+      APP_URL: http://127.0.0.1:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_visual
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: file
+      MAIL_MAILER: array
+      PULSE_ENABLED: false
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
+    steps:
+      - name: Check out UX branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ux/ux-001-experience-localization
+          fetch-depth: 0
+
+      - name: Materialize validated P9 sources
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64
+          import re
+
+          apply = Path('.github/workflows/ux-p9-apply.yml').read_text()
+          arch = re.search(r"arch = '([^']+)'", apply).group(1)
+          css = re.search(r"css = '([^']+)'", apply).group(1)
+          Path('tests/Architecture/UserExperienceReleaseGateTest.php').write_bytes(base64.b64decode(arch))
+
+          app = Path('resources/js/layouts/AppLayout.vue')
+          source = app.read_text().replace('<main id="main-content" class=', '<main id="main-content" tabindex="-1" class=', 1)
+          app.write_text(source)
+
+          public = Path('resources/js/layouts/PublicLayout.vue')
+          source = public.read_text().replace('<main id="public-content">', '<main id="public-content" tabindex="-1">', 1)
+          public.write_text(source)
+
+          auth = Path('resources/js/layouts/AuthLayout.vue')
+          source = auth.read_text()
+          if 'href="#auth-content"' not in source:
+              source = source.replace('<template>\n', '<template>\n  <a\n    class="sr-only z-50 rounded-md bg-[var(--ks-blue)] px-4 py-2 font-bold text-white focus:not-sr-only focus:fixed focus:start-4 focus:top-4"\n    href="#auth-content"\n  >\n    {{ t(\'common.skipToContent\') }}\n  </a>\n\n', 1)
+          source = source.replace('    <main\n      class=', '    <main\n      id="auth-content"\n      tabindex="-1"\n      class=', 1)
+          auth.write_text(source)
+
+          style = Path('resources/css/app.css')
+          source = style.read_text()
+          block = base64.b64decode(css).decode()
+          if 'UX-P9 release hardening' not in source:
+              style.write_text(source.rstrip() + block + '\n')
+
+          config = Path('playwright.config.ts')
+          source = config.read_text()
+          if 'snapshotPathTemplate' not in source:
+              source = source.replace("  testDir: './tests/Visual',\n", "  testDir: './tests/Visual',\n  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{projectName}/{arg}{ext}',\n", 1)
+          config.write_text(source)
+          PY
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pdo_pgsql, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install and lock browser harness
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          npm install --save-dev --save-exact @playwright/test@latest --no-audit --no-fund
+          node - <<'NODE'
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pkg.scripts['test:visual'] = 'playwright test';
+          pkg.scripts['test:visual:update'] = 'playwright test --update-snapshots';
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          NODE
+          npx playwright install --with-deps chromium
+
+      - name: Format and validate sources
+        run: |
+          npx prettier --write playwright.config.ts tests/Visual/ux-p9.spec.ts resources/js/layouts/AppLayout.vue resources/js/layouts/PublicLayout.vue resources/js/layouts/AuthLayout.vue resources/css/app.css
+          vendor/bin/pint tests/Architecture/UserExperienceReleaseGateTest.php
+          npm run check
+
+      - name: Generate stable browser baselines
+        shell: bash
+        run: |
+          php artisan migrate --force
+          php artisan tinker --execute="App\\Domain\\Identity\\Models\\User::factory()->create(['name' => 'UX P9 Visual', 'email' => 'ux-p9-visual@example.test', 'timezone' => 'UTC']);"
+          php artisan serve --host=127.0.0.1 --port=8000 > "${RUNNER_TEMP}/ux-p9-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8000/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:8000/ >/dev/null
+          npm run test:visual:update
+          rm -rf test-results/visual playwright-report
+
+      - name: Commit product hardening and baselines
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json playwright.config.ts tests/Visual tests/Architecture/UserExperienceReleaseGateTest.php docs/product/ux-001-release-qa.md resources/css/app.css resources/js/layouts/AppLayout.vue resources/js/layouts/PublicLayout.vue resources/js/layouts/AuthLayout.vue
+          git diff --cached --check
+          git commit -m 'Land UX-P9 release hardening and visual baselines'
+          git push origin HEAD:ux/ux-001-experience-localization
