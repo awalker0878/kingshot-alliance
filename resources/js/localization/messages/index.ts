@@ -1,4 +1,5 @@
 import type { LocaleCode } from '../locales';
+import { authExtraMessages } from './auth-extra';
 import { additionalCatalogues } from './catalogues';
 import en from './en';
 import { publicExtraMessages } from './public-extra';
@@ -9,10 +10,14 @@ type StringLeaves<T> = {
 };
 
 type BaseMessageTree = StringLeaves<typeof en>;
+type AuthExtraMessageTree = (typeof authExtraMessages)['en'];
 type PublicMessageTree = (typeof publicMessages)['en'];
 type PublicExtraMessageTree = (typeof publicExtraMessages)['en'];
 
-export type MessageTree = BaseMessageTree & PublicMessageTree & PublicExtraMessageTree;
+export type MessageTree = BaseMessageTree &
+  AuthExtraMessageTree &
+  PublicMessageTree &
+  PublicExtraMessageTree;
 
 const baseMessages: Record<LocaleCode, BaseMessageTree> = {
   en,
@@ -24,6 +29,7 @@ export const messages = Object.fromEntries(
     locale,
     {
       ...baseMessages[locale],
+      ...authExtraMessages[locale],
       ...publicMessages[locale],
       ...publicExtraMessages[locale],
     },
