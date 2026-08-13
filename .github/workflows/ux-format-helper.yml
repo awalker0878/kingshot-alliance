@@ -1,0 +1,39 @@
+name: UX Format Helper
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Format resources
+        run: npm run format
+
+      - name: Export formatting patch
+        run: git diff --binary -- resources > ux-prettier.patch
+
+      - name: Upload formatting patch
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ux-prettier-patch
+          path: ux-prettier.patch
+          if-no-files-found: error
+          retention-days: 1
