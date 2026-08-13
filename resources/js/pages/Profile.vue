@@ -129,7 +129,9 @@ function disableTwoFactor(): void {
 
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)]">
       <section class="ks-surface p-5 sm:p-6">
-        <div class="flex flex-col gap-2 border-b border-[var(--ks-border)] pb-5 sm:flex-row sm:items-start sm:justify-between">
+        <div
+          class="flex flex-col gap-2 border-b border-[var(--ks-border)] pb-5 sm:flex-row sm:items-start sm:justify-between"
+        >
           <div>
             <h2 class="ks-display text-2xl font-semibold">
               {{ t('accountExperience.account.profileTitle') }}
@@ -158,7 +160,9 @@ function disableTwoFactor(): void {
 
         <form class="mt-6 grid gap-5 md:grid-cols-2" @submit.prevent="updateProfile">
           <div>
-            <label class="block text-sm font-medium" for="profile-name">{{ t('auth.register.name') }}</label>
+            <label class="block text-sm font-medium" for="profile-name">{{
+              t('auth.register.name')
+            }}</label>
             <input
               id="profile-name"
               v-model="profileForm.name"
@@ -172,7 +176,9 @@ function disableTwoFactor(): void {
           </div>
 
           <div>
-            <label class="block text-sm font-medium" for="profile-email">{{ t('auth.login.email') }}</label>
+            <label class="block text-sm font-medium" for="profile-email">{{
+              t('auth.login.email')
+            }}</label>
             <input
               id="profile-email"
               v-model="profileForm.email"
@@ -230,15 +236,28 @@ function disableTwoFactor(): void {
           {{ t('accountExperience.account.startSetup') }}
         </button>
 
-        <div v-if="props.twoFactorSetup" class="mt-6 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/70 p-4">
-          <p class="text-sm font-semibold">{{ t('accountExperience.account.authenticatorSecret') }}</p>
-          <p class="mt-2 font-mono text-sm break-all text-[var(--ks-blue-strong)]">{{ props.twoFactorSetup.secret }}</p>
-          <p class="mt-4 text-xs text-[var(--ks-text-muted)]">{{ t('accountExperience.account.provisioningUri') }}</p>
-          <p class="mt-1 font-mono text-xs break-all text-[var(--ks-text-secondary)]">{{ props.twoFactorSetup.provisioning_uri }}</p>
+        <div
+          v-if="props.twoFactorSetup"
+          class="mt-6 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/70 p-4"
+        >
+          <p class="text-sm font-semibold">
+            {{ t('accountExperience.account.authenticatorSecret') }}
+          </p>
+          <p class="mt-2 font-mono text-sm break-all text-[var(--ks-blue-strong)]">
+            {{ props.twoFactorSetup.secret }}
+          </p>
+          <p class="mt-4 text-xs text-[var(--ks-text-muted)]">
+            {{ t('accountExperience.account.provisioningUri') }}
+          </p>
+          <p class="mt-1 font-mono text-xs break-all text-[var(--ks-text-secondary)]">
+            {{ props.twoFactorSetup.provisioning_uri }}
+          </p>
 
           <form class="mt-5 flex flex-col gap-3 sm:flex-row" @submit.prevent="confirmTwoFactor">
             <div class="flex-1">
-              <label class="sr-only" for="profile-two-factor-code">{{ t('accountExperience.account.authenticationCode') }}</label>
+              <label class="sr-only" for="profile-two-factor-code">{{
+                t('accountExperience.account.authenticationCode')
+              }}</label>
               <input
                 id="profile-two-factor-code"
                 v-model="twoFactorForm.code"
@@ -252,18 +271,36 @@ function disableTwoFactor(): void {
                 type="text"
               />
             </div>
-            <button class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-4 py-2.5 font-bold text-slate-950" type="submit">
+            <button
+              class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-4 py-2.5 font-bold text-slate-950"
+              type="submit"
+            >
               {{ t('accountExperience.account.confirm') }}
             </button>
           </form>
-          <p v-if="twoFactorForm.errors.code" class="mt-2 text-sm text-[var(--ks-red)]">{{ twoFactorForm.errors.code }}</p>
+          <p v-if="twoFactorForm.errors.code" class="mt-2 text-sm text-[var(--ks-red)]">
+            {{ twoFactorForm.errors.code }}
+          </p>
         </div>
 
-        <div v-if="props.twoFactorRecoveryCodes" class="mt-6 rounded-[var(--ks-radius-md)] border border-amber-500/25 bg-amber-500/10 p-4">
-          <p class="font-semibold text-amber-100">{{ t('accountExperience.account.saveRecoveryCodes') }}</p>
-          <p class="mt-1 text-sm text-amber-100/75">{{ t('accountExperience.account.recoveryIntro') }}</p>
+        <div
+          v-if="props.twoFactorRecoveryCodes"
+          class="mt-6 rounded-[var(--ks-radius-md)] border border-amber-500/25 bg-amber-500/10 p-4"
+        >
+          <p class="font-semibold text-amber-100">
+            {{ t('accountExperience.account.saveRecoveryCodes') }}
+          </p>
+          <p class="mt-1 text-sm text-amber-100/75">
+            {{ t('accountExperience.account.recoveryIntro') }}
+          </p>
           <ul class="mt-4 grid gap-2 font-mono text-sm sm:grid-cols-2">
-            <li v-for="code in props.twoFactorRecoveryCodes" :key="code" class="rounded border border-amber-500/15 bg-black/15 px-2 py-1.5">{{ code }}</li>
+            <li
+              v-for="code in props.twoFactorRecoveryCodes"
+              :key="code"
+              class="rounded border border-amber-500/15 bg-black/15 px-2 py-1.5"
+            >
+              {{ code }}
+            </li>
           </ul>
         </div>
 
@@ -288,54 +325,126 @@ function disableTwoFactor(): void {
 
     <div class="mt-6 grid gap-6 xl:grid-cols-2">
       <section class="ks-surface p-5 sm:p-6">
-        <h2 class="ks-display text-2xl font-semibold">{{ t('accountExperience.account.passwordTitle') }}</h2>
-        <p class="mt-2 text-sm leading-6 text-[var(--ks-text-muted)]">{{ t('accountExperience.account.passwordIntro') }}</p>
+        <h2 class="ks-display text-2xl font-semibold">
+          {{ t('accountExperience.account.passwordTitle') }}
+        </h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--ks-text-muted)]">
+          {{ t('accountExperience.account.passwordIntro') }}
+        </p>
 
         <form class="mt-6 grid gap-5" @submit.prevent="updatePassword">
           <div>
-            <label class="block text-sm font-medium" for="current-password">{{ t('accountExperience.account.currentPassword') }}</label>
-            <input id="current-password" v-model="passwordForm.current_password" autocomplete="current-password" class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5" required type="password" />
-            <p v-if="passwordForm.errors.current_password" class="mt-1.5 text-sm text-[var(--ks-red)]">{{ passwordForm.errors.current_password }}</p>
+            <label class="block text-sm font-medium" for="current-password">{{
+              t('accountExperience.account.currentPassword')
+            }}</label>
+            <input
+              id="current-password"
+              v-model="passwordForm.current_password"
+              autocomplete="current-password"
+              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
+              required
+              type="password"
+            />
+            <p
+              v-if="passwordForm.errors.current_password"
+              class="mt-1.5 text-sm text-[var(--ks-red)]"
+            >
+              {{ passwordForm.errors.current_password }}
+            </p>
           </div>
           <div>
-            <label class="block text-sm font-medium" for="new-password">{{ t('accountExperience.account.newPassword') }}</label>
-            <input id="new-password" v-model="passwordForm.password" autocomplete="new-password" class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5" required type="password" />
-            <p v-if="passwordForm.errors.password" class="mt-1.5 text-sm text-[var(--ks-red)]">{{ passwordForm.errors.password }}</p>
+            <label class="block text-sm font-medium" for="new-password">{{
+              t('accountExperience.account.newPassword')
+            }}</label>
+            <input
+              id="new-password"
+              v-model="passwordForm.password"
+              autocomplete="new-password"
+              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
+              required
+              type="password"
+            />
+            <p v-if="passwordForm.errors.password" class="mt-1.5 text-sm text-[var(--ks-red)]">
+              {{ passwordForm.errors.password }}
+            </p>
           </div>
           <div>
-            <label class="block text-sm font-medium" for="new-password-confirmation">{{ t('accountExperience.account.confirmNewPassword') }}</label>
-            <input id="new-password-confirmation" v-model="passwordForm.password_confirmation" autocomplete="new-password" class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5" required type="password" />
+            <label class="block text-sm font-medium" for="new-password-confirmation">{{
+              t('accountExperience.account.confirmNewPassword')
+            }}</label>
+            <input
+              id="new-password-confirmation"
+              v-model="passwordForm.password_confirmation"
+              autocomplete="new-password"
+              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
+              required
+              type="password"
+            />
           </div>
-          <button class="w-fit rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-4 py-2.5 font-bold text-slate-950 disabled:opacity-60" :disabled="passwordForm.processing" type="submit">
+          <button
+            class="w-fit rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-4 py-2.5 font-bold text-slate-950 disabled:opacity-60"
+            :disabled="passwordForm.processing"
+            type="submit"
+          >
             {{ t('accountExperience.account.updatePassword') }}
           </button>
         </form>
       </section>
 
       <section class="ks-surface p-5 sm:p-6">
-        <h2 class="ks-display text-2xl font-semibold">{{ t('accountExperience.account.sessionsTitle') }}</h2>
-        <p class="mt-2 text-sm leading-6 text-[var(--ks-text-muted)]">{{ t('accountExperience.account.sessionsIntro') }}</p>
+        <h2 class="ks-display text-2xl font-semibold">
+          {{ t('accountExperience.account.sessionsTitle') }}
+        </h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--ks-text-muted)]">
+          {{ t('accountExperience.account.sessionsIntro') }}
+        </p>
         <form class="mt-6 grid gap-4" @submit.prevent="revokeOtherSessions">
           <div>
-            <label class="block text-sm font-medium" for="sessions-password">{{ t('accountExperience.account.currentPassword') }}</label>
-            <input id="sessions-password" v-model="sessionsForm.password" autocomplete="current-password" class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5" required type="password" />
-            <p v-if="sessionsForm.errors.password" class="mt-1.5 text-sm text-[var(--ks-red)]">{{ sessionsForm.errors.password }}</p>
+            <label class="block text-sm font-medium" for="sessions-password">{{
+              t('accountExperience.account.currentPassword')
+            }}</label>
+            <input
+              id="sessions-password"
+              v-model="sessionsForm.password"
+              autocomplete="current-password"
+              class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
+              required
+              type="password"
+            />
+            <p v-if="sessionsForm.errors.password" class="mt-1.5 text-sm text-[var(--ks-red)]">
+              {{ sessionsForm.errors.password }}
+            </p>
           </div>
-          <button class="w-fit rounded-[var(--ks-radius-sm)] border border-red-500/35 px-4 py-2.5 font-semibold text-[var(--ks-red)] disabled:opacity-60" :disabled="sessionsForm.processing" type="submit">
+          <button
+            class="w-fit rounded-[var(--ks-radius-sm)] border border-red-500/35 px-4 py-2.5 font-semibold text-[var(--ks-red)] disabled:opacity-60"
+            :disabled="sessionsForm.processing"
+            type="submit"
+          >
             {{ t('accountExperience.account.signOutOthers') }}
           </button>
         </form>
       </section>
     </div>
 
-    <section class="mt-6 rounded-[var(--ks-radius-lg)] border border-red-500/25 bg-red-500/5 p-5 sm:p-6">
-      <p class="text-xs font-bold tracking-[0.18em] text-[var(--ks-red)] uppercase">{{ t('accountExperience.account.dangerTitle') }}</p>
+    <section
+      class="mt-6 rounded-[var(--ks-radius-lg)] border border-red-500/25 bg-red-500/5 p-5 sm:p-6"
+    >
+      <p class="text-xs font-bold tracking-[0.18em] text-[var(--ks-red)] uppercase">
+        {{ t('accountExperience.account.dangerTitle') }}
+      </p>
       <div class="mt-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 class="ks-display text-2xl font-semibold">{{ t('accountExperience.account.deleteAccount') }}</h2>
-          <p class="mt-1 text-sm text-[var(--ks-text-muted)]">{{ t('accountExperience.deletion.intro') }}</p>
+          <h2 class="ks-display text-2xl font-semibold">
+            {{ t('accountExperience.account.deleteAccount') }}
+          </h2>
+          <p class="mt-1 text-sm text-[var(--ks-text-muted)]">
+            {{ t('accountExperience.deletion.intro') }}
+          </p>
         </div>
-        <Link href="/profile/delete-account" class="inline-flex w-fit rounded-[var(--ks-radius-sm)] border border-red-500/35 px-4 py-2.5 text-sm font-semibold text-[var(--ks-red)] transition hover:bg-red-500/10">
+        <Link
+          href="/profile/delete-account"
+          class="inline-flex w-fit rounded-[var(--ks-radius-sm)] border border-red-500/35 px-4 py-2.5 text-sm font-semibold text-[var(--ks-red)] transition hover:bg-red-500/10"
+        >
           {{ t('accountExperience.account.deleteAccount') }}
         </Link>
       </div>

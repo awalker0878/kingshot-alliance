@@ -67,36 +67,52 @@ function requestDeletion(): void {
       {{ statusMessage }}
     </p>
 
-    <section v-if="props.request" aria-labelledby="request-heading" class="ks-surface max-w-4xl p-5 sm:p-6">
-      <div class="flex flex-col gap-2 border-b border-[var(--ks-border)] pb-5 sm:flex-row sm:items-center sm:justify-between">
+    <section
+      v-if="props.request"
+      aria-labelledby="request-heading"
+      class="ks-surface max-w-4xl p-5 sm:p-6"
+    >
+      <div
+        class="flex flex-col gap-2 border-b border-[var(--ks-border)] pb-5 sm:flex-row sm:items-center sm:justify-between"
+      >
         <h2 id="request-heading" class="ks-display text-2xl font-semibold">
           {{ t('accountExperience.deletion.currentRequest') }}
         </h2>
-        <span class="w-fit rounded-full border border-[var(--ks-border-strong)] bg-[var(--ks-gold-soft)] px-3 py-1 text-xs font-bold text-[var(--ks-gold-strong)]">
+        <span
+          class="w-fit rounded-full border border-[var(--ks-border-strong)] bg-[var(--ks-gold-soft)] px-3 py-1 text-xs font-bold text-[var(--ks-gold-strong)]"
+        >
           {{ props.request.status }}
         </span>
       </div>
 
       <dl class="mt-6 grid gap-4 sm:grid-cols-2">
-        <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4">
+        <div
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4"
+        >
           <dt class="text-xs font-bold tracking-[0.14em] text-[var(--ks-text-muted)] uppercase">
             {{ t('accountExperience.deletion.status') }}
           </dt>
           <dd class="mt-2 font-semibold">{{ props.request.status }}</dd>
         </div>
-        <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4">
+        <div
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4"
+        >
           <dt class="text-xs font-bold tracking-[0.14em] text-[var(--ks-text-muted)] uppercase">
             {{ t('accountExperience.deletion.eligibleAt') }}
           </dt>
           <dd class="mt-2">{{ formatDate(props.request.eligibleAt) }}</dd>
         </div>
-        <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4">
+        <div
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4"
+        >
           <dt class="text-xs font-bold tracking-[0.14em] text-[var(--ks-text-muted)] uppercase">
             {{ t('accountExperience.deletion.requestedAt') }}
           </dt>
           <dd class="mt-2">{{ formatDate(props.request.requestedAt) }}</dd>
         </div>
-        <div class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4">
+        <div
+          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/65 p-4"
+        >
           <dt class="text-xs font-bold tracking-[0.14em] text-[var(--ks-text-muted)] uppercase">
             {{ t('accountExperience.deletion.processedAt') }}
           </dt>
