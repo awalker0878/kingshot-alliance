@@ -40,6 +40,10 @@ final class KingdomAllianceController extends Controller
         }
 
         return Inertia::render('Alliance/KingdomAlliances', [
+            'user' => [
+                'name' => (string) $user->name,
+                'email' => (string) $user->email,
+            ],
             'alliance' => $this->allianceSummary($alliance),
             'canManage' => $authorization->allows($user, $alliance, PermissionKey::KingdomManage),
             'tracking' => $this->trackingRows($tracking->forAlliance($alliance), $alliance, false),

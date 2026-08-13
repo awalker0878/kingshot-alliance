@@ -17,6 +17,9 @@ final class KingdomAccessibilityTest extends TestCase
             'RosterHistory.vue',
             'RosterIntelligence.vue',
             'RosterImport.vue',
+            'KingdomSettings.vue',
+            'KingdomAlliances.vue',
+            'KingdomIngestionManage.vue',
         ];
 
         foreach ([
