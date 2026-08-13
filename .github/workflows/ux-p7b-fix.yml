@@ -1,0 +1,165 @@
+name: UX P7B cleanup
+
+on:
+  push:
+    branches:
+      - ux/ux-001-experience-localization
+    paths:
+      - .ux-p7b-fix-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out UX branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ux/ux-001-experience-localization
+          fetch-depth: 0
+
+      - name: Fix P7-B templates and responsive presentation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f'missing expected text in {path}: {old[:90]!r}')
+              p.write_text(text.replace(old, new, 1))
+
+          def replace_all(path: str, pairs: list[tuple[str, str]]) -> None:
+              p = Path(path)
+              text = p.read_text()
+              for old, new in pairs:
+                  text = text.replace(old, new)
+              p.write_text(text)
+
+          contacts = 'resources/js/pages/Alliance/KingdomAllianceDiplomacyContacts.vue'
+          replace(contacts, "{{ editingId === null ? '{{ t('kingdomP7B.addContact') }}' : '{{\n          t('kingdomP7B.editContact')\n        }}' }}", "{{ editingId === null ? t('kingdomP7B.addContact') : t('kingdomP7B.editContact') }}")
+          replace(contacts, "{{ editingId === null ? '{{ t('kingdomP7B.addContact') }}' : '{{\n              t('kingdomP7B.saveContact')\n            }}' }}", "{{ editingId === null ? t('kingdomP7B.addContact') : t('kingdomP7B.saveContact') }}")
+          replace_all(contacts, [
+              ("{{ alliance.name }} · Kingdom {{ tracking.kingdom }}. This is a manager-private handle\n          directory for diplomacy coordination. Contacts do not create users, memberships, player\n          identity, or permissions.", "{{ t('kingdomP7B.contactsSubtitle', { kingdom: tracking.kingdom }) }}"),
+              ("Store handles only. Do not put phone numbers, home addresses, passwords, recovery material, or\n      other private secrets in this directory. Handles and notes stay manager-private and are not\n      copied into audit/outbox payloads.", "{{ t('kingdomP7B.handlesSafety') }}"),
+              ("This tracking record is read-only because it is archived or belongs to historical Kingdom\n      context. Existing contact history remains visible, but contacts cannot be created, edited, or\n      deactivated.", "{{ t('kingdomP7B.contactReadOnly') }}"),
+              ("{{ t('kingdomP7B.displayName') }}s and handles are coordination labels only. They never\n        auto-link a Kingdom player or platform account.", "{{ t('kingdomP7B.contactHelp') }}"),
+              ('{{ channel.label }}', '{{ channelLabel(channel.value) }}'),
+              ('Optional factual verification time; future values are rejected.', "{{ t('kingdomP7B.verificationHelp') }}"),
+              ('Inactive entries remain visible as coordination history and are not destructively\n            deleted or edited.', "{{ t('kingdomP7B.directoryHelp') }}"),
+              ('Up to {{ contactLimit }} contacts', "{{ t('kingdomP7B.contactLimit', { count: contactLimit }) }}"),
+              ('Private notes</th>', "{{ t('kingdomP7B.managerNotes') }}</th>"),
+              ("{{ contact.gameRole ?? 'No role recorded' }}", "{{ contact.gameRole ?? t('kingdomP7B.noRole') }}"),
+              ("{{ contact.managerNotes ?? 'No private notes' }}", "{{ contact.managerNotes ?? t('kingdomP7B.noNotes') }}"),
+              ('No diplomacy contacts have been recorded for this tracked alliance.', "{{ t('kingdomP7B.noContacts') }}"),
+              ('<th class="px-3 py-3 font-semibold">{{ t(\'kingdomP7B.contact\') }}</th>', '<th class="px-3 py-3 font-semibold">{{ t(\'kingdomP7B.contact\') }}</th>'),
+          ])
+          replace(contacts, '<div v-if="contacts.length" class="mt-6 overflow-x-auto">', '''<div v-if="contacts.length" class="mt-6 grid gap-3 lg:hidden">
+        <article v-for="contact in contacts" :key="contact.id" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/10 p-4">
+          <div class="flex items-start justify-between gap-3"><div><p class="font-semibold">{{ contact.displayName }}</p><p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ contact.gameRole ?? t('kingdomP7B.noRole') }}</p></div><span class="text-xs font-semibold">{{ contact.state === 'active' ? t('kingdomP7B.active') : t('kingdomP7B.inactive') }}</span></div>
+          <p class="mt-3 text-sm">{{ channelLabel(contact.channelType) }} · <span class="font-mono text-xs">{{ contact.handle }}</span></p>
+          <p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.lastVerified') }}: {{ formatDate(contact.lastVerifiedAt) }}</p>
+          <p v-if="contact.managerNotes" class="mt-3 whitespace-pre-wrap text-sm text-[var(--ks-text-secondary)]">{{ contact.managerNotes }}</p>
+          <div v-if="contact.state === 'active'" class="mt-3 flex gap-2"><button class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-xs font-semibold" :disabled="tracking.state !== 'active' || !tracking.contextCurrent" type="button" @click="beginEdit(contact)">{{ t('kingdomP7B.edit') }}</button><button class="rounded-lg border border-rose-900 px-3 py-2 text-xs font-semibold text-rose-300" :disabled="tracking.state !== 'active' || !tracking.contextCurrent" type="button" @click="deactivateContact(contact)">{{ t('kingdomP7B.deactivate') }}</button></div>
+        </article>
+      </div>
+
+      <div v-if="contacts.length" class="mt-6 hidden overflow-x-auto lg:block">''')
+
+          history = 'resources/js/pages/Alliance/KingdomAllianceHistory.vue'
+          replace(history, "{{ recordForm.corrects_observation_id ? '{{ t('kingdomP7B.recordCorrection') }}' : '{{\n              t('kingdomP7B.recordObservation')\n            }}' }}", "{{ recordForm.corrects_observation_id ? t('kingdomP7B.recordCorrection') : t('kingdomP7B.recordObservation') }}")
+          replace(history, "{{ recordForm.corrects_observation_id ? '{{ t('kingdomP7B.recordCorrection') }}' : '{{\n              t('kingdomP7B.recordObservation')\n            }}' }}", "{{ recordForm.corrects_observation_id ? t('kingdomP7B.recordCorrection') : t('kingdomP7B.recordObservation') }}")
+          replace_all(history, [
+              ('Kingdom intelligence', "{{ t('kingdomP7B.eyebrow') }}"),
+              ("Kingdom {{ tracking.kingdom }} · {{ tracking.tag ?? 'no tag recorded' }}. Observations are\n          factual historical records and do not imply threat, ranking, or diplomacy state.", "{{ t('kingdomP7B.historySubtitle', { kingdom: tracking.kingdom }) }}"),
+              ('Current means captured within {{ freshDays }} days.', "{{ t('kingdomP7B.currentWithinDays', { days: freshDays }) }}"),
+              ('Missing is distinct from zero.', "{{ t('kingdomP7B.missingNotZero') }}"),
+              ('Captured {{ formatDate(latest.capturedAt) }}', "{{ t('kingdomP7B.captured', { date: formatDate(latest.capturedAt) }) }}"),
+              ('Exact retries are idempotent. A correction appends a new row and invalidates the\n            original; it never rewrites history.', "{{ t('kingdomP7B.observationHelp') }}"),
+              ('<label class="block text-sm font-medium" for="observation-power">Power</label>', '<label class="block text-sm font-medium" for="observation-power">{{ t(\'kingdomP7B.power\') }}</label>'),
+              ('Private management detail; excluded from member payloads and event metadata.', "{{ t('kingdomP7B.correctionPrivate') }}"),
+              ('Up to the latest 250 records are shown, ordered by capture time. Managers also see\n          invalidated records and provenance.', "{{ t('kingdomP7B.historyHelp') }}"),
+              ("{{ observation.power ?? 'missing' }}", "{{ observation.power ?? t('kingdomP7B.missing') }}"),
+              ("{{ observation.memberCount ?? 'missing' }}", "{{ observation.memberCount ?? t('kingdomP7B.missing') }}"),
+              ("{{ observation.actorName ?? 'Unavailable actor' }}", "{{ observation.actorName ?? t('kingdomP7B.unavailableActor') }}"),
+              ('No accepted observations have been recorded yet.', "{{ t('kingdomP7B.noObservations') }}"),
+              ('Invalidate observation', "{{ t('kingdomP7B.invalidate') }}"),
+              ('<label class="block text-sm font-medium" for="invalidation-reason">Reason</label>', '<label class="block text-sm font-medium" for="invalidation-reason">{{ t(\'kingdomP7B.invalidateReason\') }}</label>'),
+              ('Confirm invalidation', "{{ t('kingdomP7B.confirmInvalidation') }}"),
+          ])
+          replace(history, '<div v-if="history.length" class="mt-6 overflow-x-auto">', '''<div v-if="history.length" class="mt-6 grid gap-3 lg:hidden">
+        <article v-for="observation in history" :key="observation.id ?? observation.capturedAt" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/10 p-4">
+          <div class="flex items-start justify-between gap-3"><div><p class="font-semibold">{{ observation.observedName }}</p><p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ observation.observedTag ?? '—' }}</p></div><span v-if="observation.invalidatedAt" class="rounded-full bg-rose-950 px-2 py-1 text-xs font-semibold text-rose-300">{{ t('kingdomP7B.invalidated') }}</span></div>
+          <dl class="mt-3 grid grid-cols-2 gap-3 text-sm"><div><dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.capturedAt') }}</dt><dd>{{ formatDate(observation.capturedAt) }}</dd></div><div><dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.power') }}</dt><dd>{{ observation.power ?? t('kingdomP7B.missing') }}</dd></div><div><dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.members') }}</dt><dd>{{ observation.memberCount ?? t('kingdomP7B.missing') }}</dd></div><div><dt class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.source') }}</dt><dd>{{ observation.source }}</dd></div></dl>
+          <div v-if="canManage && !observation.invalidatedAt && canMutate" class="mt-3 flex gap-2"><button class="rounded-lg border border-[var(--ks-border)] px-3 py-2 text-xs font-semibold" type="button" @click="beginCorrection(observation)">{{ t('kingdomP7B.correct') }}</button><button class="rounded-lg border border-rose-900 px-3 py-2 text-xs font-semibold text-rose-300" type="button" @click="beginInvalidation(observation)">{{ t('kingdomP7B.invalidate') }}</button></div>
+        </article>
+      </div>
+
+      <div v-if="history.length" class="mt-6 hidden overflow-x-auto lg:block">''')
+
+          intel = 'resources/js/pages/Alliance/KingdomAllianceIntelligence.vue'
+          replace_all(intel, [
+              ("if (value === null) return 'missing';", "if (value === null) return t('kingdomP7B.missing');"),
+              ("if (row.freshness === 'missing') return 'Missing observation';", "if (row.freshness === 'missing') return t('kingdomP7B.missingObservation');"),
+              ('aria-label="{{ t(\'kingdomP7B.intelligenceTitle\') }} summary"', ':aria-label="`${t(\'kingdomP7B.intelligenceTitle\')} summary`"'),
+              ('Descriptive operational trends derived only from accepted observations and explicit\n          diplomacy state. Missing values remain missing; this view does not calculate threat,\n          desirability, target, or composite scores and never recommends or executes diplomacy or\n          transfer actions.', "{{ t('kingdomP7B.intelligenceSubtitle') }}"),
+              ('Default order is alphabetical. Optional factual sorting changes navigation order only; it is\n        not a best/worst, threat, target, or desirability ranking.', "{{ t('kingdomP7B.filtersHelp') }}"),
+              ('Due means an active contact is unverified or last verified more than\n          {{ intelligence.managerSummary.verificationStaleAfterDays }} days ago.', "{{ t('kingdomP7B.verificationDueHelp', { days: intelligence.managerSummary.verificationStaleAfterDays }) }}"),
+              ('The current point is the latest accepted observation at or before the dashboard time. Prior\n        change uses the immediately preceding accepted point. For an N-day trend, the baseline is\n        the closest accepted observation at or before the N-day target but no older than 2N days. A\n        newer point is never substituted for the target, older history outside the bounded window is\n        ignored, and missing history is never interpolated.', "{{ t('kingdomP7B.trendRulesHelp') }}"),
+              ('No tracked alliances match the selected filters.', "{{ t('kingdomP7B.noRows') }}"),
+              ('Human review due', "{{ t('kingdomP7B.reviewDue') }}"),
+              ('Apply\n', "{{ t('kingdomP7B.apply') }}\n"),
+              ('Reset\n', "{{ t('kingdomP7B.reset') }}\n"),
+              ('<option value="active">Active</option>', '<option value="active">{{ t(\'kingdomP7B.active\') }}</option>'),
+              ('<option value="archived">Archived</option>', '<option value="archived">{{ t(\'kingdomP7B.archived\') }}</option>'),
+              ('<option value="all">All</option>', '<option value="all">{{ t(\'kingdomP7B.all\') }}</option>'),
+              ('<option value="current">Current</option>', '<option value="current">{{ t(\'kingdomP7B.current\') }}</option>'),
+              ('<option value="stale">Stale</option>', '<option value="stale">{{ t(\'kingdomP7B.stale\') }}</option>'),
+              ('<option value="missing">Missing</option>', '<option value="missing">{{ t(\'kingdomP7B.missing\') }}</option>'),
+              ('<option value="name">Name</option>', '<option value="name">{{ t(\'kingdomP7B.name\') }}</option>'),
+              ('<option value="tag">Tag</option>', '<option value="tag">{{ t(\'kingdomP7B.tag\') }}</option>'),
+              ('<option value="power">Latest power</option>', '<option value="power">{{ t(\'kingdomP7B.latestPowerSort\') }}</option>'),
+              ('<option value="members">Latest members</option>', '<option value="members">{{ t(\'kingdomP7B.latestMembersSort\') }}</option>'),
+              ('<option value="age">Observation age</option>', '<option value="age">{{ t(\'kingdomP7B.observationAge\') }}</option>'),
+              ('<option value="asc">Ascending</option>', '<option value="asc">{{ t(\'kingdomP7B.ascending\') }}</option>'),
+              ('<option value="desc">Descending</option>', '<option value="desc">{{ t(\'kingdomP7B.descending\') }}</option>'),
+          ])
+          replace(intel, '<div v-if="intelligence.rows.length" class="overflow-x-auto">', '''<div v-if="intelligence.rows.length" class="grid gap-3 p-4 lg:hidden">
+        <article v-for="row in intelligence.rows" :key="row.historyUrl" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/10 p-4">
+          <div class="flex items-start justify-between gap-3"><div><Link class="font-semibold text-[var(--ks-gold)]" :href="row.historyUrl">{{ row.name }}</Link><p class="mt-1 text-xs text-[var(--ks-text-muted)]">{{ row.tag ?? '—' }} · Kingdom {{ row.kingdom }}</p></div><span class="text-xs font-semibold">{{ freshnessLabel(row) }}</span></div>
+          <div v-if="row.latestObservation" class="mt-3 grid grid-cols-2 gap-3 text-sm"><div><p class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.power') }}</p><p>{{ formatDecimal(row.latestObservation.power) }}</p></div><div><p class="text-xs text-[var(--ks-text-muted)]">{{ t('kingdomP7B.members') }}</p><p>{{ row.latestObservation.memberCount ?? t('kingdomP7B.missing') }}</p></div></div>
+          <div class="mt-3 space-y-1 text-xs text-[var(--ks-text-secondary)]"><p>{{ t('kingdomP7B.priorChange') }}: {{ changeText(row.priorChange) }}</p><p>{{ t('kingdomP7B.sevenDay') }}: {{ changeText(row.sevenDayChange) }}</p><p>{{ t('kingdomP7B.thirtyDay') }}: {{ changeText(row.thirtyDayChange) }}</p></div>
+          <div class="mt-3 flex flex-wrap gap-2"><span class="rounded-full border border-[var(--ks-border)] px-2 py-1 text-xs font-semibold">{{ stateLabel(row.diplomacy.state) }}</span><span v-if="row.diplomacy.needsReview" class="rounded-full border border-amber-400/25 bg-amber-500/10 px-2 py-1 text-xs font-semibold text-amber-200">{{ t('kingdomP7B.reviewDue') }}</span></div>
+          <div class="mt-3 flex flex-wrap gap-3 text-xs"><Link :href="row.historyUrl" class="font-semibold text-[var(--ks-gold)]">{{ t('kingdomP7B.history') }}</Link><Link v-if="canManage && row.diplomacyUrl" :href="row.diplomacyUrl" class="font-semibold text-[var(--ks-gold)]">{{ t('kingdomP7B.diplomacy') }}</Link><Link v-if="canManage && row.contactsUrl" :href="row.contactsUrl" class="font-semibold text-[var(--ks-gold)]">{{ t('kingdomP7B.contacts') }}</Link></div>
+        </article>
+      </div>
+
+      <div v-if="intelligence.rows.length" class="hidden overflow-x-auto lg:block">''')
+          replace(intel, "const { t, formatDate: localeDate, formatNumber } = useLocale();", "const { t, formatDate: localeDate } = useLocale();")
+          PY
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Format frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npx prettier --write \
+            resources/js/pages/Alliance/KingdomAllianceDiplomacyContacts.vue \
+            resources/js/pages/Alliance/KingdomAllianceHistory.vue \
+            resources/js/pages/Alliance/KingdomAllianceIntelligence.vue
+
+      - name: Commit cleanup
+        run: |
+          git config user.name awalker0878
+          git config user.email 52688461+awalker0878@users.noreply.github.com
+          git add resources/js/pages/Alliance/KingdomAllianceDiplomacyContacts.vue resources/js/pages/Alliance/KingdomAllianceHistory.vue resources/js/pages/Alliance/KingdomAllianceIntelligence.vue
+          git commit -m "Polish UX-P7-B responsive Kingdom surfaces"
+          git push origin HEAD:ux/ux-001-experience-localization
