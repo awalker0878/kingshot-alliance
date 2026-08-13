@@ -11,7 +11,6 @@ Domain-specific current behavior and domain-owned acceptance evidence belong und
 ### Baseline and program control
 
 - [Implementation plan](implementation-plan.md) — accepted product Phase 0–6 baseline and canonical repository architecture.
-- [UX-001 experience and localization](ux-001-experience-localization.md) — active Kingshot-first visual modernization and multilingual rollout program; existing implemented capabilities only.
 - [Repository documentation standard](documentation-standard.md) — ownership, structure, naming, source-of-truth and stable CI rules.
 - [Documentation completeness standard](documentation-completeness-standard.md) — DCP completion/exact-gate semantics.
 - [Documentation Completion Program](documentation-program-plan.md) — P0–P7 roadmap and post-program maintenance state.

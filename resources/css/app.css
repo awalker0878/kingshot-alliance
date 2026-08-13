@@ -13,111 +13,13 @@
     'Segoe UI',
     sans-serif;
   color-scheme: dark;
-
-  --ks-bg: #050b14;
-  --ks-bg-elevated: #08111f;
-  --ks-surface-1: #0b1626;
-  --ks-surface-2: #101d2e;
-  --ks-surface-3: #15243a;
-  --ks-border: rgba(148, 163, 184, 0.18);
-  --ks-border-strong: rgba(226, 180, 77, 0.42);
-
-  --ks-text: #f8fafc;
-  --ks-text-secondary: #cbd5e1;
-  --ks-text-muted: #94a3b8;
-
-  --ks-gold: #e2b44d;
-  --ks-gold-strong: #f4c967;
-  --ks-gold-soft: rgba(226, 180, 77, 0.13);
-  --ks-blue: #4b8ff7;
-  --ks-blue-strong: #63a4ff;
-  --ks-blue-soft: rgba(75, 143, 247, 0.14);
-  --ks-green: #4ade80;
-  --ks-amber: #fbbf24;
-  --ks-red: #f87171;
-  --ks-purple: #a78bfa;
-
-  --ks-radius-sm: 0.625rem;
-  --ks-radius-md: 0.875rem;
-  --ks-radius-lg: 1.125rem;
-  --ks-radius-xl: 1.5rem;
-
-  --ks-shadow-panel: 0 24px 70px rgba(0, 0, 0, 0.28);
-  --ks-shadow-gold: 0 0 0 1px rgba(226, 180, 77, 0.12), 0 18px 55px rgba(0, 0, 0, 0.24);
-
-  --ks-font-display: Georgia, 'Times New Roman', ui-serif, serif;
-}
-
-html {
-  min-height: 100%;
-  background: var(--ks-bg);
-  color: var(--ks-text);
 }
 
 body {
-  min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at 15% 0%, rgba(36, 74, 122, 0.2), transparent 32rem),
-    linear-gradient(180deg, #07101c 0%, var(--ks-bg) 42%, #040911 100%);
-  color: var(--ks-text);
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-a {
-  color: inherit;
-}
-
-::selection {
-  background: var(--ks-gold);
-  color: #111827;
 }
 
 :focus-visible {
-  outline: 3px solid var(--ks-blue-strong);
+  outline: 3px solid oklch(0.75 0.14 195);
   outline-offset: 3px;
-}
-
-.ks-display {
-  font-family: var(--ks-font-display);
-  letter-spacing: -0.025em;
-}
-
-.ks-surface {
-  border: 1px solid var(--ks-border);
-  border-radius: var(--ks-radius-lg);
-  background: linear-gradient(180deg, rgba(16, 29, 46, 0.96), rgba(8, 17, 31, 0.96));
-  box-shadow: var(--ks-shadow-panel);
-}
-
-.ks-surface-gold {
-  border: 1px solid var(--ks-border-strong);
-  border-radius: var(--ks-radius-lg);
-  background: linear-gradient(180deg, rgba(19, 31, 48, 0.97), rgba(8, 17, 31, 0.97));
-  box-shadow: var(--ks-shadow-gold);
-}
-
-.ks-muted {
-  color: var(--ks-text-muted);
-}
-
-html[dir='rtl'] body {
-  direction: rtl;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
 }
