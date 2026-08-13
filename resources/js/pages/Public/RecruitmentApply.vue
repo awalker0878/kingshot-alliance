@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
+import PublicLayout from '../../layouts/PublicLayout.vue';
+import { useLocale } from '../../localization';
+
 type Question = {
   id: string;
   prompt: string;
@@ -23,6 +26,8 @@ const props = defineProps<{
   prefill: { name: string; email: string; emailLocked: boolean };
   submitted: boolean;
 }>();
+
+const { t } = useLocale();
 
 const initialAnswers: Record<string, string | boolean | string[]> = {};
 for (const question of props.questions) {
@@ -73,223 +78,254 @@ function setStringAnswer(questionId: string, event: Event): void {
 <template>
   <Head :title="`${application.title} · ${alliance.name}`" />
 
-  <main class="min-h-screen bg-slate-950 text-slate-100">
-    <div class="mx-auto max-w-3xl px-5 py-10 sm:px-6 lg:py-14">
-      <Link
-        class="text-sm font-semibold text-cyan-300 hover:text-cyan-200"
-        :href="`/alliances/${alliance.slug}`"
-      >
-        ← {{ alliance.name }}
-      </Link>
-
-      <section class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/70 p-6 sm:p-8">
-        <p class="text-sm font-semibold tracking-[0.18em] text-cyan-300 uppercase">Recruitment</p>
-        <h1 class="mt-2 text-3xl font-bold sm:text-4xl">{{ application.title }}</h1>
-        <p v-if="alliance.kingdom" class="mt-2 text-sm text-slate-400">
-          Kingdom {{ alliance.kingdom }}
-        </p>
-        <p v-if="application.introduction" class="mt-5 whitespace-pre-line text-slate-300">
-          {{ application.introduction }}
-        </p>
-
-        <div
-          v-if="submitted"
-          class="mt-6 rounded-xl border border-emerald-800 bg-emerald-950/30 p-5"
-          role="status"
+  <PublicLayout>
+    <section class="relative isolate overflow-hidden border-b border-[var(--ks-border)]">
+      <div
+        class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_10%,rgba(226,180,77,0.14),transparent_28rem),linear-gradient(180deg,rgba(11,22,38,0.72),rgba(5,11,20,0.94))]"
+      />
+      <div class="mx-auto max-w-7xl px-5 py-10 sm:py-14 lg:px-8 lg:py-16">
+        <Link
+          class="inline-flex items-center gap-2 text-sm font-semibold text-[var(--ks-gold)] transition hover:text-[var(--ks-gold-strong)]"
+          :href="`/alliances/${alliance.slug}`"
         >
-          <h2 class="font-semibold text-emerald-100">Application received</h2>
-          <p class="mt-1 text-sm text-emerald-200/80">
-            Your application was submitted successfully. The alliance recruitment team can now
-            review it.
-          </p>
-        </div>
+          <span aria-hidden="true">←</span>
+          {{ t('publicContent.backToAlliance') }} · {{ alliance.name }}
+        </Link>
 
-        <div v-else-if="!application.open" class="mt-6 rounded-xl border border-slate-700 p-5">
-          <h2 class="font-semibold">Applications are currently closed</h2>
-          <p class="mt-2 text-sm text-slate-400">
-            Check the alliance public page later for recruitment updates.
-          </p>
-        </div>
+        <div class="mt-8 grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:gap-12">
+          <aside class="lg:pt-4">
+            <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
+              {{ t('navigation.recruitment') }}
+            </p>
+            <h1 class="ks-display mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
+              {{ application.title }}
+            </h1>
+            <p v-if="alliance.kingdom" class="mt-4 text-sm font-semibold text-[var(--ks-text-secondary)]">
+              {{ t('publicAlliance.kingdom') }} {{ alliance.kingdom }}
+            </p>
+            <p
+              v-if="application.introduction"
+              class="mt-6 whitespace-pre-line text-base leading-8 text-[var(--ks-text-secondary)]"
+            >
+              {{ application.introduction }}
+            </p>
 
-        <form v-else class="mt-8 space-y-6" @submit.prevent="submit">
-          <div class="grid gap-5 sm:grid-cols-2">
-            <div>
-              <label class="text-sm font-medium" for="recruitment-name">Name</label>
-              <input
-                id="recruitment-name"
-                v-model="form.full_name"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                maxlength="160"
-                required
-                autocomplete="name"
-              />
-              <p v-if="form.errors.full_name" class="mt-1 text-sm text-rose-300" role="alert">
-                {{ form.errors.full_name }}
+            <div class="ks-surface mt-8 p-5">
+              <p class="text-xs font-bold tracking-[0.16em] text-[var(--ks-text-muted)] uppercase">
+                {{ t('publicAlliance.recruitment') }}
+              </p>
+              <p class="mt-2 text-lg font-bold">
+                {{
+                  application.open
+                    ? t('publicAlliance.statusOpen')
+                    : application.mode === 'invitation'
+                      ? t('publicAlliance.statusInvitationOnly')
+                      : t('publicAlliance.statusClosed')
+                }}
               </p>
             </div>
-            <div>
-              <label class="text-sm font-medium" for="recruitment-email">Email</label>
-              <input
-                id="recruitment-email"
-                v-model="form.email"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 disabled:text-slate-400"
-                type="email"
-                maxlength="320"
-                required
-                autocomplete="email"
-                :disabled="prefill.emailLocked"
-              />
-              <p v-if="form.errors.email" class="mt-1 text-sm text-rose-300" role="alert">
-                {{ form.errors.email }}
-              </p>
-            </div>
-          </div>
+          </aside>
 
-          <div class="grid gap-5 sm:grid-cols-2">
-            <div>
-              <label class="text-sm font-medium" for="recruitment-handle"
-                >Game/contact handle</label
-              >
-              <input
-                id="recruitment-handle"
-                v-model="form.contact_handle"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                maxlength="160"
-                placeholder="Optional"
-              />
+          <div class="ks-surface-gold p-6 sm:p-8 lg:p-9">
+            <div
+              v-if="submitted"
+              class="rounded-[var(--ks-radius-md)] border border-emerald-700/60 bg-emerald-950/30 p-5"
+              role="status"
+            >
+              <h2 class="text-lg font-bold text-emerald-100">{{ t('publicRecruitment.receivedTitle') }}</h2>
+              <p class="mt-2 leading-7 text-emerald-100/80">{{ t('publicRecruitment.receivedBody') }}</p>
             </div>
-            <div>
-              <label class="text-sm font-medium" for="recruitment-source"
-                >How did you hear about us?</label
-              >
-              <input
-                id="recruitment-source"
-                v-model="form.source"
-                class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                maxlength="120"
-                placeholder="Discord, referral, in-game, etc."
-              />
+
+            <div
+              v-else-if="!application.open"
+              class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)] p-5"
+            >
+              <h2 class="text-lg font-bold">{{ t('publicRecruitment.closedTitle') }}</h2>
+              <p class="mt-2 leading-7 text-[var(--ks-text-muted)]">{{ t('publicRecruitment.closedBody') }}</p>
             </div>
-          </div>
 
-          <section
-            v-if="questions.length"
-            class="space-y-6"
-            aria-labelledby="recruitment-questions-heading"
-          >
-            <h2 id="recruitment-questions-heading" class="text-xl font-semibold">
-              Application questions
-            </h2>
-
-            <div v-for="question in questions" :key="question.id">
-              <fieldset
-                v-if="question.type === 'multi_select'"
-                class="rounded-xl border border-slate-800 p-4"
-              >
-                <legend class="px-1 font-medium">
-                  {{ question.prompt }}<span v-if="question.required" aria-hidden="true"> *</span>
-                </legend>
-                <p v-if="question.helpText" class="mt-1 text-sm text-slate-400">
-                  {{ question.helpText }}
-                </p>
-                <div class="mt-3 grid gap-2">
-                  <label
-                    v-for="option in question.options"
-                    :key="option"
-                    class="flex items-center gap-2 text-sm"
-                  >
-                    <input v-model="form.answers[question.id]" type="checkbox" :value="option" />
-                    <span>{{ option }}</span>
-                  </label>
+            <form v-else class="space-y-7" @submit.prevent="submit">
+              <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label class="text-sm font-semibold" for="recruitment-name">{{ t('auth.register.name') }}</label>
+                  <input
+                    id="recruitment-name"
+                    v-model="form.full_name"
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                    maxlength="160"
+                    required
+                    autocomplete="name"
+                  />
+                  <p v-if="form.errors.full_name" class="mt-2 text-sm text-rose-300" role="alert">
+                    {{ form.errors.full_name }}
+                  </p>
                 </div>
-                <p v-if="answerError(question.id)" class="mt-2 text-sm text-rose-300" role="alert">
-                  {{ answerError(question.id) }}
-                </p>
-              </fieldset>
-
-              <label
-                v-else-if="question.type === 'checkbox'"
-                class="flex gap-3 rounded-xl border border-slate-800 p-4"
-              >
-                <input
-                  v-model="form.answers[question.id]"
-                  type="checkbox"
-                  :required="question.required"
-                />
-                <span>
-                  <span class="font-medium">{{ question.prompt }}</span>
-                  <span v-if="question.helpText" class="mt-1 block text-sm text-slate-400">{{
-                    question.helpText
-                  }}</span>
-                  <span
-                    v-if="answerError(question.id)"
-                    class="mt-1 block text-sm text-rose-300"
-                    role="alert"
-                  >
-                    {{ answerError(question.id) }}
-                  </span>
-                </span>
-              </label>
-
-              <div v-else>
-                <label class="font-medium" :for="`question-${question.id}`">
-                  {{ question.prompt }}<span v-if="question.required" aria-hidden="true"> *</span>
-                </label>
-                <p v-if="question.helpText" class="mt-1 text-sm text-slate-400">
-                  {{ question.helpText }}
-                </p>
-                <textarea
-                  v-if="question.type === 'long_text'"
-                  :id="`question-${question.id}`"
-                  :value="stringAnswer(question.id)"
-                  class="mt-2 min-h-32 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                  :required="question.required"
-                  @input="setStringAnswer(question.id, $event)"
-                />
-                <select
-                  v-else-if="question.type === 'select'"
-                  :id="`question-${question.id}`"
-                  :value="stringAnswer(question.id)"
-                  class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                  :required="question.required"
-                  @change="setStringAnswer(question.id, $event)"
-                >
-                  <option value="">Choose an option</option>
-                  <option v-for="option in question.options" :key="option" :value="option">
-                    {{ option }}
-                  </option>
-                </select>
-                <input
-                  v-else
-                  :id="`question-${question.id}`"
-                  :value="stringAnswer(question.id)"
-                  class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
-                  :required="question.required"
-                  @input="setStringAnswer(question.id, $event)"
-                />
-                <p v-if="answerError(question.id)" class="mt-1 text-sm text-rose-300" role="alert">
-                  {{ answerError(question.id) }}
-                </p>
+                <div>
+                  <label class="text-sm font-semibold" for="recruitment-email">{{ t('auth.register.email') }}</label>
+                  <input
+                    id="recruitment-email"
+                    v-model="form.email"
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition disabled:cursor-not-allowed disabled:opacity-60 hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                    type="email"
+                    maxlength="320"
+                    required
+                    autocomplete="email"
+                    :disabled="prefill.emailLocked"
+                  />
+                  <p v-if="form.errors.email" class="mt-2 text-sm text-rose-300" role="alert">
+                    {{ form.errors.email }}
+                  </p>
+                </div>
               </div>
-            </div>
-          </section>
 
-          <p v-if="formError('application')" class="text-sm text-rose-300" role="alert">
-            {{ formError('application') }}
-          </p>
-          <p v-if="formError('application_token')" class="text-sm text-rose-300" role="alert">
-            {{ formError('application_token') }}
-          </p>
+              <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label class="text-sm font-semibold" for="recruitment-handle">
+                    {{ t('publicRecruitment.contactHandle') }}
+                  </label>
+                  <input
+                    id="recruitment-handle"
+                    v-model="form.contact_handle"
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                    maxlength="160"
+                    :placeholder="t('publicRecruitment.optional')"
+                  />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold" for="recruitment-source">
+                    {{ t('publicRecruitment.source') }}
+                  </label>
+                  <input
+                    id="recruitment-source"
+                    v-model="form.source"
+                    class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition placeholder:text-[var(--ks-text-muted)] hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                    maxlength="120"
+                    :placeholder="t('publicRecruitment.sourcePlaceholder')"
+                  />
+                </div>
+              </div>
 
-          <button
-            class="rounded-lg bg-cyan-300 px-5 py-3 font-semibold text-slate-950 disabled:opacity-60"
-            type="submit"
-            :disabled="form.processing"
-          >
-            Submit application
-          </button>
-        </form>
-      </section>
-    </div>
-  </main>
+              <section
+                v-if="questions.length"
+                class="space-y-6 border-t border-[var(--ks-border)] pt-7"
+                aria-labelledby="recruitment-questions-heading"
+              >
+                <h2 id="recruitment-questions-heading" class="ks-display text-2xl font-semibold">
+                  {{ t('publicRecruitment.questions') }}
+                </h2>
+
+                <div v-for="question in questions" :key="question.id">
+                  <fieldset
+                    v-if="question.type === 'multi_select'"
+                    class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[rgba(5,11,20,0.42)] p-4"
+                  >
+                    <legend class="px-1 font-semibold">
+                      {{ question.prompt }}<span v-if="question.required" aria-hidden="true"> *</span>
+                    </legend>
+                    <p v-if="question.helpText" class="mt-1 text-sm text-[var(--ks-text-muted)]">
+                      {{ question.helpText }}
+                    </p>
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                      <label
+                        v-for="option in question.options"
+                        :key="option"
+                        class="flex items-center gap-3 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2.5 text-sm"
+                      >
+                        <input v-model="form.answers[question.id]" type="checkbox" :value="option" />
+                        <span>{{ option }}</span>
+                      </label>
+                    </div>
+                    <p v-if="answerError(question.id)" class="mt-2 text-sm text-rose-300" role="alert">
+                      {{ answerError(question.id) }}
+                    </p>
+                  </fieldset>
+
+                  <label
+                    v-else-if="question.type === 'checkbox'"
+                    class="flex gap-3 rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[rgba(5,11,20,0.42)] p-4"
+                  >
+                    <input
+                      v-model="form.answers[question.id]"
+                      class="mt-1"
+                      type="checkbox"
+                      :required="question.required"
+                    />
+                    <span>
+                      <span class="font-semibold">{{ question.prompt }}</span>
+                      <span v-if="question.helpText" class="mt-1 block text-sm leading-6 text-[var(--ks-text-muted)]">
+                        {{ question.helpText }}
+                      </span>
+                      <span
+                        v-if="answerError(question.id)"
+                        class="mt-1 block text-sm text-rose-300"
+                        role="alert"
+                      >
+                        {{ answerError(question.id) }}
+                      </span>
+                    </span>
+                  </label>
+
+                  <div v-else>
+                    <label class="font-semibold" :for="`question-${question.id}`">
+                      {{ question.prompt }}<span v-if="question.required" aria-hidden="true"> *</span>
+                    </label>
+                    <p v-if="question.helpText" class="mt-1 text-sm leading-6 text-[var(--ks-text-muted)]">
+                      {{ question.helpText }}
+                    </p>
+                    <textarea
+                      v-if="question.type === 'long_text'"
+                      :id="`question-${question.id}`"
+                      :value="stringAnswer(question.id)"
+                      class="mt-2 min-h-32 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                      :required="question.required"
+                      @input="setStringAnswer(question.id, $event)"
+                    />
+                    <select
+                      v-else-if="question.type === 'select'"
+                      :id="`question-${question.id}`"
+                      :value="stringAnswer(question.id)"
+                      class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5"
+                      :required="question.required"
+                      @change="setStringAnswer(question.id, $event)"
+                    >
+                      <option value="">{{ t('publicRecruitment.chooseOption') }}</option>
+                      <option v-for="option in question.options" :key="option" :value="option">
+                        {{ option }}
+                      </option>
+                    </select>
+                    <input
+                      v-else
+                      :id="`question-${question.id}`"
+                      :value="stringAnswer(question.id)"
+                      class="mt-2 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 outline-none transition hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
+                      :required="question.required"
+                      @input="setStringAnswer(question.id, $event)"
+                    />
+                    <p v-if="answerError(question.id)" class="mt-2 text-sm text-rose-300" role="alert">
+                      {{ answerError(question.id) }}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <p v-if="formError('application')" class="text-sm text-rose-300" role="alert">
+                {{ formError('application') }}
+              </p>
+              <p v-if="formError('application_token')" class="text-sm text-rose-300" role="alert">
+                {{ formError('application_token') }}
+              </p>
+
+              <button
+                class="w-full rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-5 py-3 font-bold text-slate-950 transition hover:bg-[var(--ks-gold-strong)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                type="submit"
+                :disabled="form.processing"
+              >
+                {{ form.processing ? t('publicRecruitment.submitting') : t('publicRecruitment.submit') }}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </PublicLayout>
 </template>
