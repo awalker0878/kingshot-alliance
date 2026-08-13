@@ -27,7 +27,7 @@ type EventReminder = {
   allianceTimezone: string;
 };
 
-const props = defineProps<{
+defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; timezone: string };
   userTimezone: string;
