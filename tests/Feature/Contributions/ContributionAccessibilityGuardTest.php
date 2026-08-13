@@ -122,12 +122,24 @@ final class ContributionAccessibilityGuardTest extends TestCase
 
     public function test_contribution_copy_is_available_through_every_supported_catalogue(): void
     {
-        $source = $this->read('resources/js/localization/messages/index.ts');
+        $index = $this->read('resources/js/localization/messages/index.ts');
+        $overrides = implode("\n", [
+            $this->read('resources/js/localization/messages/contribution-extra.ts'),
+            $this->read('resources/js/localization/messages/contribution-extra-2.ts'),
+            $this->read('resources/js/localization/messages/contribution-extra-3.ts'),
+            $this->read('resources/js/localization/messages/contribution-extra-4.ts'),
+        ]);
 
-        self::assertStringContainsString('const contributionCopy = {', $source);
-        self::assertStringContainsString('contributions: { ...contributionCopy }', $source);
+        self::assertStringContainsString('const contributionCopy = {', $index);
+        self::assertStringContainsString('contributionOverrides[locale]', $index);
         foreach (['title', 'selfReportTitle', 'managerTitle', 'approvalQueue', 'scheduledReport'] as $key) {
-            self::assertStringContainsString($key.':', $source);
+            self::assertStringContainsString($key.':', $index);
+        }
+
+        foreach ([
+            'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW',
+        ] as $locale) {
+            self::assertStringContainsString($locale.':', $overrides, 'Missing contribution locale '.$locale);
         }
     }
 
