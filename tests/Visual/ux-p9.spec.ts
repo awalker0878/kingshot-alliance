@@ -81,7 +81,10 @@ test('authenticated application shell Arabic RTL baseline', async ({ page }) => 
 });
 
 test('keyboard skip link reaches the main application content', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'Keyboard focus traversal is asserted once on desktop.');
+  test.skip(
+    testInfo.project.name !== 'desktop',
+    'Keyboard focus traversal is asserted once on desktop.',
+  );
 
   await signIn(page);
   await page.keyboard.press('Tab');

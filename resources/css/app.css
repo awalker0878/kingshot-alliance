@@ -165,3 +165,80 @@ html[dir='rtl'] body {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* UX-P9 release hardening: resilient text, media, complex scripts, and forced colors. */
+html {
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-wrap: break-word;
+}
+
+main,
+section,
+article,
+header,
+nav,
+.ks-surface,
+.ks-surface-gold {
+  min-width: 0;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+[role='button'],
+.ks-command-link {
+  overflow-wrap: anywhere;
+}
+
+html[dir='rtl'] .ks-display {
+  letter-spacing: normal;
+}
+
+html[dir='rtl'] input[type='email'],
+html[dir='rtl'] input[type='url'],
+html[dir='rtl'] input[type='tel'] {
+  direction: ltr;
+  text-align: left;
+}
+
+html[lang='ja'],
+html[lang='ko'],
+html[lang='zh-CN'],
+html[lang='zh-TW'] {
+  line-break: strict;
+  word-break: normal;
+}
+
+html[lang='th'] {
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 40rem) {
+  button,
+  [role='button'],
+  .ks-command-link {
+    min-height: 2.75rem;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid CanvasText;
+  }
+
+  .ks-surface,
+  .ks-surface-gold,
+  .ks-command-link,
+  .ks-input {
+    border-color: CanvasText;
+  }
+}

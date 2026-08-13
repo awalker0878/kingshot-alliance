@@ -102,7 +102,7 @@ function closeMobile(): void {
       </div>
     </header>
 
-    <main id="public-content">
+    <main id="public-content" tabindex="-1">
       <slot />
     </main>
   </div>

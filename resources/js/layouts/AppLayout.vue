@@ -281,7 +281,7 @@ const initials = computed(() =>
         </div>
       </header>
 
-      <main id="main-content" class="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <main id="main-content" tabindex="-1" class="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div class="mx-auto w-full max-w-[96rem]">
           <slot />
         </div>

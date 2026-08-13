@@ -9,6 +9,13 @@ const { t } = useLocale();
 </script>
 
 <template>
+  <a
+    class="sr-only z-50 rounded-md bg-[var(--ks-blue)] px-4 py-2 font-bold text-white focus:not-sr-only focus:fixed focus:start-4 focus:top-4"
+    href="#auth-content"
+  >
+    {{ t('common.skipToContent') }}
+  </a>
+
   <div class="relative min-h-screen overflow-x-hidden bg-[var(--ks-bg)] text-[var(--ks-text)]">
     <div
       class="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(40,86,144,0.3),transparent_28rem),radial-gradient(circle_at_85%_12%,rgba(226,180,77,0.12),transparent_24rem),linear-gradient(180deg,rgba(5,11,20,0.1),rgba(5,11,20,0.82))]"
@@ -29,6 +36,8 @@ const { t } = useLocale();
     </header>
 
     <main
+      id="auth-content"
+      tabindex="-1"
       class="relative z-10 mx-auto grid min-h-[calc(100vh-92px)] max-w-7xl content-center gap-8 px-5 py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(28rem,0.88fr)] lg:gap-14 lg:px-12 lg:py-12"
     >
       <section class="max-w-2xl self-center">
