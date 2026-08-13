@@ -1,0 +1,224 @@
+name: Localization test contract migration
+
+on:
+  push:
+    branches:
+      - perf/domain-locale-code-splitting
+    paths:
+      - '.perf-localization-tests'
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: perf/domain-locale-code-splitting
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+          coverage: none
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Align localization architecture guards
+        shell: python
+        run: |
+          from pathlib import Path
+
+          root = Path('.')
+          locales = ['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW']
+
+          def replace_method(path, name, body):
+              p = root / path
+              source = p.read_text()
+              marker = f'public function {name}(): void'
+              start = source.index(marker)
+              brace = source.index('{', start)
+              depth = 0
+              end = None
+              for i in range(brace, len(source)):
+                  if source[i] == '{':
+                      depth += 1
+                  elif source[i] == '}':
+                      depth -= 1
+                      if depth == 0:
+                          end = i
+                          break
+              if end is None:
+                  raise RuntimeError(f'Could not find end of {name} in {path}')
+              p.write_text(source[:brace] + body + source[end + 1:])
+
+          def php_list(values):
+              return ', '.join(repr(value) for value in values)
+
+          def standard(domain, required=()):
+              required_block = ''
+              if required:
+                  required_block = f'''\n        foreach ([{php_list(required)}] as $required) {{\n            self::assertStringContainsString($required, $english, $required);\n        }}\n'''
+              return f'''{{
+                  $root = dirname(__DIR__, 2);
+                  $english = file_get_contents($root.'/resources/js/localization/messages/{domain}/en.ts');
+                  self::assertIsString($english);
+
+                  foreach ([{php_list(locales)}] as $locale) {{
+                      self::assertFileExists($root."/resources/js/localization/messages/{domain}/{{$locale}}.ts");
+                  }}
+
+                  self::assertStringContainsString('satisfies MessageCatalogue', $english);{required_block}
+                  $registry = file_get_contents($root.'/resources/js/localization/registry.ts');
+                  self::assertIsString($registry);
+                  self::assertStringContainsString("'{domain}'", $registry);
+              }}'''
+
+          replacements = {
+              'tests/Architecture/AccountExperienceTest.php': {
+                  'test_account_catalogue_is_complete_for_every_supported_locale': ('account', ['accountExperience:']),
+              },
+              'tests/Architecture/AllianceOperationsExperienceTest.php': {
+                  'test_alliance_operations_catalogue_covers_every_supported_locale': ('alliance', ['allianceOperations:']),
+                  'test_event_detail_catalogue_covers_every_supported_locale': ('events', ['eventDetail:']),
+              },
+              'tests/Architecture/ApplicationExperienceTest.php': {
+                  'test_dashboard_catalogue_is_complete_for_every_supported_locale': ('core', ['application:']),
+              },
+              'tests/Architecture/AuthExperienceTest.php': {
+                  'test_auth_experience_catalogue_is_complete_for_every_supported_locale': ('auth', ['auth:', 'authExperience:']),
+              },
+              'tests/Architecture/ContentExperienceTest.php': {
+                  'test_content_catalogue_covers_all_supported_locales': ('content', ['hubTitle:', 'manageContent:', 'publicProfile:', 'createContent:', 'mediaLibrary:', 'contentInventory:']),
+              },
+              'tests/Architecture/EventCoordinatorExperienceTest.php': {
+                  'test_event_coordinator_catalogue_covers_every_supported_locale': ('events', ['eventCoordinator:']),
+              },
+              'tests/Architecture/HomepageExperienceTest.php': {
+                  'test_homepage_strings_are_available_for_every_supported_locale': ('public', ['heroLine1:', 'heroLine2:', 'eventsDesc:', 'rosterDesc:', 'recruitmentDesc:', 'kingdomDesc:', 'transfersDesc:', 'contentDesc:', 'publicPagesTitle:', 'multilingualTitle:']),
+              },
+              'tests/Architecture/IntegrationExperienceTest.php': {
+                  'test_integration_catalogue_covers_all_supported_locales': ('integrations', ['title:', 'apiCredentials:', 'webhookSubscriptions:', 'deliveryLog:', 'saveCredentialNow:', 'saveWebhookNow:']),
+              },
+              'tests/Architecture/KingdomTransferExperienceTest.php': {
+                  'test_transfer_catalogue_covers_all_supported_locales': ('transfers', ['kingdomP7D:']),
+              },
+              'tests/Architecture/RecruitmentExperienceTest.php': {
+                  'test_recruitment_catalogue_covers_all_supported_locales': ('recruitment', ['title:', 'pipeline:', 'settings:', 'questions:', 'candidateRecord:', 'privateNotes:', 'stageHistory:']),
+              },
+              'tests/Architecture/RosterExperienceTest.php': {
+                  'test_roster_catalogues_cover_all_supported_locales': ('roster', ['title:', 'freshnessHelp:', 'intelligenceTitle:', 'snapshotQuality:', 'sevenDayChange:', 'trendMethodBody:', 'managerDetail:', 'manageSubtitle:', 'markLeftConfirm:', 'managerNotes:', 'savePlayer:', 'confirmAtomic:', 'recordSnapshot:', 'historyHelp:', 'committedSummary:']),
+              },
+          }
+
+          for path, methods in replacements.items():
+              for method, (domain, required) in methods.items():
+                  replace_method(path, method, standard(domain, required))
+
+          p7a_body = standard('kingdom', ['kingdomP7A:'])[:-1] + '''
+
+                  foreach (['KingdomAllianceController.php', 'KingdomSettingsController.php', 'KingdomIngestionController.php'] as $controller) {
+                      $source = file_get_contents($root.'/app/Domain/Kingdoms/Http/Controllers/'.$controller);
+                      self::assertIsString($source);
+                      self::assertStringContainsString("'name' => (string) $user->name", $source);
+                      self::assertStringContainsString("'email' => (string) $user->email", $source);
+                  }
+              }'''
+          replace_method(
+              'tests/Architecture/KingdomP7AExperienceTest.php',
+              'test_p7a_catalogue_covers_all_supported_locales_and_controllers_supply_shell_identity',
+              p7a_body,
+          )
+
+          foundation_body = f'''{{
+                  $root = dirname(__DIR__, 2);
+                  $localeRegistry = file_get_contents($root.'/resources/js/localization/locales.ts');
+                  $domainRegistry = file_get_contents($root.'/resources/js/localization/registry.ts');
+                  self::assertIsString($localeRegistry);
+                  self::assertIsString($domainRegistry);
+
+                  foreach ([{php_list(locales)}] as $locale) {{
+                      self::assertStringContainsString("'".$locale."'", $localeRegistry, $locale);
+                      self::assertFileExists($root."/resources/js/localization/messages/core/{{$locale}}.ts");
+                  }}
+
+                  self::assertStringContainsString("code: 'ar'", $localeRegistry);
+                  self::assertStringContainsString("direction: 'rtl'", $localeRegistry);
+                  foreach (['core', 'auth', 'account', 'alliance', 'events', 'roster', 'contributions', 'recruitment', 'content', 'integrations', 'kingdom', 'transfers', 'platform', 'public'] as $domain) {{
+                      self::assertStringContainsString("'".$domain."'", $domainRegistry, $domain);
+                  }}
+              }}'''
+          replace_method(
+              'tests/Architecture/UserExperienceLocalizationFoundationTest.php',
+              'test_major_kingshot_locale_catalogue_is_declared_and_complete',
+              foundation_body,
+          )
+          foundation = root / 'tests/Architecture/UserExperienceLocalizationFoundationTest.php'
+          source = foundation.read_text()
+          source = source.replace(
+              "import { initializeLocale } from './localization';",
+              "import { ensurePageDomains, initializeLocale } from './localization';",
+          )
+          source = source.replace("$this->read('resources/js/localization/messages/en.ts')", "$this->read('resources/js/localization/messages/auth/en.ts')")
+          foundation.write_text(source)
+
+          contribution_body = f'''{{
+                  $root = base_path();
+                  $english = file_get_contents($root.'/resources/js/localization/messages/contributions/en.ts');
+                  self::assertIsString($english);
+                  foreach ([{php_list(locales)}] as $locale) {{
+                      self::assertFileExists($root."/resources/js/localization/messages/contributions/{{$locale}}.ts");
+                  }}
+                  foreach (['title:', 'selfReportTitle:', 'managerTitle:', 'approvalQueue:', 'scheduledReport:'] as $required) {{
+                      self::assertStringContainsString($required, $english, $required);
+                  }}
+                  self::assertStringContainsString('satisfies MessageCatalogue', $english);
+              }}'''
+          replace_method(
+              'tests/Feature/Contributions/ContributionAccessibilityGuardTest.php',
+              'test_contribution_copy_is_available_through_every_supported_catalogue',
+              contribution_body,
+          )
+
+          for path in [
+              'tests/Architecture/LocalizationCodeSplittingTest.php',
+              'tests/Architecture/AccountExperienceTest.php',
+              'tests/Architecture/AllianceOperationsExperienceTest.php',
+              'tests/Architecture/ApplicationExperienceTest.php',
+              'tests/Architecture/AuthExperienceTest.php',
+              'tests/Architecture/ContentExperienceTest.php',
+              'tests/Architecture/EventCoordinatorExperienceTest.php',
+              'tests/Architecture/HomepageExperienceTest.php',
+              'tests/Architecture/IntegrationExperienceTest.php',
+              'tests/Architecture/KingdomP7AExperienceTest.php',
+              'tests/Architecture/KingdomTransferExperienceTest.php',
+              'tests/Architecture/RecruitmentExperienceTest.php',
+              'tests/Architecture/RosterExperienceTest.php',
+              'tests/Architecture/UserExperienceLocalizationFoundationTest.php',
+              'tests/Feature/Contributions/ContributionAccessibilityGuardTest.php',
+          ]:
+              source = (root / path).read_text()
+              if 'resources/js/localization/messages/index.ts' in source:
+                  raise RuntimeError(f'Stale localization index reference remains in {path}')
+
+      - name: Format corrected tests
+        run: vendor/bin/pint tests/Architecture tests/Feature/Contributions/ContributionAccessibilityGuardTest.php
+
+      - name: Run localization and architecture tests serially
+        run: |
+          php artisan test tests/Architecture/LocalizationCodeSplittingTest.php
+          php artisan test tests/Architecture tests/Feature/Contributions/ContributionAccessibilityGuardTest.php
+
+      - name: Commit corrected test contracts
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/Architecture tests/Feature/Contributions/ContributionAccessibilityGuardTest.php
+          git commit -m 'Align localization architecture guards with domain chunks'
+          git push origin HEAD:perf/domain-locale-code-splitting
