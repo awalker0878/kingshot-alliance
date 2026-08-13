@@ -11,6 +11,7 @@ import { publicExtraMessages } from './public-extra';
 import { publicMessages } from './public';
 import { rosterManagementMessages } from './roster-management';
 import { rosterMessages } from './roster';
+import { rosterWorkflowMessages } from './roster-workflows';
 
 type StringLeaves<T> = {
   [K in keyof T]: T[K] extends string ? string : T[K] extends object ? StringLeaves<T[K]> : never;
@@ -27,6 +28,7 @@ type PublicMessageTree = (typeof publicMessages)['en'];
 type PublicExtraMessageTree = (typeof publicExtraMessages)['en'];
 type RosterManagementMessageTree = (typeof rosterManagementMessages)['en'];
 type RosterMessageTree = (typeof rosterMessages)['en'];
+type RosterWorkflowMessageTree = (typeof rosterWorkflowMessages)['en'];
 
 export type MessageTree = BaseMessageTree &
   AccountExperienceMessageTree &
@@ -38,7 +40,8 @@ export type MessageTree = BaseMessageTree &
   PublicMessageTree &
   PublicExtraMessageTree &
   RosterManagementMessageTree &
-  RosterMessageTree;
+  RosterMessageTree &
+  RosterWorkflowMessageTree;
 
 const baseMessages: Record<LocaleCode, BaseMessageTree> = {
   en,
@@ -59,7 +62,12 @@ export const messages = Object.fromEntries(
       ...publicMessages[locale],
       ...publicExtraMessages[locale],
       ...rosterManagementMessages[locale],
+      rosterManage: {
+        ...rosterManagementMessages[locale].rosterManage,
+        trackedPlayers: rosterMessages[locale].roster.trackedPlayers,
+      },
       ...rosterMessages[locale],
+      ...rosterWorkflowMessages[locale],
     },
   ]),
 ) as Record<LocaleCode, MessageTree>;
