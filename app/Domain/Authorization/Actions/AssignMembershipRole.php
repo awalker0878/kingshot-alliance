@@ -36,9 +36,15 @@ final readonly class AssignMembershipRole
         }
 
         return DB::transaction(function () use ($alliance, $actor, $membershipId, $roleId): AllianceMembership {
+            $currentAlliance = Alliance::query()->whereKey($alliance->id)->lockForUpdate()->firstOrFail();
+            $lockedActor = Player::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
+            if (! $this->authorization->allowsForUpdate($lockedActor, $currentAlliance, PermissionKey::RoleManage)) {
+                throw new AuthorizationException;
+            }
+
             $membership = AllianceMembership::query()
                 ->where('id', $membershipId)
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $currentAlliance->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -50,14 +56,14 @@ final readonly class AssignMembershipRole
 
             $role = Role::query()
                 ->where('id', $roleId)
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $currentAlliance->id)
                 ->firstOrFail();
 
             if ($membership->roles()->where('roles.id', $role->id)->exists()) {
                 return $membership->refresh();
             }
 
-            $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
+            $membership->roles()->attach($role->id, ['alliance_id' => $currentAlliance->id]);
 
             $metadata = [
                 'role_id' => $role->id,
@@ -65,17 +71,17 @@ final readonly class AssignMembershipRole
                 'player_id' => $membership->player_id,
             ];
 
-            $this->audit->record('membership.role_assigned', $actor, $membership, $alliance, $metadata);
+            $this->audit->record('membership.role_assigned', $lockedActor, $membership, $currentAlliance, $metadata);
 
             OutboxMessage::query()->create([
-                'alliance_id' => $alliance->id,
-                'partition_key' => 'alliance:'.$alliance->id,
+                'alliance_id' => $currentAlliance->id,
+                'partition_key' => 'alliance:'.$currentAlliance->id,
                 'event_type' => 'membership.role_assigned',
                 'aggregate_type' => AllianceMembership::class,
                 'aggregate_id' => $membership->id,
                 'idempotency_key' => 'membership.role_assigned:'.$membership->id.':'.$role->id.':'.Str::ulid(),
                 'payload' => [
-                    'alliance_id' => $alliance->id,
+                    'alliance_id' => $currentAlliance->id,
                     'membership_id' => $membership->id,
                     'player_id' => $membership->player_id,
                     'role_id' => $role->id,
