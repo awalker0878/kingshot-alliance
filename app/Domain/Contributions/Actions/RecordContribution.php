@@ -44,29 +44,31 @@ final class RecordContribution
                 : PermissionKey::ContributionManage;
             $context = $this->authority->require($actor, $alliance, $permission);
 
-            if ($source === ContributionRecordSource::SelfReported
-                && (string) $player->id !== (string) $context->actor->id) {
+            $isActorTarget = (string) $player->id === (string) $context->actor->id;
+            if ($source === ContributionRecordSource::SelfReported && ! $isActorTarget) {
                 throw new InvalidArgumentException('Self-reported contributions may only be recorded for the active Player.');
             }
 
-            $currentPlayer = Player::query()
-                ->whereKey($player->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            // AllianceMutationAuthority already stabilized the actor membership. Avoid
+            // re-locking that same actor Player after its membership; target other Players
+            // using the normal Player -> target-membership eligibility order.
+            $currentPlayer = $isActorTarget
+                ? $context->actor
+                : Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
             if ((string) $currentPlayer->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
                 throw new InvalidArgumentException('Contribution Player must belong to the active Alliance Kingdom.');
             }
 
-            // Manual records require a current active Alliance member. Historical
-            // attribution is still Player-based; the membership is only an eligibility check.
             if ($source !== ContributionRecordSource::SelfReported) {
-                $membership = AllianceMembership::query()
-                    ->where('alliance_id', $context->alliance->id)
-                    ->where('player_id', $currentPlayer->id)
-                    ->where('status', MembershipStatus::Active->value)
-                    ->lockForUpdate()
-                    ->first();
-                if (! $membership instanceof AllianceMembership) {
+                $membership = $isActorTarget
+                    ? $context->membership
+                    : AllianceMembership::query()
+                        ->where('alliance_id', $context->alliance->id)
+                        ->where('player_id', $currentPlayer->id)
+                        ->where('status', MembershipStatus::Active->value)
+                        ->lockForUpdate()
+                        ->first();
+                if (! $membership instanceof AllianceMembership || $membership->status !== MembershipStatus::Active) {
                     throw new InvalidArgumentException('Manual contributions may only target a current active Alliance Player.');
                 }
             }
@@ -111,6 +113,7 @@ final class RecordContribution
             ]);
             $this->outbox->record('contribution.record.created', $context->alliance->id, $record, [
                 'record_id' => $record->id,
+                'player_id' => $currentPlayer->id,
                 'status' => $record->status->value,
             ]);
 
