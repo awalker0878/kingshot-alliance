@@ -58,7 +58,7 @@ final readonly class SaveTransferParticipant
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $participantId): TransferParticipant {
             $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
             $lockedActor = Player::query()->lockForUpdate()->findOrFail($actor->id);
-            if (! $this->authorization->allows($lockedActor, $currentAlliance, PermissionKey::KingdomManage)) {
+            if (! $this->authorization->allowsForUpdate($lockedActor, $currentAlliance, PermissionKey::KingdomManage)) {
                 throw new AuthorizationException;
             }
 
