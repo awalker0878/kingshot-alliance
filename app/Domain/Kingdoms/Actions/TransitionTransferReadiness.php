@@ -7,24 +7,23 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\TransferBlockerState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Enums\TransferReadinessState;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TransferBlocker;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Kingdoms\Models\TransferReadinessTransition;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class TransitionTransferReadiness
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -36,24 +35,26 @@ final readonly class TransitionTransferReadiness
         string $participantId,
         TransferReadinessState $target,
     ): TransferParticipant {
-        if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $planId, $participantId, $target): TransferParticipant {
-            $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+
             $plan = TransferPlan::query()
-                ->where('alliance_id', $currentAlliance->id)
-                ->lockForUpdate()
-                ->findOrFail($planId);
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($planId)
+                ->sharedLock()
+                ->firstOrFail();
 
-            $this->assertMutable($currentAlliance, $plan);
+            $this->assertMutable($context->alliance, $plan);
 
+            // Readiness is participant-wide state, so the participant row is the
+            // exclusive anchor. Blocker create/resolve share-lock this same row first,
+            // keeping the blocker count stable for this transition.
             $participant = TransferParticipant::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->where('transfer_plan_id', $plan->id)
+                ->whereKey($participantId)
                 ->lockForUpdate()
-                ->findOrFail($participantId);
+                ->firstOrFail();
 
             $current = $participant->readiness_state;
             if ($current === $target) {
@@ -76,11 +77,8 @@ final readonly class TransitionTransferReadiness
                 ]);
             }
 
-            // Blocker mutations take the same participant row lock first, so this
-            // count is serialized with blocker creation/resolution without placing
-            // FOR UPDATE on a PostgreSQL aggregate query.
             $activeBlockerCount = TransferBlocker::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->where('transfer_plan_id', $plan->id)
                 ->where('transfer_participant_id', $participant->id)
                 ->where('state', TransferBlockerState::Active->value)
@@ -113,12 +111,12 @@ final readonly class TransitionTransferReadiness
             ])->save();
 
             TransferReadinessTransition::query()->create([
-                'alliance_id' => $currentAlliance->id,
+                'alliance_id' => $context->alliance->id,
                 'transfer_plan_id' => $plan->id,
                 'transfer_participant_id' => $participant->id,
                 'from_state' => $current,
                 'to_state' => $target,
-                'actor_player_id' => $actor->id,
+                'actor_player_id' => $context->actor->id,
                 'created_at' => now(),
             ]);
 
@@ -130,19 +128,8 @@ final readonly class TransitionTransferReadiness
                 'active_blocker_count' => $activeBlockerCount,
             ];
 
-            $this->audit->record(
-                'kingdoms.transfer_readiness_changed',
-                $actor,
-                $participant,
-                $currentAlliance,
-                $metadata,
-            );
-            $this->outbox->record(
-                'kingdoms.transfer_readiness_changed',
-                (string) $currentAlliance->id,
-                $participant,
-                $metadata,
-            );
+            $this->audit->record('kingdoms.transfer_readiness_changed', $context->actor, $participant, $context->alliance, $metadata);
+            $this->outbox->record('kingdoms.transfer_readiness_changed', (string) $context->alliance->id, $participant, $metadata);
 
             if ($target === TransferReadinessState::Withdrawn) {
                 $withdrawMetadata = [
@@ -150,19 +137,8 @@ final readonly class TransitionTransferReadiness
                     'transfer_participant_id' => (string) $participant->id,
                     'direction' => $participant->direction->value,
                 ];
-                $this->audit->record(
-                    'kingdoms.transfer_participant_withdrawn',
-                    $actor,
-                    $participant,
-                    $currentAlliance,
-                    $withdrawMetadata,
-                );
-                $this->outbox->record(
-                    'kingdoms.transfer_participant_withdrawn',
-                    (string) $currentAlliance->id,
-                    $participant,
-                    $withdrawMetadata,
-                );
+                $this->audit->record('kingdoms.transfer_participant_withdrawn', $context->actor, $participant, $context->alliance, $withdrawMetadata);
+                $this->outbox->record('kingdoms.transfer_participant_withdrawn', (string) $context->alliance->id, $participant, $withdrawMetadata);
             }
 
             return $participant->refresh();
