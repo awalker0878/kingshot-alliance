@@ -38,7 +38,7 @@ final readonly class ArchiveTransferGroup
             $plan = TransferPlan::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($planId)
-                ->lockForUpdate()
+                ->sharedLock()
                 ->firstOrFail();
 
             $this->assertMutable($context->alliance, $plan);
@@ -54,15 +54,15 @@ final readonly class ArchiveTransferGroup
                 return $group->load(['coordinator:id,current_name', 'destinationKingdom:id,number']);
             }
 
-            // Keep the transfer-family order plan -> group -> participants. Lock all
-            // matching participants deterministically before deciding the group is empty.
+            // Participant writers take exclusive participant locks; shared locks here
+            // are enough to keep the membership of this group stable during the empty check.
             $activeParticipants = TransferParticipant::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->where('transfer_plan_id', $plan->id)
                 ->where('transfer_group_id', $group->id)
                 ->whereNull('withdrawn_at')
                 ->orderBy('id')
-                ->lockForUpdate()
+                ->sharedLock()
                 ->get(['id']);
 
             if ($activeParticipants->isNotEmpty()) {
@@ -80,19 +80,8 @@ final readonly class ArchiveTransferGroup
                 'destination_kingdom_id' => $group->destination_kingdom_id,
             ];
 
-            $this->audit->record(
-                'kingdoms.transfer_group_archived',
-                $context->actor,
-                $group,
-                $context->alliance,
-                $metadata,
-            );
-            $this->outbox->record(
-                'kingdoms.transfer_group_archived',
-                (string) $context->alliance->id,
-                $group,
-                $metadata,
-            );
+            $this->audit->record('kingdoms.transfer_group_archived', $context->actor, $group, $context->alliance, $metadata);
+            $this->outbox->record('kingdoms.transfer_group_archived', (string) $context->alliance->id, $group, $metadata);
 
             return $group->refresh()->load([
                 'coordinator:id,current_name',
