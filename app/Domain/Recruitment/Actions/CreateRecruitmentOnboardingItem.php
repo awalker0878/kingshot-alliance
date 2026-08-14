@@ -7,18 +7,17 @@ namespace App\Domain\Recruitment\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Models\RecruitmentOnboardingItem;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class CreateRecruitmentOnboardingItem
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -32,10 +31,6 @@ final class CreateRecruitmentOnboardingItem
         bool $isRequired = true,
         bool $isActive = true,
     ): RecruitmentOnboardingItem {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
-            throw new AuthorizationException('You are not allowed to manage recruitment onboarding.');
-        }
-
         $cleanName = trim($name);
         if ($cleanName === '') {
             throw ValidationException::withMessages(['name' => 'An onboarding item name is required.']);
@@ -46,22 +41,24 @@ final class CreateRecruitmentOnboardingItem
         }
 
         return DB::transaction(function () use ($actor, $alliance, $cleanName, $description, $position, $isRequired, $isActive): RecruitmentOnboardingItem {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::RecruitmentManage);
+
             $item = RecruitmentOnboardingItem::query()->create([
-                'alliance_id' => $alliance->id,
+                'alliance_id' => $context->alliance->id,
                 'name' => $cleanName,
                 'description' => $description === null ? null : trim($description),
                 'position' => $position,
                 'is_required' => $isRequired,
                 'is_active' => $isActive,
-                'created_by_player_id' => $actor->id,
-                'updated_by_player_id' => $actor->id,
+                'created_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ]);
 
-            $this->audit->record('recruitment.onboarding_item.created', $actor, $item, $alliance, [
+            $this->audit->record('recruitment.onboarding_item.created', $context->actor, $item, $context->alliance, [
                 'is_required' => $isRequired,
                 'position' => $position,
             ]);
-            $this->outbox->record('recruitment.onboarding_item.created', (string) $alliance->id, $item, [
+            $this->outbox->record('recruitment.onboarding_item.created', (string) $context->alliance->id, $item, [
                 'is_required' => $isRequired,
                 'position' => $position,
             ]);
