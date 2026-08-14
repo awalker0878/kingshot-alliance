@@ -7,7 +7,7 @@ namespace App\Domain\Rallies\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Rallies\Models\RallyGuidanceRule;
@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveRallyGuidanceRule
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -41,30 +41,39 @@ final readonly class SaveRallyGuidanceRule
         bool $isActive = true,
         ?RallyGuidanceRule $rule = null,
     ): RallyGuidanceRule {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::EventAllianceManage)) {
-            throw new AuthorizationException;
-        }
         if ($rule instanceof RallyGuidanceRule && (string) $rule->alliance_id !== (string) $alliance->id) {
             throw new AuthorizationException;
         }
+
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 120) {
             throw ValidationException::withMessages(['name' => 'Guidance name is required and must be 120 characters or fewer.']);
         }
-        if ($effectiveFrom instanceof CarbonImmutable && $effectiveUntil instanceof CarbonImmutable && $effectiveUntil->lessThan($effectiveFrom)) {
+
+        if ($effectiveFrom instanceof CarbonImmutable
+            && $effectiveUntil instanceof CarbonImmutable
+            && $effectiveUntil->lessThan($effectiveFrom)) {
             throw ValidationException::withMessages(['effective_until' => 'Effective until must be on or after effective from.']);
         }
+
         $heroes = $this->normalizeHeroes($heroes);
 
         return DB::transaction(function () use ($actor, $alliance, $name, $composition, $heroes, $leadRequirements, $joinerGuidance, $source, $rationale, $effectiveFrom, $effectiveUntil, $isActive, $rule): RallyGuidanceRule {
-            Alliance::query()->whereKey($alliance->id)->lockForUpdate()->firstOrFail();
+            $context = $this->authority->require($actor, $alliance, PermissionKey::EventAllianceManage);
+
             $record = $rule instanceof RallyGuidanceRule
-                ? RallyGuidanceRule::query()->whereKey($rule->id)->where('alliance_id', $alliance->id)->lockForUpdate()->firstOrFail()
-                : new RallyGuidanceRule(['alliance_id' => $alliance->id]);
+                ? RallyGuidanceRule::query()
+                    ->whereKey($rule->id)
+                    ->where('alliance_id', $context->alliance->id)
+                    ->lockForUpdate()
+                    ->firstOrFail()
+                : new RallyGuidanceRule(['alliance_id' => $context->alliance->id]);
+
             $created = ! $record->exists;
             if ($created) {
-                $record->created_by_player_id = $actor->id;
+                $record->created_by_player_id = $context->actor->id;
             }
+
             $record->forceFill([
                 'name' => $name,
                 ...$composition->toArray(),
@@ -76,17 +85,18 @@ final readonly class SaveRallyGuidanceRule
                 'effective_from' => $effectiveFrom?->toDateString(),
                 'effective_until' => $effectiveUntil?->toDateString(),
                 'is_active' => $isActive,
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ])->save();
 
+            // The unique(alliance_id,name) constraint is the race-proof duplicate-name invariant.
             $event = $created ? 'rally.guidance.created' : 'rally.guidance.updated';
             $metadata = [
-                'alliance_id' => (string) $alliance->id,
+                'alliance_id' => (string) $context->alliance->id,
                 'guidance_rule_id' => (string) $record->id,
-                'actor_player_id' => $actor->id,
+                'actor_player_id' => $context->actor->id,
             ];
-            $this->audit->record($event, $actor, $record, $alliance, $metadata);
-            $this->outbox->record($event, (string) $alliance->id, $record, $metadata);
+            $this->audit->record($event, $context->actor, $record, $context->alliance, $metadata);
+            $this->outbox->record($event, (string) $context->alliance->id, $record, $metadata);
 
             return $record->refresh();
         });
