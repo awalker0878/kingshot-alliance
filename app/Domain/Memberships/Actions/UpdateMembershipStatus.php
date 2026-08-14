@@ -46,11 +46,36 @@ final readonly class UpdateMembershipStatus
                 ? $this->authority->requireExclusive($actor, $alliance, PermissionKey::MembershipManage)
                 : $this->authority->require($actor, $alliance, PermissionKey::MembershipManage);
 
-            $membership = AllianceMembership::query()
-                ->where('id', $membershipId)
-                ->where('alliance_id', $context->alliance->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            if ($status === MembershipStatus::Active) {
+                // Identity-binding operations use Player -> membership everywhere in
+                // the repository. Route to the Player first without locking, then lock
+                // Player before the target membership so Kingdom transfer/invitation
+                // workflows cannot invert the order.
+                $routing = AllianceMembership::query()
+                    ->select(['id', 'player_id'])
+                    ->where('id', $membershipId)
+                    ->where('alliance_id', $context->alliance->id)
+                    ->firstOrFail();
+
+                $player = Player::query()
+                    ->whereKey($routing->player_id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $membership = AllianceMembership::query()
+                    ->where('id', $routing->id)
+                    ->where('alliance_id', $context->alliance->id)
+                    ->where('player_id', $player->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+            } else {
+                $membership = AllianceMembership::query()
+                    ->where('id', $membershipId)
+                    ->where('alliance_id', $context->alliance->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                $player = null;
+            }
 
             $this->guard->assertCanManage($context, $membership);
 
@@ -65,12 +90,8 @@ final readonly class UpdateMembershipStatus
                     $this->entitlements->assertMemberCapacity($context->alliance);
                 }
 
-                $player = Player::query()
-                    ->whereKey($membership->player_id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
-                if ((string) $player->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
+                if (! $player instanceof Player
+                    || (string) $player->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
                     throw ValidationException::withMessages([
                         'status' => 'The Player must belong to the Alliance Kingdom before this membership can be activated.',
                     ]);
