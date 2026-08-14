@@ -7,23 +7,22 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class AssignTransferParticipantGroup
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -35,27 +34,46 @@ final readonly class AssignTransferParticipantGroup
         string $participantId,
         ?string $groupId,
     ): TransferParticipant {
-        if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $planId, $participantId, $groupId): TransferParticipant {
-            $currentAlliance = Alliance::query()
-                ->lockForUpdate()
-                ->findOrFail($alliance->id);
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
 
             $plan = TransferPlan::query()
-                ->where('alliance_id', $currentAlliance->id)
-                ->lockForUpdate()
-                ->findOrFail($planId);
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($planId)
+                ->sharedLock()
+                ->firstOrFail();
 
-            $this->assertMutable($currentAlliance, $plan);
+            $this->assertMutable($context->alliance, $plan);
+
+            $groupId = $groupId === null ? null : trim($groupId);
+            if ($groupId === '') {
+                $groupId = null;
+            }
+
+            // The destination group is read-only compatibility state for this action,
+            // so share-lock it before the participant. Group edits/archives are exclusive.
+            $group = $groupId === null
+                ? null
+                : TransferGroup::query()
+                    ->where('alliance_id', $context->alliance->id)
+                    ->where('transfer_plan_id', $plan->id)
+                    ->where('state', TransferGroupState::Active->value)
+                    ->whereKey($groupId)
+                    ->sharedLock()
+                    ->first();
+
+            if ($groupId !== null && ! $group instanceof TransferGroup) {
+                throw ValidationException::withMessages([
+                    'transfer_group_id' => 'The selected transfer group must be active in this transfer cycle.',
+                ]);
+            }
 
             $participant = TransferParticipant::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->where('transfer_plan_id', $plan->id)
+                ->whereKey($participantId)
                 ->lockForUpdate()
-                ->findOrFail($participantId);
+                ->firstOrFail();
 
             if ($participant->withdrawn_at !== null) {
                 throw ValidationException::withMessages([
@@ -63,26 +81,7 @@ final readonly class AssignTransferParticipantGroup
                 ]);
             }
 
-            $groupId = $groupId === null ? null : trim($groupId);
-            if ($groupId === '') {
-                $groupId = null;
-            }
-
-            $group = null;
-            if ($groupId !== null) {
-                $group = TransferGroup::query()
-                    ->where('alliance_id', $currentAlliance->id)
-                    ->where('transfer_plan_id', $plan->id)
-                    ->where('state', TransferGroupState::Active->value)
-                    ->lockForUpdate()
-                    ->find($groupId);
-
-                if (! $group instanceof TransferGroup) {
-                    throw ValidationException::withMessages([
-                        'transfer_group_id' => 'The selected transfer group must be active in this transfer cycle.',
-                    ]);
-                }
-
+            if ($group instanceof TransferGroup) {
                 $this->assertCompatible($participant, $group);
             }
 
@@ -107,14 +106,14 @@ final readonly class AssignTransferParticipantGroup
 
             $this->audit->record(
                 'kingdoms.transfer_participant_group_changed',
-                $actor,
+                $context->actor,
                 $participant,
-                $currentAlliance,
+                $context->alliance,
                 $metadata,
             );
             $this->outbox->record(
                 'kingdoms.transfer_participant_group_changed',
-                (string) $currentAlliance->id,
+                (string) $context->alliance->id,
                 $participant,
                 $metadata,
             );
