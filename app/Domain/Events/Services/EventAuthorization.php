@@ -27,7 +27,7 @@ final class EventAuthorization
         Alliance|Kingdom|Player $target,
         PermissionKey $permission,
     ): bool {
-        if (! $this->permissionMatchesScope($scope, $permission)) {
+        if (! $this->supports($scope, $permission)) {
             return false;
         }
 
@@ -52,7 +52,8 @@ final class EventAuthorization
         }
     }
 
-    private function permissionMatchesScope(EventScope $scope, PermissionKey $permission): bool
+    /** Shared scope/permission vocabulary used by read and mutation authorization. */
+    public function supports(EventScope $scope, PermissionKey $permission): bool
     {
         return match ($scope) {
             EventScope::Player => in_array($permission, [
