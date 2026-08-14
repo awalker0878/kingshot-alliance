@@ -7,7 +7,7 @@ namespace App\Domain\Recruitment\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -21,7 +21,7 @@ use Illuminate\Validation\ValidationException;
 final class AssignRecruitmentReviewer
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -32,20 +32,14 @@ final class AssignRecruitmentReviewer
         RecruitmentCandidate $candidate,
         Player $reviewer,
     ): void {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
-            throw new AuthorizationException('You are not allowed to assign recruitment reviewers.');
-        }
-
-        if ($candidate->alliance_id !== $alliance->id) {
+        if ((string) $candidate->alliance_id !== (string) $alliance->id) {
             throw new AuthorizationException('The candidate must belong to the active Alliance.');
         }
 
         DB::transaction(function () use ($actor, $alliance, $candidate, $reviewer): void {
-            $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
-            $lockedActor = Player::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
-            if (! $this->authorization->allowsForUpdate($lockedActor, $currentAlliance, PermissionKey::RecruitmentManage)) {
-                throw new AuthorizationException('You are no longer allowed to assign recruitment reviewers.');
-            }
+            $authority = $this->mutations->require($actor, $alliance, PermissionKey::RecruitmentManage);
+            $currentAlliance = $authority->alliance;
+            $currentActor = $authority->actor;
 
             $lockedCandidate = RecruitmentCandidate::query()
                 ->where('alliance_id', $currentAlliance->id)
@@ -92,12 +86,12 @@ final class AssignRecruitmentReviewer
                 'alliance_id' => $currentAlliance->id,
                 'candidate_id' => $lockedCandidate->id,
                 'reviewer_player_id' => $lockedReviewer->id,
-                'assigned_by_player_id' => $lockedActor->id,
+                'assigned_by_player_id' => $currentActor->id,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            $this->audit->record('recruitment.reviewer.assigned', $lockedActor, $lockedCandidate, $currentAlliance, [
+            $this->audit->record('recruitment.reviewer.assigned', $currentActor, $lockedCandidate, $currentAlliance, [
                 'reviewer_player_id' => $lockedReviewer->id,
             ]);
             $this->outbox->record('recruitment.reviewer.assigned', (string) $currentAlliance->id, $lockedCandidate, [
