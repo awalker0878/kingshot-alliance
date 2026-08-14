@@ -48,22 +48,50 @@ final readonly class ProcessAccountDeletionRequests
 
     private function process(AccountDeletionRequest $request): bool
     {
-        $user = User::query()->find($request->user_id);
-        if (! $user instanceof User) {
-            $request->forceFill(['status' => 'processed', 'processed_at' => now(), 'blocked_reason' => null])->save();
+        return DB::transaction(function () use ($request): bool {
+            $lockedRequest = AccountDeletionRequest::query()
+                ->whereKey($request->id)
+                ->lockForUpdate()
+                ->first();
 
-            return true;
-        }
+            if (! $lockedRequest instanceof AccountDeletionRequest
+                || ! in_array($lockedRequest->status, ['pending', 'blocked'], true)
+                || $lockedRequest->eligible_at->isFuture()) {
+                return false;
+            }
 
-        $blockedReason = $this->blockReason($user);
-        if ($blockedReason !== null) {
-            $request->forceFill(['status' => 'blocked', 'blocked_reason' => $blockedReason])->save();
+            $user = User::query()
+                ->whereKey($lockedRequest->user_id)
+                ->lockForUpdate()
+                ->first();
 
-            return false;
-        }
+            if (! $user instanceof User) {
+                $lockedRequest->forceFill([
+                    'status' => 'processed',
+                    'processed_at' => now(),
+                    'blocked_reason' => null,
+                ])->save();
 
-        DB::transaction(function () use ($request, $user): void {
-            $playerIds = Player::query()->where('user_id', $user->id)->pluck('id');
+                return true;
+            }
+
+            // These safety decisions are authoritative only while the account row is
+            // locked. Never proceed from a pre-transaction snapshot of User authority.
+            $blockedReason = $this->blockReason($user);
+            if ($blockedReason !== null) {
+                $lockedRequest->forceFill([
+                    'status' => 'blocked',
+                    'blocked_reason' => $blockedReason,
+                ])->save();
+
+                return false;
+            }
+
+            $players = Player::query()
+                ->where('user_id', $user->id)
+                ->lockForUpdate()
+                ->get();
+            $playerIds = $players->pluck('id');
 
             $activeMemberships = AllianceMembership::query()
                 ->whereIn('player_id', $playerIds)
@@ -93,29 +121,29 @@ final readonly class ProcessAccountDeletionRequests
                 'anonymized_at' => now(),
             ])->save();
 
-            $request->forceFill([
+            $lockedRequest->forceFill([
                 'status' => 'processed',
                 'processed_at' => now(),
                 'blocked_reason' => null,
             ])->save();
 
             $this->audit->record('identity.account-deletion.processed', $user, $user, null, [
-                'request_id' => $request->id,
+                'request_id' => $lockedRequest->id,
             ]);
             OutboxMessage::query()->create([
                 'alliance_id' => null,
                 'event_type' => 'identity.account-deletion.processed',
                 'aggregate_type' => User::class,
                 'aggregate_id' => (string) $user->id,
-                'idempotency_key' => 'identity.account-deletion.processed:'.$request->id,
-                'payload' => ['user_id' => $user->id, 'request_id' => $request->id],
+                'idempotency_key' => 'identity.account-deletion.processed:'.$lockedRequest->id,
+                'payload' => ['user_id' => $user->id, 'request_id' => $lockedRequest->id],
                 'occurred_at' => now(),
                 'available_at' => now(),
                 'attempts' => 0,
             ]);
-        });
 
-        return true;
+            return true;
+        });
     }
 
     private function blockReason(User $user): ?string
