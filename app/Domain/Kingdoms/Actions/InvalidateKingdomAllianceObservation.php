@@ -46,7 +46,6 @@ final readonly class InvalidateKingdomAllianceObservation
                     'observation' => 'Only observations for actively tracked game-side alliances can be invalidated.',
                 ]);
             }
-
             if ($context->alliance->kingdom_id === null
                 || (string) $tracking->kingdom_id !== (string) $context->alliance->kingdom_id) {
                 throw ValidationException::withMessages([
@@ -54,9 +53,16 @@ final readonly class InvalidateKingdomAllianceObservation
                 ]);
             }
 
+            // Match RecordKingdomAllianceObservation exactly: tracking -> reference -> history.
+            $reference = KingdomAlliance::query()
+                ->whereKey($tracking->kingdom_alliance_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
             $observation = KingdomAllianceObservation::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->where('tracked_kingdom_alliance_id', $tracking->id)
+                ->where('kingdom_alliance_id', $reference->id)
                 ->whereKey($observationId)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -71,10 +77,6 @@ final readonly class InvalidateKingdomAllianceObservation
                 'invalidation_reason' => $this->nullableText($reason),
             ])->save();
 
-            $reference = KingdomAlliance::query()
-                ->whereKey($tracking->kingdom_alliance_id)
-                ->lockForUpdate()
-                ->firstOrFail();
             $latest = KingdomAllianceObservation::query()
                 ->where('kingdom_alliance_id', $reference->id)
                 ->whereNull('invalidated_at')
@@ -91,7 +93,8 @@ final readonly class InvalidateKingdomAllianceObservation
             $metadata = [
                 'observation_id' => (string) $observation->id,
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
-                'kingdom_alliance_id' => (string) $observation->kingdom_alliance_id,
+                'kingdom_alliance_id' => (string) $reference->id,
+                'origin' => 'player',
             ];
             $event = 'kingdoms.alliance_intelligence_observation_invalidated';
             $this->audit->record($event, $context->actor, $observation, $context->alliance, $metadata);
