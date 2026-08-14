@@ -79,13 +79,13 @@ final readonly class CreateInvitation
         return DB::transaction(function () use ($alliance, $actor, $target, $email): IssuedInvitation {
             Alliance::query()->whereKey($alliance->id)->lockForUpdate()->firstOrFail();
 
-            // Revalidate membership after acquiring the Alliance lock so a Player cannot
-            // be invited through a stale caller snapshot after joining another Alliance.
-            if (AllianceMembership::query()
+            $activeMembership = AllianceMembership::query()
                 ->where('player_id', $target->id)
                 ->where('status', MembershipStatus::Active->value)
                 ->lockForUpdate()
-                ->exists()) {
+                ->first();
+
+            if ($activeMembership instanceof AllianceMembership) {
                 throw ValidationException::withMessages([
                     'player_id' => 'This Player is already active in an Alliance.',
                 ]);
