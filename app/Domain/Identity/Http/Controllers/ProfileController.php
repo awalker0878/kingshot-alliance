@@ -112,7 +112,10 @@ final class ProfileController extends Controller
                 return $emailChanged;
             });
         } catch (QueryException $exception) {
-            if (User::query()->where('email', $validated['email'])->whereKeyNot($user->id)->exists()) {
+            if (User::query()
+                ->where('email', $validated['email'])
+                ->where('id', '<>', $user->id)
+                ->exists()) {
                 throw ValidationException::withMessages(['email' => 'The email has already been taken.']);
             }
             throw $exception;
@@ -145,37 +148,40 @@ final class ProfileController extends Controller
         $currentPassword = (string) $validated['current_password'];
         $newPassword = (string) $validated['password'];
 
-        DB::transaction(function () use ($user, $currentPassword, $newPassword, $audit): void {
-            $currentUser = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
-            if (! Hash::check($currentPassword, (string) $currentUser->password)) {
+        $currentUser = DB::transaction(function () use ($user, $currentPassword, $newPassword, $audit): User {
+            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            if (! Hash::check($currentPassword, (string) $locked->password)) {
                 throw ValidationException::withMessages(['current_password' => 'The password is incorrect.']);
             }
 
-            $currentUser->forceFill([
+            $locked->forceFill([
                 'password' => Hash::make($newPassword),
                 'remember_token' => Str::random(60),
             ])->save();
-            $currentUser->tokens()->delete();
+            $locked->tokens()->delete();
 
             $audit->record(
                 event: 'profile.password.updated',
-                actor: $currentUser,
-                subject: $currentUser,
+                actor: $locked,
+                subject: $locked,
             );
 
             OutboxMessage::query()->create([
                 'alliance_id' => null,
                 'event_type' => 'profile.password.updated',
                 'aggregate_type' => User::class,
-                'aggregate_id' => (string) $currentUser->id,
-                'idempotency_key' => 'profile.password.updated:'.$currentUser->id.':'.now()->format('Uu'),
-                'payload' => ['user_id' => $currentUser->id],
+                'aggregate_id' => (string) $locked->id,
+                'idempotency_key' => 'profile.password.updated:'.$locked->id.':'.now()->format('Uu'),
+                'payload' => ['user_id' => $locked->id],
                 'occurred_at' => now(),
                 'available_at' => now(),
                 'attempts' => 0,
             ]);
+
+            return $locked->refresh();
         });
 
+        Auth::setUser($currentUser);
         Auth::logoutOtherDevices($newPassword);
 
         return redirect()->route('profile.show')->with('status', 'password-updated');
