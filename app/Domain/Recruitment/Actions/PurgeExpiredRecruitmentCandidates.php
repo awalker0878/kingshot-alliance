@@ -33,8 +33,29 @@ final class PurgeExpiredRecruitmentCandidates
 
         foreach ($candidateIds as $candidateId) {
             $changed = DB::transaction(function () use ($candidateId): bool {
-                $candidate = RecruitmentCandidate::query()
+                // Resolve immutable routing state without a lock, then acquire the
+                // same Alliance -> candidate order used by interactive Recruitment writes.
+                $routing = RecruitmentCandidate::query()
+                    ->select(['id', 'alliance_id'])
                     ->whereKey($candidateId)
+                    ->first();
+
+                if (! $routing instanceof RecruitmentCandidate) {
+                    return false;
+                }
+
+                $alliance = Alliance::query()
+                    ->whereKey($routing->alliance_id)
+                    ->sharedLock()
+                    ->first();
+
+                if (! $alliance instanceof Alliance) {
+                    return false;
+                }
+
+                $candidate = RecruitmentCandidate::query()
+                    ->whereKey($routing->id)
+                    ->where('alliance_id', $alliance->id)
                     ->whereIn('stage', [RecruitmentStage::Declined->value, RecruitmentStage::Withdrawn->value])
                     ->whereNull('anonymized_at')
                     ->whereNotNull('retention_due_at')
@@ -43,11 +64,6 @@ final class PurgeExpiredRecruitmentCandidates
                     ->first();
 
                 if (! $candidate instanceof RecruitmentCandidate) {
-                    return false;
-                }
-
-                $alliance = Alliance::query()->find($candidate->alliance_id);
-                if (! $alliance instanceof Alliance) {
                     return false;
                 }
 
