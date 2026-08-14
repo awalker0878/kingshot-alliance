@@ -7,19 +7,18 @@ namespace App\Domain\Recruitment\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentQuestionType;
 use App\Domain\Recruitment\Models\RecruitmentQuestion;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 final class CreateRecruitmentQuestion
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -36,10 +35,6 @@ final class CreateRecruitmentQuestion
         array $options = [],
         bool $isActive = true,
     ): RecruitmentQuestion {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
-            throw new AuthorizationException('You are not allowed to manage recruitment questions.');
-        }
-
         $cleanPrompt = trim($prompt);
         if ($cleanPrompt === '') {
             throw new InvalidArgumentException('Recruitment question prompt is required.');
@@ -69,8 +64,10 @@ final class CreateRecruitmentQuestion
             $cleanOptions,
             $isActive,
         ): RecruitmentQuestion {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::RecruitmentManage);
+
             $question = RecruitmentQuestion::query()->create([
-                'alliance_id' => $alliance->id,
+                'alliance_id' => $context->alliance->id,
                 'prompt' => $cleanPrompt,
                 'help_text' => $helpText === null ? null : trim($helpText),
                 'question_type' => $type,
@@ -78,16 +75,16 @@ final class CreateRecruitmentQuestion
                 'is_required' => $isRequired,
                 'position' => $position,
                 'is_active' => $isActive,
-                'created_by_player_id' => $actor->id,
-                'updated_by_player_id' => $actor->id,
+                'created_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ]);
 
-            $this->audit->record('recruitment.question.created', $actor, $question, $alliance, [
+            $this->audit->record('recruitment.question.created', $context->actor, $question, $context->alliance, [
                 'question_type' => $type->value,
                 'is_required' => $isRequired,
                 'position' => $position,
             ]);
-            $this->outbox->record('recruitment.question.created', (string) $alliance->id, $question, [
+            $this->outbox->record('recruitment.question.created', (string) $context->alliance->id, $question, [
                 'question_type' => $type->value,
                 'is_required' => $isRequired,
             ]);
