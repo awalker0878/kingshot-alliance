@@ -9,6 +9,9 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Enums\RosterState;
+use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\InvitationStatus;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -31,7 +34,7 @@ final readonly class CreateInvitation
         private PlanEntitlementService $entitlements,
     ) {}
 
-    public function handle(Alliance $alliance, User $actor, string $email): IssuedInvitation
+    public function handle(Alliance $alliance, Player $actor, Player $target, string $email): IssuedInvitation
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::InvitationManage)) {
             throw new AuthorizationException;
@@ -39,27 +42,45 @@ final readonly class CreateInvitation
 
         $email = Str::lower(trim($email));
 
-        $existingMember = AllianceMembership::query()
+        $eligible = AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
-            ->whereHas('user', static fn ($query) => $query->where('email', $email))
-            ->where('status', MembershipStatus::Active->value)
+            ->where('player_id', $target->id)
+            ->where('state', RosterState::Active->value)
             ->exists();
 
-        if ($existingMember) {
+        if (! $eligible || (string) $target->current_kingdom_id !== (string) $alliance->kingdom_id) {
             throw ValidationException::withMessages([
-                'email' => 'This account is already an active alliance member.',
+                'player_id' => 'The invited Player must be active on this Alliance roster.',
             ]);
         }
 
-        return DB::transaction(function () use ($alliance, $actor, $email): IssuedInvitation {
-            Alliance::query()
-                ->whereKey($alliance->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+        if (AllianceMembership::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('player_id', $target->id)
+            ->where('status', MembershipStatus::Active->value)
+            ->exists()) {
+            throw ValidationException::withMessages([
+                'player_id' => 'This Player is already an active Alliance member.',
+            ]);
+        }
+
+        if ($target->user_id !== null) {
+            $ownerEmail = User::query()->whereKey($target->user_id)->value('email');
+            if (! is_string($ownerEmail) || ! hash_equals(Str::lower($ownerEmail), $email)) {
+                throw ValidationException::withMessages([
+                    'email' => 'This Player is already owned by a different account.',
+                ]);
+            }
+        }
+
+        return DB::transaction(function () use ($alliance, $actor, $target, $email): IssuedInvitation {
+            Alliance::query()->whereKey($alliance->id)->lockForUpdate()->firstOrFail();
 
             $supersededInvitations = Invitation::query()
                 ->where('alliance_id', $alliance->id)
-                ->where('email', $email)
+                ->where(function ($query) use ($target, $email): void {
+                    $query->where('player_id', $target->id)->orWhere('email', $email);
+                })
                 ->where('status', InvitationStatus::Pending->value)
                 ->lockForUpdate()
                 ->get();
@@ -70,31 +91,9 @@ final readonly class CreateInvitation
                     'revoked_at' => now(),
                 ])->save();
 
-                $this->audit->record(
-                    event: 'invitation.revoked',
-                    actor: $actor,
-                    subject: $superseded,
-                    alliance: $alliance,
-                    metadata: [
-                        'email' => $email,
-                        'reason' => 'superseded',
-                    ],
-                );
-
-                OutboxMessage::query()->create([
-                    'alliance_id' => $alliance->id,
-                    'event_type' => 'invitation.revoked',
-                    'aggregate_type' => Invitation::class,
-                    'aggregate_id' => $superseded->id,
-                    'idempotency_key' => 'invitation.revoked:'.$superseded->id.':superseded',
-                    'payload' => [
-                        'invitation_id' => $superseded->id,
-                        'alliance_id' => $alliance->id,
-                        'reason' => 'superseded',
-                    ],
-                    'occurred_at' => now(),
-                    'available_at' => now(),
-                    'attempts' => 0,
+                $this->audit->record('invitation.revoked', $actor, $superseded, $alliance, [
+                    'player_id' => (string) $superseded->player_id,
+                    'reason' => 'superseded',
                 ]);
             }
 
@@ -105,23 +104,22 @@ final readonly class CreateInvitation
 
             $invitation = Invitation::query()->create([
                 'alliance_id' => $alliance->id,
+                'player_id' => $target->id,
                 'email' => $email,
                 'token_hash' => $this->tokens->hash($token),
                 'status' => InvitationStatus::Pending,
-                'invited_by_user_id' => $actor->id,
+                'invited_by_player_id' => $actor->id,
                 'expires_at' => now()->addHours($ttlHours),
             ]);
 
-            $this->audit->record(
-                event: 'invitation.created',
-                actor: $actor,
-                subject: $invitation,
-                alliance: $alliance,
-                metadata: ['email' => $email],
-            );
+            $this->audit->record('invitation.created', $actor, $invitation, $alliance, [
+                'player_id' => (string) $target->id,
+                'email' => $email,
+            ]);
 
             OutboxMessage::query()->create([
                 'alliance_id' => $alliance->id,
+                'partition_key' => 'alliance:'.$alliance->id,
                 'event_type' => 'invitation.created',
                 'aggregate_type' => Invitation::class,
                 'aggregate_id' => $invitation->id,
@@ -129,6 +127,7 @@ final readonly class CreateInvitation
                 'payload' => [
                     'invitation_id' => $invitation->id,
                     'alliance_id' => $alliance->id,
+                    'player_id' => $target->id,
                     'email' => $email,
                 ],
                 'occurred_at' => now(),

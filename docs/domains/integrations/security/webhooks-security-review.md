@@ -40,7 +40,7 @@ Signing material is secret. Payloads may contain tenant-private data and therefo
 | Oversize payload | Resource abuse/data overexposure | Payload safety bound fails before transport; no silent truncation/send. |
 | Duplicate/replayed delivery | Duplicate external side effect | Logical identity = subscription + source message; stable delivery/attempt state; receivers must be idempotent. |
 | Retry storm starves core queues | Availability impact | Dedicated `integrations` queue, bounded attempts/backoff, recovery scheduling and exhaustion state. |
-| Kingdoms/internal events escape | Unexpected external disclosure | Current `kingdoms.*` and `alliance.kingdom_updated` remain excluded from generic external fan-out. |
+| Kingdoms/internal events escape | Unexpected external disclosure | Current `kingdoms.*` events remain excluded from generic external fan-out. |
 
 ## 5. Authorization, tenancy and privacy
 

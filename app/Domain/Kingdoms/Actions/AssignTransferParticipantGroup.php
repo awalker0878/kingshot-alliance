@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
@@ -30,7 +30,7 @@ final readonly class AssignTransferParticipantGroup
 
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $planId,
         string $participantId,
         ?string $groupId,
@@ -91,7 +91,7 @@ final readonly class AssignTransferParticipantGroup
 
             if ($oldGroupId === $newGroupId) {
                 return $participant->load([
-                    'group.coordinator.user:id,name,email',
+                    'group.coordinator:id,current_name',
                     'group.destinationKingdom:id,number',
                 ]);
             }
@@ -120,7 +120,7 @@ final readonly class AssignTransferParticipantGroup
             );
 
             return $participant->refresh()->load([
-                'group.coordinator.user:id,name,email',
+                'group.coordinator:id,current_name',
                 'group.destinationKingdom:id,number',
             ]);
         });
@@ -159,7 +159,7 @@ final readonly class AssignTransferParticipantGroup
 
         if ($alliance->kingdom_id !== $plan->home_kingdom_id) {
             throw ValidationException::withMessages([
-                'participant' => 'The alliance Kingdom changed after this transfer cycle was created. Cancel the stale cycle before changing participant groups.',
+                'participant' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.',
             ]);
         }
     }

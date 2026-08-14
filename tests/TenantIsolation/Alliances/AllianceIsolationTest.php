@@ -11,6 +11,9 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Database\QueryException;
@@ -27,79 +30,108 @@ final class AllianceIsolationTest extends TestCase
     {
         $firstOwner = User::factory()->create();
         $secondOwner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4401]);
+        $firstPlayer = Player::query()->create([
+            'user_id' => $firstOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'isolation-first-owner',
+            'current_name' => 'Isolation First Owner',
+        ]);
+        $secondOwnerPlayer = Player::query()->create([
+            'user_id' => $secondOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'isolation-second-owner',
+            'current_name' => 'Isolation Second Owner',
+        ]);
+        $firstOwnerSecondPlayer = Player::query()->create([
+            'user_id' => $firstOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'isolation-first-user-second-player',
+            'current_name' => 'Isolation Sibling Player',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
 
-        $firstAlliance = $createAlliance->handle($firstOwner, 'First Alliance', 'first-alliance');
-        $secondAlliance = $createAlliance->handle($secondOwner, 'Second Alliance', 'second-alliance');
-
-        $authorization = $this->app->make(AllianceAuthorization::class);
-
-        self::assertTrue($authorization->allows($firstOwner, $firstAlliance, PermissionKey::AllianceManage));
-        self::assertFalse($authorization->allows($firstOwner, $secondAlliance, PermissionKey::AllianceView));
-
+        $firstAlliance = $createAlliance->handle($firstPlayer, 'First Alliance', 'first-alliance');
+        $secondAlliance = $createAlliance->handle($secondOwnerPlayer, 'Second Alliance', 'second-alliance');
         $secondMembership = AllianceMembership::query()->create([
             'alliance_id' => $secondAlliance->id,
-            'user_id' => $firstOwner->id,
+            'player_id' => $firstOwnerSecondPlayer->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
 
-        $firstOwnerRole = Role::query()
+        $authorization = $this->app->make(AllianceAuthorization::class);
+
+        self::assertTrue($authorization->allows($firstPlayer, $firstAlliance, PermissionKey::AllianceManage));
+        self::assertFalse($authorization->allows($firstPlayer, $secondAlliance, PermissionKey::AllianceView));
+        self::assertTrue($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, PermissionKey::AllianceView));
+        self::assertFalse($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, PermissionKey::AllianceManage));
+
+        $firstAllianceRole = Role::query()
             ->where('alliance_id', $firstAlliance->id)
-            ->where('key', DefaultAllianceRole::Owner->value)
+            ->where('key', DefaultAllianceRole::EventCoordinator->value)
             ->sole();
 
         try {
-            DB::transaction(static function () use ($secondMembership, $firstOwnerRole, $secondAlliance): void {
-                $secondMembership->roles()->attach($firstOwnerRole->id, [
+            DB::transaction(static function () use ($secondMembership, $firstAllianceRole, $secondAlliance): void {
+                $secondMembership->roles()->attach($firstAllianceRole->id, [
                     'alliance_id' => $secondAlliance->id,
                 ]);
             });
 
             self::fail('The database must reject a role owned by another alliance.');
         } catch (QueryException) {
-            self::assertFalse($authorization->allows($firstOwner, $secondAlliance, PermissionKey::AllianceView));
-            self::assertFalse($authorization->allows($firstOwner, $secondAlliance, PermissionKey::AllianceManage));
+            self::assertFalse($authorization->allows($firstPlayer, $secondAlliance, PermissionKey::AllianceView));
+            self::assertTrue($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, PermissionKey::AllianceView));
+            self::assertFalse($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, PermissionKey::AllianceManage));
         }
-
-        $secondMemberRole = Role::query()
-            ->where('alliance_id', $secondAlliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-
-        $secondMembership->roles()->attach($secondMemberRole->id, [
-            'alliance_id' => $secondAlliance->id,
-        ]);
-
-        self::assertTrue($authorization->allows($firstOwner, $secondAlliance, PermissionKey::AllianceView));
-        self::assertFalse($authorization->allows($firstOwner, $secondAlliance, PermissionKey::AllianceManage));
     }
 
     public function test_suspended_membership_fails_closed(): void
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4411]);
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'isolation-suspended-owner',
+            'current_name' => 'Isolation Suspended Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Suspended Alliance', 'suspended-alliance');
+            ->handle($player, 'Suspended Alliance', 'suspended-alliance');
 
         AllianceMembership::query()
             ->where('alliance_id', $alliance->id)
-            ->where('user_id', $owner->id)
+            ->where('player_id', $player->id)
             ->update(['status' => MembershipStatus::Suspended->value]);
 
         self::assertFalse($this->app->make(AllianceAuthorization::class)
-            ->allows($owner, $alliance, PermissionKey::AllianceView));
+            ->allows($player, $alliance, PermissionKey::AllianceView));
     }
 
     public function test_alliance_context_can_be_activated_and_cleared(): void
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4421]);
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'isolation-context-owner',
+            'current_name' => 'Isolation Context Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Context Alliance', 'context-alliance');
+            ->handle($player, 'Context Alliance', 'context-alliance');
+        $membership = AllianceMembership::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('player_id', $player->id)
+            ->sole();
         $context = $this->app->make(AllianceContext::class);
 
-        $context->activate($alliance, $owner);
+        $context->activate($player, $membership, $alliance);
         self::assertSame($alliance->id, $context->alliance()->id);
-        self::assertSame($owner->id, $context->membership()->user_id);
+        self::assertSame($player->id, $context->player()->id);
+        self::assertSame($player->id, $context->membership()->player_id);
 
         $context->clear();
 
@@ -107,14 +139,30 @@ final class AllianceIsolationTest extends TestCase
         $context->alliance();
     }
 
-    public function test_outsider_cannot_activate_alliance_context(): void
+    public function test_sibling_player_cannot_activate_another_players_alliance_context(): void
     {
         $owner = User::factory()->create();
-        $outsider = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4431]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'isolation-member-player',
+            'current_name' => 'Isolation Member Player',
+        ]);
+        $siblingPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'isolation-sibling-player',
+            'current_name' => 'Isolation Sibling Player Two',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Private Alliance', 'private-alliance');
+            ->handle($memberPlayer, 'Private Alliance', 'private-alliance');
+        $membership = AllianceMembership::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('player_id', $memberPlayer->id)
+            ->sole();
 
         $this->expectException(LogicException::class);
-        $this->app->make(AllianceContext::class)->activate($alliance, $outsider);
+        $this->app->make(AllianceContext::class)->activate($siblingPlayer, $membership, $alliance);
     }
 }

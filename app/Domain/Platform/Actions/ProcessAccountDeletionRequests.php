@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Platform\Actions;
 
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Actions\LeaveAlliance;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\AccountDeletionRequest;
@@ -21,6 +23,7 @@ final readonly class ProcessAccountDeletionRequests
 {
     public function __construct(
         private LegalHoldService $legalHolds,
+        private LeaveAlliance $leaveAlliance,
         private AuditRecorder $audit,
     ) {}
 
@@ -60,14 +63,20 @@ final readonly class ProcessAccountDeletionRequests
         }
 
         DB::transaction(function () use ($request, $user): void {
-            AllianceMembership::query()
-                ->where('user_id', $user->id)
+            $playerIds = Player::query()->where('user_id', $user->id)->pluck('id');
+
+            $activeMemberships = AllianceMembership::query()
+                ->whereIn('player_id', $playerIds)
                 ->where('status', MembershipStatus::Active->value)
-                ->update([
-                    'status' => MembershipStatus::Left->value,
-                    'left_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                ->with(['alliance', 'player'])
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($activeMemberships as $membership) {
+                $this->leaveAlliance->handle($membership->alliance, $membership->player);
+            }
+
+            Player::query()->whereIn('id', $playerIds)->update(['user_id' => null, 'updated_at' => now()]);
 
             $user->tokens()->delete();
             $user->forceFill([
@@ -118,12 +127,12 @@ final readonly class ProcessAccountDeletionRequests
             return 'Platform administrator access is still active.';
         }
 
-        $ownsAlliance = AllianceMembership::query()
-            ->where('user_id', $user->id)
+        $leadsAlliance = AllianceMembership::query()
+            ->whereIn('player_id', Player::query()->where('user_id', $user->id)->select('id'))
             ->where('status', MembershipStatus::Active->value)
-            ->whereHas('roles', static fn ($query) => $query->where('roles.key', DefaultAllianceRole::Owner->value))
+            ->where('rank', AllianceRank::R5->value)
             ->exists();
 
-        return $ownsAlliance ? 'Alliance ownership must be transferred or closed first.' : null;
+        return $leadsAlliance ? 'R5 leadership must be transferred before deleting the account.' : null;
     }
 }

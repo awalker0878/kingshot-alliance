@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\TransferBlockerState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\TransferBlocker;
@@ -29,7 +29,7 @@ final readonly class CreateTransferBlocker
 
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $planId,
         string $participantId,
         string $summary,
@@ -79,7 +79,7 @@ final readonly class CreateTransferBlocker
                 'state' => TransferBlockerState::Active,
                 'summary' => $summary,
                 'details' => $details,
-                'created_by_user_id' => $actor->id,
+                'created_by_player_id' => $actor->id,
             ]);
 
             $metadata = [
@@ -103,7 +103,7 @@ final readonly class CreateTransferBlocker
                 $metadata,
             );
 
-            return $blocker->refresh()->load('createdBy:id,name');
+            return $blocker->refresh()->load('createdBy:id,current_name');
         });
     }
 
@@ -117,7 +117,7 @@ final readonly class CreateTransferBlocker
 
         if ($alliance->kingdom_id !== $plan->home_kingdom_id) {
             throw ValidationException::withMessages([
-                'blocker' => 'The alliance Kingdom changed after this transfer cycle was created. Cancel the stale cycle before changing blockers.',
+                'blocker' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.',
             ]);
         }
     }

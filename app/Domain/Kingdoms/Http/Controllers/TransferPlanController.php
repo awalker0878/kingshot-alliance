@@ -47,7 +47,7 @@ final class TransferPlanController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
             throw new AuthorizationException;
         }
 
@@ -59,7 +59,7 @@ final class TransferPlanController extends Controller
                 'email' => (string) $user->email,
             ],
             'alliance' => $this->alliance($alliance),
-            'canManage' => $authorization->allows($user, $alliance, PermissionKey::KingdomManage),
+            'canManage' => $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage),
             'plan' => $current === null ? null : $this->plan($current),
             'groups' => $current === null
                 ? []
@@ -86,7 +86,7 @@ final class TransferPlanController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
 
@@ -101,21 +101,19 @@ final class TransferPlanController extends Controller
                 'id' => (string) $entry->id,
                 'name' => (string) $entry->observed_name,
                 'gamePlayerId' => $entry->player->game_player_id,
-                'membershipId' => $entry->membership_id,
+                'playerId' => (string) $entry->player_id,
             ])
             ->values()
             ->all();
 
-        $memberships = AllianceMembership::query()
+        $players = AllianceMembership::query()
             ->where('alliance_id', $alliance->id)
             ->where('status', MembershipStatus::Active->value)
-            ->with('user:id,name,email')
-            ->orderBy('joined_at')
+            ->with('player:id,current_name')
             ->get()
             ->map(static fn (AllianceMembership $membership): array => [
-                'id' => (string) $membership->id,
-                'name' => (string) $membership->user?->name,
-                'email' => (string) $membership->user?->email,
+                'id' => (string) $membership->player_id,
+                'name' => (string) $membership->player->current_name,
             ])
             ->values()
             ->all();
@@ -141,7 +139,7 @@ final class TransferPlanController extends Controller
                     ->map(fn (TransferParticipant $participant): array => $this->participant($participant, true))
                     ->all(),
             'rosterOptions' => $rosterOptions,
-            'memberships' => $memberships,
+            'players' => $players,
         ]);
     }
 
@@ -157,7 +155,7 @@ final class TransferPlanController extends Controller
             'ends_on' => ['nullable', 'date'],
         ]);
 
-        $create->handle($context->alliance(), $this->user($request), $validated);
+        $create->handle($context->alliance(), $context->player(), $validated);
 
         return back()->with('status', 'transfer-plan-created');
     }
@@ -168,7 +166,7 @@ final class TransferPlanController extends Controller
         OpenTransferPlan $open,
         string $plan,
     ): RedirectResponse {
-        $open->handle($context->alliance(), $this->user($request), $plan);
+        $open->handle($context->alliance(), $context->player(), $plan);
 
         return back()->with('status', 'transfer-plan-opened');
     }
@@ -179,7 +177,7 @@ final class TransferPlanController extends Controller
         LockTransferPlan $lock,
         string $plan,
     ): RedirectResponse {
-        $lock->handle($context->alliance(), $this->user($request), $plan);
+        $lock->handle($context->alliance(), $context->player(), $plan);
 
         return back()->with('status', 'transfer-plan-locked');
     }
@@ -190,7 +188,7 @@ final class TransferPlanController extends Controller
         CloseTransferPlan $close,
         string $plan,
     ): RedirectResponse {
-        $close->handle($context->alliance(), $this->user($request), $plan);
+        $close->handle($context->alliance(), $context->player(), $plan);
 
         return back()->with('status', 'transfer-plan-closed');
     }
@@ -201,7 +199,7 @@ final class TransferPlanController extends Controller
         CancelTransferPlan $cancel,
         string $plan,
     ): RedirectResponse {
-        $cancel->handle($context->alliance(), $this->user($request), $plan);
+        $cancel->handle($context->alliance(), $context->player(), $plan);
 
         return back()->with('status', 'transfer-plan-cancelled');
     }
@@ -245,9 +243,10 @@ final class TransferPlanController extends Controller
             'destinationKingdom' => $participant->destinationKingdom === null
                 ? null
                 : (string) $participant->destinationKingdom->number,
-            'membership' => $participant->membership === null
-                ? null
-                : ['name' => (string) $participant->membership->user?->name],
+            'player' => [
+                'id' => (string) $participant->player_id,
+                'name' => (string) $participant->player->current_name,
+            ],
             'group' => $participant->group === null
                 ? null
                 : $this->group($participant->group, false),
@@ -259,13 +258,6 @@ final class TransferPlanController extends Controller
             $row['rosterEntryId'] = $participant->roster_entry_id;
             $row['transferGroupId'] = $participant->transfer_group_id;
             $row['managerNotes'] = $participant->manager_notes;
-            $row['membership'] = $participant->membership === null
-                ? null
-                : [
-                    'id' => (string) $participant->membership->id,
-                    'name' => (string) $participant->membership->user?->name,
-                    'email' => (string) $participant->membership->user?->email,
-                ];
             $row['blockers'] = $participant->blockers
                 ->sortByDesc(static fn (TransferBlocker $blocker): string => $blocker->created_at?->toIso8601String() ?? '')
                 ->values()
@@ -278,10 +270,10 @@ final class TransferPlanController extends Controller
                     'resolvedAt' => $blocker->resolved_at?->toIso8601String(),
                     'createdBy' => $blocker->createdBy === null
                         ? null
-                        : ['name' => (string) $blocker->createdBy->name],
+                        : ['name' => (string) $blocker->createdBy->current_name],
                     'resolvedBy' => $blocker->resolvedBy === null
                         ? null
-                        : ['name' => (string) $blocker->resolvedBy->name],
+                        : ['name' => (string) $blocker->resolvedBy->current_name],
                 ])
                 ->all();
             $row['readinessHistory'] = $participant->readinessTransitions
@@ -293,7 +285,7 @@ final class TransferPlanController extends Controller
                     'changedAt' => $transition->created_at->toIso8601String(),
                     'actor' => $transition->actor === null
                         ? null
-                        : ['name' => (string) $transition->actor->name],
+                        : ['name' => (string) $transition->actor->current_name],
                 ])
                 ->all();
             $completion = $participant->completion;
@@ -303,7 +295,7 @@ final class TransferPlanController extends Controller
                     'completedAt' => $completion->completed_at->toIso8601String(),
                     'completedBy' => $completion->completedBy === null
                         ? null
-                        : ['name' => (string) $completion->completedBy->name],
+                        : ['name' => (string) $completion->completedBy->current_name],
                     'rosterEntry' => $completion->rosterEntry === null
                         ? null
                         : [
@@ -329,13 +321,13 @@ final class TransferPlanController extends Controller
                 : (string) $group->destinationKingdom->number,
             'coordinator' => $group->coordinator === null
                 ? null
-                : ['name' => (string) $group->coordinator->user?->name],
+                : ['name' => (string) $group->coordinator->current_name],
         ];
 
         if ($includePrivate) {
             $row['id'] = (string) $group->id;
             $row['state'] = $group->state->value;
-            $row['coordinatorMembershipId'] = $group->coordinator_membership_id;
+            $row['coordinatorPlayerId'] = $group->coordinator_player_id;
             $row['managerNotes'] = $group->manager_notes;
         }
 

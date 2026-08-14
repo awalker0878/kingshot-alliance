@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\TransferBlockerState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -19,16 +19,16 @@ use Illuminate\Support\Carbon;
  * @property TransferBlockerState $state
  * @property string $summary
  * @property string|null $details
- * @property int|null $created_by_user_id
- * @property int|null $resolved_by_user_id
+ * @property string|null $created_by_player_id
+ * @property string|null $resolved_by_player_id
  * @property Carbon|null $resolved_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Alliance $alliance
  * @property-read TransferPlan $plan
  * @property-read TransferParticipant $participant
- * @property-read User|null $createdBy
- * @property-read User|null $resolvedBy
+ * @property-read Player|null $createdBy
+ * @property-read Player|null $resolvedBy
  */
 final class TransferBlocker extends Model
 {
@@ -45,8 +45,8 @@ final class TransferBlocker extends Model
         'state',
         'summary',
         'details',
-        'created_by_user_id',
-        'resolved_by_user_id',
+        'created_by_player_id',
+        'resolved_by_player_id',
         'resolved_at',
     ];
 
@@ -76,15 +76,15 @@ final class TransferBlocker extends Model
         return $this->belongsTo(TransferParticipant::class, 'transfer_participant_id');
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by_user_id');
+        return $this->belongsTo(Player::class, 'created_by_player_id');
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function resolvedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'resolved_by_user_id');
+        return $this->belongsTo(Player::class, 'resolved_by_player_id');
     }
 }

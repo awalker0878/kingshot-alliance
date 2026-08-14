@@ -32,13 +32,13 @@ Trust boundaries are:
 
 ### Cross-alliance aggregate leakage
 
-**Threat:** A shared Kingdom or KingdomPlayer causes another Alliance's roster/snapshots to enter totals or comparison detail.
+**Threat:** A shared Kingdom or Player causes another Alliance's roster/snapshots to enter totals or comparison detail.
 
 **Controls:**
 
 - roster selection is constrained by active `alliance_id`;
 - latest-snapshot and trend-baseline queries require the same Alliance plus eligible roster IDs;
-- Kingdom/KingdomPlayer identity is never used as authorization; and
+- Kingdom/Player identity is never used as authorization; and
 - feature coverage includes a same-Kingdom second Alliance whose large power value must not affect the active tenant.
 
 Future aggregate queries must preserve the same tenant-first rule.

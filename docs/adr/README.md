@@ -91,7 +91,7 @@ Cross-domain collaboration uses intentional supported contracts rather than acci
 
 Identity is global. Normal Alliance-scoped access requires an explicit active Alliance, active Memberships-owned membership, and applicable Authorization-owned permission checks. Platform administration is a distinct cross-tenant grant and is not an Alliance role.
 
-Kingdoms deliberately separates neutral reference identity from tenant-owned observations/workflows. Sharing a `Kingdom`, `KingdomPlayer`, or `KingdomAlliance` reference never grants access to another Alliance's roster, notes, snapshots, imports, transfer plans, observations, diplomacy, contacts, or derived intelligence.
+Kingdoms deliberately separates neutral reference identity from tenant-owned observations/workflows. Sharing a `Kingdom`, `Player`, or `KingdomAlliance` reference never grants access to another Alliance's roster, notes, snapshots, imports, transfer plans, observations, diplomacy, contacts, or derived intelligence.
 
 Use [the glossary](../product/glossary.md) for the platform `Alliance` versus game-side `KingdomAlliance` distinction and other shared terminology.
 
@@ -101,7 +101,7 @@ Normal first-party requests execute synchronously inside the modular monolith an
 
 Platform owns the transactional outbox as durable asynchronous infrastructure. Producer domains own business transition/payload semantics. Notifications and other consumers coordinate first-party downstream effects; Integrations owns external machine boundaries.
 
-An internal outbox event is not automatically an externally eligible webhook event. `alliance.kingdom_updated` and all `kingdoms.*` events remain excluded from generic public webhook fan-out. The current `/api/v1` surface remains limited to approved read contracts and has no Kingdoms roster/snapshot/intelligence/transfer/diplomacy scope.
+An internal outbox event is not automatically an externally eligible webhook event. All `kingdoms.*` events remain excluded from generic public webhook fan-out. The current `/api/v1` surface remains limited to approved read contracts and has no Kingdoms roster/snapshot/intelligence/transfer/diplomacy scope.
 
 See [ADR 0004](0004-queues-and-transactional-outbox.md) and [Integrations](../domains/integrations/README.md).
 

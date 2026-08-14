@@ -6,74 +6,78 @@
 **Status:** Current  
 **Owning domain:** Events  
 **Code owner:** `app/Domain/Events`  
-**Primary validation boundary:** Recurrence/time-zone semantics, registration/waitlist/attendance concurrency, Event disclosure, and downstream reminder/reporting source facts  
-**P5 evidence decision:** Living suite map with Phase 3 accessibility/migration/concurrency evidence reused
+**Primary validation boundary:** scoped authorization, durable Player identity, scheduling policy, participation integrity, operational workspaces, query bounds, localization, and accessibility
 
 ## 1. Critical claims and validation ownership
 
-Events validation must prove recurrence/time-zone correctness, capacity-safe registration/waitlisting, cancellation/promotion, attendance/no-show state, member/coordinator disclosure, Event→Notifications/Contributions/Rallies boundaries, and authenticated CSV/iCalendar semantics.
+Events validation proves exact Player/Alliance/Kingdom scope isolation, one-User-to-many-Players ownership, active Player Context enforcement, recurrence/time-zone correctness, capacity-safe registration/waitlisting, Player-specific reminders/votes/rosters/Rallies/objectives/results, and capability-driven UI behavior.
 
 ## 2. Executable suite mapping
 
-Primary evidence classes are `Architecture`, `Feature`, `Integration`, `Performance`, `TenantIsolation`, and `Unit`. Unit evidence is especially material for recurrence/time computations; Integration/Feature evidence owns registration/concurrency and first-party workflows.
+Primary evidence classes are `Architecture`, `Feature`, `Integration`, `Performance`, `TenantIsolation`, and `Unit`. Unit coverage owns schedule-policy and calculation semantics. Feature and Integration coverage own end-to-end scoped workflows. Performance coverage owns bounded-query claims for calendar, attention, intelligence, and operational planners.
 
 ## 3. Architecture and domain-boundary validation
 
-Architecture evidence protects Events ownership of schedules/occurrences/registration/attendance while Rallies owns Rally coordination, Notifications owns reminder delivery coordination, Contributions owns derived contribution records, and Integrations owns external machine representation.
+Architecture tests protect Events ownership of catalogue/schedule/occurrence/participation/phase/poll/roster/objective/result state; Notifications ownership of reminder delivery; Rallies ownership of Rally-specific state; Kingdoms ownership of `Player` and `Kingdom`; and Authorization ownership of permission grants.
 
-P4/P5 documentation guards also protect the Events/Rallies adapter distinction.
+They also enforce `player_id` as the durable participant identity and prevent membership identity from becoming an Event participant key.
 
 ## 4. Authorization, tenancy, security and privacy validation
 
-Feature/Integration/TenantIsolation evidence covers active-Alliance reads, `events.manage` coordinator mutations, recent password confirmation, cross-Alliance occurrence/registration denial, private registration/reminder/Rally data separation and authenticated export boundaries.
+Tests cover:
 
-[Events security](../security/README.md) defines the security claims that regression evidence must preserve.
+- Player self-service only for the validated active Player owned by `players.user_id`;
+- one User owning multiple independent Players;
+- R4/R5 and specialist Alliance authority without Kingdom leakage;
+- exact-Kingdom role isolation;
+- direct-request resistance when UI controls are hidden;
+- current-target checks after Player Kingdom or Alliance context changes; and
+- current permission checks before reminders, attention items, Event data, or result subjects are disclosed.
+
+[Events security](../security/README.md) defines the security claims that regression evidence preserves.
 
 ## 5. Feature, interface and integration validation
 
-Feature tests cover calendar/detail/registration/cancellation/management and authenticated export behavior. Integration evidence covers Notifications reminder source facts, Contributions attendance reconciliation, Rallies adapters and outbox behavior.
+Feature tests cover agenda/calendar/detail/create/manage, templates, exports, responses, registration/waitlist, attendance, reminders, phases, polls, rosters, formations, Rally operations, battle plans, and results/intelligence. Integration tests protect audit/outbox and Notifications/Rallies boundaries.
 
-[Calendar exports](../interfaces/calendar-exports.md) and [Event registration and attendance](../registration-and-attendance.md) are the primary interface/lifecycle contracts.
+[Calendar exports](../interfaces/calendar-exports.md) and [Event registration and attendance](../registration-and-attendance.md) are first-party interface/lifecycle contracts.
 
 ## 6. Idempotency, concurrency and asynchronous validation
 
-Phase 3 acceptance explicitly tested PostgreSQL row-lock capacity enforcement, duplicate registration idempotency, cancellation and oldest-waitlist promotion. Reminder materialization/queueing uses deterministic identity under Notifications ownership.
+Tests protect transaction-safe capacity and waitlist promotion, idempotent participation facts, one active Rally/roster assignment where configured, immutable poll choices after voting begins, deterministic reminder deliveries, and safe occurrence replacement during rescheduling without deleting operational history.
 
-Event mutations must not be replayed merely because downstream outbox/notification work retries.
+Asynchronous retry never changes Event source truth merely because a downstream delivery retries.
 
 ## 7. Persistence, migration, rollback and recovery evidence
 
-[Phase 3 exit report](../../../product/phase-3-exit-report.md) records `EventMigrationRollbackTest`, protected staging, backup/restore and migration evidence. Current CI still runs clean forward migrations and database recovery.
+Fresh-schema tests validate Event catalogue, scheduling, participation, phases/polls, rosters, battle plans, results, and cross-table occurrence/target constraints. Recovery validation checks that Event source state, Player identity, reminders, and dependent operational records remain referentially consistent after PostgreSQL restoration.
 
-Recovery/scheduler detail is in [Events operations](../operations/README.md) and Notifications operations.
+Recovery procedures are documented in [Events operations](../operations/README.md) and Notifications operations.
 
 ## 8. Performance, query and capacity evidence
 
-Performance evidence is applicable to bounded Event/calendar/coordination query behavior and explicit capacity/concurrency constraints. Capacity correctness is primarily a locking/invariant claim, not a latency SLA.
+Performance tests require query counts to remain bounded as upcoming occurrences or eligible Players grow. Attention/reminder/calendar/intelligence queries batch facts rather than issue per-occurrence or per-Player query loops. Business capacity is enforced transactionally and is separate from infrastructure capacity.
 
-No universal Event request-time or throughput SLA is accepted.
+No universal Event request-time or throughput SLA is inferred from repository tests.
 
 ## 9. Accessibility and frontend evidence
 
-[Phase 3 accessibility review](../../../product/phase-3-accessibility.md) and `EventAccessibilityGuardTest` historically protect main landmarks, native/labeled controls, no raw `v-html`, no positive `tabindex`, explicit button types, textual status and responsive/time-zone presentation.
+Frontend and architecture checks protect semantic page landmarks, native/labeled controls, pressed/current state for selectable controls, keyboard-visible focus, responsive overflow for dense planners/tables, locale-driven date labels, and absence of actor Player identifiers in Event forms.
 
-Current `npm run check` is frontend quality evidence, not a replacement for deployment-specific device/screen-reader/branding checks.
+`npm run check` remains the complete frontend quality gate when dependencies are installed; parser/static checks provide repository-local evidence when dependency trees are unavailable.
 
-## 10. Historical accepted evidence
+## 10. Current acceptance evidence
 
-Primary evidence is [Phase 3 exit report](../../../product/phase-3-exit-report.md), with validated technical head `ad1cbf3228f86dd915dbc82466d441f7aca0c475` and protected DR `31187575970`, CodeQL `31187578967`, CI `31187575503`.
+Current acceptance is the executable suite and domain contracts on the current source tree. Evidence is identified by the release/commit SHA produced by the delivery workflow together with CI, CodeQL, database, and frontend checks for that revision.
 
-Later P4 calendar-interface documentation is a living contract, not a historical acceptance replacement.
 
 ## 11. Evidence identity, retention and supersession
 
-Phase 3 test names/counts/check IDs stay historical. Current Events validation follows current tests and this profile.
-
-Future acceptance evidence follows [testing/evidence standard](../../../product/testing-evidence-standard.md).
+Retain failing/passing test identities, query-count evidence, database engine/version, release SHA, and CI/security check identifiers with the release. Newer evidence supersedes older evidence when architecture or capabilities change.
 
 ## 12. Gaps, non-capabilities and related documentation
 
-No anonymous/public long-lived calendar token, Event import, automated game ingestion, or Events-owned reminder-delivery state is accepted. No numeric latency SLA is inferred from current tests.
+No anonymous long-lived calendar token, Event import, automated game ingestion, or Events-owned generic notification transport is accepted. Localization intentionally supports English fallback when a non-core catalogue phrase is not translated; the operational shell is localized for every supported locale.
 
 Related documentation:
 
@@ -84,4 +88,3 @@ Related documentation:
 - [Events interfaces](../interfaces/README.md)
 - [Rallies testing](../../rallies/testing/README.md)
 - [Notifications testing](../../notifications/testing/README.md)
-- [P5 evidence matrix](../../../product/testing-evidence-coverage-matrix.md)

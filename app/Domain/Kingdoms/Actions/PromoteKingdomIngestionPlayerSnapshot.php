@@ -13,7 +13,7 @@ use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
-use App\Domain\Kingdoms\Models\KingdomPlayer;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
 use App\Domain\Platform\Services\OutboxRecorder;
@@ -98,8 +98,8 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
                 return null;
             }
 
-            $players = KingdomPlayer::query()
-                ->where('kingdom_id', $subscription->kingdom_id)
+            $players = Player::query()
+                ->where('current_kingdom_id', $subscription->kingdom_id)
                 ->where('game_player_id', $candidate->stable_game_id)
                 ->limit(2)
                 ->get();
@@ -120,7 +120,7 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
 
             $entries = AllianceRosterEntry::query()
                 ->where('alliance_id', $subscription->alliance_id)
-                ->where('kingdom_player_id', $player->id)
+                ->where('player_id', $player->id)
                 ->lockForUpdate()
                 ->limit(2)
                 ->get();
@@ -179,7 +179,7 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
                 'candidate_id' => (string) $candidate->id,
                 'snapshot_id' => (string) $snapshot->id,
                 'roster_entry_id' => (string) $entry->id,
-                'kingdom_player_id' => (string) $player->id,
+                'player_id' => (string) $player->id,
                 'stable_game_id' => $candidate->stable_game_id,
                 'adapter_key' => $subscription->adapter_key,
                 'adapter_version' => $subscription->adapter_version,

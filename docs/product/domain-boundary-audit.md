@@ -87,7 +87,7 @@ These collaborations can be bidirectional at the application-contract level with
 ## Kingdoms, Alliances, Memberships
 
 - Alliances owns the platform tenant and `kingdom_id` association.
-- Kingdoms owns neutral `Kingdom`, `KingdomPlayer`, `KingdomAlliance` identity plus tenant-owned Kingdoms observations/workflows.
+- Kingdoms owns neutral `Kingdom`, `Player`, `KingdomAlliance` identity plus tenant-owned Kingdoms observations/workflows.
 - Memberships owns application membership even when Kingdoms stores optional same-Alliance membership references.
 - stable game IDs are automatic neutral identity keys only inside their documented game scope; names/tags/handles do not auto-merge identity.
 - sharing a neutral Kingdoms reference never grants cross-Alliance access.

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\RosterImport;
 use App\Domain\Kingdoms\Services\RosterCsvParser;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,11 +37,15 @@ final class KingdomIncrementAcceptanceTest extends TestCase
         $owner = User::factory()->create();
         $member = User::factory()->create();
         $otherOwner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 5001, 'status' => 'active']);
+        $ownerPlayer = $this->player($owner, $kingdom, 'accepted-kingdoms-r5', 'Accepted Kingdoms R5');
+        $memberPlayer = $this->player($member, $kingdom, 'accept-1', 'Manual Player');
+        $otherOwnerPlayer = $this->player($otherOwner, $kingdom, 'other-accepted-kingdoms-r5', 'Other Accepted Kingdoms R5');
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $alliance = $createAlliance->handle($owner, 'Accepted Kingdoms', 'accepted-kingdoms', 5001);
-        $otherAlliance = $createAlliance->handle($otherOwner, 'Other Accepted Kingdoms', 'other-accepted-kingdoms', 5001);
-        $membership = $this->addMember($alliance->id, $member);
-        $confirmed = $this->confirmedSession($alliance->id);
+        $alliance = $createAlliance->handle($ownerPlayer, 'Accepted Kingdoms', 'accepted-kingdoms');
+        $otherAlliance = $createAlliance->handle($otherOwnerPlayer, 'Other Accepted Kingdoms', 'other-accepted-kingdoms');
+        $membership = $this->addMember($alliance->id, $memberPlayer);
+        $confirmed = $this->confirmedSession($ownerPlayer->id);
 
         self::assertNotNull($alliance->kingdom_id);
         self::assertFalse(Schema::hasColumn('alliances', 'kingdom'));
@@ -51,7 +56,6 @@ final class KingdomIncrementAcceptanceTest extends TestCase
             ->post('/alliance/roster', [
                 'name' => 'Manual Player',
                 'game_player_id' => 'accept-1',
-                'membership_id' => $membership->id,
                 'game_role' => 'R4',
                 'state' => 'active',
                 'joined_at' => now()->subDays(20)->toDateString(),
@@ -114,7 +118,8 @@ final class KingdomIncrementAcceptanceTest extends TestCase
 
         $entry->refresh();
         self::assertSame('Manual Player Renamed', $entry->observed_name);
-        self::assertSame($membership->id, $entry->membership_id);
+        self::assertSame($memberPlayer->id, $entry->player_id);
+        self::assertSame($membership->id, $entry->player->memberships()->where('alliance_id', $alliance->id)->sole()->id);
         self::assertSame('Private acceptance note.', $entry->manager_notes);
         self::assertSame('csv', $entry->source);
         $this->assertDatabaseCount('player_snapshots', 3);
@@ -126,7 +131,7 @@ final class KingdomIncrementAcceptanceTest extends TestCase
             'power' => 150,
         ]);
 
-        $this->withSession($this->activeSession($alliance->id))
+        $this->withSession($this->activeSession($ownerPlayer->id))
             ->get('/alliance/roster/intelligence')
             ->assertOk()
             ->assertInertia(fn (Assert $page): Assert => $page
@@ -139,7 +144,7 @@ final class KingdomIncrementAcceptanceTest extends TestCase
                 ->where('metrics.sevenDayTrend.comparablePlayers', 1));
 
         $this->actingAs($member)
-            ->withSession($this->activeSession($alliance->id))
+            ->withSession($this->activeSession($memberPlayer->id))
             ->get('/alliance/roster')
             ->assertOk()
             ->assertInertia(fn (Assert $page): Assert => $page
@@ -153,7 +158,7 @@ final class KingdomIncrementAcceptanceTest extends TestCase
         $this->get('/alliance/roster/export.csv?scope=member')->assertOk();
 
         $this->actingAs($otherOwner)
-            ->withSession($this->confirmedSession($otherAlliance->id))
+            ->withSession($this->confirmedSession($otherOwnerPlayer->id))
             ->get('/alliance/roster/import/'.$import->id)
             ->assertNotFound();
         $this->get('/alliance/roster/'.$entry->id.'/history')->assertNotFound();
@@ -168,21 +173,25 @@ final class KingdomIncrementAcceptanceTest extends TestCase
         ]);
     }
 
-    private function addMember(string $allianceId, User $user): AllianceMembership
+    private function addMember(string $allianceId, Player $player): AllianceMembership
     {
-        $membership = AllianceMembership::query()->create([
+        return AllianceMembership::query()->create([
             'alliance_id' => $allianceId,
-            'user_id' => $user->id,
+            'player_id' => $player->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $role = Role::query()
-            ->where('alliance_id', $allianceId)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $allianceId]);
+    }
 
-        return $membership;
+    private function player(User $user, Kingdom $kingdom, string $gamePlayerId, string $name): Player
+    {
+        return Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => $gamePlayerId,
+            'current_name' => $name,
+        ]);
     }
 
     /** @param  list<list<string>>  $rows */
@@ -203,18 +212,18 @@ final class KingdomIncrementAcceptanceTest extends TestCase
     }
 
     /** @return array<string, string> */
-    private function activeSession(string $allianceId): array
+    private function activeSession(string $playerId): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            (string) config('identity.active_player_session_key') => $playerId,
         ];
     }
 
     /** @return array<string, int|string> */
-    private function confirmedSession(string $allianceId): array
+    private function confirmedSession(string $playerId): array
     {
         return [
-            ...$this->activeSession($allianceId),
+            ...$this->activeSession($playerId),
             'auth.password_confirmed_at' => time(),
         ];
     }

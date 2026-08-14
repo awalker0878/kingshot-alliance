@@ -1,108 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: 'กลับไปที่กิจกรรม',
-    eyebrow: 'การจัดการกิจกรรม',
-    title: 'ผู้ประสานงานกิจกรรม',
-    description:
-      'กำหนดเวลากิจกรรม เผยแพร่คำแนะนำการรวมพล จัดรูปแบบและกลุ่ม แล้วบันทึกการเข้าร่วมและการมีส่วนร่วม',
-    scheduling: 'กำหนดเวลาและเทมเพลต',
-    remindersGuidance: 'การเตือนและคำแนะนำ',
-    rallySetup: 'รูปแบบและการรวมพล',
-    readiness: 'ความพร้อมและการเข้าร่วม',
-    createEvent: 'สร้างกิจกรรม',
-    eventTitle: 'ชื่อกิจกรรม',
-    firstStart: 'เริ่มครั้งแรก',
-    durationMinutes: 'ระยะเวลา (นาที)',
-    registrationOpens: 'เปิดลงทะเบียน (นาทีก่อน)',
-    registrationCloses: 'ปิดลงทะเบียน (นาทีก่อน)',
-    recurrence: 'การทำซ้ำ',
-    interval: 'ช่วงห่าง',
-    recurrenceEnd: 'สิ้นสุดการทำซ้ำ',
-    createEventAction: 'สร้างกิจกรรม',
-    eventValidation: 'ตรวจสอบข้อมูลกิจกรรมและช่วงเวลาลงทะเบียน',
-    createTemplate: 'สร้างเทมเพลตกิจกรรม',
-    saveTemplate: 'บันทึกเทมเพลต',
-    scheduleFromTemplate: 'กำหนดจากเทมเพลต',
-    chooseTemplate: 'เลือกเทมเพลต',
-    optionalTitle: 'ชื่อเสริม',
-    scheduleTemplate: 'กำหนดเทมเพลต',
-    reminderRule: 'กฎการเตือน',
-    reminderHelp: 'สร้างการเตือนในแอปสำหรับแต่ละครั้งของกิจกรรมที่เลือก',
-    chooseEvent: 'เลือกกิจกรรม',
-    minutesBefore: 'นาทีก่อนเริ่ม',
-    addReminder: 'เพิ่มการเตือน',
-    rallyGuidance: 'คำแนะนำการรวมพล',
-    guidanceHelp: 'เผยแพร่อัตราส่วนทหารและคำแนะนำฮีโร่ที่ใช้ซ้ำได้พร้อมช่วงวันที่มีผล',
-    heroRecommendations: 'คำแนะนำฮีโร่',
-    effectiveFrom: 'มีผลตั้งแต่',
-    effectiveUntil: 'มีผลถึง',
-    leadRequirements: 'ข้อกำหนดผู้นำ',
-    joinerGuidance: 'คำแนะนำผู้เข้าร่วม',
-    guidanceValidation: 'ตรวจสอบวันที่และให้อัตราส่วนทหารรวมเป็น 100%',
-    publishGuidance: 'เผยแพร่คำแนะนำ',
-    eventFormation: 'รูปแบบกิจกรรม',
-    occurrence: 'รอบกิจกรรม',
-    chooseOccurrence: 'เลือกรอบกิจกรรม',
-    noGuidance: 'ไม่มีคำแนะนำที่เชื่อมโยง',
-    addFormation: 'เพิ่มรูปแบบ',
-    rallyGroup: 'กลุ่มรวมพล',
-    maxJoiners: 'ผู้เข้าร่วมสูงสุด',
-    none: 'ไม่มี',
-    createGroup: 'สร้างกลุ่ม',
-    assignMember: 'มอบหมายสมาชิกการรวมพล',
-    member: 'สมาชิก',
-    chooseGroup: 'เลือกกลุ่ม',
-    chooseMember: 'เลือกสมาชิก',
-    slotNumber: 'หมายเลขช่อง',
-    saveAssignment: 'บันทึกการมอบหมาย',
-    registrations: 'การลงทะเบียน',
-    noRegistrations: 'ไม่มีการลงทะเบียนที่ใช้งานสำหรับรอบนี้',
-    rallyAssignments: 'การมอบหมายรวมพล',
-    noAssignments: 'ไม่มีการมอบหมายรวมพลสำหรับรอบนี้',
-    participated: 'เข้าร่วมแล้ว',
-    statusAssigned: 'มอบหมายแล้ว',
-    statusParticipated: 'เข้าร่วมแล้ว',
-    recurrenceNone: 'ไม่มี',
-    recurrenceDaily: 'รายวัน',
-    recurrenceWeekly: 'รายสัปดาห์',
-    roleLead: 'ผู้นำ',
-    roleJoiner: 'ผู้เข้าร่วม',
-  },
-  eventDetail: {
-    participation: 'การเข้าร่วม',
-    registeredCount: 'ลงทะเบียน {count} คน',
-    waitlistedCount: 'รอคิว {count} คน',
-    noLimit: 'ไม่จำกัด',
-    instructions: 'คำแนะนำ',
-    recommendedFormations: 'รูปขบวนที่แนะนำ',
-    noRecommendedFormations: 'ยังไม่มีคำแนะนำรูปขบวนเฉพาะสำหรับกิจกรรมนี้',
-    assignmentRole: 'บทบาทที่มอบหมาย',
-    troopRatio: 'สัดส่วนกองทัพ',
-    infantry: 'ทหารราบ',
-    cavalry: 'ทหารม้า',
-    archers: 'พลธนู',
-    heroes: 'ฮีโร่',
-    notes: 'หมายเหตุ',
-    guidance: 'แนวทาง',
-    source: 'แหล่งที่มา',
-    effective: 'มีผล {date}',
-    through: 'ถึง {date}',
-    rallyGroups: 'กลุ่มแรลลี่',
-    maxJoiners: 'ผู้เข้าร่วมสูงสุด: {count}',
-    noAssigned: 'ยังไม่มีสมาชิกที่ได้รับมอบหมาย',
-    noRallyGroups: 'ยังไม่ได้ตั้งค่ากลุ่มแรลลี่สำหรับกิจกรรมนี้',
-    savedFormations: 'รูปขบวนที่บันทึกไว้',
-    default: 'ค่าเริ่มต้น',
-    noSavedFormations: 'คุณยังไม่ได้บันทึกรูปขบวน',
-    saveFormation: 'บันทึกรูปขบวน',
-    formationName: 'ชื่อ',
-    heroesHint: 'ฮีโร่หนึ่ง, ฮีโร่สอง, ฮีโร่สาม',
-    makeDefault: 'ตั้งเป็นรูปขบวนเริ่มต้น',
-    formationValidation: 'ตรวจสอบค่า รูปเปอร์เซ็นต์กองทัพต้องรวมเป็น 100%',
-    save: 'บันทึกรูปขบวน',
-  },
+  "events": {
+    "scope": {
+      "player": "ผู้เล่น",
+      "alliance": "พันธมิตร",
+      "kingdom": "อาณาจักร"
+    },
+    "actions": {
+      "save": "บันทึก",
+      "cancel": "ยกเลิก"
+    },
+    "calendar": {
+      "title": "กิจกรรม",
+      "create": "สร้างกิจกรรม",
+      "agenda": "กำหนดการ",
+      "month": "ปฏิทิน",
+      "all": "ทุกขอบเขต",
+      "manageable": "จัดการ",
+      "empty": "ไม่มีกิจกรรมที่ตรงกับมุมมองนี้",
+      "previousMonth": "เดือนก่อน",
+      "nextMonth": "เดือนถัดไป",
+      "scopeFilters": "กรองกิจกรรมตามขอบเขต",
+      "viewOptions": "เลือกมุมมองกิจกรรม"
+    },
+    "create": {
+      "title": "สร้างกิจกรรม",
+      "back": "กลับไปยังกิจกรรม",
+      "noContexts": "ขณะนี้คุณไม่มีสิทธิ์สร้างกิจกรรม",
+      "context": "บริบทกิจกรรม",
+      "eventType": "ประเภทกิจกรรม",
+      "start": "เวลาเริ่ม",
+      "duration": "ระยะเวลา (นาที)",
+      "capacity": "ความจุ",
+      "instructions": "คำแนะนำ",
+      "submit": "สร้างกิจกรรม"
+    },
+    "show": {
+      "back": "กลับไปยังกิจกรรม",
+      "manage": "จัดการกิจกรรม",
+      "details": "รายละเอียดกิจกรรม",
+      "status": "สถานะ",
+      "capacity": "ความจุ",
+      "recurrence": "การเกิดซ้ำ",
+      "modules": "โมดูลปฏิบัติการ"
+    },
+    "manage": {
+      "title": "จัดการกิจกรรม",
+      "back": "กลับไปยังกิจกรรม",
+      "save": "บันทึกกิจกรรม",
+      "cancel": "ยกเลิกกิจกรรม"
+    },
+    "attention": {
+      "title": "การดำเนินการกิจกรรม",
+      "response": "ต้องตอบกลับ",
+      "registration": "เปิดลงทะเบียน",
+      "vote": "ต้องโหวต",
+      "roster_confirmation": "ต้องยืนยันรายชื่อ"
+    },
+    "reminders": {
+      "title": "การแจ้งเตือนล่าสุด"
+    },
+    "participation": {
+      "register": "ลงทะเบียน",
+      "cancelRegistration": "ยกเลิกการลงทะเบียน"
+    },
+    "responses": {
+      "going": "เข้าร่วม",
+      "maybe": "อาจจะ",
+      "unavailable": "ไม่ว่าง"
+    },
+    "registration": {
+      "registered": "ลงทะเบียนแล้ว",
+      "waitlisted": "รายชื่อรอ",
+      "cancelled": "ยกเลิกแล้ว"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "ควบคุมโดยพันธมิตร",
+      "game_calendar": "ปฏิทินเกม",
+      "matchmaking": "จับคู่",
+      "manual": "กำหนดเอง"
+    },
+    "recurrencePolicies": {
+      "disabled": "ไม่เกิดซ้ำ",
+      "fixed_interval": "ช่วงคงที่",
+      "configurable": "กำหนดค่าได้"
+    },
+    "recurrenceFrequencies": {
+      "none": "ไม่เกิดซ้ำ",
+      "daily": "รายวัน",
+      "weekly": "รายสัปดาห์"
+    },
+    "attendanceStatuses": {
+      "present": "มา",
+      "absent": "ขาด",
+      "excused": "ลา",
+      "unknown": "ไม่ทราบ"
+    },
+    "eventStatuses": {
+      "draft": "ฉบับร่าง",
+      "published": "เผยแพร่แล้ว",
+      "cancelled": "ยกเลิกแล้ว",
+      "completed": "เสร็จสิ้น"
+    },
+    "capabilities": {
+      "responses": "การตอบกลับ",
+      "registration": "ลงทะเบียน",
+      "waitlist": "รายชื่อรอ",
+      "attendance": "การเข้าร่วม",
+      "phases": "เฟส",
+      "polls": "โพล",
+      "rosters": "รายชื่อ",
+      "substitutes": "ตัวสำรอง",
+      "teams": "ทีม",
+      "legions": "กองทัพ",
+      "rally_guidance": "คำแนะนำแรลลี่",
+      "formations": "รูปขบวน",
+      "objectives": "เป้าหมาย",
+      "scoring": "คะแนน",
+      "results": "ผลลัพธ์"
+    },
+    "reminderAudiences": {
+      "target": "เป้าหมายกิจกรรม",
+      "responded": "ผู้เล่นที่ตอบแล้ว",
+      "registered": "ผู้เล่นที่ลงทะเบียน",
+      "rostered": "ผู้เล่นในรายชื่อ",
+      "all_scope_players": "ผู้เล่นที่มีสิทธิ์ทั้งหมด"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

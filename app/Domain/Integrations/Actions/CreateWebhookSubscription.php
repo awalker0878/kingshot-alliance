@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Integrations\Models\WebhookSubscription;
 use App\Domain\Integrations\Services\WebhookEndpointPolicy;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
@@ -29,7 +29,7 @@ final readonly class CreateWebhookSubscription
     ) {}
 
     /** @param list<string> $events */
-    public function handle(Alliance $alliance, User $actor, string $name, string $url, array $events): WebhookSubscription
+    public function handle(Alliance $alliance, Player $actor, string $name, string $url, array $events): WebhookSubscription
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::AllianceManage)) {
             throw new AuthorizationException;
@@ -61,7 +61,7 @@ final readonly class CreateWebhookSubscription
                 'events' => $events,
                 'signing_secret' => bin2hex(random_bytes(32)),
                 'is_active' => true,
-                'created_by_user_id' => $actor->id,
+                'created_by_player_id' => $actor->id,
             ]);
 
             $this->audit->record('integration.webhook.created', $actor, $subscription, $alliance, [

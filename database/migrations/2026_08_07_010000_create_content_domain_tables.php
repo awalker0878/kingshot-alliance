@@ -21,7 +21,7 @@ return new class extends Migration
             $table->char('sha256', 64);
             $table->string('scan_status', 32)->index();
             $table->string('lifecycle_status', 32)->index();
-            $table->foreignId('uploaded_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('uploaded_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamp('scanned_at')->nullable();
             $table->timestamps();
 
@@ -85,8 +85,8 @@ return new class extends Migration
             $table->timestamp('scheduled_for')->nullable()->index();
             $table->timestamp('published_at')->nullable()->index();
             $table->timestamp('archived_at')->nullable();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('updated_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
+            $table->foreignUlid('updated_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
@@ -113,7 +113,7 @@ return new class extends Migration
             $table->text('body');
             $table->string('locale', 16);
             $table->unsignedInteger('sort_order')->default(0);
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamp('created_at')->useCurrent();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();

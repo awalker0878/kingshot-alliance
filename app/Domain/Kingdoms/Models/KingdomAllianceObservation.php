@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
  * @property string $alliance_id
  * @property string $tracked_kingdom_alliance_id
  * @property string $kingdom_alliance_id
- * @property int|null $actor_user_id
+ * @property int|null $actor_player_id
  * @property string $observed_name
  * @property string|null $observed_tag
  * @property int|null $power
@@ -32,7 +32,7 @@ use Illuminate\Support\Carbon;
  * @property string $idempotency_key
  * @property string|null $corrects_observation_id
  * @property Carbon|null $invalidated_at
- * @property int|null $invalidated_by_user_id
+ * @property int|null $invalidated_by_player_id
  * @property string|null $invalidation_reason
  * @property-read Alliance $alliance
  * @property-read TrackedKingdomAlliance $tracking
@@ -53,7 +53,7 @@ final class KingdomAllianceObservation extends Model
         'alliance_id',
         'tracked_kingdom_alliance_id',
         'kingdom_alliance_id',
-        'actor_user_id',
+        'actor_player_id',
         'observed_name',
         'observed_tag',
         'power',
@@ -70,7 +70,7 @@ final class KingdomAllianceObservation extends Model
         'idempotency_key',
         'corrects_observation_id',
         'invalidated_at',
-        'invalidated_by_user_id',
+        'invalidated_by_player_id',
         'invalidation_reason',
     ];
 
@@ -102,10 +102,10 @@ final class KingdomAllianceObservation extends Model
         return $this->belongsTo(KingdomAlliance::class);
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function actor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'actor_user_id');
+        return $this->belongsTo(Player::class, 'actor_player_id');
     }
 
     /** @return BelongsTo<KingdomAllianceObservation, $this> */
@@ -114,9 +114,9 @@ final class KingdomAllianceObservation extends Model
         return $this->belongsTo(self::class, 'corrects_observation_id');
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function invalidatedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'invalidated_by_user_id');
+        return $this->belongsTo(Player::class, 'invalidated_by_player_id');
     }
 }

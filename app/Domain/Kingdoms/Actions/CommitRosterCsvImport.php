@@ -8,10 +8,9 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\KingdomPlayer;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\RosterImport;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -30,7 +29,7 @@ final readonly class CommitRosterCsvImport
     ) {}
 
     /** @param array<int|string, string> $resolutions */
-    public function handle(Alliance $alliance, User $actor, string $importId, array $resolutions): RosterImport
+    public function handle(Alliance $alliance, Player $actor, string $importId, array $resolutions): RosterImport
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
@@ -117,7 +116,7 @@ final readonly class CommitRosterCsvImport
                 if ($entryId !== null) {
                     $existing = AllianceRosterEntry::query()
                         ->where('alliance_id', $alliance->id)
-                        ->with('player:id,kingdom_id,game_player_id,current_name')
+                        ->with('player:id,current_kingdom_id,game_player_id,current_name')
                         ->lockForUpdate()
                         ->find($entryId);
 
@@ -142,7 +141,6 @@ final readonly class CommitRosterCsvImport
 
                 $attributes = [
                     'name' => (string) ($data['name'] ?? ''),
-                    'membership_id' => $existing?->membership_id,
                     'game_role' => $this->nullableString($data['game_role'] ?? null),
                     'state' => $state,
                     'joined_at' => $this->nullableString($data['joined_at'] ?? null),
@@ -197,7 +195,7 @@ final readonly class CommitRosterCsvImport
 
             $import->forceFill([
                 'status' => RosterImport::STATUS_COMMITTED,
-                'committed_by_user_id' => $actor->id,
+                'committed_by_player_id' => $actor->id,
                 'resolution_payload' => $normalizedResolutions,
                 'committed_summary' => $summary,
                 'committed_at' => now(),
@@ -229,14 +227,14 @@ final readonly class CommitRosterCsvImport
             return;
         }
 
-        $player = KingdomPlayer::query()
-            ->where('kingdom_id', $alliance->kingdom_id)
+        $player = Player::query()
+            ->where('current_kingdom_id', $alliance->kingdom_id)
             ->where('game_player_id', $stableId)
             ->first();
 
-        if ($player instanceof KingdomPlayer && AllianceRosterEntry::query()
+        if ($player instanceof Player && AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
-            ->where('kingdom_player_id', $player->id)
+            ->where('player_id', $player->id)
             ->exists()) {
             throw ValidationException::withMessages([
                 'file' => 'The roster changed after preview. Preview the CSV again before committing.',

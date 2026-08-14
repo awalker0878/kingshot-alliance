@@ -23,8 +23,8 @@ final class RecruitmentDecisionTemplate extends Model
         'subject',
         'body',
         'is_active',
-        'created_by_user_id',
-        'updated_by_user_id',
+        'created_by_player_id',
+        'updated_by_player_id',
     ];
 
     protected function casts(): array

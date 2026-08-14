@@ -97,7 +97,7 @@ A contact may contain an in-game display name/role and an approved external hand
 
 Contact assignment never grants platform permissions, application membership, `kingdoms.manage`, or access to another Alliance.
 
-The accepted increment does not collect phone numbers, home addresses, private credentials, secrets or unrelated personal data. A contact handle is not a stable KingdomPlayer identity key, and K3 contacts do not link to `KingdomPlayer`, `User`, memberships, roles or permissions.
+The accepted increment does not collect phone numbers, home addresses, private credentials, secrets or unrelated personal data. A contact handle is not a stable Player identity key, and K3 contacts do not link to `Player`, `User`, memberships, roles or permissions.
 
 ### Member-safe and manager-private presentation remain distinct
 
@@ -244,7 +244,7 @@ The active platform Alliance establishes tenant context and current Kingdom. `KI
 
 ### Kingdoms roster/player identity
 
-Diplomacy contacts remain separate from accepted neutral `KingdomPlayer` identity in K3. A contact is not resolved or linked by display name/handle.
+Diplomacy contacts remain separate from accepted neutral `Player` identity in K3. A contact is not resolved or linked by display name/handle.
 
 Alliance intelligence observations do not mutate player snapshots or roster state.
 

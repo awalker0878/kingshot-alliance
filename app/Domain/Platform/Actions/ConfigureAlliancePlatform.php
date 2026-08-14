@@ -10,6 +10,7 @@ use App\Domain\Identity\Models\User;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
 use App\Domain\Platform\Services\AllianceFeatureService;
 use App\Domain\Platform\Services\OutboxRecorder;
+use App\Domain\Platform\Services\PlatformAdministratorAuthorization;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -19,10 +20,13 @@ final readonly class ConfigureAlliancePlatform
         private AllianceFeatureService $features,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
+        private PlatformAdministratorAuthorization $authorization,
     ) {}
 
     public function assignPlan(User $actor, Alliance $alliance, string $planCode): void
     {
+        $this->authorization->authorize($actor);
+
         $exists = DB::table('platform_plans')
             ->where('code', $planCode)
             ->where('is_active', true)
@@ -59,6 +63,8 @@ final readonly class ConfigureAlliancePlatform
         bool $apiAccessEnabled,
         bool $webhooksEnabled,
     ): AlliancePlatformSetting {
+        $this->authorization->authorize($actor);
+
         if ($retentionDays < 1 || $retentionDays > 3650) {
             throw new InvalidArgumentException('Retention must be between 1 and 3650 days.');
         }
@@ -94,6 +100,8 @@ final readonly class ConfigureAlliancePlatform
         bool $enabled,
         ?array $configuration = null,
     ): void {
+        $this->authorization->authorize($actor);
+
         if (preg_match('/^[a-z0-9][a-z0-9._-]{2,99}$/', $featureKey) !== 1) {
             throw new InvalidArgumentException('Feature key is invalid.');
         }

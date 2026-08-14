@@ -9,7 +9,7 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Contributions\Enums\ContributionDataClass;
 use App\Domain\Contributions\Enums\ContributionPeriod;
 use App\Domain\Contributions\Models\ContributionCategory;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,7 +23,7 @@ final class CreateContributionCategory
     ) {}
 
     public function handle(
-        User $actor,
+        Player $actor,
         Alliance $alliance,
         string $name,
         string $unit,
@@ -96,8 +96,8 @@ final class CreateContributionCategory
                 'calculation_version' => $calculationVersion,
                 'calculation_description' => $calculationDescription,
                 'is_active' => true,
-                'created_by_user_id' => $actor->id,
-                'updated_by_user_id' => $actor->id,
+                'created_by_player_id' => $actor->id,
+                'updated_by_player_id' => $actor->id,
             ]);
 
             $this->audit->record('contribution.category.created', $actor, $category, $alliance, [

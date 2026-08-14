@@ -34,7 +34,7 @@ final class KingdomAllianceDiplomacyController extends Controller
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
-        if (! $authorization->allows($user, $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
 
@@ -71,7 +71,7 @@ final class KingdomAllianceDiplomacyController extends Controller
         $state = KingdomAllianceDiplomacyState::from($validated['state']);
         unset($validated['state']);
 
-        $transition->handle($context->alliance(), $this->user($request), $tracking, $state, $validated);
+        $transition->handle($context->alliance(), $context->player(), $tracking, $state, $validated);
 
         return back()->with('status', 'kingdom-alliance-diplomacy-transitioned');
     }
@@ -152,7 +152,7 @@ final class KingdomAllianceDiplomacyController extends Controller
             'needsReview' => $diplomacy->needsReview($relationship),
             'terms' => $relationship->terms,
             'rationale' => $relationship->rationale,
-            'lastActorName' => $relationship->lastTransitionUser?->name,
+            'lastActorName' => $relationship->lastTransitionPlayer?->current_name,
         ];
     }
 
@@ -168,7 +168,7 @@ final class KingdomAllianceDiplomacyController extends Controller
             'expiresAt' => $transition->expires_at?->toIso8601String(),
             'terms' => $transition->terms,
             'rationale' => $transition->rationale,
-            'actorName' => $transition->actor?->name,
+            'actorName' => $transition->actor?->current_name,
             'recordedAt' => $transition->created_at->toIso8601String(),
         ];
     }

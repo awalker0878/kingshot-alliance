@@ -11,7 +11,7 @@ final class KingdomP7AExperienceTest extends TestCase
     public function test_p7a_surfaces_use_shared_shell_and_real_kingdom_contracts(): void
     {
         $root = dirname(__DIR__, 2);
-        foreach (['KingdomAlliances.vue', 'KingdomSettings.vue', 'KingdomIngestionManage.vue'] as $page) {
+        foreach (['KingdomAlliances.vue', 'KingdomSettings.vue', 'KingdomRoles.vue', 'KingdomIngestionManage.vue'] as $page) {
             $source = file_get_contents($root.'/resources/js/pages/Alliance/'.$page);
             self::assertIsString($source);
             self::assertStringContainsString('AppLayout', $source);
@@ -29,6 +29,11 @@ final class KingdomP7AExperienceTest extends TestCase
         $settings = file_get_contents($root.'/resources/js/pages/Alliance/KingdomSettings.vue');
         self::assertIsString($settings);
         self::assertStringContainsString("form.patch('/alliance/settings/kingdom'", $settings);
+
+        $roles = file_get_contents($root.'/resources/js/pages/Alliance/KingdomRoles.vue');
+        self::assertIsString($roles);
+        self::assertStringContainsString("form.post('/alliance/settings/kingdom/roles'", $roles);
+        self::assertStringContainsString('router.delete(`/alliance/settings/kingdom/roles/', $roles);
 
         $ingestion = file_get_contents($root.'/resources/js/pages/Alliance/KingdomIngestionManage.vue');
         self::assertIsString($ingestion);
@@ -72,5 +77,11 @@ final class KingdomP7AExperienceTest extends TestCase
             self::assertStringContainsString("'name' => (string) \$user->name", $source);
             self::assertStringContainsString("'email' => (string) \$user->email", $source);
         }
+
+        $roleController = file_get_contents($root.'/app/Domain/Authorization/Http/Controllers/KingdomRoleController.php');
+        self::assertIsString($roleController);
+        self::assertStringContainsString("Inertia::render('Alliance/KingdomRoles'", $roleController);
+        self::assertStringContainsString("'name' => (string) \$user->name", $roleController);
+        self::assertStringContainsString("'email' => (string) \$user->email", $roleController);
     }
 }

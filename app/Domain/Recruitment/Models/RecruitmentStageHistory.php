@@ -27,7 +27,7 @@ final class RecruitmentStageHistory extends Model
         'from_stage',
         'to_stage',
         'reason',
-        'changed_by_user_id',
+        'changed_by_player_id',
         'changed_at',
     ];
 

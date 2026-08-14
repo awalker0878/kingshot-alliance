@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Http\Controllers;
 
 use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\ArchiveTransferGroup;
 use App\Domain\Kingdoms\Actions\AssignTransferParticipantGroup;
 use App\Domain\Kingdoms\Actions\SaveTransferGroup;
@@ -25,7 +24,7 @@ final class TransferGroupController extends Controller
     ): RedirectResponse {
         $save->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $plan,
             $this->validatedGroup($request),
         );
@@ -42,7 +41,7 @@ final class TransferGroupController extends Controller
     ): RedirectResponse {
         $save->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $plan,
             $this->validatedGroup($request),
             $group,
@@ -60,7 +59,7 @@ final class TransferGroupController extends Controller
     ): RedirectResponse {
         $archive->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $plan,
             $group,
         );
@@ -86,7 +85,7 @@ final class TransferGroupController extends Controller
 
         $assign->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $plan,
             $participant,
             $groupId === '' ? null : $groupId,
@@ -100,7 +99,7 @@ final class TransferGroupController extends Controller
      *   name: string,
      *   direction: TransferDirection,
      *   destination_kingdom?: int|null,
-     *   coordinator_membership_id?: string|null,
+     *   coordinator_player_id?: string|null,
      *   manager_notes?: string|null
      * }
      */
@@ -110,7 +109,7 @@ final class TransferGroupController extends Controller
          *   name: string,
          *   direction: string,
          *   destination_kingdom?: int|null,
-         *   coordinator_membership_id?: string|null,
+         *   coordinator_player_id?: string|null,
          *   manager_notes?: string|null
          * } $validated
          */
@@ -121,19 +120,11 @@ final class TransferGroupController extends Controller
                 TransferDirection::Outgoing->value,
             ])],
             'destination_kingdom' => ['nullable', 'integer', 'min:1'],
-            'coordinator_membership_id' => ['nullable', 'string', 'ulid'],
+            'coordinator_player_id' => ['nullable', 'string', 'ulid'],
             'manager_notes' => ['nullable', 'string', 'max:5000'],
         ]);
         $validated['direction'] = TransferDirection::from($validated['direction']);
 
         return $validated;
-    }
-
-    private function user(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
-
-        return $user;
     }
 }

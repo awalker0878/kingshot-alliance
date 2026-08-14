@@ -1,0 +1,83 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Events\Actions;
+
+use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Events\Enums\EventCapability;
+use App\Domain\Events\Enums\EventPollStatus;
+use App\Domain\Events\Models\EventPoll;
+use App\Domain\Events\Models\EventPollOption;
+use App\Domain\Events\Models\EventPollVote;
+use App\Domain\Events\Services\EventCapabilityGuard;
+use App\Domain\Events\Services\EventParticipantAuthorization;
+use App\Domain\Events\Services\EventTargetResolver;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Platform\Services\OutboxRecorder;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
+final readonly class CastEventPollVote
+{
+    public function __construct(
+        private EventParticipantAuthorization $authorization,
+        private EventCapabilityGuard $capabilities,
+        private EventTargetResolver $targets,
+        private AuditRecorder $audit,
+        private OutboxRecorder $outbox,
+    ) {}
+
+    /** @param list<string> $optionIds */
+    public function handle(Player $actor, EventPoll $poll, Player $player, array $optionIds): void
+    {
+        $poll->loadMissing('occurrence.event.typeScope');
+        $event = $poll->occurrence->event;
+        $this->capabilities->require($event, EventCapability::Polls);
+        $this->authorization->authorizeSelf($actor, $event, $player);
+
+        DB::transaction(function () use ($actor, $poll, $event, $player, $optionIds): void {
+            $locked = EventPoll::query()->whereKey($poll->id)->lockForUpdate()->firstOrFail();
+            $now = CarbonImmutable::now('UTC');
+            if ($locked->status !== EventPollStatus::Open
+                || ($locked->opens_at !== null && $now->lessThan(CarbonImmutable::instance($locked->opens_at)->utc()))
+                || ($locked->closes_at !== null && ! $now->lessThan(CarbonImmutable::instance($locked->closes_at)->utc()))) {
+                throw ValidationException::withMessages(['poll' => 'Voting is not currently open.']);
+            }
+
+            $ids = array_values(array_unique(array_map('strval', $optionIds)));
+            if ($ids === [] || count($ids) > (int) $locked->max_choices) {
+                throw ValidationException::withMessages(['options' => 'Select between 1 and '.$locked->max_choices.' option(s).']);
+            }
+            $options = EventPollOption::query()->where('poll_id', $locked->id)->whereIn('id', $ids)->get();
+            if ($options->count() !== count($ids)) {
+                throw ValidationException::withMessages(['options' => 'One or more selected poll options are invalid.']);
+            }
+
+            EventPollVote::query()->where('poll_id', $locked->id)->where('player_id', $player->id)->delete();
+            foreach ($ids as $optionId) {
+                EventPollVote::query()->create([
+                    'poll_id' => $locked->id,
+                    'option_id' => $optionId,
+                    'player_id' => $player->id,
+                    'cast_by_player_id' => $player->id,
+                    'cast_at' => now(),
+                ]);
+            }
+
+            $target = $this->targets->forEvent($event);
+            $alliance = $target instanceof Alliance ? $target : null;
+            $metadata = [
+                'event_id' => (string) $event->id,
+                'occurrence_id' => (string) $locked->occurrence_id,
+                'poll_id' => (string) $locked->id,
+                'player_id' => (string) $player->id,
+                'option_ids' => $ids,
+            ];
+            $this->audit->record('event.poll.vote_cast', $actor, $locked, $alliance, $metadata);
+            $this->outbox->record('event.poll.vote_cast', $alliance?->id, $locked, $metadata, partitionKey: $event->scope->value.':'.$target->id);
+        });
+    }
+}

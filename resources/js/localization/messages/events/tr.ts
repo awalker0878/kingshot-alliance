@@ -1,110 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: 'Etkinliklere dön',
-    eyebrow: 'Etkinlik operasyonları',
-    title: 'Etkinlik koordinatörü',
-    description:
-      'Etkinlikleri planla, ralli rehberi yayınla, formasyon ve grupları düzenle; ardından katılım ve yoklamayı kaydet.',
-    scheduling: 'Planlama ve şablonlar',
-    remindersGuidance: 'Hatırlatıcılar ve rehber',
-    rallySetup: 'Formasyonlar ve ralli',
-    readiness: 'Hazırlık ve yoklama',
-    createEvent: 'Etkinlik oluştur',
-    eventTitle: 'Etkinlik başlığı',
-    firstStart: 'İlk başlangıç',
-    durationMinutes: 'Süre (dakika)',
-    registrationOpens: 'Kayıt açılışı (dakika önce)',
-    registrationCloses: 'Kayıt kapanışı (dakika önce)',
-    recurrence: 'Tekrarlama',
-    interval: 'Aralık',
-    recurrenceEnd: 'Tekrarlama sonu',
-    createEventAction: 'Etkinlik oluştur',
-    eventValidation: 'Etkinlik alanlarını ve kayıt penceresini kontrol edin.',
-    createTemplate: 'Etkinlik şablonu oluştur',
-    saveTemplate: 'Şablonu kaydet',
-    scheduleFromTemplate: 'Şablondan planla',
-    chooseTemplate: 'Şablon seç',
-    optionalTitle: 'İsteğe bağlı başlık',
-    scheduleTemplate: 'Şablonu planla',
-    reminderRule: 'Hatırlatıcı kuralı',
-    reminderHelp: 'Seçilen etkinliğin her tekrarına uygulama içi hatırlatıcı oluşturun.',
-    chooseEvent: 'Etkinlik seç',
-    minutesBefore: 'Başlangıçtan önce dakika',
-    addReminder: 'Hatırlatıcı ekle',
-    rallyGuidance: 'Ralli rehberi',
-    guidanceHelp:
-      'Geçerlilik tarihleriyle yeniden kullanılabilir birlik oranları ve kahraman rehberi yayınlayın.',
-    heroRecommendations: 'Kahraman önerileri',
-    effectiveFrom: 'Geçerlilik başlangıcı',
-    effectiveUntil: 'Geçerlilik sonu',
-    leadRequirements: 'Lider gereksinimleri',
-    joinerGuidance: 'Katılımcı rehberi',
-    guidanceValidation:
-      'Tarihleri kontrol edin ve birlik oranlarının toplamının %100 olduğundan emin olun.',
-    publishGuidance: 'Rehberi yayınla',
-    eventFormation: 'Etkinlik formasyonu',
-    occurrence: 'Tekrar',
-    chooseOccurrence: 'Tekrar seç',
-    noGuidance: 'Bağlı rehber yok',
-    addFormation: 'Formasyon ekle',
-    rallyGroup: 'Ralli grubu',
-    maxJoiners: 'Maks. katılımcı',
-    none: 'Yok',
-    createGroup: 'Grup oluştur',
-    assignMember: 'Ralli üyesi ata',
-    member: 'Üye',
-    chooseGroup: 'Grup seç',
-    chooseMember: 'Üye seç',
-    slotNumber: 'Slot numarası',
-    saveAssignment: 'Atamayı kaydet',
-    registrations: 'Kayıtlar',
-    noRegistrations: 'Bu tekrar için aktif kayıt yok.',
-    rallyAssignments: 'Ralli atamaları',
-    noAssignments: 'Bu tekrar için ralli ataması yok.',
-    participated: 'Katıldı',
-    statusAssigned: 'Atandı',
-    statusParticipated: 'Katıldı',
-    recurrenceNone: 'Yok',
-    recurrenceDaily: 'Günlük',
-    recurrenceWeekly: 'Haftalık',
-    roleLead: 'Lider',
-    roleJoiner: 'Katılımcı',
-  },
-  eventDetail: {
-    participation: 'Katılım',
-    registeredCount: '{count} kayıtlı',
-    waitlistedCount: '{count} beklemede',
-    noLimit: 'Sınırsız',
-    instructions: 'Talimatlar',
-    recommendedFormations: 'Önerilen dizilimler',
-    noRecommendedFormations: 'Bu etkinliğe özel dizilim rehberi yayımlanmadı.',
-    assignmentRole: 'Atama rolü',
-    troopRatio: 'Birlik oranı',
-    infantry: 'Piyade',
-    cavalry: 'Süvari',
-    archers: 'Okçular',
-    heroes: 'Kahramanlar',
-    notes: 'Notlar',
-    guidance: 'Rehber',
-    source: 'Kaynak',
-    effective: '{date} tarihinden itibaren',
-    through: '{date} tarihine kadar',
-    rallyGroups: 'Ralli grupları',
-    maxJoiners: 'Maks. katılımcı: {count}',
-    noAssigned: 'Henüz üye atanmadı.',
-    noRallyGroups: 'Bu etkinlik için ralli grubu yapılandırılmadı.',
-    savedFormations: 'Kayıtlı dizilimlerin',
-    default: 'Varsayılan',
-    noSavedFormations: 'Henüz bir dizilim kaydetmedin.',
-    saveFormation: 'Dizilim kaydet',
-    formationName: 'Ad',
-    heroesHint: 'Kahraman bir, Kahraman iki, Kahraman üç',
-    makeDefault: 'Varsayılan dizilimim yap',
-    formationValidation: 'Dizilim değerlerini kontrol et. Birlik yüzdeleri toplamı %100 olmalıdır.',
-    save: 'Dizilimi kaydet',
-  },
+  "events": {
+    "scope": {
+      "player": "Oyuncu",
+      "alliance": "İttifak",
+      "kingdom": "Krallık"
+    },
+    "actions": {
+      "save": "Kaydet",
+      "cancel": "İptal"
+    },
+    "calendar": {
+      "title": "Etkinlikler",
+      "create": "Etkinlik oluştur",
+      "agenda": "Ajanda",
+      "month": "Takvim",
+      "all": "Tüm kapsamlar",
+      "manageable": "Yönet",
+      "empty": "Bu görünüme uyan etkinlik yok.",
+      "previousMonth": "Önceki ay",
+      "nextMonth": "Sonraki ay",
+      "scopeFilters": "Etkinlikleri kapsama göre filtrele",
+      "viewOptions": "Etkinlik görünümünü seç"
+    },
+    "create": {
+      "title": "Etkinlik oluştur",
+      "back": "Etkinliklere dön",
+      "noContexts": "Şu anda etkinlik oluşturma izniniz yok.",
+      "context": "Etkinlik bağlamı",
+      "eventType": "Etkinlik türü",
+      "start": "Başlangıç zamanı",
+      "duration": "Süre (dakika)",
+      "capacity": "Kapasite",
+      "instructions": "Talimatlar",
+      "submit": "Etkinlik oluştur"
+    },
+    "show": {
+      "back": "Etkinliklere dön",
+      "manage": "Etkinliği yönet",
+      "details": "Etkinlik ayrıntıları",
+      "status": "Durum",
+      "capacity": "Kapasite",
+      "recurrence": "Tekrarlama",
+      "modules": "Operasyon modülleri"
+    },
+    "manage": {
+      "title": "Etkinliği yönet",
+      "back": "Etkinliklere dön",
+      "save": "Etkinliği kaydet",
+      "cancel": "Etkinliği iptal et"
+    },
+    "attention": {
+      "title": "Etkinlik işlemleri",
+      "response": "Yanıt gerekli",
+      "registration": "Kayıt açık",
+      "vote": "Oy gerekli",
+      "roster_confirmation": "Kadro onayı gerekli"
+    },
+    "reminders": {
+      "title": "Son hatırlatmalar"
+    },
+    "participation": {
+      "register": "Kaydol",
+      "cancelRegistration": "Kaydı iptal et"
+    },
+    "responses": {
+      "going": "Geliyorum",
+      "maybe": "Belki",
+      "unavailable": "Uygun değil"
+    },
+    "registration": {
+      "registered": "Kayıtlı",
+      "waitlisted": "Bekleme listesi",
+      "cancelled": "İptal edildi"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "İttifak kontrollü",
+      "game_calendar": "Oyun takvimi",
+      "matchmaking": "Eşleştirme",
+      "manual": "Manuel"
+    },
+    "recurrencePolicies": {
+      "disabled": "Tekrarlama yok",
+      "fixed_interval": "Sabit aralık",
+      "configurable": "Yapılandırılabilir"
+    },
+    "recurrenceFrequencies": {
+      "none": "Tekrarlama yok",
+      "daily": "Günlük",
+      "weekly": "Haftalık"
+    },
+    "attendanceStatuses": {
+      "present": "Katıldı",
+      "absent": "Katılmadı",
+      "excused": "Mazeretli",
+      "unknown": "Bilinmiyor"
+    },
+    "eventStatuses": {
+      "draft": "Taslak",
+      "published": "Yayınlandı",
+      "cancelled": "İptal edildi",
+      "completed": "Tamamlandı"
+    },
+    "capabilities": {
+      "responses": "Yanıtlar",
+      "registration": "Kayıt",
+      "waitlist": "Bekleme listesi",
+      "attendance": "Katılım",
+      "phases": "Aşamalar",
+      "polls": "Anketler",
+      "rosters": "Kadrolar",
+      "substitutes": "Yedekler",
+      "teams": "Takımlar",
+      "legions": "Lejyonlar",
+      "rally_guidance": "Ralli rehberi",
+      "formations": "Dizilimler",
+      "objectives": "Hedefler",
+      "scoring": "Puanlama",
+      "results": "Sonuçlar"
+    },
+    "reminderAudiences": {
+      "target": "Etkinlik hedefi",
+      "responded": "Yanıt veren oyuncular",
+      "registered": "Kayıtlı oyuncular",
+      "rostered": "Kadroya alınan oyuncular",
+      "all_scope_players": "Tüm uygun oyuncular"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

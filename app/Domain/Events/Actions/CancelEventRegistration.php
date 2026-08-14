@@ -6,71 +6,61 @@ namespace App\Domain\Events\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
-use App\Domain\Identity\Models\User;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Events\Services\EventCapabilityGuard;
+use App\Domain\Events\Services\EventParticipantAuthorization;
+use App\Domain\Events\Services\EventTargetResolver;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
-use DomainException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
-final class CancelEventRegistration
+final readonly class CancelEventRegistration
 {
     public function __construct(
+        private EventParticipantAuthorization $authorization,
+        private EventCapabilityGuard $capabilities,
+        private EventTargetResolver $targets,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(User $actor, Alliance $alliance, string $occurrenceId): EventRegistration
+    public function handle(Player $actor, EventOccurrence $occurrence, Player $player): EventRegistration
     {
-        return DB::transaction(function () use ($actor, $alliance, $occurrenceId): EventRegistration {
-            $membership = AllianceMembership::query()
-                ->where('alliance_id', $alliance->id)
-                ->where('user_id', $actor->id)
-                ->where('status', MembershipStatus::Active->value)
-                ->first();
+        $occurrence->loadMissing('event.typeScope');
+        $event = $occurrence->event;
+        $this->capabilities->require($event, EventCapability::Registration);
+        $this->authorization->authorizeSelf($actor, $event, $player);
 
-            if (! $membership instanceof AllianceMembership) {
-                throw new DomainException('An active alliance membership is required to cancel registration.');
-            }
-
-            $occurrence = EventOccurrence::query()
-                ->where('id', $occurrenceId)
-                ->where('alliance_id', $alliance->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-
+        return DB::transaction(function () use ($actor, $occurrence, $event, $player): EventRegistration {
+            EventOccurrence::query()->whereKey($occurrence->id)->lockForUpdate()->firstOrFail();
             $registration = EventRegistration::query()
                 ->where('occurrence_id', $occurrence->id)
-                ->where('membership_id', $membership->id)
+                ->where('player_id', $player->id)
                 ->lockForUpdate()
-                ->firstOrFail();
+                ->first();
 
-            if ($registration->status === EventRegistrationStatus::Cancelled) {
-                return $registration;
-            }
-
-            if (in_array($registration->status, [EventRegistrationStatus::Attended, EventRegistrationStatus::NoShow], true)) {
-                throw new DomainException('Attendance has already been finalized for this occurrence.');
+            if (! $registration instanceof EventRegistration || $registration->status === EventRegistrationStatus::Cancelled) {
+                throw ValidationException::withMessages(['registration' => 'This Player is not currently registered.']);
             }
 
             $wasRegistered = $registration->status === EventRegistrationStatus::Registered;
             $registration->forceFill([
                 'status' => EventRegistrationStatus::Cancelled,
                 'waitlist_position' => null,
+                'cancelled_by_player_id' => $player->id,
                 'cancelled_at' => now(),
             ])->save();
 
             $promoted = null;
-
             if ($wasRegistered) {
                 $promoted = EventRegistration::query()
                     ->where('occurrence_id', $occurrence->id)
                     ->where('status', EventRegistrationStatus::Waitlisted->value)
                     ->orderBy('waitlist_position')
-                    ->orderBy('registered_at')
                     ->lockForUpdate()
                     ->first();
 
@@ -82,28 +72,46 @@ final class CancelEventRegistration
                 }
             }
 
-            $this->audit->record(
-                'event.registration.cancelled',
-                actor: $actor,
-                subject: $registration,
-                alliance: $alliance,
-                metadata: ['promoted_registration_id' => $promoted?->id],
-            );
-
-            $this->outbox->record('event.registration.cancelled', (string) $alliance->id, $registration, [
-                'occurrence_id' => $occurrence->id,
-                'membership_id' => $membership->id,
-                'promoted_registration_id' => $promoted?->id,
-            ]);
-
-            if ($promoted instanceof EventRegistration) {
-                $this->outbox->record('event.registration.promoted', (string) $alliance->id, $promoted, [
-                    'occurrence_id' => $occurrence->id,
-                    'membership_id' => $promoted->membership_id,
-                ]);
+            $remaining = EventRegistration::query()
+                ->where('occurrence_id', $occurrence->id)
+                ->where('status', EventRegistrationStatus::Waitlisted->value)
+                ->orderBy('waitlist_position')
+                ->lockForUpdate()
+                ->get();
+            foreach ($remaining as $index => $waitlisted) {
+                $position = $index + 1;
+                if ((int) $waitlisted->waitlist_position !== $position) {
+                    $waitlisted->forceFill(['waitlist_position' => $position])->save();
+                }
             }
 
-            return $registration;
+            $target = $this->targets->forEvent($event);
+            $alliance = $target instanceof Alliance ? $target : null;
+            $metadata = [
+                'occurrence_id' => (string) $occurrence->id,
+                'player_id' => (string) $player->id,
+                'promoted_player_id' => $promoted?->player_id,
+            ];
+            $this->audit->record('event.registration.cancelled', $actor, $registration, $alliance, $metadata);
+            $this->outbox->record('event.registration.cancelled', $alliance?->id, $registration, $metadata, partitionKey: $event->scope->value.':'.$target->id);
+
+            if ($promoted instanceof EventRegistration) {
+                $promotionMetadata = [
+                    'occurrence_id' => (string) $occurrence->id,
+                    'player_id' => (string) $promoted->player_id,
+                    'promoted_after_player_id' => (string) $player->id,
+                ];
+                $this->audit->record('event.registration.promoted', $actor, $promoted, $alliance, $promotionMetadata);
+                $this->outbox->record(
+                    'event.registration.promoted',
+                    $alliance?->id,
+                    $promoted,
+                    $promotionMetadata,
+                    partitionKey: $event->scope->value.':'.$target->id,
+                );
+            }
+
+            return $registration->refresh();
         });
     }
 }

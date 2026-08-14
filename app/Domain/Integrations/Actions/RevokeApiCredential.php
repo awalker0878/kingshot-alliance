@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Integrations\Models\ApiCredential;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -23,7 +23,7 @@ final readonly class RevokeApiCredential
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $alliance, User $actor, ApiCredential $credential): ApiCredential
+    public function handle(Alliance $alliance, Player $actor, ApiCredential $credential): ApiCredential
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::AllianceManage)) {
             throw new AuthorizationException;

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestampTz('expires_at')->nullable();
             $table->text('terms')->nullable();
             $table->text('rationale')->nullable();
-            $table->foreignId('last_transition_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('last_transition_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
 
             $table->unique(
@@ -53,7 +53,7 @@ return new class extends Migration
             $table->timestampTz('expires_at')->nullable();
             $table->text('terms')->nullable();
             $table->text('rationale')->nullable();
-            $table->foreignId('actor_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('actor_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestampTz('created_at')->useCurrent();
 
             $table->index(

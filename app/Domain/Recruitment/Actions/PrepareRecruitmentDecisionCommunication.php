@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentCommunicationStatus;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
@@ -27,7 +27,7 @@ final class PrepareRecruitmentDecisionCommunication
     ) {}
 
     public function handle(
-        User $actor,
+        Player $actor,
         Alliance $alliance,
         RecruitmentCandidate $candidate,
         RecruitmentDecisionTemplate $template,
@@ -88,7 +88,7 @@ final class PrepareRecruitmentDecisionCommunication
                 'body' => $body,
                 'status' => RecruitmentCommunicationStatus::Prepared,
                 'idempotency_key' => $idempotencyKey,
-                'created_by_user_id' => $actor->id,
+                'created_by_player_id' => $actor->id,
             ]);
 
             $this->audit->record('recruitment.communication.prepared', $actor, $communication, $alliance, [

@@ -53,7 +53,7 @@ The final hardening layer includes:
 
 The final review confirms:
 
-- global `Kingdom` and `KingdomPlayer` identity remain neutral reference data, never an authorization boundary;
+- global `Kingdom` and `Player` identity remain neutral reference data, never an authorization boundary;
 - all transfer plans, participants, groups, coordinator references, readiness, blockers, manager notes, completion records and handoff provenance remain alliance-owned;
 - submitted plan/participant/group/roster/membership identifiers are re-resolved beneath the active Alliance and transfer-plan boundary;
 - sharing a Kingdom, player identity or destination never grants cross-alliance visibility;

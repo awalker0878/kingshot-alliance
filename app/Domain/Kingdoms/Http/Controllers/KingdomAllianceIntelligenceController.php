@@ -29,11 +29,11 @@ final class KingdomAllianceIntelligenceController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
             throw new AuthorizationException;
         }
 
-        $canManage = $authorization->allows($user, $alliance, PermissionKey::KingdomManage);
+        $canManage = $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage);
 
         return Inertia::render('Alliance/KingdomAllianceIntelligence', [
             'user' => [

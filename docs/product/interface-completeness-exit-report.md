@@ -125,7 +125,7 @@ P4 makes four responsibilities explicit:
 
 Current internal consumers are Notifications `MarkEventReminderPublished`, Recruitment `MarkRecruitmentCandidateJoined`, and Integrations `QueueWebhookDeliveries`.
 
-`alliance.kingdom_updated` and all `kingdoms.*` events remain externally ineligible even for wildcard subscriptions. The accepted Integrations webhook contract retains envelope, HMAC-SHA256 signature, headers, 256-KiB bound, endpoint revalidation, delivery identity and retry behavior.
+All `kingdoms.*` events remain externally ineligible even for wildcard subscriptions. The accepted Integrations webhook contract retains envelope, HMAC-SHA256 signature, headers, 256-KiB bound, endpoint revalidation, delivery identity and retry behavior.
 
 ## 9. Commands, jobs and scheduled work
 

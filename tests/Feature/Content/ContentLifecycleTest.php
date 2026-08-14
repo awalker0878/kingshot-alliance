@@ -15,6 +15,8 @@ use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;
 use App\Domain\Content\Models\ContentRevision;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -25,11 +27,18 @@ final class ContentLifecycleTest extends TestCase
     public function test_editing_published_content_creates_revision_and_returns_item_to_draft(): void
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4901]);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'content-revision-r5',
+            'current_name' => 'Content Revision R5',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Revision Alliance', 'revision-alliance');
+            ->handle($ownerPlayer, 'Revision Alliance', 'revision-alliance');
         $save = $this->app->make(SaveContentItem::class);
-        $item = $save->handle($alliance, $owner, $this->attributes('Original', 'revision-item', 'Original body'));
-        $this->app->make(PublishContentItem::class)->handle($alliance, $owner, $item->id);
+        $item = $save->handle($alliance, $ownerPlayer, $this->attributes('Original', 'revision-item', 'Original body'));
+        $this->app->make(PublishContentItem::class)->handle($alliance, $ownerPlayer, $item->id);
 
         $updated = $save->handle(
             $alliance,
@@ -58,18 +67,25 @@ final class ContentLifecycleTest extends TestCase
     public function test_historical_revision_can_be_restored_only_as_a_new_draft_revision(): void
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4902]);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'content-restore-r5',
+            'current_name' => 'Content Restore R5',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Restore Alliance', 'restore-alliance');
+            ->handle($ownerPlayer, 'Restore Alliance', 'restore-alliance');
         $save = $this->app->make(SaveContentItem::class);
-        $item = $save->handle($alliance, $owner, $this->attributes('Version One', 'restore-item', 'First body'));
+        $item = $save->handle($alliance, $ownerPlayer, $this->attributes('Version One', 'restore-item', 'First body'));
         $firstRevision = ContentRevision::query()
             ->where('content_item_id', $item->id)
             ->where('revision_number', 1)
             ->sole();
-        $save->handle($alliance, $owner, $this->attributes('Version Two', 'restore-item', 'Second body'), $item->id);
+        $save->handle($alliance, $ownerPlayer, $this->attributes('Version Two', 'restore-item', 'Second body'), $item->id);
 
         $restored = $this->app->make(RestoreContentRevision::class)
-            ->handle($alliance, $owner, $item->id, $firstRevision->id);
+            ->handle($alliance, $ownerPlayer, $item->id, $firstRevision->id);
 
         self::assertSame('Version One', $restored->title);
         self::assertSame('First body', $restored->body);
@@ -86,12 +102,19 @@ final class ContentLifecycleTest extends TestCase
     {
         $this->travelTo(now()->startOfMinute());
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4903]);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'content-schedule-r5',
+            'current_name' => 'Content Schedule R5',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Schedule Alliance', 'schedule-alliance');
+            ->handle($ownerPlayer, 'Schedule Alliance', 'schedule-alliance');
         $item = $this->app->make(SaveContentItem::class)
-            ->handle($alliance, $owner, $this->attributes('Scheduled', 'scheduled-item', 'Scheduled body'));
+            ->handle($alliance, $ownerPlayer, $this->attributes('Scheduled', 'scheduled-item', 'Scheduled body'));
         $scheduled = $this->app->make(PublishContentItem::class)
-            ->handle($alliance, $owner, $item->id, now()->addMinutes(5));
+            ->handle($alliance, $ownerPlayer, $item->id, now()->addMinutes(5));
 
         self::assertSame(ContentStatus::Scheduled, $scheduled->status);
         self::assertSame(0, $this->app->make(PublishScheduledContent::class)->handle());
@@ -102,7 +125,7 @@ final class ContentLifecycleTest extends TestCase
         $this->get('/alliances/schedule-alliance/content/scheduled-item')->assertOk();
 
         $archived = $this->app->make(ArchiveContentItem::class)
-            ->handle($alliance, $owner, $item->id);
+            ->handle($alliance, $ownerPlayer, $item->id);
         self::assertSame(ContentStatus::Archived, $archived->status);
         $this->get('/alliances/schedule-alliance/content/scheduled-item')->assertNotFound();
     }

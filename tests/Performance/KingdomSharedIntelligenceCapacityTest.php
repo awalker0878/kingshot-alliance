@@ -9,7 +9,9 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\AcceptKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation;
+use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Queries\SharedKingdomIntelligenceCurrentQuery;
 use App\Domain\Kingdoms\Queries\SharedKingdomIntelligenceHistoryQuery;
 use Illuminate\Database\Events\QueryExecuted;
@@ -84,9 +86,9 @@ final class KingdomSharedIntelligenceCapacityTest extends TestCase
                 'kingdom_intelligence_share_id' => $share->id,
                 'tracked_kingdom_alliance_id' => $trackingId,
                 'state' => 'active',
-                'shared_by_user_id' => $sourceOwner->id,
+                'shared_by_player_id' => $sourceOwner->players()->sole()->id,
                 'shared_at' => $now,
-                'removed_by_user_id' => null,
+                'removed_by_player_id' => null,
                 'removed_at' => null,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -209,7 +211,7 @@ final class KingdomSharedIntelligenceCapacityTest extends TestCase
             'alliance_id' => $source->id,
             'tracked_kingdom_alliance_id' => $trackingId,
             'kingdom_alliance_id' => $referenceId,
-            'actor_user_id' => $sourceOwner->id,
+            'actor_player_id' => $sourceOwner->players()->sole()->id,
             'observed_name' => $name,
             'observed_tag' => 'CAP',
             'power' => 123456789,
@@ -219,7 +221,7 @@ final class KingdomSharedIntelligenceCapacityTest extends TestCase
             'idempotency_key' => hash('sha256', $trackingId.'|'.$key),
             'corrects_observation_id' => null,
             'invalidated_at' => null,
-            'invalidated_by_user_id' => null,
+            'invalidated_by_player_id' => null,
             'invalidation_reason' => null,
             'created_at' => $capturedAt,
             'updated_at' => $capturedAt,
@@ -232,17 +234,28 @@ final class KingdomSharedIntelligenceCapacityTest extends TestCase
         User $recipientOwner,
         Alliance $recipient,
     ): KingdomIntelligenceShare {
-        $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)->handle($source, $sourceOwner);
+        $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)
+            ->handle($source, $sourceOwner->players()->sole());
 
         return $this->app->make(AcceptKingdomIntelligenceShareInvitation::class)
-            ->handle($recipient, $recipientOwner, $issued->token);
+            ->handle($recipient, $recipientOwner->players()->sole(), $issued->token);
     }
 
     /** @return array{User, Alliance} */
     private function ownerAlliance(string $name, string $slug, int $kingdom): array
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $kingdomModel = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdom],
+            ['status' => 'active'],
+        );
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdomModel->id,
+            'game_player_id' => 'owner-'.$slug,
+            'current_name' => $name.' Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, $name, $slug);
 
         return [$owner, $alliance];
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Recruitment\Actions;
 
+use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Identity\Models\User;
@@ -67,6 +68,13 @@ final class SubmitRecruitmentApplication
             $applicationToken,
             $applicant,
         ): RecruitmentCandidate {
+            $alliance = Alliance::query()->whereKey($alliance->id)->lockForUpdate()->firstOrFail();
+            if ($alliance->status !== AllianceStatus::Active) {
+                throw ValidationException::withMessages([
+                    'application' => 'Recruitment applications are unavailable while the Alliance is not active.',
+                ]);
+            }
+
             $settings = RecruitmentSetting::query()
                 ->where('alliance_id', $alliance->id)
                 ->lockForUpdate()
@@ -146,8 +154,6 @@ final class SubmitRecruitmentApplication
                 'source' => $source === null ? null : trim($source),
                 'stage' => RecruitmentStage::New,
                 'submitted_at' => now(),
-                'created_by_user_id' => $applicant?->id,
-                'updated_by_user_id' => $applicant?->id,
             ]);
 
             foreach ($validatedAnswers as $validated) {
@@ -168,7 +174,7 @@ final class SubmitRecruitmentApplication
                 'from_stage' => null,
                 'to_stage' => RecruitmentStage::New,
                 'reason' => 'Application submitted',
-                'changed_by_user_id' => $applicant?->id,
+                'changed_by_player_id' => null,
                 'changed_at' => now(),
             ]);
 

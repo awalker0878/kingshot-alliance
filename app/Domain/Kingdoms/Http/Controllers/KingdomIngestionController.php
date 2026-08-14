@@ -39,7 +39,7 @@ final class KingdomIngestionController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
 
@@ -81,7 +81,7 @@ final class KingdomIngestionController extends Controller
             'adapter_key' => ['required', 'string', 'max:80'],
         ]);
 
-        $create->handle($context->alliance(), $this->user($request), $validated['adapter_key']);
+        $create->handle($context->alliance(), $context->player(), $validated['adapter_key']);
 
         return back()->with('status', 'kingdom-ingestion-subscription-created');
     }
@@ -99,7 +99,7 @@ final class KingdomIngestionController extends Controller
 
         $transition->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $subscription,
             KingdomIngestionSubscriptionState::from($validated['state']),
         );
@@ -114,7 +114,7 @@ final class KingdomIngestionController extends Controller
         string $subscription,
         string $candidate,
     ): RedirectResponse {
-        $reject->handle($context->alliance(), $this->user($request), $subscription, $candidate);
+        $reject->handle($context->alliance(), $context->player(), $subscription, $candidate);
 
         return back()->with('status', 'kingdom-ingestion-candidate-rejected');
     }
@@ -126,7 +126,7 @@ final class KingdomIngestionController extends Controller
         string $subscription,
         string $candidate,
     ): RedirectResponse {
-        $replay->handle($context->alliance(), $this->user($request), $subscription, $candidate);
+        $replay->handle($context->alliance(), $context->player(), $subscription, $candidate);
 
         return back()->with('status', 'kingdom-ingestion-candidate-replayed');
     }

@@ -6,7 +6,8 @@ namespace App\Domain\Memberships\Models;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Authorization\Models\Role;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -15,11 +16,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 /**
+ * @property string $player_id
  * @property MembershipStatus $status
+ * @property AllianceRank $rank
  * @property Carbon|null $joined_at
  * @property Carbon|null $left_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Player $player
  */
 final class AllianceMembership extends Model
 {
@@ -29,10 +33,15 @@ final class AllianceMembership extends Model
 
     protected $keyType = 'string';
 
+    protected $attributes = [
+        'rank' => 'r1',
+    ];
+
     protected $fillable = [
         'alliance_id',
-        'user_id',
+        'player_id',
         'status',
+        'rank',
         'joined_at',
         'left_at',
     ];
@@ -41,6 +50,7 @@ final class AllianceMembership extends Model
     {
         return [
             'status' => MembershipStatus::class,
+            'rank' => AllianceRank::class,
             'joined_at' => 'datetime',
             'left_at' => 'datetime',
         ];
@@ -52,10 +62,10 @@ final class AllianceMembership extends Model
         return $this->belongsTo(Alliance::class);
     }
 
-    /** @return BelongsTo<User, $this> */
-    public function user(): BelongsTo
+    /** @return BelongsTo<Player, $this> */
+    public function player(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Player::class);
     }
 
     /** @return BelongsToMany<Role, $this> */

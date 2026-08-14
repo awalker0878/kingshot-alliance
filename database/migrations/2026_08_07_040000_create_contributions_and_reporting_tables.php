@@ -29,8 +29,8 @@ return new class extends Migration
             $table->string('calculation_version', 40)->nullable();
             $table->text('calculation_description')->nullable();
             $table->boolean('is_active')->default(true)->index();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('updated_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
+            $table->foreignUlid('updated_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
@@ -43,7 +43,7 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->ulid('alliance_id');
             $table->ulid('category_id');
-            $table->ulid('membership_id');
+            $table->foreignUlid('player_id')->constrained('players')->restrictOnDelete();
             $table->string('source', 32);
             $table->string('data_class', 24);
             $table->decimal('value', 14, 2);
@@ -51,48 +51,38 @@ return new class extends Migration
             $table->date('period_end');
             $table->string('status', 24)->index();
             $table->text('evidence')->nullable();
-            $table->ulid('event_registration_id')->nullable();
             $table->ulid('correction_of_record_id')->nullable();
             $table->string('calculation_key', 80)->nullable();
             $table->string('calculation_version', 40)->nullable();
             $table->json('calculation_inputs')->nullable();
             $table->timestamp('recorded_at');
-            $table->foreignId('recorded_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('recorded_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamp('approved_at')->nullable();
-            $table->foreignId('approved_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('approved_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamp('reversed_at')->nullable();
-            $table->foreignId('reversed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('reversed_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->text('reversal_reason')->nullable();
             $table->text('correction_reason')->nullable();
             $table->timestamps();
 
             $table->unique(['id', 'alliance_id']);
-            $table->unique(['category_id', 'event_registration_id']);
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
             $table->foreign(['category_id', 'alliance_id'])
                 ->references(['id', 'alliance_id'])
                 ->on('contribution_categories')
                 ->restrictOnDelete();
-            $table->foreign(['membership_id', 'alliance_id'])
-                ->references(['id', 'alliance_id'])
-                ->on('alliance_memberships')
-                ->cascadeOnDelete();
-            $table->foreign(['event_registration_id', 'alliance_id'])
-                ->references(['id', 'alliance_id'])
-                ->on('event_registrations')
-                ->restrictOnDelete();
             $table->foreign(['correction_of_record_id', 'alliance_id'])
                 ->references(['id', 'alliance_id'])
                 ->on('contribution_records')
                 ->restrictOnDelete();
-            $table->index(['alliance_id', 'membership_id', 'period_start', 'period_end']);
+            $table->index(['alliance_id', 'player_id', 'period_start', 'period_end']);
             $table->index(['alliance_id', 'category_id', 'status']);
         });
 
         Schema::create('contribution_data_quality_flags', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->ulid('alliance_id');
-            $table->ulid('membership_id')->nullable();
+            $table->foreignUlid('player_id')->nullable()->constrained('players')->restrictOnDelete();
             $table->ulid('category_id')->nullable();
             $table->ulid('record_id')->nullable();
             $table->string('code', 64);
@@ -101,14 +91,10 @@ return new class extends Migration
             $table->string('status', 16)->default('open')->index();
             $table->timestamp('detected_at');
             $table->timestamp('resolved_at')->nullable();
-            $table->foreignId('resolved_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('resolved_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
-            $table->foreign(['membership_id', 'alliance_id'])
-                ->references(['id', 'alliance_id'])
-                ->on('alliance_memberships')
-                ->cascadeOnDelete();
             $table->foreign(['category_id', 'alliance_id'])
                 ->references(['id', 'alliance_id'])
                 ->on('contribution_categories')
@@ -119,13 +105,13 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->unique(['id', 'alliance_id']);
             $table->index(['alliance_id', 'status', 'severity']);
-            $table->index(['alliance_id', 'membership_id', 'category_id']);
+            $table->index(['alliance_id', 'player_id', 'category_id']);
         });
 
         Schema::create('contribution_report_schedules', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->ulid('alliance_id');
-            $table->ulid('recipient_membership_id');
+            $table->foreignUlid('recipient_player_id')->constrained('players')->restrictOnDelete();
             $table->string('name', 120);
             $table->string('cadence', 16);
             $table->string('timezone', 64);
@@ -133,14 +119,10 @@ return new class extends Migration
             $table->string('report_version', 40)->default('phase5.v1');
             $table->boolean('is_enabled')->default(true)->index();
             $table->timestamp('last_queued_at')->nullable();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
-            $table->foreign(['recipient_membership_id', 'alliance_id'])
-                ->references(['id', 'alliance_id'])
-                ->on('alliance_memberships')
-                ->cascadeOnDelete();
             $table->unique(['id', 'alliance_id']);
             $table->index(['alliance_id', 'is_enabled', 'next_due_at']);
         });
@@ -149,8 +131,8 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->ulid('alliance_id');
             $table->ulid('schedule_id')->nullable();
-            $table->ulid('recipient_membership_id')->nullable();
-            $table->foreignId('requested_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('recipient_player_id')->nullable()->constrained('players')->restrictOnDelete();
+            $table->foreignUlid('requested_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->string('format', 24);
             $table->string('status', 24)->index();
             $table->string('report_version', 40);
@@ -166,10 +148,6 @@ return new class extends Migration
             $table->foreign(['schedule_id', 'alliance_id'])
                 ->references(['id', 'alliance_id'])
                 ->on('contribution_report_schedules')
-                ->restrictOnDelete();
-            $table->foreign(['recipient_membership_id', 'alliance_id'])
-                ->references(['id', 'alliance_id'])
-                ->on('alliance_memberships')
                 ->restrictOnDelete();
             $table->unique(['id', 'alliance_id']);
             $table->index(['alliance_id', 'status', 'created_at']);

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -24,9 +24,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $expires_at
  * @property string|null $terms
  * @property string|null $rationale
- * @property int|null $actor_user_id
+ * @property string|null $actor_player_id
  * @property Carbon $created_at
- * @property-read User|null $actor
+ * @property-read Player|null $actor
  */
 final class KingdomAllianceDiplomacyTransition extends Model
 {
@@ -50,7 +50,7 @@ final class KingdomAllianceDiplomacyTransition extends Model
         'expires_at',
         'terms',
         'rationale',
-        'actor_user_id',
+        'actor_player_id',
         'created_at',
     ];
 
@@ -90,9 +90,9 @@ final class KingdomAllianceDiplomacyTransition extends Model
         return $this->belongsTo(KingdomAlliance::class);
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function actor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'actor_user_id');
+        return $this->belongsTo(Player::class, 'actor_player_id');
     }
 }

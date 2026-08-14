@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
 use App\Domain\Platform\Services\OutboxRecorder;
@@ -23,7 +23,7 @@ final readonly class LeaveKingdomIntelligenceShare
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $recipientAlliance, User $actor, string $shareId): KingdomIntelligenceShare
+    public function handle(Alliance $recipientAlliance, Player $actor, string $shareId): KingdomIntelligenceShare
     {
         if (! $this->authorization->allows($actor, $recipientAlliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
@@ -48,7 +48,7 @@ final readonly class LeaveKingdomIntelligenceShare
 
             $share->forceFill([
                 'state' => KingdomIntelligenceShareState::Declined,
-                'declined_by_user_id' => $actor->id,
+                'declined_by_player_id' => $actor->id,
                 'declined_at' => now(),
             ])->save();
 

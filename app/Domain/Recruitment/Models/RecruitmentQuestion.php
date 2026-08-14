@@ -28,8 +28,8 @@ final class RecruitmentQuestion extends Model
         'is_required',
         'position',
         'is_active',
-        'created_by_user_id',
-        'updated_by_user_id',
+        'created_by_player_id',
+        'updated_by_player_id',
     ];
 
     protected function casts(): array

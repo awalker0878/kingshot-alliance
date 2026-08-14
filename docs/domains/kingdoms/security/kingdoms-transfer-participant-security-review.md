@@ -5,7 +5,7 @@
 
 ## Security boundary
 
-Transfer participants are Alliance-owned tenant data. Global Kingdom and KingdomPlayer references are neutral identity only and never authorize access to participant intent, membership linkage, manager notes, or destinations.
+Transfer participants are Alliance-owned tenant data. Global Kingdom and Player references are neutral identity only and never authorize access to participant intent, membership linkage, manager notes, or destinations.
 
 ## Findings and controls
 
@@ -19,7 +19,7 @@ Transfer participants are Alliance-owned tenant data. Global Kingdom and Kingdom
 
 **Risk:** two game players can share a display name and an incoming transfer row could be merged into the wrong neutral identity.
 
-**Control:** display name alone never resolves `KingdomPlayer`. Neutral incoming identity is resolved only from an explicit source Kingdom plus stable game-player ID.
+**Control:** display name alone never resolves `Player`. Neutral incoming identity is resolved only from an explicit source Kingdom plus stable game-player ID.
 
 ### Identity switching during edit
 
@@ -31,7 +31,7 @@ Transfer participants are Alliance-owned tenant data. Global Kingdom and Kingdom
 
 **Risk:** setting an outgoing destination could incorrectly mutate the global player's Kingdom.
 
-**Control:** source/destination are participant planning references only. Slice B never updates `KingdomPlayer.kingdom_id`.
+**Control:** source/destination are participant planning references only. Slice B never updates `Player.kingdom_id`.
 
 ### Private manager notes
 

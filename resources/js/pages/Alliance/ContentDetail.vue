@@ -30,7 +30,7 @@ function published(value: string | null): string {
 <template>
   <Head :title="`${content.title} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <Link
       class="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-white"
       href="/alliance/content"

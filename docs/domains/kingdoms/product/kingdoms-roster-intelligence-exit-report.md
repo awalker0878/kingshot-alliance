@@ -57,7 +57,7 @@ No new cross-domain persistence reach-through or compatibility layer is required
 
 The [whole-increment Kingdoms security review](../security/kingdoms-roster-intelligence-security-review.md) covers cross-alliance disclosure, private notes/actor/import metadata, object-ID tampering, privilege escalation, identity ambiguity, append/replay semantics, CSV abuse/formula injection, metric abuse and external integration boundaries.
 
-A material `K1-P6` finding was fixed: the generic webhook subsystem accepted wildcard subscriptions for tenant outbox events. Without a boundary, new Kingdoms durability events could have become an undocumented external contract. `QueueWebhookDeliveries` now rejects `alliance.kingdom_updated` and every `kingdoms.*` event before subscription fan-out. A regression test proves wildcard subscriptions cannot receive them. The existing `/api/v1` route guard also proves no public roster/snapshot/intelligence endpoint/scope was introduced.
+A material `K1-P6` finding was fixed: the generic webhook subsystem accepted wildcard subscriptions for tenant outbox events. Without a boundary, new Kingdoms durability events could have become an undocumented external contract. `QueueWebhookDeliveries` now rejects every `kingdoms.*` event before subscription fan-out. A regression test proves wildcard subscriptions cannot receive them. The existing `/api/v1` route guard also proves no public roster/snapshot/intelligence endpoint/scope was introduced.
 
 ## Accessibility review
 
@@ -97,7 +97,7 @@ The increment adds no dedicated scheduler, worker, crawler or external ingestion
 - `/api/v1` remains the documented read-only alliance/events/contributions API.
 - Existing `/api/v1/alliance.data.kingdom` remains derived representation compatibility.
 - No Kingdoms roster/snapshot/intelligence scope or route exists.
-- `alliance.kingdom_updated` and `kingdoms.*` outbox events remain internal and cannot fan out to webhooks, even under wildcard subscriptions.
+- `kingdoms.*` outbox events remain internal and cannot fan out to webhooks, even under wildcard subscriptions.
 - Any future external Kingdoms API/webhook requires an explicit product/integration contract and tests.
 
 ## Repository hygiene

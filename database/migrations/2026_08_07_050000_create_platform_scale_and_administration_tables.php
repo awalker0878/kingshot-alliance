@@ -146,7 +146,7 @@ return new class extends Migration
             $table->timestamp('expires_at')->nullable()->index();
             $table->timestamp('last_used_at')->nullable();
             $table->timestamp('revoked_at')->nullable()->index();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
 
             $table->index(['alliance_id', 'revoked_at']);
@@ -161,7 +161,7 @@ return new class extends Migration
             $table->text('signing_secret');
             $table->boolean('is_active')->default(true)->index();
             $table->timestamp('revoked_at')->nullable();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
 
             $table->index(['alliance_id', 'is_active']);

@@ -13,7 +13,7 @@ final readonly class TenantContextSnapshot
 {
     public function __construct(
         public string $allianceId,
-        public ?int $actorUserId = null,
+        public ?string $actorPlayerId = null,
         public ?string $requestId = null,
         public ?string $traceId = null,
     ) {
@@ -30,11 +30,11 @@ final readonly class TenantContextSnapshot
             throw new LogicException('Tenant context is not active for this request.');
         }
 
-        $userId = $request->user()?->getAuthIdentifier();
+        $playerId = $request->attributes->get('active_player_id');
 
         return new self(
             allianceId: $allianceId,
-            actorUserId: is_numeric($userId) ? (int) $userId : null,
+            actorPlayerId: is_string($playerId) && Str::isUlid($playerId) ? $playerId : null,
             requestId: self::nullableString($request->attributes->get('request_id')),
             traceId: self::nullableString($request->attributes->get('trace_id')),
         );
@@ -74,29 +74,29 @@ final readonly class TenantContextSnapshot
         return $this->storagePath('exports/'.$filename);
     }
 
-    /** @return array{alliance_id: string, actor_user_id: int|null, request_id: string|null, trace_id: string|null} */
+    /** @return array{alliance_id: string, actor_player_id: string|null, request_id: string|null, trace_id: string|null} */
     public function logContext(): array
     {
         return [
             'alliance_id' => $this->allianceId,
-            'actor_user_id' => $this->actorUserId,
+            'actor_player_id' => $this->actorPlayerId,
             'request_id' => $this->requestId,
             'trace_id' => $this->traceId,
         ];
     }
 
-    /** @return array{alliance_id: string, actor_user_id: int|null, request_id: string|null, trace_id: string|null} */
+    /** @return array{alliance_id: string, actor_player_id: string|null, request_id: string|null, trace_id: string|null} */
     public function toArray(): array
     {
         return $this->logContext();
     }
 
-    /** @param array{alliance_id: string, actor_user_id?: int|null, request_id?: string|null, trace_id?: string|null} $payload */
+    /** @param array{alliance_id: string, actor_player_id?: string|null, request_id?: string|null, trace_id?: string|null} $payload */
     public static function fromArray(array $payload): self
     {
         return new self(
             allianceId: $payload['alliance_id'],
-            actorUserId: $payload['actor_user_id'] ?? null,
+            actorPlayerId: $payload['actor_player_id'] ?? null,
             requestId: $payload['request_id'] ?? null,
             traceId: $payload['trace_id'] ?? null,
         );

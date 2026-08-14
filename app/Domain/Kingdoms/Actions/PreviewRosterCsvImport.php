@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\RosterImport;
 use App\Domain\Kingdoms\Services\RosterCsvParser;
@@ -24,7 +24,7 @@ final readonly class PreviewRosterCsvImport
         private AuditRecorder $audit,
     ) {}
 
-    public function handle(Alliance $alliance, User $actor, UploadedFile $file): RosterImport
+    public function handle(Alliance $alliance, Player $actor, UploadedFile $file): RosterImport
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
@@ -39,7 +39,7 @@ final readonly class PreviewRosterCsvImport
         $parsed = $this->parser->parse($file, now());
         $entries = AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
-            ->with('player:id,kingdom_id,game_player_id,current_name')
+            ->with('player:id,current_kingdom_id,game_player_id,current_name')
             ->get();
 
         $byStableId = [];
@@ -121,7 +121,7 @@ final readonly class PreviewRosterCsvImport
                 'checksum' => $parsed['checksum'],
             ],
             [
-                'created_by_user_id' => $actor->id,
+                'created_by_player_id' => $actor->id,
                 'status' => RosterImport::STATUS_PREVIEWED,
                 'original_filename' => $parsed['filename'],
                 'row_count' => count($previewRows),
@@ -148,7 +148,7 @@ final readonly class PreviewRosterCsvImport
             'preview_payload' => $payload,
             'resolution_payload' => null,
             'committed_summary' => null,
-            'committed_by_user_id' => null,
+            'committed_by_player_id' => null,
             'committed_at' => null,
         ])->save();
 

@@ -1,4 +1,4 @@
-# Event registration and attendance
+# Event participation and attendance
 
 [← Events domain](README.md)
 
@@ -8,122 +8,105 @@
 
 ## 1. Purpose
 
-Defines the member registration, capacity/waitlist, cancellation/promotion, and Event attendance lifecycle for scheduled Event occurrences.
+Defines Player availability responses, registration/waitlist state, cancellation/promotion, and attendance for a concrete Event occurrence.
 
-This capability is distinct from Event schedule/template/recurrence configuration because it has its own membership state, concurrency rules, and downstream contracts.
+Response, registration, roster selection, and attendance are independent facts. No workflow may infer one from another.
 
 ## 2. Scope and non-scope
 
 In scope:
 
-- registration-window eligibility;
+- `going` / `maybe` / `unavailable` responses;
+- optional role/team/availability notes;
+- registration windows;
 - registered/waitlisted/cancelled state;
-- capacity enforcement and oldest-waiter promotion;
-- duplicate join idempotency;
-- coordinator attendance recording as `attended`/`no-show`; and
-- facts consumed by Notifications and Contributions.
+- bounded capacity and ordered waitlist promotion;
+- manager-recorded present/absent/excused/unknown attendance; and
+- Player-specific participation history.
 
-Out of scope:
+Out of scope: Event scheduling, roster selection, Rally participation, reminder delivery state, and results.
 
-- Event recurrence/template generation;
-- Rally-specific participation;
-- notification delivery state; and
-- Contribution record ownership.
+## 3. Identity and model
 
-## 3. Model and state
+Every participation row is keyed by `occurrence_id + player_id`.
 
-A registration associates one active same-Alliance membership with an Event/occurrence participation state.
+`players.user_id` is authoritative Player ownership. Self-service actions use the authenticated User's validated active Player context and never accept a Player identity from the form. The actor User and acting Player persona are recorded separately from the subject Player when an operation is attributable.
 
-Current participation states are:
+A Player is eligible when:
 
-- registered;
-- waitlisted; and
-- cancelled.
-
-Event attendance is a separate Events-owned fact recorded as `attended` or `no-show` for the relevant registration/occurrence workflow.
+- Player scope: the Player is the exact Event target;
+- Alliance scope: the Player has an active roster entry in the target Alliance and the Player's current Kingdom matches the Alliance Kingdom; or
+- Kingdom scope: the Player's current Kingdom is the exact Event Kingdom.
 
 ## 4. Invariants
 
-1. Registrations and attendance are Alliance scoped.
-2. A membership does not receive duplicate active registrations for the same logical Event participation.
-3. Capacity is enforced transactionally.
-4. A full Event waitlists rather than overbooks.
-5. Cancelling a registered place promotes the oldest eligible waiter when capacity becomes available.
-6. Attendance remains Events-owned.
-7. Rally participation does not replace Event attendance.
-8. Notifications rechecks current registration eligibility before due reminder queueing.
-9. Contributions may consume attended facts but may not mutate them.
+1. Response, registration, attendance, roster selection, and results remain separate facts.
+2. One response, one registration row, and one attendance row may exist per occurrence/Player.
+3. Self-service requires authoritative ownership plus exact active Player context.
+4. Owning a Player does not bypass Event eligibility.
+5. Capacity mutation is serialized on the occurrence.
+6. A full Event waitlists only when the Event Type enables the waitlist capability; otherwise it rejects registration.
+7. Cancelling a registered seat promotes the first waitlisted Player atomically and re-numbers the remaining waitlist.
+8. Attendance does not create or modify registration.
+9. Alliance and Kingdom manager authority is evaluated against the exact Event target, never from the active Player persona.
 
 ## 5. Workflows
 
-### Join Event
+### Respond
 
-An eligible active member requests registration while the registration window is open. If capacity is available, the registration becomes registered; otherwise it becomes waitlisted.
+An eligible active Player records `going`, `maybe`, or `unavailable`. Repeating the action updates the same response row.
 
-A repeated equivalent join request does not create another registration.
+### Register
+
+Registration must be inside the Event's snapshotted registration window. Capacity is checked transactionally. A seat becomes `registered`; if full and waitlisting is supported it becomes `waitlisted` with a deterministic position.
 
 ### Cancel
 
-The member cancels the active registration. If a registered place is freed, the oldest eligible waitlisted registration is promoted within the supported transactional workflow.
+Cancellation marks the Player's registration `cancelled`. When a registered seat is released, the first waitlisted Player is promoted in the same transaction.
 
 ### Record attendance
 
-An authorized coordinator records `attended` or `no-show`. Attendance mutation is tenant bound, permission protected, and attributable.
+An Event manager records attendance for an eligible Player. The action records the authenticated User and validated acting Player persona when one exists.
 
-### Downstream consumption
+## 6. Authorization and privacy
 
-Notifications reads registered/waitlisted eligibility for reminder materialization and rechecks it before queueing. Contributions reads attended facts for deterministic reconciliation.
+Self-service routes never carry a subject Player ID. The server resolves the active Player context from the authenticated session and revalidates `players.user_id` on every request.
 
-## 6. Authorization, tenancy and privacy
+Manager attendance routes accept a subject Player ID because a coordinator is operating on another Player, but the server independently verifies Event management permission and Player eligibility.
 
-Member registration/cancellation requires authenticated, verified active-Alliance context and ordinary Event access. Attendance/coordination mutations require `events.manage` and recent password confirmation where required by the HTTP boundary.
-
-Submitted Event/occurrence/registration/membership identifiers are re-resolved beneath the active Alliance.
+Participation is private operational data.
 
 ## 7. Persistence and query semantics
 
-Events owns registration, waitlist/cancellation, capacity-related state, and attendance facts.
+Events owns `event_responses`, `event_registrations`, and `event_attendance`.
 
-Queries for a member or coordinator begin from the active Alliance and Event/occurrence context. Attendance consumers in other domains use supported Events facts rather than reaching through to redefine the lifecycle.
+Registration windows are derived from each Event's snapshotted open/close offsets and the occurrence start. Historical participation remains attached to durable `player_id` when Alliance or Kingdom context changes later.
 
 ## 8. Events, integrations and background processing
 
-Registration and attendance transitions may create audit/outbox evidence where required.
-
-Notifications owns reminder delivery state; Contributions owns materialized Contribution records; Integrations may expose bounded Event occurrence representation but does not own registrations/attendance.
+Participation mutations produce audit and scope-partitioned outbox evidence. Notifications consumes current participation facts when resolving reminder audiences. Other domains must not mutate participation state indirectly.
 
 ## 9. Failure, idempotency and concurrency
 
-- Duplicate join requests are idempotent.
-- Capacity mutation is transactional and must not oversubscribe a bounded Event.
-- Concurrent cancellation/promotion must not promote multiple waiters into one released place.
-- Closed registration windows fail eligibility checks.
-- Cross-tenant IDs fail closed.
-- Recording attendance does not fabricate a registration belonging to another tenant.
+- response is an upsert by occurrence/Player;
+- repeated active registration returns the existing registration;
+- registration outside the window fails;
+- bounded capacity is checked while the occurrence row is locked;
+- cancellation/promotion occurs under the same lock;
+- cross-target or stale roster eligibility fails closed;
+- active Player mismatch fails closed.
 
 ## 10. Operations and observability
 
-Useful diagnosis dimensions include registration state, capacity, waitlist ordering, registration window, attendance state, active membership, and downstream reminder/reconciliation state.
-
-Do not fix waitlist or attendance problems by direct database editing; repair the source workflow and rerun supported downstream reconciliation where applicable.
+Diagnose occurrence, subject Player, response, registration status, waitlist position, attendance, registration window, target scope, actor User, and actor Player persona independently.
 
 ## 11. Tests and validation
 
-Tests should cover:
-
-- registration-window rules;
-- duplicate join idempotency;
-- capacity and waitlisting;
-- concurrent capacity protection;
-- cancellation and oldest-waiter promotion;
-- attendance authorization/state;
-- tenant isolation; and
-- Notifications/Contributions ownership boundaries.
+Tests protect response upsert, registration windows, capacity/waitlist promotion, independence of participation facts, exact target eligibility, active-Player self-service, manager attendance authorization, and multi-Player User behavior.
 
 ## 12. Related documentation
 
 - [Events domain](README.md)
 - [Notifications](../notifications/README.md)
-- [Contributions](../contributions/README.md)
+- [Event reminders](../notifications/event-reminders.md)
 - [Rallies](../rallies/README.md)
-- [Alliances](../alliances/README.md)

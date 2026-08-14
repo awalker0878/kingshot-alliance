@@ -2,101 +2,50 @@
 
 [← Domain documentation](../README.md)
 
-**Document type:** Living domain contract  
-**Status:** Current  
-**Code owner:** `app/Domain/Memberships`  
-**Primary authorization boundary:** active Alliance context; `membership.manage` and `invitations.manage` for privileged administration
+**Document type:** Living domain contract
+**Status:** Current — R1–R5 rank model
+**Code owner:** `app/Domain/Memberships`
 
-## 1. Purpose and ownership
+## 1. Purpose
 
-Memberships owns the User↔Alliance membership relationship, membership lifecycle, voluntary leave/admin state changes, hierarchy/last-Owner safety, and the controlled invitation contract used by direct administration and Recruitment onboarding.
+Memberships owns User↔Alliance membership, invitation lifecycle, membership status, and the authoritative KingShot Alliance rank.
 
-Identity owns the User, Alliances owns tenant context, and Authorization owns role/permission definitions and assignments.
+## 2. Rank model
 
-## 2. Scope
+`AllianceMembership.rank` is one of `r1`, `r2`, `r3`, `r4`, or `r5`.
 
-In scope: membership states, activation/reactivation, suspend/remove/leave behavior, administration hierarchy/Owner safety, and Alliance invitations.
+- accepted invitations create/reactivate membership at R1;
+- R5 is the single Alliance owner/leader;
+- R4 is officer;
+- R3/R2/R1 are normal member hierarchy levels;
+- specialist Authorization roles are additive and independent.
 
-Out of scope: authentication/MFA, Alliance aggregate/context, role vocabulary/permission evaluation, Recruitment candidate persistence, and Kingdoms game identity.
+A partial unique database index prevents more than one active R5 in an Alliance. Application workflows ensure an active Alliance retains its R5.
 
-## 3. Domain model
+## 3. Leadership lifecycle
 
-Membership status vocabulary includes `invited`, `active`, `suspended`, `left`, and `removed`; normal accepted invitation flow activates membership rather than leaving it in an intermediate invited state.
+Ordinary rank administration may assign R1–R4 but may not assign R5. R5 changes occur only through the leadership-transfer workflow. Transfer is atomic:
 
-The bearer-token invitation lifecycle is independently documented in [Membership invitations](invitations.md).
+```text
+current R5 -> R4
+target      -> R5
+```
 
-## 4. Core invariants
+Specialist roles on either membership are preserved.
 
-1. A membership belongs to exactly one User and one Alliance.
-2. Only active membership may establish normal tenant access.
-3. Self-leave uses the dedicated workflow rather than general admin status mutation.
-4. Leave/removal strips role assignments; reactivation with no role restores built-in Member through Authorization.
-5. An Alliance retains at least one active Owner.
-6. Administration respects effective role hierarchy and tenant scope.
-7. Invitation rules follow [invitations.md](invitations.md).
+R5 cannot leave or be deactivated through ordinary membership transitions before leadership is transferred.
 
-## 5. Lifecycles and workflows
+## 4. Membership lifecycle
 
-Authorized membership administration may activate, suspend, or remove other eligible memberships according to hierarchy and last-Owner rules. Users leave through the dedicated self-service transition to `left`.
+Membership status remains `invited`, `active`, `suspended`, `left`, or `removed`. Removal strips specialist roles. Reactivation returns the membership to R1; specialist responsibilities must be deliberately reassigned.
 
-Invitation issue/resend/revoke/acceptance and Recruitment handoff are defined in [Membership invitations](invitations.md).
+## 5. Authorization
 
-## 6. Authorization and tenancy
+`membership.manage` controls lower-rank member status administration. `roles.manage` controls specialist roles and R1–R4 rank administration. Rank hierarchy is enforced independently of specialist roles.
 
-Membership administration is active-Alliance scoped and requires `membership.manage`; invitation administration requires `invitations.manage`. Role hierarchy and last-active-Owner protection apply in addition to permission checks. Privileged HTTP mutations use required Identity assurance.
+## 6. Related documentation
 
-## 7. Cross-domain contracts
-
-Consumes Identity, Alliances, Authorization rank/roles, Platform lifecycle/capacity, and Audit/outbox evidence.
-
-Exposes active membership used by tenant context/permission evaluation, the controlled [invitation contract](invitations.md) consumed by Recruitment, and optional membership references consumed by Kingdoms without ownership transfer.
-
-## 8. Persistence and data ownership
-
-Memberships owns membership and invitation records. Authorization owns role assignments; Identity owns account data; Recruitment owns candidates; Kingdoms owns game roster identity.
-
-## 9. Events, outbox and integrations
-
-Membership/invitation transitions create audit/outbox evidence where required. Internal events are not automatically public webhook contracts.
-
-## 10. HTTP, UI and API surfaces
-
-First-party Alliance membership/invitation administration is permission/tenant protected. Invitation acceptance is the controlled bearer + authenticated-email workflow documented in [invitations.md](invitations.md).
-
-## 11. Background processing
-
-Membership transitions are request driven. Invitation expiry is evaluated from persisted expiry state; no background process grants membership by inference.
-
-## 12. Failure, idempotency and concurrency
-
-Last-Owner/hierarchy/cross-tenant violations fail closed. Role restoration on reactivation uses the supported Authorization contract. Invitation-specific serialization/idempotency is defined in [invitations.md](invitations.md).
-
-## 13. Security and privacy
-
-Membership identity/email data is tenant private. Invitation access material is secret and governed by [Membership invitations](invitations.md).
-
-## 14. Observability and operations
-
-Diagnose membership status, role hierarchy, last-Owner constraints, Platform capacity/lifecycle, and invitation state separately.
-
-## 15. Testing and architecture enforcement
-
-Tests protect membership transitions, role strip/restore behavior, hierarchy/last-Owner safety, tenant isolation, invitation lifecycle, and Recruitment boundary.
-
-## 16. Explicit non-capabilities
-
-Memberships does not authenticate Users, define permission vocabulary, own Recruitment candidates/Kingdoms identity, or treat invitations as public non-secret links.
-
-## 17. Capability documents
-
-- [Membership invitations](invitations.md) — issue/expiry/revoke/resend/acceptance, email binding, concurrency, and Recruitment handoff.
-
-## 18. Related documentation
-
-- [Identity](../identity/README.md)
-- [Alliances](../alliances/README.md)
 - [Authorization](../authorization/README.md)
-- [Recruitment](../recruitment/README.md)
-- [Kingdoms](../kingdoms/README.md)
-- [Platform](../platform/README.md)
+- [Alliances](../alliances/README.md)
+- [Events](../events/README.md)
 - [`app/Domain/Memberships/README.md`](../../../app/Domain/Memberships/README.md)

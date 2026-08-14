@@ -28,7 +28,7 @@ final class RecruitmentCommunication extends Model
         'body',
         'status',
         'idempotency_key',
-        'created_by_user_id',
+        'created_by_player_id',
         'sent_at',
         'last_error',
     ];

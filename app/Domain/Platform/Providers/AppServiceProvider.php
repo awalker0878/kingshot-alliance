@@ -9,7 +9,8 @@ use App\Domain\Content\Services\BasicMediaScanner;
 use App\Domain\Content\Services\MediaScanner;
 use App\Domain\Identity\Models\User;
 use App\Domain\Integrations\Actions\QueueWebhookDeliveries;
-use App\Domain\Notifications\Actions\MarkEventReminderPublished;
+use App\Domain\Kingdoms\Services\PlayerContext;
+use App\Domain\Notifications\Actions\MarkEventReminderSent;
 use App\Domain\Platform\Events\OutboxPublished;
 use App\Domain\Platform\Models\PlatformAdministrator;
 use App\Domain\Recruitment\Actions\MarkRecruitmentCandidateJoined;
@@ -28,6 +29,7 @@ final class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(AllianceContext::class);
+        $this->app->scoped(PlayerContext::class);
         $this->app->bind(MediaScanner::class, BasicMediaScanner::class);
 
         Horizon::auth(static function (): bool {
@@ -53,8 +55,8 @@ final class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         Event::listen(OutboxPublished::class, function (OutboxPublished $event): void {
-            $this->app->make(MarkEventReminderPublished::class)->handle($event);
             $this->app->make(MarkRecruitmentCandidateJoined::class)->handle($event);
+            $this->app->make(MarkEventReminderSent::class)->handle($event);
             $this->app->make(QueueWebhookDeliveries::class)->handle($event);
         });
 

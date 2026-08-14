@@ -44,6 +44,6 @@ final class ContributionMigrationRollbackTest extends TestCase
         foreach (self::TABLES as $table) {
             self::assertTrue(Schema::hasTable($table), sprintf('%s should be restored by Phase 5 migration.', $table));
         }
-        self::assertTrue(DB::table('permissions')->where('key', 'contributions.manage')->exists());
+        self::assertFalse(DB::table('permissions')->where('key', 'contributions.manage')->exists());
     }
 }

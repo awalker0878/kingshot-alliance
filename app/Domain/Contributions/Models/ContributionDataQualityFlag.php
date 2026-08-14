@@ -22,7 +22,7 @@ final class ContributionDataQualityFlag extends Model
 
     protected $fillable = [
         'alliance_id',
-        'membership_id',
+        'player_id',
         'category_id',
         'record_id',
         'code',
@@ -31,7 +31,7 @@ final class ContributionDataQualityFlag extends Model
         'status',
         'detected_at',
         'resolved_at',
-        'resolved_by_user_id',
+        'resolved_by_player_id',
     ];
 
     protected function casts(): array

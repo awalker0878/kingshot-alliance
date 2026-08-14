@@ -6,17 +6,17 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\CreateTransferPlan;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Domain\Kingdoms\Enums\KingdomStatus;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\KingdomPlayer;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,11 +28,11 @@ final class TransferParticipantTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_staying_participant_uses_same_alliance_roster_identity_and_home_kingdom(): void
+    public function test_staying_participant_uses_same_roster_player_and_home_kingdom(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Staying Transfer', 'staying-transfer', 5201);
-        $plan = $this->plan($alliance, $owner, 'Staying plan');
-        $roster = $this->roster($alliance, $owner, 'Alpha', 'alpha-1');
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Staying Transfer', 'staying-transfer', 5201);
+        $plan = $this->plan($alliance, $ownerPlayer, 'Staying plan');
+        $roster = $this->roster($alliance, $ownerPlayer, 'Alpha', 'alpha-1');
 
         $this->actingAs($owner)
             ->withSession($session)
@@ -46,16 +46,16 @@ final class TransferParticipantTest extends TestCase
         $participant = TransferParticipant::query()->sole();
         self::assertSame('staying', $participant->direction->value);
         self::assertSame($roster->id, $participant->roster_entry_id);
-        self::assertSame($roster->kingdom_player_id, $participant->kingdom_player_id);
+        self::assertSame($roster->player_id, $participant->player_id);
         self::assertSame($plan->home_kingdom_id, $participant->source_kingdom_id);
         self::assertNull($participant->destination_kingdom_id);
     }
 
     public function test_outgoing_destination_may_be_undecided_then_set_to_another_active_kingdom(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Outgoing Transfer', 'outgoing-transfer', 5202);
-        $plan = $this->plan($alliance, $owner, 'Outgoing plan');
-        $roster = $this->roster($alliance, $owner, 'Bravo', 'bravo-1');
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Outgoing Transfer', 'outgoing-transfer', 5202);
+        $plan = $this->plan($alliance, $ownerPlayer, 'Outgoing plan');
+        $roster = $this->roster($alliance, $ownerPlayer, 'Bravo', 'bravo-1');
 
         $this->actingAs($owner)
             ->withSession($session)
@@ -79,13 +79,14 @@ final class TransferParticipantTest extends TestCase
         $destination = Kingdom::query()->where('number', 5299)->sole();
         self::assertSame($destination->id, $participant->refresh()->destination_kingdom_id);
         self::assertSame($plan->home_kingdom_id, $participant->source_kingdom_id);
+        self::assertSame($roster->player_id, $participant->player_id);
     }
 
     public function test_outgoing_destination_cannot_be_the_plan_home_kingdom(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Same Destination', 'same-destination', 5203);
-        $plan = $this->plan($alliance, $owner, 'Same destination plan');
-        $roster = $this->roster($alliance, $owner, 'Charlie');
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Same Destination', 'same-destination', 5203);
+        $plan = $this->plan($alliance, $ownerPlayer, 'Same destination plan');
+        $roster = $this->roster($alliance, $ownerPlayer, 'Charlie');
 
         $this->actingAs($owner)
             ->withSession($session)
@@ -101,31 +102,52 @@ final class TransferParticipantTest extends TestCase
         self::assertSame(0, TransferParticipant::query()->count());
     }
 
-    public function test_incoming_participant_can_exist_without_roster_or_site_membership(): void
+    public function test_incoming_participant_requires_source_and_establishes_durable_player_before_roster_or_membership(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Incoming Transfer', 'incoming-transfer', 5204);
-        $plan = $this->plan($alliance, $owner, 'Incoming plan');
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Incoming Transfer', 'incoming-transfer', 5204);
+        $plan = $this->plan($alliance, $ownerPlayer, 'Incoming plan');
 
         $this->actingAs($owner)
             ->withSession($session)
+            ->from('/alliance/transfers/manage')
             ->post("/alliance/transfers/{$plan->id}/participants", [
                 'direction' => 'incoming',
                 'name' => 'Delta',
             ])
+            ->assertRedirect('/alliance/transfers/manage')
+            ->assertSessionHasErrors('source_kingdom');
+
+        $this->withSession($session)
+            ->post("/alliance/transfers/{$plan->id}/participants", [
+                'direction' => 'incoming',
+                'name' => 'Delta',
+                'source_kingdom' => 5274,
+            ])
             ->assertRedirect();
 
+        $source = Kingdom::query()->where('number', 5274)->sole();
         $participant = TransferParticipant::query()->sole();
+        $player = Player::query()->findOrFail($participant->player_id);
+
         self::assertNull($participant->roster_entry_id);
-        self::assertNull($participant->membership_id);
-        self::assertNull($participant->kingdom_player_id);
-        self::assertNull($participant->source_kingdom_id);
+        self::assertSame($source->id, $participant->source_kingdom_id);
         self::assertSame($plan->home_kingdom_id, $participant->destination_kingdom_id);
+        self::assertSame($source->id, $player->current_kingdom_id);
+        self::assertSame('Delta', $player->current_name);
+        self::assertNull($player->user_id);
+        self::assertFalse(AllianceMembership::query()->where('player_id', $player->id)->exists());
     }
 
-    public function test_incoming_source_and_stable_id_resolve_neutral_identity_without_changing_destination(): void
+    public function test_incoming_source_and_stable_id_reuse_player_without_changing_destination(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Known Incoming', 'known-incoming', 5205);
-        $plan = $this->plan($alliance, $owner, 'Known incoming plan');
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Known Incoming', 'known-incoming', 5205);
+        $plan = $this->plan($alliance, $ownerPlayer, 'Known incoming plan');
+        $source = Kingdom::query()->create(['number' => 5277, 'status' => KingdomStatus::Active]);
+        $existing = Player::query()->create([
+            'current_kingdom_id' => $source->id,
+            'game_player_id' => 'echo-77',
+            'current_name' => 'Echo Old',
+        ]);
 
         $this->actingAs($owner)
             ->withSession($session)
@@ -138,23 +160,18 @@ final class TransferParticipantTest extends TestCase
             ])
             ->assertRedirect();
 
-        $source = Kingdom::query()->where('number', 5277)->sole();
-        $player = KingdomPlayer::query()
-            ->where('kingdom_id', $source->id)
-            ->where('game_player_id', 'echo-77')
-            ->sole();
         $participant = TransferParticipant::query()->sole();
-
-        self::assertSame($player->id, $participant->kingdom_player_id);
+        self::assertSame($existing->id, $participant->player_id);
         self::assertSame($source->id, $participant->source_kingdom_id);
         self::assertSame($plan->home_kingdom_id, $participant->destination_kingdom_id);
-        self::assertSame($source->id, $player->kingdom_id);
+        self::assertSame('Echo', $existing->refresh()->current_name);
+        self::assertSame(1, Player::query()->where('game_player_id', 'echo-77')->count());
     }
 
-    public function test_display_name_alone_never_merges_incoming_identity(): void
+    public function test_display_name_alone_never_merges_incoming_player_identity(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Name Collision', 'name-collision', 5206);
-        $plan = $this->plan($alliance, $owner, 'Collision plan');
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Name Collision', 'name-collision', 5206);
+        $plan = $this->plan($alliance, $ownerPlayer, 'Collision plan');
 
         $this->actingAs($owner)->withSession($session)
             ->post("/alliance/transfers/{$plan->id}/participants", [
@@ -170,17 +187,19 @@ final class TransferParticipantTest extends TestCase
                 'source_kingdom' => 5266,
             ])->assertRedirect();
 
-        self::assertSame(2, TransferParticipant::query()->where('observed_name', 'Same Name')->count());
-        self::assertSame(0, KingdomPlayer::query()->where('current_name', 'Same Name')->count());
+        $participants = TransferParticipant::query()->where('observed_name', 'Same Name')->get();
+        self::assertCount(2, $participants);
+        self::assertNotSame($participants[0]->player_id, $participants[1]->player_id);
+        self::assertSame(2, Player::query()->where('current_name', 'Same Name')->count());
     }
 
-    public function test_cross_alliance_roster_membership_and_participant_ids_fail_closed(): void
+    public function test_cross_alliance_roster_and_participant_ids_fail_closed(): void
     {
-        [$ownerA, $allianceA, $sessionA] = $this->ownerAlliance('Transfer Tenant A', 'transfer-tenant-a-b', 5207);
-        [$ownerB, $allianceB, $sessionB] = $this->ownerAlliance('Transfer Tenant B', 'transfer-tenant-b-b', 5208);
-        $planA = $this->plan($allianceA, $ownerA, 'Plan A');
-        $planB = $this->plan($allianceB, $ownerB, 'Plan B');
-        $rosterB = $this->roster($allianceB, $ownerB, 'Foreign Roster');
+        [$ownerA, $playerA, $allianceA, $sessionA] = $this->ownerAlliance('Transfer Tenant A', 'transfer-tenant-a-b', 5207);
+        [$ownerB, $playerB, $allianceB, $sessionB] = $this->ownerAlliance('Transfer Tenant B', 'transfer-tenant-b-b', 5208);
+        $planA = $this->plan($allianceA, $playerA, 'Plan A');
+        $planB = $this->plan($allianceB, $playerB, 'Plan B');
+        $rosterB = $this->roster($allianceB, $playerB, 'Foreign Roster');
 
         $this->actingAs($ownerA)
             ->withSession($sessionA)
@@ -192,54 +211,36 @@ final class TransferParticipantTest extends TestCase
             ->assertRedirect('/alliance/transfers/manage')
             ->assertSessionHasErrors('roster_entry_id');
 
-        $membershipB = AllianceMembership::query()
-            ->where('alliance_id', $allianceB->id)
-            ->where('user_id', $ownerB->id)
-            ->sole();
-
-        $this->withSession($sessionA)
-            ->from('/alliance/transfers/manage')
-            ->post("/alliance/transfers/{$planA->id}/participants", [
-                'direction' => 'incoming',
-                'name' => 'Foreign Member',
-                'membership_id' => $membershipB->id,
-            ])
-            ->assertRedirect('/alliance/transfers/manage')
-            ->assertSessionHasErrors('membership_id');
-
-        $participantB = $this->createIncomingViaHttp($ownerB, $sessionB, $planB, 'Tenant B Player');
+        $participantB = $this->createIncomingViaHttp($ownerB, $sessionB, $planB, 'Tenant B Player', 5288);
 
         $this->actingAs($ownerA)
             ->withSession($sessionA)
             ->patch("/alliance/transfers/{$planA->id}/participants/{$participantB->id}", [
                 'direction' => 'incoming',
                 'name' => 'Tampered',
+                'source_kingdom' => 5289,
             ])
             ->assertNotFound();
     }
 
-    public function test_member_payload_excludes_manager_notes_and_member_cannot_mutate(): void
+    public function test_r1_member_payload_excludes_manager_notes_and_member_cannot_mutate(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Private Transfer', 'private-transfer', 5209);
-        $plan = $this->plan($alliance, $owner, 'Private plan');
-        $this->createIncomingViaHttp($owner, $session, $plan, 'Foxtrot', 'Leadership only');
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Private Transfer', 'private-transfer', 5209);
+        $plan = $this->plan($alliance, $ownerPlayer, 'Private plan');
+        $this->createIncomingViaHttp($owner, $session, $plan, 'Foxtrot', 5280, 'Leadership only');
 
         $member = User::factory()->create();
-        $membership = AllianceMembership::query()->create([
+        $memberPlayer = $this->player($member, $alliance->kingdom, 'private-transfer-member', 'Private Transfer Member');
+        AllianceMembership::query()->create([
             'alliance_id' => $alliance->id,
-            'user_id' => $member->id,
+            'player_id' => $memberPlayer->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $memberRole = Role::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($memberRole->id, ['alliance_id' => $alliance->id]);
-        $sessionKey = (string) config('identity.active_alliance_session_key');
 
         $this->actingAs($member)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession($this->activeSession($memberPlayer->id))
             ->get('/alliance/transfers')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -247,36 +248,37 @@ final class TransferParticipantTest extends TestCase
                 ->where('participants.0.name', 'Foxtrot')
                 ->missing('participants.0.managerNotes'));
 
-        $this->withSession($this->confirmedSession($alliance->id))
+        $this->withSession($this->confirmedSession($memberPlayer->id))
             ->post("/alliance/transfers/{$plan->id}/participants", [
                 'direction' => 'incoming',
                 'name' => 'Unauthorized',
+                'source_kingdom' => 5281,
             ])
             ->assertForbidden();
     }
 
     public function test_participant_mutation_requires_recent_password_confirmation(): void
     {
-        [$owner, $alliance] = $this->ownerAlliance('Participant Password', 'participant-password', 5210);
-        $plan = $this->plan($alliance, $owner, 'Password plan');
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+        [$owner, $ownerPlayer, $alliance] = $this->ownerAlliance('Participant Password', 'participant-password', 5210);
+        $plan = $this->plan($alliance, $ownerPlayer, 'Password plan');
 
         $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession($this->activeSession($ownerPlayer->id))
             ->post("/alliance/transfers/{$plan->id}/participants", [
                 'direction' => 'incoming',
                 'name' => 'Golf',
+                'source_kingdom' => 5290,
             ])
             ->assertRedirect(route('password.confirm'));
 
         self::assertSame(0, TransferParticipant::query()->count());
     }
 
-    public function test_locked_plan_and_home_kingdom_drift_block_participant_mutations(): void
+    public function test_locked_plan_and_mismatched_plan_home_kingdom_block_participant_mutations(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Blocked Transfer', 'blocked-transfer', 5211);
-        $plan = $this->plan($alliance, $owner, 'Blocked plan');
-        $roster = $this->roster($alliance, $owner, 'Hotel');
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Blocked Transfer', 'blocked-transfer', 5211);
+        $plan = $this->plan($alliance, $ownerPlayer, 'Blocked plan');
+        $roster = $this->roster($alliance, $ownerPlayer, 'Hotel');
 
         $this->actingAs($owner)->withSession($session)
             ->post("/alliance/transfers/{$plan->id}/open")
@@ -294,25 +296,26 @@ final class TransferParticipantTest extends TestCase
             ->assertRedirect('/alliance/transfers/manage')
             ->assertSessionHasErrors('participant');
 
-        $driftPlan = $this->plan($alliance, $owner, 'Drift plan');
-        $newKingdom = Kingdom::query()->create(['number' => 5212, 'status' => 'active']);
-        $alliance->forceFill(['kingdom_id' => $newKingdom->id])->save();
+        $mismatchPlan = $this->plan($alliance, $ownerPlayer, 'Mismatch plan');
+        $otherKingdom = Kingdom::query()->create(['number' => 5212, 'status' => KingdomStatus::Active]);
+        $mismatchPlan->forceFill(['home_kingdom_id' => $otherKingdom->id])->save();
 
         $this->withSession($session)
             ->from('/alliance/transfers/manage')
-            ->post("/alliance/transfers/{$driftPlan->id}/participants", [
+            ->post("/alliance/transfers/{$mismatchPlan->id}/participants", [
                 'direction' => 'incoming',
                 'name' => 'India',
+                'source_kingdom' => 5213,
             ])
             ->assertRedirect('/alliance/transfers/manage')
             ->assertSessionHasErrors('participant');
     }
 
-    public function test_withdraw_is_idempotent_and_identity_switches_require_recreate(): void
+    public function test_participant_identity_cannot_change_in_place_and_withdraw_is_idempotent(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Withdraw Transfer', 'withdraw-transfer', 5213);
-        $plan = $this->plan($alliance, $owner, 'Withdraw plan');
-        $roster = $this->roster($alliance, $owner, 'Juliet');
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Withdraw Transfer', 'withdraw-transfer', 5214);
+        $plan = $this->plan($alliance, $ownerPlayer, 'Withdraw plan');
+        $roster = $this->roster($alliance, $ownerPlayer, 'Juliet');
         $this->actingAs($owner)->withSession($session)
             ->post("/alliance/transfers/{$plan->id}/participants", [
                 'direction' => 'outgoing',
@@ -325,66 +328,51 @@ final class TransferParticipantTest extends TestCase
             ->patch("/alliance/transfers/{$plan->id}/participants/{$participant->id}", [
                 'direction' => 'incoming',
                 'name' => 'Different identity',
+                'source_kingdom' => 5294,
             ])
             ->assertRedirect('/alliance/transfers/manage')
-            ->assertSessionHasErrors('direction');
+            ->assertSessionHasErrors();
+
+        self::assertSame($roster->player_id, $participant->refresh()->player_id);
 
         $this->withSession($session)
             ->post("/alliance/transfers/{$plan->id}/participants/{$participant->id}/withdraw")
             ->assertRedirect();
 
-        $auditCount = $this->eventCount(
-            'audit_events',
-            'event',
-            'kingdoms.transfer_participant_withdrawn',
-            $alliance->id,
-        );
-        $outboxCount = $this->eventCount(
-            'outbox_messages',
-            'event_type',
-            'kingdoms.transfer_participant_withdrawn',
-            $alliance->id,
-        );
+        $auditCount = $this->eventCount('audit_events', 'event', 'kingdoms.transfer_participant_withdrawn', $alliance->id);
+        $outboxCount = $this->eventCount('outbox_messages', 'event_type', 'kingdoms.transfer_participant_withdrawn', $alliance->id);
 
         $this->withSession($session)
             ->post("/alliance/transfers/{$plan->id}/participants/{$participant->id}/withdraw")
             ->assertRedirect();
 
-        self::assertSame($auditCount, $this->eventCount(
-            'audit_events',
-            'event',
-            'kingdoms.transfer_participant_withdrawn',
-            $alliance->id,
-        ));
-        self::assertSame($outboxCount, $this->eventCount(
-            'outbox_messages',
-            'event_type',
-            'kingdoms.transfer_participant_withdrawn',
-            $alliance->id,
-        ));
+        self::assertSame($auditCount, $this->eventCount('audit_events', 'event', 'kingdoms.transfer_participant_withdrawn', $alliance->id));
+        self::assertSame($outboxCount, $this->eventCount('outbox_messages', 'event_type', 'kingdoms.transfer_participant_withdrawn', $alliance->id));
     }
 
-    /** @return array{0: User, 1: Alliance, 2: array<string, mixed>} */
-    private function ownerAlliance(string $name, string $slug, int $kingdom): array
+    /** @return array{0: User, 1: Player, 2: Alliance, 3: array<string, mixed>} */
+    private function ownerAlliance(string $name, string $slug, int $kingdomNumber): array
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $kingdom = Kingdom::query()->create(['number' => $kingdomNumber, 'status' => KingdomStatus::Active]);
+        $ownerPlayer = $this->player($owner, $kingdom, $slug.'-r5', $name.' R5');
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, $name, $slug);
 
-        return [$owner, $alliance, $this->confirmedSession($alliance->id)];
+        return [$owner, $ownerPlayer, $alliance, $this->confirmedSession($ownerPlayer->id)];
     }
 
-    private function plan(Alliance $alliance, User $owner, string $label): TransferPlan
+    private function plan(Alliance $alliance, Player $actor, string $label): TransferPlan
     {
-        return $this->app->make(CreateTransferPlan::class)->handle($alliance, $owner, ['label' => $label]);
+        return $this->app->make(CreateTransferPlan::class)->handle($alliance, $actor, ['label' => $label]);
     }
 
     private function roster(
         Alliance $alliance,
-        User $owner,
+        Player $actor,
         string $name,
         ?string $gamePlayerId = null,
     ): AllianceRosterEntry {
-        return $this->app->make(SaveRosterEntry::class)->handle($alliance, $owner, [
+        return $this->app->make(SaveRosterEntry::class)->handle($alliance, $actor, [
             'name' => $name,
             'game_player_id' => $gamePlayerId,
             'state' => RosterState::Active,
@@ -396,6 +384,7 @@ final class TransferParticipantTest extends TestCase
         array $session,
         TransferPlan $plan,
         string $name,
+        int $sourceKingdom,
         ?string $notes = null,
     ): TransferParticipant {
         $this->actingAs($owner)
@@ -403,6 +392,7 @@ final class TransferParticipantTest extends TestCase
             ->post("/alliance/transfers/{$plan->id}/participants", [
                 'direction' => 'incoming',
                 'name' => $name,
+                'source_kingdom' => $sourceKingdom,
                 'manager_notes' => $notes,
             ])
             ->assertRedirect();
@@ -413,11 +403,27 @@ final class TransferParticipantTest extends TestCase
             ->sole();
     }
 
+    private function player(User $user, Kingdom $kingdom, string $gamePlayerId, string $name): Player
+    {
+        return Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => $gamePlayerId,
+            'current_name' => $name,
+        ]);
+    }
+
     /** @return array<string, mixed> */
-    private function confirmedSession(string $allianceId): array
+    private function activeSession(string $playerId): array
+    {
+        return [(string) config('identity.active_player_session_key') => $playerId];
+    }
+
+    /** @return array<string, mixed> */
+    private function confirmedSession(string $playerId): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            ...$this->activeSession($playerId),
             'auth.password_confirmed_at' => time(),
         ];
     }

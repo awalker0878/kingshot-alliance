@@ -4,93 +4,56 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Http\Middleware;
 
-use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Identity\Models\User;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
-use App\Domain\Notifications\Enums\EventReminderDeliveryStatus;
-use App\Domain\Notifications\Models\EventReminderDelivery;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Kingdoms\Services\PlayerContext;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use LogicException;
 
 final class HandleInertiaRequests extends Middleware
 {
     protected $rootView = 'app';
+
+    public function __construct(private readonly PlayerContext $playerContext) {}
 
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public function share(Request $request): array
     {
         return [
             ...parent::share($request),
             'applicationName' => config('app.name'),
-            'eventReminders' => $this->eventReminders($request),
+            'playerContext' => fn (): array => $this->playerContextPayload($request),
         ];
     }
 
-    /** @return list<array{id: string, occurrenceId: string, title: string, startsAt: string, sentAt: string, allianceTimezone: string}> */
-    private function eventReminders(Request $request): array
+    /** @return array{activePlayerId:?string,players:list<array{id:string,name:string,gamePlayerId:?string,kingdomNumber:?int}>} */
+    private function playerContextPayload(Request $request): array
     {
-        if (! $request->routeIs('alliance.events.index')) {
-            return [];
-        }
-
         $user = $request->user();
-        $allianceId = $request->session()->get((string) config('identity.active_alliance_session_key'));
-
-        if (! $user instanceof User || ! is_string($allianceId) || $allianceId === '') {
-            return [];
+        if (! $user instanceof User) {
+            return ['activePlayerId' => null, 'players' => []];
         }
 
-        $membership = AllianceMembership::query()
-            ->where('alliance_id', $allianceId)
+        $players = Player::query()
             ->where('user_id', $user->id)
-            ->where('status', MembershipStatus::Active->value)
-            ->first();
-
-        if (! $membership instanceof AllianceMembership) {
-            return [];
-        }
-
-        $deliveries = EventReminderDelivery::query()
-            ->where('alliance_id', $allianceId)
-            ->where('membership_id', $membership->id)
-            ->where('status', EventReminderDeliveryStatus::Sent->value)
-            ->whereNotNull('sent_at')
-            ->where('sent_at', '>=', now()->subDays(7))
-            ->with('occurrence.event')
-            ->latest('sent_at')
-            ->limit(5)
+            ->with('currentKingdom:id,number')
+            ->orderBy('current_name')
+            ->orderBy('id')
             ->get();
 
-        $reminders = [];
-
-        foreach ($deliveries as $delivery) {
-            $occurrence = $delivery->occurrence;
-            $event = $occurrence instanceof EventOccurrence ? $occurrence->event : null;
-
-            if (! $occurrence instanceof EventOccurrence || ! $event instanceof Event || $delivery->sent_at === null) {
-                throw new LogicException('A sent event reminder must reference its occurrence and event.');
-            }
-
-            $reminders[] = [
-                'id' => (string) $delivery->id,
-                'occurrenceId' => (string) $occurrence->id,
-                'title' => (string) $event->title,
-                'startsAt' => $occurrence->starts_at->toIso8601String(),
-                'sentAt' => $delivery->sent_at->toIso8601String(),
-                'allianceTimezone' => (string) $event->timezone,
-            ];
-        }
-
-        return $reminders;
+        return [
+            'activePlayerId' => $this->playerContext->playerOrNull()?->id,
+            'players' => $players->map(static fn (Player $player): array => [
+                'id' => (string) $player->id,
+                'name' => (string) $player->current_name,
+                'gamePlayerId' => $player->game_player_id === null ? null : (string) $player->game_player_id,
+                'kingdomNumber' => $player->currentKingdom?->number === null ? null : (int) $player->currentKingdom->number,
+            ])->values()->all(),
+        ];
     }
 }

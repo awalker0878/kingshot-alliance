@@ -11,6 +11,7 @@ use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\CommitRosterCsvImport;
 use App\Domain\Kingdoms\Actions\PreviewRosterCsvImport;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\RosterImport;
 use App\Domain\Kingdoms\Services\RosterCsvExporter;
 use App\Domain\Kingdoms\Services\RosterCsvParser;
@@ -33,7 +34,7 @@ final class RosterCsvController extends Controller
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
-        $this->authorizeManage($authorization, $user, $alliance);
+        $this->authorizeManage($authorization, $context->player(), $alliance);
 
         return $this->page($alliance, $user, null);
     }
@@ -46,7 +47,7 @@ final class RosterCsvController extends Controller
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
-        $this->authorizeManage($authorization, $user, $alliance);
+        $this->authorizeManage($authorization, $context->player(), $alliance);
 
         $record = RosterImport::query()
             ->where('alliance_id', $alliance->id)
@@ -67,7 +68,7 @@ final class RosterCsvController extends Controller
         $file = $request->file('file');
         abort_unless($file instanceof UploadedFile, 422);
 
-        $import = $preview->handle($context->alliance(), $this->user($request), $file);
+        $import = $preview->handle($context->alliance(), $context->player(), $file);
 
         return to_route('alliance.roster.import.show', ['import' => $import->id])
             ->with('status', $import->status === RosterImport::STATUS_COMMITTED
@@ -89,7 +90,7 @@ final class RosterCsvController extends Controller
 
         $record = $commit->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $import,
             $validated['resolutions'] ?? [],
         );
@@ -114,11 +115,11 @@ final class RosterCsvController extends Controller
         $includePrivate = ($validated['scope'] ?? 'member') === 'management';
         $permission = $includePrivate ? PermissionKey::KingdomManage : PermissionKey::AllianceView;
 
-        if (! $authorization->allows($user, $alliance, $permission)) {
+        if (! $authorization->allows($context->player(), $alliance, $permission)) {
             throw new AuthorizationException;
         }
 
-        $export = $exporter->export($alliance, $user, $includePrivate);
+        $export = $exporter->export($alliance, $context->player(), $includePrivate);
         $filename = str_replace(['"', "\r", "\n"], '', $export['filename']);
 
         return response($export['content'], 200, [
@@ -170,10 +171,10 @@ final class RosterCsvController extends Controller
 
     private function authorizeManage(
         AllianceAuthorization $authorization,
-        User $user,
+        Player $actor,
         Alliance $alliance,
     ): void {
-        if (! $authorization->allows($user, $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
     }

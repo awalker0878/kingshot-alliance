@@ -18,7 +18,7 @@ The accepted implementation continues the platform rules established by `KINGDOM
 
 - domain-first runtime ownership under `app/Domain/<Domain>`;
 - explicit active-Alliance tenancy for tenant-owned observations/workflows;
-- global Kingdom/KingdomPlayer data remains neutral reference identity only;
+- global Kingdom/Player data remains neutral reference identity only;
 - `alliance.view` for ordinary authenticated visibility and `kingdoms.manage` for transfer mutations;
 - coordinator assignment is workflow responsibility, never authorization;
 - policy/permission authorization rather than controller role-name checks;
@@ -89,7 +89,7 @@ Delivered alliance/plan-scoped participants with:
 
 - explicit direction;
 - optional same-alliance roster binding;
-- optional neutral KingdomPlayer reference for incoming planning;
+- optional neutral Player reference for incoming planning;
 - plan-scoped observed name and optional stable game-player identifier;
 - source/destination Kingdom under direction rules;
 - optional same-alliance membership link;

@@ -83,10 +83,7 @@ Producer domains do not call external endpoints directly. Platform's `OutboxPubl
 
 `AppServiceProvider` routes every `OutboxPublished` event through `QueueWebhookDeliveries` after Platform publication. Integrations returns immediately when the event lacks Alliance identity or is not externally contracted.
 
-The explicit external exclusion is mandatory:
-
-- `alliance.kingdom_updated`; and
-- every event whose type starts with `kingdoms.`.
+The explicit external exclusion is mandatory for every event whose type starts with `kingdoms.`.
 
 Wildcard subscriptions do not bypass this exclusion. Internal publication therefore remains broader than the public webhook contract.
 

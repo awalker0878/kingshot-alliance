@@ -48,12 +48,12 @@ No Phase 3 interface trusts alliance/member IDs supplied by the browser without 
 
 **Controls:**
 
-- `events.manage` is checked by application actions and the coordinator dashboard.
+- `events.alliance.manage` is checked by application actions and the coordinator dashboard.
 - Active members can save only their own formations and manage only their own event registration.
 - Coordinator IDs are re-scoped before mutations.
 - Privileged actions are audit-attributed.
 
-**Residual risk:** Role administration remains the Phase 1 security boundary and must not grant `events.manage` unintentionally.
+**Residual risk:** Role administration remains the Phase 1 security boundary and must not grant `events.alliance.manage` unintentionally.
 
 ### Registration overbooking race
 

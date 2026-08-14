@@ -6,81 +6,55 @@
 **Status:** Current  
 **Owning domain:** Notifications  
 **Code owner:** `app/Domain/Notifications`  
-**Primary security boundary:** tenant/member-explicit durable coordination derived only from source-domain authorized state, with minimized outbox payloads
+**Primary security boundary:** exact Event scope plus Player-specific recipient identity derived from authoritative source-domain state
 
 ## 1. Security purpose and scope
 
-Notifications protects durable reminder/report coordination from cross-tenant leakage, duplicate logical work, stale-source delivery, and payload over-collection. It does not own generic external messaging providers or webhook transport.
-
-This profile covers Event reminder state/materialization/queueing and scheduled Contribution-report due-time coordination.
+Notifications protects Event reminder and scheduled-report coordination from cross-scope disclosure, stale recipient state, duplicate logical work, payload over-collection, and retry amplification.
 
 ## 2. Assets and sensitive data
 
-Assets include reminder rules/deliveries, source Event/occurrence/registration/member identifiers, report schedule occurrence/request identities, status/attempt timestamps, and bounded downstream payload data.
-
-This coordination state is tenant private. It must not accumulate unrelated candidate/member narrative or secret material merely because it is passed through scheduler/outbox infrastructure.
+Assets include reminder rules, occurrence/Player delivery identity, recipient User ID, due/delivery state, report coordination identity, and minimized outbox payloads. Operational instructions, unrelated profile data, credentials, and private narrative do not belong in notification payloads.
 
 ## 3. Actors, authentication and authorization
 
-Source domains authorize configuration: Events controls reminder-related Event state and Contributions controls report schedules. Notifications coordinates only persisted state that already carries the relevant Alliance/member/source identity.
-
-Member-facing reminder reads remain active-Alliance/membership scoped. Background workers do not gain new business authority by executing a job.
+Events authorizes reminder-rule configuration against the exact Player, Alliance, or Kingdom target. Notifications never derives manager authority from the active Player persona. Background scheduler work acts only on persisted, previously authorized rule configuration and current source eligibility.
 
 ## 4. Tenant and privacy boundaries
 
-Every persisted coordination record carries explicit Alliance/source/member identity where applicable. No hidden process-global tenant context is used for scheduled or queued work.
-
-Payloads are minimized to the data required by the downstream coordination contract; unrelated private feature data remains in its owning domain.
+Event reminder deliveries are keyed by `player_id`; `recipient_user_id` is resolved from authoritative `players.user_id`. Multiple Players owned by one User remain separate reminder identities. Alliance and Kingdom audience resolution uses exact current Event eligibility rather than process-global tenant state.
 
 ## 5. Trust boundaries and data flows
 
-Material flows are Events/Contributions persisted state → scheduler materialization/due selection → Notifications persistence → Platform outbox → downstream first-party consumer. Redis/queue execution is a transport boundary, not a source of tenant or authorization truth.
-
-Notifications does not send outbound webhooks; Integrations owns that external network boundary.
+The reminder flow is Event/Player source state → due-time audience resolution → Notifications delivery state → Platform outbox → first-party in-app completion. Redis/queue execution and the active Player UI context are not sources of authorization truth.
 
 ## 6. Threats, abuse cases and controls
 
-Threats include cross-tenant coordination, duplicate reminders/report requests, stale registration eligibility, scheduler replay, concurrent due claiming, payload overexposure, secret leakage in logs/outbox, and retry storms becoming duplicate business actions.
-
-Controls include explicit tenant/source identity, deterministic logical identities, source-state rechecks, concurrency-safe due claiming, persisted status, bounded retry/catch-up, payload minimization, and separation from generic transport.
+Threats include forged Player identity, cross-Kingdom or cross-Alliance audience expansion, stale roster state, duplicate reminders, scheduler replay, payload overexposure, and retry storms. Controls include authoritative Player ownership, exact scope checks, current eligibility revalidation, deterministic delivery keys, unique database constraints, bounded scheduler work, and minimized outbox payloads.
 
 ## 7. Integrity, concurrency and idempotency
 
-Scheduler execution is at-least-once and intentionally safe to rerun. Deterministic identities prevent repeated scheduler invocations from creating a second logical reminder/report request for the same due occurrence.
-
-Persisted due/unpublished state supports catch-up after interruption. Source business actions are not replayed merely because notification coordination retries.
+A reminder is unique by rule + occurrence + Player. Queueing and outbox identities are deterministic, making repeated scheduler execution safe. The publisher listener advances only matching reminder deliveries and ignores unrelated outbox events.
 
 ## 8. Secrets and credential handling
 
-Notifications owns no provider/API/webhook/password/MFA credentials. Message/outbox/log payloads must not contain credentials, recovery material, signing secrets, or private data beyond the minimum coordination need.
-
-Any future provider credential lifecycle would require its own security review rather than being hidden in this profile.
+Notifications owns no provider credentials. Delivery/outbox/log payloads must not contain passwords, MFA/recovery material, API credentials, signing secrets, or unrelated private data.
 
 ## 9. Destructive operations, retention and deletion
 
-Cancellation/expiry/retention of coordination state follows source-domain and Platform lifecycle rules. Deleting a reminder delivery row must not be used to rewrite whether the source Event/registration occurred.
-
-Platform may orchestrate retention/anonymization, while Events/Contributions remain semantic owners of their source facts.
+Reminder history must not be deleted to rewrite whether a reminder was queued or sent. Event cancellation changes source eligibility/state; retention and account anonymization are handled through supported lifecycle workflows.
 
 ## 10. Auditability, observability and evidence
 
-Operators distinguish source eligibility/configuration, Notifications persisted state, scheduler execution, queue/outbox publication, and downstream completion. Bounded status/attempt/error diagnostics are preferable to raw private payload capture.
-
-Tests cover tenant isolation, deterministic identities, repeated scheduler execution, concurrency/catch-up, source rechecks, and ownership boundaries. See [Security baseline](../../../security/security-baseline.md).
+Operational evidence distinguishes rule, Event/occurrence, Player, recipient User, due time, delivery state, scope partition, outbox state, and completion timestamp. Tests protect cross-scope isolation, multi-Player identity, scheduler idempotency, and source eligibility rechecks.
 
 ## 11. Residual risks and explicit non-capabilities
 
-The current repository does not prove external mail/SMS/push provider privacy or delivery security because Notifications does not own such a provider integration. Redis/queue operational isolation remains shared runtime evidence.
-
-Notifications does not provide generic external messaging, own webhook transport, infer tenant identity from process state, or use retries to re-run source-domain business mutations.
+`sent` represents durable in-app outbox completion, not third-party email/SMS/push delivery. Notifications does not own generic external messaging or webhook transport.
 
 ## 12. Focused reviews and related documentation
 
-No focused living Notifications security review is required for the current coordination-only model.
-
 - [Event reminders](../event-reminders.md)
-- [Scheduled Contribution report coordination](../scheduled-report-coordination.md)
 - [Events security profile](../../events/security/README.md)
-- [Contributions security profile](../../contributions/security/README.md)
 - [Platform security profile](../../platform/security/README.md)
 - [Security baseline](../../../security/security-baseline.md)

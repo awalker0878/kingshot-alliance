@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,8 +14,8 @@ use Illuminate\Support\Carbon;
 /**
  * @property string $alliance_id
  * @property string $roster_entry_id
- * @property string $kingdom_player_id
- * @property int|null $actor_user_id
+ * @property string $player_id
+ * @property string|null $actor_player_id
  * @property string|null $roster_import_id
  * @property string $observed_name
  * @property int $power
@@ -33,8 +33,8 @@ use Illuminate\Support\Carbon;
  * @property string $idempotency_key
  * @property-read Alliance $alliance
  * @property-read AllianceRosterEntry $rosterEntry
- * @property-read KingdomPlayer $player
- * @property-read User|null $actor
+ * @property-read Player $player
+ * @property-read Player|null $actor
  * @property-read RosterImport|null $rosterImport
  */
 final class PlayerSnapshot extends Model
@@ -48,8 +48,8 @@ final class PlayerSnapshot extends Model
     protected $fillable = [
         'alliance_id',
         'roster_entry_id',
-        'kingdom_player_id',
-        'actor_user_id',
+        'player_id',
+        'actor_player_id',
         'roster_import_id',
         'observed_name',
         'power',
@@ -87,16 +87,16 @@ final class PlayerSnapshot extends Model
         return $this->belongsTo(AllianceRosterEntry::class, 'roster_entry_id');
     }
 
-    /** @return BelongsTo<KingdomPlayer, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function player(): BelongsTo
     {
-        return $this->belongsTo(KingdomPlayer::class, 'kingdom_player_id');
+        return $this->belongsTo(Player::class, 'player_id');
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function actor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'actor_user_id');
+        return $this->belongsTo(Player::class, 'actor_player_id');
     }
 
     /** @return BelongsTo<RosterImport, $this> */

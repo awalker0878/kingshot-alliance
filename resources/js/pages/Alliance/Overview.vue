@@ -18,6 +18,7 @@ const props = defineProps<{
   };
   membership: {
     id: string;
+    rank: string;
     roles: Array<{ key: string; name: string }>;
   };
   contentHub: {
@@ -42,8 +43,10 @@ const props = defineProps<{
   };
   invitationManagement: {
     allowed: boolean;
+    candidates: Array<{ id: string; name: string; gamePlayerId: string | null; claimed: boolean }>;
     invitations: Array<{
       id: string;
+      player: { id: string; name: string; gamePlayerId: string | null };
       email: string;
       status: string;
       expiresAt: string | null;
@@ -54,23 +57,30 @@ const props = defineProps<{
   membershipManagement: {
     allowed: boolean;
     rolesAllowed: boolean;
+    rankAllowed: boolean;
+    rankOptions: string[];
     members: Array<{
       id: string;
-      user: { id: number; name: string; email: string };
+      player: { id: string; name: string; gamePlayerId: string | null; claimed: boolean };
       status: string;
+      rank: string;
       roles: Array<{ id: string; key: string; name: string }>;
     }>;
     roleCatalog: Array<{ id: string; key: string; name: string }>;
-    currentUserId: number;
+    currentPlayerId: string;
+    leadershipTransferAllowed: boolean;
   };
 }>();
 
 const { t, formatDate } = useLocale();
-const inviteForm = useForm({ email: '' });
+const inviteForm = useForm({ player_id: props.invitationManagement.candidates[0]?.id ?? '', email: '' });
 const statusSelections = reactive<Record<string, string>>(
   Object.fromEntries(
     props.membershipManagement.members.map((member) => [member.id, member.status]),
   ),
+);
+const rankSelections = reactive<Record<string, string>>(
+  Object.fromEntries(props.membershipManagement.members.map((member) => [member.id, member.rank])),
 );
 const roleSelections = reactive<Record<string, string>>({});
 
@@ -97,6 +107,14 @@ function updateMembershipStatus(id: string): void {
   );
 }
 
+function updateMembershipRank(id: string): void {
+  router.patch(
+    `/alliance/memberships/${id}/rank`,
+    { rank: rankSelections[id] },
+    { preserveScroll: true },
+  );
+}
+
 function assignRole(membershipId: string): void {
   const roleId = roleSelections[membershipId];
   if (!roleId) return;
@@ -117,6 +135,12 @@ function removeRole(membershipId: string, roleId: string): void {
   router.delete(`/alliance/memberships/${membershipId}/roles/${roleId}`, {
     preserveScroll: true,
   });
+}
+
+function transferLeadership(playerId: string, playerName: string): void {
+  if (!window.confirm(t('allianceOperations.overview.transferLeadershipConfirm', { player: playerName }))) return;
+
+  router.post('/alliance/leadership/transfer', { player_id: playerId }, { preserveScroll: true });
 }
 
 function leaveAlliance(): void {
@@ -153,7 +177,7 @@ function formatInZone(value: string, timeZone: string): string {
 <template>
   <Head :title="alliance.name" />
 
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <header class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
       <div>
         <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
@@ -212,8 +236,7 @@ function formatInZone(value: string, timeZone: string): string {
           </dt>
           <dd class="mt-2 font-semibold">
             {{
-              membership.roles.map((role) => role.name).join(', ') ||
-              t('application.dashboard.noRoles')
+              [membership.rank.toUpperCase(), ...membership.roles.map((role) => role.name)].join(' · ')
             }}
           </dd>
         </div>
@@ -223,7 +246,7 @@ function formatInZone(value: string, timeZone: string): string {
         class="mt-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-4"
         :aria-label="t('navigation.allianceOperations')"
       >
-        <Link class="ks-command-link" href="/alliance/events">{{ t('navigation.events') }}</Link>
+        <Link class="ks-command-link" href="/events">{{ t('navigation.events') }}</Link>
         <Link class="ks-command-link" href="/alliance/content">{{ t('navigation.content') }}</Link>
         <Link class="ks-command-link" href="/alliance/contributions">{{
           t('navigation.contributions')
@@ -248,7 +271,7 @@ function formatInZone(value: string, timeZone: string): string {
         <Link
           v-if="contentHub.canManageEvents"
           class="ks-command-link"
-          href="/alliance/events/manage"
+          href="/events/create"
         >
           {{ t('allianceOperations.events.coordinate') }}
         </Link>
@@ -306,7 +329,7 @@ function formatInZone(value: string, timeZone: string): string {
           </h2>
           <Link
             class="text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-white"
-            href="/alliance/events"
+            href="/events"
           >
             {{ t('allianceOperations.overview.viewAll') }}
           </Link>
@@ -320,7 +343,7 @@ function formatInZone(value: string, timeZone: string): string {
             <h3 class="font-semibold">
               <Link
                 class="hover:text-[var(--ks-blue-strong)]"
-                :href="`/alliance/events/${activity.id}`"
+                :href="`/events/${activity.id}`"
               >
                 {{ activity.title }}
               </Link>
@@ -364,6 +387,17 @@ function formatInZone(value: string, timeZone: string): string {
 
       <form class="mt-6 flex flex-col gap-3 sm:flex-row" @submit.prevent="sendInvitation">
         <div class="flex-1">
+          <label class="sr-only" for="invite-player">{{ t('allianceOperations.overview.player') }}</label>
+          <select id="invite-player" v-model="inviteForm.player_id" class="ks-input" required>
+            <option v-for="candidate in invitationManagement.candidates" :key="candidate.id" :value="candidate.id">
+              {{ candidate.name }}{{ candidate.gamePlayerId ? ` · ${candidate.gamePlayerId}` : '' }}
+            </option>
+          </select>
+          <p v-if="inviteForm.errors.player_id" class="mt-1.5 text-sm text-[var(--ks-red)]">
+            {{ inviteForm.errors.player_id }}
+          </p>
+        </div>
+        <div class="flex-1">
           <label class="sr-only" for="invite-email">{{ t('auth.login.email') }}</label>
           <input
             id="invite-email"
@@ -390,6 +424,7 @@ function formatInZone(value: string, timeZone: string): string {
         <table class="min-w-full text-start text-sm">
           <thead class="border-b border-[var(--ks-border)] text-[var(--ks-text-muted)]">
             <tr>
+              <th class="px-3 py-3 text-start font-medium">{{ t('allianceOperations.overview.player') }}</th>
               <th class="px-3 py-3 text-start font-medium">{{ t('auth.login.email') }}</th>
               <th class="px-3 py-3 text-start font-medium">
                 {{ t('allianceOperations.overview.status') }}
@@ -404,6 +439,10 @@ function formatInZone(value: string, timeZone: string): string {
           </thead>
           <tbody class="divide-y divide-[var(--ks-border)]">
             <tr v-for="invitation in invitationManagement.invitations" :key="invitation.id">
+              <td class="px-3 py-4">
+                <span class="font-semibold">{{ invitation.player.name }}</span>
+                <span v-if="invitation.player.gamePlayerId" class="mt-1 block text-xs text-[var(--ks-text-muted)]">{{ invitation.player.gamePlayerId }}</span>
+              </td>
               <td class="px-3 py-4">{{ invitation.email }}</td>
               <td class="px-3 py-4 text-[var(--ks-text-secondary)]">
                 {{ statusLabel(invitation.status) }}
@@ -437,7 +476,7 @@ function formatInZone(value: string, timeZone: string): string {
               </td>
             </tr>
             <tr v-if="invitationManagement.invitations.length === 0">
-              <td class="px-3 py-5 text-[var(--ks-text-muted)]" colspan="4">
+              <td class="px-3 py-5 text-[var(--ks-text-muted)]" colspan="5">
                 {{ t('allianceOperations.overview.noInvitations') }}
               </td>
             </tr>
@@ -454,9 +493,6 @@ function formatInZone(value: string, timeZone: string): string {
       <h2 id="membership-admin-heading" class="ks-display text-2xl font-semibold">
         {{ t('allianceOperations.overview.membershipAdmin') }}
       </h2>
-      <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--ks-text-muted)]">
-        {{ t('allianceOperations.overview.membershipIntro') }}
-      </p>
 
       <div class="mt-6 grid gap-4 xl:grid-cols-2">
         <article
@@ -467,33 +503,36 @@ function formatInZone(value: string, timeZone: string): string {
           <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="min-w-0">
               <h3 class="font-semibold">
-                {{ member.user.name }}
+                {{ member.player.name }}
                 <span
-                  v-if="member.user.id === membershipManagement.currentUserId"
+                  v-if="member.player.id === membershipManagement.currentPlayerId"
                   class="text-[var(--ks-text-muted)]"
                 >
                   ({{ t('allianceOperations.overview.you') }})
                 </span>
               </h3>
               <p class="mt-1 truncate text-sm text-[var(--ks-text-muted)]">
-                {{ member.user.email }}
+                {{ member.player.gamePlayerId ?? t('allianceOperations.overview.noGamePlayerId') }}
               </p>
               <p class="mt-2 text-xs font-semibold text-[var(--ks-blue-strong)]">
                 {{ statusLabel(member.status) }}
+              </p>
+              <p class="mt-1 text-xs font-bold tracking-[0.14em] text-[var(--ks-gold)] uppercase">
+                {{ member.rank.toUpperCase() }}
               </p>
             </div>
 
             <div
               v-if="
                 membershipManagement.allowed &&
-                member.user.id !== membershipManagement.currentUserId
+                member.player.id !== membershipManagement.currentPlayerId
               "
               class="flex flex-wrap gap-2"
             >
               <select
                 v-model="statusSelections[member.id]"
                 class="ks-input w-auto min-w-36 text-sm"
-                :aria-label="`${t('allianceOperations.overview.status')} ${member.user.name}`"
+                :aria-label="`${t('allianceOperations.overview.status')} ${member.player.name}`"
               >
                 <option value="active">{{ statusLabel('active') }}</option>
                 <option value="suspended">{{ statusLabel('suspended') }}</option>
@@ -509,6 +548,45 @@ function formatInZone(value: string, timeZone: string): string {
             </div>
           </div>
 
+          <div
+            v-if="
+              membershipManagement.rankAllowed &&
+              member.player.id !== membershipManagement.currentPlayerId &&
+              member.rank !== 'r5'
+            "
+            class="mt-4 flex flex-wrap gap-2"
+          >
+            <select
+              v-model="rankSelections[member.id]"
+              class="ks-input w-auto min-w-28 text-sm"
+              :aria-label="`${member.player.name} ${member.rank.toUpperCase()}`"
+            >
+              <option v-for="rank in membershipManagement.rankOptions" :key="rank" :value="rank">
+                {{ rank.toUpperCase() }}
+              </option>
+            </select>
+            <button
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm font-semibold hover:border-[var(--ks-border-strong)]"
+              type="button"
+              @click="updateMembershipRank(member.id)"
+            >
+              {{ t('allianceOperations.overview.update') }}
+            </button>
+          </div>
+
+          <div
+            v-if="membershipManagement.leadershipTransferAllowed && member.player.id !== membershipManagement.currentPlayerId && member.status === 'active'"
+            class="mt-4"
+          >
+            <button
+              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-gold)]/40 bg-[var(--ks-gold-soft)] px-3 py-2 text-sm font-semibold text-[var(--ks-gold-strong)]"
+              type="button"
+              @click="transferLeadership(member.player.id, member.player.name)"
+            >
+              {{ t('allianceOperations.overview.transferLeadership') }}
+            </button>
+          </div>
+
           <div class="mt-4 flex flex-wrap gap-2">
             <span
               v-for="role in member.roles"
@@ -519,7 +597,7 @@ function formatInZone(value: string, timeZone: string): string {
               <button
                 v-if="
                   membershipManagement.rolesAllowed &&
-                  member.user.id !== membershipManagement.currentUserId
+                  member.player.id !== membershipManagement.currentPlayerId
                 "
                 class="text-[var(--ks-red)] hover:text-red-200"
                 :aria-label="`${t('allianceOperations.overview.removeRole')} ${role.name}`"
@@ -535,7 +613,7 @@ function formatInZone(value: string, timeZone: string): string {
             <select
               v-model="roleSelections[member.id]"
               class="ks-input min-w-48 flex-1 text-sm"
-              :aria-label="`${t('allianceOperations.overview.selectRole')} ${member.user.name}`"
+              :aria-label="`${t('allianceOperations.overview.selectRole')} ${member.player.name}`"
             >
               <option value="">{{ t('allianceOperations.overview.selectRole') }}</option>
               <option

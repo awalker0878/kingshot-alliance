@@ -7,6 +7,7 @@ namespace App\Domain\Audit\Services;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Models\AuditEvent;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,7 @@ final class AuditRecorder
     /** @param array<string, mixed> $metadata */
     public function record(
         string $event,
-        ?User $actor = null,
+        User|Player|null $actor = null,
         ?Model $subject = null,
         ?Alliance $alliance = null,
         array $metadata = [],
@@ -24,7 +25,8 @@ final class AuditRecorder
 
         return AuditEvent::query()->create([
             'alliance_id' => $alliance?->id,
-            'actor_user_id' => $actor?->id,
+            'actor_user_id' => $actor instanceof User ? $actor->id : null,
+            'actor_player_id' => $actor instanceof Player ? $actor->id : null,
             'event' => $event,
             'subject_type' => $subject?->getMorphClass(),
             'subject_id' => $subject === null ? null : (string) $subject->getKey(),

@@ -15,7 +15,7 @@ All readiness/blocker mutations begin from the active Alliance and re-resolve:
 - participant under that Alliance and plan; and
 - blocker, when supplied, under that same Alliance, plan and participant.
 
-A submitted participant/blocker ID from another Alliance fails closed. Sharing a Kingdom, destination, neutral `KingdomPlayer`, player name, group name, or coordinator never creates cross-alliance access.
+A submitted participant/blocker ID from another Alliance fails closed. Sharing a Kingdom, destination, neutral `Player`, player name, group name, or coordinator never creates cross-alliance access.
 
 ## Authorization boundary
 

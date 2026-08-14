@@ -1,109 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: 'Назад к событиям',
-    eyebrow: 'Управление событиями',
-    title: 'Координатор событий',
-    description:
-      'Планируйте события, публикуйте рекомендации для сборов, организуйте построения и группы, затем отмечайте посещаемость и участие.',
-    scheduling: 'Расписание и шаблоны',
-    remindersGuidance: 'Напоминания и рекомендации',
-    rallySetup: 'Построения и сборы',
-    readiness: 'Готовность и посещаемость',
-    createEvent: 'Создать событие',
-    eventTitle: 'Название события',
-    firstStart: 'Первый старт',
-    durationMinutes: 'Длительность (минуты)',
-    registrationOpens: 'Открытие регистрации (минут до)',
-    registrationCloses: 'Закрытие регистрации (минут до)',
-    recurrence: 'Повторение',
-    interval: 'Интервал',
-    recurrenceEnd: 'Конец повторения',
-    createEventAction: 'Создать событие',
-    eventValidation: 'Проверьте поля события и окно регистрации.',
-    createTemplate: 'Создать шаблон события',
-    saveTemplate: 'Сохранить шаблон',
-    scheduleFromTemplate: 'Запланировать из шаблона',
-    chooseTemplate: 'Выбрать шаблон',
-    optionalTitle: 'Необязательное название',
-    scheduleTemplate: 'Запланировать шаблон',
-    reminderRule: 'Правило напоминания',
-    reminderHelp: 'Создайте напоминание в приложении для каждого повторения выбранного события.',
-    chooseEvent: 'Выбрать событие',
-    minutesBefore: 'Минут до начала',
-    addReminder: 'Добавить напоминание',
-    rallyGuidance: 'Рекомендации для сбора',
-    guidanceHelp:
-      'Публикуйте повторно используемые пропорции войск и советы по героям с датами действия.',
-    heroRecommendations: 'Рекомендации героев',
-    effectiveFrom: 'Действует с',
-    effectiveUntil: 'Действует до',
-    leadRequirements: 'Требования к лидеру',
-    joinerGuidance: 'Советы участникам',
-    guidanceValidation: 'Проверьте даты и убедитесь, что доли войск в сумме дают 100%.',
-    publishGuidance: 'Опубликовать рекомендации',
-    eventFormation: 'Построение события',
-    occurrence: 'Повтор',
-    chooseOccurrence: 'Выбрать повтор',
-    noGuidance: 'Нет связанной рекомендации',
-    addFormation: 'Добавить построение',
-    rallyGroup: 'Группа сбора',
-    maxJoiners: 'Макс. участников',
-    none: 'Нет',
-    createGroup: 'Создать группу',
-    assignMember: 'Назначить участника сбора',
-    member: 'Участник',
-    chooseGroup: 'Выбрать группу',
-    chooseMember: 'Выбрать участника',
-    slotNumber: 'Номер слота',
-    saveAssignment: 'Сохранить назначение',
-    registrations: 'Регистрации',
-    noRegistrations: 'Для этого повтора нет активных регистраций.',
-    rallyAssignments: 'Назначения сбора',
-    noAssignments: 'Для этого повтора нет назначений сбора.',
-    participated: 'Участвовал',
-    statusAssigned: 'Назначен',
-    statusParticipated: 'Участвовал',
-    recurrenceNone: 'Нет',
-    recurrenceDaily: 'Ежедневно',
-    recurrenceWeekly: 'Еженедельно',
-    roleLead: 'Лидер',
-    roleJoiner: 'Участник',
-  },
-  eventDetail: {
-    participation: 'Участие',
-    registeredCount: 'Зарегистрировано: {count}',
-    waitlistedCount: 'В ожидании: {count}',
-    noLimit: 'Без лимита',
-    instructions: 'Инструкции',
-    recommendedFormations: 'Рекомендуемые построения',
-    noRecommendedFormations: 'Для этого события ещё не опубликованы специальные рекомендации.',
-    assignmentRole: 'Роль назначения',
-    troopRatio: 'Соотношение войск',
-    infantry: 'Пехота',
-    cavalry: 'Кавалерия',
-    archers: 'Лучники',
-    heroes: 'Герои',
-    notes: 'Заметки',
-    guidance: 'Рекомендации',
-    source: 'Источник',
-    effective: 'Действует с {date}',
-    through: 'до {date}',
-    rallyGroups: 'Группы сбора',
-    maxJoiners: 'Макс. участников: {count}',
-    noAssigned: 'Участники ещё не назначены.',
-    noRallyGroups: 'Для этого события группы сбора не настроены.',
-    savedFormations: 'Ваши сохранённые построения',
-    default: 'По умолчанию',
-    noSavedFormations: 'У вас пока нет сохранённых построений.',
-    saveFormation: 'Сохранить построение',
-    formationName: 'Название',
-    heroesHint: 'Герой один, Герой два, Герой три',
-    makeDefault: 'Сделать построением по умолчанию',
-    formationValidation: 'Проверьте значения. Проценты войск должны составлять 100%.',
-    save: 'Сохранить построение',
-  },
+  "events": {
+    "scope": {
+      "player": "Игрок",
+      "alliance": "Альянс",
+      "kingdom": "Королевство"
+    },
+    "actions": {
+      "save": "Сохранить",
+      "cancel": "Отмена"
+    },
+    "calendar": {
+      "title": "События",
+      "create": "Создать событие",
+      "agenda": "Повестка",
+      "month": "Календарь",
+      "all": "Все уровни",
+      "manageable": "Управление",
+      "empty": "Нет событий для этого представления.",
+      "previousMonth": "Предыдущий месяц",
+      "nextMonth": "Следующий месяц",
+      "scopeFilters": "Фильтр событий по уровню",
+      "viewOptions": "Выбрать вид событий"
+    },
+    "create": {
+      "title": "Создать событие",
+      "back": "Назад к событиям",
+      "noContexts": "Сейчас у вас нет разрешения создавать событие.",
+      "context": "Контекст события",
+      "eventType": "Тип события",
+      "start": "Время начала",
+      "duration": "Длительность (минуты)",
+      "capacity": "Вместимость",
+      "instructions": "Инструкции",
+      "submit": "Создать событие"
+    },
+    "show": {
+      "back": "Назад к событиям",
+      "manage": "Управление событием",
+      "details": "Сведения о событии",
+      "status": "Статус",
+      "capacity": "Вместимость",
+      "recurrence": "Повторение",
+      "modules": "Операционные модули"
+    },
+    "manage": {
+      "title": "Управление событием",
+      "back": "Назад к событиям",
+      "save": "Сохранить событие",
+      "cancel": "Отменить событие"
+    },
+    "attention": {
+      "title": "Действия события",
+      "response": "Нужен ответ",
+      "registration": "Регистрация доступна",
+      "vote": "Нужно проголосовать",
+      "roster_confirmation": "Нужно подтвердить состав"
+    },
+    "reminders": {
+      "title": "Недавние напоминания"
+    },
+    "participation": {
+      "register": "Зарегистрироваться",
+      "cancelRegistration": "Отменить регистрацию"
+    },
+    "responses": {
+      "going": "Иду",
+      "maybe": "Возможно",
+      "unavailable": "Недоступен"
+    },
+    "registration": {
+      "registered": "Зарегистрирован",
+      "waitlisted": "Лист ожидания",
+      "cancelled": "Отменено"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "Управляется альянсом",
+      "game_calendar": "Игровой календарь",
+      "matchmaking": "Подбор",
+      "manual": "Вручную"
+    },
+    "recurrencePolicies": {
+      "disabled": "Без повторения",
+      "fixed_interval": "Фиксированный интервал",
+      "configurable": "Настраиваемое"
+    },
+    "recurrenceFrequencies": {
+      "none": "Без повторения",
+      "daily": "Ежедневно",
+      "weekly": "Еженедельно"
+    },
+    "attendanceStatuses": {
+      "present": "Присутствовал",
+      "absent": "Отсутствовал",
+      "excused": "Уважительная причина",
+      "unknown": "Неизвестно"
+    },
+    "eventStatuses": {
+      "draft": "Черновик",
+      "published": "Опубликовано",
+      "cancelled": "Отменено",
+      "completed": "Завершено"
+    },
+    "capabilities": {
+      "responses": "Ответы",
+      "registration": "Регистрация",
+      "waitlist": "Лист ожидания",
+      "attendance": "Посещаемость",
+      "phases": "Фазы",
+      "polls": "Опросы",
+      "rosters": "Составы",
+      "substitutes": "Запасные",
+      "teams": "Команды",
+      "legions": "Легионы",
+      "rally_guidance": "Рекомендации по ралли",
+      "formations": "Формации",
+      "objectives": "Цели",
+      "scoring": "Очки",
+      "results": "Результаты"
+    },
+    "reminderAudiences": {
+      "target": "Цель события",
+      "responded": "Ответившие игроки",
+      "registered": "Зарегистрированные игроки",
+      "rostered": "Игроки в составе",
+      "all_scope_players": "Все подходящие игроки"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

@@ -24,7 +24,7 @@ Source credentials/raw responses remain outside Kingdoms state. Machine provenan
 
 Promotion crosses operational K4 state into accepted K1 snapshot history. That boundary is guarded by current-Alliance/current-Kingdom/source-version checks, stable-ID target resolution, owning-Alliance roster resolution, and delegation through `RecordPlayerSnapshot`.
 
-Neutral `KingdomPlayer` identity is reference data only and never tenant authority.
+Neutral `Player` identity is reference data only and never tenant authority.
 
 ## 4. Threats and controls
 

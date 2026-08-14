@@ -21,6 +21,8 @@ use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
 use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Services\KingdomIngestionOperationalHealth;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -162,11 +164,20 @@ final class KingdomIngestionOperationsHardeningTest extends TestCase
     private function alliance(int $kingdomNumber, string $slug): array
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdomNumber],
+            ['status' => 'active'],
+        );
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'owner-'.$slug,
+            'current_name' => 'K4 P5 '.str_replace('-', ' ', $slug).' Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)->handle(
-            $owner,
+            $player,
             'K4 P5 '.str_replace('-', ' ', $slug),
             $slug,
-            $kingdomNumber,
         );
 
         return [$owner, $alliance];
@@ -175,7 +186,7 @@ final class KingdomIngestionOperationsHardeningTest extends TestCase
     private function subscription(User $owner, Alliance $alliance): KingdomIngestionSubscription
     {
         return $this->app->make(CreateKingdomIngestionSubscription::class)
-            ->handle($alliance, $owner, 'fixture.operations-hardening');
+            ->handle($alliance, $owner->players()->sole(), 'fixture.operations-hardening');
     }
 
     private function candidate(

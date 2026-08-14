@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
@@ -28,7 +28,7 @@ final class ChangeRecruitmentStage
     ) {}
 
     public function handle(
-        User $actor,
+        Player $actor,
         Alliance $alliance,
         RecruitmentCandidate $candidate,
         RecruitmentStage $target,
@@ -76,7 +76,7 @@ final class ChangeRecruitmentStage
             $updates = [
                 'stage' => $target,
                 'next_action_at' => $nextActionAt?->utc(),
-                'updated_by_user_id' => $actor->id,
+                'updated_by_player_id' => $actor->id,
                 'retention_due_at' => $target->isUnsuccessful() ? $now->copy()->addDays($retentionDays) : null,
             ];
 
@@ -132,7 +132,7 @@ final class ChangeRecruitmentStage
                 'from_stage' => $from,
                 'to_stage' => $target,
                 'reason' => $reason === null ? null : trim($reason),
-                'changed_by_user_id' => $actor->id,
+                'changed_by_player_id' => $actor->id,
                 'changed_at' => $now,
             ]);
 

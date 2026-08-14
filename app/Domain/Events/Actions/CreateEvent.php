@@ -7,160 +7,195 @@ namespace App\Domain\Events\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Events\Enums\EventOccurrenceStatus;
+use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Enums\RecurrenceFrequency;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventTemplate;
+use App\Domain\Events\Models\EventTypeScope;
+use App\Domain\Events\Services\EventAuthorization;
+use App\Domain\Events\Services\EventPhaseService;
+use App\Domain\Events\Services\EventPollTemplateMaterializer;
+use App\Domain\Events\Services\EventRosterService;
+use App\Domain\Events\Services\EventSchedulePolicyResolver;
+use App\Domain\Events\Services\EventTargetResolver;
+use App\Domain\Events\Services\EventTypeDefaultsResolver;
 use App\Domain\Events\Services\RecurrenceCalculator;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 final class CreateEvent
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private EventAuthorization $authorization,
+        private EventTargetResolver $targets,
+        private EventTypeDefaultsResolver $defaults,
+        private EventSchedulePolicyResolver $schedulePolicy,
         private RecurrenceCalculator $recurrence,
+        private EventPhaseService $phases,
+        private EventPollTemplateMaterializer $polls,
+        private EventRosterService $rosters,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
+    /** @param array<string, mixed> $settings */
     public function handle(
-        User $actor,
-        Alliance $alliance,
-        string $title,
-        ?CarbonImmutable $firstLocalStart,
-        int $durationMinutes,
+        Player $actor,
+        EventTypeScope $configuration,
+        Alliance|Kingdom|Player $target,
+        CarbonImmutable $firstLocalStart,
+        ?string $title = null,
+        ?string $instructions = null,
+        ?int $durationMinutes = null,
         ?int $capacity = null,
         ?int $registrationOpensMinutesBefore = null,
-        int $registrationClosesMinutesBefore = 0,
-        RecurrenceFrequency $frequency = RecurrenceFrequency::None,
-        int $recurrenceInterval = 1,
+        ?int $registrationClosesMinutesBefore = null,
+        ?RecurrenceFrequency $frequency = null,
+        ?int $recurrenceInterval = null,
         ?CarbonImmutable $recurrenceUntilLocal = null,
-        ?string $instructions = null,
+        array $settings = [],
         bool $publish = true,
         ?EventTemplate $template = null,
     ): Event {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::EventManage)) {
-            throw new AuthorizationException('You are not allowed to manage alliance events.');
+        $scope = $this->targets->scopeFor($target);
+        if ($configuration->scope !== $scope) {
+            throw new InvalidArgumentException('Event type scope does not match the selected target.');
         }
 
-        if (! $firstLocalStart instanceof CarbonImmutable) {
-            throw new InvalidArgumentException('Event start date is required.');
+        $storedDefaults = $this->defaults->resolve($configuration);
+        $scheduleDefaults = $template === null ? $storedDefaults : [
+            'recurrence_policy' => $template->recurrence_policy->value,
+            'default_recurrence_frequency' => $template->recurrence_frequency->value,
+            'default_recurrence_interval' => $template->recurrence_interval,
+            'minimum_repeat_interval_minutes' => $template->minimum_repeat_interval_minutes,
+        ];
+        $permission = PermissionKey::from((string) $configuration->create_permission_key);
+        $this->authorization->authorize($actor, $scope, $target, $permission);
+
+        $duration = $durationMinutes ?? $storedDefaults['default_duration_minutes'];
+        if (! is_int($duration) || $duration < 1 || $duration > 10080) {
+            throw new InvalidArgumentException('Event duration is required and must be between 1 and 10080 minutes.');
         }
 
-        if ($template !== null && $template->alliance_id !== $alliance->id) {
-            throw new AuthorizationException('The event template belongs to another alliance.');
+        $resolvedCapacity = $capacity ?? $storedDefaults['default_capacity'];
+        if ($resolvedCapacity !== null && ((int) $resolvedCapacity < 1 || (int) $resolvedCapacity > 100000)) {
+            throw new InvalidArgumentException('Event capacity must be between 1 and 100000 when provided.');
         }
 
-        if ($durationMinutes < 1 || $durationMinutes > 1440) {
-            throw new InvalidArgumentException('Event duration must be between 1 and 1440 minutes.');
-        }
-
-        if ($capacity !== null && $capacity < 1) {
-            throw new InvalidArgumentException('Event capacity must be at least one when provided.');
-        }
-
-        if ($registrationOpensMinutesBefore !== null && $registrationOpensMinutesBefore < $registrationClosesMinutesBefore) {
+        $opens = $registrationOpensMinutesBefore ?? $storedDefaults['default_registration_opens_minutes_before'];
+        $closes = $registrationClosesMinutesBefore ?? $storedDefaults['default_registration_closes_minutes_before'];
+        if ($opens !== null && $closes !== null && (int) $opens < (int) $closes) {
             throw new InvalidArgumentException('Registration must open before it closes.');
         }
 
-        $localStart = $firstLocalStart->setTimezone($alliance->timezone);
-        $localUntil = $recurrenceUntilLocal?->setTimezone($alliance->timezone);
-
-        if ($localUntil !== null && $localUntil->lessThan($localStart)) {
-            throw new InvalidArgumentException('Recurrence end must not be earlier than the first occurrence.');
+        $resolvedSchedule = $this->schedulePolicy->resolve($scheduleDefaults, $frequency, $recurrenceInterval);
+        if ($resolvedSchedule['frequency'] === RecurrenceFrequency::None && $recurrenceUntilLocal !== null) {
+            throw new InvalidArgumentException('A non-recurring event cannot have a recurrence end date.');
         }
 
+        $timezone = $this->targets->defaultTimezone($actor, $target);
+        $localStart = $firstLocalStart->setTimezone($timezone);
+        $localUntil = $recurrenceUntilLocal?->setTimezone($timezone);
         $occurrenceStarts = $this->recurrence->calculate(
             $localStart,
-            $frequency,
-            $recurrenceInterval,
+            $resolvedSchedule['frequency'],
+            $resolvedSchedule['interval'],
             $localUntil,
         );
 
+        $targetColumns = $this->targets->columnsFor($target);
+        if ($template !== null) {
+            if ((string) $template->event_type_scope_id !== (string) $configuration->id
+                || $template->scope !== $scope
+                || $this->targets->columnsFor($this->targets->forTemplate($template)) !== $targetColumns) {
+                throw new InvalidArgumentException('Event template does not match the selected event type scope and target.');
+            }
+        }
+        $baseSettings = $template?->settings ?? $storedDefaults['default_settings'];
+        $resolvedSettings = array_replace_recursive($baseSettings, $settings);
+
         return DB::transaction(function () use (
             $actor,
-            $alliance,
-            $template,
+            $configuration,
+            $scope,
+            $target,
+            $targetColumns,
             $title,
             $instructions,
+            $timezone,
+            $storedDefaults,
+            $scheduleDefaults,
             $localStart,
-            $durationMinutes,
-            $capacity,
-            $registrationOpensMinutesBefore,
-            $registrationClosesMinutesBefore,
-            $frequency,
-            $recurrenceInterval,
+            $duration,
+            $resolvedCapacity,
+            $opens,
+            $closes,
+            $resolvedSchedule,
             $localUntil,
-            $occurrenceStarts,
+            $resolvedSettings,
             $publish,
+            $occurrenceStarts,
+            $template,
         ): Event {
             $event = Event::query()->create([
-                'alliance_id' => $alliance->id,
+                'event_type_scope_id' => $configuration->id,
+                'event_type_id' => $configuration->event_type_id,
+                'scope' => $scope,
+                ...$targetColumns,
                 'template_id' => $template?->id,
-                'title' => trim($title),
-                'instructions' => $instructions === null ? null : trim($instructions),
-                'timezone' => $alliance->timezone,
+                'title' => $title === null || trim($title) === '' ? null : trim($title),
+                'instructions' => $instructions === null || trim($instructions) === '' ? null : trim($instructions),
+                'timezone' => $timezone,
+                'schedule_source' => $template?->schedule_source ?? $storedDefaults['schedule_source'],
+                'recurrence_policy' => $scheduleDefaults['recurrence_policy'],
+                'minimum_repeat_interval_minutes' => $scheduleDefaults['minimum_repeat_interval_minutes'],
                 'starts_at' => $localStart->utc(),
-                'duration_minutes' => $durationMinutes,
-                'capacity' => $capacity,
-                'registration_opens_minutes_before' => $registrationOpensMinutesBefore,
-                'registration_closes_minutes_before' => $registrationClosesMinutesBefore,
-                'recurrence_frequency' => $frequency,
-                'recurrence_interval' => $recurrenceInterval,
-                'recurrence_weekdays' => null,
+                'duration_minutes' => $duration,
+                'capacity' => $resolvedCapacity,
+                'registration_opens_minutes_before' => $opens,
+                'registration_closes_minutes_before' => $closes,
+                'recurrence_frequency' => $resolvedSchedule['frequency'],
+                'recurrence_interval' => $resolvedSchedule['interval'],
                 'recurrence_until' => $localUntil?->utc(),
+                'settings' => $resolvedSettings === [] ? null : $resolvedSettings,
                 'status' => $publish ? EventStatus::Published : EventStatus::Draft,
-                'created_by_user_id' => $actor->id,
-                'updated_by_user_id' => $actor->id,
+                'created_by_player_id' => $actor->id,
+                'updated_by_player_id' => $actor->id,
             ]);
 
             foreach ($occurrenceStarts as $occurrenceLocalStart) {
-                $registrationOpensAt = $registrationOpensMinutesBefore === null
-                    ? null
-                    : $occurrenceLocalStart->subMinutes($registrationOpensMinutesBefore)->utc();
-                $registrationClosesAt = $occurrenceLocalStart->subMinutes($registrationClosesMinutesBefore)->utc();
-
-                EventOccurrence::query()->create([
-                    'alliance_id' => $alliance->id,
+                $occurrence = EventOccurrence::query()->create([
                     'event_id' => $event->id,
                     'starts_at' => $occurrenceLocalStart->utc(),
-                    'ends_at' => $occurrenceLocalStart->addMinutes($durationMinutes)->utc(),
-                    'registration_opens_at' => $registrationOpensAt,
-                    'registration_closes_at' => $registrationClosesAt,
-                    'capacity' => $capacity,
+                    'ends_at' => $occurrenceLocalStart->addMinutes($duration)->utc(),
                     'status' => EventOccurrenceStatus::Scheduled,
+                    'settings' => null,
                 ]);
+                $this->phases->materializeDefaults($occurrence, $actor);
+                $this->polls->materializeDefaults($occurrence, $actor);
+                $this->rosters->materializeDefaults($occurrence, $actor);
             }
 
-            $this->audit->record(
-                'event.created',
-                actor: $actor,
-                subject: $event,
-                alliance: $alliance,
-                metadata: [
-                    'template_id' => $template?->id,
-                    'recurrence' => $frequency->value,
-                    'occurrence_count' => count($occurrenceStarts),
-                    'published' => $publish,
-                ],
-            );
-
-            $this->outbox->record('event.created', (string) $alliance->id, $event, [
-                'template_id' => $template?->id,
-                'recurrence' => $frequency->value,
+            $alliance = $target instanceof Alliance ? $target : null;
+            $metadata = [
+                'scope' => $scope->value,
+                'target_id' => (string) $target->id,
+                'event_type_scope_id' => (string) $configuration->id,
                 'occurrence_count' => count($occurrenceStarts),
                 'published' => $publish,
-            ]);
+                'actor_player_id' => $actor->id,
+            ];
+            $this->audit->record('event.created', $actor, $event, $alliance, $metadata);
+            $this->outbox->record('event.created', $alliance?->id, $event, $metadata, partitionKey: $scope->value.':'.$target->id);
 
-            return $event->load('occurrences');
+            return $event->refresh()->load(['eventType', 'typeScope.capabilities', 'occurrences']);
         });
     }
 }

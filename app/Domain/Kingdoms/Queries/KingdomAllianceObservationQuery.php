@@ -44,7 +44,7 @@ final class KingdomAllianceObservationQuery
             ->where('alliance_id', $alliance->id)
             ->where('tracked_kingdom_alliance_id', $trackingId)
             ->when(! $includeInvalidated, fn ($query) => $query->whereNull('invalidated_at'))
-            ->with(['actor:id,name', 'invalidatedBy:id,name'])
+            ->with(['actor:id,current_name', 'invalidatedBy:id,current_name'])
             ->orderByDesc('captured_at')
             ->orderByDesc('id')
             ->limit(self::HISTORY_LIMIT)

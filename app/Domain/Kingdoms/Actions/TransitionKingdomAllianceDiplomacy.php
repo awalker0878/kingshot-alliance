@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\KingdomAlliance;
@@ -40,7 +40,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
      */
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $trackingId,
         KingdomAllianceDiplomacyState $target,
         array $attributes,
@@ -115,7 +115,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 && $this->sameDate($relationship->expires_at, $expiresAt)
                 && $relationship->terms === $terms
                 && $relationship->rationale === $rationale) {
-                return $relationship->load('lastTransitionUser:id,name');
+                return $relationship->load('lastTransitionPlayer:id,current_name');
             }
 
             if (! $relationship instanceof KingdomAllianceDiplomacy) {
@@ -129,7 +129,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                     'expires_at' => $expiresAt,
                     'terms' => $terms,
                     'rationale' => $rationale,
-                    'last_transition_user_id' => $actor->id,
+                    'last_transition_player_id' => $actor->id,
                 ]);
             } else {
                 if ($relationship->kingdom_alliance_id !== $reference->id) {
@@ -145,7 +145,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                     'expires_at' => $expiresAt,
                     'terms' => $terms,
                     'rationale' => $rationale,
-                    'last_transition_user_id' => $actor->id,
+                    'last_transition_player_id' => $actor->id,
                 ])->save();
             }
 
@@ -161,7 +161,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 'expires_at' => $expiresAt,
                 'terms' => $terms,
                 'rationale' => $rationale,
-                'actor_user_id' => $actor->id,
+                'actor_player_id' => $actor->id,
                 'created_at' => now(),
             ]);
 
@@ -186,7 +186,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 $event.':'.$transition->id,
             );
 
-            return $relationship->refresh()->load('lastTransitionUser:id,name');
+            return $relationship->refresh()->load('lastTransitionPlayer:id,current_name');
         });
     }
 

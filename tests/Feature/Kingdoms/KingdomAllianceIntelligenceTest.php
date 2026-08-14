@@ -6,15 +6,16 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomAlliance;
 use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacy;
 use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyContact;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Services\KingdomAllianceIntelligence;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,7 +36,7 @@ final class KingdomAllianceIntelligenceTest extends TestCase
     public function test_dashboard_derives_bounded_trends_from_accepted_history_and_preserves_missing_vs_zero(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-08-10 16:00:00 UTC'));
-        [$owner, $alliance] = $this->ownerAlliance('Trend Alliance', 'trend-alliance', 6501);
+        [, $ownerPlayer, $alliance] = $this->ownerAlliance('Trend Alliance', 'trend-alliance', 6501);
         $alpha = $this->tracking($alliance, 'Alpha', 'ALP');
         $missing = $this->tracking($alliance, 'Missing', 'MIS');
         $zero = $this->tracking($alliance, 'Zero', 'ZER');
@@ -58,7 +59,7 @@ final class KingdomAllianceIntelligenceTest extends TestCase
             'effective_at' => now()->subDays(20),
             'review_at' => now()->subHour(),
             'expires_at' => now()->addDay(),
-            'last_transition_user_id' => $owner->id,
+            'last_transition_player_id' => $ownerPlayer->id,
         ]);
 
         $metrics = $this->app->make(KingdomAllianceIntelligence::class)->forAlliance(
@@ -107,7 +108,7 @@ final class KingdomAllianceIntelligenceTest extends TestCase
     public function test_bounded_window_rejects_too_old_or_too_new_substitutes(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-08-10 16:00:00 UTC'));
-        [, $alliance] = $this->ownerAlliance('Window Alliance', 'window-alliance', 6502);
+        [, , $alliance] = $this->ownerAlliance('Window Alliance', 'window-alliance', 6502);
         $tracking = $this->tracking($alliance, 'Window Target', 'WIN');
 
         $this->observation($alliance, $tracking, 61, 100, 10, 'window-61');
@@ -131,7 +132,7 @@ final class KingdomAllianceIntelligenceTest extends TestCase
     public function test_member_payload_excludes_private_contact_diagnostics_and_manager_sees_diagnostics_without_contact_text(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-08-10 16:00:00 UTC'));
-        [$owner, $alliance] = $this->ownerAlliance('Privacy Alliance', 'privacy-alliance', 6503);
+        [$ownerUser, $ownerPlayer, $alliance] = $this->ownerAlliance('Privacy Alliance', 'privacy-alliance', 6503);
         $tracking = $this->tracking($alliance, 'Private Target', 'PVT');
         $secretName = 'PRIVATE-CONTACT-NAME-6503';
         $secretHandle = 'PRIVATE-HANDLE-6503';
@@ -148,12 +149,12 @@ final class KingdomAllianceIntelligenceTest extends TestCase
             'state' => 'active',
             'last_verified_at' => now()->subDays(31),
             'manager_notes' => $secretNote,
-            'created_by_user_id' => $owner->id,
-            'updated_by_user_id' => $owner->id,
+            'created_by_player_id' => $ownerPlayer->id,
+            'updated_by_player_id' => $ownerPlayer->id,
         ]);
 
-        $session = $this->allianceSession($alliance);
-        $managerResponse = $this->actingAs($owner)->withSession($session)
+        $managerSession = $this->activeSession($ownerPlayer->id);
+        $managerResponse = $this->actingAs($ownerUser)->withSession($managerSession)
             ->get('/alliance/kingdom-alliances/intelligence')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -169,8 +170,8 @@ final class KingdomAllianceIntelligenceTest extends TestCase
         self::assertStringNotContainsString($secretHandle, $managerContent);
         self::assertStringNotContainsString($secretNote, $managerContent);
 
-        $member = $this->member($alliance);
-        $this->actingAs($member)->withSession($session)
+        [$memberUser, $memberPlayer] = $this->member($alliance);
+        $this->actingAs($memberUser)->withSession($this->activeSession($memberPlayer->id))
             ->get('/alliance/kingdom-alliances/intelligence')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -184,15 +185,15 @@ final class KingdomAllianceIntelligenceTest extends TestCase
     public function test_dashboard_isolates_tenants_and_filters_rows_without_changing_active_summary(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-08-10 16:00:00 UTC'));
-        [$ownerA, $allianceA] = $this->ownerAlliance('Tenant A', 'tenant-a-intelligence', 6504);
-        [, $allianceB] = $this->ownerAlliance('Tenant B', 'tenant-b-intelligence', 6504);
+        [$ownerUserA, $ownerPlayerA, $allianceA] = $this->ownerAlliance('Tenant A', 'tenant-a-intelligence', 6504);
+        [, , $allianceB] = $this->ownerAlliance('Tenant B', 'tenant-b-intelligence', 6504);
         $current = $this->tracking($allianceA, 'Current A', 'CRA');
         $missing = $this->tracking($allianceA, 'Missing A', 'MSA');
         $otherTenant = $this->tracking($allianceB, 'OTHER-TENANT-SECRET-6504', 'OTS');
         $this->observation($allianceA, $current, 1, 100, 10, 'tenant-a-current');
         $this->observation($allianceB, $otherTenant, 1, 999, 99, 'tenant-b-current');
 
-        $response = $this->actingAs($ownerA)->withSession($this->allianceSession($allianceA))
+        $response = $this->actingAs($ownerUserA)->withSession($this->activeSession($ownerPlayerA->id))
             ->get('/alliance/kingdom-alliances/intelligence?tracking=active&freshness=missing&sort=power&direction=desc')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -209,13 +210,28 @@ final class KingdomAllianceIntelligenceTest extends TestCase
         self::assertSame('Missing A', $missing->kingdomAlliance->current_name);
     }
 
-    /** @return array{0: User, 1: Alliance} */
-    private function ownerAlliance(string $name, string $slug, int $kingdom): array
+    /** @return array{0: User, 1: Player, 2: Alliance} */
+    private function ownerAlliance(string $name, string $slug, int $kingdomNumber): array
     {
-        $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $ownerUser = User::factory()->create();
+        $kingdom = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdomNumber],
+            ['status' => 'active'],
+        );
+        $ownerPlayer = $this->player($ownerUser, $kingdom, $slug.'-r5', $name.' R5');
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, $name, $slug);
 
-        return [$owner, $alliance];
+        return [$ownerUser, $ownerPlayer, $alliance];
+    }
+
+    private function player(User $user, Kingdom $kingdom, string $gamePlayerId, string $name): Player
+    {
+        return Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => $gamePlayerId,
+            'current_name' => $name,
+        ]);
     }
 
     private function tracking(Alliance $alliance, string $name, string $tag): TrackedKingdomAlliance
@@ -259,28 +275,32 @@ final class KingdomAllianceIntelligenceTest extends TestCase
         ]);
     }
 
-    private function member(Alliance $alliance): User
+    /** @return array{0: User, 1: Player} */
+    private function member(Alliance $alliance): array
     {
-        $member = User::factory()->create();
-        $membership = AllianceMembership::query()->create([
+        $memberUser = User::factory()->create();
+        $kingdom = Kingdom::query()->findOrFail($alliance->kingdom_id);
+        $memberPlayer = $this->player(
+            $memberUser,
+            $kingdom,
+            'member-'.$alliance->id.'-'.$memberUser->id,
+            'Member '.$memberUser->id,
+        );
+        AllianceMembership::query()->create([
             'alliance_id' => $alliance->id,
-            'user_id' => $member->id,
+            'player_id' => $memberPlayer->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $role = Role::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
 
-        return $member;
+        return [$memberUser, $memberPlayer];
     }
 
     /** @return array<string, mixed> */
-    private function allianceSession(Alliance $alliance): array
+    private function activeSession(string $playerId): array
     {
-        return [(string) config('identity.active_alliance_session_key') => $alliance->id];
+        return [(string) config('identity.active_player_session_key') => $playerId];
     }
 
     /** @return array{tracking: string, freshness: string, diplomacy: string, sort: string, direction: string} */

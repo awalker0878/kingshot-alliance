@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomAllianceContactChannel;
 use App\Domain\Kingdoms\Enums\KingdomAllianceContactState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
@@ -41,7 +41,7 @@ final readonly class SaveKingdomAllianceDiplomacyContact
      */
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $trackingId,
         array $attributes,
         ?string $contactId = null,
@@ -99,7 +99,7 @@ final readonly class SaveKingdomAllianceDiplomacyContact
                     && $contact->handle === $handle
                     && $this->sameDate($contact->last_verified_at, $lastVerifiedAt)
                     && $contact->manager_notes === $managerNotes) {
-                    return $contact->load(['createdBy:id,name', 'updatedBy:id,name', 'deactivatedBy:id,name']);
+                    return $contact->load(['createdBy:id,current_name', 'updatedBy:id,current_name', 'deactivatedBy:id,current_name']);
                 }
 
                 $contact->forceFill([
@@ -109,7 +109,7 @@ final readonly class SaveKingdomAllianceDiplomacyContact
                     'handle' => $handle,
                     'last_verified_at' => $lastVerifiedAt,
                     'manager_notes' => $managerNotes,
-                    'updated_by_user_id' => $actor->id,
+                    'updated_by_player_id' => $actor->id,
                 ])->save();
                 $created = false;
             } else {
@@ -124,8 +124,8 @@ final readonly class SaveKingdomAllianceDiplomacyContact
                     'state' => KingdomAllianceContactState::Active,
                     'last_verified_at' => $lastVerifiedAt,
                     'manager_notes' => $managerNotes,
-                    'created_by_user_id' => $actor->id,
-                    'updated_by_user_id' => $actor->id,
+                    'created_by_player_id' => $actor->id,
+                    'updated_by_player_id' => $actor->id,
                 ]);
                 $created = true;
             }
@@ -156,7 +156,7 @@ final readonly class SaveKingdomAllianceDiplomacyContact
                 ])),
             );
 
-            return $contact->refresh()->load(['createdBy:id,name', 'updatedBy:id,name', 'deactivatedBy:id,name']);
+            return $contact->refresh()->load(['createdBy:id,current_name', 'updatedBy:id,current_name', 'deactivatedBy:id,current_name']);
         });
     }
 

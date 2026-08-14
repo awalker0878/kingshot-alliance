@@ -32,11 +32,11 @@ final class KingdomAllianceObservationController extends Controller
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
-        if (! $authorization->allows($user, $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
             throw new AuthorizationException;
         }
 
-        $canManage = $authorization->allows($user, $alliance, PermissionKey::KingdomManage);
+        $canManage = $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage);
         $tracked = $observations->tracking($alliance, $tracking);
         $latest = $observations->latestAccepted($alliance, $tracking);
         $history = $observations->history($alliance, $tracking, $canManage);
@@ -62,7 +62,7 @@ final class KingdomAllianceObservationController extends Controller
         RecordKingdomAllianceObservation $record,
         string $tracking,
     ): RedirectResponse {
-        $record->handle($context->alliance(), $this->user($request), $tracking, $this->validatedObservation($request));
+        $record->handle($context->alliance(), $context->player(), $tracking, $this->validatedObservation($request));
 
         return back()->with('status', 'kingdom-alliance-observation-recorded');
     }
@@ -78,7 +78,7 @@ final class KingdomAllianceObservationController extends Controller
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:5000'],
         ]);
-        $invalidate->handle($context->alliance(), $this->user($request), $tracking, $observation, $validated['reason']);
+        $invalidate->handle($context->alliance(), $context->player(), $tracking, $observation, $validated['reason']);
 
         return back()->with('status', 'kingdom-alliance-observation-invalidated');
     }
@@ -152,10 +152,10 @@ final class KingdomAllianceObservationController extends Controller
 
         if ($includePrivate) {
             $row['id'] = (string) $observation->id;
-            $row['actorName'] = $observation->actor?->name;
+            $row['actorName'] = $observation->actor?->current_name;
             $row['correctsObservationId'] = $observation->corrects_observation_id;
             $row['invalidatedAt'] = $observation->invalidated_at?->toIso8601String();
-            $row['invalidatedByName'] = $observation->invalidatedBy?->name;
+            $row['invalidatedByName'] = $observation->invalidatedBy?->current_name;
             $row['invalidationReason'] = $observation->invalidation_reason;
             $row['sourceSubscriptionId'] = $observation->source_subscription_id;
             $row['sourceBatchId'] = $observation->source_batch_id;

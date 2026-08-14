@@ -6,9 +6,10 @@ import AppLayout from '../../layouts/AppLayout.vue';
 import { useLocale } from '../../localization';
 
 type Membership = {
-  id: string;
+  playerId: string;
   name: string;
-  email: string;
+  rank: string;
+  claimed: boolean;
   linkedRosterEntryId: string | null;
 };
 
@@ -30,7 +31,7 @@ type Entry = {
   joinedAt: string | null;
   leftAt: string | null;
   lastObservedAt: string | null;
-  membership: { id: string; name: string; email: string } | null;
+  membership: { playerId: string; name: string; rank: string; claimed: boolean } | null;
   managerNotes: string | null;
   latestSnapshot: LatestSnapshot | null;
 };
@@ -39,7 +40,6 @@ const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string | null };
   entries: Entry[];
-  memberships: Membership[];
   states: string[];
   gaps: {
     membershipsWithoutRoster: Membership[];
@@ -52,7 +52,6 @@ const { locale, t, formatDate, formatNumber } = useLocale();
 const createForm = useForm({
   name: '',
   game_player_id: '',
-  membership_id: '',
   game_role: '',
   state: 'active',
   joined_at: '',
@@ -65,7 +64,6 @@ const drafts = reactive(
       entry.id,
       {
         name: entry.name,
-        membership_id: entry.membership?.id ?? '',
         game_role: entry.gameRole ?? '',
         state: entry.state === 'left' ? 'tracked' : entry.state,
         joined_at: entry.joinedAt ?? '',
@@ -76,7 +74,6 @@ const drafts = reactive(
     string,
     {
       name: string;
-      membership_id: string;
       game_role: string;
       state: string;
       joined_at: string;
@@ -102,12 +99,6 @@ function markLeft(entry: Entry): void {
   }
 
   router.post(`/alliance/roster/${entry.id}/leave`, {}, { preserveScroll: true });
-}
-
-function membershipUnavailable(membership: Membership, entryId?: string): boolean {
-  return (
-    membership.linkedRosterEntryId !== null && membership.linkedRosterEntryId !== (entryId ?? null)
-  );
 }
 
 function formatPower(value: string): string {
@@ -144,7 +135,7 @@ function stateTone(value: string): string {
 <template>
   <Head :title="`${t('roster.manage')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div class="max-w-3xl">
         <Link
@@ -194,13 +185,13 @@ function stateTone(value: string): string {
         >
           <li
             v-for="membership in gaps.membershipsWithoutRoster"
-            :key="membership.id"
+            :key="membership.playerId"
             class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 px-3 py-2"
           >
             <span class="font-semibold text-[var(--ks-text)]">{{ membership.name }}</span>
-            <span class="block truncate text-xs text-[var(--ks-text-muted)]">{{
-              membership.email
-            }}</span>
+            <span class="block text-xs text-[var(--ks-text-muted)]">
+              {{ membership.rank.toUpperCase() }} · {{ membership.claimed ? t('roster.linked') : t('roster.unlinked') }}
+            </span>
           </li>
         </ul>
       </article>
@@ -246,30 +237,6 @@ function stateTone(value: string): string {
               class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
               maxlength="100"
             />
-          </div>
-          <div>
-            <label
-              class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-              for="roster-member"
-            >
-              {{ t('rosterManage.applicationMember') }}
-            </label>
-            <select
-              id="roster-member"
-              v-model="createForm.membership_id"
-              class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-            >
-              <option value="">{{ t('roster.unlinked') }}</option>
-              <option
-                v-for="membership in memberships"
-                :key="membership.id"
-                :disabled="membershipUnavailable(membership)"
-                :value="membership.id"
-              >
-                {{ membership.name }} · {{ membership.email }}
-                {{ membership.linkedRosterEntryId ? ` · ${t('rosterManage.alreadyLinked')}` : '' }}
-              </option>
-            </select>
           </div>
           <div>
             <label class="text-xs font-semibold text-[var(--ks-text-secondary)]" for="roster-role">
@@ -425,34 +392,6 @@ function stateTone(value: string): string {
                 class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
                 maxlength="160"
               />
-            </div>
-            <div>
-              <label
-                class="text-xs font-semibold text-[var(--ks-text-secondary)]"
-                :for="`member-${entry.id}`"
-              >
-                {{ t('roster.linkedMember') }}
-              </label>
-              <select
-                :id="`member-${entry.id}`"
-                v-model="drafts[entry.id].membership_id"
-                class="mt-1.5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
-              >
-                <option value="">{{ t('roster.unlinked') }}</option>
-                <option
-                  v-for="membership in memberships"
-                  :key="membership.id"
-                  :disabled="membershipUnavailable(membership, entry.id)"
-                  :value="membership.id"
-                >
-                  {{ membership.name }} · {{ membership.email }}
-                  {{
-                    membershipUnavailable(membership, entry.id)
-                      ? ` · ${t('rosterManage.alreadyLinked')}`
-                      : ''
-                  }}
-                </option>
-              </select>
             </div>
             <div>
               <label

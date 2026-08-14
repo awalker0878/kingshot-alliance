@@ -1,108 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: 'العودة إلى الأحداث',
-    eyebrow: 'عمليات الأحداث',
-    title: 'منسق الأحداث',
-    description:
-      'جدولة الأحداث ونشر إرشادات الحشد وتنظيم التشكيلات والمجموعات ثم تسجيل الحضور والمشاركة.',
-    scheduling: 'الجدولة والقوالب',
-    remindersGuidance: 'التذكيرات والإرشادات',
-    rallySetup: 'التشكيلات وإعداد الحشد',
-    readiness: 'الجاهزية والحضور',
-    createEvent: 'إنشاء حدث',
-    eventTitle: 'عنوان الحدث',
-    firstStart: 'أول بدء',
-    durationMinutes: 'المدة (بالدقائق)',
-    registrationOpens: 'فتح التسجيل (دقائق قبل)',
-    registrationCloses: 'إغلاق التسجيل (دقائق قبل)',
-    recurrence: 'التكرار',
-    interval: 'الفاصل',
-    recurrenceEnd: 'نهاية التكرار',
-    createEventAction: 'إنشاء الحدث',
-    eventValidation: 'تحقق من حقول الحدث ونافذة التسجيل.',
-    createTemplate: 'إنشاء قالب حدث',
-    saveTemplate: 'حفظ القالب',
-    scheduleFromTemplate: 'الجدولة من قالب',
-    chooseTemplate: 'اختر قالبًا',
-    optionalTitle: 'عنوان اختياري بديل',
-    scheduleTemplate: 'جدولة القالب',
-    reminderRule: 'قاعدة تذكير',
-    reminderHelp: 'أنشئ تذكيرًا داخل التطبيق لكل تكرار للحدث المحدد.',
-    chooseEvent: 'اختر حدثًا',
-    minutesBefore: 'دقائق قبل البدء',
-    addReminder: 'إضافة تذكير',
-    rallyGuidance: 'إرشادات الحشد',
-    guidanceHelp: 'انشر نسب قوات وإرشادات أبطال قابلة لإعادة الاستخدام مع تواريخ سريان.',
-    heroRecommendations: 'توصيات الأبطال',
-    effectiveFrom: 'ساري من',
-    effectiveUntil: 'ساري حتى',
-    leadRequirements: 'متطلبات القائد',
-    joinerGuidance: 'إرشادات المنضمين',
-    guidanceValidation: 'تحقق من تواريخ السريان وأن مجموع نسب القوات يساوي 100٪.',
-    publishGuidance: 'نشر الإرشادات',
-    eventFormation: 'تشكيل الحدث',
-    occurrence: 'التكرار المحدد',
-    chooseOccurrence: 'اختر تكرارًا',
-    noGuidance: 'لا توجد إرشادات مرتبطة',
-    addFormation: 'إضافة تشكيل',
-    rallyGroup: 'مجموعة حشد',
-    maxJoiners: 'الحد الأقصى للمنضمين',
-    none: 'لا شيء',
-    createGroup: 'إنشاء مجموعة',
-    assignMember: 'تعيين عضو للحشد',
-    member: 'العضو',
-    chooseGroup: 'اختر مجموعة',
-    chooseMember: 'اختر عضوًا',
-    slotNumber: 'رقم الخانة',
-    saveAssignment: 'حفظ التعيين',
-    registrations: 'التسجيلات',
-    noRegistrations: 'لا توجد تسجيلات نشطة لهذا التكرار.',
-    rallyAssignments: 'تعيينات الحشد',
-    noAssignments: 'لا توجد تعيينات حشد لهذا التكرار.',
-    participated: 'شارك',
-    statusAssigned: 'مُعيّن',
-    statusParticipated: 'شارك',
-    recurrenceNone: 'بدون',
-    recurrenceDaily: 'يومي',
-    recurrenceWeekly: 'أسبوعي',
-    roleLead: 'قائد',
-    roleJoiner: 'منضم',
-  },
-  eventDetail: {
-    participation: 'المشاركة',
-    registeredCount: '{count} مسجل',
-    waitlistedCount: '{count} في قائمة الانتظار',
-    noLimit: 'بلا حد',
-    instructions: 'التعليمات',
-    recommendedFormations: 'التشكيلات الموصى بها',
-    noRecommendedFormations: 'لم تُنشر إرشادات تشكيل خاصة بهذا الحدث.',
-    assignmentRole: 'دور التعيين',
-    troopRatio: 'نسبة القوات',
-    infantry: 'المشاة',
-    cavalry: 'الفرسان',
-    archers: 'الرماة',
-    heroes: 'الأبطال',
-    notes: 'ملاحظات',
-    guidance: 'الإرشادات',
-    source: 'المصدر',
-    effective: 'ساري من {date}',
-    through: 'حتى {date}',
-    rallyGroups: 'مجموعات الحشد',
-    maxJoiners: 'الحد الأقصى للمنضمين: {count}',
-    noAssigned: 'لم يتم تعيين أعضاء بعد.',
-    noRallyGroups: 'لم يتم إعداد مجموعات حشد لهذا الحدث.',
-    savedFormations: 'تشكيلاتك المحفوظة',
-    default: 'افتراضي',
-    noSavedFormations: 'لم تحفظ تشكيلاً بعد.',
-    saveFormation: 'حفظ تشكيل',
-    formationName: 'الاسم',
-    heroesHint: 'البطل الأول، البطل الثاني، البطل الثالث',
-    makeDefault: 'اجعل هذا تشكيلي الافتراضي',
-    formationValidation: 'تحقق من قيم التشكيل. يجب أن يكون مجموع نسب القوات 100٪.',
-    save: 'حفظ التشكيل',
-  },
+  "events": {
+    "scope": {
+      "player": "لاعب",
+      "alliance": "تحالف",
+      "kingdom": "مملكة"
+    },
+    "actions": {
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "calendar": {
+      "title": "الأحداث",
+      "create": "إنشاء حدث",
+      "agenda": "جدول الأعمال",
+      "month": "التقويم",
+      "all": "كل النطاقات",
+      "manageable": "إدارة",
+      "empty": "لا توجد أحداث تطابق هذا العرض.",
+      "previousMonth": "الشهر السابق",
+      "nextMonth": "الشهر التالي",
+      "scopeFilters": "تصفية الأحداث حسب النطاق",
+      "viewOptions": "اختيار عرض الأحداث"
+    },
+    "create": {
+      "title": "إنشاء حدث",
+      "back": "العودة إلى الأحداث",
+      "noContexts": "ليس لديك إذن حاليًا لإنشاء حدث.",
+      "context": "سياق الحدث",
+      "eventType": "نوع الحدث",
+      "start": "وقت البدء",
+      "duration": "المدة (بالدقائق)",
+      "capacity": "السعة",
+      "instructions": "التعليمات",
+      "submit": "إنشاء حدث"
+    },
+    "show": {
+      "back": "العودة إلى الأحداث",
+      "manage": "إدارة الحدث",
+      "details": "تفاصيل الحدث",
+      "status": "الحالة",
+      "capacity": "السعة",
+      "recurrence": "التكرار",
+      "modules": "الوحدات التشغيلية"
+    },
+    "manage": {
+      "title": "إدارة الحدث",
+      "back": "العودة إلى الأحداث",
+      "save": "حفظ الحدث",
+      "cancel": "إلغاء الحدث"
+    },
+    "attention": {
+      "title": "إجراءات الحدث",
+      "response": "مطلوب رد",
+      "registration": "التسجيل متاح",
+      "vote": "مطلوب تصويت",
+      "roster_confirmation": "مطلوب تأكيد القائمة"
+    },
+    "reminders": {
+      "title": "التذكيرات الأخيرة"
+    },
+    "participation": {
+      "register": "تسجيل",
+      "cancelRegistration": "إلغاء التسجيل"
+    },
+    "responses": {
+      "going": "سأشارك",
+      "maybe": "ربما",
+      "unavailable": "غير متاح"
+    },
+    "registration": {
+      "registered": "مسجل",
+      "waitlisted": "قائمة انتظار",
+      "cancelled": "ملغى"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "يتحكم به التحالف",
+      "game_calendar": "تقويم اللعبة",
+      "matchmaking": "مطابقة",
+      "manual": "يدوي"
+    },
+    "recurrencePolicies": {
+      "disabled": "بدون تكرار",
+      "fixed_interval": "فاصل ثابت",
+      "configurable": "قابل للتهيئة"
+    },
+    "recurrenceFrequencies": {
+      "none": "بدون تكرار",
+      "daily": "يومي",
+      "weekly": "أسبوعي"
+    },
+    "attendanceStatuses": {
+      "present": "حاضر",
+      "absent": "غائب",
+      "excused": "معذور",
+      "unknown": "غير معروف"
+    },
+    "eventStatuses": {
+      "draft": "مسودة",
+      "published": "منشور",
+      "cancelled": "ملغى",
+      "completed": "مكتمل"
+    },
+    "capabilities": {
+      "responses": "الردود",
+      "registration": "التسجيل",
+      "waitlist": "قائمة الانتظار",
+      "attendance": "الحضور",
+      "phases": "المراحل",
+      "polls": "الاستطلاعات",
+      "rosters": "القوائم",
+      "substitutes": "البدلاء",
+      "teams": "الفرق",
+      "legions": "الفيالق",
+      "rally_guidance": "إرشادات التجمع",
+      "formations": "التشكيلات",
+      "objectives": "الأهداف",
+      "scoring": "النقاط",
+      "results": "النتائج"
+    },
+    "reminderAudiences": {
+      "target": "هدف الحدث",
+      "responded": "اللاعبون الذين ردوا",
+      "registered": "اللاعبون المسجلون",
+      "rostered": "اللاعبون في القائمة",
+      "all_scope_players": "كل اللاعبين المؤهلين"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

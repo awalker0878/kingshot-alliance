@@ -13,6 +13,7 @@ return new class extends Migration
         Schema::create('outbox_messages', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('alliance_id')->nullable()->constrained('alliances')->cascadeOnDelete();
+            $table->string('partition_key', 180)->nullable()->index();
             $table->string('event_type', 160);
             $table->string('aggregate_type', 160);
             $table->string('aggregate_id', 64);
@@ -26,6 +27,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'event_type']);
+            $table->index(['partition_key', 'event_type']);
         });
     }
 

@@ -24,11 +24,16 @@ final readonly class AllianceDataExportService
         'two_factor_recovery_codes',
     ];
 
-    public function __construct(private AuditRecorder $audit) {}
+    public function __construct(
+        private AuditRecorder $audit,
+        private PlatformAdministratorAuthorization $authorization,
+    ) {}
 
     /** @return array{contents: string, filename: string, rowCount: int, sha256: string, tableCounts: array<string, int>} */
     public function generate(User $actor, Alliance $alliance): array
     {
+        $this->authorization->authorize($actor);
+
         $tables = DB::table('information_schema.columns')
             ->where('table_schema', 'public')
             ->where('column_name', 'alliance_id')

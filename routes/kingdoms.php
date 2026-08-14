@@ -9,6 +9,7 @@ use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceIntelligenceController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceObservationController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomIngestionController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomIntelligenceSharingController;
+use App\Domain\Authorization\Http\Controllers\KingdomRoleController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
 use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
 use App\Domain\Kingdoms\Http\Controllers\RosterController;
@@ -25,9 +26,8 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/settings/kingdom', [KingdomSettingsController::class, 'index'])
         ->name('alliance.kingdom.edit');
 
-    Route::patch('/alliance/settings/kingdom', [KingdomSettingsController::class, 'update'])
-        ->middleware('password.confirm')
-        ->name('alliance.kingdom.update');
+    Route::get('/alliance/settings/kingdom/roles', [KingdomRoleController::class, 'index'])
+        ->name('alliance.kingdom.roles.index');
 
     Route::get('/alliance/roster', [RosterController::class, 'index'])
         ->name('alliance.roster.index');
@@ -81,6 +81,12 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         ->name('alliance.transfers.completion');
 
     Route::middleware('password.confirm')->group(function (): void {
+
+        Route::post('/alliance/settings/kingdom/roles', [KingdomRoleController::class, 'store'])
+            ->name('alliance.kingdom.roles.store');
+        Route::delete('/alliance/settings/kingdom/roles/{assignment}', [KingdomRoleController::class, 'destroy'])
+            ->name('alliance.kingdom.roles.destroy');
+
         Route::post('/alliance/roster', [RosterController::class, 'store'])
             ->name('alliance.roster.store');
         Route::patch('/alliance/roster/{entry}', [RosterController::class, 'update'])

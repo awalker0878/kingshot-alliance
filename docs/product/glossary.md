@@ -42,7 +42,7 @@ A Platform-owned cross-tenant administrative grant. It is not an Alliance role a
 
 A Kingdoms-owned neutral game-world reference. An Alliance may reference one canonical Kingdom through `kingdom_id`.
 
-### KingdomPlayer
+### Player
 
 A neutral Kingshot player reference owned by Kingdoms. Sharing the neutral reference never grants access to another Alliance's tenant-owned roster/history/notes/intelligence.
 

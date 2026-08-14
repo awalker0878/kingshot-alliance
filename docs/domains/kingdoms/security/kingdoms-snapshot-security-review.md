@@ -8,7 +8,7 @@
 
 ## Security objective
 
-Slice C1 introduces historical game observations without weakening alliance tenancy, roster authorization, privacy boundaries, or auditability. A shared Kingdom or neutral KingdomPlayer must never become a path to another Alliance's snapshot history.
+Slice C1 introduces historical game observations without weakening alliance tenancy, roster authorization, privacy boundaries, or auditability. A shared Kingdom or neutral Player must never become a path to another Alliance's snapshot history.
 
 The protected Slice C1 implementation gate has passed. This review remains candidate acceptance evidence until the slice is accepted into the dependency stack; repository validation does not change the existing real-production approval boundary.
 
@@ -36,17 +36,17 @@ Trust boundaries are:
 
 ### Cross-alliance snapshot disclosure
 
-**Threat:** An authenticated user submits another Alliance's roster-entry ID or relies on a shared KingdomPlayer to read its observations.
+**Threat:** An authenticated user submits another Alliance's roster-entry ID or relies on a shared Player to read its observations.
 
 **Controls:**
 
 - history and mutation routes require the active Alliance middleware;
 - roster entries are re-resolved with `alliance_id = active alliance`;
 - snapshot latest/history queries also constrain `alliance_id`;
-- KingdomPlayer identity is reference data only and is never an authorization key; and
+- Player identity is reference data only and is never an authorization key; and
 - feature coverage verifies cross-alliance history reads and mutations fail closed.
 
-**Residual risk:** New future queries must preserve both tenant and roster ownership predicates rather than querying snapshots by KingdomPlayer alone.
+**Residual risk:** New future queries must preserve both tenant and roster ownership predicates rather than querying snapshots by Player alone.
 
 ### Privilege escalation for observation recording
 
@@ -141,7 +141,7 @@ Normal tenant lifecycle deletion remains governed by the existing Platform lifec
 
 **Controls:**
 
-- snapshot event metadata contains snapshot ID, roster-entry ID, KingdomPlayer ID, capture time and source;
+- snapshot event metadata contains snapshot ID, roster-entry ID, Player ID, capture time and source;
 - private manager notes are excluded; and
 - downstream/public Kingdoms API or webhook exposure is not introduced in Slice C1.
 

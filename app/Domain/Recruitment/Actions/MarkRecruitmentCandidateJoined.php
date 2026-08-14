@@ -6,7 +6,7 @@ namespace App\Domain\Recruitment\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Events\OutboxPublished;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
@@ -53,15 +53,15 @@ final class MarkRecruitmentCandidateJoined
                 return;
             }
 
-            $userId = $event->payload['user_id'] ?? null;
-            $actor = is_int($userId) ? User::query()->find($userId) : null;
+            $playerId = $event->payload['player_id'] ?? null;
+            $actor = is_string($playerId) ? Player::query()->find($playerId) : null;
             $now = now();
 
             $candidate->forceFill([
                 'stage' => RecruitmentStage::Joined,
                 'joined_at' => $now,
                 'retention_due_at' => null,
-                'updated_by_user_id' => $actor?->id,
+                'updated_by_player_id' => $actor?->id,
             ])->save();
 
             RecruitmentStageHistory::query()->create([
@@ -70,7 +70,7 @@ final class MarkRecruitmentCandidateJoined
                 'from_stage' => RecruitmentStage::Accepted,
                 'to_stage' => RecruitmentStage::Joined,
                 'reason' => 'Alliance invitation accepted',
-                'changed_by_user_id' => $actor?->id,
+                'changed_by_player_id' => $actor?->id,
                 'changed_at' => $now,
             ]);
 

@@ -11,7 +11,7 @@ use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Enums\MediaLifecycleStatus;
 use App\Domain\Content\Models\AllianceBrandingMedia;
 use App\Domain\Content\Models\MediaAsset;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +25,7 @@ final readonly class ArchiveMediaAsset
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $alliance, User $actor, string $mediaId): MediaAsset
+    public function handle(Alliance $alliance, Player $actor, string $mediaId): MediaAsset
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::ContentManage)) {
             throw new AuthorizationException;

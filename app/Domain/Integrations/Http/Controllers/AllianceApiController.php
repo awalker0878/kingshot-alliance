@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Integrations\Http\Controllers;
 
 use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Events\Enums\EventScope;
 use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -32,11 +33,9 @@ final class AllianceApiController extends Controller
     {
         $alliance = $this->alliance($request);
         $rows = DB::table('event_occurrences')
-            ->join('events', function ($join): void {
-                $join->on('events.id', '=', 'event_occurrences.event_id')
-                    ->on('events.alliance_id', '=', 'event_occurrences.alliance_id');
-            })
-            ->where('event_occurrences.alliance_id', $alliance->id)
+            ->join('events', 'events.id', '=', 'event_occurrences.event_id')
+            ->where('events.scope', EventScope::Alliance->value)
+            ->where('events.alliance_id', $alliance->id)
             ->where('event_occurrences.starts_at', '>=', now()->subDay())
             ->orderBy('event_occurrences.starts_at')
             ->limit(250)
@@ -66,7 +65,7 @@ final class AllianceApiController extends Controller
             ->limit(250)
             ->get([
                 'contribution_records.id',
-                'contribution_records.membership_id',
+                'contribution_records.player_id',
                 'contribution_records.value',
                 'contribution_records.period_start',
                 'contribution_records.period_end',

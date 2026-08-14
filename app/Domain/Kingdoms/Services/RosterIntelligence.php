@@ -10,6 +10,8 @@ use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
 use App\Domain\Kingdoms\Queries\PlayerSnapshotQuery;
 use App\Domain\Kingdoms\Queries\RosterQuery;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Support\Carbon;
 
 final readonly class RosterIntelligence
@@ -34,6 +36,12 @@ final readonly class RosterIntelligence
                 true,
             ))
             ->values();
+        $linkedPlayerIds = AllianceMembership::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('status', MembershipStatus::Active->value)
+            ->pluck('player_id')
+            ->map(static fn ($id): string => (string) $id)
+            ->flip();
         $latest = $this->snapshots->latestForEntries($alliance, $tracked);
         $sevenDayBaselines = $this->snapshots->baselinesForEntries($alliance, $tracked, 7, $asOf);
         $thirtyDayBaselines = $this->snapshots->baselinesForEntries($alliance, $tracked, 30, $asOf);
@@ -52,7 +60,8 @@ final readonly class RosterIntelligence
         $comparisons = [];
 
         foreach ($tracked as $entry) {
-            if ($entry->membership_id !== null) {
+            $membershipLinked = $linkedPlayerIds->has((string) $entry->player_id);
+            if ($membershipLinked) {
                 $linked++;
             }
 
@@ -94,7 +103,7 @@ final readonly class RosterIntelligence
                 'entryId' => $entryId,
                 'name' => (string) $entry->observed_name,
                 'state' => $entry->state->value,
-                'membershipLinked' => $entry->membership_id !== null,
+                'membershipLinked' => $membershipLinked,
                 'snapshotState' => $snapshotState,
                 'current' => $snapshot === null ? null : [
                     'power' => (string) $snapshot->power,

@@ -9,7 +9,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareTargetState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
@@ -31,7 +31,7 @@ final readonly class AddKingdomIntelligenceShareTarget
 
     public function handle(
         Alliance $sourceAlliance,
-        User $actor,
+        Player $actor,
         string $shareId,
         string $trackingId,
     ): KingdomIntelligenceShareTarget {
@@ -118,8 +118,8 @@ final readonly class AddKingdomIntelligenceShareTarget
             if ($target instanceof KingdomIntelligenceShareTarget) {
                 $target->forceFill([
                     'state' => KingdomIntelligenceShareTargetState::Active,
-                    'shared_by_user_id' => $actor->id,
-                    'removed_by_user_id' => null,
+                    'shared_by_player_id' => $actor->id,
+                    'removed_by_player_id' => null,
                     'shared_at' => $sharedAt,
                     'removed_at' => null,
                 ])->save();
@@ -128,7 +128,7 @@ final readonly class AddKingdomIntelligenceShareTarget
                     'kingdom_intelligence_share_id' => $share->id,
                     'tracked_kingdom_alliance_id' => $tracking->id,
                     'state' => KingdomIntelligenceShareTargetState::Active,
-                    'shared_by_user_id' => $actor->id,
+                    'shared_by_player_id' => $actor->id,
                     'shared_at' => $sharedAt,
                 ]);
             }
@@ -159,7 +159,7 @@ final readonly class AddKingdomIntelligenceShareTarget
     /** @param array<string, mixed> $metadata */
     private function recordForAlliance(
         Alliance $alliance,
-        ?User $actor,
+        ?Player $actor,
         KingdomIntelligenceShareTarget $target,
         array $metadata,
         \DateTimeInterface $occurredAt,

@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\TransferGroup;
@@ -29,7 +29,7 @@ final readonly class ArchiveTransferGroup
 
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $planId,
         string $groupId,
     ): TransferGroup {
@@ -56,7 +56,7 @@ final readonly class ArchiveTransferGroup
                 ->findOrFail($groupId);
 
             if ($group->state === TransferGroupState::Archived) {
-                return $group->load(['coordinator.user:id,name,email', 'destinationKingdom:id,number']);
+                return $group->load(['coordinator:id,current_name', 'destinationKingdom:id,number']);
             }
 
             $activeParticipant = TransferParticipant::query()
@@ -97,7 +97,7 @@ final readonly class ArchiveTransferGroup
             );
 
             return $group->refresh()->load([
-                'coordinator.user:id,name,email',
+                'coordinator:id,current_name',
                 'destinationKingdom:id,number',
             ]);
         });
@@ -113,7 +113,7 @@ final readonly class ArchiveTransferGroup
 
         if ($alliance->kingdom_id !== $plan->home_kingdom_id) {
             throw ValidationException::withMessages([
-                'group' => 'The alliance Kingdom changed after this transfer cycle was created. Cancel the stale cycle before changing groups.',
+                'group' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.',
             ]);
         }
     }

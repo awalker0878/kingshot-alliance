@@ -10,7 +10,7 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Models\ContentCategory;
 use App\Domain\Content\Services\ContentSanitizer;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,7 @@ final readonly class SaveContentCategory
 
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $name,
         string $slug,
         int $sortOrder = 0,

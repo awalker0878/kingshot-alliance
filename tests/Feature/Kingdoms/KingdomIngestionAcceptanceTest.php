@@ -23,6 +23,8 @@ use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
 use App\Domain\Kingdoms\Services\KingdomIngestionOperationalHealth;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,9 +56,10 @@ final class KingdomIngestionAcceptanceTest extends TestCase
         ]);
 
         [$owner, $alliance] = $this->alliance(7001, 'k4-p6-acceptance');
+        $player = $owner->players()->sole();
         $entry = $this->app->make(SaveRosterEntry::class)->handle(
             $alliance,
-            $owner,
+            $player,
             [
                 'name' => 'Acceptance Player',
                 'game_player_id' => 'player-7001',
@@ -64,7 +67,7 @@ final class KingdomIngestionAcceptanceTest extends TestCase
         );
         $tracking = $this->app->make(StartTrackingKingdomAlliance::class)->handle(
             $alliance,
-            $owner,
+            $player,
             [
                 'current_name' => 'Acceptance Alliance',
                 'current_tag' => 'K4A',
@@ -72,7 +75,7 @@ final class KingdomIngestionAcceptanceTest extends TestCase
             ],
         );
         $subscription = $this->app->make(CreateKingdomIngestionSubscription::class)
-            ->handle($alliance, $owner, 'fixture.acceptance');
+            ->handle($alliance, $player, 'fixture.acceptance');
 
         $capturedAt = now()->subMinute()->startOfSecond()->toIso8601String();
         KingdomIngestionAcceptanceFixtureAdapter::$records = [
@@ -212,11 +215,20 @@ final class KingdomIngestionAcceptanceTest extends TestCase
     private function alliance(int $kingdomNumber, string $slug): array
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdomNumber],
+            ['status' => 'active'],
+        );
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'owner-'.$slug,
+            'current_name' => 'K4 P6 Acceptance Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)->handle(
-            $owner,
+            $player,
             'K4 P6 Acceptance',
             $slug,
-            $kingdomNumber,
         );
 
         return [$owner, $alliance];

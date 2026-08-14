@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\KingdomAlliance;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
@@ -28,7 +28,7 @@ final readonly class InvalidateKingdomAllianceObservation
 
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $trackingId,
         string $observationId,
         ?string $reason,
@@ -63,12 +63,12 @@ final readonly class InvalidateKingdomAllianceObservation
                 ->findOrFail($observationId);
 
             if ($observation->invalidated_at !== null) {
-                return $observation->load(['actor:id,name', 'invalidatedBy:id,name']);
+                return $observation->load(['actor:id,current_name', 'invalidatedBy:id,current_name']);
             }
 
             $observation->forceFill([
                 'invalidated_at' => now(),
-                'invalidated_by_user_id' => $actor->id,
+                'invalidated_by_player_id' => $actor->id,
                 'invalidation_reason' => $this->nullableText($reason),
             ])->save();
 
@@ -95,7 +95,7 @@ final readonly class InvalidateKingdomAllianceObservation
             $this->audit->record($event, $actor, $observation, $lockedAlliance, $metadata);
             $this->outbox->record($event, (string) $lockedAlliance->id, $observation, $metadata, $event.':'.$observation->id);
 
-            return $observation->load(['actor:id,name', 'invalidatedBy:id,name']);
+            return $observation->load(['actor:id,current_name', 'invalidatedBy:id,current_name']);
         });
     }
 

@@ -14,9 +14,10 @@ use App\Domain\Kingdoms\Actions\RecordKingdomAllianceObservation;
 use App\Domain\Kingdoms\Actions\RemoveKingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Actions\RevokeKingdomIntelligenceShare;
 use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
-use App\Domain\Kingdoms\Actions\UpdateAllianceKingdom;
+use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Queries\SharedKingdomIntelligenceHistoryQuery;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -38,14 +39,14 @@ final class KingdomSharedIntelligenceHistoryTest extends TestCase
         $share = $this->activeShare($sourceOwner, $source, $recipientOwner, $recipient);
         $tracking = $this->tracking($sourceOwner, $source, 'ga-7610-a', 'History Target', 'HIS');
         $target = $this->app->make(AddKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $share->id, (string) $tracking->id);
+            ->handle($source, $this->player($sourceOwner), (string) $share->id, (string) $tracking->id);
 
         $oldest = $this->observation($sourceOwner, $source, $tracking, 'Oldest', 'O1', '100', 10, $asOf->copy()->subDays(5));
         $corrected = $this->observation($sourceOwner, $source, $tracking, 'Incorrect', 'BAD', '200', 20, $asOf->copy()->subDays(4));
         $middle = $this->observation($sourceOwner, $source, $tracking, 'Middle', 'MID', '300', 30, $asOf->copy()->subDays(3));
         $replacement = $this->app->make(RecordKingdomAllianceObservation::class)->handle(
             $source,
-            $sourceOwner,
+            $this->player($sourceOwner),
             (string) $tracking->id,
             [
                 'observed_name' => 'Corrected',
@@ -100,13 +101,13 @@ final class KingdomSharedIntelligenceHistoryTest extends TestCase
         ] as $privateId) {
             self::assertStringNotContainsString($privateId, $encoded);
         }
-        foreach (['actor_user_id', 'corrects_observation_id', 'invalidation_reason', 'source_adapter_key'] as $privateField) {
+        foreach (['actor_user_id', 'actor_player_id', 'corrects_observation_id', 'invalidation_reason', 'source_adapter_key'] as $privateField) {
             self::assertStringNotContainsString($privateField, $encoded);
         }
 
         $secondTracking = $this->tracking($sourceOwner, $source, 'ga-7610-b', 'Second Target', 'SEC');
         $secondTarget = $this->app->make(AddKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $share->id, (string) $secondTracking->id);
+            ->handle($source, $this->player($sourceOwner), (string) $share->id, (string) $secondTracking->id);
 
         $this->assertInvalidCursor(fn () => $query->forRecipientTarget(
             $recipient,
@@ -119,7 +120,7 @@ final class KingdomSharedIntelligenceHistoryTest extends TestCase
         self::assertFalse(KingdomAllianceObservation::query()->where('alliance_id', $recipient->id)->exists());
     }
 
-    public function test_history_fails_closed_after_target_remove_share_revoke_and_kingdom_drift(): void
+    public function test_history_fails_closed_after_target_remove_and_share_revoke(): void
     {
         [$sourceOwner, $source] = $this->ownerAlliance('History Boundary Source', 'history-boundary-source', 7611);
         [$recipientOwner, $recipient] = $this->ownerAlliance('History Boundary Recipient', 'history-boundary-recipient', 7611);
@@ -127,31 +128,25 @@ final class KingdomSharedIntelligenceHistoryTest extends TestCase
         $tracking = $this->tracking($sourceOwner, $source, 'ga-7611', 'Boundary Target', 'BND');
         $this->observation($sourceOwner, $source, $tracking, 'Boundary', 'BND', '100', 10, now()->subDay());
         $target = $this->app->make(AddKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $share->id, (string) $tracking->id);
+            ->handle($source, $this->player($sourceOwner), (string) $share->id, (string) $tracking->id);
         $query = $this->app->make(SharedKingdomIntelligenceHistoryQuery::class);
 
         self::assertCount(1, $query->forRecipientTarget($recipient, (string) $target->id)['items']);
 
         $this->app->make(RemoveKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $share->id, (string) $target->id);
+            ->handle($source, $this->player($sourceOwner), (string) $share->id, (string) $target->id);
         $this->assertHistoryNotFound(fn () => $query->forRecipientTarget($recipient, (string) $target->id));
 
         $target = $this->app->make(AddKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $share->id, (string) $tracking->id);
+            ->handle($source, $this->player($sourceOwner), (string) $share->id, (string) $tracking->id);
         $this->app->make(RevokeKingdomIntelligenceShare::class)
-            ->handle($source, $sourceOwner, (string) $share->id);
+            ->handle($source, $this->player($sourceOwner), (string) $share->id);
         $this->assertHistoryNotFound(fn () => $query->forRecipientTarget($recipient, (string) $target->id));
 
         $replacementShare = $this->activeShare($sourceOwner, $source, $recipientOwner, $recipient);
         $replacementTarget = $this->app->make(AddKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $replacementShare->id, (string) $tracking->id);
+            ->handle($source, $this->player($sourceOwner), (string) $replacementShare->id, (string) $tracking->id);
         self::assertCount(1, $query->forRecipientTarget($recipient, (string) $replacementTarget->id)['items']);
-
-        $this->app->make(UpdateAllianceKingdom::class)->handle($recipient, $recipientOwner, 7612);
-        $this->assertHistoryNotFound(fn () => $query->forRecipientTarget($recipient, (string) $replacementTarget->id));
-
-        $this->app->make(UpdateAllianceKingdom::class)->handle($recipient, $recipientOwner, 7611);
-        $this->assertHistoryNotFound(fn () => $query->forRecipientTarget($recipient, (string) $replacementTarget->id));
     }
 
     public function test_history_window_stops_at_250_and_each_page_uses_at_most_two_selects(): void
@@ -162,14 +157,14 @@ final class KingdomSharedIntelligenceHistoryTest extends TestCase
         $share = $this->activeShare($sourceOwner, $source, $recipientOwner, $recipient);
         $tracking = $this->tracking($sourceOwner, $source, 'ga-7613', 'Limit Target', 'LIM');
         $target = $this->app->make(AddKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $share->id, (string) $tracking->id);
+            ->handle($source, $this->player($sourceOwner), (string) $share->id, (string) $tracking->id);
 
         for ($index = 1; $index <= 260; $index++) {
             KingdomAllianceObservation::query()->create([
                 'alliance_id' => $source->id,
                 'tracked_kingdom_alliance_id' => $tracking->id,
                 'kingdom_alliance_id' => $tracking->kingdom_alliance_id,
-                'actor_user_id' => $sourceOwner->id,
+                'actor_player_id' => $this->player($sourceOwner)->id,
                 'observed_name' => 'Historical '.$index,
                 'observed_tag' => 'H'.$index,
                 'power' => 1000 + $index,
@@ -221,10 +216,11 @@ final class KingdomSharedIntelligenceHistoryTest extends TestCase
         User $recipientOwner,
         Alliance $recipient,
     ): KingdomIntelligenceShare {
-        $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)->handle($source, $sourceOwner);
+        $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)
+            ->handle($source, $this->player($sourceOwner));
 
         return $this->app->make(AcceptKingdomIntelligenceShareInvitation::class)
-            ->handle($recipient, $recipientOwner, $issued->token);
+            ->handle($recipient, $this->player($recipientOwner), $issued->token);
     }
 
     private function tracking(
@@ -234,7 +230,7 @@ final class KingdomSharedIntelligenceHistoryTest extends TestCase
         string $name,
         string $tag,
     ): TrackedKingdomAlliance {
-        return $this->app->make(StartTrackingKingdomAlliance::class)->handle($source, $owner, [
+        return $this->app->make(StartTrackingKingdomAlliance::class)->handle($source, $this->player($owner), [
             'game_alliance_id' => $gameAllianceId,
             'current_name' => $name,
             'current_tag' => $tag,
@@ -253,7 +249,7 @@ final class KingdomSharedIntelligenceHistoryTest extends TestCase
     ): KingdomAllianceObservation {
         return $this->app->make(RecordKingdomAllianceObservation::class)->handle(
             $source,
-            $owner,
+            $this->player($owner),
             (string) $tracking->id,
             [
                 'observed_name' => $name,
@@ -269,9 +265,24 @@ final class KingdomSharedIntelligenceHistoryTest extends TestCase
     private function ownerAlliance(string $name, string $slug, int $kingdom): array
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $kingdomModel = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdom],
+            ['status' => 'active'],
+        );
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdomModel->id,
+            'game_player_id' => 'owner-'.$slug,
+            'current_name' => $name.' Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, $name, $slug);
 
         return [$owner, $alliance];
+    }
+
+    private function player(User $owner): Player
+    {
+        return $owner->players()->sole();
     }
 
     /** @param callable(): mixed $callback */

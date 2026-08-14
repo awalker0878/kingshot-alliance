@@ -26,11 +26,11 @@ final class RosterIntelligenceController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
             throw new AuthorizationException;
         }
 
-        $canManage = $authorization->allows($user, $alliance, PermissionKey::KingdomManage);
+        $canManage = $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage);
         $metrics = $intelligence->forAlliance($alliance);
 
         return Inertia::render('Alliance/RosterIntelligence', [

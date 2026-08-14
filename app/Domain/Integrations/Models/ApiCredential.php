@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Integrations\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,7 +34,7 @@ final class ApiCredential extends Model
         'expires_at',
         'last_used_at',
         'revoked_at',
-        'created_by_user_id',
+        'created_by_player_id',
     ];
 
     protected $hidden = ['secret_hash'];
@@ -55,10 +55,10 @@ final class ApiCredential extends Model
         return $this->belongsTo(Alliance::class);
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by_user_id');
+        return $this->belongsTo(Player::class, 'created_by_player_id');
     }
 
     public function active(): bool

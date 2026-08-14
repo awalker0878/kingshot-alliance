@@ -4,20 +4,16 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Http\Controllers;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Identity\Models\User;
-use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Actions\ConfigureAlliancePlatform;
 use App\Domain\Platform\Actions\ManageAllianceLifecycle;
 use App\Domain\Platform\Actions\ManagePlatformAdministrator;
-use App\Domain\Platform\Actions\TransferAllianceOwnership;
 use App\Domain\Platform\Models\LegalHold;
 use App\Domain\Platform\Models\PlatformAdministrator;
 use App\Domain\Platform\Queries\PlatformAdministrationQuery;
 use App\Domain\Platform\Services\AllianceDataExportService;
 use App\Domain\Platform\Services\AllianceFeatureService;
-use App\Domain\Platform\Services\AlliancePlatformDefaultsProvisioner;
 use App\Domain\Platform\Services\LegalHoldService;
 use App\Domain\Platform\Services\PlatformUsageService;
 use Illuminate\Http\RedirectResponse;
@@ -49,17 +45,6 @@ final class PlatformAdministrationController extends Controller
                     'id' => (string) $alliance->id,
                     'name' => (string) $alliance->name,
                     'features' => $features->all($alliance),
-                    'members' => AllianceMembership::query()
-                        ->where('alliance_id', $alliance->id)
-                        ->with('user:id,name,email')
-                        ->orderBy('joined_at')
-                        ->get()
-                        ->map(static fn (AllianceMembership $membership): array => [
-                            'id' => (string) $membership->id,
-                            'name' => $membership->user?->name,
-                            'email' => $membership->user?->email,
-                            'status' => $membership->status->value,
-                        ])->all(),
                 ];
             }
         }
@@ -103,36 +88,6 @@ final class PlatformAdministrationController extends Controller
         return back()->with('status', 'platform-administrator-revoked');
     }
 
-    public function provisionAlliance(
-        Request $request,
-        CreateAlliance $createAlliance,
-        AlliancePlatformDefaultsProvisioner $defaults,
-    ): RedirectResponse {
-        $actor = $this->user($request);
-        $request->merge(['slug' => Str::slug((string) $request->input('slug'))]);
-        $validated = $request->validate([
-            'owner_email' => ['required', 'email', 'exists:users,email'],
-            'name' => ['required', 'string', 'max:120'],
-            'slug' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:alliances,slug'],
-            'kingdom' => ['nullable', 'integer', 'min:1', 'max:2147483647'],
-            'language' => ['required', 'string', 'max:16'],
-            'timezone' => ['required', 'string', 'timezone'],
-        ]);
-        $owner = User::query()->where('email', Str::lower((string) $validated['owner_email']))->firstOrFail();
-        $alliance = $createAlliance->handle(
-            $owner,
-            (string) $validated['name'],
-            (string) $validated['slug'],
-            $validated['kingdom'] ?? null,
-            (string) $validated['language'],
-            (string) $validated['timezone'],
-        );
-        $defaults->provision($alliance, $actor);
-
-        return redirect()->route('platform.administration.index', ['alliance' => $alliance->id])
-            ->with('status', 'alliance-provisioned');
-    }
-
     public function lifecycle(
         Request $request,
         string $alliance,
@@ -156,29 +111,6 @@ final class PlatformAdministrationController extends Controller
         }
 
         return back()->with('status', 'alliance-lifecycle-updated');
-    }
-
-    public function transferOwnership(
-        Request $request,
-        string $alliance,
-        TransferAllianceOwnership $transfer,
-    ): RedirectResponse {
-        $actor = $this->user($request);
-        $targetAlliance = Alliance::query()->findOrFail($alliance);
-        $validated = $request->validate([
-            'membership_id' => ['required', 'string', 'size:26'],
-        ]);
-        $membership = AllianceMembership::query()
-            ->where('alliance_id', $targetAlliance->id)
-            ->findOrFail((string) $validated['membership_id']);
-
-        try {
-            $transfer->handle($actor, $targetAlliance, $membership);
-        } catch (InvalidArgumentException $exception) {
-            throw ValidationException::withMessages(['ownership' => $exception->getMessage()]);
-        }
-
-        return back()->with('status', 'alliance-ownership-transferred');
     }
 
     public function assignPlan(

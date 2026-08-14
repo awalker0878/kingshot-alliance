@@ -35,7 +35,7 @@ Interactive tenant resolution is a separate material capability documented in [A
 
 ## 5. Lifecycles and workflows
 
-Alliance creation provisions the Alliance, creator membership/Owner role, Platform defaults, and required audit/outbox evidence transactionally.
+Alliance creation provisions the Alliance, creator membership/R5 rank, Platform defaults, and required audit/outbox evidence transactionally.
 
 Alliance settings mutations use the active tenant, `alliance.manage`, and required Identity assurance. Changing Kingdom rejects archived targets and preserves historical Kingdoms workflow context rather than silently retargeting it after later drift.
 
@@ -57,7 +57,7 @@ Alliances owns the Alliance aggregate and core settings/relationships. Feature-d
 
 ## 9. Events, outbox and integrations
 
-Material Alliance mutations may record audit/outbox evidence. `alliance.kingdom_updated` is internal and is not automatically externally webhook eligible.
+Material Alliance mutations may record audit/outbox evidence. Alliance Kingdom is established from the creating R5 Player and is not a mutable Alliance setting.
 
 ## 10. HTTP, UI and API surfaces
 

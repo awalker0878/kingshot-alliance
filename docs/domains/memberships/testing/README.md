@@ -2,16 +2,16 @@
 
 [← Memberships domain](../README.md)
 
-**Document type:** Living domain testing and evidence profile  
-**Status:** Current  
-**Owning domain:** Memberships  
-**Code owner:** `app/Domain/Memberships`  
-**Primary validation boundary:** Invitation token lifecycle/acceptance, Alliance membership lifecycle, role-adapter safety, and last-Owner coordination  
+**Document type:** Living domain testing and evidence profile
+**Status:** Current
+**Owning domain:** Memberships
+**Code owner:** `app/Domain/Memberships`
+**Primary validation boundary:** Invitation token lifecycle/acceptance, Alliance membership lifecycle, role-adapter safety, and R5 leadership coordination
 **P5 evidence decision:** Living suite map with Phase 1 invitation/membership evidence reused
 
 ## 1. Critical claims and validation ownership
 
-Memberships validation must prove secure invitation issuance/resend/revocation/acceptance, email-bound tenant-safe acceptance, membership lifecycle/rejoin/leave behavior, active membership as tenant context input, and safe coordination with Authorization hierarchy/last-Owner rules.
+Memberships validation must prove secure invitation issuance/resend/revocation/acceptance, email-bound tenant-safe acceptance, membership lifecycle/rejoin/leave behavior, active membership as tenant context input, and safe coordination with Authorization hierarchy/R5 leadership rules.
 
 ## 2. Executable suite mapping
 
@@ -27,7 +27,7 @@ Role-management HTTP adapters may live under Memberships, but tests must preserv
 
 ## 4. Authorization, tenancy, security and privacy validation
 
-Feature/Integration/TenantIsolation evidence covers `invitations.manage`/`membership.manage`, password-confirmed manager mutations, 64-hex bearer token handling, wrong-email/expired/revoked/used token denial, cross-Alliance membership/role substitution and last-Owner safety.
+Feature/Integration/TenantIsolation evidence covers `invitations.manage`/`membership.manage`, password-confirmed manager mutations, 64-hex bearer token handling, wrong-email/expired/revoked/used token denial, cross-Alliance membership/role substitution and R5 leadership safety.
 
 [Memberships security](../security/README.md) and [Membership invitations](../invitations.md) define the token/privacy boundary.
 

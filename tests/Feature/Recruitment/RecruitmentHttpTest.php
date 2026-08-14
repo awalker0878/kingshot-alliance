@@ -6,6 +6,9 @@ namespace Tests\Feature\Recruitment;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Recruitment\Actions\AddRecruitmentNote;
@@ -26,9 +29,16 @@ final class RecruitmentHttpTest extends TestCase
     public function test_public_application_exposes_questions_but_not_private_candidate_data(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Public Recruiting', 'public-recruiting');
+        $kingdom = Kingdom::query()->create(['number' => 2120, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'public-http-owner',
+            'current_name' => 'Public HTTP Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Public Recruiting', 'public-recruiting');
         $this->app->make(ConfigureRecruitmentSettings::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             RecruitmentApplicationMode::Public,
             'Apply to Public Recruiting',
@@ -37,7 +47,7 @@ final class RecruitmentHttpTest extends TestCase
             true,
         );
         $question = $this->app->make(CreateRecruitmentQuestion::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             'Why should we recruit you?',
             RecruitmentQuestionType::LongText,
@@ -50,7 +60,7 @@ final class RecruitmentHttpTest extends TestCase
             [$question->id => 'Private answer body'],
         );
         $this->app->make(AddRecruitmentNote::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             $candidate,
             'PRIVATE RECRUITER NOTE MUST NOT LEAK',
@@ -76,9 +86,16 @@ final class RecruitmentHttpTest extends TestCase
     public function test_public_application_submission_creates_candidate_without_exposing_private_record(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Submit Recruiting', 'submit-recruiting');
+        $kingdom = Kingdom::query()->create(['number' => 2121, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'submit-http-owner',
+            'current_name' => 'Submit HTTP Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Submit Recruiting', 'submit-recruiting');
         $this->app->make(ConfigureRecruitmentSettings::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             RecruitmentApplicationMode::Public,
             'Apply',
@@ -106,9 +123,16 @@ final class RecruitmentHttpTest extends TestCase
     public function test_invitation_only_application_requires_valid_unused_token(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Invite Only Recruiting', 'invite-only-recruiting');
+        $kingdom = Kingdom::query()->create(['number' => 2122, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'invite-http-owner',
+            'current_name' => 'Invite HTTP Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Invite Only Recruiting', 'invite-only-recruiting');
         $this->app->make(ConfigureRecruitmentSettings::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             RecruitmentApplicationMode::Invitation,
             'Invitation application',
@@ -117,7 +141,7 @@ final class RecruitmentHttpTest extends TestCase
             true,
         );
         $issued = $this->app->make(IssueRecruitmentApplicationInvite::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             'invited@example.com',
         );
@@ -142,41 +166,67 @@ final class RecruitmentHttpTest extends TestCase
         $this->get('/alliances/invite-only-recruiting/apply?token='.$issued->token)->assertNotFound();
     }
 
-    public function test_member_without_recruitment_permission_cannot_open_private_pipeline(): void
+    public function test_member_player_without_recruitment_permission_cannot_open_private_pipeline(): void
     {
         $owner = User::factory()->create();
         $member = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Private Recruiting', 'private-recruiting');
+        $kingdom = Kingdom::query()->create(['number' => 2123, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'private-http-owner',
+            'current_name' => 'Private HTTP Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $member->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'private-http-member',
+            'current_name' => 'Private HTTP Member',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Private Recruiting', 'private-recruiting');
         AllianceMembership::query()->create([
             'alliance_id' => $alliance->id,
-            'user_id' => $member->id,
+            'player_id' => $memberPlayer->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $sessionKey = (string) config('identity.active_alliance_session_key');
 
         $this->actingAs($member)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([(string) config('identity.active_player_session_key') => $memberPlayer->id])
             ->get('/alliance/recruitment')
             ->assertForbidden();
     }
 
-    public function test_private_pipeline_and_candidate_ids_are_scoped_to_active_alliance(): void
+    public function test_private_pipeline_and_candidate_ids_are_scoped_to_active_player_alliance(): void
     {
         $owner = User::factory()->create();
+        $firstKingdom = Kingdom::query()->create(['number' => 2124, 'status' => 'active']);
+        $secondKingdom = Kingdom::query()->create(['number' => 2125, 'status' => 'active']);
+        $firstPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $firstKingdom->id,
+            'game_player_id' => 'first-http-player',
+            'current_name' => 'First HTTP Player',
+        ]);
+        $secondPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $secondKingdom->id,
+            'game_player_id' => 'second-http-player',
+            'current_name' => 'Second HTTP Player',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $first = $createAlliance->handle($owner, 'First Recruiting', 'first-http-recruiting');
-        $second = $createAlliance->handle($owner, 'Second Recruiting', 'second-http-recruiting');
+        $first = $createAlliance->handle($firstPlayer, 'First Recruiting', 'first-http-recruiting');
+        $second = $createAlliance->handle($secondPlayer, 'Second Recruiting', 'second-http-recruiting');
         $configure = $this->app->make(ConfigureRecruitmentSettings::class);
-        $configure->handle($owner, $first, RecruitmentApplicationMode::Public, 'Apply', null, 90, true);
-        $configure->handle($owner, $second, RecruitmentApplicationMode::Public, 'Apply', null, 90, true);
+        $configure->handle($firstPlayer, $first, RecruitmentApplicationMode::Public, 'Apply', null, 90, true);
+        $configure->handle($secondPlayer, $second, RecruitmentApplicationMode::Public, 'Apply', null, 90, true);
         $submit = $this->app->make(SubmitRecruitmentApplication::class);
         $firstCandidate = $submit->handle($first, 'Visible Candidate', 'visible@example.com', []);
         $secondCandidate = $submit->handle($second, 'Hidden Candidate', 'hidden@example.com', []);
-        $sessionKey = (string) config('identity.active_alliance_session_key');
 
         $this->actingAs($owner)->withSession([
-            $sessionKey => $first->id,
+            (string) config('identity.active_player_session_key') => $firstPlayer->id,
             'auth.password_confirmed_at' => time(),
         ]);
 
@@ -199,17 +249,32 @@ final class RecruitmentHttpTest extends TestCase
         $this->patch('/alliance/recruitment/'.$secondCandidate->id.'/stage', [
             'stage' => 'screening',
         ])->assertNotFound();
+
+        $this->withSession([
+            (string) config('identity.active_player_session_key') => $secondPlayer->id,
+            'auth.password_confirmed_at' => time(),
+        ])->get('/alliance/recruitment')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('alliance.id', $second->id)
+                ->where('candidates.0.id', $secondCandidate->id));
     }
 
     public function test_recruitment_mutations_require_recent_password_confirmation(): void
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 2126, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'confirmed-http-owner',
+            'current_name' => 'Confirmed HTTP Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Confirmed Recruiting', 'confirmed-recruiting');
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+            ->handle($ownerPlayer, 'Confirmed Recruiting', 'confirmed-recruiting');
 
         $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([(string) config('identity.active_player_session_key') => $ownerPlayer->id])
             ->post('/alliance/recruitment/questions', [
                 'prompt' => 'Blocked until confirmed',
                 'help_text' => null,
@@ -227,31 +292,44 @@ final class RecruitmentHttpTest extends TestCase
         ]);
     }
 
-    public function test_recruiter_can_edit_only_active_alliance_questions(): void
+    public function test_recruiter_can_edit_only_active_player_alliance_questions(): void
     {
         $owner = User::factory()->create();
+        $firstKingdom = Kingdom::query()->create(['number' => 2127, 'status' => 'active']);
+        $secondKingdom = Kingdom::query()->create(['number' => 2128, 'status' => 'active']);
+        $firstPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $firstKingdom->id,
+            'game_player_id' => 'editable-http-player',
+            'current_name' => 'Editable HTTP Player',
+        ]);
+        $secondPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $secondKingdom->id,
+            'game_player_id' => 'foreign-http-player',
+            'current_name' => 'Foreign HTTP Player',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $first = $createAlliance->handle($owner, 'Editable Recruiting', 'editable-recruiting');
-        $second = $createAlliance->handle($owner, 'Foreign Recruiting', 'foreign-recruiting');
+        $first = $createAlliance->handle($firstPlayer, 'Editable Recruiting', 'editable-recruiting');
+        $second = $createAlliance->handle($secondPlayer, 'Foreign Recruiting', 'foreign-recruiting');
         $createQuestion = $this->app->make(CreateRecruitmentQuestion::class);
         $firstQuestion = $createQuestion->handle(
-            $owner,
+            $firstPlayer,
             $first,
             'Original question',
             RecruitmentQuestionType::ShortText,
             false,
         );
         $secondQuestion = $createQuestion->handle(
-            $owner,
+            $secondPlayer,
             $second,
             'Foreign question',
             RecruitmentQuestionType::ShortText,
             false,
         );
-        $sessionKey = (string) config('identity.active_alliance_session_key');
 
         $this->actingAs($owner)->withSession([
-            $sessionKey => $first->id,
+            (string) config('identity.active_player_session_key') => $firstPlayer->id,
             'auth.password_confirmed_at' => time(),
         ]);
 
@@ -274,7 +352,7 @@ final class RecruitmentHttpTest extends TestCase
             'is_required' => true,
             'position' => 4,
             'is_active' => true,
-            'updated_by_user_id' => $owner->id,
+            'updated_by_player_id' => $firstPlayer->id,
         ]);
 
         $this->post('/alliance/recruitment/questions', [
@@ -295,27 +373,41 @@ final class RecruitmentHttpTest extends TestCase
         ]);
     }
 
-    public function test_alliance_home_exposes_recruitment_navigation_for_authorized_owner(): void
+    public function test_alliance_home_exposes_recruitment_navigation_for_authorized_active_player(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Recruitment Navigation', 'recruitment-navigation');
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+        $kingdom = Kingdom::query()->create(['number' => 2129, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'navigation-http-owner',
+            'current_name' => 'Navigation HTTP Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Recruitment Navigation', 'recruitment-navigation');
 
         $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([(string) config('identity.active_player_session_key') => $ownerPlayer->id])
             ->get('/alliance')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Alliance/Overview')
+                ->where('alliance.id', $alliance->id)
                 ->where('contentHub.canManageRecruitment', true));
     }
 
     public function test_public_alliance_page_uses_authoritative_recruitment_settings(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Recruiting Public Page', 'recruiting-public-page');
+        $kingdom = Kingdom::query()->create(['number' => 2130, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'public-page-owner',
+            'current_name' => 'Public Page Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Recruiting Public Page', 'recruiting-public-page');
         $configure = $this->app->make(ConfigureRecruitmentSettings::class);
-        $configure->handle($owner, $alliance, RecruitmentApplicationMode::Public, 'Apply', null, 90, true);
+        $configure->handle($ownerPlayer, $alliance, RecruitmentApplicationMode::Public, 'Apply', null, 90, true);
 
         $this->get('/alliances/recruiting-public-page')
             ->assertOk()
@@ -323,14 +415,14 @@ final class RecruitmentHttpTest extends TestCase
                 ->where('alliance.recruitmentStatus', 'open')
                 ->where('alliance.recruitmentApplicationUrl', route('public.alliances.recruitment.show', 'recruiting-public-page')));
 
-        $configure->handle($owner, $alliance, RecruitmentApplicationMode::Invitation, 'Invite only', null, 90, true);
+        $configure->handle($ownerPlayer, $alliance, RecruitmentApplicationMode::Invitation, 'Invite only', null, 90, true);
         $this->get('/alliances/recruiting-public-page')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('alliance.recruitmentStatus', 'invitation_only')
                 ->where('alliance.recruitmentApplicationUrl', null));
 
-        $configure->handle($owner, $alliance, RecruitmentApplicationMode::Invitation, 'Closed', null, 90, false);
+        $configure->handle($ownerPlayer, $alliance, RecruitmentApplicationMode::Invitation, 'Closed', null, 90, false);
         $this->get('/alliances/recruiting-public-page')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page

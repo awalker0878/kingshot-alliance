@@ -27,7 +27,7 @@ final class RecruitmentCandidateOnboarding extends Model
         'onboarding_item_id',
         'status',
         'completed_at',
-        'completed_by_user_id',
+        'completed_by_player_id',
     ];
 
     protected function casts(): array

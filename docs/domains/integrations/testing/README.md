@@ -37,7 +37,7 @@ Feature/Integration/TenantIsolation evidence covers manager integration administ
 
 Webhook delivery identity is deterministic per subscription/outbox message. Platform publication is at-least-once, so fan-out/delivery consumers must be duplicate-safe. Retry/backoff and terminal failure transitions are explicit state-machine behavior rather than generic queue semantics.
 
-Wildcard subscription matching must still exclude `alliance.kingdom_updated` and all `kingdoms.*` events.
+Wildcard subscription matching must still exclude all `kingdoms.*` events.
 
 ## 7. Persistence, migration, rollback and recovery evidence
 

@@ -7,7 +7,7 @@ namespace App\Domain\Contributions\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Contributions\Models\ContributionDataQualityFlag;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use InvalidArgumentException;
 
 final class ResolveContributionDataQualityFlag
@@ -15,7 +15,7 @@ final class ResolveContributionDataQualityFlag
     public function __construct(private readonly AuditRecorder $audit) {}
 
     public function handle(
-        User $actor,
+        Player $actor,
         Alliance $alliance,
         ContributionDataQualityFlag $flag,
     ): ContributionDataQualityFlag {
@@ -30,7 +30,7 @@ final class ResolveContributionDataQualityFlag
         $flag->forceFill([
             'status' => 'resolved',
             'resolved_at' => now(),
-            'resolved_by_user_id' => $actor->id,
+            'resolved_by_player_id' => $actor->id,
         ])->save();
 
         $this->audit->record('contribution.data-quality.resolved', $actor, $flag, $alliance, [

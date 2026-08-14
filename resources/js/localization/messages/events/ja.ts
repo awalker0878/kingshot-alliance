@@ -1,108 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: 'イベントに戻る',
-    eyebrow: 'イベント運用',
-    title: 'イベントコーディネーター',
-    description:
-      'イベントを予定し、集結ガイドを公開し、編成とグループを整理して、出欠と参加状況を記録します。',
-    scheduling: '予定とテンプレート',
-    remindersGuidance: 'リマインダーとガイド',
-    rallySetup: '編成と集結設定',
-    readiness: '準備状況と出欠',
-    createEvent: 'イベントを作成',
-    eventTitle: 'イベント名',
-    firstStart: '初回開始',
-    durationMinutes: '時間（分）',
-    registrationOpens: '登録開始（開始前の分）',
-    registrationCloses: '登録締切（開始前の分）',
-    recurrence: '繰り返し',
-    interval: '間隔',
-    recurrenceEnd: '繰り返し終了',
-    createEventAction: 'イベントを作成',
-    eventValidation: 'イベント項目と登録期間を確認してください。',
-    createTemplate: 'イベントテンプレートを作成',
-    saveTemplate: 'テンプレートを保存',
-    scheduleFromTemplate: 'テンプレートから予定',
-    chooseTemplate: 'テンプレートを選択',
-    optionalTitle: '任意のタイトル',
-    scheduleTemplate: 'テンプレートを予定',
-    reminderRule: 'リマインダールール',
-    reminderHelp: '選択したイベントの各回にアプリ内リマインダーを作成します。',
-    chooseEvent: 'イベントを選択',
-    minutesBefore: '開始前の分',
-    addReminder: 'リマインダーを追加',
-    rallyGuidance: '集結ガイド',
-    guidanceHelp: '有効期間付きの兵種比率と英雄ガイドを再利用可能な形で公開します。',
-    heroRecommendations: '英雄の推奨',
-    effectiveFrom: '有効開始',
-    effectiveUntil: '有効終了',
-    leadRequirements: 'リーダー要件',
-    joinerGuidance: '参加者ガイド',
-    guidanceValidation: '有効日と兵種比率の合計が100%であることを確認してください。',
-    publishGuidance: 'ガイドを公開',
-    eventFormation: 'イベント編成',
-    occurrence: '開催回',
-    chooseOccurrence: '開催回を選択',
-    noGuidance: '関連ガイドなし',
-    addFormation: '編成を追加',
-    rallyGroup: '集結グループ',
-    maxJoiners: '最大参加者',
-    none: 'なし',
-    createGroup: 'グループを作成',
-    assignMember: '集結メンバーを割り当て',
-    member: 'メンバー',
-    chooseGroup: 'グループを選択',
-    chooseMember: 'メンバーを選択',
-    slotNumber: 'スロット番号',
-    saveAssignment: '割り当てを保存',
-    registrations: '登録',
-    noRegistrations: 'この開催回に有効な登録はありません。',
-    rallyAssignments: '集結割り当て',
-    noAssignments: 'この開催回に集結割り当てはありません。',
-    participated: '参加済み',
-    statusAssigned: '割り当て済み',
-    statusParticipated: '参加済み',
-    recurrenceNone: 'なし',
-    recurrenceDaily: '毎日',
-    recurrenceWeekly: '毎週',
-    roleLead: 'リーダー',
-    roleJoiner: '参加者',
-  },
-  eventDetail: {
-    participation: '参加状況',
-    registeredCount: '登録済み {count}人',
-    waitlistedCount: '待機中 {count}人',
-    noLimit: '上限なし',
-    instructions: '指示',
-    recommendedFormations: '推奨編成',
-    noRecommendedFormations: 'このイベント専用の編成ガイドはまだ公開されていません。',
-    assignmentRole: '割り当て役割',
-    troopRatio: '兵種比率',
-    infantry: '歩兵',
-    cavalry: '騎兵',
-    archers: '弓兵',
-    heroes: '英雄',
-    notes: 'メモ',
-    guidance: 'ガイド',
-    source: '出典',
-    effective: '{date}から有効',
-    through: '{date}まで',
-    rallyGroups: '集結グループ',
-    maxJoiners: '最大参加者: {count}',
-    noAssigned: 'まだメンバーが割り当てられていません。',
-    noRallyGroups: 'このイベントには集結グループが設定されていません。',
-    savedFormations: '保存済み編成',
-    default: 'デフォルト',
-    noSavedFormations: 'まだ編成を保存していません。',
-    saveFormation: '編成を保存',
-    formationName: '名前',
-    heroesHint: '英雄1、英雄2、英雄3',
-    makeDefault: 'デフォルト編成にする',
-    formationValidation: '編成値を確認してください。兵種の合計は100%である必要があります。',
-    save: '編成を保存',
-  },
+  "events": {
+    "scope": {
+      "player": "プレイヤー",
+      "alliance": "同盟",
+      "kingdom": "王国"
+    },
+    "actions": {
+      "save": "保存",
+      "cancel": "キャンセル"
+    },
+    "calendar": {
+      "title": "イベント",
+      "create": "イベントを作成",
+      "agenda": "予定",
+      "month": "カレンダー",
+      "all": "すべての範囲",
+      "manageable": "管理",
+      "empty": "この表示に一致するイベントはありません。",
+      "previousMonth": "前の月",
+      "nextMonth": "次の月",
+      "scopeFilters": "範囲でイベントを絞り込む",
+      "viewOptions": "イベント表示を選択"
+    },
+    "create": {
+      "title": "イベントを作成",
+      "back": "イベントに戻る",
+      "noContexts": "現在、イベントを作成する権限がありません。",
+      "context": "イベントのコンテキスト",
+      "eventType": "イベントタイプ",
+      "start": "開始時刻",
+      "duration": "時間（分）",
+      "capacity": "定員",
+      "instructions": "指示",
+      "submit": "イベントを作成"
+    },
+    "show": {
+      "back": "イベントに戻る",
+      "manage": "イベントを管理",
+      "details": "イベント詳細",
+      "status": "ステータス",
+      "capacity": "定員",
+      "recurrence": "繰り返し",
+      "modules": "運用モジュール"
+    },
+    "manage": {
+      "title": "イベントを管理",
+      "back": "イベントに戻る",
+      "save": "イベントを保存",
+      "cancel": "イベントをキャンセル"
+    },
+    "attention": {
+      "title": "イベント操作",
+      "response": "回答が必要",
+      "registration": "登録可能",
+      "vote": "投票が必要",
+      "roster_confirmation": "ロスター確認が必要"
+    },
+    "reminders": {
+      "title": "最近のリマインダー"
+    },
+    "participation": {
+      "register": "登録",
+      "cancelRegistration": "登録をキャンセル"
+    },
+    "responses": {
+      "going": "参加",
+      "maybe": "未定",
+      "unavailable": "参加不可"
+    },
+    "registration": {
+      "registered": "登録済み",
+      "waitlisted": "待機リスト",
+      "cancelled": "キャンセル済み"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "同盟管理",
+      "game_calendar": "ゲームカレンダー",
+      "matchmaking": "マッチメイキング",
+      "manual": "手動"
+    },
+    "recurrencePolicies": {
+      "disabled": "繰り返しなし",
+      "fixed_interval": "固定間隔",
+      "configurable": "設定可能"
+    },
+    "recurrenceFrequencies": {
+      "none": "繰り返しなし",
+      "daily": "毎日",
+      "weekly": "毎週"
+    },
+    "attendanceStatuses": {
+      "present": "出席",
+      "absent": "欠席",
+      "excused": "公欠",
+      "unknown": "不明"
+    },
+    "eventStatuses": {
+      "draft": "下書き",
+      "published": "公開済み",
+      "cancelled": "キャンセル済み",
+      "completed": "完了"
+    },
+    "capabilities": {
+      "responses": "回答",
+      "registration": "登録",
+      "waitlist": "待機リスト",
+      "attendance": "出席",
+      "phases": "フェーズ",
+      "polls": "投票",
+      "rosters": "ロスター",
+      "substitutes": "補欠",
+      "teams": "チーム",
+      "legions": "レギオン",
+      "rally_guidance": "ラリー指針",
+      "formations": "編成",
+      "objectives": "目標",
+      "scoring": "スコア",
+      "results": "結果"
+    },
+    "reminderAudiences": {
+      "target": "イベント対象",
+      "responded": "回答済みプレイヤー",
+      "registered": "登録済みプレイヤー",
+      "rostered": "ロスター登録プレイヤー",
+      "all_scope_players": "対象となる全プレイヤー"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

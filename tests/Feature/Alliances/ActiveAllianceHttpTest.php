@@ -8,6 +8,8 @@ use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\ValueObjects\TenantContextSnapshot;
 use App\Domain\Audit\Models\AuditEvent;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,64 +23,114 @@ final class ActiveAllianceHttpTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_tenant_route_requires_an_explicit_active_alliance(): void
+    public function test_alliance_route_requires_an_active_player(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/alliance');
-
-        $response->assertStatus(409);
+        $this->actingAs($user)
+            ->get('/alliance')
+            ->assertStatus(409);
     }
 
-    public function test_alliance_creation_sets_active_context_and_records_correlated_audit(): void
+    public function test_active_player_without_active_membership_cannot_open_alliance_context(): void
     {
         $user = User::factory()->create();
-        $sessionKey = (string) config('identity.active_alliance_session_key');
-
-        $response = $this->actingAs($user)->post('/alliances', [
-            'name' => 'Created Through HTTP',
-            'slug' => 'created-through-http',
-            'kingdom' => '1234',
-            'language' => 'en',
-            'timezone' => 'America/Toronto',
+        $kingdom = Kingdom::query()->create(['number' => 3100, 'status' => 'active']);
+        $player = Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'context-no-alliance',
+            'current_name' => 'No Alliance',
         ]);
 
-        $alliance = $user->memberships()->with('alliance')->sole()->alliance;
+        $this->actingAs($user)
+            ->withSession([(string) config('identity.active_player_session_key') => $player->id])
+            ->get('/alliance')
+            ->assertStatus(409);
+    }
+
+    public function test_alliance_creation_uses_active_player_and_preserves_player_context(): void
+    {
+        $user = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 3101, 'status' => 'active']);
+        $player = Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'http-create-player',
+            'current_name' => 'HTTP Creator',
+        ]);
+        $sessionKey = (string) config('identity.active_player_session_key');
+
+        $response = $this->actingAs($user)
+            ->withSession([$sessionKey => $player->id])
+            ->post('/alliances', [
+                'name' => 'Created Through HTTP',
+                'slug' => 'created-through-http',
+                'language' => 'en',
+                'timezone' => 'America/Toronto',
+            ]);
+
+        $membership = AllianceMembership::query()
+            ->where('player_id', $player->id)
+            ->where('status', MembershipStatus::Active->value)
+            ->with('alliance')
+            ->sole();
+        $alliance = $membership->alliance;
 
         $response->assertRedirect(route('alliance.overview'));
-        $response->assertSessionHas($sessionKey, $alliance->id);
+        $response->assertSessionHas($sessionKey, $player->id);
+        self::assertSame($kingdom->id, $alliance->kingdom_id);
 
         $audit = AuditEvent::query()->where('event', 'alliance.created')->sole();
         self::assertSame($alliance->id, $audit->alliance_id);
+        self::assertSame($player->id, $audit->actor_player_id);
+        self::assertNull($audit->actor_user_id);
         self::assertNotNull($audit->request_id);
         self::assertNotNull($audit->trace_id);
     }
 
-    public function test_one_global_user_can_switch_between_owned_alliances(): void
+    public function test_switching_owned_players_switches_game_authority_and_alliance_context(): void
     {
         $user = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 3102, 'status' => 'active']);
+        $firstPlayer = Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'switch-alpha',
+            'current_name' => 'Alpha',
+        ]);
+        $secondPlayer = Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'switch-bravo',
+            'current_name' => 'Bravo',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $first = $createAlliance->handle($user, 'First', 'first');
-        $second = $createAlliance->handle($user, 'Second', 'second');
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+        $first = $createAlliance->handle($firstPlayer, 'First', 'player-context-first');
+        $second = $createAlliance->handle($secondPlayer, 'Second', 'player-context-second');
+        $sessionKey = (string) config('identity.active_player_session_key');
 
-        $switch = $this->actingAs($user)
-            ->withSession([$sessionKey => $first->id])
-            ->put('/alliances/'.$second->id.'/active');
+        $this->actingAs($user)
+            ->withSession([$sessionKey => $firstPlayer->id])
+            ->get('/alliance')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Alliance/Overview')
+                ->where('alliance.id', $first->id));
 
-        $switch->assertRedirect(route('alliance.overview'));
-        $switch->assertSessionHas($sessionKey, $second->id);
+        $this->post(route('players.activate', ['player' => $secondPlayer->id]))
+            ->assertRedirect()
+            ->assertSessionHas($sessionKey, $secondPlayer->id);
 
-        $overview = $this->get('/alliance');
-
-        $overview->assertOk();
-        $overview->assertInertia(fn (Assert $page) => $page
-            ->component('Alliance/Overview')
-            ->where('alliance.id', $second->id)
-            ->where('alliance.name', 'Second'));
+        $this->get('/alliance')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Alliance/Overview')
+                ->where('alliance.id', $second->id)
+                ->where('alliance.name', 'Second'));
     }
 
-    public function test_tenant_middleware_exposes_serializable_context_for_downstream_jobs_and_storage(): void
+    public function test_tenant_middleware_exposes_active_player_context_for_downstream_jobs_and_storage(): void
     {
         Route::middleware(['web', 'auth', 'alliance.context'])
             ->get('/_test/tenant-context', static function (Request $request): JsonResponse {
@@ -92,52 +144,51 @@ final class ActiveAllianceHttpTest extends TestCase
             });
 
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 3103, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'snapshot-authority',
+            'current_name' => 'Snapshot Authority',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Snapshot Alliance', 'snapshot-alliance');
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+            ->handle($ownerPlayer, 'Snapshot Alliance', 'snapshot-alliance');
+        $sessionKey = (string) config('identity.active_player_session_key');
 
         $response = $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([$sessionKey => $ownerPlayer->id])
             ->get('/_test/tenant-context');
 
         $response->assertOk();
         $response->assertJsonPath('alliance_id', $alliance->id);
-        $response->assertJsonPath('actor_user_id', $owner->id);
+        $response->assertJsonPath('actor_player_id', $ownerPlayer->id);
         self::assertIsString($response->json('request_id'));
         self::assertIsString($response->json('trace_id'));
     }
 
-    public function test_user_cannot_activate_an_alliance_without_membership(): void
+    public function test_suspended_membership_invalidates_alliance_context_but_not_player_identity(): void
     {
         $owner = User::factory()->create();
-        $outsider = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 3104, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'suspended-authority',
+            'current_name' => 'Suspended Authority',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Private', 'private');
-
-        $response = $this->actingAs($outsider)
-            ->put('/alliances/'.$alliance->id.'/active');
-
-        $response->assertNotFound();
-        $response->assertSessionMissing((string) config('identity.active_alliance_session_key'));
-    }
-
-    public function test_suspended_membership_clears_stale_active_context(): void
-    {
-        $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Suspended', 'suspended');
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+            ->handle($ownerPlayer, 'Suspended', 'suspended');
+        $sessionKey = (string) config('identity.active_player_session_key');
 
         AllianceMembership::query()
             ->where('alliance_id', $alliance->id)
-            ->where('user_id', $owner->id)
+            ->where('player_id', $ownerPlayer->id)
             ->update(['status' => MembershipStatus::Suspended->value]);
 
-        $response = $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
-            ->get('/alliance');
-
-        $response->assertForbidden();
-        $response->assertSessionMissing($sessionKey);
+        $this->actingAs($owner)
+            ->withSession([$sessionKey => $ownerPlayer->id])
+            ->get('/alliance')
+            ->assertStatus(409)
+            ->assertSessionHas($sessionKey, $ownerPlayer->id);
     }
 }

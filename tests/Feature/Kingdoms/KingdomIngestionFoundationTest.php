@@ -6,8 +6,6 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\CompleteKingdomIngestionBatch;
 use App\Domain\Kingdoms\Actions\StageKingdomIngestionCandidate;
@@ -21,7 +19,9 @@ use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,7 +63,7 @@ final class KingdomIngestionFoundationTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,
-            'actor_user_id' => $owner->id,
+            'actor_player_id' => $owner->players()->sole()->id,
             'event' => 'kingdoms.ingestion_subscription_created',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
@@ -98,7 +98,7 @@ final class KingdomIngestionFoundationTest extends TestCase
 
         config()->set('kingdoms.ingestion_adapters', [FixtureKingdomIngestionAdapter::class]);
         $member = $this->member($alliance);
-        $memberSession = $this->confirmedSession($alliance->id);
+        $memberSession = $this->confirmedSession($member->players()->sole());
 
         $this->actingAs($member)->withSession($memberSession)
             ->get('/alliance/kingdom-ingestion/manage')
@@ -111,8 +111,9 @@ final class KingdomIngestionFoundationTest extends TestCase
     public function test_subscription_mutations_require_recent_password_confirmation(): void
     {
         [$owner, $alliance] = $this->ownerAlliance('K4 Password', 'k4-password', 6403);
+        $player = $owner->players()->sole();
         $activeSession = [
-            (string) config('identity.active_alliance_session_key') => $alliance->id,
+            (string) config('identity.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => 0,
         ];
 
@@ -121,7 +122,7 @@ final class KingdomIngestionFoundationTest extends TestCase
             ->assertRedirect(route('password.confirm'));
         self::assertSame(0, KingdomIngestionSubscription::query()->count());
 
-        $this->withSession($this->confirmedSession($alliance->id))
+        $this->withSession($this->confirmedSession($player))
             ->post('/alliance/kingdom-ingestion/subscriptions', ['adapter_key' => 'fixture.game'])
             ->assertRedirect();
         $subscription = KingdomIngestionSubscription::query()->sole();
@@ -141,7 +142,7 @@ final class KingdomIngestionFoundationTest extends TestCase
         $subscription = KingdomIngestionSubscription::query()->sole();
 
         $newKingdom = Kingdom::query()->create(['number' => 6499, 'status' => 'active']);
-        $alliance->forceFill(['kingdom_id' => $newKingdom->id])->save();
+        $subscription->forceFill(['kingdom_id' => $newKingdom->id])->save();
 
         try {
             $this->app->make(StartKingdomIngestionBatch::class)->handle((string) $subscription->id, 'drift-window');
@@ -291,7 +292,7 @@ final class KingdomIngestionFoundationTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $allianceB->id,
-            'actor_user_id' => $ownerB->id,
+            'actor_player_id' => $ownerB->players()->sole()->id,
             'event' => 'kingdoms.ingestion_candidate_rejected',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
@@ -305,34 +306,46 @@ final class KingdomIngestionFoundationTest extends TestCase
     private function ownerAlliance(string $name, string $slug, int $kingdom): array
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $kingdomModel = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdom],
+            ['status' => 'active'],
+        );
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdomModel->id,
+            'game_player_id' => 'owner-'.$slug,
+            'current_name' => $name.' Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, $name, $slug);
 
-        return [$owner, $alliance, $this->confirmedSession($alliance->id)];
+        return [$owner, $alliance, $this->confirmedSession($player)];
     }
 
     private function member(Alliance $alliance): User
     {
         $member = User::factory()->create();
-        $membership = AllianceMembership::query()->create([
-            'alliance_id' => $alliance->id,
+        $player = Player::query()->create([
             'user_id' => $member->id,
+            'current_kingdom_id' => $alliance->kingdom_id,
+            'game_player_id' => 'member-'.$member->id,
+            'current_name' => 'Ingestion Member',
+        ]);
+        AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $player->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $role = Role::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
 
         return $member;
     }
 
     /** @return array<string, mixed> */
-    private function confirmedSession(string $allianceId): array
+    private function confirmedSession(Player $player): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            (string) config('identity.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => time(),
         ];
     }

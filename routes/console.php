@@ -3,16 +3,18 @@
 declare(strict_types=1);
 
 use App\Domain\Content\Actions\PublishScheduledContent;
+use App\Domain\Authorization\Actions\BootstrapKingdomAdministrator;
 use App\Domain\Identity\Models\User;
 use App\Domain\Integrations\Actions\QueueDueWebhookDeliveries;
 use App\Domain\Kingdoms\Actions\EnforceKingdomIngestionRetention;
 use App\Domain\Kingdoms\Actions\EnforceKingdomIntelligenceSharingRetention;
 use App\Domain\Kingdoms\Actions\QueueDueKingdomIngestionSubscriptions;
 use App\Domain\Kingdoms\Actions\ReconcileKingdomIngestionSources;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Services\KingdomIngestionOperationalHealth;
 use App\Domain\Notifications\Actions\QueueDueContributionReports;
 use App\Domain\Notifications\Actions\QueueDueEventReminders;
-use App\Domain\Notifications\Actions\SyncUpcomingEventReminders;
 use App\Domain\Platform\Actions\EnforcePlatformRetention;
 use App\Domain\Platform\Actions\ManagePlatformAdministrator;
 use App\Domain\Platform\Actions\ProcessAccountDeletionRequests;
@@ -112,6 +114,38 @@ Artisan::command('integrations:queue-webhooks {--limit=100}', function (QueueDue
     return 0;
 })->purpose('Recover and queue due webhook deliveries');
 
+Artisan::command('kingdoms:bootstrap-admin {kingdom} {player}', function (BootstrapKingdomAdministrator $bootstrap): int {
+    $kingdomArgument = trim((string) $this->argument('kingdom'));
+    if ($kingdomArgument === '' || ! ctype_digit($kingdomArgument)) {
+        $this->error('Kingdom must be an existing positive numeric Kingdom number.');
+
+        return 1;
+    }
+
+    $kingdom = Kingdom::query()->where('number', (int) $kingdomArgument)->first();
+    if (! $kingdom instanceof Kingdom) {
+        $this->error('No Kingdom exists with that number.');
+
+        return 1;
+    }
+
+    $player = Player::query()->find(trim((string) $this->argument('player')));
+    if (! $player instanceof Player) {
+        $this->error('No Player exists with that ID.');
+
+        return 1;
+    }
+
+    $assignment = $bootstrap->handle($kingdom, $player);
+    $this->info(sprintf(
+        'Bootstrapped Kingdom #%d administrator to Player %s.',
+        (int) $kingdom->number,
+        (string) $assignment->player_id,
+    ));
+
+    return 0;
+})->purpose('Bootstrap the first Kingdom administrator to a Player without granting game authority to a Platform User');
+
 Artisan::command('kingdoms:queue-ingestion {--limit=100}', function (QueueDueKingdomIngestionSubscriptions $queue): int {
     $queued = $queue->handle(max(1, min(500, (int) $this->option('limit'))));
     $this->info(sprintf('Queued %d due Kingdom ingestion subscription(s).', $queued));
@@ -161,21 +195,13 @@ Artisan::command('content:publish-scheduled {--limit=100}', function (PublishSch
     return 0;
 })->purpose('Publish due scheduled alliance content');
 
-Artisan::command('events:sync-reminders {--limit=250}', function (SyncUpcomingEventReminders $sync): int {
-    $limit = max(1, min(1000, (int) $this->option('limit')));
-    $created = $sync->handle($limit);
-    $this->info(sprintf('Created %d event reminder delivery record(s).', $created));
-
-    return 0;
-})->purpose('Materialize reminder deliveries for upcoming event registrations');
-
 Artisan::command('events:queue-reminders {--limit=100}', function (QueueDueEventReminders $queue): int {
-    $limit = max(1, min(500, (int) $this->option('limit')));
+    $limit = max(1, min(1000, (int) $this->option('limit')));
     $queued = $queue->handle($limit);
-    $this->info(sprintf('Queued %d due event reminder(s).', $queued));
+    $this->info(sprintf('Queued %d due Event reminder(s).', $queued));
 
     return 0;
-})->purpose('Queue due event reminders through the transactional outbox');
+})->purpose('Materialize and queue due Event reminders');
 
 Artisan::command('contributions:queue-reports {--limit=50}', function (QueueDueContributionReports $queue): int {
     $limit = max(1, min(250, (int) $this->option('limit')));
@@ -202,7 +228,6 @@ Artisan::command('outbox:publish {--limit=100}', function (PublishOutboxBatch $p
 })->purpose('Publish eligible transactional outbox messages');
 
 Schedule::command('content:publish-scheduled --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
-Schedule::command('events:sync-reminders --limit=250')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('events:queue-reminders --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('contributions:queue-reports --limit=50')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('outbox:publish --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);

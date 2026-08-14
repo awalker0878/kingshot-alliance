@@ -1,108 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: 'Torna agli eventi',
-    eyebrow: 'Operazioni eventi',
-    title: 'Coordinatore eventi',
-    description:
-      'Pianifica eventi, pubblica linee guida rally, organizza formazioni e gruppi, quindi registra presenze e partecipazione.',
-    scheduling: 'Pianificazione e modelli',
-    remindersGuidance: 'Promemoria e linee guida',
-    rallySetup: 'Formazioni e rally',
-    readiness: 'Preparazione e presenze',
-    createEvent: 'Crea evento',
-    eventTitle: 'Titolo evento',
-    firstStart: 'Primo inizio',
-    durationMinutes: 'Durata (minuti)',
-    registrationOpens: 'Apertura iscrizioni (minuti prima)',
-    registrationCloses: 'Chiusura iscrizioni (minuti prima)',
-    recurrence: 'Ricorrenza',
-    interval: 'Intervallo',
-    recurrenceEnd: 'Fine ricorrenza',
-    createEventAction: 'Crea evento',
-    eventValidation: 'Controlla i campi dell’evento e la finestra di iscrizione.',
-    createTemplate: 'Crea modello evento',
-    saveTemplate: 'Salva modello',
-    scheduleFromTemplate: 'Pianifica da modello',
-    chooseTemplate: 'Scegli modello',
-    optionalTitle: 'Titolo opzionale',
-    scheduleTemplate: 'Pianifica modello',
-    reminderRule: 'Regola promemoria',
-    reminderHelp: 'Crea un promemoria nell’app per ogni occorrenza dell’evento selezionato.',
-    chooseEvent: 'Scegli evento',
-    minutesBefore: 'Minuti prima dell’inizio',
-    addReminder: 'Aggiungi promemoria',
-    rallyGuidance: 'Linee guida rally',
-    guidanceHelp: 'Pubblica rapporti truppe e consigli eroi riutilizzabili con date di validità.',
-    heroRecommendations: 'Consigli eroi',
-    effectiveFrom: 'Valido dal',
-    effectiveUntil: 'Valido fino al',
-    leadRequirements: 'Requisiti del leader',
-    joinerGuidance: 'Guida per partecipanti',
-    guidanceValidation: 'Controlla le date e assicurati che i rapporti truppe totalizzino 100%.',
-    publishGuidance: 'Pubblica guida',
-    eventFormation: 'Formazione evento',
-    occurrence: 'Occorrenza',
-    chooseOccurrence: 'Scegli occorrenza',
-    noGuidance: 'Nessuna guida collegata',
-    addFormation: 'Aggiungi formazione',
-    rallyGroup: 'Gruppo rally',
-    maxJoiners: 'Partecipanti max',
-    none: 'Nessuno',
-    createGroup: 'Crea gruppo',
-    assignMember: 'Assegna membro al rally',
-    member: 'Membro',
-    chooseGroup: 'Scegli gruppo',
-    chooseMember: 'Scegli membro',
-    slotNumber: 'Numero slot',
-    saveAssignment: 'Salva assegnazione',
-    registrations: 'Iscrizioni',
-    noRegistrations: 'Nessuna iscrizione attiva per questa occorrenza.',
-    rallyAssignments: 'Assegnazioni rally',
-    noAssignments: 'Nessuna assegnazione rally per questa occorrenza.',
-    participated: 'Ha partecipato',
-    statusAssigned: 'Assegnato',
-    statusParticipated: 'Ha partecipato',
-    recurrenceNone: 'Nessuna',
-    recurrenceDaily: 'Giornaliera',
-    recurrenceWeekly: 'Settimanale',
-    roleLead: 'Leader',
-    roleJoiner: 'Partecipante',
-  },
-  eventDetail: {
-    participation: 'Partecipazione',
-    registeredCount: '{count} registrati',
-    waitlistedCount: '{count} in attesa',
-    noLimit: 'Nessun limite',
-    instructions: 'Istruzioni',
-    recommendedFormations: 'Formazioni consigliate',
-    noRecommendedFormations: 'Non è stata pubblicata una guida specifica per questo evento.',
-    assignmentRole: 'Ruolo assegnato',
-    troopRatio: 'Rapporto truppe',
-    infantry: 'Fanteria',
-    cavalry: 'Cavalleria',
-    archers: 'Arcieri',
-    heroes: 'Eroi',
-    notes: 'Note',
-    guidance: 'Guida',
-    source: 'Fonte',
-    effective: 'Valido dal {date}',
-    through: 'fino al {date}',
-    rallyGroups: 'Gruppi rally',
-    maxJoiners: 'Partecipanti max: {count}',
-    noAssigned: 'Nessun membro assegnato.',
-    noRallyGroups: 'Nessun gruppo rally configurato per questo evento.',
-    savedFormations: 'Le tue formazioni salvate',
-    default: 'Predefinita',
-    noSavedFormations: 'Non hai ancora salvato una formazione.',
-    saveFormation: 'Salva una formazione',
-    formationName: 'Nome',
-    heroesHint: 'Eroe uno, Eroe due, Eroe tre',
-    makeDefault: 'Imposta come formazione predefinita',
-    formationValidation: 'Controlla i valori. Le percentuali delle truppe devono totalizzare 100%.',
-    save: 'Salva formazione',
-  },
+  "events": {
+    "scope": {
+      "player": "Giocatore",
+      "alliance": "Alleanza",
+      "kingdom": "Regno"
+    },
+    "actions": {
+      "save": "Salva",
+      "cancel": "Annulla"
+    },
+    "calendar": {
+      "title": "Eventi",
+      "create": "Crea evento",
+      "agenda": "Agenda",
+      "month": "Calendario",
+      "all": "Tutti gli ambiti",
+      "manageable": "Gestisci",
+      "empty": "Nessun evento corrisponde a questa vista.",
+      "previousMonth": "Mese precedente",
+      "nextMonth": "Mese successivo",
+      "scopeFilters": "Filtra eventi per ambito",
+      "viewOptions": "Scegli vista eventi"
+    },
+    "create": {
+      "title": "Crea evento",
+      "back": "Torna agli eventi",
+      "noContexts": "Al momento non hai il permesso di creare un evento.",
+      "context": "Contesto evento",
+      "eventType": "Tipo di evento",
+      "start": "Ora di inizio",
+      "duration": "Durata (minuti)",
+      "capacity": "Capacità",
+      "instructions": "Istruzioni",
+      "submit": "Crea evento"
+    },
+    "show": {
+      "back": "Torna agli eventi",
+      "manage": "Gestisci evento",
+      "details": "Dettagli evento",
+      "status": "Stato",
+      "capacity": "Capacità",
+      "recurrence": "Ricorrenza",
+      "modules": "Moduli operativi"
+    },
+    "manage": {
+      "title": "Gestisci evento",
+      "back": "Torna agli eventi",
+      "save": "Salva evento",
+      "cancel": "Annulla evento"
+    },
+    "attention": {
+      "title": "Azioni evento",
+      "response": "Risposta richiesta",
+      "registration": "Registrazione disponibile",
+      "vote": "Voto richiesto",
+      "roster_confirmation": "Conferma roster richiesta"
+    },
+    "reminders": {
+      "title": "Promemoria recenti"
+    },
+    "participation": {
+      "register": "Registrati",
+      "cancelRegistration": "Annulla registrazione"
+    },
+    "responses": {
+      "going": "Partecipo",
+      "maybe": "Forse",
+      "unavailable": "Non disponibile"
+    },
+    "registration": {
+      "registered": "Registrato",
+      "waitlisted": "In lista d’attesa",
+      "cancelled": "Annullato"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "Controllato dall’alleanza",
+      "game_calendar": "Calendario di gioco",
+      "matchmaking": "Matchmaking",
+      "manual": "Manuale"
+    },
+    "recurrencePolicies": {
+      "disabled": "Nessuna ricorrenza",
+      "fixed_interval": "Intervallo fisso",
+      "configurable": "Configurabile"
+    },
+    "recurrenceFrequencies": {
+      "none": "Nessuna ricorrenza",
+      "daily": "Giornaliero",
+      "weekly": "Settimanale"
+    },
+    "attendanceStatuses": {
+      "present": "Presente",
+      "absent": "Assente",
+      "excused": "Giustificato",
+      "unknown": "Sconosciuto"
+    },
+    "eventStatuses": {
+      "draft": "Bozza",
+      "published": "Pubblicato",
+      "cancelled": "Annullato",
+      "completed": "Completato"
+    },
+    "capabilities": {
+      "responses": "Risposte",
+      "registration": "Registrazione",
+      "waitlist": "Lista d’attesa",
+      "attendance": "Presenze",
+      "phases": "Fasi",
+      "polls": "Sondaggi",
+      "rosters": "Roster",
+      "substitutes": "Riserve",
+      "teams": "Squadre",
+      "legions": "Legioni",
+      "rally_guidance": "Guida rally",
+      "formations": "Formazioni",
+      "objectives": "Obiettivi",
+      "scoring": "Punteggio",
+      "results": "Risultati"
+    },
+    "reminderAudiences": {
+      "target": "Destinatari evento",
+      "responded": "Giocatori che hanno risposto",
+      "registered": "Giocatori registrati",
+      "rostered": "Giocatori nel roster",
+      "all_scope_players": "Tutti i giocatori idonei"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

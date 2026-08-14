@@ -7,8 +7,10 @@ namespace Tests\Feature\Identity;
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Audit\Models\AuditEvent;
 use App\Domain\Identity\Models\User;
-use App\Domain\Memberships\Actions\AcceptInvitation;
-use App\Domain\Memberships\Actions\CreateInvitation;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Enums\AllianceRank;
+use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -118,19 +120,32 @@ final class AccountLifecycleTest extends TestCase
     {
         $owner = User::factory()->create(['password' => 'StrongPassword123']);
         $member = User::factory()->create(['email' => 'member@example.com']);
+        $kingdom = Kingdom::query()->create(['number' => 4501]);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'account-lifecycle-owner',
+            'current_name' => 'Account Lifecycle Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $member->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'account-lifecycle-member',
+            'current_name' => 'Account Lifecycle Member',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Confirmed Admin', 'confirmed-admin');
-        $issued = $this->app->make(CreateInvitation::class)
-            ->handle($alliance, $owner, $member->email);
-        $this->app->make(AcceptInvitation::class)->handle($member, $issued->token);
-        $membership = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('user_id', $member->id)
-            ->sole();
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+            ->handle($ownerPlayer, 'Confirmed Admin', 'confirmed-admin');
+        $membership = AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $memberPlayer->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
+            'joined_at' => now(),
+        ]);
+        $sessionKey = (string) config('identity.active_player_session_key');
 
         $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([$sessionKey => $ownerPlayer->id])
             ->patch('/alliance/memberships/'.$membership->id.'/status', ['status' => 'suspended'])
             ->assertRedirect(route('password.confirm'));
 
@@ -147,6 +162,10 @@ final class AccountLifecycleTest extends TestCase
             'actor_user_id' => $owner->id,
             'event' => 'auth.password.confirmed',
         ]);
-        self::assertTrue(AuditEvent::query()->where('event', 'membership.status_changed')->exists());
+        $this->assertDatabaseHas('audit_events', [
+            'actor_player_id' => $ownerPlayer->id,
+            'actor_user_id' => null,
+            'event' => 'membership.status_changed',
+        ]);
     }
 }

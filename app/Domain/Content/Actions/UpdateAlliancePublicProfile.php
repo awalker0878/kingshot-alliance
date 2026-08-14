@@ -14,7 +14,7 @@ use App\Domain\Content\Models\AllianceBrandingMedia;
 use App\Domain\Content\Models\AllianceProfile;
 use App\Domain\Content\Models\MediaAsset;
 use App\Domain\Content\Services\ContentSanitizer;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +40,7 @@ final readonly class UpdateAlliancePublicProfile
      *   banner_media_id?: string|null
      * } $attributes
      */
-    public function handle(Alliance $alliance, User $actor, array $attributes): Alliance
+    public function handle(Alliance $alliance, Player $actor, array $attributes): Alliance
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::ContentManage)) {
             throw new AuthorizationException;

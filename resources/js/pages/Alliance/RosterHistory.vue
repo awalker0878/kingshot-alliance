@@ -105,7 +105,7 @@ function recordSnapshot(): void {
 <template>
   <Head :title="`${t('rosterHistory.title')} · ${entry.name}`" />
 
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div class="max-w-3xl min-w-0">
         <Link

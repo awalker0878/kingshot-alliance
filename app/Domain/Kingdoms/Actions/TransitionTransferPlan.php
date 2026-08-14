@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\TransferParticipant;
@@ -31,12 +31,11 @@ final readonly class TransitionTransferPlan
      */
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $planId,
         TransferPlanState $target,
         array $allowedFrom,
         string $event,
-        bool $allowHomeKingdomDrift = false,
     ): TransferPlan {
         if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
             throw new AuthorizationException;
@@ -49,7 +48,6 @@ final readonly class TransitionTransferPlan
             $target,
             $allowedFrom,
             $event,
-            $allowHomeKingdomDrift,
         ): TransferPlan {
             $currentAlliance = Alliance::query()
                 ->lockForUpdate()
@@ -76,9 +74,9 @@ final readonly class TransitionTransferPlan
                 ]);
             }
 
-            if ($allowHomeKingdomDrift === false && $currentAlliance->kingdom_id !== $plan->home_kingdom_id) {
+            if ($currentAlliance->kingdom_id !== $plan->home_kingdom_id) {
                 throw ValidationException::withMessages([
-                    'plan' => 'The alliance Kingdom changed after this transfer cycle was created. Cancel the stale cycle before continuing.',
+                    'plan' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.',
                 ]);
             }
 

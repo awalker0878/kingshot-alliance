@@ -9,6 +9,9 @@ use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Enums\RosterState;
+use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Http\Controllers\Controller;
@@ -37,7 +40,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use LogicException;
 
 final class RecruitmentCandidateController extends Controller
 {
@@ -50,12 +52,13 @@ final class RecruitmentCandidateController extends Controller
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance();
-        $this->authorize($authorization, $user, $alliance);
+        $this->authorize($authorization, $context->player(), $alliance);
         $record = $this->candidate($alliance, $candidate);
         $record->load([
             'answers',
-            'reviewers.user:id,name',
-            'notes.authorMembership.user:id,name',
+            'player:id,current_name',
+            'reviewers:id,current_name',
+            'notes.author:id,current_name',
             'tags',
             'stageHistory',
             'communications',
@@ -65,9 +68,18 @@ final class RecruitmentCandidateController extends Controller
         $memberships = AllianceMembership::query()
             ->where('alliance_id', $alliance->id)
             ->where('status', MembershipStatus::Active->value)
-            ->with('user:id,name')
+            ->with('player:id,current_name')
             ->orderBy('created_at')
             ->get();
+        $activeMemberPlayerIds = $memberships->pluck('player_id')->map(static fn ($id): string => (string) $id)->all();
+        $conversionPlayers = AllianceRosterEntry::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('state', RosterState::Active->value)
+            ->when($activeMemberPlayerIds !== [], static fn ($query) => $query->whereNotIn('player_id', $activeMemberPlayerIds))
+            ->with('player:id,current_name,user_id,current_kingdom_id')
+            ->orderBy('observed_name')
+            ->get();
+
         $templates = RecruitmentDecisionTemplate::query()
             ->where('alliance_id', $alliance->id)
             ->where('is_active', true)
@@ -86,26 +98,24 @@ final class RecruitmentCandidateController extends Controller
         }
 
         $reviewerData = [];
-        foreach ($record->reviewers as $membership) {
-            $member = $membership->user;
-            if (! $member instanceof User) {
-                throw new LogicException('A recruitment reviewer membership must reference a user.');
+        foreach ($record->reviewers as $reviewer) {
+            if (! $reviewer instanceof Player) {
+                continue;
             }
 
             $reviewerData[] = [
-                'id' => (string) $membership->id,
-                'name' => (string) $member->name,
+                'id' => (string) $reviewer->id,
+                'name' => (string) $reviewer->current_name,
             ];
         }
 
         $noteData = [];
         foreach ($record->notes->sortByDesc('created_at') as $note) {
-            $authorMembership = $note->authorMembership;
-            $author = $authorMembership instanceof AllianceMembership ? $authorMembership->user : null;
+            $author = $note->author;
             $noteData[] = [
                 'id' => (string) $note->id,
                 'body' => (string) $note->body,
-                'author' => $author instanceof User ? (string) $author->name : 'Former member',
+                'author' => $author instanceof Player ? (string) $author->current_name : '—',
                 'createdAt' => $note->created_at?->toIso8601String(),
             ];
         }
@@ -185,14 +195,29 @@ final class RecruitmentCandidateController extends Controller
 
         $memberData = [];
         foreach ($memberships as $membership) {
-            $member = $membership->user;
-            if (! $member instanceof User) {
-                throw new LogicException('An active alliance membership must reference a user.');
+            $player = $membership->player;
+            if (! $player instanceof Player) {
+                continue;
             }
 
             $memberData[] = [
-                'id' => (string) $membership->id,
-                'name' => (string) $member->name,
+                'id' => (string) $player->id,
+                'name' => (string) $player->current_name,
+                'rank' => $membership->rank->value,
+            ];
+        }
+
+        $conversionPlayerData = [];
+        foreach ($conversionPlayers as $entry) {
+            $player = $entry->player;
+            if (! $player instanceof Player) {
+                continue;
+            }
+
+            $conversionPlayerData[] = [
+                'id' => (string) $player->id,
+                'name' => (string) $player->current_name,
+                'claimed' => $player->user_id !== null,
             ];
         }
 
@@ -230,6 +255,7 @@ final class RecruitmentCandidateController extends Controller
                 'withdrawnAt' => $record->withdrawn_at?->toIso8601String(),
                 'joinedAt' => $record->joined_at?->toIso8601String(),
                 'retentionDueAt' => $record->retention_due_at?->toIso8601String(),
+                'playerId' => $record->player_id,
                 'membershipInvitationId' => $record->membership_invitation_id,
             ],
             'answers' => $answerData,
@@ -241,6 +267,7 @@ final class RecruitmentCandidateController extends Controller
             'onboarding' => $onboardingData,
             'duplicates' => $duplicateData,
             'members' => $memberData,
+            'conversionPlayers' => $conversionPlayerData,
             'decisionTemplates' => $templateData,
             'stageOptions' => $this->manualStageOptions($record->recruitmentStage()),
             'onboardingStatusOptions' => array_map(
@@ -266,7 +293,7 @@ final class RecruitmentCandidateController extends Controller
         $record = $this->candidate($alliance, $candidate);
 
         $change->handle(
-            $this->user($request),
+            $context->player(),
             $alliance,
             $record,
             RecruitmentStage::from($validated['stage']),
@@ -282,16 +309,13 @@ final class RecruitmentCandidateController extends Controller
         AllianceContext $context,
         AssignRecruitmentReviewer $assign,
         string $candidate,
-        string $membership,
+        string $player,
     ): RedirectResponse {
         $alliance = $context->alliance();
         $record = $this->candidate($alliance, $candidate);
-        $reviewer = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
-            ->whereKey($membership)
-            ->firstOrFail();
+        $reviewer = Player::query()->whereKey($player)->firstOrFail();
 
-        $assign->handle($this->user($request), $alliance, $record, $reviewer);
+        $assign->handle($context->player(), $alliance, $record, $reviewer);
 
         return back();
     }
@@ -305,7 +329,7 @@ final class RecruitmentCandidateController extends Controller
         $validated = $request->validate(['body' => ['required', 'string', 'max:10000']]);
         $alliance = $context->alliance();
         $add->handle(
-            $this->user($request),
+            $context->player(),
             $alliance,
             $this->candidate($alliance, $candidate),
             $validated['body'],
@@ -323,7 +347,7 @@ final class RecruitmentCandidateController extends Controller
         $validated = $request->validate(['name' => ['required', 'string', 'max:80']]);
         $alliance = $context->alliance();
         $tag->handle(
-            $this->user($request),
+            $context->player(),
             $alliance,
             $this->candidate($alliance, $candidate),
             $validated['name'],
@@ -344,7 +368,7 @@ final class RecruitmentCandidateController extends Controller
         $sourceRecord = $this->candidate($alliance, $candidate);
         $targetRecord = $this->candidate($alliance, $target);
         $merged = $merge->handle(
-            $this->user($request),
+            $context->player(),
             $alliance,
             $sourceRecord,
             $targetRecord,
@@ -368,7 +392,7 @@ final class RecruitmentCandidateController extends Controller
             ->whereKey($template)
             ->firstOrFail();
 
-        $prepare->handle($this->user($request), $alliance, $record, $decisionTemplate);
+        $prepare->handle($context->player(), $alliance, $record, $decisionTemplate);
 
         return back();
     }
@@ -384,7 +408,7 @@ final class RecruitmentCandidateController extends Controller
             ->where('alliance_id', $alliance->id)
             ->whereKey($communication)
             ->firstOrFail();
-        $mark->handle($this->user($request), $alliance, $record);
+        $mark->handle($context->player(), $alliance, $record);
 
         return back();
     }
@@ -397,7 +421,7 @@ final class RecruitmentCandidateController extends Controller
     ): RedirectResponse {
         $alliance = $context->alliance();
         $converted = $convert->handle(
-            $this->user($request),
+            $context->player(),
             $alliance,
             $this->candidate($alliance, $candidate),
         );
@@ -427,7 +451,7 @@ final class RecruitmentCandidateController extends Controller
             ->whereKey($onboarding)
             ->firstOrFail();
         $update->handle(
-            $this->user($request),
+            $context->player(),
             $alliance,
             $record,
             RecruitmentOnboardingStatus::from($validated['status']),
@@ -452,9 +476,9 @@ final class RecruitmentCandidateController extends Controller
         return $user;
     }
 
-    private function authorize(AllianceAuthorization $authorization, User $user, Alliance $alliance): void
+    private function authorize(AllianceAuthorization $authorization, Player $actor, Alliance $alliance): void
     {
-        if (! $authorization->allows($user, $alliance, PermissionKey::RecruitmentManage)) {
+        if (! $authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
             throw new AuthorizationException;
         }
     }

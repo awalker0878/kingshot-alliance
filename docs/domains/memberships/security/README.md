@@ -6,7 +6,7 @@
 **Status:** Current  
 **Owning domain:** Memberships  
 **Code owner:** `app/Domain/Memberships`  
-**Primary security boundary:** active User↔Alliance membership plus hierarchy/last-Owner safety, with bearer invitation access handled as a separate secret lifecycle
+**Primary security boundary:** active User↔Alliance membership plus hierarchy/R5 leadership safety, with bearer invitation access handled as a separate secret lifecycle
 
 ## 1. Security purpose and scope
 
@@ -24,7 +24,7 @@ Membership identity/email is tenant-private. Invitation bearer material is a sec
 
 Normal tenant access requires an authenticated User plus active membership. Membership administration requires `membership.manage`; invitation administration requires `invitations.manage`; both remain active-Alliance scoped and use required Identity assurance for privileged HTTP mutations.
 
-Self-leave uses a dedicated workflow. Administration also respects effective role hierarchy and last-active-Owner safety in addition to permissions.
+Self-leave uses a dedicated workflow. Administration also respects R1–R5 rank hierarchy and active-R5 leadership safety in addition to permissions.
 
 ## 4. Tenant and privacy boundaries
 
@@ -40,11 +40,11 @@ Material flows include authenticated tenant manager → membership administratio
 
 Threats include stale/suspended membership retaining access, hidden privileged roles returning after reactivation, last Owner removal, peer/owner administration, cross-Alliance membership mutation, invitation theft/replay/wrong-account acceptance, multiple valid replacement invitations, and direct Recruitment membership creation.
 
-Controls include active-status revalidation, role stripping on leave/removal, safe Member role restoration, effective-rank checks, last-Owner guard, tenant-scoped re-resolution, token hashing/expiry/email binding/one-time use, serialized replacement, and Recruitment handoff through the invitation contract.
+Controls include active-status revalidation, role stripping on leave/removal, R1 rank restoration, effective-rank checks, R5 leadership guard, tenant-scoped re-resolution, token hashing/expiry/email binding/one-time use, serialized replacement, and Recruitment handoff through the invitation contract.
 
 ## 7. Integrity, concurrency and idempotency
 
-Membership transitions use supported state rules rather than arbitrary status edits. Leave/removal strips roles; reactivation with no roles restores only built-in Member. Owner safety is checked before changes that could remove the final active Owner.
+Membership transitions use supported state rules rather than arbitrary status edits. Leave/removal strips roles; reactivation with no roles restores only R1 rank. R5 leadership safety is checked before changes that could remove the active R5 leader.
 
 Invitation issuance/replacement/acceptance uses locking/transactions where required so concurrent requests do not preserve multiple valid bearer paths or create duplicate membership transitions.
 
@@ -62,9 +62,9 @@ Platform account/Alliance lifecycle may orchestrate broader cleanup/anonymizatio
 
 ## 10. Auditability, observability and evidence
 
-Membership/invitation transitions are attributable where required, including replacement/revocation behavior. Operators diagnose status, hierarchy, Owner safety, tenant context, invitation status/expiry/email binding, and Platform lifecycle/capacity separately.
+Membership/invitation transitions are attributable where required, including replacement/revocation behavior. Operators diagnose status, hierarchy, R5 leadership safety, tenant context, invitation status/expiry/email binding, and Platform lifecycle/capacity separately.
 
-Tests protect status transitions, role strip/restore, cross-tenant isolation, hierarchy/Owner safety, invitation abuse/concurrency, and Recruitment handoff. See [Security baseline](../../../security/security-baseline.md).
+Tests protect status transitions, role strip/restore, cross-tenant isolation, hierarchy/R5 leadership safety, invitation abuse/concurrency, and Recruitment handoff. See [Security baseline](../../../security/security-baseline.md).
 
 ## 11. Residual risks and explicit non-capabilities
 

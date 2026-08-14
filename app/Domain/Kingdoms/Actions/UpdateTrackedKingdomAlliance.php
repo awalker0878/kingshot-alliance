@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\KingdomAlliance;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
@@ -35,7 +35,7 @@ final readonly class UpdateTrackedKingdomAlliance
      */
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $trackingId,
         array $attributes,
     ): TrackedKingdomAlliance {

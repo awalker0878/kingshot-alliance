@@ -13,7 +13,7 @@ use App\Domain\Content\Enums\MediaLifecycleStatus;
 use App\Domain\Content\Enums\MediaScanStatus;
 use App\Domain\Content\Models\MediaAsset;
 use App\Domain\Content\Services\MediaScanner;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Platform\Services\PlanEntitlementService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -34,7 +34,7 @@ final readonly class UploadMediaAsset
         private PlanEntitlementService $entitlements,
     ) {}
 
-    public function handle(Alliance $alliance, User $actor, UploadedFile $file): MediaAsset
+    public function handle(Alliance $alliance, Player $actor, UploadedFile $file): MediaAsset
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::ContentManage)) {
             throw new AuthorizationException;
@@ -94,7 +94,7 @@ final readonly class UploadMediaAsset
             default => throw ValidationException::withMessages(['media' => 'Unsupported media type.']),
         };
 
-        $snapshot = new TenantContextSnapshot((string) $alliance->id, (int) $actor->id);
+        $snapshot = new TenantContextSnapshot((string) $alliance->id, (string) $actor->id);
         $path = $snapshot->storagePath('media/'.Str::ulid().'.'.$extension);
         $stored = Storage::disk($disk)->putFileAs(dirname($path), $file, basename($path));
 
@@ -116,7 +116,7 @@ final readonly class UploadMediaAsset
                     'sha256' => $sha256,
                     'scan_status' => MediaScanStatus::Clean,
                     'lifecycle_status' => MediaLifecycleStatus::Active,
-                    'uploaded_by_user_id' => $actor->id,
+                    'uploaded_by_player_id' => $actor->id,
                     'scanned_at' => now(),
                 ]);
 

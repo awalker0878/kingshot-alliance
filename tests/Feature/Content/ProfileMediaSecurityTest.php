@@ -11,6 +11,8 @@ use App\Domain\Content\Actions\UploadMediaAsset;
 use App\Domain\Content\Services\MediaScanner;
 use App\Domain\Content\ValueObjects\MediaScanResult;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -27,15 +29,22 @@ final class ProfileMediaSecurityTest extends TestCase
         Storage::fake('local');
         config()->set('content.media_disk', 'local');
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 1001]);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'brand-alliance-r5',
+            'current_name' => 'Brand Alliance R5',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Brand Alliance', 'brand-alliance', 1001);
+            ->handle($ownerPlayer, 'Brand Alliance', 'brand-alliance');
         $asset = $this->app->make(UploadMediaAsset::class)
-            ->handle($alliance, $owner, UploadedFile::fake()->image('logo.png', 120, 120));
+            ->handle($alliance, $ownerPlayer, UploadedFile::fake()->image('logo.png', 120, 120));
 
         Storage::disk('local')->assertExists($asset->path);
         self::assertStringStartsWith('alliances/'.$alliance->id.'/media/', $asset->path);
 
-        $this->app->make(UpdateAlliancePublicProfile::class)->handle($alliance, $owner, [
+        $this->app->make(UpdateAlliancePublicProfile::class)->handle($alliance, $ownerPlayer, [
             'name' => 'Brand Alliance',
             'language' => 'pt-BR',
             'timezone' => 'America/Sao_Paulo',
@@ -60,13 +69,13 @@ final class ProfileMediaSecurityTest extends TestCase
             ->assertHeader('X-Content-Type-Options', 'nosniff');
 
         try {
-            $this->app->make(ArchiveMediaAsset::class)->handle($alliance, $owner, $asset->id);
+            $this->app->make(ArchiveMediaAsset::class)->handle($alliance, $ownerPlayer, $asset->id);
             self::fail('Branding media must be detached before archival.');
         } catch (ValidationException) {
             self::assertTrue(true);
         }
 
-        $this->app->make(UpdateAlliancePublicProfile::class)->handle($alliance, $owner, [
+        $this->app->make(UpdateAlliancePublicProfile::class)->handle($alliance, $ownerPlayer, [
             'name' => 'Brand Alliance',
             'language' => 'pt-BR',
             'timezone' => 'America/Sao_Paulo',
@@ -75,7 +84,7 @@ final class ProfileMediaSecurityTest extends TestCase
             'logo_media_id' => null,
             'banner_media_id' => null,
         ]);
-        $archived = $this->app->make(ArchiveMediaAsset::class)->handle($alliance, $owner, $asset->id);
+        $archived = $this->app->make(ArchiveMediaAsset::class)->handle($alliance, $ownerPlayer, $asset->id);
         self::assertSame('archived', $archived->lifecycle_status->value);
         $this->get('/alliances/brand-alliance/branding/logo')->assertNotFound();
     }
@@ -86,14 +95,28 @@ final class ProfileMediaSecurityTest extends TestCase
         config()->set('content.media_disk', 'local');
         $firstOwner = User::factory()->create();
         $secondOwner = User::factory()->create();
+        $firstKingdom = Kingdom::query()->create(['number' => 4911]);
+        $secondKingdom = Kingdom::query()->create(['number' => 4912]);
+        $firstPlayer = Player::query()->create([
+            'user_id' => $firstOwner->id,
+            'current_kingdom_id' => $firstKingdom->id,
+            'game_player_id' => 'first-brand-r5',
+            'current_name' => 'First Brand R5',
+        ]);
+        $secondPlayer = Player::query()->create([
+            'user_id' => $secondOwner->id,
+            'current_kingdom_id' => $secondKingdom->id,
+            'game_player_id' => 'second-brand-r5',
+            'current_name' => 'Second Brand R5',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $first = $createAlliance->handle($firstOwner, 'First Brand', 'first-brand');
-        $second = $createAlliance->handle($secondOwner, 'Second Brand', 'second-brand');
+        $first = $createAlliance->handle($firstPlayer, 'First Brand', 'first-brand');
+        $second = $createAlliance->handle($secondPlayer, 'Second Brand', 'second-brand');
         $secondAsset = $this->app->make(UploadMediaAsset::class)
-            ->handle($second, $secondOwner, UploadedFile::fake()->image('other.png'));
+            ->handle($second, $secondPlayer, UploadedFile::fake()->image('other.png'));
 
         $this->expectException(ValidationException::class);
-        $this->app->make(UpdateAlliancePublicProfile::class)->handle($first, $firstOwner, [
+        $this->app->make(UpdateAlliancePublicProfile::class)->handle($first, $firstPlayer, [
             'name' => 'First Brand',
             'language' => 'en',
             'timezone' => 'UTC',
@@ -117,12 +140,19 @@ final class ProfileMediaSecurityTest extends TestCase
         });
 
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4921]);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'scan-alliance-r5',
+            'current_name' => 'Scan Alliance R5',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Scan Alliance', 'scan-alliance');
+            ->handle($ownerPlayer, 'Scan Alliance', 'scan-alliance');
 
         try {
             $this->app->make(UploadMediaAsset::class)
-                ->handle($alliance, $owner, UploadedFile::fake()->image('blocked.png'));
+                ->handle($alliance, $ownerPlayer, UploadedFile::fake()->image('blocked.png'));
             self::fail('Rejected media must not be accepted.');
         } catch (ValidationException) {
             self::assertTrue(true);

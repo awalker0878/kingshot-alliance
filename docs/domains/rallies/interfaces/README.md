@@ -1,104 +1,60 @@
-# Rallies interfaces
+# Rallies interface profile
 
 [← Rallies domain](../README.md)
 
-**Document type:** Living domain interface profile  
-**Status:** Current  
-**Owning domain:** Rallies  
-**Code owner:** `app/Domain/Rallies`  
-**Primary boundary:** Alliance Rally guidance/formations/groups/assignments/participation exposed through first-party Event workspace adapters  
-**P4 inventory decision:** Profile only
+**Document type:** Living domain interface profile
+**Status:** Current
+**Owning domain:** Rallies
+**Code owner:** `app/Domain/Rallies`
+**Primary boundary:** Authenticated Player self-services and exact Event/Alliance Rally operations
+**P4 inventory decision:** First-party HTTP, action/query and Event-workspace contracts are documented here
 
 ## 1. Boundary purpose and ownership
 
-Rallies owns Rally-specific guidance, reusable/member formations, recommended Event formations, Rally groups, assignments, and recorded participation. Its current HTTP adapter surface is intentionally embedded in Event calendar/management controllers/routes because Rally coordination is presented in the Event workspace.
-
-Physical controller placement does not move Rally semantic ownership into Events. Events owns occurrence/attendance facts; Rallies owns Rally coordination state and actions.
+Rallies exposes Player formation self-service and Event-integrated Rally planning while keeping Rally state owned by the Rallies domain.
 
 ## 2. Surface inventory
 
-Material first-party adapter routes in `routes/web.php` include:
+Self surfaces: create/update/delete `/player/formations` and respond to `/events/{occurrence}/rally-assignments/{assignment}/response`.
 
-- `POST /alliance/formations` — member saved formation;
-- `POST /alliance/rally-guidance` — manager guidance rule;
-- `POST /alliance/events/{occurrence}/formations` — recommended formation;
-- `POST /alliance/events/{occurrence}/rally-groups` — Rally group;
-- `PUT /alliance/rally-groups/{group}/assignments` — member assignment; and
-- `PATCH /alliance/rally-assignments/{assignment}/participation` — participation result.
-
-Event occurrence detail also serializes recommended formations, guidance, Rally groups/assignments, and the current member's saved formations for first-party presentation.
+Manager surfaces: Alliance guidance, Event recommendations, Rally groups, Player assignment/removal, and participation recording. Event Show/Manage consume `EventRallyQuery`.
 
 ## 3. Callers, authorization and tenancy
 
-Member saved-formation work requires authenticated, verified active-Alliance context. Manager Rally guidance/group/assignment/participation mutations are inside the Event privileged route group and require the applicable Event/Rally management authorization plus recent password confirmation.
-
-All occurrence/group/assignment/membership references are resolved within the active Alliance. A coordinator or Rally assignment does not itself grant authorization.
+Self callers use authenticated Player Context. Manager callers are authorized against the Event's exact scope/target; Alliance guidance uses exact Alliance Event-manage permission. Rally Alliance validity is resolved server-side.
 
 ## 4. Input and validation contracts
 
-Member formation input validates name, up to five hero labels, troop percentages, optional notes, and default state; the owning `FormationComposition` contract enforces valid composition semantics.
-
-Manager inputs validate guidance sources/effective dates, recommended formation content/order, group limits/notes, assignment membership/role/slot, and participation state through Rallies-owned actions/value objects.
-
-An Event occurrence identifier is context for Rally coordination, not permission to mutate unrelated Event/Rally state.
+Compositions must total 100%. Hero lists are limited to five. Group joiner capacity is positive when supplied. Roles are lead/joiner/standby. Self response accepts confirmed/declined only; participation accepts participated/absent only.
 
 ## 5. Output and disclosure contracts
 
-Event detail payloads may present member-safe recommended formations/guidance and Rally groups/assignments for the active Alliance, plus the caller's own saved formations. Manager-private edit/evidence state remains subject to owning permissions.
-
-Rallies has no accepted external `/api/v1` route or dedicated public export schema. Integrations does not currently expose a Rally machine-read scope.
+Show exposes effective guidance/recommendations, group summaries and only the active Player's Rally assignments. Manage exposes Player names/assignments only to an authorized Event manager.
 
 ## 6. Internal actions, queries and services
 
-Supported Rallies contracts include saved-formation actions/value objects, guidance-rule creation, recommended formation creation, group/assignment actions, and participation recording.
-
-Events controllers call these supported actions as first-party adapters. Events remains owner of occurrence/registration/attendance persistence; Contributions may consume Event attendance rather than Rally participation unless an explicit contract says otherwise.
+Primary contracts include `SavePlayerFormation`, `SaveRallyGuidanceRule`, `SaveEventRecommendedFormation`, `SaveRallyGroup`, `AssignRallyPlayer`, `RespondRallyAssignment`, `RemoveRallyPlayer`, `RecordRallyParticipation`, `EventRallyQuery`, `RallyAllianceResolver`, and `RallyPlayerEligibility`.
 
 ## 7. Events, outbox and cross-domain consumers
 
-Material Rally mutations may record Audit/Platform-outbox evidence. Producer event meaning remains Rallies-owned.
-
-Generic internal outbox publication does not create a public Rally webhook contract. Any future external Rally event would require explicit Integrations eligibility/payload documentation.
+Mutations produce audit/outbox evidence with Event target partitioning where an occurrence is involved. Results/Intelligence may consume Rally assignment/participation facts through explicit supported queries.
 
 ## 8. Commands, jobs and scheduled work
 
-Rallies has no domain-specific CLI command, queue job, or scheduler workflow in the current runtime. Rally coordination is synchronous first-party request/action behavior.
-
-Notifications/Event reminder jobs do not own or mutate Rally assignment/participation state merely because Rally data appears in an Event workspace.
+No Rally-specific command/job is required for current request-driven coordination.
 
 ## 9. Files, imports, exports and external dependencies
 
-Rallies has no current import/export/media contract. It depends on Events occurrence context, Memberships, Authorization, PostgreSQL, and shared Audit/outbox infrastructure.
-
-Operational diagnosis is documented in [Rallies operations](../operations/README.md).
+No Rally file import/export or external provider contract exists. PostgreSQL/SQLite test persistence and first-party Event UI are the runtime dependencies.
 
 ## 10. Failure, idempotency, versioning and compatibility
 
-Cross-tenant Event/group/assignment/member identifiers fail closed. Formation composition and group/assignment constraints are enforced by owning value objects/actions rather than presentation code.
-
-The Event-workspace adapter route families are first-party compatibility contracts, but there is no accepted external Rally API version. Changes that move route ownership must preserve Rallies semantic/domain ownership and update Events/Rallies docs/tests together.
+Wrong Event, Alliance, Player, group, recommendation or guidance identifiers fail closed. Assignment changes are transactionally serialized. Interface behavior is versioned with the application release.
 
 ## 11. Explicit non-capabilities
 
-Rallies does not:
-
-- own Event schedules/occurrence/registration/attendance state;
-- grant authorization through coordinator/assignment status;
-- provide a public/external Rally API or export;
-- run automated in-game Rally execution;
-- scrape/import game state; or
-- transfer Rally persistence ownership into Events merely because Event controllers adapt the HTTP surface.
+No public Rally write API, bot execution, game command dispatch, or implicit authorization from Player selection exists.
 
 ## 12. Focused contracts, evidence and related documentation
 
-No new focused P4 interface contract is required; the current Rally surface is one coherent first-party adapter/action boundary.
-
-Related documentation:
-
-- [Rallies domain](../README.md)
-- [Rallies security](../security/README.md)
-- [Rallies operations](../operations/README.md)
-- [Events interfaces](../../events/interfaces/README.md)
-- [Event registration and attendance](../../events/registration-and-attendance.md)
-- [Interface documentation standard](../../../product/interface-documentation-standard.md)
-- [P4 interface coverage matrix](../../../product/interface-coverage-matrix.md)
+See [interface documentation standard](../../../product/interface-documentation-standard.md), [interface coverage matrix](../../../product/interface-coverage-matrix.md), [security](../security/README.md), [operations](../operations/README.md), and [testing](../testing/README.md).

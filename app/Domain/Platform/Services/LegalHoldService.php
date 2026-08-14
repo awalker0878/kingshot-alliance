@@ -11,7 +11,10 @@ use InvalidArgumentException;
 
 final readonly class LegalHoldService
 {
-    public function __construct(private AuditRecorder $audit) {}
+    public function __construct(
+        private AuditRecorder $audit,
+        private PlatformAdministratorAuthorization $authorization,
+    ) {}
 
     public function active(string $subjectType, string $subjectId): bool
     {
@@ -24,6 +27,8 @@ final readonly class LegalHoldService
 
     public function place(User $actor, string $subjectType, string $subjectId, string $reason): LegalHold
     {
+        $this->authorization->authorize($actor);
+
         if (! in_array($subjectType, ['user', 'alliance'], true)) {
             throw new InvalidArgumentException('Legal holds may target only users or alliances.');
         }
@@ -51,6 +56,8 @@ final readonly class LegalHoldService
 
     public function release(User $actor, LegalHold $hold): LegalHold
     {
+        $this->authorization->authorize($actor);
+
         if ($hold->released_at !== null) {
             return $hold;
         }

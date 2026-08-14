@@ -33,25 +33,40 @@ type NavigationGroup = {
   items: NavigationItem[];
 };
 
+type PlayerContextPlayer = {
+  id: string;
+  name: string;
+  gamePlayerId: string | null;
+  kingdomNumber: number | null;
+};
+
+type SharedPlayerContext = {
+  activePlayerId: string | null;
+  players: PlayerContextPlayer[];
+};
+
 const props = withDefaults(
   defineProps<{
     user: {
       name: string;
       email?: string;
     };
-    allianceName?: string | null;
-    hasActiveAlliance?: boolean;
+    playerAllianceName?: string | null;
+    hasPlayerAlliance?: boolean;
   }>(),
   {
-    allianceName: null,
-    hasActiveAlliance: false,
+    playerAllianceName: null,
+    hasPlayerAlliance: false,
   },
 );
 
 const { t } = useLocale();
 const page = usePage();
 const mobileOpen = ref(false);
-
+const sharedPlayerContext = computed<SharedPlayerContext>(() => {
+  const value = (page.props as Record<string, unknown>).playerContext as SharedPlayerContext | undefined;
+  return value ?? { activePlayerId: null, players: [] };
+});
 const navigationGroups: NavigationGroup[] = [
   {
     labelKey: 'navigation.allianceOperations',
@@ -64,7 +79,7 @@ const navigationGroups: NavigationGroup[] = [
         allianceScoped: true,
         exact: true,
       },
-      { key: 'navigation.events', href: '/alliance/events', icon: 'events', allianceScoped: true },
+      { key: 'navigation.events', href: '/events', icon: 'events' },
       { key: 'navigation.roster', href: '/alliance/roster', icon: 'roster', allianceScoped: true },
       {
         key: 'navigation.recruitment',
@@ -114,7 +129,7 @@ const navigationGroups: NavigationGroup[] = [
 const currentPath = computed(() => page.url.split('?')[0]?.replace(/\/+$/, '') || '/');
 
 function isDisabled(item: NavigationItem): boolean {
-  return item.allianceScoped === true && !props.hasActiveAlliance;
+  return item.allianceScoped === true && !props.hasPlayerAlliance;
 }
 
 function isActive(item: NavigationItem): boolean {
@@ -133,6 +148,11 @@ function closeMobile(): void {
 
 function logout(): void {
   router.delete('/logout');
+}
+
+function switchPlayer(playerId: string): void {
+  if (playerId === sharedPlayerContext.value.activePlayerId) return;
+  router.post(`/players/${playerId}/activate`, {}, { preserveScroll: true, preserveState: true });
 }
 
 const initials = computed(() =>
@@ -170,13 +190,13 @@ const initials = computed(() =>
           <p
             class="text-[0.68rem] font-bold tracking-[0.18em] text-[var(--ks-text-muted)] uppercase"
           >
-            {{ t('common.currentAlliance') }}
+            {{ t('common.playerAlliance') }}
           </p>
-          <p v-if="hasActiveAlliance && allianceName" class="mt-1.5 truncate text-sm font-semibold">
-            {{ allianceName }}
+          <p v-if="hasPlayerAlliance && playerAllianceName" class="mt-1.5 truncate text-sm font-semibold">
+            {{ playerAllianceName }}
           </p>
           <p v-else class="mt-1.5 text-xs leading-5 text-[var(--ks-text-muted)]">
-            {{ t('common.noActiveAlliance') }}
+            {{ t('common.noPlayerAlliance') }}
           </p>
         </div>
       </div>
@@ -194,7 +214,7 @@ const initials = computed(() =>
               <span
                 v-if="isDisabled(item)"
                 class="flex cursor-not-allowed items-center gap-3 rounded-[var(--ks-radius-sm)] px-3 py-2.5 text-sm text-[var(--ks-text-muted)] opacity-45"
-                :title="t('common.noActiveAlliance')"
+                :title="t('common.noPlayerAlliance')"
                 aria-disabled="true"
               >
                 <NavIcon :name="item.icon" />
@@ -219,6 +239,30 @@ const initials = computed(() =>
       </nav>
 
       <div class="border-t border-[var(--ks-border)] p-3">
+        <div v-if="sharedPlayerContext.players.length" class="mb-3">
+          <p class="px-3 pb-2 text-[0.68rem] font-bold tracking-[0.17em] text-[var(--ks-text-muted)] uppercase">
+            {{ t('common.currentPlayer') }}
+          </p>
+          <div class="max-h-44 space-y-1 overflow-y-auto" role="group" :aria-label="t('common.currentPlayer')">
+            <button
+              v-for="player in sharedPlayerContext.players"
+              :key="player.id"
+              type="button"
+              class="flex w-full items-center justify-between gap-2 rounded-[var(--ks-radius-sm)] px-3 py-2 text-start text-sm transition"
+              :class="player.id === sharedPlayerContext.activePlayerId ? 'bg-[var(--ks-gold-soft)] text-[var(--ks-gold-strong)]' : 'text-[var(--ks-text-secondary)] hover:bg-[var(--ks-surface-1)] hover:text-[var(--ks-text)]'"
+              :aria-current="player.id === sharedPlayerContext.activePlayerId ? 'true' : undefined"
+              :aria-pressed="player.id === sharedPlayerContext.activePlayerId"
+              @click="switchPlayer(player.id)"
+            >
+              <span class="min-w-0">
+                <span class="block truncate font-semibold">{{ player.name }}</span>
+                <span v-if="player.kingdomNumber" class="block text-[0.68rem] text-[var(--ks-text-muted)]">K{{ player.kingdomNumber }}</span>
+              </span>
+              <span v-if="player.id === sharedPlayerContext.activePlayerId" class="text-[0.65rem] font-bold uppercase">{{ t('common.active') }}</span>
+            </button>
+          </div>
+        </div>
+        <p v-else class="mb-3 px-3 text-xs text-[var(--ks-text-muted)]">{{ t('common.noPlayers') }}</p>
         <Link
           href="/profile"
           class="flex items-center gap-3 rounded-[var(--ks-radius-md)] px-3 py-3 transition hover:bg-[var(--ks-surface-1)]"
@@ -254,8 +298,8 @@ const initials = computed(() =>
           </button>
 
           <div class="min-w-0 flex-1">
-            <p v-if="hasActiveAlliance && allianceName" class="truncate text-sm font-semibold">
-              {{ allianceName }}
+            <p v-if="hasPlayerAlliance && playerAllianceName" class="truncate text-sm font-semibold">
+              {{ playerAllianceName }}
             </p>
             <p v-else class="truncate text-sm text-[var(--ks-text-muted)]">Kingshot Alliance</p>
           </div>
@@ -328,16 +372,16 @@ const initials = computed(() =>
               <p
                 class="text-[0.68rem] font-bold tracking-[0.18em] text-[var(--ks-text-muted)] uppercase"
               >
-                {{ t('common.currentAlliance') }}
+                {{ t('common.playerAlliance') }}
               </p>
               <p
-                v-if="hasActiveAlliance && allianceName"
+                v-if="hasPlayerAlliance && playerAllianceName"
                 class="mt-1.5 truncate text-sm font-semibold"
               >
-                {{ allianceName }}
+                {{ playerAllianceName }}
               </p>
               <p v-else class="mt-1.5 text-xs leading-5 text-[var(--ks-text-muted)]">
-                {{ t('common.noActiveAlliance') }}
+                {{ t('common.noPlayerAlliance') }}
               </p>
             </div>
           </div>
@@ -379,6 +423,24 @@ const initials = computed(() =>
           </nav>
 
           <div class="border-t border-[var(--ks-border)] p-4">
+            <div v-if="sharedPlayerContext.players.length" class="mb-4">
+              <p class="mb-2 text-[0.68rem] font-bold tracking-[0.17em] text-[var(--ks-text-muted)] uppercase">{{ t('common.currentPlayer') }}</p>
+              <div class="max-h-40 space-y-1 overflow-y-auto" role="group" :aria-label="t('common.currentPlayer')">
+                <button
+                  v-for="player in sharedPlayerContext.players"
+                  :key="player.id"
+                  type="button"
+                  class="flex w-full items-center justify-between rounded-[var(--ks-radius-sm)] px-3 py-2 text-start text-sm"
+                  :class="player.id === sharedPlayerContext.activePlayerId ? 'bg-[var(--ks-gold-soft)] text-[var(--ks-gold-strong)]' : 'text-[var(--ks-text-secondary)]'"
+                  :aria-current="player.id === sharedPlayerContext.activePlayerId ? 'true' : undefined"
+                  :aria-pressed="player.id === sharedPlayerContext.activePlayerId"
+                  @click="switchPlayer(player.id)"
+                >
+                  <span class="min-w-0"><span class="block truncate font-semibold">{{ player.name }}</span><span v-if="player.kingdomNumber" class="block text-[0.68rem] text-[var(--ks-text-muted)]">K{{ player.kingdomNumber }}</span></span>
+                  <span v-if="player.id === sharedPlayerContext.activePlayerId" class="text-[0.65rem] font-bold uppercase">{{ t('common.active') }}</span>
+                </button>
+              </div>
+            </div>
             <div class="flex items-center gap-3">
               <span
                 class="grid h-10 w-10 place-items-center rounded-full border border-[var(--ks-border-strong)] bg-[var(--ks-gold-soft)] text-xs font-bold text-[var(--ks-gold-strong)]"

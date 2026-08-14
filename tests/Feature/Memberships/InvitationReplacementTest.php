@@ -7,11 +7,13 @@ namespace Tests\Feature\Memberships;
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Audit\Models\AuditEvent;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Actions\CreateInvitation;
 use App\Domain\Memberships\Enums\InvitationStatus;
 use App\Domain\Memberships\Models\Invitation;
 use App\Domain\Memberships\Queries\FindPendingInvitation;
-use App\Domain\Platform\Models\OutboxMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,18 +21,31 @@ final class InvitationReplacementTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_replacement_invitation_revokes_and_audits_the_previous_pending_token(): void
+    public function test_replacement_invitation_for_same_player_revokes_and_audits_previous_pending_token(): void
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4010, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'replacement-owner',
+            'current_name' => 'Replacement Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Replacement Invites', 'replacement-invites');
+            ->handle($ownerPlayer, 'Replacement Invites', 'replacement-invites');
+        $target = $this->app->make(SaveRosterEntry::class)->handle($alliance, $ownerPlayer, [
+            'name' => 'Replacement Target',
+            'game_player_id' => 'replacement-target',
+        ])->player;
         $create = $this->app->make(CreateInvitation::class);
 
-        $first = $create->handle($alliance, $owner, 'replace@example.com');
-        $second = $create->handle($alliance, $owner, 'replace@example.com');
+        $first = $create->handle($alliance, $ownerPlayer, $target, 'replace@example.com');
+        $second = $create->handle($alliance, $ownerPlayer, $target, 'replace@example.com');
         $firstRecord = Invitation::query()->findOrFail($first->invitationId);
         $secondRecord = Invitation::query()->findOrFail($second->invitationId);
 
+        self::assertSame($target->id, $firstRecord->player_id);
+        self::assertSame($target->id, $secondRecord->player_id);
         self::assertSame(InvitationStatus::Revoked, $firstRecord->status);
         self::assertNotNull($firstRecord->revoked_at);
         self::assertSame(InvitationStatus::Pending, $secondRecord->status);
@@ -42,10 +57,8 @@ final class InvitationReplacementTest extends TestCase
             ->where('subject_id', $first->invitationId)
             ->sole();
 
+        self::assertSame($ownerPlayer->id, $audit->actor_player_id);
+        self::assertSame($target->id, $audit->metadata['player_id'] ?? null);
         self::assertSame('superseded', $audit->metadata['reason'] ?? null);
-        self::assertSame(1, OutboxMessage::query()
-            ->where('event_type', 'invitation.revoked')
-            ->where('aggregate_id', $first->invitationId)
-            ->count());
     }
 }

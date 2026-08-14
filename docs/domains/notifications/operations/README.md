@@ -14,7 +14,7 @@ Notifications owns recurring coordination for Event reminders and scheduled Cont
 
 ## 2. Persistent state and ownership
 
-Durable state includes reminder-delivery/materialization records and scheduled-report coordination/run state owned by Notifications. Events supplies occurrence/registration truth; Contributions supplies report source/provenance; Platform owns the transactional outbox.
+Durable state includes Player-specific reminder delivery records and scheduled-report coordination/run state owned by Notifications. Events supplies occurrence/registration truth; Contributions supplies report source/provenance; Platform owns the transactional outbox.
 
 ## 3. Configuration and runtime dependencies
 
@@ -24,19 +24,18 @@ Notifications depends on PostgreSQL, scheduler continuity and the shared outbox 
 
 Every minute the scheduler runs:
 
-- `events:sync-reminders --limit=250` to materialize eligible deterministic reminder rows;
 - `events:queue-reminders --limit=100` to queue due reminders through the outbox; and
-- `contributions:queue-reports --limit=50` to materialize/queue due scheduled report work.
+- `contributions:queue-reports --limit=50` to resolve/queue due scheduled report work.
 
 All use `onOneServer` and overlap protection; durable logical identities prevent routine duplicates.
 
 ## 5. Health, observability and diagnostics
 
-Inspect scheduler process/list, eligible Event registrations/occurrences or due Contribution schedules, reminder/report row status, deterministic due/version identity, related outbox row, audit/request correlation where applicable, and oldest pending/due age.
+Inspect scheduler process/list, eligible Event Players/occurrences or due Contribution schedules, reminder/report row status, deterministic due/version identity, related outbox row, audit/request correlation where applicable, and oldest pending/due age.
 
 ## 6. Failure modes and diagnosis
 
-Typical failures are scheduler stoppage, PostgreSQL failure/lock pressure, source Event/Contribution state no longer eligible, missing materialized row, pending row without outbox handoff, repeatedly failing outbox consumer or stale source configuration.
+Typical failures are scheduler stoppage, PostgreSQL failure/lock pressure, source Event/Contribution state no longer eligible, missing delivery row, pending row without outbox handoff, repeatedly failing outbox consumer or stale source configuration.
 
 ## 7. Recovery, replay and reconciliation
 
@@ -48,7 +47,7 @@ Notifications state is PostgreSQL-backed and must be restored consistently with 
 
 ## 9. Capacity, query and performance boundaries
 
-Default catch-up limits are 250/100/50 for sync reminders, queue reminders and reports. Raise only within implemented bounds after checking database/outbox capacity. Repository fixtures are regression evidence, not production notification throughput commitments.
+Default catch-up limits are 100/50 for Event reminders and Contribution reports. Raise only within implemented bounds after checking database/outbox capacity. Repository fixtures are regression evidence, not production notification throughput commitments.
 
 ## 10. External-service degradation
 

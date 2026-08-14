@@ -8,9 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentNote;
@@ -26,7 +24,7 @@ final class AddRecruitmentNote
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(User $actor, Alliance $alliance, RecruitmentCandidate $candidate, string $body): RecruitmentNote
+    public function handle(Player $actor, Alliance $alliance, RecruitmentCandidate $candidate, string $body): RecruitmentNote
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
             throw new AuthorizationException('You are not allowed to add recruitment notes.');
@@ -41,21 +39,11 @@ final class AddRecruitmentNote
             throw ValidationException::withMessages(['note' => 'Recruitment note text is required.']);
         }
 
-        $membership = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('user_id', $actor->id)
-            ->where('status', MembershipStatus::Active->value)
-            ->first();
-
-        if (! $membership instanceof AllianceMembership) {
-            throw new AuthorizationException('An active alliance membership is required to add recruitment notes.');
-        }
-
-        return DB::transaction(function () use ($actor, $alliance, $candidate, $cleanBody, $membership): RecruitmentNote {
+        return DB::transaction(function () use ($actor, $alliance, $candidate, $cleanBody): RecruitmentNote {
             $note = RecruitmentNote::query()->create([
                 'alliance_id' => $alliance->id,
                 'candidate_id' => $candidate->id,
-                'author_membership_id' => $membership->id,
+                'author_player_id' => $actor->id,
                 'body' => $cleanBody,
             ]);
 

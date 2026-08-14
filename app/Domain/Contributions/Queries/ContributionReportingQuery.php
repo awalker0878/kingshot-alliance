@@ -12,9 +12,7 @@ use App\Domain\Contributions\Models\ContributionRecord;
 use App\Domain\Contributions\Models\ContributionReportRun;
 use App\Domain\Contributions\Models\ContributionReportSchedule;
 use App\Domain\Contributions\Services\ContributionPeriodResolver;
-use App\Domain\Events\Enums\EventRegistrationStatus;
-use App\Domain\Events\Models\EventRegistration;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
@@ -27,7 +25,7 @@ final class ContributionReportingQuery
     public function __construct(private readonly ContributionPeriodResolver $periods) {}
 
     /** @return array<string, mixed> */
-    public function memberDashboard(Alliance $alliance, AllianceMembership $membership): array
+    public function memberDashboard(Alliance $alliance, Player $player): array
     {
         $categories = ContributionCategory::query()
             ->where('alliance_id', $alliance->id)
@@ -36,12 +34,11 @@ final class ContributionReportingQuery
             ->get();
 
         $progress = [];
-
         foreach ($categories as $category) {
             $period = $this->periods->current($category, $alliance->timezone);
             $approved = (float) ContributionRecord::query()
                 ->where('alliance_id', $alliance->id)
-                ->where('membership_id', $membership->id)
+                ->where('player_id', $player->id)
                 ->where('category_id', $category->id)
                 ->where('status', ContributionRecordStatus::Approved->value)
                 ->whereDate('period_start', $period['start']->toDateString())
@@ -70,8 +67,8 @@ final class ContributionReportingQuery
 
         $history = ContributionRecord::query()
             ->where('alliance_id', $alliance->id)
-            ->where('membership_id', $membership->id)
-            ->with('category')
+            ->where('player_id', $player->id)
+            ->with(['category', 'player'])
             ->latest('recorded_at')
             ->limit(100)
             ->get()
@@ -88,29 +85,13 @@ final class ContributionReportingQuery
     /** @return array<string, mixed> */
     public function managementDashboard(Alliance $alliance): array
     {
-        $categories = ContributionCategory::query()
-            ->where('alliance_id', $alliance->id)
-            ->orderBy('name')
-            ->get();
+        $categories = ContributionCategory::query()->where('alliance_id', $alliance->id)->orderBy('name')->get();
         $activeMembers = AllianceMembership::query()
             ->where('alliance_id', $alliance->id)
             ->where('status', MembershipStatus::Active->value)
-            ->with('user:id,name,email')
+            ->with('player:id,user_id,current_name')
             ->orderBy('created_at')
             ->get();
-
-        $attendanceWindow = now()->subDays(30);
-        $attended = EventRegistration::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('status', EventRegistrationStatus::Attended->value)
-            ->whereHas('occurrence', static fn ($query) => $query->where('starts_at', '>=', $attendanceWindow))
-            ->count();
-        $noShows = EventRegistration::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('status', EventRegistrationStatus::NoShow->value)
-            ->whereHas('occurrence', static fn ($query) => $query->where('starts_at', '>=', $attendanceWindow))
-            ->count();
-        $decidedAttendance = $attended + $noShows;
 
         $categorySummaries = [];
         foreach ($categories as $category) {
@@ -148,76 +129,38 @@ final class ContributionReportingQuery
         return [
             'metrics' => [
                 'activeMembers' => $activeMembers->count(),
-                'joinedLast30Days' => AllianceMembership::query()
-                    ->where('alliance_id', $alliance->id)
-                    ->whereNotNull('joined_at')
-                    ->where('joined_at', '>=', now()->subDays(30))
-                    ->count(),
-                'leftLast30Days' => AllianceMembership::query()
-                    ->where('alliance_id', $alliance->id)
-                    ->whereNotNull('left_at')
-                    ->where('left_at', '>=', now()->subDays(30))
-                    ->count(),
-                'attendanceLast30Days' => $attended,
-                'noShowsLast30Days' => $noShows,
-                'attendanceRate' => $decidedAttendance > 0 ? $attended / $decidedAttendance : null,
-                'recruitmentTotal' => RecruitmentCandidate::query()
-                    ->where('alliance_id', $alliance->id)
-                    ->whereNull('merged_into_id')
-                    ->count(),
-                'recruitmentJoined' => RecruitmentCandidate::query()
-                    ->where('alliance_id', $alliance->id)
-                    ->where('stage', RecruitmentStage::Joined->value)
-                    ->count(),
-                'pendingContributionApprovals' => ContributionRecord::query()
-                    ->where('alliance_id', $alliance->id)
-                    ->where('status', ContributionRecordStatus::Pending->value)
-                    ->count(),
-                'openDataQualityFlags' => ContributionDataQualityFlag::query()
-                    ->where('alliance_id', $alliance->id)
-                    ->where('status', 'open')
-                    ->count(),
+                'joinedLast30Days' => AllianceMembership::query()->where('alliance_id', $alliance->id)->whereNotNull('joined_at')->where('joined_at', '>=', now()->subDays(30))->count(),
+                'leftLast30Days' => AllianceMembership::query()->where('alliance_id', $alliance->id)->whereNotNull('left_at')->where('left_at', '>=', now()->subDays(30))->count(),
+                'recruitmentTotal' => RecruitmentCandidate::query()->where('alliance_id', $alliance->id)->whereNull('merged_into_id')->count(),
+                'recruitmentJoined' => RecruitmentCandidate::query()->where('alliance_id', $alliance->id)->where('stage', RecruitmentStage::Joined->value)->count(),
+                'pendingContributionApprovals' => ContributionRecord::query()->where('alliance_id', $alliance->id)->where('status', ContributionRecordStatus::Pending->value)->count(),
+                'openDataQualityFlags' => ContributionDataQualityFlag::query()->where('alliance_id', $alliance->id)->where('status', 'open')->count(),
             ],
             'categories' => $categorySummaries,
-            'members' => $activeMembers->map(function (AllianceMembership $membership): array {
-                $user = $membership->user;
-                if (! $user instanceof User) {
-                    throw new LogicException('Active alliance membership must reference a user.');
-                }
-
-                return [
-                    'id' => $membership->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ];
-            })->all(),
+            'members' => $activeMembers->map(static fn (AllianceMembership $membership): array => [
+                'playerId' => (string) $membership->player_id,
+                'name' => (string) $membership->player->current_name,
+                'rank' => $membership->rank->value,
+                'claimed' => $membership->player->user_id !== null,
+            ])->all(),
             'pendingRecords' => ContributionRecord::query()
                 ->where('alliance_id', $alliance->id)
                 ->where('status', ContributionRecordStatus::Pending->value)
-                ->with(['category', 'membership.user'])
-                ->oldest('recorded_at')
-                ->limit(100)
-                ->get()
-                ->map(fn (ContributionRecord $record): array => $this->record($record))
-                ->all(),
+                ->with(['category', 'player'])
+                ->oldest('recorded_at')->limit(100)->get()
+                ->map(fn (ContributionRecord $record): array => $this->record($record))->all(),
             'recentRecords' => ContributionRecord::query()
                 ->where('alliance_id', $alliance->id)
-                ->with(['category', 'membership.user'])
-                ->latest('recorded_at')
-                ->limit(100)
-                ->get()
-                ->map(fn (ContributionRecord $record): array => $this->record($record))
-                ->all(),
+                ->with(['category', 'player'])
+                ->latest('recorded_at')->limit(100)->get()
+                ->map(fn (ContributionRecord $record): array => $this->record($record))->all(),
             'dataQualityFlags' => ContributionDataQualityFlag::query()
-                ->where('alliance_id', $alliance->id)
-                ->where('status', 'open')
+                ->where('alliance_id', $alliance->id)->where('status', 'open')
                 ->orderByRaw("case when severity = 'error' then 0 else 1 end")
-                ->latest('detected_at')
-                ->limit(100)
-                ->get()
+                ->latest('detected_at')->limit(100)->get()
                 ->map(static fn (ContributionDataQualityFlag $flag): array => [
                     'id' => $flag->id,
-                    'membershipId' => $flag->membership_id,
+                    'playerId' => $flag->player_id,
                     'categoryId' => $flag->category_id,
                     'recordId' => $flag->record_id,
                     'code' => $flag->code,
@@ -227,13 +170,11 @@ final class ContributionReportingQuery
                 ])->all(),
             'leaderboards' => $this->leaderboards($alliance, $categories),
             'reportSchedules' => ContributionReportSchedule::query()
-                ->where('alliance_id', $alliance->id)
-                ->orderBy('name')
-                ->get()
+                ->where('alliance_id', $alliance->id)->orderBy('name')->get()
                 ->map(static fn (ContributionReportSchedule $schedule): array => [
                     'id' => $schedule->id,
                     'name' => $schedule->name,
-                    'recipientMembershipId' => $schedule->recipient_membership_id,
+                    'recipientPlayerId' => $schedule->recipient_player_id,
                     'cadence' => $schedule->cadence,
                     'timezone' => $schedule->timezone,
                     'nextDueAt' => $schedule->next_due_at->toIso8601String(),
@@ -242,10 +183,7 @@ final class ContributionReportingQuery
                     'lastQueuedAt' => $schedule->last_queued_at?->toIso8601String(),
                 ])->all(),
             'recentReportRuns' => ContributionReportRun::query()
-                ->where('alliance_id', $alliance->id)
-                ->latest('created_at')
-                ->limit(25)
-                ->get()
+                ->where('alliance_id', $alliance->id)->latest('created_at')->limit(25)->get()
                 ->map(static fn (ContributionReportRun $run): array => [
                     'id' => $run->id,
                     'format' => $run->format,
@@ -264,24 +202,20 @@ final class ContributionReportingQuery
     {
         return array_values(ContributionRecord::query()
             ->where('alliance_id', $alliance->id)
-            ->with(['category', 'membership.user'])
-            ->orderBy('period_start')
-            ->orderBy('category_id')
-            ->orderBy('membership_id')
-            ->orderBy('recorded_at')
+            ->with(['category', 'player'])
+            ->orderBy('period_start')->orderBy('category_id')->orderBy('player_id')->orderBy('recorded_at')
             ->get()
             ->map(function (ContributionRecord $record): array {
                 $category = $record->category;
-                if (! $category instanceof ContributionCategory) {
-                    throw new LogicException('Contribution record must reference a category.');
+                $player = $record->player;
+                if (! $category instanceof ContributionCategory || ! $player instanceof Player) {
+                    throw new LogicException('Contribution record must reference a category and Player.');
                 }
-
-                $membership = $record->membership;
-                $user = $membership?->user;
 
                 return [
                     'record_id' => $record->id,
-                    'member' => $user instanceof User ? $user->name : 'Unknown member',
+                    'player_id' => (string) $player->id,
+                    'player' => $player->current_name,
                     'category' => $category->name,
                     'unit' => $category->unit,
                     'value' => (float) $record->value,
@@ -300,8 +234,7 @@ final class ContributionReportingQuery
                     'reversal_reason' => $record->reversal_reason,
                     'correction_reason' => $record->correction_reason,
                 ];
-            })
-            ->all());
+            })->all());
     }
 
     /** @param Collection<int, ContributionCategory> $categories
@@ -310,7 +243,6 @@ final class ContributionReportingQuery
     private function leaderboards(Alliance $alliance, Collection $categories): array
     {
         $boards = [];
-
         foreach ($categories->where('leaderboard_enabled', true)->where('is_active', true) as $category) {
             $period = $this->periods->current($category, $alliance->timezone);
             $records = ContributionRecord::query()
@@ -319,17 +251,16 @@ final class ContributionReportingQuery
                 ->where('status', ContributionRecordStatus::Approved->value)
                 ->whereDate('period_start', $period['start']->toDateString())
                 ->whereDate('period_end', $period['end']->toDateString())
-                ->with('membership.user')
-                ->get();
+                ->with('player')->get();
 
             $totals = [];
             foreach ($records as $record) {
-                $user = $record->membership?->user;
-                if (! $user instanceof User) {
+                $player = $record->player;
+                if (! $player instanceof Player) {
                     continue;
                 }
-                $key = (string) $record->membership_id;
-                $totals[$key] ??= ['membershipId' => $key, 'name' => $user->name, 'value' => 0.0];
+                $key = (string) $record->player_id;
+                $totals[$key] ??= ['playerId' => $key, 'name' => $player->current_name, 'value' => 0.0];
                 $totals[$key]['value'] += (float) $record->value;
             }
             usort($totals, static fn (array $left, array $right): int => $right['value'] <=> $left['value']);
@@ -342,8 +273,7 @@ final class ContributionReportingQuery
                 'periodEnd' => $period['end']->toDateString(),
                 'calculationKey' => $category->calculation_key,
                 'calculationVersion' => $category->calculation_version,
-                'calculationDescription' => $category->calculation_description
-                    ?? 'Approved records are summed for the selected category and period.',
+                'calculationDescription' => $category->calculation_description ?? 'Approved records are summed for the selected category and period.',
                 'entries' => $totals,
             ];
         }
@@ -355,13 +285,12 @@ final class ContributionReportingQuery
     private function record(ContributionRecord $record): array
     {
         $category = $record->category;
-        $membership = $record->membership;
-        $user = $membership?->user;
+        $player = $record->player;
 
         return [
             'id' => $record->id,
-            'membershipId' => $record->membership_id,
-            'memberName' => $user instanceof User ? $user->name : null,
+            'playerId' => $record->player_id,
+            'playerName' => $player instanceof Player ? $player->current_name : null,
             'categoryId' => $record->category_id,
             'categoryName' => $category?->name,
             'unit' => $category?->unit,

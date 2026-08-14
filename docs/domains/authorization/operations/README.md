@@ -6,15 +6,15 @@
 **Status:** Current  
 **Owning domain:** Authorization  
 **Code owner:** `app/Domain/Authorization`  
-**Primary operational boundary:** tenant-scoped role/permission state, hierarchy enforcement, and last-Owner safety
+**Primary operational boundary:** Alliance/Kingdom-scoped permission state, hierarchy enforcement, R5 leadership safety, and Kingdom assignment recovery
 
 ## 1. Operational purpose and runtime shape
 
-Authorization is synchronous database-backed RBAC. It owns permission vocabulary, role templates and membership-role assignment/removal behavior. It has no dedicated scheduler or queue worker.
+Authorization is synchronous database-backed contextual authorization. It owns permission vocabulary, Alliance specialist roles, Kingdom role templates/assignments, and supported assignment/removal behavior. It has no dedicated scheduler or queue worker.
 
 ## 2. Persistent state and ownership
 
-Durable state includes roles, role-permission mappings and membership-role assignments scoped to the owning Alliance. Membership lifecycle belongs to Memberships; Platform authority remains separate from tenant RBAC.
+Durable state includes Alliance specialist roles/mappings/assignments plus `kingdom_roles`, `kingdom_role_permissions`, and `kingdom_role_assignments` scoped to the exact Kingdom. Membership lifecycle belongs to Memberships; Platform authority remains separate from tenant RBAC.
 
 ## 3. Configuration and runtime dependencies
 
@@ -30,15 +30,15 @@ Inspect active Alliance/membership, assigned roles, role permissions, target hie
 
 ## 6. Failure modes and diagnosis
 
-Common failures are missing permission, inactive membership, cross-Alliance role/member IDs, hierarchy denial, attempts to remove the last Owner, or inconsistent role state caused by unsupported direct data changes.
+Common failures are missing permission, inactive membership, stale Player roster identity, cross-Alliance role/member IDs, cross-Kingdom role assignment, hierarchy denial, attempts to deactivate R5, attempts to remove the final Kingdom Admin, or inconsistent state caused by unsupported direct data changes.
 
 ## 7. Recovery, replay and reconciliation
 
-Re-run the supported role assignment/removal only after correcting the underlying authorization/tenant state. Do not bypass last-Owner or hierarchy checks by direct SQL. If role data is inconsistent, stop and repair through a reviewed migration/forward fix rather than guessing intended privileges.
+Re-run the supported role assignment/removal only after correcting the underlying authorization/tenant state. Do not bypass R5 leadership or hierarchy checks by direct SQL. If role data is inconsistent, stop and repair through a reviewed migration/forward fix rather than guessing intended privileges.
 
 ## 8. Backup, restore, migration and rollback
 
-Authorization state is PostgreSQL-backed. Shared backup/restore restores role and assignment state together with Memberships/Alliances. After recovery, verify representative Owner/member assignments and permission checks before declaring access control healthy.
+Authorization state is PostgreSQL-backed. Shared backup/restore restores role and assignment state together with Memberships/Alliances. After recovery, verify one active R5 per populated Alliance, representative rank/specialist permission checks, Kingdom Admin assignments, and cross-Kingdom denial before declaring access control healthy.
 
 ## 9. Capacity, query and performance boundaries
 
@@ -50,7 +50,7 @@ There is no Authorization-owned external service. PostgreSQL failure causes auth
 
 ## 11. Safe operator actions and stop conditions
 
-Safe actions are verifying tenant/membership/role rows, restoring database health and using supported manager flows. Stop if a proposed repair would create a last-Owner gap, cross tenants, elevate Platform authority, or require editing audit evidence.
+Safe actions are verifying tenant/membership/role rows, restoring database health and using supported manager flows. Stop if a proposed repair would create an R5 leadership gap, remove the final Kingdom Admin without Platform recovery intent, cross Alliance/Kingdom boundaries, convert Platform status into Event authority, or require editing audit evidence.
 
 ## 12. Evidence, focused runbooks and related documentation
 

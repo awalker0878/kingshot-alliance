@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Models\RecruitmentApplicationInvite;
 use App\Domain\Recruitment\Services\RecruitmentApplicationTokenService;
@@ -28,7 +28,7 @@ final class IssueRecruitmentApplicationInvite
     ) {}
 
     public function handle(
-        User $actor,
+        Player $actor,
         Alliance $alliance,
         ?string $email = null,
         int $ttlHours = 72,
@@ -50,7 +50,7 @@ final class IssueRecruitmentApplicationInvite
                 'email' => $normalizedEmail,
                 'token_hash' => $this->tokens->hash($token),
                 'expires_at' => now()->addHours($ttlHours),
-                'created_by_user_id' => $actor->id,
+                'created_by_player_id' => $actor->id,
             ]);
 
             $this->audit->record('recruitment.application_invite.created', $actor, $invite, $alliance, [

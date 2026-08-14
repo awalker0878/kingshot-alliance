@@ -8,11 +8,15 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Identity\Models\User;
 use App\Domain\Platform\Models\AllianceFeatureFlag;
 
-final class AllianceFeatureService
+final readonly class AllianceFeatureService
 {
+    public function __construct(private PlatformAdministratorAuthorization $authorization) {}
+
     /** @param array<string, mixed>|null $configuration */
     public function set(Alliance $alliance, User $actor, string $key, bool $enabled, ?array $configuration = null): AllianceFeatureFlag
     {
+        $this->authorization->authorize($actor);
+
         return AllianceFeatureFlag::query()->updateOrCreate(
             [
                 'alliance_id' => $alliance->id,

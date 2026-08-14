@@ -22,7 +22,7 @@ final class ContributionReportSchedule extends Model
 
     protected $fillable = [
         'alliance_id',
-        'recipient_membership_id',
+        'recipient_player_id',
         'name',
         'cadence',
         'timezone',
@@ -30,7 +30,7 @@ final class ContributionReportSchedule extends Model
         'report_version',
         'is_enabled',
         'last_queued_at',
-        'created_by_user_id',
+        'created_by_player_id',
     ];
 
     protected function casts(): array

@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property string|null $alliance_id
+ * @property string|null $partition_key
  * @property string $event_type
  * @property string $aggregate_type
  * @property string $aggregate_id
@@ -33,6 +34,7 @@ final class OutboxMessage extends Model
 
     protected $fillable = [
         'alliance_id',
+        'partition_key',
         'event_type',
         'aggregate_type',
         'aggregate_id',

@@ -158,7 +158,7 @@ Every string cell beginning with `=`, `+`, `-`, `@`, tab, carriage return, or li
 
 Every import lookup is constrained by active Alliance before display/commit. Ordinary member export uses `alliance.view`; management export uses `kingdoms.manage` because it contains management fields.
 
-Sharing Kingdom/KingdomPlayer identity never authorizes another Alliance's import, roster, snapshot, or export data.
+Sharing Kingdom/Player identity never authorizes another Alliance's import, roster, snapshot, or export data.
 
 ## 7. Persistence and query semantics
 

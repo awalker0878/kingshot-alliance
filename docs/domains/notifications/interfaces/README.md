@@ -11,7 +11,7 @@
 
 ## 1. Boundary purpose and ownership
 
-Notifications owns durable coordination for Event reminders and scheduled Contribution report delivery requests. Its current P4 boundary is internal/asynchronous: it consumes Events/Contributions source state, materializes deterministic delivery records, records notification outbox work, and reacts to Platform outbox publication.
+Notifications owns durable coordination for Event reminders and scheduled Contribution report delivery requests. Its current P4 boundary is internal/asynchronous: it consumes Events/Contributions source state, resolves current audiences and creates deterministic Player-specific delivery records, records notification outbox work, and reacts to Platform outbox publication.
 
 Notifications does not own Event schedules/registrations, Contribution report semantics, or generic external webhook delivery.
 
@@ -21,25 +21,23 @@ There is no direct Notifications browser, public API, manager API, or external w
 
 Material entry points are internal actions and commands:
 
-- `SyncUpcomingEventReminders`;
 - `QueueDueEventReminders`;
 - `QueueDueContributionReports`;
-- `MarkEventReminderPublished` as an `OutboxPublished` consumer;
-- `events:sync-reminders`;
+- `MarkEventReminderSent` as an `OutboxPublished` consumer;
 - `events:queue-reminders`; and
 - `contributions:queue-reports`.
 
 ## 3. Callers, authorization and tenancy
 
-Scheduler/operator commands run under trusted application/operator context rather than end-user HTTP authorization. Each action derives Alliance/membership/source identity from persisted eligible state and remains tenant bound.
+Scheduler/operator commands run under trusted application/operator context rather than end-user HTTP authorization. Each action derives Event scope/Player/source identity from persisted eligible state and remains tenant bound.
 
 First-party Event/Contribution managers configure source reminders/report schedules through their owning domains; Notifications does not expose an alternate route that bypasses those permissions.
 
 ## 4. Input and validation contracts
 
-Event reminder materialization consumes persisted eligible Event/occurrence/registration/reminder configuration. Contribution report coordination consumes persisted Contributions schedules and active recipient/member state.
+Event reminder audience resolution consumes persisted eligible Event/occurrence/registration/reminder configuration. Contribution report coordination consumes persisted Contributions schedules and active recipient/Player state.
 
-Command `--limit` options are bounded in `routes/console.php`: Event sync up to 1000, reminder queue up to 500, contribution report queue up to 250; scheduled invocations use 250, 100, and 50 respectively.
+Command `--limit` options are bounded in `routes/console.php`: Event reminder queue up to 1000 and contribution report queue up to 250; scheduled invocations use 100 and 50 respectively.
 
 Actions recheck source eligibility rather than trusting stale queued intent.
 
@@ -57,7 +55,7 @@ Events/Contributions remain authoritative for source facts. Consumers should not
 
 ## 7. Events, outbox and cross-domain consumers
 
-Notifications records eligible delivery requests through the shared Platform transactional outbox. `AppServiceProvider` invokes `MarkEventReminderPublished` for every `OutboxPublished`; that consumer recognizes only its supported Event-reminder message identity/type and ignores unrelated events.
+Notifications records eligible delivery requests through the shared Platform transactional outbox. `AppServiceProvider` invokes `MarkEventReminderSent` for every `OutboxPublished`; that consumer recognizes only its supported Event-reminder message identity/type and ignores unrelated events.
 
 Platform owns outbox durability/publication. Integrations separately consumes `OutboxPublished` for external webhook fan-out and does not convert Notifications internal state into an API contract.
 
@@ -65,7 +63,6 @@ Platform owns outbox durability/publication. Integrations separately consumes `O
 
 Current scheduler contracts:
 
-- `events:sync-reminders --limit=250` — every minute;
 - `events:queue-reminders --limit=100` — every minute;
 - `contributions:queue-reports --limit=50` — every minute.
 
@@ -79,7 +76,7 @@ Externally relevant dependencies may include configured mail transport plus Plat
 
 ## 10. Failure, idempotency, versioning and compatibility
 
-Deterministic delivery/run identities prevent duplicate logical materialization on scheduler retries. Source eligibility is rechecked before advancing work. Outbox publication is at-least-once and consumers therefore must remain idempotent.
+Deterministic delivery/run identities prevent duplicate logical audience resolution on scheduler retries. Source eligibility is rechecked before advancing work. Outbox publication is at-least-once and consumers therefore must remain idempotent.
 
 Command names and the source→notification ownership split are internal compatibility contracts. There is no accepted public Notifications API version/schema.
 

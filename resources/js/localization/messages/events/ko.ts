@@ -1,108 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: '이벤트로 돌아가기',
-    eyebrow: '이벤트 운영',
-    title: '이벤트 코디네이터',
-    description:
-      '이벤트를 예약하고 집결 가이드를 게시하며 편성과 그룹을 구성한 뒤 출석과 참여를 기록합니다.',
-    scheduling: '일정 및 템플릿',
-    remindersGuidance: '알림 및 가이드',
-    rallySetup: '편성 및 집결 설정',
-    readiness: '준비 및 출석',
-    createEvent: '이벤트 만들기',
-    eventTitle: '이벤트 제목',
-    firstStart: '첫 시작',
-    durationMinutes: '기간(분)',
-    registrationOpens: '등록 시작(시작 전 분)',
-    registrationCloses: '등록 마감(시작 전 분)',
-    recurrence: '반복',
-    interval: '간격',
-    recurrenceEnd: '반복 종료',
-    createEventAction: '이벤트 만들기',
-    eventValidation: '이벤트 항목과 등록 기간을 확인하세요.',
-    createTemplate: '이벤트 템플릿 만들기',
-    saveTemplate: '템플릿 저장',
-    scheduleFromTemplate: '템플릿에서 일정 만들기',
-    chooseTemplate: '템플릿 선택',
-    optionalTitle: '선택 제목',
-    scheduleTemplate: '템플릿 일정 만들기',
-    reminderRule: '알림 규칙',
-    reminderHelp: '선택한 이벤트의 각 회차에 앱 내 알림을 만듭니다.',
-    chooseEvent: '이벤트 선택',
-    minutesBefore: '시작 전 분',
-    addReminder: '알림 추가',
-    rallyGuidance: '집결 가이드',
-    guidanceHelp: '적용 기간이 있는 재사용 가능한 병력 비율과 영웅 가이드를 게시합니다.',
-    heroRecommendations: '영웅 추천',
-    effectiveFrom: '적용 시작',
-    effectiveUntil: '적용 종료',
-    leadRequirements: '리더 요구사항',
-    joinerGuidance: '참가자 가이드',
-    guidanceValidation: '적용 날짜와 병력 비율 합계가 100%인지 확인하세요.',
-    publishGuidance: '가이드 게시',
-    eventFormation: '이벤트 편성',
-    occurrence: '회차',
-    chooseOccurrence: '회차 선택',
-    noGuidance: '연결된 가이드 없음',
-    addFormation: '편성 추가',
-    rallyGroup: '집결 그룹',
-    maxJoiners: '최대 참가자',
-    none: '없음',
-    createGroup: '그룹 만들기',
-    assignMember: '집결 멤버 배정',
-    member: '멤버',
-    chooseGroup: '그룹 선택',
-    chooseMember: '멤버 선택',
-    slotNumber: '슬롯 번호',
-    saveAssignment: '배정 저장',
-    registrations: '등록',
-    noRegistrations: '이 회차에 활성 등록이 없습니다.',
-    rallyAssignments: '집결 배정',
-    noAssignments: '이 회차에 집결 배정이 없습니다.',
-    participated: '참여함',
-    statusAssigned: '배정됨',
-    statusParticipated: '참여함',
-    recurrenceNone: '없음',
-    recurrenceDaily: '매일',
-    recurrenceWeekly: '매주',
-    roleLead: '리더',
-    roleJoiner: '참가자',
-  },
-  eventDetail: {
-    participation: '참여 현황',
-    registeredCount: '등록 {count}명',
-    waitlistedCount: '대기 {count}명',
-    noLimit: '제한 없음',
-    instructions: '지침',
-    recommendedFormations: '추천 편성',
-    noRecommendedFormations: '이 이벤트 전용 편성 안내가 아직 게시되지 않았습니다.',
-    assignmentRole: '배정 역할',
-    troopRatio: '병력 비율',
-    infantry: '보병',
-    cavalry: '기병',
-    archers: '궁병',
-    heroes: '영웅',
-    notes: '메모',
-    guidance: '가이드',
-    source: '출처',
-    effective: '{date}부터 적용',
-    through: '{date}까지',
-    rallyGroups: '집결 그룹',
-    maxJoiners: '최대 참가자: {count}',
-    noAssigned: '아직 배정된 멤버가 없습니다.',
-    noRallyGroups: '이 이벤트에 설정된 집결 그룹이 없습니다.',
-    savedFormations: '저장한 편성',
-    default: '기본',
-    noSavedFormations: '아직 저장한 편성이 없습니다.',
-    saveFormation: '편성 저장',
-    formationName: '이름',
-    heroesHint: '영웅 1, 영웅 2, 영웅 3',
-    makeDefault: '기본 편성으로 설정',
-    formationValidation: '편성 값을 확인하세요. 병력 비율의 합은 100%여야 합니다.',
-    save: '편성 저장',
-  },
+  "events": {
+    "scope": {
+      "player": "플레이어",
+      "alliance": "연맹",
+      "kingdom": "왕국"
+    },
+    "actions": {
+      "save": "저장",
+      "cancel": "취소"
+    },
+    "calendar": {
+      "title": "이벤트",
+      "create": "이벤트 만들기",
+      "agenda": "일정",
+      "month": "캘린더",
+      "all": "모든 범위",
+      "manageable": "관리",
+      "empty": "이 보기에 맞는 이벤트가 없습니다.",
+      "previousMonth": "이전 달",
+      "nextMonth": "다음 달",
+      "scopeFilters": "범위별 이벤트 필터",
+      "viewOptions": "이벤트 보기 선택"
+    },
+    "create": {
+      "title": "이벤트 만들기",
+      "back": "이벤트로 돌아가기",
+      "noContexts": "현재 이벤트를 만들 권한이 없습니다.",
+      "context": "이벤트 컨텍스트",
+      "eventType": "이벤트 유형",
+      "start": "시작 시간",
+      "duration": "진행 시간(분)",
+      "capacity": "정원",
+      "instructions": "안내",
+      "submit": "이벤트 만들기"
+    },
+    "show": {
+      "back": "이벤트로 돌아가기",
+      "manage": "이벤트 관리",
+      "details": "이벤트 세부 정보",
+      "status": "상태",
+      "capacity": "정원",
+      "recurrence": "반복",
+      "modules": "운영 모듈"
+    },
+    "manage": {
+      "title": "이벤트 관리",
+      "back": "이벤트로 돌아가기",
+      "save": "이벤트 저장",
+      "cancel": "이벤트 취소"
+    },
+    "attention": {
+      "title": "이벤트 작업",
+      "response": "응답 필요",
+      "registration": "등록 가능",
+      "vote": "투표 필요",
+      "roster_confirmation": "명단 확인 필요"
+    },
+    "reminders": {
+      "title": "최근 알림"
+    },
+    "participation": {
+      "register": "등록",
+      "cancelRegistration": "등록 취소"
+    },
+    "responses": {
+      "going": "참여",
+      "maybe": "미정",
+      "unavailable": "참여 불가"
+    },
+    "registration": {
+      "registered": "등록됨",
+      "waitlisted": "대기 명단",
+      "cancelled": "취소됨"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "연맹 관리",
+      "game_calendar": "게임 캘린더",
+      "matchmaking": "매칭",
+      "manual": "수동"
+    },
+    "recurrencePolicies": {
+      "disabled": "반복 없음",
+      "fixed_interval": "고정 간격",
+      "configurable": "설정 가능"
+    },
+    "recurrenceFrequencies": {
+      "none": "반복 없음",
+      "daily": "매일",
+      "weekly": "매주"
+    },
+    "attendanceStatuses": {
+      "present": "참석",
+      "absent": "불참",
+      "excused": "사유 있음",
+      "unknown": "알 수 없음"
+    },
+    "eventStatuses": {
+      "draft": "초안",
+      "published": "게시됨",
+      "cancelled": "취소됨",
+      "completed": "완료"
+    },
+    "capabilities": {
+      "responses": "응답",
+      "registration": "등록",
+      "waitlist": "대기 명단",
+      "attendance": "참석",
+      "phases": "단계",
+      "polls": "투표",
+      "rosters": "명단",
+      "substitutes": "후보",
+      "teams": "팀",
+      "legions": "군단",
+      "rally_guidance": "집결 안내",
+      "formations": "편성",
+      "objectives": "목표",
+      "scoring": "점수",
+      "results": "결과"
+    },
+    "reminderAudiences": {
+      "target": "이벤트 대상",
+      "responded": "응답한 플레이어",
+      "registered": "등록한 플레이어",
+      "rostered": "명단에 배정된 플레이어",
+      "all_scope_players": "모든 참가 가능 플레이어"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

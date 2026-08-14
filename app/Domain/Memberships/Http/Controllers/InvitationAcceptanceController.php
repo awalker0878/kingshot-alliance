@@ -42,6 +42,10 @@ final class InvitationAcceptanceController extends Controller
                     'id' => $alliance->id,
                     'name' => $alliance->name,
                 ],
+                'player' => [
+                    'id' => (string) $invitation->player_id,
+                    'name' => (string) $invitation->player?->current_name,
+                ],
             ],
             'authenticated' => $user instanceof User,
             'authenticatedEmail' => $user instanceof User ? $user->email : null,
@@ -56,11 +60,11 @@ final class InvitationAcceptanceController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
-        $alliance = $acceptInvitation->handle($user, $token);
+        $membership = $acceptInvitation->handle($user, $token);
 
         $request->session()->put(
-            (string) config('identity.active_alliance_session_key'),
-            $alliance->id,
+            (string) config('identity.active_player_session_key'),
+            (string) $membership->player_id,
         );
 
         return redirect()->route('alliance.overview');

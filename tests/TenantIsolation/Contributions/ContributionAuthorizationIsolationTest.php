@@ -11,8 +11,10 @@ use App\Domain\Contributions\Enums\ContributionDataClass;
 use App\Domain\Contributions\Enums\ContributionPeriod;
 use App\Domain\Contributions\Enums\ContributionRecordSource;
 use App\Domain\Identity\Models\User;
-use App\Domain\Memberships\Actions\AcceptInvitation;
-use App\Domain\Memberships\Actions\CreateInvitation;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Enums\AllianceRank;
+use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -25,18 +27,36 @@ final class ContributionAuthorizationIsolationTest extends TestCase
     {
         $owner = User::factory()->create();
         $member = User::factory()->create(['email' => 'contribution-member@example.com']);
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Contribution Access', 'contribution-access');
-        $invitation = $this->app->make(CreateInvitation::class)->handle($alliance, $owner, $member->email);
-        $this->app->make(AcceptInvitation::class)->handle($member, $invitation->token);
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+        $kingdom = Kingdom::query()->create(['number' => 4201]);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'contribution-owner',
+            'current_name' => 'Contribution Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $member->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'contribution-member',
+            'current_name' => 'Contribution Member',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Contribution Access', 'contribution-access');
+        AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $memberPlayer->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
+            'joined_at' => now(),
+        ]);
+        $sessionKey = (string) config('identity.active_player_session_key');
 
         $this->actingAs($member)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([$sessionKey => $memberPlayer->id])
             ->get('/alliance/contributions')
             ->assertOk();
 
         $this->actingAs($member)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([$sessionKey => $memberPlayer->id])
             ->get('/alliance/contributions/manage')
             ->assertForbidden();
     }
@@ -44,11 +64,18 @@ final class ContributionAuthorizationIsolationTest extends TestCase
     public function test_privileged_contribution_mutations_require_recent_password_confirmation(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Contribution Confirmation', 'contribution-confirmation');
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+        $kingdom = Kingdom::query()->create(['number' => 4211]);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'contribution-confirmation-owner',
+            'current_name' => 'Contribution Confirmation Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Contribution Confirmation', 'contribution-confirmation');
+        $sessionKey = (string) config('identity.active_player_session_key');
 
         $response = $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([$sessionKey => $ownerPlayer->id])
             ->post('/alliance/contributions/categories', [
                 'name' => 'Needs confirmation',
                 'unit' => 'points',
@@ -71,15 +98,25 @@ final class ContributionAuthorizationIsolationTest extends TestCase
     {
         $firstOwner = User::factory()->create();
         $secondOwner = User::factory()->create();
+        $firstKingdom = Kingdom::query()->create(['number' => 4221]);
+        $secondKingdom = Kingdom::query()->create(['number' => 4222]);
+        $firstPlayer = Player::query()->create([
+            'user_id' => $firstOwner->id,
+            'current_kingdom_id' => $firstKingdom->id,
+            'game_player_id' => 'contribution-tenant-owner-1',
+            'current_name' => 'Contribution Tenant One',
+        ]);
+        $secondPlayer = Player::query()->create([
+            'user_id' => $secondOwner->id,
+            'current_kingdom_id' => $secondKingdom->id,
+            'game_player_id' => 'contribution-tenant-owner-2',
+            'current_name' => 'Contribution Tenant Two',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $first = $createAlliance->handle($firstOwner, 'First Contribution Tenant', 'first-contribution-tenant');
-        $second = $createAlliance->handle($secondOwner, 'Second Contribution Tenant', 'second-contribution-tenant');
-        $secondMembership = AllianceMembership::query()
-            ->where('alliance_id', $second->id)
-            ->where('user_id', $secondOwner->id)
-            ->sole();
+        $first = $createAlliance->handle($firstPlayer, 'First Contribution Tenant', 'first-contribution-tenant');
+        $second = $createAlliance->handle($secondPlayer, 'Second Contribution Tenant', 'second-contribution-tenant');
         $secondCategory = $this->app->make(CreateContributionCategory::class)->handle(
-            $secondOwner,
+            $secondPlayer,
             $second,
             'Second tenant points',
             'points',
@@ -87,18 +124,18 @@ final class ContributionAuthorizationIsolationTest extends TestCase
             ContributionDataClass::RecordedFact,
         );
         $foreignRecord = $this->app->make(RecordContribution::class)->handle(
-            $secondOwner,
+            $secondPlayer,
             $second,
-            $secondMembership,
+            $secondPlayer,
             $secondCategory,
             10,
             ContributionRecordSource::Manual,
         );
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+        $sessionKey = (string) config('identity.active_player_session_key');
 
         $this->actingAs($firstOwner)
             ->withSession([
-                $sessionKey => $first->id,
+                $sessionKey => $firstPlayer->id,
                 'auth.password_confirmed_at' => time(),
             ])
             ->patch('/alliance/contributions/records/'.$foreignRecord->id.'/approve')

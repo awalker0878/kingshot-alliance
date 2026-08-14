@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Identity\Http\Controllers;
 
-use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Identity\Actions\RegisterUser;
 use App\Domain\Identity\Models\User;
 use App\Domain\Memberships\Actions\AcceptInvitation;
@@ -80,7 +79,7 @@ final class RegistrationController extends Controller
             'invitation_token' => ['nullable', 'string', 'max:256'],
         ]);
 
-        /** @var array{user: User, alliance: Alliance|null} $result */
+        /** @var array{user: User, membership: \App\Domain\Memberships\Models\AllianceMembership|null} $result */
         $result = DB::transaction(function () use ($validated, $register, $invitation, $acceptInvitation): array {
             $user = $register->handle(
                 name: $validated['name'],
@@ -89,13 +88,13 @@ final class RegistrationController extends Controller
                 timezone: $validated['timezone'],
             );
 
-            $alliance = $invitation instanceof Invitation
+            $membership = $invitation instanceof Invitation
                 ? $acceptInvitation->handle($user, $validated['invitation_token'])
                 : null;
 
             return [
                 'user' => $user,
-                'alliance' => $alliance,
+                'membership' => $membership,
             ];
         });
 
@@ -103,10 +102,10 @@ final class RegistrationController extends Controller
         $request->session()->regenerate();
         $result['user']->sendEmailVerificationNotification();
 
-        if ($result['alliance'] instanceof Alliance) {
+        if ($result['membership'] instanceof \App\Domain\Memberships\Models\AllianceMembership) {
             $request->session()->put(
-                (string) config('identity.active_alliance_session_key'),
-                $result['alliance']->id,
+                (string) config('identity.active_player_session_key'),
+                (string) $result['membership']->player_id,
             );
 
             return redirect()->route('alliance.overview');

@@ -10,7 +10,7 @@
 
 ## 1. Scope, prerequisites and safety boundary
 
-Use this runbook when Event reminders or scheduled Contribution reports are not being materialized/queued on time. Identify the source Event/registration or Contribution schedule, expected due time/version, release SHA, scheduler state and Platform outbox health before acting.
+Use this runbook when Event reminders or scheduled Contribution reports are not being resolved/queued on time. Identify the source Event/Player participation or Contribution schedule, expected due time/version, release SHA, scheduler state and Platform outbox health before acting.
 
 Do not change source business history or delete deterministic coordination rows merely to retrigger work.
 
@@ -18,7 +18,6 @@ Do not change source business history or delete deterministic coordination rows 
 
 Current recurring commands are:
 
-- `events:sync-reminders --limit=250`;
 - `events:queue-reminders --limit=100`; and
 - `contributions:queue-reports --limit=50`.
 
@@ -27,7 +26,7 @@ They run every minute under scheduler single-server/overlap protection. Durable 
 ## 3. Healthy operating flow
 
 1. Events/Contributions persist authoritative eligible source state.
-2. Scheduler materializes the expected logical reminder/report row.
+2. Scheduler resolves the expected logical reminder/report row.
 3. Due work is queued through one deterministic outbox intent.
 4. Platform publishes the outbox event and the owning downstream consumer advances its state.
 5. Repeated scheduler passes find/reuse the existing logical record rather than creating duplicates.
@@ -37,7 +36,7 @@ They run every minute under scheduler single-server/overlap protection. Durable 
 Check:
 
 - scheduler process and `php artisan schedule:list`;
-- source occurrence/registration or Contribution schedule eligibility/due time;
+- source occurrence/Player eligibility or Contribution schedule eligibility/due time;
 - reminder/report status and deterministic identity fields;
 - matching outbox publication/error state;
 - command/application logs and request/trace/audit context for the source mutation; and
@@ -45,7 +44,7 @@ Check:
 
 ## 5. Failure modes and triage
 
-- No materialized row: source eligibility changed, sync command stalled, or database failure.
+- No delivery row: source eligibility changed, sync command stalled, or database failure.
 - Materialized but not queued: due-state recheck, queue command failure, or database/outbox error.
 - Outbox row unpublished: switch to the Platform outbox runbook.
 - Duplicate-looking business effect: compare deterministic logical identity before changing anything; repeated source transitions may legitimately be distinct.

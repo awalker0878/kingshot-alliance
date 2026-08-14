@@ -81,7 +81,7 @@ There is no bulk completion endpoint. Do not script direct database inserts as a
 
 Completion does not create `PlayerSnapshot` rows and does not rewrite snapshot history.
 
-An incoming planning/source `KingdomPlayer` is not moved to the Alliance home Kingdom. The accepted roster action resolves the roster result under the accepted home-Kingdom identity contract, and the completion record points to that resulting roster entry.
+An incoming planning/source `Player` is not moved to the Alliance home Kingdom. The accepted roster action resolves the roster result under the accepted home-Kingdom identity contract, and the completion record points to that resulting roster entry.
 
 Destination planning never changes neutral player identity.
 

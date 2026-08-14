@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignUlid('alliance_id')->constrained('alliances')->cascadeOnDelete();
             $table->foreignUlid('tracked_kingdom_alliance_id')->constrained('tracked_kingdom_alliances')->restrictOnDelete();
             $table->foreignUlid('kingdom_alliance_id')->constrained('kingdom_alliances')->restrictOnDelete();
-            $table->foreignId('actor_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('actor_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->string('observed_name', 160);
             $table->string('observed_tag', 32)->nullable();
             $table->bigInteger('power')->nullable();
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->char('idempotency_key', 64);
             $table->ulid('corrects_observation_id')->nullable();
             $table->timestampTz('invalidated_at')->nullable();
-            $table->foreignId('invalidated_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('invalidated_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->text('invalidation_reason')->nullable();
             $table->timestamps();
 

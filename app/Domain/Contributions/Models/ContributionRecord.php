@@ -7,7 +7,7 @@ namespace App\Domain\Contributions\Models;
 use App\Domain\Contributions\Enums\ContributionDataClass;
 use App\Domain\Contributions\Enums\ContributionRecordSource;
 use App\Domain\Contributions\Enums\ContributionRecordStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,7 +34,7 @@ final class ContributionRecord extends Model
     protected $fillable = [
         'alliance_id',
         'category_id',
-        'membership_id',
+        'player_id',
         'source',
         'data_class',
         'value',
@@ -42,17 +42,16 @@ final class ContributionRecord extends Model
         'period_end',
         'status',
         'evidence',
-        'event_registration_id',
         'correction_of_record_id',
         'calculation_key',
         'calculation_version',
         'calculation_inputs',
         'recorded_at',
-        'recorded_by_user_id',
+        'recorded_by_player_id',
         'approved_at',
-        'approved_by_user_id',
+        'approved_by_player_id',
         'reversed_at',
-        'reversed_by_user_id',
+        'reversed_by_player_id',
         'reversal_reason',
         'correction_reason',
     ];
@@ -79,10 +78,10 @@ final class ContributionRecord extends Model
         return $this->belongsTo(ContributionCategory::class, 'category_id');
     }
 
-    /** @return BelongsTo<AllianceMembership, $this> */
-    public function membership(): BelongsTo
+    /** @return BelongsTo<Player, $this> */
+    public function player(): BelongsTo
     {
-        return $this->belongsTo(AllianceMembership::class, 'membership_id');
+        return $this->belongsTo(Player::class, 'player_id');
     }
 
     /** @return BelongsTo<ContributionRecord, $this> */

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignUlid('transfer_participant_id')->constrained('transfer_participants')->cascadeOnDelete();
             $table->foreignUlid('roster_entry_id')->nullable()->constrained('alliance_roster_entries')->nullOnDelete();
             $table->string('direction', 16);
-            $table->foreignId('completed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('completed_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestampTz('completed_at')->useCurrent();
             $table->timestamps();
 

@@ -12,7 +12,9 @@ use App\Domain\Kingdoms\Actions\AddKingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Actions\RecordKingdomAllianceObservation;
 use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
+use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Queries\SharedKingdomIntelligenceCurrentQuery;
@@ -25,15 +27,15 @@ final class KingdomSharedIntelligenceIsolationTest extends TestCase
 
     public function test_recipient_read_creates_no_local_canonical_copy_and_cannot_reshare_source_tracking(): void
     {
-        [$sourceOwner, $source] = $this->ownerAlliance('No Copy Source', 'no-copy-source', 7606);
-        [$recipientOwner, $recipient, $recipientSession] = $this->ownerAllianceWithSession('No Copy Recipient', 'no-copy-recipient', 7606);
-        [$otherOwner, $other] = $this->ownerAlliance('No Copy Other', 'no-copy-other', 7606);
+        [, $sourcePlayer, $source] = $this->ownerAlliance('No Copy Source', 'no-copy-source', 7606);
+        [$recipientUser, $recipientPlayer, $recipient, $recipientSession] = $this->ownerAllianceWithSession('No Copy Recipient', 'no-copy-recipient', 7606);
+        [, $otherPlayer, $other] = $this->ownerAlliance('No Copy Other', 'no-copy-other', 7606);
 
-        $incoming = $this->activeShare($sourceOwner, $source, $recipientOwner, $recipient);
-        $tracking = $this->tracking($sourceOwner, $source, 'ga-7606', 'No Copy Target', 'NCP');
+        $incoming = $this->activeShare($sourcePlayer, $source, $recipientPlayer, $recipient);
+        $tracking = $this->tracking($sourcePlayer, $source, 'ga-7606', 'No Copy Target', 'NCP');
         $this->app->make(RecordKingdomAllianceObservation::class)->handle(
             $source,
-            $sourceOwner,
+            $sourcePlayer,
             (string) $tracking->id,
             [
                 'observed_name' => 'Shared but source-owned',
@@ -44,15 +46,15 @@ final class KingdomSharedIntelligenceIsolationTest extends TestCase
             ],
         );
         $this->app->make(AddKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $incoming->id, (string) $tracking->id);
+            ->handle($source, $sourcePlayer, (string) $incoming->id, (string) $tracking->id);
 
         $rows = $this->app->make(SharedKingdomIntelligenceCurrentQuery::class)->forRecipient($recipient);
         self::assertCount(1, $rows);
         self::assertFalse(TrackedKingdomAlliance::query()->where('alliance_id', $recipient->id)->exists());
         self::assertFalse(KingdomAllianceObservation::query()->where('alliance_id', $recipient->id)->exists());
 
-        $outgoing = $this->activeShare($recipientOwner, $recipient, $otherOwner, $other);
-        $this->actingAs($recipientOwner)->withSession($recipientSession)
+        $outgoing = $this->activeShare($recipientPlayer, $recipient, $otherPlayer, $other);
+        $this->actingAs($recipientUser)->withSession($recipientSession)
             ->post("/alliance/kingdom-sharing/{$outgoing->id}/targets/{$tracking->id}")
             ->assertNotFound();
 
@@ -61,12 +63,12 @@ final class KingdomSharedIntelligenceIsolationTest extends TestCase
 
     public function test_explicit_target_without_accepted_observation_is_shared_as_missing_not_zero(): void
     {
-        [$sourceOwner, $source] = $this->ownerAlliance('Missing Source', 'missing-source', 7607);
-        [$recipientOwner, $recipient] = $this->ownerAlliance('Missing Recipient', 'missing-recipient', 7607);
-        $share = $this->activeShare($sourceOwner, $source, $recipientOwner, $recipient);
-        $tracking = $this->tracking($sourceOwner, $source, 'ga-7607', 'Missing Target', 'MIS');
+        [, $sourcePlayer, $source] = $this->ownerAlliance('Missing Source', 'missing-source', 7607);
+        [, $recipientPlayer, $recipient] = $this->ownerAlliance('Missing Recipient', 'missing-recipient', 7607);
+        $share = $this->activeShare($sourcePlayer, $source, $recipientPlayer, $recipient);
+        $tracking = $this->tracking($sourcePlayer, $source, 'ga-7607', 'Missing Target', 'MIS');
         $this->app->make(AddKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $share->id, (string) $tracking->id);
+            ->handle($source, $sourcePlayer, (string) $share->id, (string) $tracking->id);
 
         $rows = $this->app->make(SharedKingdomIntelligenceCurrentQuery::class)->forRecipient($recipient);
 
@@ -77,47 +79,54 @@ final class KingdomSharedIntelligenceIsolationTest extends TestCase
     }
 
     private function activeShare(
-        User $sourceOwner,
+        Player $sourceActor,
         Alliance $source,
-        User $recipientOwner,
+        Player $recipientActor,
         Alliance $recipient,
     ): KingdomIntelligenceShare {
-        $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)->handle($source, $sourceOwner);
+        $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)->handle($source, $sourceActor);
 
         return $this->app->make(AcceptKingdomIntelligenceShareInvitation::class)
-            ->handle($recipient, $recipientOwner, $issued->token);
+            ->handle($recipient, $recipientActor, $issued->token);
     }
 
     private function tracking(
-        User $owner,
+        Player $actor,
         Alliance $source,
         string $gameAllianceId,
         string $name,
         string $tag,
     ): TrackedKingdomAlliance {
-        return $this->app->make(StartTrackingKingdomAlliance::class)->handle($source, $owner, [
+        return $this->app->make(StartTrackingKingdomAlliance::class)->handle($source, $actor, [
             'game_alliance_id' => $gameAllianceId,
             'current_name' => $name,
             'current_tag' => $tag,
         ]);
     }
 
-    /** @return array{0: User, 1: Alliance} */
-    private function ownerAlliance(string $name, string $slug, int $kingdom): array
+    /** @return array{0: User, 1: Player, 2: Alliance} */
+    private function ownerAlliance(string $name, string $slug, int $kingdomNumber): array
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $kingdom = Kingdom::query()->firstOrCreate(['number' => $kingdomNumber], ['status' => 'active']);
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => $slug.'-owner',
+            'current_name' => $name.' Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, $name, $slug);
 
-        return [$owner, $alliance];
+        return [$owner, $player, $alliance];
     }
 
-    /** @return array{0: User, 1: Alliance, 2: array<string, mixed>} */
-    private function ownerAllianceWithSession(string $name, string $slug, int $kingdom): array
+    /** @return array{0: User, 1: Player, 2: Alliance, 3: array<string, mixed>} */
+    private function ownerAllianceWithSession(string $name, string $slug, int $kingdomNumber): array
     {
-        [$owner, $alliance] = $this->ownerAlliance($name, $slug, $kingdom);
+        [$owner, $player, $alliance] = $this->ownerAlliance($name, $slug, $kingdomNumber);
 
-        return [$owner, $alliance, [
-            (string) config('identity.active_alliance_session_key') => $alliance->id,
+        return [$owner, $player, $alliance, [
+            (string) config('identity.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => time(),
         ]];
     }

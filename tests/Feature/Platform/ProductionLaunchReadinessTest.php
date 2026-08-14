@@ -28,8 +28,10 @@ final class ProductionLaunchReadinessTest extends TestCase
     {
         $this->configureProductionRuntime();
         $manage = $this->app->make(ManagePlatformAdministrator::class);
-        $manage->grant(User::factory()->create(['two_factor_confirmed_at' => now()]));
-        $manage->grant(User::factory()->create(['two_factor_confirmed_at' => now()]));
+        $first = User::factory()->create(['two_factor_confirmed_at' => now()]);
+        $second = User::factory()->create(['two_factor_confirmed_at' => now()]);
+        $manage->grant($first);
+        $manage->grant($second, $first);
 
         $this->artisan('app:launch-check')
             ->expectsOutputToContain('[PASS] runtime_configuration')

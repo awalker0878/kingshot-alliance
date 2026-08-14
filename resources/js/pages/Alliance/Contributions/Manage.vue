@@ -23,7 +23,7 @@ type Category = {
 };
 type Row = {
   id: string;
-  memberName: string | null;
+  playerName: string | null;
   categoryName: string | null;
   unit: string | null;
   value: number;
@@ -38,12 +38,12 @@ type Board = {
   name: string;
   unit: string;
   calculationDescription: string;
-  entries: Array<{ membershipId: string; name: string; value: number }>;
+  entries: Array<{ playerId: string; name: string; value: number }>;
 };
 type Schedule = {
   id: string;
   name: string;
-  recipientMembershipId: string;
+  recipientPlayerId: string;
   cadence: string;
   timezone: string;
   nextDueAt: string;
@@ -67,16 +67,13 @@ const props = defineProps<{
       activeMembers: number;
       joinedLast30Days: number;
       leftLast30Days: number;
-      attendanceLast30Days: number;
-      noShowsLast30Days: number;
-      attendanceRate: number | null;
       recruitmentTotal: number;
       recruitmentJoined: number;
       pendingContributionApprovals: number;
       openDataQualityFlags: number;
     };
     categories: Category[];
-    members: Array<{ id: string; name: string; email: string }>;
+    members: Array<{ playerId: string; name: string; rank: string; claimed: boolean }>;
     pendingRecords: Row[];
     recentRecords: Row[];
     dataQualityFlags: Flag[];
@@ -86,9 +83,7 @@ const props = defineProps<{
   };
 }>();
 const { t, formatDate, formatNumber } = useLocale();
-const recordable = computed(() =>
-  props.reporting.categories.filter((c) => c.active && c.calculationKey !== 'event_attendance'),
-);
+const recordable = computed(() => props.reporting.categories.filter((c) => c.active));
 const categoryForm = useForm({
   name: '',
   description: '',
@@ -106,13 +101,13 @@ const categoryForm = useForm({
   calculation_description: '',
 });
 const recordForm = useForm({
-  membership_id: '',
+  player_id: '',
   category_id: '',
   value: null as number | null,
   evidence: '',
 });
 const scheduleForm = useForm({
-  recipient_membership_id: '',
+  recipient_player_id: '',
   name: 'Alliance contribution summary',
   cadence: 'weekly',
   timezone: props.alliance.timezone,
@@ -136,7 +131,7 @@ function approve(id: string) {
 function correct(r: Row) {
   const v = window.prompt(
     t('contributions.correctValuePrompt', {
-      member: r.memberName ?? t('contributions.member'),
+      member: r.playerName ?? t('contributions.member'),
       category: r.categoryName ?? t('contributions.category'),
     }),
     String(r.value),
@@ -159,9 +154,6 @@ function reverse(r: Row) {
       { preserveScroll: true },
     );
 }
-function reconcile() {
-  router.post('/alliance/contributions/reconcile-events', {}, { preserveScroll: true });
-}
 function refresh() {
   router.post('/alliance/contributions/data-quality/refresh', {}, { preserveScroll: true });
 }
@@ -171,11 +163,8 @@ function resolve(id: string) {
 function schedule() {
   scheduleForm.post('/alliance/contributions/report-schedules', {
     preserveScroll: true,
-    onSuccess: () => scheduleForm.reset('recipient_membership_id', 'next_due_at'),
+    onSuccess: () => scheduleForm.reset('recipient_player_id', 'next_due_at'),
   });
-}
-function pct(v: number | null) {
-  return v === null ? '—' : `${Math.round(v * 100)}%`;
 }
 function text(v: string) {
   return v.replaceAll('_', ' ');
@@ -193,13 +182,13 @@ function amount(v: number, u: string | null) {
   return `${formatNumber(v, { maximumFractionDigits: 2 })}${u ? ` ${u}` : ''}`;
 }
 function member(id: string) {
-  return props.reporting.members.find((m) => m.id === id)?.name ?? id;
+  return props.reporting.members.find((m) => m.playerId === id)?.name ?? id;
 }
 </script>
 
 <template>
   <Head :title="`${t('contributions.managerTitle')} · ${alliance.name}`" />
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <Link
@@ -232,7 +221,7 @@ function member(id: string) {
       :aria-label="t('contributions.operationalMetrics')"
     >
       <div
-        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] xl:grid-cols-5 xl:divide-y-0"
+        class="grid grid-cols-2 divide-x divide-y divide-[var(--ks-border)] xl:grid-cols-4 xl:divide-y-0"
       >
         <article class="metric">
           <small>{{ t('contributions.activeMembers') }}</small
@@ -241,16 +230,6 @@ function member(id: string) {
             t('contributions.memberMovement30', {
               joined: reporting.metrics.joinedLast30Days,
               left: reporting.metrics.leftLast30Days,
-            })
-          }}</small>
-        </article>
-        <article class="metric">
-          <small>{{ t('contributions.attendance') }}</small
-          ><b>{{ pct(reporting.metrics.attendanceRate) }}</b
-          ><small>{{
-            t('contributions.attendanceBreakdown', {
-              attended: reporting.metrics.attendanceLast30Days,
-              noShows: reporting.metrics.noShowsLast30Days,
             })
           }}</small>
         </article>
@@ -350,10 +329,10 @@ function member(id: string) {
         <div class="mt-4 space-y-3">
           <label
             >{{ t('contributions.member')
-            }}<select v-model="recordForm.membership_id" required class="field">
+            }}<select v-model="recordForm.player_id" required class="field">
               <option value="" disabled>{{ t('contributions.selectMember') }}</option>
-              <option v-for="m in reporting.members" :key="m.id" :value="m.id">
-                {{ m.name }} · {{ m.email }}
+              <option v-for="m in reporting.members" :key="m.playerId" :value="m.playerId">
+                {{ m.name }} · {{ m.rank.toUpperCase() }}
               </option>
             </select></label
           ><label
@@ -387,16 +366,14 @@ function member(id: string) {
       <div class="flex flex-wrap justify-between gap-3">
         <div>
           <h2 class="ks-display text-xl font-semibold">
-            {{ t('contributions.attendanceQuality') }}
+            {{ t('contributions.dataQuality') }}
           </h2>
           <p class="mt-1 text-sm text-[var(--ks-text-secondary)]">
-            {{ t('contributions.attendanceQualityHelp') }}
+            {{ t('contributions.dataQualityHelp') }}
           </p>
         </div>
         <div class="flex gap-2">
-          <button type="button" class="btn" @click="reconcile">
-            {{ t('contributions.reconcileAttendance') }}</button
-          ><button type="button" class="btn" @click="refresh">
+          <button type="button" class="btn" @click="refresh">
             {{ t('contributions.refreshQuality') }}
           </button>
         </div>
@@ -439,7 +416,7 @@ function member(id: string) {
           </thead>
           <tbody>
             <tr v-for="r in reporting.pendingRecords" :key="r.id">
-              <td>{{ r.memberName }}</td>
+              <td>{{ r.playerName }}</td>
               <td>{{ r.categoryName }}</td>
               <td>{{ amount(r.value, r.unit) }}</td>
               <td>{{ text(r.source) }}</td>
@@ -474,9 +451,9 @@ function member(id: string) {
         <div class="mt-3 space-y-2">
           <label
             >{{ t('contributions.recipient')
-            }}<select v-model="scheduleForm.recipient_membership_id" required class="field">
+            }}<select v-model="scheduleForm.recipient_player_id" required class="field">
               <option value="" disabled>{{ t('contributions.selectMember') }}</option>
-              <option v-for="m in reporting.members" :key="m.id" :value="m.id">{{ m.name }}</option>
+              <option v-for="m in reporting.members" :key="m.playerId" :value="m.playerId">{{ m.name }}</option>
             </select></label
           ><label
             >{{ t('contributions.name')
@@ -505,7 +482,7 @@ function member(id: string) {
         <h2 class="ks-display text-xl font-semibold">{{ t('contributions.reportSchedules') }}</h2>
         <article v-for="s in reporting.reportSchedules" :key="s.id" class="card">
           <strong>{{ s.name }}</strong>
-          <p>{{ member(s.recipientMembershipId) }} · {{ text(s.cadence) }} · {{ s.timezone }}</p>
+          <p>{{ member(s.recipientPlayerId) }} · {{ text(s.cadence) }} · {{ s.timezone }}</p>
           <small>{{ t('contributions.nextDue') }}: {{ date(s.nextDueAt) }}</small>
         </article>
         <p v-if="!reporting.reportSchedules.length">{{ t('contributions.noSchedules') }}</p>
@@ -561,7 +538,7 @@ function member(id: string) {
           <ol>
             <li
               v-for="(e, i) in b.entries.slice(0, 10)"
-              :key="e.membershipId"
+              :key="e.playerId"
               class="flex justify-between"
             >
               <span>{{ i + 1 }}. {{ e.name }}</span
@@ -590,7 +567,7 @@ function member(id: string) {
           </thead>
           <tbody>
             <tr v-for="r in reporting.recentRecords" :key="r.id">
-              <td>{{ r.memberName }}</td>
+              <td>{{ r.playerName }}</td>
               <td>{{ r.categoryName }}</td>
               <td>{{ amount(r.value, r.unit) }}</td>
               <td>{{ text(r.status) }}</td>

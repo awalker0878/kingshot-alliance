@@ -40,7 +40,7 @@ final class KingdomIntelligenceSharingController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
             throw new AuthorizationException;
         }
 
@@ -64,7 +64,7 @@ final class KingdomIntelligenceSharingController extends Controller
                 'email' => (string) $user->email,
             ],
             'alliance' => $this->allianceSummary($alliance),
-            'canManage' => $authorization->allows($user, $alliance, PermissionKey::KingdomManage),
+            'canManage' => $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage),
             'current' => $current->forRecipient($alliance),
             'selectedHistory' => $target === null
                 ? null
@@ -81,7 +81,7 @@ final class KingdomIntelligenceSharingController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
 
@@ -101,7 +101,7 @@ final class KingdomIntelligenceSharingController extends Controller
         AllianceContext $context,
         CreateKingdomIntelligenceShareInvitation $create,
     ): JsonResponse {
-        $issued = $create->handle($context->alliance(), $this->user($request));
+        $issued = $create->handle($context->alliance(), $context->player());
 
         return response()->json([
             'shareId' => $issued->shareId,
@@ -119,7 +119,7 @@ final class KingdomIntelligenceSharingController extends Controller
             'token' => ['required', 'string', 'size:64', 'regex:/\A[a-f0-9]{64}\z/'],
         ]);
 
-        $accept->handle($context->alliance(), $this->user($request), $validated['token']);
+        $accept->handle($context->alliance(), $context->player(), $validated['token']);
 
         return back()->with('status', 'kingdom-shared-intelligence-accepted');
     }
@@ -134,7 +134,7 @@ final class KingdomIntelligenceSharingController extends Controller
             'token' => ['required', 'string', 'size:64', 'regex:/\A[a-f0-9]{64}\z/'],
         ]);
 
-        $decline->handle($context->alliance(), $this->user($request), $validated['token']);
+        $decline->handle($context->alliance(), $context->player(), $validated['token']);
 
         return back()->with('status', 'kingdom-shared-intelligence-declined');
     }
@@ -145,7 +145,7 @@ final class KingdomIntelligenceSharingController extends Controller
         RevokeKingdomIntelligenceShare $revoke,
         string $share,
     ): RedirectResponse {
-        $revoke->handle($context->alliance(), $this->user($request), $share);
+        $revoke->handle($context->alliance(), $context->player(), $share);
 
         return back()->with('status', 'kingdom-shared-intelligence-revoked');
     }
@@ -156,7 +156,7 @@ final class KingdomIntelligenceSharingController extends Controller
         LeaveKingdomIntelligenceShare $leave,
         string $share,
     ): RedirectResponse {
-        $leave->handle($context->alliance(), $this->user($request), $share);
+        $leave->handle($context->alliance(), $context->player(), $share);
 
         return back()->with('status', 'kingdom-shared-intelligence-left');
     }
@@ -168,7 +168,7 @@ final class KingdomIntelligenceSharingController extends Controller
         string $share,
         string $tracking,
     ): RedirectResponse {
-        $add->handle($context->alliance(), $this->user($request), $share, $tracking);
+        $add->handle($context->alliance(), $context->player(), $share, $tracking);
 
         return back()->with('status', 'kingdom-shared-intelligence-target-shared');
     }
@@ -180,7 +180,7 @@ final class KingdomIntelligenceSharingController extends Controller
         string $share,
         string $target,
     ): RedirectResponse {
-        $remove->handle($context->alliance(), $this->user($request), $share, $target);
+        $remove->handle($context->alliance(), $context->player(), $share, $target);
 
         return back()->with('status', 'kingdom-shared-intelligence-target-removed');
     }

@@ -16,7 +16,7 @@ In scope: persisted observation fields/provenance, append history, exact retry, 
 
 ## 3. Model and state
 
-A snapshot references one Alliance roster entry and its neutral `KingdomPlayer`. Manual/CSV snapshots retain User/import provenance. `source=ingestion` uses a null User actor plus bounded machine provenance: subscription/batch IDs, adapter key/version, optional source record ID, source identity hash, and payload hash.
+A snapshot references one Alliance roster entry and its neutral `Player`. Manual/CSV snapshots retain User/import provenance. `source=ingestion` uses a null User actor plus bounded machine provenance: subscription/batch IDs, adapter key/version, optional source record ID, source identity hash, and payload hash.
 
 Machine provenance is copied into canonical snapshot history without a foreign key to operational candidate rows so later candidate retention cannot erase accepted history.
 

@@ -147,7 +147,7 @@ The manager ingestion workspace remains first-party authenticated UI under `king
 
 No public source callback, inbound ingestion endpoint or public Kingdoms API scope exists. Operator queue/reconciliation/retention/health commands are internal runtime interfaces.
 
-Integrations continues to reject `alliance.kingdom_updated` and all `kingdoms.*` events from generic webhook fan-out, preserving the accepted public/private boundary.
+Integrations continues to reject all `kingdoms.*` events from generic webhook fan-out, preserving the accepted public/private boundary.
 
 ## 12. Exact protected validation evidence
 

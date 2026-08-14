@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareTargetState;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShareTarget;
@@ -26,7 +26,7 @@ final readonly class RemoveKingdomIntelligenceShareTarget
 
     public function handle(
         Alliance $sourceAlliance,
-        User $actor,
+        Player $actor,
         string $shareId,
         string $targetId,
     ): KingdomIntelligenceShareTarget {
@@ -54,7 +54,7 @@ final readonly class RemoveKingdomIntelligenceShareTarget
             $removedAt = now();
             $target->forceFill([
                 'state' => KingdomIntelligenceShareTargetState::Removed,
-                'removed_by_user_id' => $actor->id,
+                'removed_by_player_id' => $actor->id,
                 'removed_at' => $removedAt,
             ])->save();
 
@@ -85,7 +85,7 @@ final readonly class RemoveKingdomIntelligenceShareTarget
     /** @param array<string, mixed> $metadata */
     private function recordForAlliance(
         Alliance $alliance,
-        ?User $actor,
+        ?Player $actor,
         KingdomIntelligenceShareTarget $target,
         array $metadata,
         \DateTimeInterface $occurredAt,

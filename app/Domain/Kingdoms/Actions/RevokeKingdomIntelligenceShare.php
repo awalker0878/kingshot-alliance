@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
 use App\Domain\Platform\Services\OutboxRecorder;
@@ -24,7 +24,7 @@ final readonly class RevokeKingdomIntelligenceShare
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $sourceAlliance, User $actor, string $shareId): KingdomIntelligenceShare
+    public function handle(Alliance $sourceAlliance, Player $actor, string $shareId): KingdomIntelligenceShare
     {
         if (! $this->authorization->allows($actor, $sourceAlliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
@@ -54,7 +54,7 @@ final readonly class RevokeKingdomIntelligenceShare
 
             $share->forceFill([
                 'state' => KingdomIntelligenceShareState::Revoked,
-                'revoked_by_user_id' => $actor->id,
+                'revoked_by_player_id' => $actor->id,
                 'invitation_token_hash' => null,
                 'revoked_at' => now(),
             ])->save();

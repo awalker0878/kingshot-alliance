@@ -31,10 +31,8 @@ The active-alliance context and normal alliance authorization remain the trust b
 | Shared Kingdom becomes an accidental cross-tenant lookup key | Kingdom is documented and modeled as global reference only; alliance data continues to be keyed/scoped by Alliance. No roster or tenant-owned Kingdom data is introduced in Slice A. | Domain-boundary tests/review and current architecture contract. |
 | Legacy Kingdom values are silently lost during migration | Migration is fail-closed for non-empty values that cannot be normalized safely. The legacy column is dropped only after successful backfill. | Migration/schema validation and staging migration. |
 | Dual persistence models drift after migration | The legacy `alliances.kingdom` column is removed and no compatibility accessor is introduced. Existing presentation/API `kingdom` fields derive from the relation. | Schema contract test and runtime regression tests. |
-| Archived/invalid Kingdom is newly selected | Runtime resolver accepts only positive canonical numeric values and rejects archived Kingdom records. | Resolver/settings feature tests. |
-| Privileged change is unattributable | Real changes write `alliance.kingdom_updated` audit events with actor/alliance/request correlation and previous/new Kingdom metadata. | Audit assertions. |
-| Durable downstream consumers miss the change | Real changes record a matching alliance-scoped transactional-outbox message in the same transaction. | Outbox assertions. |
-| Retry/repeated submission creates duplicate business events | Same-Kingdom assignment is treated as a no-op before audit/outbox creation. | No-op feature test. |
+| Alliance Kingdom is changed independently of game identity | There is no Alliance Kingdom mutation endpoint; Alliance Kingdom is established from the creating R5 Player and membership/roster/transfer guards preserve compatibility. | Creation/settings/transfer feature tests. |
+| Alliance/Player Kingdom drift is introduced | Active membership and active/tracked roster constraints reject incompatible Player Kingdom changes; R5 transfers require leadership handoff first. | Membership/roster/transfer tests and schema guards. |
 | Content manager changes Kingdom through public-profile editing | Kingdom mutation is removed from the Content action, controller validation and Content management UI. | Content regression tests/code review. |
 | API compatibility requires retaining unsafe legacy storage | `/api/v1/alliance` keeps its `kingdom` representation but derives it from the relation; no legacy persistence field remains. | API regression test/schema contract. |
 
@@ -67,5 +65,5 @@ The rollback recreates the former string representation from canonical Kingdom n
 
 - Concurrent first creation of the same Kingdom relies on the database unique constraint and framework create semantics; tests/CI should surface any unresolved race handling requirement before Slice A acceptance.
 - Platform-admin provisioning uses the same `CreateAlliance` domain action and therefore receives the canonical resolver boundary; its HTTP validation should remain consistent with the canonical numeric contract.
-- Later `KingdomPlayer`, roster, snapshots, CSV import/export and comparative metrics introduce materially larger privacy/abuse surfaces and require dedicated review before their phase closes.
+- Later `Player`, roster, snapshots, CSV import/export and comparative metrics introduce materially larger privacy/abuse surfaces and require dedicated review before their phase closes.
 - No external production-infrastructure control is proven by this Slice A review. Real production launch remains governed by the existing production launch security review and approval record.

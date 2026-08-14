@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomStatus;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\Kingdom;
@@ -30,7 +30,7 @@ final readonly class CreateTransferPlan
     /**
      * @param  array{label: string, starts_on?: string|null, ends_on?: string|null}  $attributes
      */
-    public function handle(Alliance $alliance, User $actor, array $attributes): TransferPlan
+    public function handle(Alliance $alliance, Player $actor, array $attributes): TransferPlan
     {
         if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
             throw new AuthorizationException;

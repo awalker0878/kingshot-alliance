@@ -26,7 +26,7 @@ The whole-increment review confirms:
 - the approved stable game alliance identifier, scoped within one Kingdom, is the only automatic identity-resolution key;
 - names, tags, contact display names and handles never auto-merge, auto-link or retarget identity;
 - two tenants may reference the same neutral `KingdomAlliance` while their tracking, observations, diplomacy, contacts, notes, history and derived intelligence remain independent;
-- contact records do not create or link `User`, `AllianceMembership`, role, permission or `KingdomPlayer` identity; and
+- contact records do not create or link `User`, `AllianceMembership`, role, permission or `Player` identity; and
 - Alliance-Kingdom drift never silently retargets historical intelligence.
 
 The final end-to-end acceptance test exercises two platform Alliances sharing one neutral stable-ID reference while proving separate tenant-owned tracking and intelligence state.

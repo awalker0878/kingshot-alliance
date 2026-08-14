@@ -35,7 +35,7 @@ final class PlayerSnapshotQuery
                 .'and latest.roster_entry_id = player_snapshots.roster_entry_id '
                 .'order by latest.captured_at desc, latest.id desc limit 1)'
             )
-            ->with('actor:id,name')
+            ->with('actor:id,current_name')
             ->get();
 
         return $this->byEntry($latest);
@@ -89,7 +89,7 @@ final class PlayerSnapshotQuery
             ->where('roster_entry_id', $entry->id)
             ->orderByDesc('captured_at')
             ->orderByDesc('id')
-            ->with('actor:id,name')
+            ->with('actor:id,current_name')
             ->first();
     }
 
@@ -104,7 +104,7 @@ final class PlayerSnapshotQuery
             ->where('roster_entry_id', $entry->id)
             ->orderByDesc('captured_at')
             ->orderByDesc('id')
-            ->with('actor:id,name')
+            ->with('actor:id,current_name')
             ->limit($limit)
             ->get();
     }

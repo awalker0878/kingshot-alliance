@@ -73,7 +73,7 @@ They lock at minimum:
 - effective/review/expiry dates as advisory workflow metadata that never auto-transition state;
 - append-oriented observations with deterministic exact-retry idempotency;
 - invalidation/correction preserving original observations rather than destructive overwrite;
-- no K3 diplomacy-contact linkage to `KingdomPlayer` in the initial increment;
+- no K3 diplomacy-contact linkage to `Player` in the initial increment;
 - contact data minimization and manager-private handle/note visibility;
 - `alliance.view` safe reads and `kingdoms.manage` + recent password confirmation for all K3 mutations;
 - member-safe versus manager-private field boundaries;

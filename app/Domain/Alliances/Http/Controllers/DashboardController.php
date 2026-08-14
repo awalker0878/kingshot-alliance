@@ -9,6 +9,8 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Kingdoms\Services\PlayerContext;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Http\Controllers\Controller;
@@ -19,63 +21,53 @@ use LogicException;
 
 final class DashboardController extends Controller
 {
-    public function __invoke(Request $request, AllianceAuthorization $authorization): Response
-    {
+    public function __invoke(
+        Request $request,
+        PlayerContext $playerContext,
+        AllianceAuthorization $authorization,
+    ): Response {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
-        $memberships = AllianceMembership::query()
-            ->where('user_id', $user->id)
-            ->where('status', MembershipStatus::Active->value)
-            ->with([
-                'alliance:id,name,slug,timezone,status',
-                'roles:id,alliance_id,key,name',
-            ])
-            ->get();
+        $player = $playerContext->playerOrNull();
+        $membershipSummary = null;
 
-        $sessionKey = (string) config('identity.active_alliance_session_key');
-        $activeAllianceId = $request->session()->get($sessionKey);
+        if ($player instanceof Player) {
+            $membership = AllianceMembership::query()
+                ->where('player_id', $player->id)
+                ->where('status', MembershipStatus::Active->value)
+                ->with([
+                    'alliance:id,name,slug,timezone,status,kingdom_id',
+                    'roles:id,alliance_id,key,name',
+                ])
+                ->first();
 
-        if (! is_string($activeAllianceId) || ! $memberships->contains('alliance_id', $activeAllianceId)) {
-            $request->session()->forget($sessionKey);
-            $activeAllianceId = null;
-        }
-
-        /** @var list<array{id: string, alliance: array{id: string, name: string, slug: string, timezone: string}, roles: list<array{key: string, name: string}>, canManageAlliance: bool}> $membershipSummaries */
-        $membershipSummaries = [];
-
-        foreach ($memberships as $membership) {
-            $alliance = $membership->alliance;
-
-            if (! $alliance instanceof Alliance) {
-                throw new LogicException('An active membership must reference an alliance.');
-            }
-
-            /** @var list<array{key: string, name: string}> $roles */
-            $roles = [];
-
-            foreach ($membership->roles as $role) {
-                if (! $role instanceof Role) {
-                    throw new LogicException('A membership role relation returned an unexpected model.');
+            if ($membership instanceof AllianceMembership) {
+                $alliance = $membership->alliance;
+                if (! $alliance instanceof Alliance) {
+                    throw new LogicException('An active membership must reference an Alliance.');
                 }
 
-                $roles[] = [
-                    'key' => (string) $role->key,
-                    'name' => (string) $role->name,
+                $roles = $membership->roles->map(static function (Role $role): array {
+                    return [
+                        'key' => (string) $role->key,
+                        'name' => (string) $role->name,
+                    ];
+                })->values()->all();
+
+                $membershipSummary = [
+                    'id' => (string) $membership->id,
+                    'alliance' => [
+                        'id' => (string) $alliance->id,
+                        'name' => (string) $alliance->name,
+                        'slug' => (string) $alliance->slug,
+                        'timezone' => (string) $alliance->timezone,
+                    ],
+                    'rank' => $membership->rank->value,
+                    'roles' => $roles,
+                    'canManageAlliance' => $authorization->allows($player, $alliance, PermissionKey::AllianceManage),
                 ];
             }
-
-            $membershipSummaries[] = [
-                'id' => (string) $membership->id,
-                'alliance' => [
-                    'id' => (string) $alliance->id,
-                    'name' => (string) $alliance->name,
-                    'slug' => (string) $alliance->slug,
-                    'timezone' => (string) $alliance->timezone,
-                ],
-                'roles' => $roles,
-                'canManageAlliance' => $authorization->allows($user, $alliance, PermissionKey::AllianceManage),
-            ];
         }
 
         return Inertia::render('Dashboard', [
@@ -86,8 +78,16 @@ final class DashboardController extends Controller
                 'emailVerified' => $user->hasVerifiedEmail(),
                 'timezone' => $user->timezone,
             ],
-            'memberships' => $membershipSummaries,
-            'activeAllianceId' => $activeAllianceId,
+            'activePlayer' => $player === null ? null : [
+                'id' => (string) $player->id,
+                'name' => (string) $player->current_name,
+                'gamePlayerId' => $player->game_player_id,
+                'kingdomNumber' => $player->currentKingdom?->number,
+            ],
+            'membership' => $membershipSummary,
+            'canCreateAlliance' => $player instanceof Player
+                && $player->current_kingdom_id !== null
+                && $membershipSummary === null,
         ]);
     }
 }

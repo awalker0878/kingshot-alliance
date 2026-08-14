@@ -8,18 +8,16 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +28,7 @@ final readonly class SaveTransferParticipant
     public function __construct(
         private AllianceAuthorization $authorization,
         private ResolveKingdom $kingdoms,
-        private ResolveTransferKingdomPlayer $players,
+        private ResolveTransferPlayer $players,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -41,7 +39,6 @@ final readonly class SaveTransferParticipant
      *   roster_entry_id?: string|null,
      *   name?: string|null,
      *   game_player_id?: string|null,
-     *   membership_id?: string|null,
      *   source_kingdom?: int|string|null,
      *   destination_kingdom?: int|string|null,
      *   manager_notes?: string|null
@@ -49,20 +46,17 @@ final readonly class SaveTransferParticipant
      */
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $planId,
         array $attributes,
         ?string $participantId = null,
     ): TransferParticipant {
-        if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
+        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
 
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $participantId): TransferParticipant {
-            $currentAlliance = Alliance::query()
-                ->lockForUpdate()
-                ->findOrFail($alliance->id);
-
+            $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
             $plan = TransferPlan::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->lockForUpdate()
@@ -88,19 +82,9 @@ final readonly class SaveTransferParticipant
             }
 
             $direction = $attributes['direction'];
-            $newRosterBound = $direction->isRosterBound();
-
-            if ($participant->exists && (($participant->roster_entry_id !== null) !== $newRosterBound)) {
-                throw ValidationException::withMessages([
-                    'direction' => 'Withdraw and recreate the participant to change between incoming and roster-bound planning.',
-                ]);
-            }
-
-            if ($newRosterBound) {
-                $values = $this->rosterBoundValues($currentAlliance, $plan, $direction, $attributes, $participant);
-            } else {
-                $values = $this->incomingValues($currentAlliance, $plan, $attributes, $participant);
-            }
+            $values = $direction->isRosterBound()
+                ? $this->rosterBoundValues($currentAlliance, $plan, $direction, $attributes, $participant)
+                : $this->incomingValues($plan, $attributes, $participant);
 
             $this->assertGroupCompatibility(
                 $currentAlliance,
@@ -109,6 +93,7 @@ final readonly class SaveTransferParticipant
                 $direction,
                 $values['destination_kingdom_id'],
             );
+            $this->assertUniquePlayer($plan, $values['player_id'], $participant);
 
             $event = $participant->exists
                 ? 'kingdoms.transfer_participant_updated'
@@ -127,8 +112,7 @@ final readonly class SaveTransferParticipant
                 'transfer_group_id' => $participant->transfer_group_id,
                 'direction' => $participant->direction->value,
                 'roster_entry_id' => $participant->roster_entry_id,
-                'kingdom_player_id' => $participant->kingdom_player_id,
-                'membership_id' => $participant->membership_id,
+                'player_id' => $participant->player_id,
                 'source_kingdom_id' => $participant->source_kingdom_id,
                 'destination_kingdom_id' => $participant->destination_kingdom_id,
             ];
@@ -138,13 +122,31 @@ final readonly class SaveTransferParticipant
 
             return $participant->refresh()->load([
                 'rosterEntry.player',
-                'membership.user',
+                'player',
                 'sourceKingdom',
                 'destinationKingdom',
-                'group.coordinator.user',
+                'group.coordinator',
                 'group.destinationKingdom',
             ]);
         });
+    }
+
+    private function assertUniquePlayer(TransferPlan $plan, string $playerId, TransferParticipant $participant): void
+    {
+        $duplicate = TransferParticipant::query()
+            ->where('transfer_plan_id', $plan->id)
+            ->where('player_id', $playerId)
+            ->whereNull('withdrawn_at');
+
+        if ($participant->exists) {
+            $duplicate->where('id', '<>', $participant->id);
+        }
+
+        if ($duplicate->exists()) {
+            throw ValidationException::withMessages([
+                'player_id' => 'That Player already has an active entry in this transfer cycle.',
+            ]);
+        }
     }
 
     private function assertGroupCompatibility(
@@ -194,17 +196,14 @@ final readonly class SaveTransferParticipant
             ]);
         }
 
-        if ($alliance->kingdom_id !== $plan->home_kingdom_id) {
+        if ((string) $alliance->kingdom_id !== (string) $plan->home_kingdom_id) {
             throw ValidationException::withMessages([
-                'participant' => 'The alliance Kingdom changed after this transfer cycle was created. Cancel the stale cycle before changing participants.',
+                'participant' => 'The transfer cycle must belong to the Alliance Kingdom.',
             ]);
         }
     }
 
-    /**
-     * @param  array<string, mixed>  $attributes
-     * @return array<string, string|null>
-     */
+    /** @param array<string, mixed> $attributes @return array<string, string|null> */
     private function rosterBoundValues(
         Alliance $alliance,
         TransferPlan $plan,
@@ -215,7 +214,7 @@ final readonly class SaveTransferParticipant
         $rosterId = trim((string) ($attributes['roster_entry_id'] ?? ''));
         if ($rosterId === '') {
             throw ValidationException::withMessages([
-                'roster_entry_id' => 'Staying and outgoing participants must use an active alliance roster entry.',
+                'roster_entry_id' => 'Staying and outgoing participants must use an active Alliance roster Player.',
             ]);
         }
 
@@ -227,47 +226,29 @@ final readonly class SaveTransferParticipant
 
         if (! $roster instanceof AllianceRosterEntry) {
             throw ValidationException::withMessages([
-                'roster_entry_id' => 'The selected roster entry must be active or tracked in this alliance.',
+                'roster_entry_id' => 'The selected roster entry must be active or tracked in this Alliance.',
             ]);
         }
 
-        if ($participant->exists
-            && $participant->roster_entry_id !== null
-            && $participant->roster_entry_id !== (string) $roster->id) {
+        if ($participant->exists && (string) $participant->player_id !== (string) $roster->player_id) {
             throw ValidationException::withMessages([
-                'roster_entry_id' => 'Withdraw and recreate the participant to change the roster identity.',
-            ]);
-        }
-
-        $duplicate = TransferParticipant::query()
-            ->where('transfer_plan_id', $plan->id)
-            ->where('roster_entry_id', $roster->id)
-            ->whereNull('withdrawn_at');
-
-        if ($participant->exists) {
-            $duplicate->where('id', '<>', $participant->id);
-        }
-
-        if ($duplicate->exists()) {
-            throw ValidationException::withMessages([
-                'roster_entry_id' => 'That roster player already has an active entry in this transfer cycle.',
+                'roster_entry_id' => 'Withdraw and recreate the participant to change the Player identity.',
             ]);
         }
 
         $destination = null;
         if ($direction === TransferDirection::Outgoing) {
             $destination = $this->kingdom($attributes['destination_kingdom'] ?? null, 'destination_kingdom');
-            if ($destination?->id === $plan->home_kingdom_id) {
+            if ($destination !== null && (string) $destination->id === (string) $plan->home_kingdom_id) {
                 throw ValidationException::withMessages([
-                    'destination_kingdom' => 'An outgoing destination must differ from the plan home Kingdom.',
+                    'destination_kingdom' => 'An outgoing destination must be a different Kingdom.',
                 ]);
             }
         }
 
         return [
             'roster_entry_id' => (string) $roster->id,
-            'kingdom_player_id' => (string) $roster->kingdom_player_id,
-            'membership_id' => $roster->membership_id,
+            'player_id' => (string) $roster->player_id,
             'observed_name' => (string) $roster->observed_name,
             'game_player_id' => $roster->player->game_player_id,
             'source_kingdom_id' => (string) $plan->home_kingdom_id,
@@ -275,109 +256,49 @@ final readonly class SaveTransferParticipant
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $attributes
-     * @return array<string, string|null>
-     */
+    /** @param array<string, mixed> $attributes @return array<string, string|null> */
     private function incomingValues(
-        Alliance $alliance,
         TransferPlan $plan,
         array $attributes,
         TransferParticipant $participant,
     ): array {
         $name = trim((string) ($attributes['name'] ?? ''));
         if ($name === '') {
-            throw ValidationException::withMessages([
-                'name' => 'An incoming participant name is required.',
-            ]);
+            throw ValidationException::withMessages(['name' => 'An incoming participant name is required.']);
         }
 
-        $membership = $this->membership($alliance, $attributes['membership_id'] ?? null);
         $source = $this->kingdom($attributes['source_kingdom'] ?? null, 'source_kingdom');
-        if ($source?->id === $plan->home_kingdom_id) {
+        if ($source === null) {
+            throw ValidationException::withMessages(['source_kingdom' => 'An incoming source Kingdom is required.']);
+        }
+        if ((string) $source->id === (string) $plan->home_kingdom_id) {
             throw ValidationException::withMessages([
                 'source_kingdom' => 'An incoming source Kingdom must differ from the plan home Kingdom.',
             ]);
         }
 
         $gamePlayerId = $this->nullableLine($attributes['game_player_id'] ?? null);
+        $player = $this->players->handle(
+            $source,
+            $name,
+            $gamePlayerId,
+            $participant->exists ? (string) $participant->player_id : null,
+        );
 
-        if ($participant->exists) {
-            if ($participant->game_player_id !== null
-                && $gamePlayerId !== $participant->game_player_id) {
-                throw ValidationException::withMessages([
-                    'game_player_id' => 'Withdraw and recreate the participant to change a known game-player identifier.',
-                ]);
-            }
-
-            if ($participant->source_kingdom_id !== null
-                && $source?->id !== $participant->source_kingdom_id) {
-                throw ValidationException::withMessages([
-                    'source_kingdom' => 'Withdraw and recreate the participant to change a known source Kingdom.',
-                ]);
-            }
-        }
-
-        $player = $source === null
-            ? null
-            : $this->players->handle($source, $name, $gamePlayerId);
-
-        if ($participant->exists
-            && $participant->kingdom_player_id !== null
-            && $player?->id !== $participant->kingdom_player_id) {
+        if ($participant->exists && (string) $participant->player_id !== (string) $player->id) {
             throw ValidationException::withMessages([
-                'game_player_id' => 'Withdraw and recreate the participant to change the resolved game identity.',
+                'player_id' => 'Withdraw and recreate the participant to change the Player identity.',
             ]);
-        }
-
-        if ($player !== null) {
-            $duplicate = TransferParticipant::query()
-                ->where('transfer_plan_id', $plan->id)
-                ->whereNull('roster_entry_id')
-                ->where('kingdom_player_id', $player->id)
-                ->whereNull('withdrawn_at');
-
-            if ($participant->exists) {
-                $duplicate->where('id', '<>', $participant->id);
-            }
-
-            if ($duplicate->exists()) {
-                throw ValidationException::withMessages([
-                    'game_player_id' => 'That known game player already has an active incoming entry in this transfer cycle.',
-                ]);
-            }
         }
 
         return [
             'roster_entry_id' => null,
-            'kingdom_player_id' => $player === null ? null : (string) $player->id,
-            'membership_id' => $membership === null ? null : (string) $membership->id,
+            'player_id' => (string) $player->id,
             'observed_name' => $name,
-            'game_player_id' => $gamePlayerId,
-            'source_kingdom_id' => $source === null ? null : (string) $source->id,
+            'game_player_id' => $player->game_player_id,
+            'source_kingdom_id' => (string) $source->id,
             'destination_kingdom_id' => (string) $plan->home_kingdom_id,
         ];
-    }
-
-    private function membership(Alliance $alliance, mixed $membershipId): ?AllianceMembership
-    {
-        $membershipId = is_string($membershipId) ? trim($membershipId) : '';
-        if ($membershipId === '') {
-            return null;
-        }
-
-        $membership = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('status', MembershipStatus::Active->value)
-            ->find($membershipId);
-
-        if (! $membership instanceof AllianceMembership) {
-            throw ValidationException::withMessages([
-                'membership_id' => 'The linked membership must be active in this alliance.',
-            ]);
-        }
-
-        return $membership;
     }
 
     private function kingdom(mixed $number, string $field): ?Kingdom

@@ -11,7 +11,7 @@ use App\Domain\Contributions\Models\ContributionCategory;
 use App\Domain\Contributions\Models\ContributionDataQualityFlag;
 use App\Domain\Contributions\Models\ContributionRecord;
 use App\Domain\Contributions\Services\ContributionPeriodResolver;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +24,7 @@ final class RefreshContributionDataQuality
     ) {}
 
     /** @return array{missing_evidence: int, missing_records: int} */
-    public function handle(User $actor, Alliance $alliance): array
+    public function handle(Player $actor, Alliance $alliance): array
     {
         return DB::transaction(function () use ($actor, $alliance): array {
             ContributionDataQualityFlag::query()
@@ -34,7 +34,7 @@ final class RefreshContributionDataQuality
                 ->update([
                     'status' => 'resolved',
                     'resolved_at' => now(),
-                    'resolved_by_user_id' => $actor->id,
+                    'resolved_by_player_id' => $actor->id,
                     'updated_at' => now(),
                 ]);
 
@@ -56,7 +56,7 @@ final class RefreshContributionDataQuality
                 ->get() as $record) {
                 ContributionDataQualityFlag::query()->create([
                     'alliance_id' => $alliance->id,
-                    'membership_id' => $record->membership_id,
+                    'player_id' => $record->player_id,
                     'category_id' => $record->category_id,
                     'record_id' => $record->id,
                     'code' => 'missing_evidence',
@@ -85,7 +85,7 @@ final class RefreshContributionDataQuality
                     $hasRecord = ContributionRecord::query()
                         ->where('alliance_id', $alliance->id)
                         ->where('category_id', $category->id)
-                        ->where('membership_id', $membership->id)
+                        ->where('player_id', $membership->player_id)
                         ->whereIn('status', [
                             ContributionRecordStatus::Pending->value,
                             ContributionRecordStatus::Approved->value,
@@ -100,7 +100,7 @@ final class RefreshContributionDataQuality
 
                     ContributionDataQualityFlag::query()->create([
                         'alliance_id' => $alliance->id,
-                        'membership_id' => $membership->id,
+                        'player_id' => $membership->player_id,
                         'category_id' => $category->id,
                         'code' => 'missing_period_record',
                         'severity' => 'warning',

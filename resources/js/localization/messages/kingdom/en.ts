@@ -46,6 +46,25 @@ const messages = {
       'Leave blank only when the alliance does not currently have a known Kingdom association.',
     saveKingdom: 'Save Kingdom',
     saved: 'Kingdom association updated.',
+    rolesEyebrow: 'Kingdom authorization',
+    rolesTitle: 'Kingdom roles',
+    rolesSubtitle:
+      'Delegate Kingdom-wide event authority for Kingdom #{kingdom}. Alliance rank never grants this access automatically.',
+    rolesManage: 'Manage Kingdom roles',
+    rolesAssign: 'Assign Kingdom role',
+    rolesAssignHelp:
+      'Assignments apply only to this exact Kingdom. Use Alliance roles for Alliance-only responsibilities.',
+    rolesBootstrapHelp:
+      'Platform administrator recovery access can bootstrap or repair Kingdom Admin assignments, but does not itself grant Kingdom Event authority.',
+    rolesPlayer: 'Player',
+    rolesRole: 'Kingdom role',
+    rolesAssignAction: 'Assign role',
+    rolesAssignments: 'Current assignments',
+    rolesAssignmentsHelp: 'Kingdom roles are independent from R1-R5 Alliance rank and specialist Alliance roles.',
+    rolesAssignedAt: 'Assigned {date}',
+    rolesRemove: 'Remove',
+    rolesRemoveConfirm: 'Remove the Kingdom role assignment for {name}?',
+    rolesNoAssignments: 'No Kingdom roles are assigned yet.',
     ingestionTitle: 'Automated ingestion',
     ingestionSubtitle:
       'Operate approved Kingdom data adapters, bounded scheduling and failure state, and normalized candidate review for {alliance}.',

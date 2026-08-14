@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
 use App\Domain\Platform\Services\OutboxRecorder;
@@ -49,7 +49,7 @@ final readonly class RecordPlayerSnapshot
      */
     public function handle(
         Alliance $alliance,
-        ?User $actor,
+        ?Player $actor,
         string $entryId,
         array $attributes,
         string $source = 'manual',
@@ -62,11 +62,11 @@ final readonly class RecordPlayerSnapshot
 
         if ($source === 'ingestion') {
             if ($actor !== null || $importId !== null || $machineProvenance === null) {
-                throw new InvalidArgumentException('Automated snapshots require machine provenance and no User/import actor.');
+                throw new InvalidArgumentException('Automated snapshots require machine provenance and no Player/import actor.');
             }
         } else {
-            if (! $actor instanceof User || $machineProvenance !== null) {
-                throw new InvalidArgumentException('Human snapshot sources require a User actor and no machine provenance.');
+            if (! $actor instanceof Player || $machineProvenance !== null) {
+                throw new InvalidArgumentException('Human snapshot sources require a Player actor and no machine provenance.');
             }
 
             if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
@@ -100,7 +100,7 @@ final readonly class RecordPlayerSnapshot
             $idempotencyPayload = [
                 'alliance_id' => (string) $alliance->id,
                 'roster_entry_id' => (string) $entry->id,
-                'kingdom_player_id' => (string) $entry->kingdom_player_id,
+                'player_id' => (string) $entry->player_id,
                 'observed_name' => $observedName,
                 'power' => $power,
                 'progression_level' => $progressionLevel,
@@ -120,8 +120,8 @@ final readonly class RecordPlayerSnapshot
                 ],
                 [
                     'roster_entry_id' => $entry->id,
-                    'kingdom_player_id' => $entry->kingdom_player_id,
-                    'actor_user_id' => $actor?->id,
+                    'player_id' => $entry->player_id,
+                    'actor_player_id' => $actor?->id,
                     'roster_import_id' => $importId,
                     'observed_name' => $observedName,
                     'power' => $power,
@@ -143,7 +143,7 @@ final readonly class RecordPlayerSnapshot
                 $metadata = [
                     'snapshot_id' => (string) $snapshot->id,
                     'roster_entry_id' => (string) $entry->id,
-                    'kingdom_player_id' => (string) $entry->kingdom_player_id,
+                    'player_id' => (string) $entry->player_id,
                     'captured_at' => $capturedAt->toIso8601String(),
                     'source' => $source,
                     'import_id' => $importId,
@@ -167,7 +167,7 @@ final readonly class RecordPlayerSnapshot
                 );
             }
 
-            return $snapshot->load('actor:id,name');
+            return $snapshot->load('actor:id,current_name');
         });
     }
 

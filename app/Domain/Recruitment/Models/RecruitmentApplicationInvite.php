@@ -28,7 +28,7 @@ final class RecruitmentApplicationInvite extends Model
         'token_hash',
         'expires_at',
         'used_at',
-        'created_by_user_id',
+        'created_by_player_id',
     ];
 
     protected $hidden = [

@@ -2,28 +2,28 @@
 
 ## Purpose
 
-Owns Alliance roles, permission keys, role assignment/removal, effective role rank, and permission evaluation for active Alliance memberships.
+Owns permission vocabulary, Alliance rank-derived permission policy, additive Alliance specialist roles, Kingdom-scoped roles/assignments, and contextual permission evaluation.
 
 ## Owned code
 
-Runtime code in this module owns the fixed permission vocabulary, built-in role templates, membership-role assignments, and supported authorization services/actions.
+Runtime code in this module owns `PermissionKey`, Alliance/Kingdom role templates and persistence models, role provisioning/assignment actions, `AllianceRankPermissions`, `AllianceAuthorization`, and `KingdomAuthorization`.
 
 ## Public contracts
 
-- `PermissionKey` — stable Alliance permission vocabulary.
-- `DefaultAllianceRole` — built-in role templates/effective ranks.
-- Alliance permission evaluation for active memberships.
-- Supported role assignment/removal used by Alliance administration.
+- `AllianceMembership.rank` is Memberships-owned but consumed as the authoritative R1–R5 hierarchy input.
+- `DefaultAllianceRole` defines additive Recruiter, Event Coordinator, and Content Manager responsibilities.
+- `DefaultKingdomRole` defines Kingdom Admin, Kingdom Event Coordinator, and Kingdom Viewer.
+- Alliance rank/roles never imply Kingdom Event authority; Kingdom permission requires an exact-Kingdom assignment.
+- Platform administrators may bootstrap/recover Kingdom assignments but are not implicit Kingdom Event administrators.
 
 ## Dependencies
 
-- `Alliances` — target tenant context.
-- `Memberships` — active membership/status.
+- `Alliances` / `Memberships` — Alliance target, active membership and rank.
+- `Kingdoms` — exact Kingdom target identity.
 - `Identity` — authenticated User identity.
-- `Audit` / Platform outbox — role-change evidence.
-
-Platform-administrator access is deliberately not an Alliance role/permission.
+- `Platform` / `Audit` — bootstrap status and attributable durable evidence.
 
 ## Canonical documentation
 
 - [`docs/domains/authorization/`](../../../docs/domains/authorization/README.md)
+- [Kingdom-scoped roles](../../../docs/domains/authorization/kingdom-scoped-roles.md)

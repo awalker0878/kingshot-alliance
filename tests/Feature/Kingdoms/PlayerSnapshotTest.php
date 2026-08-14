@@ -6,11 +6,12 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,15 +22,21 @@ final class PlayerSnapshotTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_manager_can_record_snapshot_with_audit_outbox_and_private_actor_provenance(): void
+    public function test_manager_player_can_record_snapshot_with_audit_outbox_and_player_provenance(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Snapshot Alliance', 'snapshot-alliance', 3201);
-        $entry = $this->createRosterEntry($owner, $alliance, 'Snapshot Player');
+        $kingdom = Kingdom::query()->create(['number' => 3201, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'snapshot-owner-3201',
+            'current_name' => 'Snapshot Owner Player',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Snapshot Alliance', 'snapshot-alliance');
+        $entry = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Snapshot Player');
         $capturedAt = now()->subHour()->toIso8601String();
 
-        $this->withSession($this->confirmedSession($alliance->id))
+        $this->withSession($this->confirmedSession($ownerPlayer->id))
             ->post('/alliance/roster/'.$entry->id.'/snapshots', [
                 'observed_name' => 'Snapshot Player',
                 'power' => '1234567890123',
@@ -42,8 +49,8 @@ final class PlayerSnapshotTest extends TestCase
         $snapshot = PlayerSnapshot::query()->sole();
         self::assertSame($alliance->id, $snapshot->alliance_id);
         self::assertSame($entry->id, $snapshot->roster_entry_id);
-        self::assertSame($entry->kingdom_player_id, $snapshot->kingdom_player_id);
-        self::assertSame($owner->id, $snapshot->actor_user_id);
+        self::assertSame($entry->player_id, $snapshot->player_id);
+        self::assertSame($ownerPlayer->id, $snapshot->actor_player_id);
         self::assertSame(1234567890123, $snapshot->power);
         self::assertSame('FC3', $snapshot->progression_level);
         self::assertSame('KSA', $snapshot->observed_alliance_tag);
@@ -51,7 +58,8 @@ final class PlayerSnapshotTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,
-            'actor_user_id' => $owner->id,
+            'actor_player_id' => $ownerPlayer->id,
+            'actor_user_id' => null,
             'event' => 'kingdoms.player_snapshot_recorded',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
@@ -59,25 +67,31 @@ final class PlayerSnapshotTest extends TestCase
             'event_type' => 'kingdoms.player_snapshot_recorded',
         ]);
 
-        $this->withSession($this->activeSession($alliance->id))
+        $this->withSession($this->activeSession($ownerPlayer->id))
             ->get('/alliance/roster/'.$entry->id.'/history')
             ->assertOk()
             ->assertInertia(fn (Assert $page): Assert => $page
                 ->component('Alliance/RosterHistory')
                 ->where('latest.power', '1234567890123')
                 ->where('latest.progressionLevel', 'FC3')
-                ->where('snapshots.0.actorName', $owner->name));
+                ->where('snapshots.0.actorName', 'Snapshot Owner Player'));
     }
 
-    public function test_snapshot_mutation_requires_recent_password_confirmation(): void
+    public function test_snapshot_mutation_requires_recent_password_confirmation_for_active_player(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Confirm Snapshot', 'confirm-snapshot', 3202);
-        $entry = $this->createRosterEntry($owner, $alliance, 'Confirm Player');
+        $kingdom = Kingdom::query()->create(['number' => 3202, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'snapshot-confirm-owner',
+            'current_name' => 'Snapshot Confirm Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Confirm Snapshot', 'confirm-snapshot');
+        $entry = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Confirm Player');
 
         $this->withSession([
-            ...$this->activeSession($alliance->id),
+            ...$this->activeSession($ownerPlayer->id),
             'auth.password_confirmed_at' => 0,
         ])
             ->post('/alliance/roster/'.$entry->id.'/snapshots', $this->snapshotPayload('100'))
@@ -86,21 +100,39 @@ final class PlayerSnapshotTest extends TestCase
         $this->assertDatabaseCount('player_snapshots', 0);
     }
 
-    public function test_member_can_view_snapshot_history_without_actor_identity_but_cannot_record(): void
+    public function test_member_player_can_view_snapshot_history_without_actor_identity_but_cannot_record(): void
     {
         $owner = User::factory()->create();
         $member = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Member Snapshot', 'member-snapshot', 3203);
-        $this->addMember($alliance->id, $member);
-        $entry = $this->createRosterEntry($owner, $alliance, 'Visible Snapshot');
+        $kingdom = Kingdom::query()->create(['number' => 3203, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'snapshot-member-owner',
+            'current_name' => 'Snapshot Member Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $member->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'snapshot-member-player',
+            'current_name' => 'Snapshot Member',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Member Snapshot', 'member-snapshot');
+        AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $memberPlayer->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
+            'joined_at' => now(),
+        ]);
+        $entry = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Visible Snapshot');
 
-        $this->withSession($this->confirmedSession($alliance->id))
+        $this->withSession($this->confirmedSession($ownerPlayer->id))
             ->post('/alliance/roster/'.$entry->id.'/snapshots', $this->snapshotPayload('200'))
             ->assertRedirect();
 
         $this->actingAs($member)
-            ->withSession($this->activeSession($alliance->id))
+            ->withSession($this->activeSession($memberPlayer->id))
             ->get('/alliance/roster/'.$entry->id.'/history')
             ->assertOk()
             ->assertInertia(fn (Assert $page): Assert => $page
@@ -109,7 +141,7 @@ final class PlayerSnapshotTest extends TestCase
                 ->where('snapshots.0.power', '200')
                 ->missing('snapshots.0.actorName'));
 
-        $this->withSession($this->confirmedSession($alliance->id))
+        $this->withSession($this->confirmedSession($memberPlayer->id))
             ->post('/alliance/roster/'.$entry->id.'/snapshots', $this->snapshotPayload('201'))
             ->assertForbidden();
 
@@ -119,40 +151,36 @@ final class PlayerSnapshotTest extends TestCase
     public function test_exact_retry_is_idempotent_but_later_capture_preserves_new_history(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Idempotent Snapshot', 'idempotent-snapshot', 3204);
-        $entry = $this->createRosterEntry($owner, $alliance, 'Retry Player');
+        $kingdom = Kingdom::query()->create(['number' => 3204, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'snapshot-idempotent-owner',
+            'current_name' => 'Snapshot Idempotent Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Idempotent Snapshot', 'idempotent-snapshot');
+        $entry = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Retry Player');
         $capturedAt = now()->subHours(2)->startOfSecond();
         $payload = $this->snapshotPayload('300', $capturedAt->toIso8601String());
-        $session = $this->confirmedSession($alliance->id);
+        $session = $this->confirmedSession($ownerPlayer->id);
 
-        $this->withSession($session)
-            ->post('/alliance/roster/'.$entry->id.'/snapshots', $payload)
-            ->assertRedirect();
-        $this->withSession($session)
-            ->post('/alliance/roster/'.$entry->id.'/snapshots', $payload)
-            ->assertRedirect();
+        $this->withSession($session)->post('/alliance/roster/'.$entry->id.'/snapshots', $payload)->assertRedirect();
+        $this->withSession($session)->post('/alliance/roster/'.$entry->id.'/snapshots', $payload)->assertRedirect();
 
         $this->assertDatabaseCount('player_snapshots', 1);
-        self::assertSame(1, (int) \DB::table('audit_events')
-            ->where('event', 'kingdoms.player_snapshot_recorded')->count());
-        self::assertSame(1, (int) \DB::table('outbox_messages')
-            ->where('event_type', 'kingdoms.player_snapshot_recorded')->count());
+        self::assertSame(1, (int) \DB::table('audit_events')->where('event', 'kingdoms.player_snapshot_recorded')->count());
+        self::assertSame(1, (int) \DB::table('outbox_messages')->where('event_type', 'kingdoms.player_snapshot_recorded')->count());
 
         $laterPayload = $payload;
         $laterPayload['captured_at'] = $capturedAt->addMinute()->toIso8601String();
-        $this->withSession($session)
-            ->post('/alliance/roster/'.$entry->id.'/snapshots', $laterPayload)
-            ->assertRedirect();
-
+        $this->withSession($session)->post('/alliance/roster/'.$entry->id.'/snapshots', $laterPayload)->assertRedirect();
         $this->assertDatabaseCount('player_snapshots', 2);
 
         $this->withSession($session)
             ->patch('/alliance/roster/'.$entry->id, [
                 'name' => 'Retry Player Renamed',
                 'state' => 'active',
-            ])
-            ->assertRedirect();
+            ])->assertRedirect();
 
         $this->assertDatabaseCount('player_snapshots', 2);
         self::assertSame(
@@ -166,10 +194,16 @@ final class PlayerSnapshotTest extends TestCase
     public function test_power_uses_signed_64_bit_range_without_floating_point_storage(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Power Range', 'power-range', 3205);
-        $entry = $this->createRosterEntry($owner, $alliance, 'Power Player');
-        $session = $this->confirmedSession($alliance->id);
+        $kingdom = Kingdom::query()->create(['number' => 3205, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'snapshot-power-owner',
+            'current_name' => 'Snapshot Power Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Power Range', 'power-range');
+        $entry = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Power Player');
+        $session = $this->confirmedSession($ownerPlayer->id);
 
         $this->withSession($session)
             ->post('/alliance/roster/'.$entry->id.'/snapshots', $this->snapshotPayload('9223372036854775807'))
@@ -186,59 +220,77 @@ final class PlayerSnapshotTest extends TestCase
         $this->assertDatabaseCount('player_snapshots', 1);
     }
 
-    public function test_snapshot_history_and_mutation_fail_closed_for_another_alliance(): void
+    public function test_snapshot_history_and_mutation_fail_closed_for_another_active_player_alliance(): void
     {
         $firstOwner = User::factory()->create();
         $secondOwner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 3206, 'status' => 'active']);
+        $firstPlayer = Player::query()->create([
+            'user_id' => $firstOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'snapshot-first-owner',
+            'current_name' => 'Snapshot First Owner',
+        ]);
+        $secondPlayer = Player::query()->create([
+            'user_id' => $secondOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'snapshot-second-owner',
+            'current_name' => 'Snapshot Second Owner',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $first = $createAlliance->handle($firstOwner, 'Snapshot Tenant One', 'snapshot-tenant-one', 3206);
-        $second = $createAlliance->handle($secondOwner, 'Snapshot Tenant Two', 'snapshot-tenant-two', 3206);
-        $secondEntry = $this->createRosterEntry($secondOwner, $second, 'Second Tenant Player');
+        $first = $createAlliance->handle($firstPlayer, 'Snapshot Tenant One', 'snapshot-tenant-one');
+        $second = $createAlliance->handle($secondPlayer, 'Snapshot Tenant Two', 'snapshot-tenant-two');
+        $secondEntry = $this->createRosterEntry($secondOwner, $secondPlayer, $second, 'Second Tenant Player');
 
         $this->actingAs($secondOwner)
-            ->withSession($this->confirmedSession($second->id))
+            ->withSession($this->confirmedSession($secondPlayer->id))
             ->post('/alliance/roster/'.$secondEntry->id.'/snapshots', $this->snapshotPayload('400'))
             ->assertRedirect();
 
         $this->actingAs($firstOwner)
-            ->withSession($this->activeSession($first->id))
+            ->withSession($this->activeSession($firstPlayer->id))
             ->get('/alliance/roster/'.$secondEntry->id.'/history')
             ->assertNotFound();
 
-        $this->withSession($this->confirmedSession($first->id))
+        $this->withSession($this->confirmedSession($firstPlayer->id))
             ->post('/alliance/roster/'.$secondEntry->id.'/snapshots', $this->snapshotPayload('401'))
             ->assertNotFound();
 
         $this->assertDatabaseCount('player_snapshots', 1);
+        self::assertSame($secondPlayer->id, PlayerSnapshot::query()->sole()->actor_player_id);
+        self::assertSame($first->kingdom_id, $second->kingdom_id);
     }
 
     public function test_latest_projection_uses_capture_time_and_freshness_distinguishes_current_stale_and_missing(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Freshness Alliance', 'freshness-alliance', 3207);
-        $current = $this->createRosterEntry($owner, $alliance, 'Current Player');
-        $missing = $this->createRosterEntry($owner, $alliance, 'Missing Player');
-        $stale = $this->createRosterEntry($owner, $alliance, 'Stale Player');
-        $session = $this->confirmedSession($alliance->id);
+        $kingdom = Kingdom::query()->create(['number' => 3207, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'snapshot-freshness-owner',
+            'current_name' => 'Snapshot Freshness Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Freshness Alliance', 'freshness-alliance');
+        $current = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Current Player');
+        $missing = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Missing Player');
+        $stale = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Stale Player');
+        $session = $this->confirmedSession($ownerPlayer->id);
 
-        $this->withSession($session)
-            ->post('/alliance/roster/'.$current->id.'/snapshots', $this->snapshotPayload(
-                '600',
-                now()->subDay()->toIso8601String(),
-            ))->assertRedirect();
-        $this->withSession($session)
-            ->post('/alliance/roster/'.$current->id.'/snapshots', $this->snapshotPayload(
-                '500',
-                now()->subDays(10)->toIso8601String(),
-            ))->assertRedirect();
-        $this->withSession($session)
-            ->post('/alliance/roster/'.$stale->id.'/snapshots', $this->snapshotPayload(
-                '700',
-                now()->subDays(31)->toIso8601String(),
-            ))->assertRedirect();
+        $this->withSession($session)->post('/alliance/roster/'.$current->id.'/snapshots', $this->snapshotPayload(
+            '600',
+            now()->subDay()->toIso8601String(),
+        ))->assertRedirect();
+        $this->withSession($session)->post('/alliance/roster/'.$current->id.'/snapshots', $this->snapshotPayload(
+            '500',
+            now()->subDays(10)->toIso8601String(),
+        ))->assertRedirect();
+        $this->withSession($session)->post('/alliance/roster/'.$stale->id.'/snapshots', $this->snapshotPayload(
+            '700',
+            now()->subDays(31)->toIso8601String(),
+        ))->assertRedirect();
 
-        $this->withSession($this->activeSession($alliance->id))
+        $this->withSession($this->activeSession($ownerPlayer->id))
             ->get('/alliance/roster')
             ->assertOk()
             ->assertInertia(fn (Assert $page): Assert => $page
@@ -266,10 +318,10 @@ final class PlayerSnapshotTest extends TestCase
         self::assertSame($missing->id, AllianceRosterEntry::query()->findOrFail($missing->id)->id);
     }
 
-    private function createRosterEntry(User $owner, Alliance $alliance, string $name): AllianceRosterEntry
+    private function createRosterEntry(User $account, Player $actor, Alliance $alliance, string $name): AllianceRosterEntry
     {
-        $this->actingAs($owner)
-            ->withSession($this->confirmedSession($alliance->id))
+        $this->actingAs($account)
+            ->withSession($this->confirmedSession($actor->id))
             ->post('/alliance/roster', [
                 'name' => $name,
                 'state' => 'active',
@@ -281,26 +333,6 @@ final class PlayerSnapshotTest extends TestCase
             ->where('observed_name', $name)
             ->latest('created_at')
             ->firstOrFail();
-    }
-
-    private function addMember(
-        string $allianceId,
-        User $user,
-        DefaultAllianceRole $roleKey = DefaultAllianceRole::Member,
-    ): AllianceMembership {
-        $membership = AllianceMembership::query()->create([
-            'alliance_id' => $allianceId,
-            'user_id' => $user->id,
-            'status' => MembershipStatus::Active,
-            'joined_at' => now(),
-        ]);
-        $role = Role::query()
-            ->where('alliance_id', $allianceId)
-            ->where('key', $roleKey->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $allianceId]);
-
-        return $membership;
     }
 
     /** @return array<string, string> */
@@ -316,18 +348,16 @@ final class PlayerSnapshotTest extends TestCase
     }
 
     /** @return array<string, string> */
-    private function activeSession(string $allianceId): array
+    private function activeSession(string $playerId): array
     {
-        return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
-        ];
+        return [(string) config('identity.active_player_session_key') => $playerId];
     }
 
     /** @return array<string, int|string> */
-    private function confirmedSession(string $allianceId): array
+    private function confirmedSession(string $playerId): array
     {
         return [
-            ...$this->activeSession($allianceId),
+            ...$this->activeSession($playerId),
             'auth.password_confirmed_at' => time(),
         ];
     }

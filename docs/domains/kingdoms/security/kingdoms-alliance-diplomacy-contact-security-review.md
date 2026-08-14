@@ -46,7 +46,7 @@ Allowed contact fields are limited to:
 - manager-private notes; and
 - actor/lifecycle provenance required for accountability.
 
-There is no `kingdom_player_id`, membership link, platform-user link, or name/handle uniqueness constraint. Duplicate names and handles are valid and remain separate rows. Name or handle equality never triggers player/reference merge or automatic linkage.
+There is no `player_id`, membership link, platform-user link, or name/handle uniqueness constraint. Duplicate names and handles are valid and remain separate rows. Name or handle equality never triggers player/reference merge or automatic linkage.
 
 ## Private-data boundary
 

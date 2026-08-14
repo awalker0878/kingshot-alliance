@@ -12,7 +12,7 @@ This review covers the new CSV upload/preview/confirmation/export boundary. It d
 Protected assets include:
 
 - alliance-owned roster state and historical snapshots;
-- neutral `KingdomPlayer` identity references;
+- neutral `Player` identity references;
 - application-membership linkage;
 - private manager notes;
 - import provenance and resolution choices;
@@ -41,7 +41,7 @@ Trust boundaries are:
 - roster/snapshot actions re-establish their own Alliance authorization and tenant constraints; and
 - tests use two alliances in the same Kingdom to prove shared global reference identity does not weaken isolation.
 
-**Residual risk:** Future bulk tooling must continue using tenant-first queries rather than treating Kingdom or `KingdomPlayer` as authorization boundaries.
+**Residual risk:** Future bulk tooling must continue using tenant-first queries rather than treating Kingdom or `Player` as authorization boundaries.
 
 ### Identity confusion and accidental merge
 
@@ -54,7 +54,7 @@ Trust boundaries are:
 - display-name matches are always classified ambiguous, including a single candidate;
 - explicit `create` remains available when the same display name represents a different person;
 - candidate IDs are fixed in the preview and validated again at confirmation; and
-- no name-based `KingdomPlayer` merge action is introduced.
+- no name-based `Player` merge action is introduced.
 
 **Residual risk:** Incorrect human resolution is still possible. The stored preview, resolution payload and audit record preserve explainability for later correction without deleting snapshot history.
 

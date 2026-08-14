@@ -4,23 +4,22 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\ValueObjects;
 
-use InvalidArgumentException;
+use Illuminate\Validation\ValidationException;
 
 final readonly class FormationComposition
 {
     public function __construct(
-        public int $infantryPercent,
-        public int $cavalryPercent,
-        public int $archerPercent,
+        public int $infantry,
+        public int $cavalry,
+        public int $archer,
     ) {
-        foreach ([$infantryPercent, $cavalryPercent, $archerPercent] as $percentage) {
-            if ($percentage < 0 || $percentage > 100) {
-                throw new InvalidArgumentException('Formation percentages must be between 0 and 100.');
+        foreach (['infantry' => $infantry, 'cavalry' => $cavalry, 'archer' => $archer] as $key => $value) {
+            if ($value < 0 || $value > 100) {
+                throw ValidationException::withMessages([$key.'_percent' => 'Troop percentages must be between 0 and 100.']);
             }
         }
-
-        if (($infantryPercent + $cavalryPercent + $archerPercent) !== 100) {
-            throw new InvalidArgumentException('Formation percentages must total 100.');
+        if ($infantry + $cavalry + $archer !== 100) {
+            throw ValidationException::withMessages(['formation' => 'Infantry, cavalry, and archer percentages must total exactly 100.']);
         }
     }
 
@@ -28,9 +27,9 @@ final readonly class FormationComposition
     public function toArray(): array
     {
         return [
-            'infantry_percent' => $this->infantryPercent,
-            'cavalry_percent' => $this->cavalryPercent,
-            'archer_percent' => $this->archerPercent,
+            'infantry_percent' => $this->infantry,
+            'cavalry_percent' => $this->cavalry,
+            'archer_percent' => $this->archer,
         ];
     }
 }

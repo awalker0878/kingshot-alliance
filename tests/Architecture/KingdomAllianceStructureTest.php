@@ -62,7 +62,7 @@ final class KingdomAllianceStructureTest extends TestCase
             'alliance_id',
             'tracked_kingdom_alliance_id',
             'kingdom_alliance_id',
-            'actor_user_id',
+            'actor_player_id',
             'observed_name',
             'observed_tag',
             'power',
@@ -72,7 +72,7 @@ final class KingdomAllianceStructureTest extends TestCase
             'idempotency_key',
             'corrects_observation_id',
             'invalidated_at',
-            'invalidated_by_user_id',
+            'invalidated_by_player_id',
             'invalidation_reason',
         ] as $field) {
             self::assertStringContainsString($field, $migration);
@@ -114,10 +114,10 @@ final class KingdomAllianceStructureTest extends TestCase
             'expires_at',
             'terms',
             'rationale',
-            'last_transition_user_id',
+            'last_transition_player_id',
             'from_state',
             'to_state',
-            'actor_user_id',
+            'actor_player_id',
         ] as $field) {
             self::assertStringContainsString($field, $migration);
         }
@@ -127,7 +127,7 @@ final class KingdomAllianceStructureTest extends TestCase
             'phone',
             'address',
             'handle',
-            'kingdom_player_id',
+            'user_id',
             'threat',
             'rank',
             'score',
@@ -141,7 +141,7 @@ final class KingdomAllianceStructureTest extends TestCase
         }
     }
 
-    public function test_slice_c2_schema_has_private_contacts_without_identity_authorization_or_future_scoring_fields(): void
+    public function test_slice_c2_schema_has_private_contacts_with_player_attribution_without_membership_authorization_or_future_scoring_fields(): void
     {
         $migration = file_get_contents(
             dirname(__DIR__, 2).'/database/migrations/2026_08_10_100000_create_kingdom_alliance_diplomacy_contacts.php',
@@ -160,16 +160,16 @@ final class KingdomAllianceStructureTest extends TestCase
             'state',
             'last_verified_at',
             'manager_notes',
-            'created_by_user_id',
-            'updated_by_user_id',
+            'created_by_player_id',
+            'updated_by_player_id',
             'deactivated_at',
-            'deactivated_by_user_id',
+            'deactivated_by_player_id',
         ] as $field) {
             self::assertStringContainsString($field, $migration);
         }
 
         foreach ([
-            'kingdom_player_id',
+            'user_id',
             'alliance_membership_id',
             'role_id',
             'permission_id',

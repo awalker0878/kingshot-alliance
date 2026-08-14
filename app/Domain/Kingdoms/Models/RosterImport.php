@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,8 +13,8 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property string $alliance_id
- * @property int $created_by_user_id
- * @property int|null $committed_by_user_id
+ * @property string $created_by_player_id
+ * @property string|null $committed_by_player_id
  * @property string $status
  * @property string $schema_version
  * @property string $original_filename
@@ -29,8 +29,8 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $committed_summary
  * @property Carbon|null $committed_at
  * @property-read Alliance $alliance
- * @property-read User $createdBy
- * @property-read User|null $committedBy
+ * @property-read Player $createdBy
+ * @property-read Player|null $committedBy
  */
 final class RosterImport extends Model
 {
@@ -48,8 +48,8 @@ final class RosterImport extends Model
 
     protected $fillable = [
         'alliance_id',
-        'created_by_user_id',
-        'committed_by_user_id',
+        'created_by_player_id',
+        'committed_by_player_id',
         'status',
         'schema_version',
         'original_filename',
@@ -81,15 +81,15 @@ final class RosterImport extends Model
         return $this->belongsTo(Alliance::class);
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by_user_id');
+        return $this->belongsTo(Player::class, 'created_by_player_id');
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function committedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'committed_by_user_id');
+        return $this->belongsTo(Player::class, 'committed_by_player_id');
     }
 }

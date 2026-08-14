@@ -12,6 +12,8 @@ use App\Domain\Kingdoms\Actions\RecordPlayerSnapshot;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
 use App\Domain\Kingdoms\Queries\PlayerSnapshotQuery;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -31,15 +33,20 @@ final class PlayerSnapshotController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
             throw new AuthorizationException;
         }
 
         $rosterEntry = AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
-            ->with(['player', 'membership.user'])
+            ->with('player')
             ->findOrFail($entry);
-        $canManage = $authorization->allows($user, $alliance, PermissionKey::KingdomManage);
+        $membership = AllianceMembership::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('player_id', $rosterEntry->player_id)
+            ->where('status', MembershipStatus::Active->value)
+            ->first();
+        $canManage = $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage);
         $latest = $snapshots->latestForEntry($alliance, $rosterEntry);
 
         return Inertia::render('Alliance/RosterHistory', [
@@ -58,9 +65,9 @@ final class PlayerSnapshotController extends Controller
                 'name' => (string) $rosterEntry->observed_name,
                 'gameRole' => $rosterEntry->game_role,
                 'state' => $rosterEntry->state->value,
-                'membership' => $rosterEntry->membership === null
+                'membership' => $membership === null
                     ? null
-                    : ['name' => (string) $rosterEntry->membership->user?->name],
+                    : ['name' => (string) $rosterEntry->player->current_name],
             ],
             'canManage' => $canManage,
             'latest' => $latest === null ? null : $this->snapshot($latest, $canManage),
@@ -94,7 +101,7 @@ final class PlayerSnapshotController extends Controller
             'captured_at' => ['required', 'date'],
         ]);
 
-        $record->handle($context->alliance(), $this->user($request), $entry, $validated);
+        $record->handle($context->alliance(), $context->player(), $entry, $validated);
 
         return back()->with('status', 'player-snapshot-recorded');
     }
@@ -113,7 +120,7 @@ final class PlayerSnapshotController extends Controller
         ];
 
         if ($includeActor) {
-            $row['actorName'] = $snapshot->actor?->name;
+            $row['actorName'] = $snapshot->actor?->current_name;
             $row['sourceSubscriptionId'] = $snapshot->source_subscription_id;
             $row['sourceBatchId'] = $snapshot->source_batch_id;
             $row['sourceAdapterKey'] = $snapshot->source_adapter_key;

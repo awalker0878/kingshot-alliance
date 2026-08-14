@@ -49,13 +49,13 @@ type Leaderboard = {
   calculationKey: string | null;
   calculationVersion: string | null;
   calculationDescription: string;
-  entries: Array<{ membershipId: string; name: string; value: number }>;
+  entries: Array<{ playerId: string; name: string; value: number }>;
 };
 
 const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; timezone: string };
-  membership: { id: string };
+  player: { id: string; name: string };
   canManage: boolean;
   reporting: {
     progress: Progress[];
@@ -137,7 +137,7 @@ function explanation(row: RecordRow): string {
 <template>
   <Head :title="`${t('contributions.title')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div class="max-w-3xl">
         <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
@@ -533,7 +533,7 @@ function explanation(row: RecordRow): string {
           <ol v-if="board.entries.length" class="divide-y divide-[var(--ks-border)]">
             <li
               v-for="(entry, index) in board.entries"
-              :key="entry.membershipId"
+              :key="entry.playerId"
               class="flex items-center justify-between gap-4 px-4 py-3 sm:px-5"
             >
               <span class="min-w-0 truncate"

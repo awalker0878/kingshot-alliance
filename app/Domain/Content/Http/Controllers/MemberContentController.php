@@ -29,6 +29,7 @@ final class MemberContentController extends Controller
     ): Response {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
+        $actor = $context->player();
         $alliance = $context->alliance();
 
         $items = $content->memberList(
@@ -62,7 +63,7 @@ final class MemberContentController extends Controller
                 'timezone' => $alliance->timezone,
             ],
             'viewerTimezone' => $user->timezone,
-            'canManageContent' => $authorization->allows($user, $alliance, PermissionKey::ContentManage),
+            'canManageContent' => $authorization->allows($actor, $alliance, PermissionKey::ContentManage),
             'filters' => [
                 'q' => $request->string('q')->toString(),
                 'type' => $request->string('type')->toString(),

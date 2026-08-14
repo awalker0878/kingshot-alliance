@@ -57,7 +57,6 @@ const props = defineProps<{
       enabled: boolean;
       configuration: Record<string, unknown> | null;
     }>;
-    members: Array<{ id: string; name: string | null; email: string | null; status: string }>;
   };
   currentUserId: number;
   status: string | null;
@@ -66,17 +65,8 @@ const props = defineProps<{
 const { t, formatDate, formatNumber } = useLocale();
 
 const adminForm = useForm({ email: '' });
-const provisionForm = useForm({
-  owner_email: '',
-  name: '',
-  slug: '',
-  kingdom: '',
-  language: 'en',
-  timezone: 'UTC',
-});
 const holdForm = useForm({ subject_type: 'alliance', subject_id: '', reason: '' });
 const lifecycleForm = useForm({ reason: '' });
-const ownershipForm = useForm({ membership_id: '' });
 const featureForm = useForm({ feature_key: '', enabled: true });
 
 const selected = computed(() =>
@@ -144,9 +134,7 @@ const statusMessage = computed(() => {
   const messages: Record<string, string> = {
     'platform-administrator-granted': 'platformAdmin.statusAdministratorGranted',
     'platform-administrator-revoked': 'platformAdmin.statusAdministratorRevoked',
-    'alliance-provisioned': 'platformAdmin.statusAllianceProvisioned',
     'alliance-lifecycle-updated': 'platformAdmin.statusLifecycleUpdated',
-    'alliance-ownership-transferred': 'platformAdmin.statusOwnershipTransferred',
     'alliance-plan-updated': 'platformAdmin.statusPlanUpdated',
     'alliance-platform-settings-updated': 'platformAdmin.statusSettingsUpdated',
     'alliance-feature-updated': 'platformAdmin.statusFeatureUpdated',
@@ -402,95 +390,6 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
           </article>
         </div>
       </section>
-
-      <section aria-labelledby="provision-heading" class="ks-surface p-5 sm:p-6">
-        <h2 id="provision-heading" class="ks-display text-2xl font-semibold">
-          {{ t('platformAdmin.provisionAlliance') }}
-        </h2>
-        <p class="mt-1 text-sm leading-6 text-[var(--ks-text-muted)]">
-          {{ t('platformAdmin.provisionHelp') }}
-        </p>
-
-        <form
-          class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3"
-          @submit.prevent="provisionForm.post('/platform/alliances')"
-        >
-          <label class="grid gap-1.5 text-sm" for="provision-owner">
-            {{ t('platformAdmin.ownerEmail') }}
-            <input
-              id="provision-owner"
-              v-model="provisionForm.owner_email"
-              type="email"
-              required
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
-            />
-          </label>
-          <label class="grid gap-1.5 text-sm" for="provision-name">
-            {{ t('platformAdmin.allianceName') }}
-            <input
-              id="provision-name"
-              v-model="provisionForm.name"
-              required
-              maxlength="120"
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
-            />
-          </label>
-          <label class="grid gap-1.5 text-sm" for="provision-slug">
-            {{ t('platformAdmin.slug') }}
-            <input
-              id="provision-slug"
-              v-model="provisionForm.slug"
-              required
-              maxlength="120"
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
-            />
-          </label>
-          <label class="grid gap-1.5 text-sm" for="provision-kingdom">
-            {{ t('platformAdmin.kingdom') }}
-            <input
-              id="provision-kingdom"
-              v-model="provisionForm.kingdom"
-              inputmode="numeric"
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
-            />
-          </label>
-          <label class="grid gap-1.5 text-sm" for="provision-language">
-            {{ t('platformAdmin.language') }}
-            <input
-              id="provision-language"
-              v-model="provisionForm.language"
-              list="platform-locale-codes"
-              required
-              maxlength="16"
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
-            />
-            <datalist id="platform-locale-codes">
-              <option v-for="locale in locales" :key="locale.code" :value="locale.code">
-                {{ locale.nativeName }}
-              </option>
-            </datalist>
-          </label>
-          <label class="grid gap-1.5 text-sm" for="provision-timezone">
-            {{ t('platformAdmin.timezone') }}
-            <input
-              id="provision-timezone"
-              v-model="provisionForm.timezone"
-              required
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
-            />
-          </label>
-          <div class="md:col-span-2 xl:col-span-3">
-            <button
-              type="submit"
-              class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-4 py-2.5 font-bold text-slate-950"
-              :disabled="provisionForm.processing"
-            >
-              {{ t('platformAdmin.provision') }}
-            </button>
-          </div>
-        </form>
-      </section>
-    </div>
 
     <section aria-labelledby="alliances-heading" class="mt-8 space-y-4">
       <div>
@@ -760,41 +659,6 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
             class="mt-4 rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-3.5 py-2.5 font-bold text-slate-950"
           >
             {{ t('platformAdmin.assignPlan') }}
-          </button>
-        </form>
-
-        <form
-          class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-4"
-          @submit.prevent="
-            ownershipForm.post(`/platform/alliances/${selectedAlliance.id}/ownership`)
-          "
-        >
-          <h3 class="font-semibold">{{ t('platformAdmin.ownershipTransfer') }}</h3>
-          <label class="mt-4 grid gap-1.5 text-sm" for="platform-owner"
-            >{{ t('platformAdmin.newOwner')
-            }}<select
-              id="platform-owner"
-              v-model="ownershipForm.membership_id"
-              required
-              class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5"
-            >
-              <option value="" disabled>{{ t('platformAdmin.selectActiveMember') }}</option>
-              <option
-                v-for="member in selectedAlliance.members.filter(
-                  (item) => item.status === 'active',
-                )"
-                :key="member.id"
-                :value="member.id"
-              >
-                {{ member.name }} — {{ member.email }}
-              </option>
-            </select></label
-          >
-          <button
-            type="submit"
-            class="mt-4 rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-3.5 py-2.5 font-bold text-slate-950"
-          >
-            {{ t('platformAdmin.transferOwnership') }}
           </button>
         </form>
 

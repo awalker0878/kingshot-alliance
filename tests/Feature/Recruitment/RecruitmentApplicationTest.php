@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Recruitment;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
+use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Recruitment\Actions\ChangeRecruitmentStage;
@@ -38,9 +40,16 @@ final class RecruitmentApplicationTest extends TestCase
     public function test_public_application_snapshots_required_answers_and_initial_history(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Recruitment Alliance', 'recruitment-alliance');
+        $kingdom = Kingdom::query()->create(['number' => 2101, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'recruitment-public-owner',
+            'current_name' => 'Recruitment Public Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Recruitment Alliance', 'recruitment-alliance');
         $this->app->make(ConfigureRecruitmentSettings::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             RecruitmentApplicationMode::Public,
             'Apply now',
@@ -49,7 +58,7 @@ final class RecruitmentApplicationTest extends TestCase
             true,
         );
         $question = $this->app->make(CreateRecruitmentQuestion::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             'Why do you want to join?',
             RecruitmentQuestionType::LongText,
@@ -80,9 +89,16 @@ final class RecruitmentApplicationTest extends TestCase
     public function test_invitation_application_token_is_email_restricted_and_single_use(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Invite Recruitment', 'invite-recruitment');
+        $kingdom = Kingdom::query()->create(['number' => 2102, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'recruitment-invite-owner',
+            'current_name' => 'Recruitment Invite Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Invite Recruitment', 'invite-recruitment');
         $this->app->make(ConfigureRecruitmentSettings::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             RecruitmentApplicationMode::Invitation,
             'Invitation application',
@@ -91,7 +107,7 @@ final class RecruitmentApplicationTest extends TestCase
             true,
         );
         $issued = $this->app->make(IssueRecruitmentApplicationInvite::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             'invited@example.com',
         );
@@ -129,12 +145,46 @@ final class RecruitmentApplicationTest extends TestCase
         );
     }
 
+    public function test_public_application_is_rejected_when_alliance_is_not_active(): void
+    {
+        $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 2107, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'recruitment-suspended-owner',
+            'current_name' => 'Recruitment Suspended Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Suspended Recruitment', 'suspended-recruitment');
+        $this->app->make(ConfigureRecruitmentSettings::class)->handle(
+            $ownerPlayer,
+            $alliance,
+            RecruitmentApplicationMode::Public,
+            'Apply',
+            null,
+            90,
+            true,
+        );
+        $alliance->forceFill(['status' => AllianceStatus::Suspended, 'suspended_at' => now()])->save();
+
+        $this->expectException(ValidationException::class);
+        $this->app->make(SubmitRecruitmentApplication::class)
+            ->handle($alliance, 'Suspended Candidate', 'suspended-candidate@example.com', []);
+    }
+
     public function test_active_duplicate_email_is_rejected(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Duplicate Recruitment', 'duplicate-recruitment');
+        $kingdom = Kingdom::query()->create(['number' => 2103, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'recruitment-duplicate-owner',
+            'current_name' => 'Recruitment Duplicate Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Duplicate Recruitment', 'duplicate-recruitment');
         $this->app->make(ConfigureRecruitmentSettings::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             RecruitmentApplicationMode::Public,
             'Apply',
@@ -155,9 +205,22 @@ final class RecruitmentApplicationTest extends TestCase
 
         $owner = User::factory()->create();
         $memberUser = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Stage Recruitment', 'stage-recruitment');
+        $kingdom = Kingdom::query()->create(['number' => 2104, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'recruitment-stage-owner',
+            'current_name' => 'Recruitment Stage Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $memberUser->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'recruitment-stage-member',
+            'current_name' => 'Recruitment Stage Member',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Stage Recruitment', 'stage-recruitment');
         $this->app->make(ConfigureRecruitmentSettings::class)->handle(
-            $owner,
+            $ownerPlayer,
             $alliance,
             RecruitmentApplicationMode::Public,
             'Apply',
@@ -167,54 +230,64 @@ final class RecruitmentApplicationTest extends TestCase
         );
         $candidate = $this->app->make(SubmitRecruitmentApplication::class)->handle($alliance, 'Stage Candidate', 'stage@example.com', []);
 
-        $membership = AllianceMembership::query()->create([
+        AllianceMembership::query()->create([
             'alliance_id' => $alliance->id,
-            'user_id' => $memberUser->id,
+            'player_id' => $memberPlayer->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $memberRole = Role::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($memberRole->id, ['alliance_id' => $alliance->id]);
 
         try {
             $this->app->make(ChangeRecruitmentStage::class)->handle(
-                $memberUser,
+                $memberPlayer,
                 $alliance,
                 $candidate,
                 RecruitmentStage::Screening,
             );
-            self::fail('Expected a normal member to be denied recruitment stage changes.');
+            self::fail('Expected a normal member Player to be denied recruitment stage changes.');
         } catch (AuthorizationException) {
             self::assertSame(RecruitmentStage::New, $candidate->refresh()->stage);
         }
 
         $changeStage = $this->app->make(ChangeRecruitmentStage::class);
-        $screening = $changeStage->handle($owner, $alliance, $candidate, RecruitmentStage::Screening, 'Initial review');
+        $screening = $changeStage->handle($ownerPlayer, $alliance, $candidate, RecruitmentStage::Screening, 'Initial review');
         self::assertSame(RecruitmentStage::Screening, $screening->stage);
         self::assertNotNull($screening->first_responded_at);
 
-        $declined = $changeStage->handle($owner, $alliance, $screening, RecruitmentStage::Declined, 'Not a fit');
+        $declined = $changeStage->handle($ownerPlayer, $alliance, $screening, RecruitmentStage::Declined, 'Not a fit');
         self::assertSame(RecruitmentStage::Declined, $declined->stage);
         self::assertSame('2026-09-06', $declined->retention_due_at?->toDateString());
         self::assertSame(3, RecruitmentStageHistory::query()->where('candidate_id', $candidate->id)->count());
     }
 
-    public function test_candidate_from_another_alliance_cannot_be_transitioned(): void
+    public function test_candidate_from_another_alliance_cannot_be_transitioned_by_sibling_player(): void
     {
         $owner = User::factory()->create();
+        $firstKingdom = Kingdom::query()->create(['number' => 2105, 'status' => 'active']);
+        $secondKingdom = Kingdom::query()->create(['number' => 2106, 'status' => 'active']);
+        $firstPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $firstKingdom->id,
+            'game_player_id' => 'recruitment-first-owner',
+            'current_name' => 'Recruitment First Owner',
+        ]);
+        $secondPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $secondKingdom->id,
+            'game_player_id' => 'recruitment-second-owner',
+            'current_name' => 'Recruitment Second Owner',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $first = $createAlliance->handle($owner, 'First Recruiting', 'first-recruiting');
-        $second = $createAlliance->handle($owner, 'Second Recruiting', 'second-recruiting');
+        $first = $createAlliance->handle($firstPlayer, 'First Recruiting', 'first-recruiting');
+        $second = $createAlliance->handle($secondPlayer, 'Second Recruiting', 'second-recruiting');
         $settings = $this->app->make(ConfigureRecruitmentSettings::class);
-        $settings->handle($owner, $first, RecruitmentApplicationMode::Public, 'Apply', null, 90, true);
+        $settings->handle($firstPlayer, $first, RecruitmentApplicationMode::Public, 'Apply', null, 90, true);
         $candidate = $this->app->make(SubmitRecruitmentApplication::class)->handle($first, 'Candidate', 'candidate@example.com', []);
 
         $this->expectException(AuthorizationException::class);
         $this->app->make(ChangeRecruitmentStage::class)->handle(
-            $owner,
+            $secondPlayer,
             $second,
             $candidate,
             RecruitmentStage::Screening,

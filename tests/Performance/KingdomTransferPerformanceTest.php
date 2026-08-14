@@ -13,7 +13,7 @@ use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Enums\TransferReadinessState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\KingdomPlayer;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TransferBlocker;
 use App\Domain\Kingdoms\Models\TransferCompletion;
 use App\Domain\Kingdoms\Models\TransferGroup;
@@ -22,7 +22,6 @@ use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Kingdoms\Models\TransferReadinessTransition;
 use App\Domain\Kingdoms\Queries\TransferGroupQuery;
 use App\Domain\Kingdoms\Queries\TransferParticipantQuery;
-use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -35,16 +34,19 @@ final class KingdomTransferPerformanceTest extends TestCase
     public function test_transfer_queries_remain_batched_at_realistic_alliance_volume(): void
     {
         $owner = User::factory()->create();
+        $home = Kingdom::query()->create(['number' => 5800, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $home->id,
+            'game_player_id' => 'transfer-performance-owner',
+            'current_name' => 'Transfer Performance Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Transfer Performance', 'transfer-performance', 5800);
+            ->handle($ownerPlayer, 'Transfer Performance', 'transfer-performance');
         self::assertNotNull($alliance->kingdom_id);
 
         $destination = Kingdom::query()->create(['number' => 5899, 'status' => 'active']);
         $source = Kingdom::query()->create(['number' => 5799, 'status' => 'active']);
-        $ownerMembership = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('user_id', $owner->id)
-            ->sole();
         $plan = TransferPlan::query()->create([
             'alliance_id' => $alliance->id,
             'home_kingdom_id' => $alliance->kingdom_id,
@@ -62,7 +64,7 @@ final class KingdomTransferPerformanceTest extends TestCase
                 'direction' => TransferDirection::Outgoing,
                 'destination_kingdom_id' => $destination->id,
                 'state' => TransferGroupState::Active,
-                'coordinator_membership_id' => $ownerMembership->id,
+                'coordinator_player_id' => $ownerPlayer->id,
                 'manager_notes' => 'Private outgoing group '.$index,
             ]);
             $incomingGroups[] = TransferGroup::query()->create([
@@ -72,7 +74,7 @@ final class KingdomTransferPerformanceTest extends TestCase
                 'direction' => TransferDirection::Incoming,
                 'destination_kingdom_id' => $alliance->kingdom_id,
                 'state' => TransferGroupState::Active,
-                'coordinator_membership_id' => $ownerMembership->id,
+                'coordinator_player_id' => $ownerPlayer->id,
                 'manager_notes' => 'Private incoming group '.$index,
             ]);
         }
@@ -84,16 +86,18 @@ final class KingdomTransferPerformanceTest extends TestCase
                 1 => TransferDirection::Outgoing,
                 default => TransferDirection::Incoming,
             };
+            $player = Player::query()->create([
+                'current_kingdom_id' => $direction === TransferDirection::Incoming ? $source->id : $alliance->kingdom_id,
+                'game_player_id' => $direction === TransferDirection::Incoming
+                    ? 'incoming-performance-'.$index
+                    : 'transfer-performance-'.$index,
+                'current_name' => 'Transfer Player '.$index,
+            ]);
             $roster = null;
             if ($direction !== TransferDirection::Incoming) {
-                $player = KingdomPlayer::query()->create([
-                    'kingdom_id' => $alliance->kingdom_id,
-                    'game_player_id' => 'transfer-performance-'.$index,
-                    'current_name' => 'Transfer Player '.$index,
-                ]);
                 $roster = AllianceRosterEntry::query()->create([
                     'alliance_id' => $alliance->id,
-                    'kingdom_player_id' => $player->id,
+                    'player_id' => $player->id,
                     'observed_name' => $player->current_name,
                     'state' => 'active',
                     'source' => 'manual',
@@ -115,10 +119,9 @@ final class KingdomTransferPerformanceTest extends TestCase
                 'direction' => $direction,
                 'readiness_state' => $readiness,
                 'roster_entry_id' => $roster?->id,
+                'player_id' => $player->id,
                 'observed_name' => 'Transfer Player '.$index,
-                'game_player_id' => $direction === TransferDirection::Incoming
-                    ? 'incoming-performance-'.$index
-                    : null,
+                'game_player_id' => $player->game_player_id,
                 'source_kingdom_id' => $direction === TransferDirection::Incoming ? $source->id : $alliance->kingdom_id,
                 'destination_kingdom_id' => match ($direction) {
                     TransferDirection::Incoming => $alliance->kingdom_id,
@@ -134,7 +137,7 @@ final class KingdomTransferPerformanceTest extends TestCase
                 'transfer_participant_id' => $participant->id,
                 'from_state' => TransferReadinessState::Preparing,
                 'to_state' => $readiness,
-                'actor_user_id' => $owner->id,
+                'actor_player_id' => $ownerPlayer->id,
             ]);
 
             if ($readiness === TransferReadinessState::Blocked) {
@@ -145,7 +148,7 @@ final class KingdomTransferPerformanceTest extends TestCase
                     'state' => TransferBlockerState::Active,
                     'summary' => 'Performance blocker '.$index,
                     'details' => 'Private performance detail '.$index,
-                    'created_by_user_id' => $owner->id,
+                    'created_by_player_id' => $ownerPlayer->id,
                 ]);
             }
 
@@ -156,7 +159,7 @@ final class KingdomTransferPerformanceTest extends TestCase
                     'transfer_participant_id' => $participant->id,
                     'roster_entry_id' => $roster?->id,
                     'direction' => $direction,
-                    'completed_by_user_id' => $owner->id,
+                    'completed_by_player_id' => $ownerPlayer->id,
                     'completed_at' => now()->subMinutes($index),
                 ]);
             }

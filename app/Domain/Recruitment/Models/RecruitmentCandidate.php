@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Recruitment\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -37,6 +37,7 @@ final class RecruitmentCandidate extends Model
     protected $fillable = [
         'alliance_id',
         'applicant_user_id',
+        'player_id',
         'application_invite_id',
         'membership_invitation_id',
         'merged_into_id',
@@ -54,8 +55,7 @@ final class RecruitmentCandidate extends Model
         'joined_at',
         'retention_due_at',
         'anonymized_at',
-        'created_by_user_id',
-        'updated_by_user_id',
+        'updated_by_player_id',
     ];
 
     protected function casts(): array
@@ -89,6 +89,13 @@ final class RecruitmentCandidate extends Model
         return $this->belongsTo(Alliance::class);
     }
 
+
+    /** @return BelongsTo<Player, $this> */
+    public function player(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'player_id');
+    }
+
     /** @return BelongsTo<RecruitmentApplicationInvite, $this> */
     public function applicationInvite(): BelongsTo
     {
@@ -107,15 +114,15 @@ final class RecruitmentCandidate extends Model
         return $this->hasMany(RecruitmentAnswer::class, 'candidate_id');
     }
 
-    /** @return BelongsToMany<AllianceMembership, $this> */
+    /** @return BelongsToMany<Player, $this> */
     public function reviewers(): BelongsToMany
     {
         return $this->belongsToMany(
-            AllianceMembership::class,
+            Player::class,
             'recruitment_candidate_reviewers',
             'candidate_id',
-            'membership_id',
-        )->withPivot(['id', 'alliance_id', 'assigned_by_user_id'])->withTimestamps();
+            'reviewer_player_id',
+        )->withPivot(['id', 'alliance_id', 'assigned_by_player_id'])->withTimestamps();
     }
 
     /** @return HasMany<RecruitmentNote, $this> */

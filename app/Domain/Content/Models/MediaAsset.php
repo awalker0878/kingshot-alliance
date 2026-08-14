@@ -35,7 +35,7 @@ final class MediaAsset extends Model
         'sha256',
         'scan_status',
         'lifecycle_status',
-        'uploaded_by_user_id',
+        'uploaded_by_player_id',
         'scanned_at',
     ];
 

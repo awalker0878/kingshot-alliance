@@ -34,7 +34,7 @@ final class KingdomAllianceDiplomacyContactController extends Controller
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
-        if (! $authorization->allows($user, $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
 
@@ -65,7 +65,7 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         SaveKingdomAllianceDiplomacyContact $save,
         string $tracking,
     ): RedirectResponse {
-        $save->handle($context->alliance(), $this->user($request), $tracking, $this->validated($request));
+        $save->handle($context->alliance(), $context->player(), $tracking, $this->validated($request));
 
         return back()->with('status', 'kingdom-alliance-diplomacy-contact-saved');
     }
@@ -77,7 +77,7 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         string $tracking,
         string $contact,
     ): RedirectResponse {
-        $save->handle($context->alliance(), $this->user($request), $tracking, $this->validated($request), $contact);
+        $save->handle($context->alliance(), $context->player(), $tracking, $this->validated($request), $contact);
 
         return back()->with('status', 'kingdom-alliance-diplomacy-contact-saved');
     }
@@ -89,7 +89,7 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         string $tracking,
         string $contact,
     ): RedirectResponse {
-        $deactivate->handle($context->alliance(), $this->user($request), $tracking, $contact);
+        $deactivate->handle($context->alliance(), $context->player(), $tracking, $contact);
 
         return back()->with('status', 'kingdom-alliance-diplomacy-contact-deactivated');
     }
@@ -154,9 +154,9 @@ final class KingdomAllianceDiplomacyContactController extends Controller
             'state' => $contact->state->value,
             'lastVerifiedAt' => $contact->last_verified_at?->toIso8601String(),
             'managerNotes' => $contact->manager_notes,
-            'createdByName' => $contact->createdBy?->name,
-            'updatedByName' => $contact->updatedBy?->name,
-            'deactivatedByName' => $contact->deactivatedBy?->name,
+            'createdByName' => $contact->createdBy?->current_name,
+            'updatedByName' => $contact->updatedBy?->current_name,
+            'deactivatedByName' => $contact->deactivatedBy?->current_name,
             'createdAt' => $contact->created_at->toIso8601String(),
             'updatedAt' => $contact->updated_at->toIso8601String(),
             'deactivatedAt' => $contact->deactivated_at?->toIso8601String(),

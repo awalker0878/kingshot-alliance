@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentNote;
@@ -26,7 +26,7 @@ final class MergeRecruitmentCandidates
     ) {}
 
     public function handle(
-        User $actor,
+        Player $actor,
         Alliance $alliance,
         RecruitmentCandidate $source,
         RecruitmentCandidate $target,
@@ -81,14 +81,14 @@ final class MergeRecruitmentCandidates
                 'contact_handle' => $targetCandidate->contact_handle ?: $sourceCandidate->contact_handle,
                 'source' => $targetCandidate->source ?: $sourceCandidate->source,
                 'next_action_at' => $targetCandidate->next_action_at ?: $sourceCandidate->next_action_at,
-                'updated_by_user_id' => $actor->id,
+                'updated_by_player_id' => $actor->id,
             ])->save();
 
             if ($reason !== null && trim($reason) !== '') {
                 RecruitmentNote::query()->create([
                     'alliance_id' => $alliance->id,
                     'candidate_id' => $targetCandidate->id,
-                    'author_membership_id' => $this->actorMembershipId($actor, $alliance),
+                    'author_player_id' => $actor->id,
                     'body' => 'Merge reason: '.trim($reason),
                 ]);
             }
@@ -96,7 +96,7 @@ final class MergeRecruitmentCandidates
             $sourceCandidate->forceFill([
                 'merged_into_id' => $targetCandidate->id,
                 'next_action_at' => null,
-                'updated_by_user_id' => $actor->id,
+                'updated_by_player_id' => $actor->id,
             ])->save();
 
             $this->audit->record('recruitment.candidate.merged', $actor, $sourceCandidate, $alliance, [
@@ -112,29 +112,20 @@ final class MergeRecruitmentCandidates
         });
     }
 
-    private function actorMembershipId(User $actor, Alliance $alliance): string
-    {
-        return (string) DB::table('alliance_memberships')
-            ->where('alliance_id', $alliance->id)
-            ->where('user_id', $actor->id)
-            ->where('status', 'active')
-            ->value('id');
-    }
-
     private function copyReviewers(
         Alliance $alliance,
         RecruitmentCandidate $source,
         RecruitmentCandidate $target,
-        User $actor,
+        Player $actor,
     ): void {
         $reviewerIds = DB::table('recruitment_candidate_reviewers')
             ->where('candidate_id', $source->id)
-            ->pluck('membership_id');
+            ->pluck('reviewer_player_id');
 
-        foreach ($reviewerIds as $membershipId) {
+        foreach ($reviewerIds as $reviewerPlayerId) {
             $exists = DB::table('recruitment_candidate_reviewers')
                 ->where('candidate_id', $target->id)
-                ->where('membership_id', $membershipId)
+                ->where('reviewer_player_id', $reviewerPlayerId)
                 ->exists();
 
             if (! $exists) {
@@ -142,8 +133,8 @@ final class MergeRecruitmentCandidates
                     'id' => (string) Str::ulid(),
                     'alliance_id' => $alliance->id,
                     'candidate_id' => $target->id,
-                    'membership_id' => $membershipId,
-                    'assigned_by_user_id' => $actor->id,
+                    'reviewer_player_id' => $reviewerPlayerId,
+                    'assigned_by_player_id' => $actor->id,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

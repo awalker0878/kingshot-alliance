@@ -78,8 +78,7 @@ final class PurgeExpiredRecruitmentCandidates
                     'next_action_at' => null,
                     'retention_due_at' => null,
                     'anonymized_at' => now(),
-                    'created_by_user_id' => null,
-                    'updated_by_user_id' => null,
+                    'updated_by_player_id' => null,
                 ])->save();
 
                 return true;

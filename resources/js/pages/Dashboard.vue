@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 
 import AppLayout from '../layouts/AppLayout.vue';
 import { useLocale } from '../localization';
@@ -18,6 +17,7 @@ type MembershipSummary = {
     slug: string;
     timezone: string;
   };
+  rank: string;
   roles: RoleSummary[];
   canManageAlliance: boolean;
 };
@@ -30,22 +30,16 @@ const props = defineProps<{
     emailVerified: boolean;
     timezone: string;
   };
-  memberships: MembershipSummary[];
-  activeAllianceId: string | null;
+  activePlayer: { id: string; name: string; gamePlayerId: string | null; kingdomNumber: number | null } | null;
+  membership: MembershipSummary | null;
+  canCreateAlliance: boolean;
 }>();
 
 const { t } = useLocale();
 
-const activeMembership = computed(
-  () =>
-    props.memberships.find((membership) => membership.alliance.id === props.activeAllianceId) ??
-    null,
-);
-
 const allianceForm = useForm({
   name: '',
   slug: '',
-  kingdom: '',
   language: 'en',
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
 });
@@ -62,16 +56,12 @@ function slugifyName(): void {
 
 function createAlliance(): void {
   allianceForm.post('/alliances', {
-    onSuccess: () => allianceForm.reset('name', 'slug', 'kingdom'),
+    onSuccess: () => allianceForm.reset('name', 'slug'),
   });
 }
 
-function activateAlliance(allianceId: string): void {
-  router.put(`/alliances/${allianceId}/active`);
-}
-
 function rolesFor(membership: MembershipSummary): string {
-  return membership.roles.map((role) => role.name).join(', ') || t('application.dashboard.noRoles');
+  return [membership.rank.toUpperCase(), ...membership.roles.map((role) => role.name)].join(' · ');
 }
 </script>
 
@@ -80,8 +70,8 @@ function rolesFor(membership: MembershipSummary): string {
 
   <AppLayout
     :user="user"
-    :has-active-alliance="activeAllianceId !== null"
-    :alliance-name="activeMembership?.alliance.name ?? null"
+    :has-player-alliance="membership !== null"
+    :player-alliance-name="membership?.alliance.name ?? null"
   >
     <header class="mb-8 grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
       <div>
@@ -107,18 +97,18 @@ function rolesFor(membership: MembershipSummary): string {
       </div>
 
       <Link
-        v-if="activeAllianceId"
+        v-if="membership"
         class="w-fit rounded-[var(--ks-radius-sm)] border border-[var(--ks-border-strong)] bg-[var(--ks-gold)] px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-[var(--ks-gold-strong)]"
         href="/alliance"
       >
-        {{ t('application.dashboard.openActiveAlliance') }}
+        {{ t('application.dashboard.openPlayerAlliance') }}
       </Link>
     </header>
 
     <section
-      v-if="activeMembership"
+      v-if="membership"
       class="ks-surface-gold relative overflow-hidden p-6 sm:p-7"
-      aria-labelledby="active-alliance-heading"
+      aria-labelledby="player-alliance-heading"
     >
       <div
         class="pointer-events-none absolute inset-y-0 end-0 w-1/2 bg-[radial-gradient(circle_at_70%_35%,rgba(212,175,55,0.12),transparent_65%)]"
@@ -128,7 +118,7 @@ function rolesFor(membership: MembershipSummary): string {
         <div>
           <div class="flex flex-wrap items-center gap-3">
             <p class="text-xs font-bold tracking-[0.18em] text-[var(--ks-gold)] uppercase">
-              {{ t('application.dashboard.activeAllianceTitle') }}
+              {{ t('application.dashboard.playerAllianceTitle') }}
             </p>
             <span
               class="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300"
@@ -137,25 +127,25 @@ function rolesFor(membership: MembershipSummary): string {
             </span>
           </div>
           <h2
-            id="active-alliance-heading"
+            id="player-alliance-heading"
             class="ks-display mt-3 text-2xl font-semibold sm:text-3xl"
           >
-            {{ activeMembership.alliance.name }}
+            {{ membership.alliance.name }}
           </h2>
           <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--ks-text-muted)]">
-            {{ t('application.dashboard.activeAllianceIntro') }}
+            {{ t('application.dashboard.playerAllianceIntro') }}
           </p>
           <dl class="mt-5 flex flex-wrap gap-x-8 gap-y-4 text-sm">
             <div>
               <dt class="text-[var(--ks-text-muted)]">{{ t('application.dashboard.roles') }}</dt>
               <dd class="mt-1 font-semibold text-[var(--ks-text)]">
-                {{ rolesFor(activeMembership) }}
+                {{ rolesFor(membership) }}
               </dd>
             </div>
             <div>
               <dt class="text-[var(--ks-text-muted)]">{{ t('application.dashboard.timezone') }}</dt>
               <dd class="mt-1 font-semibold text-[var(--ks-text)]">
-                {{ activeMembership.alliance.timezone }}
+                {{ membership.alliance.timezone }}
               </dd>
             </div>
           </dl>
@@ -172,7 +162,7 @@ function rolesFor(membership: MembershipSummary): string {
             {{ t('application.dashboard.transfers') }}
           </Link>
           <Link
-            v-if="activeMembership.canManageAlliance"
+            v-if="membership.canManageAlliance"
             class="ks-command-link border-[rgba(75,143,247,0.4)] bg-[var(--ks-blue-soft)] text-[var(--ks-blue-strong)]"
             href="/alliance/settings/kingdom"
           >
@@ -185,85 +175,48 @@ function rolesFor(membership: MembershipSummary): string {
     <section
       v-else
       class="ks-surface border-dashed p-6 sm:p-7"
-      aria-labelledby="choose-alliance-heading"
+      aria-labelledby="no-player-alliance-heading"
     >
       <p class="text-xs font-bold tracking-[0.18em] text-[var(--ks-blue-strong)] uppercase">
-        {{ t('application.dashboard.activeAllianceTitle') }}
+        {{ t('application.dashboard.playerAllianceTitle') }}
       </p>
-      <h2 id="choose-alliance-heading" class="ks-display mt-2 text-2xl font-semibold">
-        {{ t('application.dashboard.noActiveAllianceTitle') }}
+      <h2 id="no-player-alliance-heading" class="ks-display mt-2 text-2xl font-semibold">
+        {{ t('application.dashboard.noPlayerAllianceTitle') }}
       </h2>
       <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--ks-text-muted)]">
-        {{ t('application.dashboard.noActiveAllianceIntro') }}
+        {{ t('application.dashboard.noPlayerAllianceIntro') }}
       </p>
     </section>
 
     <div class="mt-10 grid gap-8 2xl:grid-cols-[minmax(0,1.35fr)_minmax(24rem,0.65fr)]">
-      <section aria-labelledby="alliances-heading">
+      <section aria-labelledby="player-context-heading">
         <div>
-          <h2 id="alliances-heading" class="ks-display text-2xl font-semibold">
-            {{ t('application.dashboard.alliancesTitle') }}
+          <h2 id="player-context-heading" class="ks-display text-2xl font-semibold">
+            {{ t('application.dashboard.playerContextTitle') }}
           </h2>
           <p class="mt-2 text-sm text-[var(--ks-text-muted)]">
-            {{ t('application.dashboard.alliancesIntro') }}
+            {{ t('application.dashboard.playerContextIntro') }}
           </p>
         </div>
 
-        <div v-if="memberships.length" class="mt-5 grid gap-4 md:grid-cols-2">
-          <article
-            v-for="membership in memberships"
-            :key="membership.id"
-            class="ks-surface p-5 transition"
-            :class="
-              activeAllianceId === membership.alliance.id
-                ? 'ring-1 ring-[var(--ks-border-strong)]'
-                : 'hover:border-[var(--ks-border-strong)]'
-            "
-          >
-            <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0">
-                <h3 class="truncate text-lg font-semibold">{{ membership.alliance.name }}</h3>
-                <p class="mt-1 text-sm text-[var(--ks-text-muted)]">
-                  {{ membership.alliance.timezone }}
-                </p>
-              </div>
-              <span
-                v-if="activeAllianceId === membership.alliance.id"
-                class="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300"
-              >
-                {{ t('application.dashboard.active') }}
-              </span>
-            </div>
-
-            <div class="mt-5 border-t border-[var(--ks-border)] pt-4">
-              <p class="text-xs font-bold tracking-[0.14em] text-[var(--ks-text-muted)] uppercase">
-                {{ t('application.dashboard.roles') }}
-              </p>
-              <p class="mt-2 text-sm leading-6 text-[var(--ks-text-secondary)]">
-                {{ rolesFor(membership) }}
-              </p>
-            </div>
-
-            <button
-              v-if="activeAllianceId !== membership.alliance.id"
-              class="mt-5 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2.5 text-sm font-semibold text-[var(--ks-text-secondary)] transition hover:border-[var(--ks-border-strong)] hover:bg-[var(--ks-surface-2)] hover:text-[var(--ks-text)]"
-              type="button"
-              @click="activateAlliance(membership.alliance.id)"
-            >
-              {{ t('application.dashboard.switchAlliance') }}
-            </button>
-          </article>
+        <div v-if="activePlayer" class="ks-surface mt-5 p-5">
+          <h3 class="text-lg font-semibold">{{ activePlayer.name }}</h3>
+          <p v-if="activePlayer.gamePlayerId" class="mt-1 text-sm text-[var(--ks-text-muted)]">
+            {{ activePlayer.gamePlayerId }}
+          </p>
+          <p v-if="activePlayer.kingdomNumber" class="mt-2 text-sm text-[var(--ks-text-secondary)]">
+            {{ t('application.dashboard.playerKingdom', { kingdom: activePlayer.kingdomNumber }) }}
+          </p>
+          <p class="mt-4 text-sm leading-6 text-[var(--ks-text-muted)]">
+            {{ t('application.dashboard.playerAuthorityIntro') }}
+          </p>
         </div>
-
-        <p
-          v-else
-          class="mt-5 rounded-[var(--ks-radius-lg)] border border-dashed border-[var(--ks-border)] bg-[var(--ks-surface-1)]/60 p-5 text-sm leading-6 text-[var(--ks-text-muted)]"
-        >
-          {{ t('application.dashboard.empty') }}
+        <p v-else class="ks-surface mt-5 p-5 text-sm text-[var(--ks-text-muted)]">
+          {{ t('application.dashboard.selectPlayer') }}
         </p>
       </section>
 
-      <section class="ks-surface-gold p-6 sm:p-7" aria-labelledby="create-alliance-heading">
+      <section v-if="canCreateAlliance" class="ks-surface-gold p-6 sm:p-7" aria-labelledby="create-alliance-heading">
         <h2 id="create-alliance-heading" class="ks-display text-2xl font-semibold">
           {{ t('application.dashboard.createTitle') }}
         </h2>
@@ -303,23 +256,6 @@ function rolesFor(membership: MembershipSummary): string {
             />
             <p v-if="allianceForm.errors.slug" class="mt-1.5 text-sm text-[var(--ks-red)]">
               {{ allianceForm.errors.slug }}
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium" for="alliance-kingdom">
-              {{ t('application.dashboard.kingdomNumber') }}
-            </label>
-            <input
-              id="alliance-kingdom"
-              v-model="allianceForm.kingdom"
-              class="ks-input mt-2"
-              inputmode="numeric"
-              pattern="[1-9][0-9]*"
-              type="text"
-            />
-            <p v-if="allianceForm.errors.kingdom" class="mt-1.5 text-sm text-[var(--ks-red)]">
-              {{ allianceForm.errors.kingdom }}
             </p>
           </div>
 

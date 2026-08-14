@@ -1,108 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: 'Quay lại sự kiện',
-    eyebrow: 'Vận hành sự kiện',
-    title: 'Điều phối sự kiện',
-    description:
-      'Lên lịch sự kiện, công bố hướng dẫn rally, tổ chức đội hình và nhóm, sau đó ghi nhận điểm danh và tham gia.',
-    scheduling: 'Lịch và mẫu',
-    remindersGuidance: 'Nhắc nhở và hướng dẫn',
-    rallySetup: 'Đội hình và rally',
-    readiness: 'Sẵn sàng và điểm danh',
-    createEvent: 'Tạo sự kiện',
-    eventTitle: 'Tiêu đề sự kiện',
-    firstStart: 'Bắt đầu đầu tiên',
-    durationMinutes: 'Thời lượng (phút)',
-    registrationOpens: 'Mở đăng ký (phút trước)',
-    registrationCloses: 'Đóng đăng ký (phút trước)',
-    recurrence: 'Lặp lại',
-    interval: 'Khoảng lặp',
-    recurrenceEnd: 'Kết thúc lặp lại',
-    createEventAction: 'Tạo sự kiện',
-    eventValidation: 'Kiểm tra các trường sự kiện và khoảng đăng ký.',
-    createTemplate: 'Tạo mẫu sự kiện',
-    saveTemplate: 'Lưu mẫu',
-    scheduleFromTemplate: 'Lên lịch từ mẫu',
-    chooseTemplate: 'Chọn mẫu',
-    optionalTitle: 'Tiêu đề tùy chọn',
-    scheduleTemplate: 'Lên lịch mẫu',
-    reminderRule: 'Quy tắc nhắc nhở',
-    reminderHelp: 'Tạo nhắc nhở trong ứng dụng cho mỗi lần diễn ra của sự kiện đã chọn.',
-    chooseEvent: 'Chọn sự kiện',
-    minutesBefore: 'Phút trước khi bắt đầu',
-    addReminder: 'Thêm nhắc nhở',
-    rallyGuidance: 'Hướng dẫn rally',
-    guidanceHelp: 'Công bố tỷ lệ quân và hướng dẫn anh hùng có thể tái sử dụng với ngày hiệu lực.',
-    heroRecommendations: 'Gợi ý anh hùng',
-    effectiveFrom: 'Hiệu lực từ',
-    effectiveUntil: 'Hiệu lực đến',
-    leadRequirements: 'Yêu cầu người dẫn',
-    joinerGuidance: 'Hướng dẫn người tham gia',
-    guidanceValidation: 'Kiểm tra ngày hiệu lực và bảo đảm tổng tỷ lệ quân bằng 100%.',
-    publishGuidance: 'Công bố hướng dẫn',
-    eventFormation: 'Đội hình sự kiện',
-    occurrence: 'Lần diễn ra',
-    chooseOccurrence: 'Chọn lần diễn ra',
-    noGuidance: 'Không có hướng dẫn liên kết',
-    addFormation: 'Thêm đội hình',
-    rallyGroup: 'Nhóm rally',
-    maxJoiners: 'Tối đa người tham gia',
-    none: 'Không có',
-    createGroup: 'Tạo nhóm',
-    assignMember: 'Chỉ định thành viên rally',
-    member: 'Thành viên',
-    chooseGroup: 'Chọn nhóm',
-    chooseMember: 'Chọn thành viên',
-    slotNumber: 'Số vị trí',
-    saveAssignment: 'Lưu chỉ định',
-    registrations: 'Đăng ký',
-    noRegistrations: 'Không có đăng ký đang hoạt động cho lần này.',
-    rallyAssignments: 'Chỉ định rally',
-    noAssignments: 'Không có chỉ định rally cho lần này.',
-    participated: 'Đã tham gia',
-    statusAssigned: 'Đã chỉ định',
-    statusParticipated: 'Đã tham gia',
-    recurrenceNone: 'Không',
-    recurrenceDaily: 'Hàng ngày',
-    recurrenceWeekly: 'Hàng tuần',
-    roleLead: 'Dẫn đầu',
-    roleJoiner: 'Tham gia',
-  },
-  eventDetail: {
-    participation: 'Tham gia',
-    registeredCount: '{count} đã đăng ký',
-    waitlistedCount: '{count} đang chờ',
-    noLimit: 'Không giới hạn',
-    instructions: 'Hướng dẫn',
-    recommendedFormations: 'Đội hình đề xuất',
-    noRecommendedFormations: 'Chưa có hướng dẫn đội hình riêng cho sự kiện này.',
-    assignmentRole: 'Vai trò phân công',
-    troopRatio: 'Tỷ lệ quân',
-    infantry: 'Bộ binh',
-    cavalry: 'Kỵ binh',
-    archers: 'Cung thủ',
-    heroes: 'Tướng',
-    notes: 'Ghi chú',
-    guidance: 'Chỉ dẫn',
-    source: 'Nguồn',
-    effective: 'Hiệu lực từ {date}',
-    through: 'đến {date}',
-    rallyGroups: 'Nhóm rally',
-    maxJoiners: 'Tối đa người tham gia: {count}',
-    noAssigned: 'Chưa có thành viên được phân công.',
-    noRallyGroups: 'Chưa cấu hình nhóm rally cho sự kiện này.',
-    savedFormations: 'Đội hình đã lưu của bạn',
-    default: 'Mặc định',
-    noSavedFormations: 'Bạn chưa lưu đội hình nào.',
-    saveFormation: 'Lưu đội hình',
-    formationName: 'Tên',
-    heroesHint: 'Tướng một, Tướng hai, Tướng ba',
-    makeDefault: 'Đặt làm đội hình mặc định',
-    formationValidation: 'Kiểm tra các giá trị. Tỷ lệ quân phải cộng lại bằng 100%.',
-    save: 'Lưu đội hình',
-  },
+  "events": {
+    "scope": {
+      "player": "Người chơi",
+      "alliance": "Liên minh",
+      "kingdom": "Vương quốc"
+    },
+    "actions": {
+      "save": "Lưu",
+      "cancel": "Hủy"
+    },
+    "calendar": {
+      "title": "Sự kiện",
+      "create": "Tạo sự kiện",
+      "agenda": "Lịch trình",
+      "month": "Lịch",
+      "all": "Tất cả phạm vi",
+      "manageable": "Quản lý",
+      "empty": "Không có sự kiện phù hợp với chế độ xem này.",
+      "previousMonth": "Tháng trước",
+      "nextMonth": "Tháng sau",
+      "scopeFilters": "Lọc sự kiện theo phạm vi",
+      "viewOptions": "Chọn chế độ xem sự kiện"
+    },
+    "create": {
+      "title": "Tạo sự kiện",
+      "back": "Quay lại sự kiện",
+      "noContexts": "Hiện tại bạn không có quyền tạo sự kiện.",
+      "context": "Bối cảnh sự kiện",
+      "eventType": "Loại sự kiện",
+      "start": "Thời gian bắt đầu",
+      "duration": "Thời lượng (phút)",
+      "capacity": "Sức chứa",
+      "instructions": "Hướng dẫn",
+      "submit": "Tạo sự kiện"
+    },
+    "show": {
+      "back": "Quay lại sự kiện",
+      "manage": "Quản lý sự kiện",
+      "details": "Chi tiết sự kiện",
+      "status": "Trạng thái",
+      "capacity": "Sức chứa",
+      "recurrence": "Lặp lại",
+      "modules": "Mô-đun vận hành"
+    },
+    "manage": {
+      "title": "Quản lý sự kiện",
+      "back": "Quay lại sự kiện",
+      "save": "Lưu sự kiện",
+      "cancel": "Hủy sự kiện"
+    },
+    "attention": {
+      "title": "Thao tác sự kiện",
+      "response": "Cần phản hồi",
+      "registration": "Có thể đăng ký",
+      "vote": "Cần bỏ phiếu",
+      "roster_confirmation": "Cần xác nhận đội hình"
+    },
+    "reminders": {
+      "title": "Nhắc nhở gần đây"
+    },
+    "participation": {
+      "register": "Đăng ký",
+      "cancelRegistration": "Hủy đăng ký"
+    },
+    "responses": {
+      "going": "Tham gia",
+      "maybe": "Có thể",
+      "unavailable": "Không thể tham gia"
+    },
+    "registration": {
+      "registered": "Đã đăng ký",
+      "waitlisted": "Danh sách chờ",
+      "cancelled": "Đã hủy"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "Liên minh kiểm soát",
+      "game_calendar": "Lịch trong game",
+      "matchmaking": "Ghép trận",
+      "manual": "Thủ công"
+    },
+    "recurrencePolicies": {
+      "disabled": "Không lặp lại",
+      "fixed_interval": "Khoảng cố định",
+      "configurable": "Có thể cấu hình"
+    },
+    "recurrenceFrequencies": {
+      "none": "Không lặp lại",
+      "daily": "Hằng ngày",
+      "weekly": "Hằng tuần"
+    },
+    "attendanceStatuses": {
+      "present": "Có mặt",
+      "absent": "Vắng mặt",
+      "excused": "Có phép",
+      "unknown": "Không rõ"
+    },
+    "eventStatuses": {
+      "draft": "Bản nháp",
+      "published": "Đã đăng",
+      "cancelled": "Đã hủy",
+      "completed": "Hoàn tất"
+    },
+    "capabilities": {
+      "responses": "Phản hồi",
+      "registration": "Đăng ký",
+      "waitlist": "Danh sách chờ",
+      "attendance": "Điểm danh",
+      "phases": "Giai đoạn",
+      "polls": "Bình chọn",
+      "rosters": "Đội hình",
+      "substitutes": "Dự bị",
+      "teams": "Đội",
+      "legions": "Quân đoàn",
+      "rally_guidance": "Hướng dẫn rally",
+      "formations": "Đội hình quân",
+      "objectives": "Mục tiêu",
+      "scoring": "Điểm số",
+      "results": "Kết quả"
+    },
+    "reminderAudiences": {
+      "target": "Đối tượng sự kiện",
+      "responded": "Người chơi đã phản hồi",
+      "registered": "Người chơi đã đăng ký",
+      "rostered": "Người chơi trong đội hình",
+      "all_scope_players": "Tất cả người chơi đủ điều kiện"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

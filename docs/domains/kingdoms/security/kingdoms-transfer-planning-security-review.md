@@ -13,7 +13,7 @@ The complete transfer-planning increment passed the repository security/integrit
 ## Tenant and object-ID boundaries
 
 - `TransferPlan`, participant, group, readiness/blocker and completion data are alliance-owned.
-- Global `Kingdom` and `KingdomPlayer` references never authorize access to an alliance transfer plan.
+- Global `Kingdom` and `Player` references never authorize access to an alliance transfer plan.
 - Submitted plan, participant, group, roster and membership identifiers are re-resolved beneath the active Alliance and plan boundary.
 - Cross-alliance object-ID substitution fails closed, including when two alliances share the same Kingdom reference.
 - Destination Kingdom references do not create cross-alliance visibility or mutation rights.
@@ -30,7 +30,7 @@ Application identity, alliance membership, neutral game identity and transfer pa
 
 Incoming planning may exist before membership/roster creation. Display name alone never auto-merges a neutral player or accepted roster result. Stable game-player identity is the automatic identity key when available, and explicit existing-roster linking fails on stable-ID mismatch.
 
-Planning an outgoing destination never moves a neutral `KingdomPlayer` to that Kingdom.
+Planning an outgoing destination never moves a neutral `Player` to that Kingdom.
 
 ## Home-Kingdom and destination integrity
 
@@ -71,7 +71,7 @@ Shared player/Kingdom references do not turn private transfer observations into 
 
 No public Transfer/Kingdoms API scope or route is introduced.
 
-`alliance.kingdom_updated` and `kingdoms.*`, including `kingdoms.transfer_*`, remain internal transactional-outbox events. Generic outbound webhook fan-out rejects these events even for wildcard subscriptions. Any future external transfer contract requires separate approval and schema/security review.
+`kingdoms.*`, including `kingdoms.transfer_*`, remain internal transactional-outbox events. Generic outbound webhook fan-out rejects these events even for wildcard subscriptions. Any future external transfer contract requires separate approval and schema/security review.
 
 ## Abuse and scope-boundary review
 

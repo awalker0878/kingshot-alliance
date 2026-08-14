@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
 use App\Domain\Kingdoms\Services\KingdomIntelligenceShareTokenService;
@@ -26,7 +26,7 @@ final readonly class DeclineKingdomIntelligenceShareInvitation
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $recipientAlliance, User $actor, string $token): KingdomIntelligenceShare
+    public function handle(Alliance $recipientAlliance, Player $actor, string $token): KingdomIntelligenceShare
     {
         if (! $this->authorization->allows($actor, $recipientAlliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
@@ -65,7 +65,7 @@ final readonly class DeclineKingdomIntelligenceShareInvitation
             $share->forceFill([
                 'recipient_alliance_id' => $recipient->id,
                 'state' => KingdomIntelligenceShareState::Declined,
-                'declined_by_user_id' => $actor->id,
+                'declined_by_player_id' => $actor->id,
                 'invitation_token_hash' => null,
                 'invitation_used_at' => now(),
                 'declined_at' => now(),

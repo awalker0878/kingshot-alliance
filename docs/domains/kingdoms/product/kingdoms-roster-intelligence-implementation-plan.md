@@ -51,7 +51,7 @@ Lock the data, tenancy, authorization and migration boundaries before runtime sc
 ### Deliverables
 
 - Confirm `Kingdom` is global reference data keyed by canonical kingdom number.
-- Confirm `KingdomPlayer` is global neutral game identity/reference data and does not own alliance-private observations.
+- Confirm `Player` is global neutral game identity/reference data and does not own alliance-private observations.
 - Confirm alliance roster entries and player snapshots are alliance-scoped.
 - Define the exact migration/backfill rule from the current nullable `alliances.kingdom` string.
 - Define how malformed or non-normalizable legacy values are handled without silent data loss.
@@ -64,7 +64,7 @@ Lock the data, tenancy, authorization and migration boundaries before runtime sc
 ### Verification gate
 
 - Migration design is reversible for development/test rollback and preserves all normalizable legacy values.
-- No proposed global Kingdom/KingdomPlayer query creates cross-alliance access to roster notes, snapshots, membership links, imports, exports or metrics.
+- No proposed global Kingdom/Player query creates cross-alliance access to roster notes, snapshots, membership links, imports, exports or metrics.
 - No future transfer/diplomacy/automated-ingestion field is added merely as a placeholder.
 
 ## 4. K1-P1 — First-class Kingdom foundation
@@ -135,10 +135,10 @@ Introduce game identity and an alliance-owned roster without conflating applicat
 
 ### Persistence
 
-- Add global neutral `KingdomPlayer` records owned by Kingdoms.
+- Add global neutral `Player` records owned by Kingdoms.
 - Support optional stable game-player identifier when known.
 - Do not enforce player-name uniqueness.
-- Add alliance-scoped roster entries linking `alliance_id` to `kingdom_player_id`.
+- Add alliance-scoped roster entries linking `alliance_id` to `player_id`.
 - Add optional same-alliance `membership_id` link.
 - Add roster state, game role/rank, joined/left dates, private manager notes, last-observed timestamp and source/provenance fields required by the approved scope.
 - Add database constraints/indexes that support tenant-scoped queries and prevent duplicate active roster relationships where appropriate.

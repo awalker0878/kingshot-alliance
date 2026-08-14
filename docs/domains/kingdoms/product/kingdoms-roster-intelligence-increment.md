@@ -50,7 +50,7 @@ User
        └─ optional link to alliance roster entry
 
 Kingdom
-  └─ KingdomPlayer
+  └─ Player
        └─ alliance-scoped roster entry
             └─ alliance-scoped snapshots
 ```
@@ -84,7 +84,7 @@ An alliance can belong to one current kingdom at a time. Changing that associati
 
 ### 4.2 Game-player identity
 
-Introduce a neutral `KingdomPlayer` identity that belongs to a kingdom and can represent a Kingshot player independently of any site account.
+Introduce a neutral `Player` identity that belongs to a kingdom and can represent a Kingshot player independently of any site account.
 
 The initial identity model supports:
 
@@ -98,7 +98,7 @@ If no stable game identifier exists, names are not assumed globally unique.
 
 ### 4.3 Alliance roster entries
 
-Introduce an alliance-scoped roster record that connects an alliance to a tracked `KingdomPlayer`.
+Introduce an alliance-scoped roster record that connects an alliance to a tracked `Player`.
 
 A roster entry supports:
 
@@ -233,7 +233,7 @@ Platform administrators do not implicitly act as alliance roster managers throug
 | Audit event | Audit | Correlated to actor/alliance as applicable |
 | Durable internal event | Platform outbox | Alliance-scoped where tenant data is involved |
 
-Global Kingdom/KingdomPlayer records contain only neutral reference identity. Private notes, observations, roster status, import state and metrics belong to alliance-scoped records.
+Global Kingdom/Player records contain only neutral reference identity. Private notes, observations, roster status, import state and metrics belong to alliance-scoped records.
 
 ## 7. Cross-domain contracts
 
@@ -259,7 +259,7 @@ Roster power snapshots are game observations, not contribution records. Contribu
 
 ### Integrations
 
-No new public Kingdoms API or webhook schema is accepted in this increment. Kingdoms mutations still use the transactional outbox where durable publication is required, but `alliance.kingdom_updated` and `kingdoms.*` events remain internal and are excluded from generic external webhook fan-out. External Kingdoms API/webhook exposure requires an explicit future contract update.
+No new public Kingdoms API or webhook schema is accepted in this increment. Kingdoms mutations still use the transactional outbox where durable publication is required, but `kingdoms.*` events remain internal and are excluded from generic external webhook fan-out. External Kingdoms API/webhook exposure requires an explicit future contract update.
 
 ## 8. Delivery slices
 
@@ -273,7 +273,7 @@ No new public Kingdoms API or webhook schema is accepted in this increment. King
 
 ### Slice B — Roster foundation
 
-- `KingdomPlayer` identity;
+- `Player` identity;
 - alliance-scoped roster entries;
 - optional membership linking;
 - `kingdoms.manage` permission and built-in role defaults;

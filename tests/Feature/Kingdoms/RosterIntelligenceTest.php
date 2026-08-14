@@ -6,11 +6,12 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,64 +29,85 @@ final class RosterIntelligenceTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_dashboard_distinguishes_missing_zero_stale_and_uses_deterministic_trend_windows(): void
+    public function test_dashboard_distinguishes_missing_zero_stale_and_uses_deterministic_player_trend_windows(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00 UTC'));
         $owner = User::factory()->create();
         $member = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Intelligence Alliance', 'intelligence-alliance', 3301);
-        $this->addMember($alliance->id, $member);
-        $ownerMembership = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('user_id', $owner->id)
-            ->sole();
+        $kingdom = Kingdom::query()->create(['number' => 3301, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'intelligence-owner-3301',
+            'current_name' => 'Intelligence Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $member->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'intelligence-member-3301',
+            'current_name' => 'Intelligence Member',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Intelligence Alliance', 'intelligence-alliance');
+        AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $memberPlayer->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
+            'joined_at' => now(),
+        ]);
 
         $alpha = $this->createRosterEntry(
             $owner,
+            $ownerPlayer,
             $alliance,
             'Alpha',
-            membershipId: $ownerMembership->id,
+            gamePlayerId: 'intelligence-owner-3301',
             joinedAt: now()->subDays(2)->toDateString(),
         );
-        $bravo = $this->createRosterEntry($owner, $alliance, 'Bravo', state: 'tracked');
-        $charlie = $this->createRosterEntry($owner, $alliance, 'Charlie');
-        $delta = $this->createRosterEntry($owner, $alliance, 'Delta');
-        $echo = $this->createRosterEntry($owner, $alliance, 'Echo');
-        $left = $this->createRosterEntry($owner, $alliance, 'Former Player');
+        self::assertSame($ownerPlayer->id, $alpha->player_id);
+        $bravo = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Bravo', state: 'tracked');
+        $charlie = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Charlie');
+        $delta = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Delta');
+        $echo = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Echo');
+        $left = $this->createRosterEntry($owner, $ownerPlayer, $alliance, 'Former Player');
 
-        $this->withSession($this->confirmedSession($alliance->id))
+        $this->withSession($this->confirmedSession($ownerPlayer->id))
             ->post('/alliance/roster/'.$left->id.'/leave')
             ->assertRedirect();
 
-        $this->snapshot($owner, $alliance, $alpha, '70', now()->subDays(35));
-        $this->snapshot($owner, $alliance, $alpha, '80', now()->subDays(8));
-        $this->snapshot($owner, $alliance, $alpha, '100', now()->subDay());
+        $this->snapshot($ownerPlayer, $alliance, $alpha, '70', now()->subDays(35));
+        $this->snapshot($ownerPlayer, $alliance, $alpha, '80', now()->subDays(8));
+        $this->snapshot($ownerPlayer, $alliance, $alpha, '100', now()->subDay());
 
-        $this->snapshot($owner, $alliance, $bravo, '220', now()->subDays(45));
-        $this->snapshot($owner, $alliance, $bravo, '250', now()->subDays(13));
-        $this->snapshot($owner, $alliance, $bravo, '200', now()->subDays(2));
+        $this->snapshot($ownerPlayer, $alliance, $bravo, '220', now()->subDays(45));
+        $this->snapshot($ownerPlayer, $alliance, $bravo, '250', now()->subDays(13));
+        $this->snapshot($ownerPlayer, $alliance, $bravo, '200', now()->subDays(2));
 
         // Zero is a recorded value, not missing. The 29-day snapshot is too new for a 30-day
         // baseline and the 61-day snapshot is too old for the accepted 30–60 day window.
-        $this->snapshot($owner, $alliance, $charlie, '5', now()->subDays(61));
-        $this->snapshot($owner, $alliance, $charlie, '4', now()->subDays(29));
-        $this->snapshot($owner, $alliance, $charlie, '0', now()->subDay());
+        $this->snapshot($ownerPlayer, $alliance, $charlie, '5', now()->subDays(61));
+        $this->snapshot($ownerPlayer, $alliance, $charlie, '4', now()->subDays(29));
+        $this->snapshot($ownerPlayer, $alliance, $charlie, '0', now()->subDay());
 
         // History exists, but the latest observation is stale. Reusing the same row as the
         // 30-day baseline must not create a false zero-change comparison.
-        $this->snapshot($owner, $alliance, $delta, '300', now()->subDays(31));
+        $this->snapshot($ownerPlayer, $alliance, $delta, '300', now()->subDays(31));
         self::assertNotNull($echo->id);
 
-        // Same Kingdom, different tenant: this value must never affect the first alliance.
+        // Same Kingdom, different Alliance tenant: this value must never affect the first Alliance.
         $otherOwner = User::factory()->create();
-        $other = $this->app->make(CreateAlliance::class)
-            ->handle($otherOwner, 'Other Intelligence', 'other-intelligence', 3301);
-        $otherEntry = $this->createRosterEntry($otherOwner, $other, 'Other Tenant');
-        $this->snapshot($otherOwner, $other, $otherEntry, '999999999', now()->subDay());
+        $otherOwnerPlayer = Player::query()->create([
+            'user_id' => $otherOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'other-intelligence-owner-3301',
+            'current_name' => 'Other Intelligence Owner',
+        ]);
+        $other = $this->app->make(CreateAlliance::class)->handle($otherOwnerPlayer, 'Other Intelligence', 'other-intelligence');
+        $otherEntry = $this->createRosterEntry($otherOwner, $otherOwnerPlayer, $other, 'Other Tenant');
+        $this->snapshot($otherOwnerPlayer, $other, $otherEntry, '999999999', now()->subDay());
 
         $this->actingAs($member)
-            ->withSession($this->activeSession($alliance->id))
+            ->withSession($this->activeSession($memberPlayer->id))
             ->get('/alliance/roster/intelligence')
             ->assertOk()
             ->assertInertia(fn (Assert $page): Assert => $page
@@ -111,7 +133,7 @@ final class RosterIntelligenceTest extends TestCase
                 ->has('metrics.comparisons', 0));
 
         $this->actingAs($owner)
-            ->withSession($this->activeSession($alliance->id))
+            ->withSession($this->activeSession($ownerPlayer->id))
             ->get('/alliance/roster/intelligence')
             ->assertOk()
             ->assertInertia(fn (Assert $page): Assert => $page
@@ -136,18 +158,19 @@ final class RosterIntelligenceTest extends TestCase
     }
 
     private function createRosterEntry(
-        User $owner,
+        User $account,
+        Player $actor,
         Alliance $alliance,
         string $name,
-        ?string $membershipId = null,
+        ?string $gamePlayerId = null,
         string $state = 'active',
         ?string $joinedAt = null,
     ): AllianceRosterEntry {
-        $this->actingAs($owner)
-            ->withSession($this->confirmedSession($alliance->id))
+        $this->actingAs($account)
+            ->withSession($this->confirmedSession($actor->id))
             ->post('/alliance/roster', [
                 'name' => $name,
-                'membership_id' => $membershipId,
+                'game_player_id' => $gamePlayerId,
                 'state' => $state,
                 'joined_at' => $joinedAt,
             ])
@@ -160,7 +183,7 @@ final class RosterIntelligenceTest extends TestCase
     }
 
     private function snapshot(
-        User $actor,
+        Player $actor,
         Alliance $alliance,
         AllianceRosterEntry $entry,
         string $power,
@@ -169,8 +192,8 @@ final class RosterIntelligenceTest extends TestCase
         return PlayerSnapshot::query()->create([
             'alliance_id' => $alliance->id,
             'roster_entry_id' => $entry->id,
-            'kingdom_player_id' => $entry->kingdom_player_id,
-            'actor_user_id' => $actor->id,
+            'player_id' => $entry->player_id,
+            'actor_player_id' => $actor->id,
             'observed_name' => $entry->observed_name,
             'power' => $power,
             'captured_at' => $capturedAt,
@@ -184,39 +207,17 @@ final class RosterIntelligenceTest extends TestCase
         ]);
     }
 
-    private function addMember(
-        string $allianceId,
-        User $user,
-        DefaultAllianceRole $roleKey = DefaultAllianceRole::Member,
-    ): AllianceMembership {
-        $membership = AllianceMembership::query()->create([
-            'alliance_id' => $allianceId,
-            'user_id' => $user->id,
-            'status' => MembershipStatus::Active,
-            'joined_at' => now(),
-        ]);
-        $role = Role::query()
-            ->where('alliance_id', $allianceId)
-            ->where('key', $roleKey->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $allianceId]);
-
-        return $membership;
-    }
-
     /** @return array<string, string> */
-    private function activeSession(string $allianceId): array
+    private function activeSession(string $playerId): array
     {
-        return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
-        ];
+        return [(string) config('identity.active_player_session_key') => $playerId];
     }
 
-    /** @return array<string, int|string|null> */
-    private function confirmedSession(string $allianceId): array
+    /** @return array<string, int|string> */
+    private function confirmedSession(string $playerId): array
     {
         return [
-            ...$this->activeSession($allianceId),
+            ...$this->activeSession($playerId),
             'auth.password_confirmed_at' => time(),
         ];
     }

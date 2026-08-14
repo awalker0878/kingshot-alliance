@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
  * @property string $transfer_participant_id
  * @property string|null $roster_entry_id
  * @property TransferDirection $direction
- * @property int|null $completed_by_user_id
+ * @property int|null $completed_by_player_id
  * @property Carbon $completed_at
  * @property-read Alliance $alliance
  * @property-read TransferPlan $plan
@@ -40,7 +40,7 @@ final class TransferCompletion extends Model
         'transfer_participant_id',
         'roster_entry_id',
         'direction',
-        'completed_by_user_id',
+        'completed_by_player_id',
         'completed_at',
     ];
 
@@ -76,9 +76,9 @@ final class TransferCompletion extends Model
         return $this->belongsTo(AllianceRosterEntry::class, 'roster_entry_id');
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function completedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'completed_by_user_id');
+        return $this->belongsTo(Player::class, 'completed_by_player_id');
     }
 }

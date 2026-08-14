@@ -33,8 +33,8 @@ final class RecruitmentSetting extends Model
         'introduction',
         'retention_unsuccessful_days',
         'is_open',
-        'created_by_user_id',
-        'updated_by_user_id',
+        'created_by_player_id',
+        'updated_by_player_id',
     ];
 
     protected function casts(): array

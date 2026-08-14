@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomAllianceContactChannel;
 use App\Domain\Kingdoms\Enums\KingdomAllianceContactState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -24,15 +24,15 @@ use Illuminate\Support\Carbon;
  * @property KingdomAllianceContactState $state
  * @property Carbon|null $last_verified_at
  * @property string|null $manager_notes
- * @property int|null $created_by_user_id
- * @property int|null $updated_by_user_id
+ * @property string|null $created_by_player_id
+ * @property string|null $updated_by_player_id
  * @property Carbon|null $deactivated_at
- * @property int|null $deactivated_by_user_id
+ * @property string|null $deactivated_by_player_id
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property-read User|null $createdBy
- * @property-read User|null $updatedBy
- * @property-read User|null $deactivatedBy
+ * @property-read Player|null $createdBy
+ * @property-read Player|null $updatedBy
+ * @property-read Player|null $deactivatedBy
  */
 final class KingdomAllianceDiplomacyContact extends Model
 {
@@ -53,10 +53,10 @@ final class KingdomAllianceDiplomacyContact extends Model
         'state',
         'last_verified_at',
         'manager_notes',
-        'created_by_user_id',
-        'updated_by_user_id',
+        'created_by_player_id',
+        'updated_by_player_id',
         'deactivated_at',
-        'deactivated_by_user_id',
+        'deactivated_by_player_id',
     ];
 
     protected function casts(): array
@@ -87,21 +87,21 @@ final class KingdomAllianceDiplomacyContact extends Model
         return $this->belongsTo(KingdomAlliance::class);
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by_user_id');
+        return $this->belongsTo(Player::class, 'created_by_player_id');
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function updatedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'updated_by_user_id');
+        return $this->belongsTo(Player::class, 'updated_by_player_id');
     }
 
-    /** @return BelongsTo<User, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function deactivatedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'deactivated_by_user_id');
+        return $this->belongsTo(Player::class, 'deactivated_by_player_id');
     }
 }

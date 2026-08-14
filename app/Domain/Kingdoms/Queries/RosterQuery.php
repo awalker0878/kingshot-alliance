@@ -6,8 +6,10 @@ namespace App\Domain\Kingdoms\Queries;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Memberships\Enums\MembershipStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 final class RosterQuery
 {
@@ -25,10 +27,7 @@ final class RosterQuery
     {
         $query = AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
-            ->with([
-                'player:id,kingdom_id,game_player_id,current_name',
-                'membership.user:id,name,email',
-            ]);
+            ->with('player:id,user_id,current_kingdom_id,game_player_id,current_name');
 
         $search = trim((string) ($filters['q'] ?? ''));
         if ($search !== '') {
@@ -47,10 +46,15 @@ final class RosterQuery
         }
 
         $linkage = $filters['linkage'] ?? null;
-        if ($linkage === 'linked') {
-            $query->whereNotNull('membership_id');
-        } elseif ($linkage === 'unlinked') {
-            $query->whereNull('membership_id');
+        if ($linkage === 'linked' || $linkage === 'unlinked') {
+            $method = $linkage === 'linked' ? 'whereExists' : 'whereNotExists';
+            $query->{$method}(function ($membership) use ($alliance): void {
+                $membership->selectRaw('1')
+                    ->from('alliance_memberships')
+                    ->whereColumn('alliance_memberships.player_id', 'alliance_roster_entries.player_id')
+                    ->where('alliance_memberships.alliance_id', $alliance->id)
+                    ->where('alliance_memberships.status', MembershipStatus::Active->value);
+            });
         }
 
         $role = trim((string) ($filters['role'] ?? ''));
@@ -84,20 +88,15 @@ final class RosterQuery
     /** @return list<string> */
     public function rolesForAlliance(Alliance $alliance): array
     {
-        $roles = [];
-
-        foreach (AllianceRosterEntry::query()
+        return AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
             ->whereNotNull('game_role')
             ->where('game_role', '<>', '')
             ->distinct()
             ->orderBy('game_role')
-            ->pluck('game_role') as $role) {
-            if (is_string($role) && $role !== '') {
-                $roles[] = $role;
-            }
-        }
-
-        return $roles;
+            ->pluck('game_role')
+            ->filter(static fn ($role): bool => is_string($role) && $role !== '')
+            ->values()
+            ->all();
     }
 }

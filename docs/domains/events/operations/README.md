@@ -10,11 +10,11 @@
 
 ## 1. Operational purpose and runtime shape
 
-Events owns synchronous event/occurrence/registration/attendance workflows and recurrence semantics. Event reminders are background-coordinated by Notifications; Events supplies authoritative occurrence/registration state.
+Events owns synchronous event/occurrence/scoped scheduling, occurrence, participation, phase/poll, roster, objective, and result workflows. Event reminders are background-coordinated by Notifications; Events supplies authoritative occurrence/registration state.
 
 ## 2. Persistent state and ownership
 
-Durable PostgreSQL state includes events, occurrences, registrations/waitlist state and attendance. Contributions may derive contribution facts from accepted Event state; Notifications owns reminder delivery coordination.
+Durable PostgreSQL state includes the Event Type catalogue, Events, occurrences, Player participation, phases/polls, rosters, objectives, and results. Contributions may derive contribution facts from accepted Event state; Notifications owns reminder delivery coordination.
 
 ## 3. Configuration and runtime dependencies
 
@@ -22,19 +22,19 @@ Core Events depends on PostgreSQL and tenant context. Reminder behavior addition
 
 ## 4. Normal flow and background processing
 
-Managers create/update event/occurrence configuration and members register. Capacity/waitlist transitions are concurrency-safe under supported transactions. Notifications periodically materializes/queues reminders from eligible Event state; Events itself has no dedicated queue worker.
+Authorized managers create/update Event and occurrence configuration; eligible Players respond, register, vote, confirm assignments, and participate through durable `player_id`. Capacity/waitlist transitions are concurrency-safe under supported transactions. Notifications periodically materializes/queues reminders from eligible Event state; Events itself has no dedicated queue worker.
 
 ## 5. Health, observability and diagnostics
 
-Inspect event/occurrence lifecycle, capacity, registration/waitlist status, attendance and relevant audit/request correlation. For reminder issues also inspect the Notifications delivery row and scheduler/outbox state rather than treating the Event row as the delivery record.
+Inspect Event/occurrence lifecycle, exact scope target, active Player context when relevant, capacity, participation state, operational assignments, and audit/request correlation. For reminder issues also inspect the Notifications delivery row and scheduler/outbox state rather than treating the Event row as the delivery record.
 
 ## 6. Failure modes and diagnosis
 
-Typical issues are stale recurrence/occurrence assumptions, full capacity/waitlist contention, invalid attendance transition, cross-tenant identifier use, missing eligible reminder source state, or PostgreSQL failure.
+Typical issues are stale recurrence/occurrence assumptions, full capacity/waitlist contention, invalid attendance transition, cross-scope or cross-target identifier use, missing eligible reminder source state, or PostgreSQL failure.
 
 ## 7. Recovery, replay and reconciliation
 
-Retry supported registration/attendance operations only after current occurrence/capacity state is re-read. Do not manually promote waitlisted members or rewrite attendance to force a downstream report/reminder. Reminder catch-up belongs to Notifications; contribution reconciliation belongs to Contributions.
+Retry supported registration/attendance operations only after current occurrence/capacity state is re-read. Do not manually promote waitlisted Players or rewrite attendance to force a downstream report/reminder. Reminder catch-up belongs to Notifications; contribution reconciliation belongs to Contributions.
 
 ## 8. Backup, restore, migration and rollback
 
@@ -42,7 +42,7 @@ Events state is PostgreSQL-backed and restored with dependent registration/atten
 
 ## 9. Capacity, query and performance boundaries
 
-Capacity is a business invariant separate from infrastructure capacity. Queries must remain tenant/occurrence bounded. Concurrency tests protect correctness; repository volumes are not production attendance/registration load claims.
+Capacity is a business invariant separate from infrastructure capacity. Queries must remain scope/target/occurrence bounded and batch Player facts rather than query per Player or per occurrence. Concurrency tests protect correctness; repository volumes are not production attendance/registration load claims.
 
 ## 10. External-service degradation
 
@@ -54,4 +54,4 @@ Safe actions are inspect/retry supported workflows, restore PostgreSQL, and invo
 
 ## 12. Evidence, focused runbooks and related documentation
 
-Retain event/occurrence/registration IDs, capacity/status values, timestamps, request/trace IDs and release SHA. No focused P3 Events runbook is required. See [Notifications scheduled delivery](../../notifications/operations/scheduled-delivery.md), [background processing](../../../operations/background-processing.md), and the [Events security profile](../security/README.md).
+Retain event/occurrence/registration IDs, capacity/status values, timestamps, request/trace IDs and release SHA. See [Notifications scheduled delivery](../../notifications/operations/scheduled-delivery.md), [background processing](../../../operations/background-processing.md), and the [Events security profile](../security/README.md).

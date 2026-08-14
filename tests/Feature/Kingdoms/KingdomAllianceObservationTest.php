@@ -6,12 +6,12 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,7 +25,7 @@ final class KingdomAllianceObservationTest extends TestCase
 
     public function test_observations_append_and_latest_projection_uses_capture_time_with_missing_distinct_from_zero(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Observation Alpha', 'observation-alpha', 6201);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Observation Alpha', 'observation-alpha', 6201);
         $tracking = $this->track($owner, $alliance, $session, 'Northern Watch', 'northern-watch-6201');
 
         $this->withSession($session)->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
@@ -70,7 +70,7 @@ final class KingdomAllianceObservationTest extends TestCase
 
     public function test_exact_retry_is_idempotent_and_emits_one_durable_event(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Observation Retry', 'observation-retry', 6202);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Observation Retry', 'observation-retry', 6202);
         $tracking = $this->track($owner, $alliance, $session, 'Retry Alliance', 'retry-alliance-6202');
         $payload = [
             'observed_name' => 'Retry Alliance',
@@ -90,7 +90,7 @@ final class KingdomAllianceObservationTest extends TestCase
 
     public function test_correction_appends_replacement_invalidates_original_and_keeps_private_reason_out_of_events(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Observation Correction', 'observation-correction', 6203);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Observation Correction', 'observation-correction', 6203);
         $tracking = $this->track($owner, $alliance, $session, 'Correction Alliance', 'correction-6203');
 
         $this->withSession($session)->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
@@ -114,7 +114,7 @@ final class KingdomAllianceObservationTest extends TestCase
         $original->refresh();
         $replacement = KingdomAllianceObservation::query()->where('id', '!=', $original->id)->sole();
         self::assertNotNull($original->invalidated_at);
-        self::assertSame($owner->id, $original->invalidated_by_user_id);
+        self::assertSame($ownerPlayer->id, $original->invalidated_by_player_id);
         self::assertSame($secret, $original->invalidation_reason);
         self::assertSame($original->id, $replacement->corrects_observation_id);
 
@@ -137,7 +137,7 @@ final class KingdomAllianceObservationTest extends TestCase
 
     public function test_standalone_invalidation_is_idempotent_and_removes_row_from_member_projection(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Observation Invalid', 'observation-invalid', 6204);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Observation Invalid', 'observation-invalid', 6204);
         $tracking = $this->track($owner, $alliance, $session, 'Invalidation Alliance', 'invalid-6204');
 
         foreach ([40, 20] as $hours) {
@@ -175,7 +175,7 @@ final class KingdomAllianceObservationTest extends TestCase
         );
 
         $member = $this->member($alliance);
-        $this->actingAs($member)->withSession([(string) config('identity.active_alliance_session_key') => $alliance->id])
+        $this->actingAs($member[0])->withSession($this->activeSession($member[1]->id))
             ->get("/alliance/kingdom-alliances/{$tracking->id}/history")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -189,8 +189,8 @@ final class KingdomAllianceObservationTest extends TestCase
 
     public function test_cross_tenant_tracking_and_observation_ids_fail_closed(): void
     {
-        [$ownerA, $allianceA, $sessionA] = $this->ownerAlliance('Observation Tenant A', 'observation-tenant-a', 6205);
-        [$ownerB, $allianceB, $sessionB] = $this->ownerAlliance('Observation Tenant B', 'observation-tenant-b', 6205);
+        [$ownerA, $ownerPlayerA, $allianceA, $sessionA] = $this->ownerAlliance('Observation Tenant A', 'observation-tenant-a', 6205);
+        [$ownerB, $ownerPlayerB, $allianceB, $sessionB] = $this->ownerAlliance('Observation Tenant B', 'observation-tenant-b', 6205);
         $trackingB = $this->track($ownerB, $allianceB, $sessionB, 'Tenant B Observed', 'tenant-b-observed-6205');
 
         $this->withSession($sessionB)->post("/alliance/kingdom-alliances/{$trackingB->id}/observations", [
@@ -220,7 +220,7 @@ final class KingdomAllianceObservationTest extends TestCase
 
     public function test_kingdom_drift_preserves_history_read_but_blocks_observation_mutations(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Observation Drift', 'observation-drift', 6206);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Observation Drift', 'observation-drift', 6206);
         $tracking = $this->track($owner, $alliance, $session, 'Drift Observed', 'drift-observed-6206');
         $this->withSession($session)->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
             'observed_name' => 'Drift Observed',
@@ -230,7 +230,7 @@ final class KingdomAllianceObservationTest extends TestCase
         $observation = KingdomAllianceObservation::query()->sole();
 
         $newKingdom = Kingdom::query()->create(['number' => 6299, 'status' => 'active']);
-        $alliance->forceFill(['kingdom_id' => $newKingdom->id])->save();
+        $tracking->forceFill(['kingdom_id' => $newKingdom->id])->save();
 
         $this->get("/alliance/kingdom-alliances/{$tracking->id}/history")
             ->assertOk()
@@ -255,12 +255,12 @@ final class KingdomAllianceObservationTest extends TestCase
 
     public function test_observation_mutations_require_recent_password_confirmation(): void
     {
-        [$owner, $alliance] = $this->ownerAlliance('Observation Password', 'observation-password', 6207);
-        $session = $this->confirmedSession($alliance->id);
+        [$owner, $ownerPlayer, $alliance] = $this->ownerAlliance('Observation Password', 'observation-password', 6207);
+        $session = $this->confirmedSession($ownerPlayer->id);
         $tracking = $this->track($owner, $alliance, $session, 'Protected Observation', 'protected-observation-6207');
 
         $this->actingAs($owner)->withSession([
-            (string) config('identity.active_alliance_session_key') => $alliance->id,
+            ...$this->activeSession($ownerPlayer->id),
             'auth.password_confirmed_at' => 0,
         ])->post("/alliance/kingdom-alliances/{$tracking->id}/observations", [
             'observed_name' => 'Protected Observation',
@@ -272,7 +272,7 @@ final class KingdomAllianceObservationTest extends TestCase
 
     public function test_power_bounds_and_future_capture_are_rejected(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Observation Bounds', 'observation-bounds', 6208);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Observation Bounds', 'observation-bounds', 6208);
         $tracking = $this->track($owner, $alliance, $session, 'Bounded Observation', 'bounded-observation-6208');
 
         $this->withSession($session)->from("/alliance/kingdom-alliances/{$tracking->id}/history")
@@ -291,13 +291,28 @@ final class KingdomAllianceObservationTest extends TestCase
         self::assertSame(0, KingdomAllianceObservation::query()->count());
     }
 
-    /** @return array{0: User, 1: Alliance, 2: array<string, mixed>} */
-    private function ownerAlliance(string $name, string $slug, int $kingdom): array
+    /** @return array{0: User, 1: Player, 2: Alliance, 3: array<string, mixed>} */
+    private function ownerAlliance(string $name, string $slug, int $kingdomNumber): array
     {
-        $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $ownerUser = User::factory()->create();
+        $kingdom = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdomNumber],
+            ['status' => 'active'],
+        );
+        $ownerPlayer = $this->player($ownerUser, $kingdom, $slug.'-r5', $name.' R5');
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, $name, $slug);
 
-        return [$owner, $alliance, $this->confirmedSession($alliance->id)];
+        return [$ownerUser, $ownerPlayer, $alliance, $this->confirmedSession($ownerPlayer->id)];
+    }
+
+    private function player(User $user, Kingdom $kingdom, string $gamePlayerId, string $name): Player
+    {
+        return Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => $gamePlayerId,
+            'current_name' => $name,
+        ]);
     }
 
     /** @param array<string, mixed> $session */
@@ -320,29 +335,39 @@ final class KingdomAllianceObservationTest extends TestCase
             ->firstOrFail();
     }
 
-    private function member(Alliance $alliance): User
+    /** @return array{0: User, 1: Player} */
+    private function member(Alliance $alliance): array
     {
-        $member = User::factory()->create();
-        $membership = AllianceMembership::query()->create([
+        $memberUser = User::factory()->create();
+        $kingdom = Kingdom::query()->findOrFail($alliance->kingdom_id);
+        $memberPlayer = $this->player(
+            $memberUser,
+            $kingdom,
+            'observation-member-'.$memberUser->id,
+            'Observation Member',
+        );
+        AllianceMembership::query()->create([
             'alliance_id' => $alliance->id,
-            'user_id' => $member->id,
+            'player_id' => $memberPlayer->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $role = Role::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
 
-        return $member;
+        return [$memberUser, $memberPlayer];
     }
 
     /** @return array<string, mixed> */
-    private function confirmedSession(string $allianceId): array
+    private function activeSession(string $playerId): array
+    {
+        return [(string) config('identity.active_player_session_key') => $playerId];
+    }
+
+    /** @return array<string, mixed> */
+    private function confirmedSession(string $playerId): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            ...$this->activeSession($playerId),
             'auth.password_confirmed_at' => time(),
         ];
     }

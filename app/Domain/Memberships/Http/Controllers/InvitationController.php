@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Memberships\Http\Controllers;
 
 use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Actions\CreateInvitation;
 use App\Domain\Memberships\Actions\ResendInvitation;
 use App\Domain\Memberships\Actions\RevokeInvitation;
@@ -20,14 +20,18 @@ final class InvitationController extends Controller
         AllianceContext $context,
         CreateInvitation $createInvitation,
     ): RedirectResponse {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
-
         $validated = $request->validate([
+            'player_id' => ['required', 'string', 'ulid'],
             'email' => ['required', 'string', 'email', 'max:254'],
         ]);
 
-        $issued = $createInvitation->handle($context->alliance(), $user, $validated['email']);
+        $target = Player::query()->findOrFail($validated['player_id']);
+        $issued = $createInvitation->handle(
+            $context->alliance(),
+            $context->player(),
+            $target,
+            $validated['email'],
+        );
 
         return redirect()->route('alliance.overview')->with(
             'invitationLink',
@@ -41,10 +45,7 @@ final class InvitationController extends Controller
         ResendInvitation $resendInvitation,
         string $invitation,
     ): RedirectResponse {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
-
-        $issued = $resendInvitation->handle($context->alliance(), $user, $invitation);
+        $issued = $resendInvitation->handle($context->alliance(), $context->player(), $invitation);
 
         return redirect()->route('alliance.overview')->with(
             'invitationLink',
@@ -58,10 +59,7 @@ final class InvitationController extends Controller
         RevokeInvitation $revokeInvitation,
         string $invitation,
     ): RedirectResponse {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
-
-        $revokeInvitation->handle($context->alliance(), $user, $invitation);
+        $revokeInvitation->handle($context->alliance(), $context->player(), $invitation);
 
         return redirect()->route('alliance.overview');
     }

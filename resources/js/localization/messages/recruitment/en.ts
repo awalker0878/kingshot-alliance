@@ -76,6 +76,7 @@ const messages = {
     reviewersTags: 'Review team and tags',
     noReviewer: 'No reviewer assigned.',
     chooseReviewer: 'Choose reviewer',
+    choosePlayer: 'Choose Player',
     assign: 'Assign',
     addTag: 'Add tag',
     tag: 'Tag',

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Memberships\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\InvitationStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -13,12 +13,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
+ * @property string $player_id
  * @property InvitationStatus $status
  * @property Carbon|null $expires_at
  * @property Carbon|null $accepted_at
  * @property Carbon|null $revoked_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Player $player
  */
 final class Invitation extends Model
 {
@@ -30,19 +32,17 @@ final class Invitation extends Model
 
     protected $fillable = [
         'alliance_id',
+        'player_id',
         'email',
         'token_hash',
         'status',
-        'invited_by_user_id',
-        'accepted_by_user_id',
+        'invited_by_player_id',
         'expires_at',
         'accepted_at',
         'revoked_at',
     ];
 
-    protected $hidden = [
-        'token_hash',
-    ];
+    protected $hidden = ['token_hash'];
 
     protected function casts(): array
     {
@@ -60,15 +60,15 @@ final class Invitation extends Model
         return $this->belongsTo(Alliance::class);
     }
 
-    /** @return BelongsTo<User, $this> */
-    public function inviter(): BelongsTo
+    /** @return BelongsTo<Player, $this> */
+    public function player(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'invited_by_user_id');
+        return $this->belongsTo(Player::class);
     }
 
-    /** @return BelongsTo<User, $this> */
-    public function acceptedBy(): BelongsTo
+    /** @return BelongsTo<Player, $this> */
+    public function inviter(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'accepted_by_user_id');
+        return $this->belongsTo(Player::class, 'invited_by_player_id');
     }
 }

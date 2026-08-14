@@ -20,6 +20,8 @@ use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -74,7 +76,7 @@ final class KingdomIngestionAlliancePromotionTest extends TestCase
         self::assertInstanceOf(KingdomAllianceObservation::class, $observation);
         self::assertSame($tracking->id, $observation->tracked_kingdom_alliance_id);
         self::assertSame($tracking->kingdom_alliance_id, $observation->kingdom_alliance_id);
-        self::assertNull($observation->actor_user_id);
+        self::assertNull($observation->actor_player_id);
         self::assertSame('ingestion', $observation->source);
         self::assertSame($subscription->id, $observation->source_subscription_id);
         self::assertSame($batch->id, $observation->source_batch_id);
@@ -114,7 +116,7 @@ final class KingdomIngestionAlliancePromotionTest extends TestCase
         self::assertSame(2, KingdomAllianceObservation::query()->count());
         self::assertSame('Observed Machine Alliance Updated', $tracking->kingdomAlliance()->firstOrFail()->current_name);
 
-        $session = [(string) config('identity.active_alliance_session_key') => (string) $alliance->id];
+        $session = [(string) config('identity.active_player_session_key') => (string) $owner->players()->sole()->id];
         $this->actingAs($owner)->withSession($session)
             ->get("/alliance/kingdom-alliances/{$tracking->id}/history")
             ->assertOk()
@@ -127,19 +129,19 @@ final class KingdomIngestionAlliancePromotionTest extends TestCase
 
     public function test_shared_neutral_reference_does_not_auto_create_tracking_for_another_tenant(): void
     {
-        [$ownerB, $allianceB] = $this->alliance(6702, 'k4-p3-tenant-b');
+        [$ownerB, $playerB, $allianceB] = $this->alliance(6702, 'k4-p3-tenant-b');
         $trackingB = $this->app->make(StartTrackingKingdomAlliance::class)->handle(
             $allianceB,
-            $ownerB,
+            $playerB,
             [
                 'current_name' => 'Shared Neutral Alliance',
                 'current_tag' => 'SHR',
                 'game_alliance_id' => 'shared-game-alliance-6702',
             ],
         );
-        [$ownerA, $allianceA] = $this->alliance(6702, 'k4-p3-tenant-a');
+        [$ownerA, $playerA, $allianceA] = $this->alliance(6702, 'k4-p3-tenant-a');
         $subscriptionA = $this->app->make(CreateKingdomIngestionSubscription::class)
-            ->handle($allianceA, $ownerA, 'fixture.alliance-promotion');
+            ->handle($allianceA, $playerA, 'fixture.alliance-promotion');
         $batchA = $this->app->make(StartKingdomIngestionBatch::class)
             ->handle((string) $subscriptionA->id, 'window-k4-p3-tenant-a');
         $candidate = $this->stageAlliance(
@@ -192,9 +194,9 @@ final class KingdomIngestionAlliancePromotionTest extends TestCase
 
     public function test_unknown_reference_and_source_revocation_quarantine_before_business_history(): void
     {
-        [$owner, $alliance] = $this->alliance(6704, 'k4-p3-quarantine');
+        [$owner, $player, $alliance] = $this->alliance(6704, 'k4-p3-quarantine');
         $subscription = $this->app->make(CreateKingdomIngestionSubscription::class)
-            ->handle($alliance, $owner, 'fixture.alliance-promotion');
+            ->handle($alliance, $player, 'fixture.alliance-promotion');
         $batch = $this->app->make(StartKingdomIngestionBatch::class)
             ->handle((string) $subscription->id, 'window-k4-p3-quarantine');
         $unknown = $this->stageAlliance(
@@ -212,7 +214,7 @@ final class KingdomIngestionAlliancePromotionTest extends TestCase
 
         $tracking = $this->app->make(StartTrackingKingdomAlliance::class)->handle(
             $alliance,
-            $owner,
+            $player,
             [
                 'current_name' => 'Revoked Source Alliance',
                 'game_alliance_id' => 'revoked-game-alliance-6704',
@@ -239,10 +241,10 @@ final class KingdomIngestionAlliancePromotionTest extends TestCase
      */
     private function context(int $kingdomNumber, string $slug, string $stableGameId): array
     {
-        [$owner, $alliance] = $this->alliance($kingdomNumber, $slug);
+        [$owner, $player, $alliance] = $this->alliance($kingdomNumber, $slug);
         $tracking = $this->app->make(StartTrackingKingdomAlliance::class)->handle(
             $alliance,
-            $owner,
+            $player,
             [
                 'current_name' => 'Tracked '.$stableGameId,
                 'current_tag' => 'K4P3',
@@ -250,25 +252,34 @@ final class KingdomIngestionAlliancePromotionTest extends TestCase
             ],
         );
         $subscription = $this->app->make(CreateKingdomIngestionSubscription::class)
-            ->handle($alliance, $owner, 'fixture.alliance-promotion');
+            ->handle($alliance, $player, 'fixture.alliance-promotion');
         $batch = $this->app->make(StartKingdomIngestionBatch::class)
             ->handle((string) $subscription->id, 'window-'.$slug);
 
         return [$owner, $alliance, $tracking, $subscription, $batch];
     }
 
-    /** @return array{User, Alliance} */
+    /** @return array{User, Player, Alliance} */
     private function alliance(int $kingdomNumber, string $slug): array
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdomNumber],
+            ['status' => 'active'],
+        );
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'owner-'.$slug,
+            'current_name' => 'K4 P3 '.str_replace('-', ' ', $slug).' Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)->handle(
-            $owner,
+            $player,
             'K4 P3 '.str_replace('-', ' ', $slug),
             $slug,
-            $kingdomNumber,
         );
 
-        return [$owner, $alliance];
+        return [$owner, $player, $alliance];
     }
 
     private function stageAlliance(

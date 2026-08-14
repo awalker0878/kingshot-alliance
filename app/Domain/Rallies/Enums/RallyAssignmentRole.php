@@ -8,4 +8,5 @@ enum RallyAssignmentRole: string
 {
     case Lead = 'lead';
     case Joiner = 'joiner';
+    case Standby = 'standby';
 }

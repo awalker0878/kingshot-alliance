@@ -8,122 +8,108 @@
 
 ## 1. Purpose
 
-Defines deterministic Event reminder materialization, due-time queueing, eligibility recheck, and durable delivery state.
-
-Events owns Event/occurrence/registration facts. Notifications owns when those facts produce a durable reminder request and how repeated scheduler execution remains safe.
+Defines Event reminder rules, Player-specific audience resolution, due-time queueing, deterministic delivery identity, and completion through the shared outbox.
 
 ## 2. Scope and non-scope
 
 In scope:
 
-- Event reminder rules/deliveries;
-- deterministic materialization from eligible registrations;
-- `pending`/`queued`/`sent`/`cancelled` state;
-- due-time queueing;
-- current-registration eligibility recheck;
-- outbox publication handoff; and
-- scheduler catch-up/idempotency.
+- Event reminder rule creation, disabling, and re-enabling;
+- Event-start and poll-close reminder triggers;
+- audiences based on target, response, registration, roster selection, or all eligible Players in the Event scope;
+- Player-specific reminder deliveries;
+- due-time materialization and queueing;
+- in-app delivery handoff through Platform outbox; and
+- idempotent scheduler recovery.
 
-Out of scope:
+Generic email/SMS/push and webhook transport are outside this capability.
 
-- Event schedule/registration ownership;
-- generic email/SMS/push transport;
-- webhook delivery; and
-- external-provider delivery guarantees.
+## 3. Identity and model
 
-## 3. Model and state
+A delivery is unique by `rule_id + occurrence_id + player_id` and also stores the Player's current `recipient_user_id`.
 
-A reminder delivery is unique for Alliance + occurrence + reminder rule + membership.
+This deliberately does not collapse multiple Players owned by one User: Player A and Player B receive independent delivery rows even when both resolve to the same User account.
 
-`due_at` is occurrence start minus the rule's configured minutes-before-start.
+`due_at` is derived from the configured trigger: occurrence start minus `minutes_before` for `before_start`, or the referenced poll close time minus `minutes_before` for `before_poll_close`.
 
-States:
-
-- `pending` — materialized and awaiting due time;
-- `queued` — durable reminder request exists in the outbox;
-- `sent` — the matching outbox message was published and the in-app reminder is considered delivered; and
-- `cancelled` — member eligibility was no longer valid at due time.
+Delivery states are `pending`, `queued`, `sent`, `failed`, and `skipped`.
 
 ## 4. Invariants
 
-1. Materialization is deterministic per Alliance/occurrence/rule/membership.
-2. Repeated scheduler execution does not duplicate deliveries.
-3. Due queueing rechecks Events-owned registration eligibility.
-4. Only registered/waitlisted eligible members are queued.
-5. Cancellation/ineligibility prevents a new reminder request.
-6. Outbox identity is deterministic per delivery.
-7. Tenant identity is explicit in delivery/outbox state.
-8. `sent` means durable in-app/outbox completion, not external email/SMS/push delivery.
+1. Reminder identity is Player-specific.
+2. Audience resolution uses current Event participation and current Player eligibility.
+3. Only Players with an authoritative `players.user_id` receive in-app deliveries.
+4. A User owning multiple eligible Players receives one delivery for each Player.
+5. Repeated scheduler execution cannot create duplicate deliveries or outbox requests.
+6. `target` audience is valid only for Player-scoped Events.
+7. `responded` includes Going/Maybe, not Unavailable.
+8. `registered` includes registered seats, not waitlisted/cancelled rows.
+9. `rostered` includes current Assigned/Confirmed roster assignments for the exact occurrence and excludes Declined/Removed assignments.
+10. `all_scope_players` resolves exact Player/Alliance/Kingdom eligibility at queue time.
+11. Duplicate active rule definitions are no-ops; a matching disabled definition is re-enabled rather than duplicated.
+12. `before_poll_close` requires an exact poll from the same Event with a close timestamp.
+13. A poll has at most one intended active deadline rule: changing the lead time disables the previous definition, and closing/removing the deadline disables active poll-close rules.
+14. A poll-close rule is queued only while the referenced poll is open and before it closes.
+15. `sent` means the durable in-app outbox handoff was published; it does not claim third-party transport delivery.
 
 ## 5. Workflows
 
-### Materialize
+### Configure rule
 
-`events:sync-reminders` scans bounded future occurrences/rules/eligible registrations and creates missing deterministic deliveries.
+An exact-target Event manager creates an Event-start or poll-close rule. Poll configuration synchronizes its deadline rule so changing the lead time cannot leave duplicate active reminders. Audience choices are constrained by Event capabilities. Reminder rule authorship records authenticated User and active Player persona separately. Submitting an already-active definition returns the existing rule without duplicate audit/outbox evidence; submitting a matching disabled definition re-enables it.
 
-### Queue due
+### Disable rule
 
-`events:queue-reminders` claims due pending deliveries in order. Concurrent PostgreSQL workers use row-lock/skip-locked semantics so one delivery is not claimed twice.
+An exact-target Event manager can disable an enabled rule. Disabled rules remain persisted for operational history but are ignored by due-time queueing.
 
-Before queueing, the current Events registration is rechecked. Ineligible deliveries become cancelled. Eligible deliveries create/reuse the deterministic `event.reminder.requested` outbox message and move to queued.
+### Resolve and queue
+
+`events:queue-reminders` scans enabled rules and resolves each due timestamp from either occurrence start or the referenced open poll close time. It resolves the audience from current Player/Event facts, creates missing Player-specific deliveries, and creates a deterministic `event.reminder.requested` outbox message.
 
 ### Mark sent
 
-When Platform publishes the matching outbox message, the Notifications listener advances the queued delivery to sent and records completion time.
+When Platform publishes the matching outbox event, Notifications advances the delivery to `sent` and records `sent_at`.
 
-### Catch up after interruption
+### Catch up
 
-Restore scheduler/outbox execution and rerun the bounded commands. Persisted due state plus deterministic identities make catch-up safe.
+Scheduler/outbox execution can be rerun safely because delivery and outbox identities are deterministic.
 
-## 6. Authorization, tenancy and privacy
+## 6. Authorization and privacy
 
-Source Event configuration/registration authorization remains Events-owned. Reminder state is always Alliance/member scoped.
+Rule configuration uses the Event's exact manage permission. The active Player persona never grants manager authority.
 
-Member-facing reminder reads must resolve under active Alliance/membership context. Payloads contain only the information needed for the reminder; unrelated private member data is excluded.
+Delivery recipient identity comes from `players.user_id` at queue time. A Player without an owned User account is not an in-app recipient.
 
 ## 7. Persistence and query semantics
 
-Notifications owns reminder rule/delivery state. Events owns occurrences/registrations. Platform owns generic outbox infrastructure.
-
-Due queries are bounded and concurrency-safe. A persisted delivery is not proof of current eligibility; due queueing rechecks source state.
+Notifications owns `event_reminder_rules` and `event_reminder_deliveries`. Poll-close rules reference Events-owned `event_polls` through `poll_id`; the trigger/reference pairing is enforced by the database. Events owns occurrences, responses, registrations, roster assignments, and Player eligibility facts used by audience resolution. Platform owns the outbox.
 
 ## 8. Events, integrations and background processing
 
-Scheduler commands materialize and queue reminders. Platform outbox publication completes the durable handoff.
-
-Webhook transport remains Integrations-owned. An internal reminder event does not automatically create an external messaging contract.
+The scheduler runs `events:queue-reminders` every minute with overlap prevention. Event reminder outbox partitioning follows the Event target: `player:{id}`, `alliance:{id}`, or `kingdom:{id}`.
 
 ## 9. Failure, idempotency and concurrency
 
-- Duplicate sync runs reuse delivery identity.
-- Concurrent queue runs use row locking/skip-locked behavior.
-- Eligibility changes cancel rather than send stale reminders.
-- Queued-but-not-sent state is diagnosed through outbox publication.
-- Scheduler interruption is recoverable by rerun without source-action replay.
+- delivery identity uses a deterministic SHA-256 key;
+- duplicate scheduler runs reuse the unique rule/occurrence/Player tuple;
+- stale Player eligibility is filtered during audience resolution;
+- closed/cancelled/expired polls do not queue poll-close deliveries;
+- Player ownership changes are reflected in recipient resolution for new deliveries;
+- outbox publication is independently retryable.
 
 ## 10. Operations and observability
 
-Inspect delivery state, `due_at`, registration eligibility, scheduler execution, matching outbox state, and `sent_at`.
-
-Repair scheduler/outbox dependencies rather than recreating Event registrations to force reminders.
+Inspect rule, occurrence, subject Player, recipient User, due time, delivery status, matching outbox row, partition key, and completion timestamp separately.
 
 ## 11. Tests and validation
 
-Tests should cover:
-
-- deterministic materialization;
-- duplicate scheduler execution;
-- due eligibility recheck/cancellation;
-- concurrent claiming;
-- deterministic outbox identity;
-- publisher listener transition to sent;
-- catch-up after interruption; and
-- tenant isolation.
+Tests protect rule lifecycle/idempotency, Event-start and poll-close due-time semantics, rostered/response/registration audience semantics, separate deliveries and inbox views for multiple Players owned by one User, scheduler idempotency, exact Event target authorization, and outbox completion state.
 
 ## 12. Related documentation
 
 - [Notifications domain](README.md)
 - [Events](../events/README.md)
-- [Event registration and attendance](../events/registration-and-attendance.md)
+- [Event participation](../events/registration-and-attendance.md)
+- [Event phases and polls](../events/polls-and-phases.md)
+- [Event rosters](../events/rosters.md)
 - [Platform transactional outbox](../platform/transactional-outbox.md)
-- [Background processing](../../operations/background-processing.md)

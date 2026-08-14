@@ -14,6 +14,7 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->foreignUlid('alliance_id')->nullable()->constrained('alliances')->nullOnDelete();
             $table->foreignId('actor_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('actor_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->string('event', 120)->index();
             $table->string('subject_type')->nullable();
             $table->string('subject_id', 64)->nullable();
@@ -24,7 +25,10 @@ return new class extends Migration
 
             $table->index(['subject_type', 'subject_id']);
             $table->index(['alliance_id', 'created_at']);
+            $table->index(['actor_player_id', 'created_at']);
+            $table->index(['actor_user_id', 'created_at']);
         });
+
     }
 
     public function down(): void

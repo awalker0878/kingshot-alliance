@@ -2,121 +2,39 @@
 
 [← Events domain](../README.md)
 
-**Document type:** Living domain interface profile  
-**Status:** Current  
-**Owning domain:** Events  
-**Code owner:** `app/Domain/Events`  
-**Primary boundary:** Alliance event calendar/detail/registration/coordination, authenticated calendar exports, and Event facts consumed by other domains  
-**P4 inventory decision:** Focused contract added — `calendar-exports.md`; existing `../registration-and-attendance.md` reused
+## 1. Purpose
 
-## 1. Boundary purpose and ownership
+Defines the current first-party and file-output interfaces owned by Events.
 
-Events owns the Alliance Event schedule/occurrence/registration/attendance contract and the Event-side facts consumed by Notifications, Contributions, Rallies, and Integrations. It exposes first-party member/coordinator workspaces plus authenticated CSV/iCalendar output.
+## 2. Browser routes
 
-Notifications owns durable reminder-delivery coordination, Rallies owns Rally-specific guidance/groups/participation, Contributions owns derived contribution records, and Integrations owns the external `/api/v1/events` representation.
+- `GET /events` — authorized scoped Event calendar/agenda.
+- `GET /events/create` — permission-aware Event creation using database Event Type defaults.
+- `GET /events/{occurrence}` — one authorized occurrence detail view.
+- `GET /events/{event}/manage` — Event schedule/instructions management.
+- `POST /events` — create a scoped Event.
+- `PATCH /events/{event}` — update mutable schedule/instruction fields.
+- `DELETE /events/{event}` — cancel an Event.
+- `POST /event-templates` — save a reusable scoped Event template.
+- `POST /event-templates/{template}/events` — schedule an Event from a template.
 
-## 2. Surface inventory
+Mutation routes require authenticated, verified Users and recent password confirmation.
 
-Material first-party surfaces in `routes/web.php` include:
+## 3. Calendar outputs
 
-- Event calendar index and occurrence detail;
-- Event management workspace;
-- member registration/cancellation;
-- member saved-formation adapter into Rallies;
-- manager Event/template/reminder creation;
-- manager Rally guidance/recommended-formation/group/assignment/participation adapter routes; and
-- `GET /alliance/events/export.csv` and `GET /alliance/events/feed.ics`.
+- `GET /events/export.csv` — authorized CSV calendar output.
+- `GET /events/feed.ics` — authorized iCalendar output.
 
-The compatibility-sensitive file outputs are documented in [Calendar exports](calendar-exports.md). Registration/capacity/waitlist/attendance semantics remain in [Event registration and attendance](../registration-and-attendance.md).
+See [Calendar exports](calendar-exports.md).
 
-## 3. Callers, authorization and tenancy
+## 4. Scope and authorization
 
-Member Event reads/registration require authenticated, verified active-Alliance context and applicable `alliance.view` semantics. Event coordination/mutation requires `events.manage` plus recent password confirmation in the privileged route group.
+Every read/write resolves the Event scope and exact target (`Player`, `Alliance`, or `Kingdom`) and evaluates the corresponding permission. UI visibility never substitutes for server-side authorization.
 
-Rally-specific manager actions are reached through Event controller adapters but delegate to Rallies-owned actions and invariants. Submitted Event/occurrence/registration/Rally identifiers are re-resolved beneath the active Alliance.
+## 5. Player context
 
-## 4. Input and validation contracts
+Event forms never accept an actor Player identifier. The optional author Player is read from the validated server-side active Player context. Self Player-scoped mutations require the active Player to equal the Event target.
 
-Event/template inputs validate schedule/timezone/recurrence/registration/coordination rules through owning controllers/actions. Registration/cancellation inputs are intentionally small because membership/occurrence context comes from the active request and persisted Event state.
+## 6. Related interfaces
 
-Member saved-formation inputs validate name, up to five hero labels, 0–100 troop percentages, optional notes/default state; Rallies enforces formation composition invariants.
-
-CSV/ICS exports take no caller-selected Alliance and use a fixed upcoming horizon defined in [Calendar exports](calendar-exports.md).
-
-## 5. Output and disclosure contracts
-
-Member Event payloads expose tenant-safe occurrence timing, registration state, approved instructions and Rally presentation data as applicable. Coordinator workspaces may expose management details according to permission.
-
-Authenticated file outputs contain upcoming Event schedule fields only; they do not expose registration lists, attendance identities, private Rally assignments, or Contribution records. See [Calendar exports](calendar-exports.md).
-
-`GET /api/v1/events` is a separate Integrations-owned bounded JSON projection.
-
-## 6. Internal actions, queries and services
-
-Supported Events contracts include schedule/occurrence queries, Event/template/reminder configuration actions, and the [Event registration and attendance](../registration-and-attendance.md) action set.
-
-Events exposes occurrence/registration/attendance source facts to Notifications, Contributions, and Rallies. Those consumers must preserve Events ownership rather than updating Event persistence directly.
-
-Rally-specific HTTP adapter methods invoke Rallies actions; route/controller placement does not transfer Rally semantic ownership into Events.
-
-## 7. Events, outbox and cross-domain consumers
-
-Material Event transitions may create audit/outbox evidence. Notifications consumes Event facts to materialize/queue reminders; Contributions consumes attendance through its explicit reconciliation contract; Integrations may serialize selected Event occurrence fields via the API and externally eligible webhook events under its own contract.
-
-Internal outbox publication does not automatically make all Event payload fields a public webhook schema.
-
-## 8. Commands, jobs and scheduled work
-
-The current recurring reminder commands are operationally owned by Notifications while consuming Events facts:
-
-- `events:sync-reminders {--limit=250}` — scheduled every minute with `--limit=250`;
-- `events:queue-reminders {--limit=100}` — scheduled every minute with `--limit=100`.
-
-Events itself has no separate queued Event-ingestion worker. Calendar exports are synchronous reads.
-
-## 9. Files, imports, exports and external dependencies
-
-Events owns two authenticated first-party file outputs:
-
-- upcoming-occurrence CSV; and
-- iCalendar (`.ics`) response.
-
-Their exact schemas/metadata/compatibility are defined in [Calendar exports](calendar-exports.md). There is no current Event import format or long-lived public calendar token.
-
-Event scheduling depends on Alliance timezone and PostgreSQL; reminder delivery additionally depends on Notifications/Platform scheduler/outbox runtime.
-
-## 10. Failure, idempotency, versioning and compatibility
-
-Cross-tenant or inaccessible Event/occurrence identifiers fail closed. Registration/cancellation/attendance concurrency behavior follows [Event registration and attendance](../registration-and-attendance.md).
-
-Calendar output has no numeric schema version, so its documented field/UID/PRODID/time semantics form the current compatibility contract. Material changes require coordinated documentation/tests even without a version parameter.
-
-## 11. Explicit non-capabilities
-
-Events does not:
-
-- provide anonymous or bearer-token calendar subscriptions;
-- own Notifications reminder-delivery state;
-- own Rally guidance/assignment/participation persistence;
-- own Contributions records derived from attendance;
-- expose registration/attendance/private Rally data in calendar exports; or
-- own the external `/api/v1/events` authentication/schema boundary.
-
-## 12. Focused contracts, evidence and related documentation
-
-Focused contracts:
-
-- [Calendar exports](calendar-exports.md) — new P4 CSV/iCalendar compatibility contract.
-- [Event registration and attendance](../registration-and-attendance.md) — accepted concurrency-sensitive Event lifecycle reused by P4.
-
-Related documentation:
-
-- [Events domain](../README.md)
-- [Events security](../security/README.md)
-- [Events operations](../operations/README.md)
-- [Notifications interfaces](../../notifications/interfaces/README.md)
-- [Rallies](../../rallies/README.md)
-- [Contributions event reconciliation](../../contributions/event-reconciliation.md)
-- [Integrations API](../../integrations/api.md)
-- [Interface documentation standard](../../../product/interface-documentation-standard.md)
-- [P4 interface coverage matrix](../../../product/interface-coverage-matrix.md)
+Participation, polls, rosters, battle planning, results, reminders, and rally operations are added by their owning Events slices and use the same Event/occurrence identity.

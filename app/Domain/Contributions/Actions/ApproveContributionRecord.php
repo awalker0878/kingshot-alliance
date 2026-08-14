@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Contributions\Enums\ContributionRecordStatus;
 use App\Domain\Contributions\Models\ContributionRecord;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -20,7 +20,7 @@ final class ApproveContributionRecord
         private readonly OutboxRecorder $outbox,
     ) {}
 
-    public function handle(User $actor, Alliance $alliance, ContributionRecord $record): ContributionRecord
+    public function handle(Player $actor, Alliance $alliance, ContributionRecord $record): ContributionRecord
     {
         if ($record->alliance_id !== $alliance->id) {
             throw new InvalidArgumentException('Contribution record does not belong to the active alliance.');
@@ -38,7 +38,7 @@ final class ApproveContributionRecord
             $record->forceFill([
                 'status' => ContributionRecordStatus::Approved,
                 'approved_at' => now(),
-                'approved_by_user_id' => $actor->id,
+                'approved_by_player_id' => $actor->id,
             ])->save();
 
             $this->audit->record('contribution.record.approved', $actor, $record, $alliance);

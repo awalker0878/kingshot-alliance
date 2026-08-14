@@ -22,6 +22,7 @@ const props = defineProps<{
     withdrawnAt: string | null;
     joinedAt: string | null;
     retentionDueAt: string | null;
+    playerId: string | null;
     membershipInvitationId: string | null;
   };
   answers: Array<{ id: string; prompt: string; type: string; answer: Record<string, unknown> }>;
@@ -59,7 +60,8 @@ const props = defineProps<{
     stage: string;
     submittedAt: string;
   }>;
-  members: Array<{ id: string; name: string }>;
+  members: Array<{ id: string; name: string; rank: string }>;
+  conversionPlayers: Array<{ id: string; name: string; claimed: boolean }>;
   decisionTemplates: Array<{ id: string; name: string; decisionStage: string; subject: string }>;
   stageOptions: string[];
   onboardingStatusOptions: string[];
@@ -73,7 +75,8 @@ const stageForm = useForm({
   reason: '',
   next_action_at: '',
 });
-const reviewerForm = useForm({ membership_id: '' });
+const reviewerForm = useForm({ player_id: '' });
+const conversionForm = useForm({ player_id: props.candidate.playerId ?? '' });
 const noteForm = useForm({ body: '' });
 const tagForm = useForm({ name: '' });
 const mergeReason = useForm({ reason: '' });
@@ -84,9 +87,9 @@ function updateStage(): void {
 }
 
 function assignReviewer(): void {
-  if (!reviewerForm.membership_id) return;
+  if (!reviewerForm.player_id) return;
   reviewerForm.put(
-    `/alliance/recruitment/${props.candidate.id}/reviewers/${reviewerForm.membership_id}`,
+    `/alliance/recruitment/${props.candidate.id}/reviewers/${reviewerForm.player_id}`,
     {
       preserveScroll: true,
       onSuccess: () => reviewerForm.reset(),
@@ -126,7 +129,8 @@ function markCommunicationSent(id: string): void {
 }
 
 function convertCandidate(): void {
-  router.post(`/alliance/recruitment/${props.candidate.id}/convert`, {}, { preserveScroll: true });
+  if (!conversionForm.player_id) return;
+  conversionForm.post(`/alliance/recruitment/${props.candidate.id}/convert`, { preserveScroll: true });
 }
 
 function updateOnboarding(id: string, status: string): void {
@@ -170,7 +174,7 @@ function onboardingTone(status: string): string {
 <template>
   <Head :title="`${candidate.name} · ${t('recruitment.title')}`" />
 
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div class="max-w-3xl min-w-0">
         <Link
@@ -316,9 +320,21 @@ function onboardingTone(status: string): string {
           v-if="candidate.stage === 'accepted'"
           class="mt-5 border-t border-[var(--ks-border)] pt-5"
         >
+          <select
+            v-if="!candidate.membershipInvitationId"
+            v-model="conversionForm.player_id"
+            class="mb-3 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
+            :aria-label="t('recruitment.choosePlayer')"
+          >
+            <option value="">{{ t('recruitment.choosePlayer') }}</option>
+            <option v-for="player in conversionPlayers" :key="player.id" :value="player.id">
+              {{ player.name }}
+            </option>
+          </select>
           <button
-            class="w-full rounded-[var(--ks-radius-sm)] border border-green-400/25 bg-green-500/10 px-4 py-2 text-sm font-semibold text-green-200"
+            class="w-full rounded-[var(--ks-radius-sm)] border border-green-400/25 bg-green-500/10 px-4 py-2 text-sm font-semibold text-green-200 disabled:cursor-not-allowed disabled:opacity-50"
             type="button"
+            :disabled="!candidate.membershipInvitationId && !conversionForm.player_id"
             @click="convertCandidate"
           >
             {{
@@ -376,13 +392,13 @@ function onboardingTone(status: string): string {
             </div>
             <form class="mt-4 flex gap-2" @submit.prevent="assignReviewer">
               <select
-                v-model="reviewerForm.membership_id"
+                v-model="reviewerForm.player_id"
                 class="min-w-0 flex-1 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2.5 text-sm"
                 :aria-label="t('recruitment.chooseReviewer')"
               >
                 <option value="">{{ t('recruitment.chooseReviewer') }}</option>
                 <option v-for="member in members" :key="member.id" :value="member.id">
-                  {{ member.name }}
+                  {{ member.name }} · {{ member.rank.toUpperCase() }}
                 </option>
               </select>
               <button

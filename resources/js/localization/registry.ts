@@ -64,6 +64,11 @@ export function domainsForPage(name: string): LocalizationDomain[] {
 
   if (name.startsWith('Platform/')) {
     domains.add('platform');
+    if (name === 'Platform/EventTypes') domains.add('events');
+  }
+
+  if (name.startsWith('Events/')) {
+    domains.add('events');
   }
 
   if (name.startsWith('Alliance/')) {

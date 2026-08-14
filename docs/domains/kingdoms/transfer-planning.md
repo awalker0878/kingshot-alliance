@@ -38,7 +38,7 @@ Out of scope:
 
 ## 3. Model and state
 
-`TransferPlan`, `TransferParticipant`, `TransferGroup`, `TransferBlocker`, `TransferReadinessTransition`, and `TransferCompletion` are tenant-owned by one Alliance. `Kingdom`/`KingdomPlayer` remain neutral reference data.
+`TransferPlan`, `TransferParticipant`, `TransferGroup`, `TransferBlocker`, `TransferReadinessTransition`, and `TransferCompletion` are tenant-owned by one Alliance. `Kingdom`/`Player` remain neutral reference data.
 
 ### Plan lifecycle
 
@@ -58,7 +58,7 @@ The plan captures immutable `home_kingdom_id`. If the Alliance later points to a
 - `outgoing` — active/tracked roster player expected to leave; and
 - `incoming` — player expected to arrive in the plan home Kingdom, potentially before site membership/roster exists.
 
-Incoming destination is always the plan home Kingdom. Outgoing destination may be undecided/another active Kingdom. Staying has no transfer destination. Planning never mutates neutral `KingdomPlayer.kingdom_id`.
+Incoming destination is always the plan home Kingdom. Outgoing destination may be undecided/another active Kingdom. Staying has no transfer destination. Planning never mutates neutral `Player.kingdom_id`.
 
 ### Readiness
 
@@ -118,7 +118,7 @@ Incoming completion occurs only after the player actually arrives. If no existin
 
 If an existing active/tracked same-Alliance roster entry is explicitly selected, stable IDs must agree when the participant has one. Existing roster name/role/state/joined date/source/notes/membership linkage are preserved; participant membership may be added only when the existing entry does not already link another membership.
 
-The application never chooses an existing roster entry by display name alone. Source/planning neutral KingdomPlayer is not rewritten merely because the participant arrived.
+The application never chooses an existing roster entry by display name alone. Source/planning neutral Player is not rewritten merely because the participant arrived.
 
 ### Complete outgoing
 

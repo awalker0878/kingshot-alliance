@@ -31,9 +31,9 @@ final class KingdomAllianceDiplomacyContactQuery
             ->where('alliance_id', $alliance->id)
             ->where('tracked_kingdom_alliance_id', $trackingId)
             ->with([
-                'createdBy:id,name',
-                'updatedBy:id,name',
-                'deactivatedBy:id,name',
+                'createdBy:id,current_name',
+                'updatedBy:id,current_name',
+                'deactivatedBy:id,current_name',
             ])
             ->orderBy('state')
             ->orderBy('display_name')

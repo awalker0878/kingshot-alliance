@@ -6,15 +6,16 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomAlliance;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -26,7 +27,7 @@ final class KingdomAllianceTrackingTest extends TestCase
 
     public function test_owner_can_track_neutral_game_alliance_with_captured_kingdom_and_internal_evidence(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('K3 Alpha', 'k3-alpha', 6101);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('K3 Alpha', 'k3-alpha', 6101);
 
         $this->actingAs($owner)
             ->withSession($session)
@@ -53,7 +54,7 @@ final class KingdomAllianceTrackingTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,
-            'actor_user_id' => $owner->id,
+            'actor_player_id' => $ownerPlayer->id,
             'event' => 'kingdoms.alliance_intelligence_tracking_started',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
@@ -74,7 +75,7 @@ final class KingdomAllianceTrackingTest extends TestCase
 
     public function test_same_name_and_tag_without_stable_id_never_auto_merge(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('No Name Merge', 'no-name-merge', 6102);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('No Name Merge', 'no-name-merge', 6102);
 
         $this->actingAs($owner)->withSession($session)
             ->post('/alliance/kingdom-alliances', [
@@ -94,8 +95,8 @@ final class KingdomAllianceTrackingTest extends TestCase
 
     public function test_stable_id_reuses_only_neutral_reference_while_tenant_tracking_stays_private(): void
     {
-        [$ownerA, $allianceA, $sessionA] = $this->ownerAlliance('Shared Neutral A', 'shared-neutral-a', 6103);
-        [$ownerB, $allianceB, $sessionB] = $this->ownerAlliance('Shared Neutral B', 'shared-neutral-b', 6103);
+        [$ownerA, $ownerPlayerA, $allianceA, $sessionA] = $this->ownerAlliance('Shared Neutral A', 'shared-neutral-a', 6103);
+        [$ownerB, $ownerPlayerB, $allianceB, $sessionB] = $this->ownerAlliance('Shared Neutral B', 'shared-neutral-b', 6103);
 
         $this->actingAs($ownerA)->withSession($sessionA)
             ->post('/alliance/kingdom-alliances', [
@@ -131,7 +132,7 @@ final class KingdomAllianceTrackingTest extends TestCase
 
     public function test_stable_id_can_be_assigned_once_but_conflicts_or_replacement_fail_closed(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Stable Assignment', 'stable-assignment', 6104);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Stable Assignment', 'stable-assignment', 6104);
 
         $this->actingAs($owner)->withSession($session)
             ->post('/alliance/kingdom-alliances', ['current_name' => 'First unresolved'])
@@ -175,7 +176,7 @@ final class KingdomAllianceTrackingTest extends TestCase
 
     public function test_member_sees_safe_tracking_only_and_cannot_manage_or_mutate(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Tracking Privacy', 'tracking-privacy', 6105);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Tracking Privacy', 'tracking-privacy', 6105);
         $this->actingAs($owner)->withSession($session)
             ->post('/alliance/kingdom-alliances', [
                 'current_name' => 'Privacy Alliance',
@@ -186,9 +187,8 @@ final class KingdomAllianceTrackingTest extends TestCase
 
         $tracking = TrackedKingdomAlliance::query()->sole();
         $member = $this->member($alliance);
-        $memberSession = [(string) config('identity.active_alliance_session_key') => $alliance->id];
 
-        $this->actingAs($member)->withSession($memberSession)
+        $this->actingAs($member[0])->withSession($this->activeSession($member[1]->id))
             ->get('/alliance/kingdom-alliances')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -202,15 +202,15 @@ final class KingdomAllianceTrackingTest extends TestCase
                 ->missing('tracking.0.managerNotes'));
 
         $this->get('/alliance/kingdom-alliances/manage')->assertForbidden();
-        $this->withSession($this->confirmedSession($alliance->id))
+        $this->withSession($this->confirmedSession($member[1]->id))
             ->patch("/alliance/kingdom-alliances/{$tracking->id}", ['current_name' => 'Forbidden'])
             ->assertForbidden();
     }
 
     public function test_cross_tenant_tracking_ids_are_re_resolved_under_active_alliance(): void
     {
-        [$ownerA, $allianceA, $sessionA] = $this->ownerAlliance('Tracking Tenant A', 'tracking-tenant-a', 6106);
-        [$ownerB, $allianceB, $sessionB] = $this->ownerAlliance('Tracking Tenant B', 'tracking-tenant-b', 6107);
+        [$ownerA, $ownerPlayerA, $allianceA, $sessionA] = $this->ownerAlliance('Tracking Tenant A', 'tracking-tenant-a', 6106);
+        [$ownerB, $ownerPlayerB, $allianceB, $sessionB] = $this->ownerAlliance('Tracking Tenant B', 'tracking-tenant-b', 6107);
 
         $this->actingAs($ownerB)->withSession($sessionB)
             ->post('/alliance/kingdom-alliances', [
@@ -233,51 +233,34 @@ final class KingdomAllianceTrackingTest extends TestCase
         self::assertSame(0, TrackedKingdomAlliance::query()->where('alliance_id', $allianceA->id)->count());
     }
 
-    public function test_kingdom_drift_preserves_read_but_blocks_edit_and_allows_archive_recovery(): void
+    public function test_alliance_kingdom_is_immutable_after_tracking_is_created(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Tracking Drift', 'tracking-drift', 6108);
+        [$owner, , $alliance, $session] = $this->ownerAlliance('Tracking Immutable', 'tracking-immutable', 6108);
         $this->actingAs($owner)->withSession($session)
             ->post('/alliance/kingdom-alliances', [
-                'current_name' => 'Old Kingdom Alliance',
-                'game_alliance_id' => 'old-kingdom-6108',
+                'current_name' => 'Current Kingdom Alliance',
+                'game_alliance_id' => 'current-kingdom-6108',
             ])->assertRedirect();
         $tracking = TrackedKingdomAlliance::query()->sole();
-
         $newKingdom = Kingdom::query()->create(['number' => 6199, 'status' => 'active']);
-        $alliance->forceFill(['kingdom_id' => $newKingdom->id])->save();
 
-        $this->get('/alliance/kingdom-alliances')
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('alliance.kingdom', '6199')
-                ->where('tracking.0.contextCurrent', false)
-                ->where('tracking.0.kingdom', '6108'));
+        try {
+            $alliance->forceFill(['kingdom_id' => $newKingdom->id])->save();
+            self::fail('Alliance Kingdom must be immutable after creation.');
+        } catch (QueryException) {
+            // Database invariant is the final authority for out-of-band writes.
+        }
 
-        $this->withSession($session)
-            ->from('/alliance/kingdom-alliances/manage')
-            ->patch("/alliance/kingdom-alliances/{$tracking->id}", [
-                'current_name' => 'Should not change',
-                'game_alliance_id' => 'old-kingdom-6108',
-            ])
-            ->assertRedirect('/alliance/kingdom-alliances/manage')
-            ->assertSessionHasErrors('tracking');
-
-        $this->withSession($session)
-            ->post("/alliance/kingdom-alliances/{$tracking->id}/archive")
-            ->assertRedirect();
-
-        self::assertSame(TrackedKingdomAllianceState::Archived, $tracking->refresh()->state);
-        self::assertNotNull($tracking->archived_at);
-        self::assertSame('Old Kingdom Alliance', $tracking->kingdomAlliance->refresh()->current_name);
+        self::assertSame('6108', (string) $alliance->fresh()->kingdom->number);
+        self::assertSame($alliance->kingdom_id, $tracking->refresh()->kingdom_id);
+        self::assertSame(TrackedKingdomAllianceState::Active, $tracking->state);
     }
 
     public function test_tracking_mutations_require_recent_password_confirmation(): void
     {
-        [$owner, $alliance] = $this->ownerAlliance('Tracking Password', 'tracking-password', 6109);
-        $sessionKey = (string) config('identity.active_alliance_session_key');
-
+        [$owner, $ownerPlayer, $alliance] = $this->ownerAlliance('Tracking Password', 'tracking-password', 6109);
         $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession($this->activeSession($ownerPlayer->id))
             ->post('/alliance/kingdom-alliances', ['current_name' => 'Protected tracking'])
             ->assertRedirect(route('password.confirm'));
 
@@ -286,7 +269,7 @@ final class KingdomAllianceTrackingTest extends TestCase
 
     public function test_archive_is_idempotent_and_reference_can_be_retracked_without_losing_history(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Tracking Archive', 'tracking-archive', 6110);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Tracking Archive', 'tracking-archive', 6110);
         $this->actingAs($owner)->withSession($session)
             ->post('/alliance/kingdom-alliances', [
                 'current_name' => 'Archive Target',
@@ -328,7 +311,7 @@ final class KingdomAllianceTrackingTest extends TestCase
 
     public function test_private_tracking_notes_never_enter_audit_or_outbox_payloads(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Tracking Event Privacy', 'tracking-event-privacy', 6111);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Tracking Event Privacy', 'tracking-event-privacy', 6111);
         $secret = 'PRIVATE-TRACKING-NOTES-6111';
 
         $this->actingAs($owner)->withSession($session)
@@ -357,38 +340,63 @@ final class KingdomAllianceTrackingTest extends TestCase
         self::assertStringNotContainsString($secret, $outboxPayload);
     }
 
-    /** @return array{0: User, 1: Alliance, 2: array<string, mixed>} */
-    private function ownerAlliance(string $name, string $slug, int $kingdom): array
+    /** @return array{0: User, 1: Player, 2: Alliance, 3: array<string, mixed>} */
+    private function ownerAlliance(string $name, string $slug, int $kingdomNumber): array
     {
-        $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $ownerUser = User::factory()->create();
+        $kingdom = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdomNumber],
+            ['status' => 'active'],
+        );
+        $ownerPlayer = $this->player($ownerUser, $kingdom, $slug.'-r5', $name.' R5');
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, $name, $slug);
 
-        return [$owner, $alliance, $this->confirmedSession($alliance->id)];
+        return [$ownerUser, $ownerPlayer, $alliance, $this->confirmedSession($ownerPlayer->id)];
     }
 
-    private function member(Alliance $alliance): User
+    private function player(User $user, Kingdom $kingdom, string $gamePlayerId, string $name): Player
     {
-        $member = User::factory()->create();
-        $membership = AllianceMembership::query()->create([
+        return Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => $gamePlayerId,
+            'current_name' => $name,
+        ]);
+    }
+
+    /** @return array{0: User, 1: Player} */
+    private function member(Alliance $alliance): array
+    {
+        $memberUser = User::factory()->create();
+        $kingdom = Kingdom::query()->findOrFail($alliance->kingdom_id);
+        $memberPlayer = $this->player(
+            $memberUser,
+            $kingdom,
+            'tracking-member-'.$memberUser->id,
+            'Tracking Member',
+        );
+        AllianceMembership::query()->create([
             'alliance_id' => $alliance->id,
-            'user_id' => $member->id,
+            'player_id' => $memberPlayer->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $role = Role::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
 
-        return $member;
+        return [$memberUser, $memberPlayer];
     }
 
     /** @return array<string, mixed> */
-    private function confirmedSession(string $allianceId): array
+    private function activeSession(string $playerId): array
+    {
+        return [(string) config('identity.active_player_session_key') => $playerId];
+    }
+
+    /** @return array<string, mixed> */
+    private function confirmedSession(string $playerId): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            ...$this->activeSession($playerId),
             'auth.password_confirmed_at' => time(),
         ];
     }

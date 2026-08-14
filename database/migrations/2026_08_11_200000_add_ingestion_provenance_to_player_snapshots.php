@@ -11,7 +11,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('player_snapshots', function (Blueprint $table): void {
-            $table->unsignedBigInteger('actor_user_id')->nullable()->change();
             $table->string('source_subscription_id', 26)->nullable();
             $table->string('source_batch_id', 26)->nullable();
             $table->string('source_adapter_key', 80)->nullable();
@@ -50,7 +49,6 @@ return new class extends Migration
                 'source_identity_hash',
                 'source_payload_hash',
             ]);
-            $table->unsignedBigInteger('actor_user_id')->nullable(false)->change();
         });
     }
 };

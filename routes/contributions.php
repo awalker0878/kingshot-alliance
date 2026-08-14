@@ -28,8 +28,6 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         Route::patch('/alliance/contributions/records/{record}/reverse', [ContributionController::class, 'reverse'])
             ->whereUlid('record')
             ->name('alliance.contributions.records.reverse');
-        Route::post('/alliance/contributions/reconcile-events', [ContributionController::class, 'reconcileEvents'])
-            ->name('alliance.contributions.reconcile-events');
         Route::post('/alliance/contributions/data-quality/refresh', [ContributionController::class, 'refreshQuality'])
             ->name('alliance.contributions.data-quality.refresh');
         Route::patch('/alliance/contributions/data-quality/{flag}/resolve', [ContributionController::class, 'resolveQualityFlag'])

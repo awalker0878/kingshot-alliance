@@ -1,107 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: '返回活動',
-    eyebrow: '活動營運',
-    title: '活動協調',
-    description: '安排活動、發布集結指引、組織編隊與群組，並記錄出席與參與情況。',
-    scheduling: '排程與範本',
-    remindersGuidance: '提醒與指引',
-    rallySetup: '編隊與集結設定',
-    readiness: '準備與出席',
-    createEvent: '建立活動',
-    eventTitle: '活動標題',
-    firstStart: '首次開始',
-    durationMinutes: '時長（分鐘）',
-    registrationOpens: '開放報名（提前分鐘）',
-    registrationCloses: '關閉報名（提前分鐘）',
-    recurrence: '重複',
-    interval: '間隔',
-    recurrenceEnd: '重複結束',
-    createEventAction: '建立活動',
-    eventValidation: '請檢查活動欄位與報名時間範圍。',
-    createTemplate: '建立活動範本',
-    saveTemplate: '儲存範本',
-    scheduleFromTemplate: '從範本排程',
-    chooseTemplate: '選擇範本',
-    optionalTitle: '可選標題',
-    scheduleTemplate: '排程範本',
-    reminderRule: '提醒規則',
-    reminderHelp: '為所選活動的每次發生建立應用程式內提醒。',
-    chooseEvent: '選擇活動',
-    minutesBefore: '開始前分鐘數',
-    addReminder: '新增提醒',
-    rallyGuidance: '集結指引',
-    guidanceHelp: '發布具有效日期、可重複使用的兵種比例與英雄指引。',
-    heroRecommendations: '英雄推薦',
-    effectiveFrom: '生效日期',
-    effectiveUntil: '失效日期',
-    leadRequirements: '領隊要求',
-    joinerGuidance: '參與者指引',
-    guidanceValidation: '請檢查日期，並確保兵種比例合計為100%。',
-    publishGuidance: '發布指引',
-    eventFormation: '活動編隊',
-    occurrence: '場次',
-    chooseOccurrence: '選擇場次',
-    noGuidance: '無關聯指引',
-    addFormation: '新增編隊',
-    rallyGroup: '集結群組',
-    maxJoiners: '最多參與者',
-    none: '無',
-    createGroup: '建立群組',
-    assignMember: '指派集結成員',
-    member: '成員',
-    chooseGroup: '選擇群組',
-    chooseMember: '選擇成員',
-    slotNumber: '位置編號',
-    saveAssignment: '儲存指派',
-    registrations: '報名',
-    noRegistrations: '此場次沒有有效報名。',
-    rallyAssignments: '集結指派',
-    noAssignments: '此場次沒有集結指派。',
-    participated: '已參與',
-    statusAssigned: '已指派',
-    statusParticipated: '已參與',
-    recurrenceNone: '無',
-    recurrenceDaily: '每天',
-    recurrenceWeekly: '每週',
-    roleLead: '領隊',
-    roleJoiner: '參與者',
-  },
-  eventDetail: {
-    participation: '參與情況',
-    registeredCount: '已報名 {count} 人',
-    waitlistedCount: '候補 {count} 人',
-    noLimit: '不限人數',
-    instructions: '說明',
-    recommendedFormations: '推薦陣容',
-    noRecommendedFormations: '尚未發布此活動專用的陣容指引。',
-    assignmentRole: '分配角色',
-    troopRatio: '兵種比例',
-    infantry: '步兵',
-    cavalry: '騎兵',
-    archers: '弓兵',
-    heroes: '英雄',
-    notes: '備註',
-    guidance: '指引',
-    source: '來源',
-    effective: '{date}起生效',
-    through: '至 {date}',
-    rallyGroups: '集結組',
-    maxJoiners: '最多加入：{count}',
-    noAssigned: '尚未分配成員。',
-    noRallyGroups: '此活動尚未設定集結組。',
-    savedFormations: '你儲存的陣容',
-    default: '預設',
-    noSavedFormations: '你還沒有儲存陣容。',
-    saveFormation: '儲存陣容',
-    formationName: '名稱',
-    heroesHint: '英雄一、英雄二、英雄三',
-    makeDefault: '設為預設陣容',
-    formationValidation: '請檢查陣容數值。兵種比例總和必須為100%。',
-    save: '儲存陣容',
-  },
+  "events": {
+    "scope": {
+      "player": "玩家",
+      "alliance": "聯盟",
+      "kingdom": "王國"
+    },
+    "actions": {
+      "save": "儲存",
+      "cancel": "取消"
+    },
+    "calendar": {
+      "title": "活動",
+      "create": "建立活動",
+      "agenda": "議程",
+      "month": "日曆",
+      "all": "全部範圍",
+      "manageable": "管理",
+      "empty": "沒有符合目前檢視的活動。",
+      "previousMonth": "上個月",
+      "nextMonth": "下個月",
+      "scopeFilters": "依範圍篩選活動",
+      "viewOptions": "選擇活動檢視"
+    },
+    "create": {
+      "title": "建立活動",
+      "back": "返回活動",
+      "noContexts": "你目前沒有建立活動的權限。",
+      "context": "活動範圍",
+      "eventType": "活動類型",
+      "start": "開始時間",
+      "duration": "時長（分鐘）",
+      "capacity": "容量",
+      "instructions": "說明",
+      "submit": "建立活動"
+    },
+    "show": {
+      "back": "返回活動",
+      "manage": "管理活動",
+      "details": "活動詳情",
+      "status": "狀態",
+      "capacity": "容量",
+      "recurrence": "重複",
+      "modules": "營運模組"
+    },
+    "manage": {
+      "title": "管理活動",
+      "back": "返回活動",
+      "save": "儲存活動",
+      "cancel": "取消活動"
+    },
+    "attention": {
+      "title": "活動操作",
+      "response": "需要回應",
+      "registration": "可報名",
+      "vote": "需要投票",
+      "roster_confirmation": "需要確認名單"
+    },
+    "reminders": {
+      "title": "最近提醒"
+    },
+    "participation": {
+      "register": "報名",
+      "cancelRegistration": "取消報名"
+    },
+    "responses": {
+      "going": "參加",
+      "maybe": "可能",
+      "unavailable": "無法參加"
+    },
+    "registration": {
+      "registered": "已報名",
+      "waitlisted": "候補名單",
+      "cancelled": "已取消"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "聯盟控制",
+      "game_calendar": "遊戲日曆",
+      "matchmaking": "配對",
+      "manual": "手動"
+    },
+    "recurrencePolicies": {
+      "disabled": "不重複",
+      "fixed_interval": "固定間隔",
+      "configurable": "可設定"
+    },
+    "recurrenceFrequencies": {
+      "none": "不重複",
+      "daily": "每天",
+      "weekly": "每週"
+    },
+    "attendanceStatuses": {
+      "present": "出席",
+      "absent": "缺席",
+      "excused": "請假",
+      "unknown": "未知"
+    },
+    "eventStatuses": {
+      "draft": "草稿",
+      "published": "已發布",
+      "cancelled": "已取消",
+      "completed": "已完成"
+    },
+    "capabilities": {
+      "responses": "回應",
+      "registration": "報名",
+      "waitlist": "候補名單",
+      "attendance": "出勤",
+      "phases": "階段",
+      "polls": "投票",
+      "rosters": "名單",
+      "substitutes": "替補",
+      "teams": "隊伍",
+      "legions": "軍團",
+      "rally_guidance": "集結指導",
+      "formations": "編隊",
+      "objectives": "目標",
+      "scoring": "計分",
+      "results": "結果"
+    },
+    "reminderAudiences": {
+      "target": "活動目標",
+      "responded": "已回應玩家",
+      "registered": "已報名玩家",
+      "rostered": "已入選名單玩家",
+      "all_scope_players": "所有符合條件的玩家"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

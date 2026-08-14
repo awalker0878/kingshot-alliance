@@ -54,7 +54,7 @@ Feature domains must consume tenant identity/context through these supported con
 
 Material Alliance lifecycle/settings changes may record audit/outbox evidence. Producer meaning remains Alliances-owned; Platform owns durable outbox publication.
 
-`alliance.kingdom_updated` is an internal event family consumed as repository evidence/coordination but is explicitly excluded by Integrations from external webhook fan-out. Recording an Alliance event therefore never implies public webhook compatibility.
+Alliance Kingdom is established from the creating R5 Player and has no standalone mutation interface. Recording an Alliance event never implies public webhook compatibility.
 
 ## 8. Commands, jobs and scheduled work
 
@@ -82,7 +82,6 @@ Alliances does not:
 - own membership or role/permission state;
 - expose a standalone public write API;
 - make arbitrary Alliance persistence externally readable;
-- make `alliance.kingdom_updated` an external webhook; or
 - permit neutral Kingdom/player/game-Alliance identity to establish tenant access.
 
 ## 12. Focused contracts, evidence and related documentation

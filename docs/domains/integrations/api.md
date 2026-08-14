@@ -50,7 +50,8 @@ Credentials have lifecycle state such as active/revoked and any implemented expi
 5. Normal API access requires the bound Alliance to remain active and API availability/entitlement to permit use.
 6. Collection endpoints are bounded to 250 rows.
 7. Pending/reversed Contribution records are not exposed by the accepted Contributions read contract.
-8. No accepted Kingdoms roster/snapshot/transfer/diplomacy scope exists.
+8. `events:read` returns only Alliance-scoped Event occurrences whose Event target is the credential's exact Alliance; Player- and Kingdom-scoped Events are never exposed through an Alliance credential.
+9. No accepted Kingdoms roster/snapshot/transfer/diplomacy scope exists.
 
 ## 5. Workflows
 

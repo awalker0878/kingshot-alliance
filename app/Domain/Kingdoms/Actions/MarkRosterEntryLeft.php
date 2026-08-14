@@ -8,9 +8,9 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +23,7 @@ final readonly class MarkRosterEntryLeft
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $alliance, User $actor, string $entryId): AllianceRosterEntry
+    public function handle(Alliance $alliance, Player $actor, string $entryId): AllianceRosterEntry
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
@@ -36,7 +36,7 @@ final readonly class MarkRosterEntryLeft
                 ->findOrFail($entryId);
 
             if ($entry->state === RosterState::Left) {
-                return $entry->load(['player', 'membership.user']);
+                return $entry->load('player');
             }
 
             $entry->forceFill([
@@ -48,19 +48,13 @@ final readonly class MarkRosterEntryLeft
 
             $metadata = [
                 'roster_entry_id' => (string) $entry->id,
-                'kingdom_player_id' => (string) $entry->kingdom_player_id,
-                'membership_id' => $entry->membership_id,
+                'player_id' => (string) $entry->player_id,
             ];
 
             $this->audit->record('kingdoms.roster_entry_left', $actor, $entry, $alliance, $metadata);
-            $this->outbox->record(
-                'kingdoms.roster_entry_left',
-                (string) $alliance->id,
-                $entry,
-                $metadata,
-            );
+            $this->outbox->record('kingdoms.roster_entry_left', (string) $alliance->id, $entry, $metadata);
 
-            return $entry->refresh()->load(['player', 'membership.user']);
+            return $entry->refresh()->load('player');
         });
     }
 }

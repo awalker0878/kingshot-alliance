@@ -3,52 +3,17 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        $permissionId = DB::table('permissions')
-            ->where('key', 'contributions.manage')
-            ->value('id');
-
-        if ($permissionId === null) {
-            $permissionId = (string) Str::ulid();
-            DB::table('permissions')->insert([
-                'id' => $permissionId,
-                'key' => 'contributions.manage',
-                'description' => 'Manage alliance contribution records, reporting, exports, and report schedules.',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-
-        $rows = [];
-        foreach (DB::table('roles')->whereIn('key', ['owner', 'leader'])->pluck('id') as $roleId) {
-            $rows[] = [
-                'role_id' => $roleId,
-                'permission_id' => $permissionId,
-            ];
-        }
-
-        if ($rows !== []) {
-            DB::table('role_permissions')->insertOrIgnore($rows);
-        }
+        // Permission provisioning is centralized in AllianceRoleProvisioner.
+        // Rank-based grants are evaluated by AllianceRankPermissions.
     }
 
     public function down(): void
     {
-        $permissionId = DB::table('permissions')
-            ->where('key', 'contributions.manage')
-            ->value('id');
-
-        if ($permissionId === null) {
-            return;
-        }
-
-        DB::table('role_permissions')->where('permission_id', $permissionId)->delete();
-        DB::table('permissions')->where('id', $permissionId)->delete();
+        // No schema or persisted role grant is owned by this migration.
     }
 };

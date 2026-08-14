@@ -85,10 +85,10 @@ final class TwoFactorChallengeController extends Controller
                 Str::lower((string) $invitation->email),
                 Str::lower((string) $user->email),
             )) {
-                $alliance = $acceptInvitation->handle($user, $invitationToken);
+                $membership = $acceptInvitation->handle($user, $invitationToken);
                 $request->session()->put(
-                    (string) config('identity.active_alliance_session_key'),
-                    $alliance->id,
+                    (string) config('identity.active_player_session_key'),
+                    (string) $membership->player_id,
                 );
 
                 return redirect()->route('alliance.overview');

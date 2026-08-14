@@ -6,7 +6,7 @@ namespace App\Domain\Memberships\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Memberships\Services\MembershipAdministrationGuard;
@@ -21,17 +21,17 @@ final readonly class LeaveAlliance
         private AuditRecorder $audit,
     ) {}
 
-    public function handle(Alliance $alliance, User $user): AllianceMembership
+    public function handle(Alliance $alliance, Player $player): AllianceMembership
     {
-        return DB::transaction(function () use ($alliance, $user): AllianceMembership {
+        return DB::transaction(function () use ($alliance, $player): AllianceMembership {
             $membership = AllianceMembership::query()
                 ->where('alliance_id', $alliance->id)
-                ->where('user_id', $user->id)
+                ->where('player_id', $player->id)
                 ->where('status', MembershipStatus::Active->value)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $this->guard->assertCanChangeOwnerMembership($membership);
+            $this->guard->assertCanDeactivate($membership);
 
             $membership->forceFill([
                 'status' => MembershipStatus::Left,
@@ -39,15 +39,11 @@ final readonly class LeaveAlliance
             ])->save();
             $membership->roles()->detach();
 
-            $this->audit->record(
-                event: 'membership.left',
-                actor: $user,
-                subject: $membership,
-                alliance: $alliance,
-            );
+            $this->audit->record('membership.left', $player, $membership, $alliance);
 
             OutboxMessage::query()->create([
                 'alliance_id' => $alliance->id,
+                'partition_key' => 'alliance:'.$alliance->id,
                 'event_type' => 'membership.left',
                 'aggregate_type' => AllianceMembership::class,
                 'aggregate_id' => $membership->id,
@@ -55,7 +51,7 @@ final readonly class LeaveAlliance
                 'payload' => [
                     'alliance_id' => $alliance->id,
                     'membership_id' => $membership->id,
-                    'user_id' => $user->id,
+                    'player_id' => $player->id,
                 ],
                 'occurred_at' => now(),
                 'available_at' => now(),

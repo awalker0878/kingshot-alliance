@@ -38,7 +38,7 @@ final class ContentRevision extends Model
         'body',
         'locale',
         'sort_order',
-        'created_by_user_id',
+        'created_by_player_id',
         'created_at',
     ];
 

@@ -19,7 +19,7 @@ final class TransferGroupQuery
             ->where('alliance_id', $alliance->id)
             ->where('transfer_plan_id', $plan->id)
             ->with([
-                'coordinator.user:id,name,email',
+                'coordinator:id,current_name',
                 'destinationKingdom:id,number',
             ]);
 

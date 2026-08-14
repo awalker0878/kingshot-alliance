@@ -7,7 +7,14 @@ namespace App\Domain\Rallies\Enums;
 enum RallyAssignmentStatus: string
 {
     case Assigned = 'assigned';
-    case Standby = 'standby';
+    case Confirmed = 'confirmed';
+    case Declined = 'declined';
     case Participated = 'participated';
-    case NoShow = 'no_show';
+    case Absent = 'absent';
+    case Removed = 'removed';
+
+    public function occupiesAssignment(): bool
+    {
+        return ! in_array($this, [self::Declined, self::Removed], true);
+    }
 }

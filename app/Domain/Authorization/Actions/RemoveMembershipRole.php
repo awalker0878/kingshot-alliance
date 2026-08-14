@@ -6,13 +6,11 @@ namespace App\Domain\Authorization\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Models\AllianceMembership;
-use App\Domain\Memberships\Services\MembershipAdministrationGuard;
 use App\Domain\Platform\Models\OutboxMessage;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -21,13 +19,12 @@ final readonly class RemoveMembershipRole
 {
     public function __construct(
         private AllianceAuthorization $authorization,
-        private MembershipAdministrationGuard $guard,
         private AuditRecorder $audit,
     ) {}
 
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $membershipId,
         string $roleId,
     ): AllianceMembership {
@@ -47,26 +44,19 @@ final readonly class RemoveMembershipRole
                 ->where('alliance_id', $alliance->id)
                 ->firstOrFail();
 
-            if ((string) $role->key === DefaultAllianceRole::Owner->value) {
-                $this->guard->assertCanChangeOwnerMembership($membership);
-            }
-
             $membership->roles()->detach($role->id);
 
-            $this->audit->record(
-                event: 'membership.role_removed',
-                actor: $actor,
-                subject: $membership,
-                alliance: $alliance,
-                metadata: [
-                    'role_id' => $role->id,
-                    'role_key' => $role->key,
-                    'user_id' => $membership->user_id,
-                ],
-            );
+            $metadata = [
+                'role_id' => $role->id,
+                'role_key' => $role->key,
+                'player_id' => $membership->player_id,
+            ];
+
+            $this->audit->record('membership.role_removed', $actor, $membership, $alliance, $metadata);
 
             OutboxMessage::query()->create([
                 'alliance_id' => $alliance->id,
+                'partition_key' => 'alliance:'.$alliance->id,
                 'event_type' => 'membership.role_removed',
                 'aggregate_type' => AllianceMembership::class,
                 'aggregate_id' => $membership->id,
@@ -74,7 +64,7 @@ final readonly class RemoveMembershipRole
                 'payload' => [
                     'alliance_id' => $alliance->id,
                     'membership_id' => $membership->id,
-                    'user_id' => $membership->user_id,
+                    'player_id' => $membership->player_id,
                     'role_id' => $role->id,
                     'role_key' => $role->key,
                 ],

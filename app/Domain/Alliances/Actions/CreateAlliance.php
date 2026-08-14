@@ -7,16 +7,15 @@ namespace App\Domain\Alliances\Actions;
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Authorization\Services\AllianceRoleProvisioner;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Actions\ResolveKingdom;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\OutboxMessage;
 use App\Domain\Platform\Services\AlliancePlatformDefaultsProvisioner;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
+use Illuminate\Validation\ValidationException;
 
 final readonly class CreateAlliance
 {
@@ -24,71 +23,71 @@ final readonly class CreateAlliance
         private AllianceRoleProvisioner $roles,
         private AuditRecorder $audit,
         private AlliancePlatformDefaultsProvisioner $platformDefaults,
-        private ResolveKingdom $kingdoms,
     ) {}
 
     public function handle(
-        User $owner,
+        Player $owner,
         string $name,
         string $slug,
-        int|string|null $kingdom = null,
         string $language = 'en',
         string $timezone = 'UTC',
     ): Alliance {
-        return DB::transaction(function () use ($owner, $name, $slug, $kingdom, $language, $timezone): Alliance {
-            $kingdomRecord = $this->kingdoms->handle($kingdom);
+        return DB::transaction(function () use ($owner, $name, $slug, $language, $timezone): Alliance {
+            $lockedOwner = Player::query()->whereKey($owner->id)->lockForUpdate()->firstOrFail();
+
+            if ($lockedOwner->user_id === null) {
+                throw ValidationException::withMessages([
+                    'player' => 'An Alliance can only be created by a Player claimed by a User account.',
+                ]);
+            }
+
+            if (AllianceMembership::query()
+                ->where('player_id', $lockedOwner->id)
+                ->where('status', MembershipStatus::Active->value)
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'player' => 'The active Player already belongs to an Alliance.',
+                ]);
+            }
 
             $alliance = Alliance::query()->create([
                 'name' => $name,
                 'slug' => $slug,
-                'kingdom_id' => $kingdomRecord?->id,
+                'kingdom_id' => $lockedOwner->current_kingdom_id,
                 'language' => $language,
                 'timezone' => $timezone,
                 'status' => AllianceStatus::Active,
-                'created_by_user_id' => $owner->id,
             ]);
 
-            $membership = AllianceMembership::query()->create([
+            AllianceMembership::query()->create([
                 'alliance_id' => $alliance->id,
-                'user_id' => $owner->id,
+                'player_id' => $lockedOwner->id,
                 'status' => MembershipStatus::Active,
+                'rank' => AllianceRank::R5,
                 'joined_at' => now(),
             ]);
 
-            $roles = $this->roles->provision($alliance);
-            $ownerRole = $roles[DefaultAllianceRole::Owner->value] ?? null;
-
-            if ($ownerRole === null) {
-                throw new RuntimeException('The default owner role was not provisioned.');
-            }
-
-            $membership->roles()->attach($ownerRole->id, [
-                'alliance_id' => $alliance->id,
-            ]);
-            $this->platformDefaults->provision($alliance, $owner);
+            $this->roles->provision($alliance);
+            $this->platformDefaults->provision($alliance);
 
             $this->audit->record(
                 event: 'alliance.created',
-                actor: $owner,
+                actor: $lockedOwner,
                 subject: $alliance,
                 alliance: $alliance,
-                metadata: [
-                    'name' => $alliance->name,
-                    'slug' => $alliance->slug,
-                    'kingdom_number' => $kingdomRecord?->number,
-                ],
+                metadata: ['name' => $alliance->name, 'slug' => $alliance->slug],
             );
 
             OutboxMessage::query()->create([
                 'alliance_id' => $alliance->id,
+                'partition_key' => 'alliance:'.$alliance->id,
                 'event_type' => 'alliance.created',
                 'aggregate_type' => Alliance::class,
                 'aggregate_id' => $alliance->id,
                 'idempotency_key' => 'alliance.created:'.$alliance->id,
                 'payload' => [
                     'alliance_id' => $alliance->id,
-                    'owner_user_id' => $owner->id,
-                    'kingdom_number' => $kingdomRecord?->number,
+                    'owner_player_id' => $lockedOwner->id,
                 ],
                 'occurred_at' => now(),
                 'available_at' => now(),

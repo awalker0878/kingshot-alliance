@@ -16,7 +16,7 @@ Kingdom association, roster mutations, snapshot recording and CSV confirmation w
 Operators troubleshooting the increment should distinguish:
 
 - `kingdoms` — global Kingdom reference records;
-- `kingdom_players` — global neutral game-player identity within a Kingdom;
+- `players` — global neutral game-player identity within a Kingdom;
 - `alliance_roster_entries` — alliance-owned roster state, linkage and private manager notes;
 - `player_snapshots` — append-only alliance-owned observations and provenance; and
 - `kingdom_roster_imports` — bounded CSV preview, resolution and commit evidence.

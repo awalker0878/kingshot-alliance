@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Contributions\Models\ContributionReportRun;
 use App\Domain\Contributions\Queries\ContributionReportingQuery;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
@@ -23,7 +23,7 @@ final class ContributionReportExporter
     ) {}
 
     /** @return array{content: string, mime: string, filename: string, run: ContributionReportRun} */
-    public function export(Alliance $alliance, User $actor, string $format): array
+    public function export(Alliance $alliance, Player $actor, string $format): array
     {
         if (! in_array($format, ['csv', 'spreadsheet'], true)) {
             throw new InvalidArgumentException('Unsupported contribution report format.');
@@ -38,7 +38,7 @@ final class ContributionReportExporter
 
         $run = ContributionReportRun::query()->create([
             'alliance_id' => $alliance->id,
-            'requested_by_user_id' => $actor->id,
+            'requested_by_player_id' => $actor->id,
             'format' => $format,
             'status' => 'completed',
             'report_version' => self::REPORT_VERSION,
@@ -130,7 +130,8 @@ final class ContributionReportExporter
             'report_version',
             'alliance_id',
             'record_id',
-            'member',
+            'player_id',
+            'player',
             'category',
             'unit',
             'value',

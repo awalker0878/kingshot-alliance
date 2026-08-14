@@ -10,7 +10,7 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Models\ContentItem;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
@@ -24,7 +24,7 @@ final readonly class PublishContentItem
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $alliance, User $actor, string $contentItemId, ?Carbon $scheduledFor = null): ContentItem
+    public function handle(Alliance $alliance, Player $actor, string $contentItemId, ?Carbon $scheduledFor = null): ContentItem
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::ContentManage)) {
             throw new AuthorizationException;
@@ -45,7 +45,7 @@ final readonly class PublishContentItem
                 'scheduled_for' => $isScheduled ? $scheduledFor->utc() : null,
                 'published_at' => $isScheduled ? null : now(),
                 'archived_at' => null,
-                'updated_by_user_id' => $actor->id,
+                'updated_by_player_id' => $actor->id,
             ])->save();
 
             $event = $isScheduled ? 'content.scheduled' : 'content.published';

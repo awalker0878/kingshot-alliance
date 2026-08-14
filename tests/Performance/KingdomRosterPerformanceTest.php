@@ -7,7 +7,8 @@ namespace Tests\Performance;
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\KingdomPlayer;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
 use App\Domain\Kingdoms\Services\RosterIntelligence;
 use Illuminate\Database\Events\QueryExecuted;
@@ -30,19 +31,26 @@ final class KingdomRosterPerformanceTest extends TestCase
     {
         Carbon::setTestNow(Carbon::parse('2026-08-08 20:00:00 UTC'));
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 5200, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'performance-owner',
+            'current_name' => 'Performance Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Performance Kingdoms', 'performance-kingdoms', 5200);
+            ->handle($ownerPlayer, 'Performance Kingdoms', 'performance-kingdoms');
         self::assertNotNull($alliance->kingdom_id);
 
         for ($index = 1; $index <= 150; $index++) {
-            $player = KingdomPlayer::query()->create([
-                'kingdom_id' => $alliance->kingdom_id,
+            $player = Player::query()->create([
+                'current_kingdom_id' => $alliance->kingdom_id,
                 'game_player_id' => 'performance-'.$index,
                 'current_name' => 'Performance Player '.$index,
             ]);
             $entry = AllianceRosterEntry::query()->create([
                 'alliance_id' => $alliance->id,
-                'kingdom_player_id' => $player->id,
+                'player_id' => $player->id,
                 'observed_name' => $player->current_name,
                 'state' => 'active',
                 'source' => 'manual',
@@ -56,8 +64,8 @@ final class KingdomRosterPerformanceTest extends TestCase
                 PlayerSnapshot::query()->create([
                     'alliance_id' => $alliance->id,
                     'roster_entry_id' => $entry->id,
-                    'kingdom_player_id' => $player->id,
-                    'actor_user_id' => $owner->id,
+                    'player_id' => $player->id,
+                    'actor_player_id' => $ownerPlayer->id,
                     'observed_name' => $player->current_name,
                     'power' => $power,
                     'captured_at' => now()->subDays($daysAgo),

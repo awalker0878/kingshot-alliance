@@ -22,10 +22,10 @@ return new class extends Migration
             $table->string('state', 16)->default('active');
             $table->timestampTz('last_verified_at')->nullable();
             $table->text('manager_notes')->nullable();
-            $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('created_by_player_id')->nullable()->constrained('players')->nullOnDelete();
+            $table->foreignUlid('updated_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestampTz('deactivated_at')->nullable();
-            $table->foreignId('deactivated_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('deactivated_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
 
             $table->index(

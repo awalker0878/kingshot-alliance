@@ -9,6 +9,8 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Alliances\ValueObjects\TenantContextSnapshot;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Kingdoms\Services\PlayerContext;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Closure;
@@ -18,46 +20,38 @@ use Symfony\Component\HttpFoundation\Response;
 
 final readonly class ResolveAllianceContext
 {
-    public function __construct(private AllianceContext $context) {}
+    public function __construct(
+        private AllianceContext $context,
+        private PlayerContext $players,
+    ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
-        $sessionKey = (string) config('identity.active_alliance_session_key');
-        $activeAllianceId = $request->session()->get($sessionKey);
-
-        if (! is_string($activeAllianceId) || $activeAllianceId === '') {
-            abort(409, 'An active alliance is required.');
-        }
+        $player = $this->players->playerOrNull();
+        abort_unless($player instanceof Player, 409, 'Select a Player before opening Alliance operations.');
 
         $membership = AllianceMembership::query()
-            ->where('alliance_id', $activeAllianceId)
-            ->where('user_id', $user->id)
+            ->where('player_id', $player->id)
             ->where('status', MembershipStatus::Active->value)
+            ->whereHas('alliance', static fn ($query) => $query->where('kingdom_id', $player->current_kingdom_id))
             ->with('alliance')
             ->first();
 
-        if ($membership === null) {
-            $request->session()->forget($sessionKey);
-            abort(403, 'The active alliance is no longer available to this account.');
-        }
+        abort_unless($membership instanceof AllianceMembership, 409, 'The active Player is not currently in an Alliance.');
 
         $alliance = $membership->alliance;
-
         if (! $alliance instanceof Alliance) {
-            throw new LogicException('An active membership must reference an alliance.');
+            throw new LogicException('An active membership must reference an Alliance.');
         }
 
-        if ($alliance->status !== AllianceStatus::Active) {
-            $request->session()->forget($sessionKey);
-            abort(403, 'The alliance is not currently active.');
-        }
+        abort_unless($alliance->status === AllianceStatus::Active, 403, 'The Alliance is not currently active.');
 
-        $this->context->activate($alliance, $user);
-        $request->attributes->set('alliance_id', $membership->alliance_id);
-        $request->attributes->set('alliance_membership_id', $membership->id);
+        $this->context->activate($player, $membership, $alliance);
+        $request->attributes->set('active_player_id', (string) $player->id);
+        $request->attributes->set('alliance_id', (string) $alliance->id);
         $request->attributes->set('tenant_context', TenantContextSnapshot::fromRequest($request));
 
         try {

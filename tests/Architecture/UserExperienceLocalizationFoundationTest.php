@@ -92,7 +92,7 @@ final class UserExperienceLocalizationFoundationTest extends TestCase
         foreach ([
             '/dashboard',
             '/alliance',
-            '/alliance/events',
+            '/events',
             '/alliance/roster',
             '/alliance/recruitment',
             '/alliance/content',

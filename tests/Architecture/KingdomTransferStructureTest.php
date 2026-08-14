@@ -37,7 +37,7 @@ final class KingdomTransferStructureTest extends TestCase
             'transfer_plan_id',
             'direction',
             'roster_entry_id',
-            'kingdom_player_id',
+            'player_id',
             'source_kingdom_id',
             'destination_kingdom_id',
             'manager_notes',
@@ -68,7 +68,7 @@ final class KingdomTransferStructureTest extends TestCase
             'direction',
             'destination_kingdom_id',
             'state',
-            'coordinator_membership_id',
+            'coordinator_player_id',
             'manager_notes',
         ] as $field) {
             self::assertStringContainsString($field, $migration);
@@ -95,12 +95,13 @@ final class KingdomTransferStructureTest extends TestCase
             'transfer_readiness_transitions',
             'from_state',
             'to_state',
-            'actor_user_id',
+            'actor_player_id',
             'transfer_blockers',
             'summary',
             'details',
+            'created_by_player_id',
             'resolved_at',
-            'resolved_by_user_id',
+            'resolved_by_player_id',
         ] as $field) {
             self::assertStringContainsString($field, $migration);
         }
@@ -129,7 +130,7 @@ final class KingdomTransferStructureTest extends TestCase
             'transfer_participant_id',
             'roster_entry_id',
             'direction',
-            'completed_by_user_id',
+            'completed_by_player_id',
             'completed_at',
             "unique('transfer_participant_id')",
         ] as $field) {
@@ -263,7 +264,7 @@ final class KingdomTransferStructureTest extends TestCase
             'Actions/CancelTransferPlan.php',
             'Actions/SaveTransferParticipant.php',
             'Actions/WithdrawTransferParticipant.php',
-            'Actions/ResolveTransferKingdomPlayer.php',
+            'Actions/ResolveTransferPlayer.php',
             'Actions/SaveTransferGroup.php',
             'Actions/ArchiveTransferGroup.php',
             'Actions/AssignTransferParticipantGroup.php',

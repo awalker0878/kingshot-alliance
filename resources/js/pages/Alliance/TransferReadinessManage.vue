@@ -218,7 +218,7 @@ const inputClass =
 <template>
   <Head :title="`${t('kingdomP7D.readinessTitle')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-5">
       <div class="max-w-3xl">
         <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">

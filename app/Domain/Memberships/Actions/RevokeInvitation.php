@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\InvitationStatus;
 use App\Domain\Memberships\Models\Invitation;
 use App\Domain\Platform\Models\OutboxMessage;
@@ -23,7 +23,7 @@ final readonly class RevokeInvitation
         private AuditRecorder $audit,
     ) {}
 
-    public function handle(Alliance $alliance, User $actor, string $invitationId): Invitation
+    public function handle(Alliance $alliance, Player $actor, string $invitationId): Invitation
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::InvitationManage)) {
             throw new AuthorizationException;
@@ -47,16 +47,13 @@ final readonly class RevokeInvitation
                 'revoked_at' => now(),
             ])->save();
 
-            $this->audit->record(
-                event: 'invitation.revoked',
-                actor: $actor,
-                subject: $invitation,
-                alliance: $alliance,
-                metadata: ['email' => $invitation->email],
-            );
+            $this->audit->record('invitation.revoked', $actor, $invitation, $alliance, [
+                'player_id' => (string) $invitation->player_id,
+            ]);
 
             OutboxMessage::query()->create([
                 'alliance_id' => $alliance->id,
+                'partition_key' => 'alliance:'.$alliance->id,
                 'event_type' => 'invitation.revoked',
                 'aggregate_type' => Invitation::class,
                 'aggregate_id' => $invitation->id,
@@ -64,6 +61,7 @@ final readonly class RevokeInvitation
                 'payload' => [
                     'invitation_id' => $invitation->id,
                     'alliance_id' => $alliance->id,
+                    'player_id' => $invitation->player_id,
                 ],
                 'occurred_at' => now(),
                 'available_at' => now(),

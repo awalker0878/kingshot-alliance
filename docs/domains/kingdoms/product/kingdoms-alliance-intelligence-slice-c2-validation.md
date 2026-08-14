@@ -16,7 +16,7 @@ Validated runtime behavior includes:
 - tenant-owned contacts scoped to Alliance + tracked game-side alliance + neutral `KingdomAlliance` reference;
 - display name, optional game-side role/title, approved handle-based channel, handle, active/inactive state, optional last-verified time, manager-private notes and actor/lifecycle provenance only;
 - approved channel vocabulary `in_game`, `discord`, and `other_handle`;
-- no `KingdomPlayer`, `User`, membership, role or permission linkage;
+- no `Player`, `User`, membership, role or permission linkage;
 - duplicate names/handles remain distinct and never auto-merge or auto-link identity;
 - manager-only contact workspace and contact detail;
 - `kingdoms.manage` plus recent password confirmation for create/update/deactivate;

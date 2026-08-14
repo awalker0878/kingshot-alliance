@@ -11,8 +11,7 @@ use App\Domain\Contributions\Enums\ContributionRecordStatus;
 use App\Domain\Contributions\Models\ContributionCategory;
 use App\Domain\Contributions\Models\ContributionRecord;
 use App\Domain\Contributions\Services\ContributionPeriodResolver;
-use App\Domain\Identity\Models\User;
-use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -26,15 +25,15 @@ final class RecordContribution
     ) {}
 
     public function handle(
-        User $actor,
+        Player $actor,
         Alliance $alliance,
-        AllianceMembership $membership,
+        Player $player,
         ContributionCategory $category,
         float $value,
         ContributionRecordSource $source,
         ?string $evidence = null,
     ): ContributionRecord {
-        if ($membership->alliance_id !== $alliance->id || $category->alliance_id !== $alliance->id) {
+        if ($category->alliance_id !== $alliance->id || (string) $player->current_kingdom_id !== (string) $alliance->kingdom_id) {
             throw new InvalidArgumentException('Contribution record references must belong to the active alliance.');
         }
 
@@ -46,10 +45,6 @@ final class RecordContribution
             throw new InvalidArgumentException('This contribution category does not allow member self-reporting.');
         }
 
-        if ($source === ContributionRecordSource::EventParticipation) {
-            throw new InvalidArgumentException('Event participation records are created only by reconciliation.');
-        }
-
         if ($category->evidence_required && trim((string) $evidence) === '') {
             throw new InvalidArgumentException('Evidence is required for this contribution category.');
         }
@@ -59,7 +54,7 @@ final class RecordContribution
         return DB::transaction(function () use (
             $actor,
             $alliance,
-            $membership,
+            $player,
             $category,
             $value,
             $source,
@@ -69,7 +64,7 @@ final class RecordContribution
             $record = ContributionRecord::query()->create([
                 'alliance_id' => $alliance->id,
                 'category_id' => $category->id,
-                'membership_id' => $membership->id,
+                'player_id' => $player->id,
                 'source' => $source,
                 'data_class' => $category->data_class,
                 'value' => $value,
@@ -80,12 +75,12 @@ final class RecordContribution
                 'calculation_key' => $category->calculation_key,
                 'calculation_version' => $category->calculation_version,
                 'recorded_at' => now(),
-                'recorded_by_user_id' => $actor->id,
+                'recorded_by_player_id' => $actor->id,
             ]);
 
             $this->audit->record('contribution.record.created', $actor, $record, $alliance, [
                 'source' => $source->value,
-                'membership_id' => $membership->id,
+                'player_id' => $player->id,
                 'category_id' => $category->id,
             ]);
             $this->outbox->record('contribution.record.created', $alliance->id, $record, [

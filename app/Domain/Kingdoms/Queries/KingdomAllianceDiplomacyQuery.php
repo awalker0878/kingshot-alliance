@@ -21,7 +21,7 @@ final class KingdomAllianceDiplomacyQuery
             ->with([
                 'kingdomAlliance:id,kingdom_id,current_name,current_tag,status',
                 'kingdom:id,number,status',
-                'diplomacy.lastTransitionUser:id,name',
+                'diplomacy.lastTransitionPlayer:id,current_name',
             ])
             ->findOrFail($trackingId);
     }
@@ -31,7 +31,7 @@ final class KingdomAllianceDiplomacyQuery
         return KingdomAllianceDiplomacy::query()
             ->where('alliance_id', $alliance->id)
             ->where('tracked_kingdom_alliance_id', $trackingId)
-            ->with('lastTransitionUser:id,name')
+            ->with('lastTransitionPlayer:id,current_name')
             ->first();
     }
 
@@ -41,7 +41,7 @@ final class KingdomAllianceDiplomacyQuery
         return KingdomAllianceDiplomacyTransition::query()
             ->where('alliance_id', $alliance->id)
             ->where('tracked_kingdom_alliance_id', $trackingId)
-            ->with('actor:id,name')
+            ->with('actor:id,current_name')
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->limit(self::HISTORY_LIMIT)

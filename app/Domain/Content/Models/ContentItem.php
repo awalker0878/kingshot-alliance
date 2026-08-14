@@ -46,8 +46,8 @@ final class ContentItem extends Model
         'scheduled_for',
         'published_at',
         'archived_at',
-        'created_by_user_id',
-        'updated_by_user_id',
+        'created_by_player_id',
+        'updated_by_player_id',
     ];
 
     protected function casts(): array

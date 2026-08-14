@@ -20,6 +20,7 @@ use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -77,8 +78,8 @@ final class KingdomIngestionPlayerPromotionTest extends TestCase
         $snapshot = $promote->handle((string) $subscription->id, (string) $candidate->id);
         self::assertInstanceOf(PlayerSnapshot::class, $snapshot);
         self::assertSame($entry->id, $snapshot->roster_entry_id);
-        self::assertSame($entry->kingdom_player_id, $snapshot->kingdom_player_id);
-        self::assertNull($snapshot->actor_user_id);
+        self::assertSame($entry->player_id, $snapshot->player_id);
+        self::assertNull($snapshot->actor_player_id);
         self::assertSame('ingestion', $snapshot->source);
         self::assertSame($subscription->id, $snapshot->source_subscription_id);
         self::assertSame($batch->id, $snapshot->source_batch_id);
@@ -119,7 +120,7 @@ final class KingdomIngestionPlayerPromotionTest extends TestCase
         self::assertNotSame($snapshot->id, $later->id);
         self::assertSame(2, PlayerSnapshot::query()->count());
 
-        $session = [(string) config('identity.active_alliance_session_key') => (string) $alliance->id];
+        $session = [(string) config('identity.active_player_session_key') => (string) $owner->players()->sole()->id];
         $this->actingAs($owner)->withSession($session)
             ->get("/alliance/roster/{$entry->id}/history")
             ->assertOk()
@@ -137,10 +138,10 @@ final class KingdomIngestionPlayerPromotionTest extends TestCase
             'k4-p2-tenant-a',
             null,
         );
-        [$ownerB, $allianceB] = $this->alliance(6502, 'k4-p2-tenant-b');
+        [$ownerB, $playerB, $allianceB] = $this->alliance(6502, 'k4-p2-tenant-b');
         $entryB = $this->app->make(SaveRosterEntry::class)->handle(
             $allianceB,
-            $ownerB,
+            $playerB,
             ['name' => 'Tenant B Player', 'game_player_id' => 'shared-player-6502'],
         );
 
@@ -162,7 +163,7 @@ final class KingdomIngestionPlayerPromotionTest extends TestCase
         self::assertSame(0, PlayerSnapshot::query()->where('alliance_id', $allianceA->id)->count());
     }
 
-    public function test_unknown_player_and_kingdom_drift_quarantine_before_snapshot_mutation(): void
+    public function test_unknown_player_and_subscription_context_drift_quarantine_before_snapshot_mutation(): void
     {
         [, $alliance, , $subscription, $batch] = $this->context(6503, 'k4-p2-quarantine', null);
         $promote = $this->app->make(PromoteKingdomIngestionPlayerSnapshot::class);
@@ -177,16 +178,17 @@ final class KingdomIngestionPlayerPromotionTest extends TestCase
         self::assertNull($promote->handle((string) $subscription->id, (string) $unknown->id));
         self::assertSame('unknown_player', $unknown->refresh()->quarantine_code);
 
-        $newKingdom = Kingdom::query()->create(['number' => 6599, 'status' => 'active']);
-        $alliance->forceFill(['kingdom_id' => $newKingdom->id])->save();
-        $drifted = $this->stagePlayerWithoutPromotionValidation(
+        $drifted = $this->stagePlayer(
             $subscription,
             $batch,
             'unknown-player-drift',
             'drift-record',
+            now()->subMinute()->toIso8601String(),
         );
+        $newKingdom = Kingdom::query()->create(['number' => 6599, 'status' => 'active']);
+        $subscription->forceFill(['kingdom_id' => $newKingdom->id])->save();
         self::assertNull($promote->handle((string) $subscription->id, (string) $drifted->id));
-        self::assertSame('kingdom_context_changed', $drifted->refresh()->quarantine_code);
+        self::assertSame('candidate_context_mismatch', $drifted->refresh()->quarantine_code);
         self::assertSame(0, PlayerSnapshot::query()->count());
     }
 
@@ -215,34 +217,43 @@ final class KingdomIngestionPlayerPromotionTest extends TestCase
      */
     private function context(int $kingdomNumber, string $slug, ?string $stableGameId): array
     {
-        [$owner, $alliance] = $this->alliance($kingdomNumber, $slug);
+        [$owner, $player, $alliance] = $this->alliance($kingdomNumber, $slug);
         $entry = $stableGameId === null
             ? null
             : $this->app->make(SaveRosterEntry::class)->handle(
                 $alliance,
-                $owner,
+                $player,
                 ['name' => 'Roster Player', 'game_player_id' => $stableGameId],
             );
         $subscription = $this->app->make(CreateKingdomIngestionSubscription::class)
-            ->handle($alliance, $owner, 'fixture.player-promotion');
+            ->handle($alliance, $player, 'fixture.player-promotion');
         $batch = $this->app->make(StartKingdomIngestionBatch::class)
             ->handle((string) $subscription->id, 'window-'.$slug);
 
         return [$owner, $alliance, $entry, $subscription, $batch];
     }
 
-    /** @return array{User, Alliance} */
+    /** @return array{User, Player, Alliance} */
     private function alliance(int $kingdomNumber, string $slug): array
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdomNumber],
+            ['status' => 'active'],
+        );
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'owner-'.$slug,
+            'current_name' => 'K4 P2 '.str_replace('-', ' ', $slug).' Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)->handle(
-            $owner,
+            $player,
             'K4 P2 '.str_replace('-', ' ', $slug),
             $slug,
-            $kingdomNumber,
         );
 
-        return [$owner, $alliance];
+        return [$owner, $player, $alliance];
     }
 
     private function stagePlayer(
@@ -270,28 +281,6 @@ final class KingdomIngestionPlayerPromotionTest extends TestCase
         );
     }
 
-    private function stagePlayerWithoutPromotionValidation(
-        KingdomIngestionSubscription $subscription,
-        KingdomIngestionBatch $batch,
-        string $stableGameId,
-        string $sourceRecordId,
-    ): KingdomIngestionCandidate {
-        $alliance = Alliance::query()->findOrFail($subscription->alliance_id);
-        $originalKingdomId = $alliance->kingdom_id;
-        $alliance->forceFill(['kingdom_id' => $subscription->kingdom_id])->save();
-
-        try {
-            return $this->stagePlayer(
-                $subscription,
-                $batch,
-                $stableGameId,
-                $sourceRecordId,
-                now()->subMinute()->toIso8601String(),
-            );
-        } finally {
-            $alliance->forceFill(['kingdom_id' => $originalKingdomId])->save();
-        }
-    }
 }
 
 final class PlayerPromotionFixtureAdapter implements KingdomIngestionAdapter

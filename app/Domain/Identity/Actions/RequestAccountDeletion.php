@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Identity\Actions;
 
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\AccountDeletionRequest;
@@ -27,15 +28,15 @@ final readonly class RequestAccountDeletion
             ]);
         }
 
-        $ownsAlliance = AllianceMembership::query()
-            ->where('user_id', $user->id)
+        $leadsAlliance = AllianceMembership::query()
+            ->whereIn('player_id', Player::query()->where('user_id', $user->id)->select('id'))
             ->where('status', MembershipStatus::Active->value)
-            ->whereHas('roles', static fn ($query) => $query->where('roles.key', DefaultAllianceRole::Owner->value))
+            ->where('rank', AllianceRank::R5->value)
             ->exists();
 
-        if ($ownsAlliance) {
+        if ($leadsAlliance) {
             throw ValidationException::withMessages([
-                'account' => 'Transfer or close every owned alliance before requesting account deletion.',
+                'account' => 'Transfer R5 leadership or close every led alliance before requesting account deletion.',
             ]);
         }
 

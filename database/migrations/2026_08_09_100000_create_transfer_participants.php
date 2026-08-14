@@ -17,8 +17,7 @@ return new class extends Migration
             $table->foreignUlid('transfer_plan_id')->constrained('transfer_plans')->cascadeOnDelete();
             $table->string('direction', 24)->index();
             $table->foreignUlid('roster_entry_id')->nullable()->constrained('alliance_roster_entries')->nullOnDelete();
-            $table->foreignUlid('kingdom_player_id')->nullable()->constrained('kingdom_players')->nullOnDelete();
-            $table->foreignUlid('membership_id')->nullable()->constrained('alliance_memberships')->nullOnDelete();
+            $table->foreignUlid('player_id')->constrained('players')->restrictOnDelete();
             $table->string('observed_name', 160);
             $table->string('game_player_id', 100)->nullable();
             $table->foreignUlid('source_kingdom_id')->nullable()->constrained('kingdoms')->restrictOnDelete();
@@ -33,14 +32,9 @@ return new class extends Migration
         });
 
         DB::statement(
-            'CREATE UNIQUE INDEX transfer_participants_one_active_roster_entry '.
-            'ON transfer_participants (transfer_plan_id, roster_entry_id) '.
-            'WHERE roster_entry_id IS NOT NULL AND withdrawn_at IS NULL'
-        );
-        DB::statement(
-            'CREATE UNIQUE INDEX transfer_participants_one_active_neutral_player '.
-            'ON transfer_participants (transfer_plan_id, kingdom_player_id) '.
-            'WHERE roster_entry_id IS NULL AND kingdom_player_id IS NOT NULL AND withdrawn_at IS NULL'
+            'CREATE UNIQUE INDEX transfer_participants_one_active_player ' .
+            'ON transfer_participants (transfer_plan_id, player_id) ' .
+            'WHERE withdrawn_at IS NULL'
         );
     }
 

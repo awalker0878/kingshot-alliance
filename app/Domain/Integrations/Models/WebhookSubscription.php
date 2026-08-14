@@ -33,7 +33,7 @@ final class WebhookSubscription extends Model
         'signing_secret',
         'is_active',
         'revoked_at',
-        'created_by_user_id',
+        'created_by_player_id',
     ];
 
     protected $hidden = ['signing_secret'];

@@ -45,7 +45,7 @@ A delivery records the source outbox message, subscription, attempt/retry state,
 5. The signed input is the timestamp plus exact JSON body; receivers must verify the raw body.
 6. Delivery identity is idempotent per subscription/source message.
 7. Payloads above the implemented safety bound fail before transport rather than being silently truncated/sent.
-8. Current `kingdoms.*` and `alliance.kingdom_updated` events remain excluded from generic external fan-out.
+8. Current `kingdoms.*` events remain excluded from generic external fan-out.
 9. Application endpoint validation does not replace production network/egress controls.
 
 ## 5. Workflows

@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomAllianceContactState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\KingdomAlliance;
@@ -29,7 +29,7 @@ final readonly class DeactivateKingdomAllianceDiplomacyContact
 
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $trackingId,
         string $contactId,
     ): KingdomAllianceDiplomacyContact {
@@ -76,15 +76,15 @@ final readonly class DeactivateKingdomAllianceDiplomacyContact
             }
 
             if ($contact->state === KingdomAllianceContactState::Inactive) {
-                return $contact->load(['createdBy:id,name', 'updatedBy:id,name', 'deactivatedBy:id,name']);
+                return $contact->load(['createdBy:id,current_name', 'updatedBy:id,current_name', 'deactivatedBy:id,current_name']);
             }
 
             $deactivatedAt = now();
             $contact->forceFill([
                 'state' => KingdomAllianceContactState::Inactive,
                 'deactivated_at' => $deactivatedAt,
-                'deactivated_by_user_id' => $actor->id,
-                'updated_by_user_id' => $actor->id,
+                'deactivated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $actor->id,
             ])->save();
 
             $metadata = [
@@ -104,7 +104,7 @@ final readonly class DeactivateKingdomAllianceDiplomacyContact
                 $event.':'.$contact->id,
             );
 
-            return $contact->refresh()->load(['createdBy:id,name', 'updatedBy:id,name', 'deactivatedBy:id,name']);
+            return $contact->refresh()->load(['createdBy:id,current_name', 'updatedBy:id,current_name', 'deactivatedBy:id,current_name']);
         });
     }
 }

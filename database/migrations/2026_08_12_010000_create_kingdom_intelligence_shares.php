@@ -17,10 +17,10 @@ return new class extends Migration
             $table->foreignUlid('kingdom_id')->constrained('kingdoms')->restrictOnDelete();
             $table->char('invitation_token_hash', 64)->unique();
             $table->string('state', 24)->default('pending');
-            $table->foreignId('invited_by_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('accepted_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('declined_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('revoked_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('invited_by_player_id')->constrained('players')->restrictOnDelete();
+            $table->foreignUlid('accepted_by_player_id')->nullable()->constrained('players')->nullOnDelete();
+            $table->foreignUlid('declined_by_player_id')->nullable()->constrained('players')->nullOnDelete();
+            $table->foreignUlid('revoked_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestampTz('invitation_expires_at');
             $table->timestampTz('invitation_used_at')->nullable();
             $table->timestampTz('accepted_at')->nullable();

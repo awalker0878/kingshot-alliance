@@ -6,7 +6,6 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Enums\KingdomAllianceContactState;
@@ -15,7 +14,9 @@ use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacy;
 use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyContact;
 use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyTransition;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -80,7 +81,7 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
         $tracking = $this->track($owner, $alliance, $session, 'Identity Target', 'identity-target-6402');
         $userCount = User::query()->count();
         $membershipCount = AllianceMembership::query()->count();
-        $playerCount = DB::table('kingdom_players')->count();
+        $playerCount = DB::table('players')->count();
         $payload = $this->contactPayload('Same Name', 'in_game', 'same-handle');
 
         $this->withSession($session)->post(
@@ -95,7 +96,7 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
         self::assertSame(2, KingdomAllianceDiplomacyContact::query()->count());
         self::assertSame($userCount, User::query()->count());
         self::assertSame($membershipCount, AllianceMembership::query()->count());
-        self::assertSame($playerCount, DB::table('kingdom_players')->count());
+        self::assertSame($playerCount, DB::table('players')->count());
     }
 
     public function test_contact_changes_never_infer_or_transition_diplomacy(): void
@@ -136,7 +137,7 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
         )->assertRedirect();
 
         $member = $this->member($alliance);
-        $memberSession = [(string) config('identity.active_alliance_session_key') => $alliance->id];
+        $memberSession = $this->activePlayerSession($member->players()->sole());
 
         $this->actingAs($member)->withSession($memberSession)
             ->get('/alliance/kingdom-alliances')
@@ -256,7 +257,7 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
         [$owner, $alliance, $session] = $this->ownerAlliance('Contact Password', 'contact-password', 6408);
         $tracking = $this->track($owner, $alliance, $session, 'Password Target', 'password-target-6408');
         $staleSession = [
-            (string) config('identity.active_alliance_session_key') => $alliance->id,
+            (string) config('identity.active_player_session_key') => $owner->players()->sole()->id,
             'auth.password_confirmed_at' => 0,
         ];
 
@@ -279,7 +280,7 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
         $contact = KingdomAllianceDiplomacyContact::query()->sole();
 
         $newKingdom = Kingdom::query()->create(['number' => 6499, 'status' => 'active']);
-        $alliance->forceFill(['kingdom_id' => $newKingdom->id])->save();
+        $tracking->forceFill(['kingdom_id' => $newKingdom->id])->save();
 
         $this->get("/alliance/kingdom-alliances/{$tracking->id}/diplomacy/contacts")
             ->assertOk()
@@ -344,9 +345,19 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
     private function ownerAlliance(string $name, string $slug, int $kingdom): array
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $kingdomModel = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdom],
+            ['status' => 'active'],
+        );
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdomModel->id,
+            'game_player_id' => 'owner-'.$slug,
+            'current_name' => $name.' Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, $name, $slug);
 
-        return [$owner, $alliance, $this->confirmedSession($alliance->id)];
+        return [$owner, $alliance, $this->confirmedSession($player)];
     }
 
     /** @param array<string, mixed> $session */
@@ -372,28 +383,36 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
     private function member(Alliance $alliance): User
     {
         $member = User::factory()->create();
-        $membership = AllianceMembership::query()->create([
-            'alliance_id' => $alliance->id,
+        $player = Player::query()->create([
             'user_id' => $member->id,
+            'current_kingdom_id' => $alliance->kingdom_id,
+            'game_player_id' => 'member-'.$member->id,
+            'current_name' => 'Diplomacy Contact Member',
+        ]);
+        AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $player->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $role = Role::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
 
         return $member;
     }
 
     /** @return array<string, mixed> */
-    private function confirmedSession(string $allianceId): array
+    private function confirmedSession(Player $player): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            (string) config('identity.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => time(),
         ];
+    }
+
+    /** @return array<string, mixed> */
+    private function activePlayerSession(Player $player): array
+    {
+        return [(string) config('identity.active_player_session_key') => $player->id];
     }
 
     /** @return array<string, string|null> */

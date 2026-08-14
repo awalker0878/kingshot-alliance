@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\KingdomAlliance;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
@@ -52,7 +52,7 @@ final readonly class RecordKingdomAllianceObservation
      */
     public function handle(
         Alliance $alliance,
-        ?User $actor,
+        ?Player $actor,
         string $trackingId,
         array $attributes,
         string $source = 'manual',
@@ -64,7 +64,7 @@ final readonly class RecordKingdomAllianceObservation
 
         if ($source === 'ingestion') {
             if ($actor !== null || $machineProvenance === null) {
-                throw new InvalidArgumentException('Automated observations require machine provenance and no User actor.');
+                throw new InvalidArgumentException('Automated observations require machine provenance and no Player actor.');
             }
 
             if (
@@ -74,8 +74,8 @@ final readonly class RecordKingdomAllianceObservation
                 throw new InvalidArgumentException('Automated observations cannot correct or invalidate existing history.');
             }
         } else {
-            if (! $actor instanceof User || $machineProvenance !== null) {
-                throw new InvalidArgumentException('Manual observations require a User actor and no machine provenance.');
+            if (! $actor instanceof Player || $machineProvenance !== null) {
+                throw new InvalidArgumentException('Manual observations require a Player actor and no machine provenance.');
             }
 
             if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
@@ -160,7 +160,7 @@ final readonly class RecordKingdomAllianceObservation
                 ->where('idempotency_key', $idempotencyKey)
                 ->first();
             if ($existing instanceof KingdomAllianceObservation) {
-                return $existing->load(['actor:id,name', 'invalidatedBy:id,name']);
+                return $existing->load(['actor:id,current_name', 'invalidatedBy:id,current_name']);
             }
 
             $corrects = null;
@@ -182,7 +182,7 @@ final readonly class RecordKingdomAllianceObservation
                 'alliance_id' => $lockedAlliance->id,
                 'tracked_kingdom_alliance_id' => $tracking->id,
                 'kingdom_alliance_id' => $reference->id,
-                'actor_user_id' => $actor?->id,
+                'actor_player_id' => $actor?->id,
                 'observed_name' => $observedName,
                 'observed_tag' => $observedTag,
                 'power' => $power,
@@ -203,7 +203,7 @@ final readonly class RecordKingdomAllianceObservation
             if ($corrects instanceof KingdomAllianceObservation) {
                 $corrects->forceFill([
                     'invalidated_at' => now(),
-                    'invalidated_by_user_id' => $actor?->id,
+                    'invalidated_by_player_id' => $actor?->id,
                     'invalidation_reason' => $correctionReason,
                 ])->save();
             }
@@ -246,7 +246,7 @@ final readonly class RecordKingdomAllianceObservation
                 );
             }
 
-            return $observation->load(['actor:id,name', 'invalidatedBy:id,name']);
+            return $observation->load(['actor:id,current_name', 'invalidatedBy:id,current_name']);
         });
     }
 

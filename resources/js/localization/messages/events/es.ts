@@ -1,111 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: 'Volver a eventos',
-    eyebrow: 'Operaciones de eventos',
-    title: 'Coordinador de eventos',
-    description:
-      'Programa eventos, publica guías de rally, organiza formaciones y grupos, y registra asistencia y participación.',
-    scheduling: 'Programación y plantillas',
-    remindersGuidance: 'Recordatorios y guía',
-    rallySetup: 'Formaciones y rally',
-    readiness: 'Preparación y asistencia',
-    createEvent: 'Crear evento',
-    eventTitle: 'Título del evento',
-    firstStart: 'Primer inicio',
-    durationMinutes: 'Duración (minutos)',
-    registrationOpens: 'Apertura de registro (minutos antes)',
-    registrationCloses: 'Cierre de registro (minutos antes)',
-    recurrence: 'Recurrencia',
-    interval: 'Intervalo',
-    recurrenceEnd: 'Fin de recurrencia',
-    createEventAction: 'Crear evento',
-    eventValidation: 'Revisa los campos del evento y la ventana de registro.',
-    createTemplate: 'Crear plantilla',
-    saveTemplate: 'Guardar plantilla',
-    scheduleFromTemplate: 'Programar desde plantilla',
-    chooseTemplate: 'Elegir plantilla',
-    optionalTitle: 'Título opcional',
-    scheduleTemplate: 'Programar plantilla',
-    reminderRule: 'Regla de recordatorio',
-    reminderHelp:
-      'Crea un recordatorio en la aplicación para cada ocurrencia del evento seleccionado.',
-    chooseEvent: 'Elegir evento',
-    minutesBefore: 'Minutos antes del inicio',
-    addReminder: 'Añadir recordatorio',
-    rallyGuidance: 'Guía de rally',
-    guidanceHelp:
-      'Publica proporciones de tropas y recomendaciones de héroes reutilizables con fechas de vigencia.',
-    heroRecommendations: 'Recomendaciones de héroes',
-    effectiveFrom: 'Vigente desde',
-    effectiveUntil: 'Vigente hasta',
-    leadRequirements: 'Requisitos del líder',
-    joinerGuidance: 'Guía para participantes',
-    guidanceValidation: 'Revisa las fechas y asegúrate de que las proporciones sumen 100 %.',
-    publishGuidance: 'Publicar guía',
-    eventFormation: 'Formación del evento',
-    occurrence: 'Ocurrencia',
-    chooseOccurrence: 'Elegir ocurrencia',
-    noGuidance: 'Sin guía vinculada',
-    addFormation: 'Añadir formación',
-    rallyGroup: 'Grupo de rally',
-    maxJoiners: 'Máx. participantes',
-    none: 'Ninguno',
-    createGroup: 'Crear grupo',
-    assignMember: 'Asignar miembro al rally',
-    member: 'Miembro',
-    chooseGroup: 'Elegir grupo',
-    chooseMember: 'Elegir miembro',
-    slotNumber: 'Número de puesto',
-    saveAssignment: 'Guardar asignación',
-    registrations: 'Inscripciones',
-    noRegistrations: 'No hay inscripciones activas para esta ocurrencia.',
-    rallyAssignments: 'Asignaciones de rally',
-    noAssignments: 'No hay asignaciones de rally para esta ocurrencia.',
-    participated: 'Participó',
-    statusAssigned: 'Asignado',
-    statusParticipated: 'Participó',
-    recurrenceNone: 'Ninguna',
-    recurrenceDaily: 'Diaria',
-    recurrenceWeekly: 'Semanal',
-    roleLead: 'Líder',
-    roleJoiner: 'Participante',
-  },
-  eventDetail: {
-    participation: 'Participación',
-    registeredCount: '{count} registrados',
-    waitlistedCount: '{count} en espera',
-    noLimit: 'Sin límite',
-    instructions: 'Instrucciones',
-    recommendedFormations: 'Formaciones recomendadas',
-    noRecommendedFormations:
-      'No se ha publicado una guía de formación específica para este evento.',
-    assignmentRole: 'Rol de asignación',
-    troopRatio: 'Proporción de tropas',
-    infantry: 'Infantería',
-    cavalry: 'Caballería',
-    archers: 'Arqueros',
-    heroes: 'Héroes',
-    notes: 'Notas',
-    guidance: 'Guía',
-    source: 'Fuente',
-    effective: 'Vigente desde {date}',
-    through: 'hasta {date}',
-    rallyGroups: 'Grupos de rally',
-    maxJoiners: 'Máximo de participantes: {count}',
-    noAssigned: 'Aún no hay miembros asignados.',
-    noRallyGroups: 'No hay grupos de rally configurados para este evento.',
-    savedFormations: 'Tus formaciones guardadas',
-    default: 'Predeterminada',
-    noSavedFormations: 'Aún no has guardado una formación.',
-    saveFormation: 'Guardar una formación',
-    formationName: 'Nombre',
-    heroesHint: 'Héroe uno, Héroe dos, Héroe tres',
-    makeDefault: 'Usar como mi formación predeterminada',
-    formationValidation: 'Revisa los valores. Los porcentajes de tropas deben sumar 100 %.',
-    save: 'Guardar formación',
-  },
+  "events": {
+    "scope": {
+      "player": "Jugador",
+      "alliance": "Alianza",
+      "kingdom": "Reino"
+    },
+    "actions": {
+      "save": "Guardar",
+      "cancel": "Cancelar"
+    },
+    "calendar": {
+      "title": "Eventos",
+      "create": "Crear evento",
+      "agenda": "Agenda",
+      "month": "Calendario",
+      "all": "Todos los ámbitos",
+      "manageable": "Gestionar",
+      "empty": "Ningún evento coincide con esta vista.",
+      "previousMonth": "Mes anterior",
+      "nextMonth": "Mes siguiente",
+      "scopeFilters": "Filtrar eventos por ámbito",
+      "viewOptions": "Elegir vista de eventos"
+    },
+    "create": {
+      "title": "Crear evento",
+      "back": "Volver a eventos",
+      "noContexts": "Actualmente no tienes permiso para crear un evento.",
+      "context": "Contexto del evento",
+      "eventType": "Tipo de evento",
+      "start": "Hora de inicio",
+      "duration": "Duración (minutos)",
+      "capacity": "Capacidad",
+      "instructions": "Instrucciones",
+      "submit": "Crear evento"
+    },
+    "show": {
+      "back": "Volver a eventos",
+      "manage": "Gestionar evento",
+      "details": "Detalles del evento",
+      "status": "Estado",
+      "capacity": "Capacidad",
+      "recurrence": "Recurrencia",
+      "modules": "Módulos operativos"
+    },
+    "manage": {
+      "title": "Gestionar evento",
+      "back": "Volver a eventos",
+      "save": "Guardar evento",
+      "cancel": "Cancelar evento"
+    },
+    "attention": {
+      "title": "Acciones del evento",
+      "response": "Se requiere respuesta",
+      "registration": "Registro disponible",
+      "vote": "Se requiere voto",
+      "roster_confirmation": "Se requiere confirmación de plantilla"
+    },
+    "reminders": {
+      "title": "Recordatorios recientes"
+    },
+    "participation": {
+      "register": "Registrarse",
+      "cancelRegistration": "Cancelar registro"
+    },
+    "responses": {
+      "going": "Voy",
+      "maybe": "Quizás",
+      "unavailable": "No disponible"
+    },
+    "registration": {
+      "registered": "Registrado",
+      "waitlisted": "En lista de espera",
+      "cancelled": "Cancelado"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "Controlado por la alianza",
+      "game_calendar": "Calendario del juego",
+      "matchmaking": "Emparejamiento",
+      "manual": "Manual"
+    },
+    "recurrencePolicies": {
+      "disabled": "Sin recurrencia",
+      "fixed_interval": "Intervalo fijo",
+      "configurable": "Configurable"
+    },
+    "recurrenceFrequencies": {
+      "none": "Sin recurrencia",
+      "daily": "Diario",
+      "weekly": "Semanal"
+    },
+    "attendanceStatuses": {
+      "present": "Presente",
+      "absent": "Ausente",
+      "excused": "Justificado",
+      "unknown": "Desconocido"
+    },
+    "eventStatuses": {
+      "draft": "Borrador",
+      "published": "Publicado",
+      "cancelled": "Cancelado",
+      "completed": "Completado"
+    },
+    "capabilities": {
+      "responses": "Respuestas",
+      "registration": "Registro",
+      "waitlist": "Lista de espera",
+      "attendance": "Asistencia",
+      "phases": "Fases",
+      "polls": "Encuestas",
+      "rosters": "Plantillas",
+      "substitutes": "Suplentes",
+      "teams": "Equipos",
+      "legions": "Legiones",
+      "rally_guidance": "Guía de rally",
+      "formations": "Formaciones",
+      "objectives": "Objetivos",
+      "scoring": "Puntuación",
+      "results": "Resultados"
+    },
+    "reminderAudiences": {
+      "target": "Objetivo del evento",
+      "responded": "Jugadores que respondieron",
+      "registered": "Jugadores registrados",
+      "rostered": "Jugadores en plantilla",
+      "all_scope_players": "Todos los jugadores elegibles"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

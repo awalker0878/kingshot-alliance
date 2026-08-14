@@ -6,27 +6,27 @@ namespace App\Domain\Memberships\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Memberships\Services\MembershipAdministrationGuard;
 use App\Domain\Platform\Models\OutboxMessage;
+use App\Domain\Platform\Services\PlanEntitlementService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use LogicException;
 
 final readonly class UpdateMembershipStatus
 {
     public function __construct(
         private MembershipAdministrationGuard $guard,
+        private PlanEntitlementService $entitlements,
         private AuditRecorder $audit,
     ) {}
 
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $membershipId,
         MembershipStatus $status,
     ): AllianceMembership {
@@ -46,13 +46,39 @@ final readonly class UpdateMembershipStatus
             $this->guard->assertCanManage($actor, $alliance, $membership);
 
             if ($status !== MembershipStatus::Active) {
-                $this->guard->assertCanChangeOwnerMembership($membership);
+                $this->guard->assertCanDeactivate($membership);
             }
 
             $previousStatus = $membership->status;
 
+            if ($status === MembershipStatus::Active) {
+                if ($previousStatus !== MembershipStatus::Active) {
+                    $this->entitlements->assertMemberCapacity($alliance);
+                }
+
+                $player = Player::query()->whereKey($membership->player_id)->lockForUpdate()->firstOrFail();
+                if ((string) $player->current_kingdom_id !== (string) $alliance->kingdom_id) {
+                    throw ValidationException::withMessages([
+                        'status' => 'The Player must belong to the Alliance Kingdom before this membership can be activated.',
+                    ]);
+                }
+
+                if (AllianceMembership::query()
+                    ->where('player_id', $membership->player_id)
+                    ->where('status', MembershipStatus::Active->value)
+                    ->where('id', '<>', $membership->id)
+                    ->exists()) {
+                    throw ValidationException::withMessages([
+                        'status' => 'The Player already has an active Alliance membership.',
+                    ]);
+                }
+            }
+
             $membership->forceFill([
                 'status' => $status,
+                'rank' => $status === MembershipStatus::Active && $previousStatus === MembershipStatus::Removed
+                    ? AllianceRank::R1
+                    : $membership->rank,
                 'joined_at' => $status === MembershipStatus::Active
                     ? ($membership->joined_at ?? now())
                     : $membership->joined_at,
@@ -61,35 +87,19 @@ final readonly class UpdateMembershipStatus
 
             if ($status === MembershipStatus::Removed) {
                 $membership->roles()->detach();
-            } elseif ($status === MembershipStatus::Active && ! $membership->roles()->exists()) {
-                $memberRole = Role::query()
-                    ->where('alliance_id', $alliance->id)
-                    ->where('key', DefaultAllianceRole::Member->value)
-                    ->first();
-
-                if (! $memberRole instanceof Role) {
-                    throw new LogicException('The default member role was not provisioned.');
-                }
-
-                $membership->roles()->attach($memberRole->id, [
-                    'alliance_id' => $alliance->id,
-                ]);
             }
 
-            $this->audit->record(
-                event: 'membership.status_changed',
-                actor: $actor,
-                subject: $membership,
-                alliance: $alliance,
-                metadata: [
-                    'previous_status' => $previousStatus->value,
-                    'status' => $status->value,
-                    'user_id' => $membership->user_id,
-                ],
-            );
+            $metadata = [
+                'previous_status' => $previousStatus->value,
+                'status' => $status->value,
+                'player_id' => (string) $membership->player_id,
+            ];
+
+            $this->audit->record('membership.status_changed', $actor, $membership, $alliance, $metadata);
 
             OutboxMessage::query()->create([
                 'alliance_id' => $alliance->id,
+                'partition_key' => 'alliance:'.$alliance->id,
                 'event_type' => 'membership.status_changed',
                 'aggregate_type' => AllianceMembership::class,
                 'aggregate_id' => $membership->id,
@@ -97,7 +107,7 @@ final readonly class UpdateMembershipStatus
                 'payload' => [
                     'alliance_id' => $alliance->id,
                     'membership_id' => $membership->id,
-                    'user_id' => $membership->user_id,
+                    'player_id' => $membership->player_id,
                     'previous_status' => $previousStatus->value,
                     'status' => $status->value,
                 ],

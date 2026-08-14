@@ -74,7 +74,7 @@ Operational behavior is documented in [Memberships operations](../operations/REA
 
 Invalid/expired/revoked/used/wrong-email invitation access fails closed according to [Membership invitations](../invitations.md). Acceptance is serialized/idempotent at the owning contract so retries cannot create uncontrolled duplicate membership state.
 
-Hierarchy, last-active-Owner, cross-tenant, or invalid lifecycle mutations fail closed. The 64-hex route-token shape and email-bound acceptance semantics are compatibility/security-relevant first-party contracts.
+Hierarchy, active-R5 leadership, cross-tenant, or invalid lifecycle mutations fail closed. The 64-hex route-token shape and email-bound acceptance semantics are compatibility/security-relevant first-party contracts.
 
 ## 11. Explicit non-capabilities
 

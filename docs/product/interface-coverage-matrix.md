@@ -41,7 +41,7 @@ Integrations owns the only accepted external machine API family: `/api/v1`, rate
 
 The API is read-only and derives tenant context from the Alliance-bound credential.
 
-Integrations also owns outbound signed HTTPS webhooks. Producer domains own event meaning; Platform owns outbox durability. `alliance.kingdom_updated` and every `kingdoms.*` event remain external-ineligible even for wildcard subscriptions.
+Integrations also owns outbound signed HTTPS webhooks. Producer domains own event meaning; Platform owns outbox durability. every `kingdoms.*` event remains external-ineligible even for wildcard subscriptions.
 
 ## 4. Custom command and scheduled-work inventory
 

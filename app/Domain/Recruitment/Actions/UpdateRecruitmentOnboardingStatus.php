@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentOnboardingStatus;
 use App\Domain\Recruitment\Models\RecruitmentCandidateOnboarding;
@@ -24,7 +24,7 @@ final class UpdateRecruitmentOnboardingStatus
     ) {}
 
     public function handle(
-        User $actor,
+        Player $actor,
         Alliance $alliance,
         RecruitmentCandidateOnboarding $onboarding,
         RecruitmentOnboardingStatus $status,
@@ -47,7 +47,7 @@ final class UpdateRecruitmentOnboardingStatus
             $locked->forceFill([
                 'status' => $status,
                 'completed_at' => $status === RecruitmentOnboardingStatus::Completed ? now() : null,
-                'completed_by_user_id' => $status === RecruitmentOnboardingStatus::Completed ? $actor->id : null,
+                'completed_by_player_id' => $status === RecruitmentOnboardingStatus::Completed ? $actor->id : null,
             ])->save();
 
             $this->audit->record('recruitment.onboarding.updated', $actor, $locked, $alliance, [

@@ -23,8 +23,8 @@ final class ContributionReportRun extends Model
     protected $fillable = [
         'alliance_id',
         'schedule_id',
-        'recipient_membership_id',
-        'requested_by_user_id',
+        'recipient_player_id',
+        'requested_by_player_id',
         'format',
         'status',
         'report_version',

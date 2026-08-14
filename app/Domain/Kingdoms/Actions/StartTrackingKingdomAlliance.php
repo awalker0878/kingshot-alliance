@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomAllianceStatus;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
@@ -34,7 +34,7 @@ final readonly class StartTrackingKingdomAlliance
      *   manager_notes?: string|null
      * } $attributes
      */
-    public function handle(Alliance $alliance, User $actor, array $attributes): TrackedKingdomAlliance
+    public function handle(Alliance $alliance, Player $actor, array $attributes): TrackedKingdomAlliance
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;

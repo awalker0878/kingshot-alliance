@@ -5,7 +5,7 @@
 **Document type:** Living domain contract  
 **Status:** Current runtime — `KINGDOMS-001`–`KINGDOMS-005` Accepted  
 **Code owner:** `app/Domain/Kingdoms`  
-**Primary authorization boundary:** `alliance.view` for member-safe reads; `kingdoms.manage` for management/private workflows; `alliance.manage` for Alliance→Kingdom setting
+**Primary authorization boundary:** existing Alliance-owned Kingdom workflows use `alliance.view` / `kingdoms.manage`; EVENTS-002 Kingdom Event authority is separate and uses exact-Kingdom role assignments
 
 ## 1. Purpose and ownership
 
@@ -44,9 +44,17 @@ Current K5 behavior is [Opt-in shared Kingdom intelligence](shared-intelligence.
 - recipient canonical shared-intelligence copy/materialization; and
 - scoring/ranking/recommendations/automatic decisions.
 
+### EVENTS-002 Kingdom authorization
+
+EVENTS-002 P1 adds a separate authorization boundary for Kingdom-scoped Events. Authorization owns `kingdom_roles`, `kingdom_role_permissions`, and `kingdom_role_assignments`; Kingdoms supplies the target `Kingdom` identity.
+
+Alliance R1–R5 rank and the existing `kingdoms.manage` permission remain Alliance-scoped roster/intelligence authority and do **not** grant `events.kingdom.*`. Kingdom Admin / Kingdom Event Coordinator / Kingdom Viewer assignments apply only to the exact assigned Kingdom.
+
+See [Kingdom-scoped roles](../authorization/kingdom-scoped-roles.md).
+
 ## 3. Domain model
 
-Identity remains layered: global `User`; Alliance membership; neutral `KingdomPlayer`/`KingdomAlliance` within a `Kingdom`; and Alliance-owned relationships/observations/workflows.
+Identity remains layered: global `User`; Alliance membership; neutral `Player`/`KingdomAlliance` within a `Kingdom`; and Alliance-owned relationships/observations/workflows.
 
 K1–K3 own roster/snapshot/transfer/game-Alliance intelligence. K4 owns `KingdomIngestionSubscription`, `KingdomIngestionBatch`, and `KingdomIngestionCandidate` operational state while promoted K1/K3 history retains independent provenance.
 
@@ -145,7 +153,7 @@ The encrypted history cursor is request continuation state only and is not persi
 
 ## 9. Events, outbox and integrations
 
-Material Kingdoms mutations create Audit/internal outbox evidence. `alliance.kingdom_updated` and every `kingdoms.*` event remain excluded from generic external webhook fan-out.
+Material Kingdoms mutations create Audit/internal outbox evidence. Every `kingdoms.*` event remains excluded from generic external webhook fan-out.
 
 K5 consent/target/context events remain internal and safe-metadata-only. Current/history presentation and P5 retention add no public event contract. History/current payloads, invitation plaintext and cursors are not event payloads.
 
@@ -225,6 +233,7 @@ K4 production source enablement also remains separately unapproved. K5 repositor
 
 ## 17. Capability documents
 
+- [Player identity and active context](player-context.md)
 - [Roster](roster.md)
 - [Player snapshots](snapshots.md)
 - [Roster intelligence](intelligence.md)

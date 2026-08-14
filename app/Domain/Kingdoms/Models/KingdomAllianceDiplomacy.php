@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Models;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -23,11 +23,11 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $expires_at
  * @property string|null $terms
  * @property string|null $rationale
- * @property int|null $last_transition_user_id
+ * @property string|null $last_transition_player_id
  * @property-read Alliance $alliance
  * @property-read TrackedKingdomAlliance $tracking
  * @property-read KingdomAlliance $kingdomAlliance
- * @property-read User|null $lastTransitionUser
+ * @property-read Player|null $lastTransitionPlayer
  */
 final class KingdomAllianceDiplomacy extends Model
 {
@@ -49,7 +49,7 @@ final class KingdomAllianceDiplomacy extends Model
         'expires_at',
         'terms',
         'rationale',
-        'last_transition_user_id',
+        'last_transition_player_id',
     ];
 
     protected function casts(): array
@@ -80,10 +80,10 @@ final class KingdomAllianceDiplomacy extends Model
         return $this->belongsTo(KingdomAlliance::class);
     }
 
-    /** @return BelongsTo<User, $this> */
-    public function lastTransitionUser(): BelongsTo
+    /** @return BelongsTo<Player, $this> */
+    public function lastTransitionPlayer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'last_transition_user_id');
+        return $this->belongsTo(Player::class, 'last_transition_player_id');
     }
 
     /** @return HasMany<KingdomAllianceDiplomacyTransition, $this> */

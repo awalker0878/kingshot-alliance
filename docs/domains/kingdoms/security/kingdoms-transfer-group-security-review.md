@@ -6,7 +6,7 @@
 
 ## Security boundary
 
-Transfer groups are alliance-owned workflow data. `Kingdom` and `KingdomPlayer` remain neutral global references and never become authorization boundaries.
+Transfer groups are alliance-owned workflow data. `Kingdom` and `Player` remain neutral global references and never become authorization boundaries.
 
 Every group mutation re-resolves the active Alliance and transfer plan. Existing group and participant identifiers are then constrained by both `alliance_id` and `transfer_plan_id` before mutation.
 

@@ -7,7 +7,6 @@ namespace App\Domain\Kingdoms\Models;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferReadinessState;
-use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,8 +21,7 @@ use Illuminate\Support\Carbon;
  * @property TransferDirection $direction
  * @property TransferReadinessState $readiness_state
  * @property string|null $roster_entry_id
- * @property string|null $kingdom_player_id
- * @property string|null $membership_id
+ * @property string $player_id
  * @property string $observed_name
  * @property string|null $game_player_id
  * @property string|null $source_kingdom_id
@@ -34,8 +32,7 @@ use Illuminate\Support\Carbon;
  * @property-read TransferPlan $plan
  * @property-read TransferGroup|null $group
  * @property-read AllianceRosterEntry|null $rosterEntry
- * @property-read KingdomPlayer|null $player
- * @property-read AllianceMembership|null $membership
+ * @property-read Player $player
  * @property-read Kingdom|null $sourceKingdom
  * @property-read Kingdom|null $destinationKingdom
  * @property-read TransferCompletion|null $completion
@@ -55,8 +52,7 @@ final class TransferParticipant extends Model
         'direction',
         'readiness_state',
         'roster_entry_id',
-        'kingdom_player_id',
-        'membership_id',
+        'player_id',
         'observed_name',
         'game_player_id',
         'source_kingdom_id',
@@ -98,16 +94,10 @@ final class TransferParticipant extends Model
         return $this->belongsTo(AllianceRosterEntry::class, 'roster_entry_id');
     }
 
-    /** @return BelongsTo<KingdomPlayer, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function player(): BelongsTo
     {
-        return $this->belongsTo(KingdomPlayer::class, 'kingdom_player_id');
-    }
-
-    /** @return BelongsTo<AllianceMembership, $this> */
-    public function membership(): BelongsTo
-    {
-        return $this->belongsTo(AllianceMembership::class, 'membership_id');
+        return $this->belongsTo(Player::class, 'player_id');
     }
 
     /** @return BelongsTo<Kingdom, $this> */

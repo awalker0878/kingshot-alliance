@@ -2,34 +2,27 @@
 
 ## Purpose
 
-Owns durable Event-reminder delivery state and scheduled Contribution-report due-time coordination. Source feature domains remain authoritative for the Event/report facts that trigger notification work.
+Owns durable Event reminder rule/delivery coordination and scheduled Contribution-report due-time coordination.
 
 ## Owned code
 
-- reminder rule/delivery persistence for Event reminders;
-- actions/commands that materialize and queue due reminder work;
-- due-time coordination for scheduled Contribution report requests; and
-- listeners that advance durable delivery state after shared outbox publication.
+Runtime code owns Event reminder rules, Player-specific reminder deliveries, audience resolution, due scheduler actions, outbox-completion handling, and Contribution-report due-time coordination.
 
 ## Public contracts
 
-Intentional contracts include:
-
-- deterministic Event reminder materialization from Events-owned occurrence/registration facts;
-- durable reminder state (`pending`, `queued`, `sent`, `cancelled`);
-- deterministic scheduled Contribution-report request coordination; and
-- idempotent scheduler/outbox recovery behavior.
-
-Notifications does not own a generic email, SMS, push, or webhook transport.
+- deterministic Event reminder identity by rule + occurrence + Player;
+- exact Player/Alliance/Kingdom audience resolution from current source facts;
+- durable reminder states and idempotent scheduler recovery; and
+- deterministic scheduled Contribution-report request coordination.
 
 ## Dependencies
 
-- `Events` — authoritative occurrences/registrations and reminder configuration context.
-- `Contributions` — authoritative report schedules/versions/runs.
-- `Platform` — transactional outbox/publisher and scheduler infrastructure.
-- `Alliances` / `Memberships` — explicit tenant/member identity for delivery state.
+- `Events` — authoritative occurrences and participation facts.
+- `Kingdoms` — durable Player ownership/current context.
+- `Contributions` — report schedules and report facts.
+- `Platform` — transactional outbox and scheduler infrastructure.
 
 ## Canonical documentation
 
 - [`docs/domains/notifications/`](../../../docs/domains/notifications/README.md)
-- [Background processing](../../../docs/operations/background-processing.md)
+- [Event reminders](../../../docs/domains/notifications/event-reminders.md)

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Identity\Models;
 
-use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Kingdoms\Models\Player;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
@@ -65,9 +65,11 @@ final class User extends Authenticatable implements MustVerifyEmailContract
         ];
     }
 
-    /** @return HasMany<AllianceMembership, $this> */
-    public function memberships(): HasMany
+
+    /** @return HasMany<Player, $this> */
+    public function players(): HasMany
     {
-        return $this->hasMany(AllianceMembership::class);
+        return $this->hasMany(Player::class);
     }
+
 }

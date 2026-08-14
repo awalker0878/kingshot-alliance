@@ -46,7 +46,7 @@ Controls include active-membership revalidation, explicit tenant identifiers on 
 
 ## 7. Integrity, concurrency and idempotency
 
-Alliance creation is transactional so the tenant, creator membership/Owner role, defaults, and required evidence cannot partially diverge. Sensitive settings transitions use transactions/locking where required.
+Alliance creation is transactional so the tenant, creator membership/R5 rank, defaults, and required evidence cannot partially diverge. Sensitive settings transitions use transactions/locking where required.
 
 Repeated selection/revalidation is safe; invalid context is cleared rather than silently reused. Kingdom association changes preserve historical Kingdoms workflow context rather than rewriting prior records.
 

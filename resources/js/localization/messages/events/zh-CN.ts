@@ -1,107 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: '返回活动',
-    eyebrow: '活动运营',
-    title: '活动协调',
-    description: '安排活动、发布集结指导、组织编队和小组，并记录出勤与参与情况。',
-    scheduling: '排期与模板',
-    remindersGuidance: '提醒与指导',
-    rallySetup: '编队与集结设置',
-    readiness: '准备与出勤',
-    createEvent: '创建活动',
-    eventTitle: '活动标题',
-    firstStart: '首次开始',
-    durationMinutes: '时长（分钟）',
-    registrationOpens: '开放报名（提前分钟）',
-    registrationCloses: '关闭报名（提前分钟）',
-    recurrence: '重复',
-    interval: '间隔',
-    recurrenceEnd: '重复结束',
-    createEventAction: '创建活动',
-    eventValidation: '请检查活动字段和报名时间窗口。',
-    createTemplate: '创建活动模板',
-    saveTemplate: '保存模板',
-    scheduleFromTemplate: '从模板排期',
-    chooseTemplate: '选择模板',
-    optionalTitle: '可选标题',
-    scheduleTemplate: '排期模板',
-    reminderRule: '提醒规则',
-    reminderHelp: '为所选活动的每次发生创建应用内提醒。',
-    chooseEvent: '选择活动',
-    minutesBefore: '开始前分钟数',
-    addReminder: '添加提醒',
-    rallyGuidance: '集结指导',
-    guidanceHelp: '发布带有效日期、可复用的兵种比例和英雄指导。',
-    heroRecommendations: '英雄推荐',
-    effectiveFrom: '生效日期',
-    effectiveUntil: '失效日期',
-    leadRequirements: '领队要求',
-    joinerGuidance: '参与者指导',
-    guidanceValidation: '请检查日期，并确保兵种比例合计为100%。',
-    publishGuidance: '发布指导',
-    eventFormation: '活动编队',
-    occurrence: '场次',
-    chooseOccurrence: '选择场次',
-    noGuidance: '无关联指导',
-    addFormation: '添加编队',
-    rallyGroup: '集结小组',
-    maxJoiners: '最多参与者',
-    none: '无',
-    createGroup: '创建小组',
-    assignMember: '分配集结成员',
-    member: '成员',
-    chooseGroup: '选择小组',
-    chooseMember: '选择成员',
-    slotNumber: '位置编号',
-    saveAssignment: '保存分配',
-    registrations: '报名',
-    noRegistrations: '此场次没有有效报名。',
-    rallyAssignments: '集结分配',
-    noAssignments: '此场次没有集结分配。',
-    participated: '已参与',
-    statusAssigned: '已分配',
-    statusParticipated: '已参与',
-    recurrenceNone: '无',
-    recurrenceDaily: '每天',
-    recurrenceWeekly: '每周',
-    roleLead: '领队',
-    roleJoiner: '参与者',
-  },
-  eventDetail: {
-    participation: '参与情况',
-    registeredCount: '已报名 {count} 人',
-    waitlistedCount: '候补 {count} 人',
-    noLimit: '不限人数',
-    instructions: '说明',
-    recommendedFormations: '推荐阵容',
-    noRecommendedFormations: '尚未发布此活动专用的阵容指导。',
-    assignmentRole: '分配角色',
-    troopRatio: '兵种比例',
-    infantry: '步兵',
-    cavalry: '骑兵',
-    archers: '弓兵',
-    heroes: '英雄',
-    notes: '备注',
-    guidance: '指导',
-    source: '来源',
-    effective: '{date}起生效',
-    through: '至 {date}',
-    rallyGroups: '集结组',
-    maxJoiners: '最多加入: {count}',
-    noAssigned: '尚未分配成员。',
-    noRallyGroups: '此活动尚未配置集结组。',
-    savedFormations: '你保存的阵容',
-    default: '默认',
-    noSavedFormations: '你还没有保存阵容。',
-    saveFormation: '保存阵容',
-    formationName: '名称',
-    heroesHint: '英雄一、英雄二、英雄三',
-    makeDefault: '设为默认阵容',
-    formationValidation: '请检查阵容数值。兵种比例总和必须为100%。',
-    save: '保存阵容',
-  },
+  "events": {
+    "scope": {
+      "player": "玩家",
+      "alliance": "联盟",
+      "kingdom": "王国"
+    },
+    "actions": {
+      "save": "保存",
+      "cancel": "取消"
+    },
+    "calendar": {
+      "title": "活动",
+      "create": "创建活动",
+      "agenda": "议程",
+      "month": "日历",
+      "all": "全部范围",
+      "manageable": "管理",
+      "empty": "没有符合当前视图的活动。",
+      "previousMonth": "上个月",
+      "nextMonth": "下个月",
+      "scopeFilters": "按范围筛选活动",
+      "viewOptions": "选择活动视图"
+    },
+    "create": {
+      "title": "创建活动",
+      "back": "返回活动",
+      "noContexts": "你当前没有创建活动的权限。",
+      "context": "活动范围",
+      "eventType": "活动类型",
+      "start": "开始时间",
+      "duration": "时长（分钟）",
+      "capacity": "容量",
+      "instructions": "说明",
+      "submit": "创建活动"
+    },
+    "show": {
+      "back": "返回活动",
+      "manage": "管理活动",
+      "details": "活动详情",
+      "status": "状态",
+      "capacity": "容量",
+      "recurrence": "重复",
+      "modules": "运营模块"
+    },
+    "manage": {
+      "title": "管理活动",
+      "back": "返回活动",
+      "save": "保存活动",
+      "cancel": "取消活动"
+    },
+    "attention": {
+      "title": "活动操作",
+      "response": "需要回应",
+      "registration": "可报名",
+      "vote": "需要投票",
+      "roster_confirmation": "需要确认名单"
+    },
+    "reminders": {
+      "title": "最近提醒"
+    },
+    "participation": {
+      "register": "报名",
+      "cancelRegistration": "取消报名"
+    },
+    "responses": {
+      "going": "参加",
+      "maybe": "可能",
+      "unavailable": "无法参加"
+    },
+    "registration": {
+      "registered": "已报名",
+      "waitlisted": "候补名单",
+      "cancelled": "已取消"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "联盟控制",
+      "game_calendar": "游戏日历",
+      "matchmaking": "匹配",
+      "manual": "手动"
+    },
+    "recurrencePolicies": {
+      "disabled": "不重复",
+      "fixed_interval": "固定间隔",
+      "configurable": "可配置"
+    },
+    "recurrenceFrequencies": {
+      "none": "不重复",
+      "daily": "每天",
+      "weekly": "每周"
+    },
+    "attendanceStatuses": {
+      "present": "出席",
+      "absent": "缺席",
+      "excused": "请假",
+      "unknown": "未知"
+    },
+    "eventStatuses": {
+      "draft": "草稿",
+      "published": "已发布",
+      "cancelled": "已取消",
+      "completed": "已完成"
+    },
+    "capabilities": {
+      "responses": "回应",
+      "registration": "报名",
+      "waitlist": "候补名单",
+      "attendance": "出勤",
+      "phases": "阶段",
+      "polls": "投票",
+      "rosters": "名单",
+      "substitutes": "替补",
+      "teams": "队伍",
+      "legions": "军团",
+      "rally_guidance": "集结指导",
+      "formations": "编队",
+      "objectives": "目标",
+      "scoring": "计分",
+      "results": "结果"
+    },
+    "reminderAudiences": {
+      "target": "活动目标",
+      "responded": "已回应玩家",
+      "registered": "已报名玩家",
+      "rostered": "已入选名单玩家",
+      "all_scope_players": "所有符合条件的玩家"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

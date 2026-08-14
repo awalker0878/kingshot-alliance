@@ -14,7 +14,7 @@ This document defines the living contract for neutral Kingshot player identity a
 
 In scope:
 
-- neutral `KingdomPlayer` identity;
+- neutral `Player` identity;
 - Alliance-owned `AllianceRosterEntry` state;
 - optional same-Alliance Membership linkage;
 - manual add/edit/mark-left workflow;
@@ -39,15 +39,15 @@ User (global application identity)
   └─ AllianceMembership (Alliance relationship)
        └─ optional link
             AllianceRosterEntry (Alliance-owned observation/state)
-              └─ KingdomPlayer (global neutral game identity)
+              └─ Player (global neutral game identity)
                    └─ Kingdom
 ```
 
-A `KingdomPlayer` is not a site User and does not imply an Alliance membership.
+A `Player` is not a site User and does not imply an Alliance membership.
 
 ### Stable game-player identifiers
 
-When supplied, a stable game-player identifier is resolved only within the Alliance's current Kingdom. Two Alliances in the same Kingdom may therefore reference the same neutral `KingdomPlayer`.
+When supplied, a stable game-player identifier is resolved only within the Alliance's current Kingdom. Two Alliances in the same Kingdom may therefore reference the same neutral `Player`.
 
 The neutral reference owns Kingdom, optional stable game-player ID, and neutral current/reference display name. Alliance-specific mutable observations do not live on the neutral record.
 
@@ -59,7 +59,7 @@ Display names are never automatic deduplication keys. Without a stable game-play
 
 An `AllianceRosterEntry` owns:
 
-- Alliance and KingdomPlayer references;
+- Alliance and Player references;
 - optional active same-Alliance membership link;
 - observed player name;
 - optional game role/rank;
@@ -70,13 +70,13 @@ An `AllianceRosterEntry` owns:
 - last roster-observation timestamp; and
 - source/provenance.
 
-An Alliance can have only one roster entry for one KingdomPlayer. A membership can link to only one roster entry inside the same Alliance.
+An Alliance can have only one roster entry for one Player. A membership can link to only one roster entry inside the same Alliance.
 
 ## 4. Invariants
 
 1. Stable game-player ID within the Kingdom is the only automatic player identity key.
 2. Display names never auto-merge identity.
-3. Neutral `KingdomPlayer` identity never grants cross-Alliance roster access.
+3. Neutral `Player` identity never grants cross-Alliance roster access.
 4. A submitted membership link must belong to the active Alliance, be active, and not already link another roster entry in that Alliance.
 5. Membership removal/leave does not erase game-player/roster identity or snapshot history.
 6. Mark-left retains roster/player/history and is idempotent; normal destructive roster delete is not supported.
@@ -133,7 +133,7 @@ All predicates begin from the active Alliance. A search term matching another Al
 
 ## 7. Persistence and query semantics
 
-Roster entries are tenant-owned; KingdomPlayer is global neutral reference. Shared neutral identity never exposes another tenant's roster state, notes, membership link, snapshots, imports, or metrics.
+Roster entries are tenant-owned; Player is global neutral reference. Shared neutral identity never exposes another tenant's roster state, notes, membership link, snapshots, imports, or metrics.
 
 Latest observation fields are projected from snapshots rather than copied into a mutable roster total/history replacement.
 

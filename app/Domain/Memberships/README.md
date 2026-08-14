@@ -2,25 +2,33 @@
 
 ## Purpose
 
-Owns Alliance membership and invitation lifecycle, including active/suspended/left/removed state, invitation issue/revoke/resend/acceptance, leave/removal behavior, and membership-administration safety rules.
+Owns Alliance membership and invitation lifecycle plus the authoritative KingShot Alliance rank (`R1`–`R5`).
 
-## Owned code
+## Core rank invariants
 
-Runtime code in this module owns membership/invitation persistence and the supported membership/invitation actions consumed by Alliance administration and Recruitment onboarding.
+- Every active Alliance membership has exactly one rank.
+- A new accepted member starts at R1.
+- Exactly one active membership per Alliance is R5.
+- R5 is the Alliance owner/leader.
+- R4 is officer rank.
+- Specialist RBAC roles are additive and do not affect rank.
+- R5 cannot leave, be suspended, removed, or demoted through ordinary membership administration; leadership must be transferred.
+- Leadership transfer promotes the target to R5 and demotes the previous R5 to R4 atomically.
 
 ## Public contracts
 
 - active membership used to establish normal Alliance tenant access;
+- `AllianceRank` and rank lifecycle;
 - controlled invitation create/revoke/resend/acceptance;
-- dedicated self-service leave workflow; and
-- supported accepted-candidate invitation handoff consumed by Recruitment.
+- `UpdateAllianceRank` for R1–R4 administration; and
+- dedicated self-service leave workflow.
 
 ## Dependencies
 
 - `Identity` — global User/verified email/password assurance.
 - `Alliances` — active tenant context.
-- `Authorization` — permissions, role assignment/removal, effective rank/Owner safety.
-- `Platform` — member-capacity entitlement/lifecycle state.
+- `Authorization` — permission evaluation and additive specialist roles.
+- `Platform` — member-capacity/lifecycle state and leadership-transfer administration surface.
 - `Audit` / Platform outbox — attributable/durable evidence.
 
 ## Canonical documentation

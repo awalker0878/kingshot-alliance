@@ -5,29 +5,32 @@ declare(strict_types=1);
 namespace App\Domain\Alliances\Services;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Models\AllianceMembership;
 use LogicException;
 
 final class AllianceContext
 {
     private ?Alliance $alliance = null;
-
     private ?AllianceMembership $membership = null;
+    private ?Player $player = null;
 
-    public function __construct(private readonly AllianceAuthorization $authorization) {}
-
-    public function activate(Alliance $alliance, User $user): void
+    public function activate(Player $player, AllianceMembership $membership, Alliance $alliance): void
     {
-        $membership = $this->authorization->activeMembership($user, $alliance);
-
-        if ($membership === null) {
-            throw new LogicException('Active alliance membership is required.');
+        if ((string) $membership->player_id !== (string) $player->id
+            || (string) $membership->alliance_id !== (string) $alliance->id
+            || (string) $player->current_kingdom_id !== (string) $alliance->kingdom_id) {
+            throw new LogicException('Alliance context must match the active Player membership and Kingdom.');
         }
 
-        $this->alliance = $alliance;
+        $this->player = $player;
         $this->membership = $membership;
+        $this->alliance = $alliance;
+    }
+
+    public function player(): Player
+    {
+        return $this->player ?? throw new LogicException('Alliance Player context has not been resolved.');
     }
 
     public function alliance(): Alliance
@@ -42,6 +45,7 @@ final class AllianceContext
 
     public function clear(): void
     {
+        $this->player = null;
         $this->alliance = null;
         $this->membership = null;
     }

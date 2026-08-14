@@ -51,7 +51,7 @@ final class QueueDueContributionReports
                     [
                         'alliance_id' => $schedule->alliance_id,
                         'schedule_id' => $schedule->id,
-                        'recipient_membership_id' => $schedule->recipient_membership_id,
+                        'recipient_player_id' => $schedule->recipient_player_id,
                         'format' => 'scheduled',
                         'status' => 'queued',
                         'report_version' => $schedule->report_version,
@@ -71,7 +71,7 @@ final class QueueDueContributionReports
                             'alliance_id' => $schedule->alliance_id,
                             'report_run_id' => $run->id,
                             'schedule_id' => $schedule->id,
-                            'recipient_membership_id' => $schedule->recipient_membership_id,
+                            'recipient_player_id' => $schedule->recipient_player_id,
                             'report_version' => $schedule->report_version,
                             'as_of' => $dueAt->toIso8601String(),
                         ],

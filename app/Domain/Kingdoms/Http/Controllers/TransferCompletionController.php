@@ -10,12 +10,9 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\CompleteTransferParticipant;
-use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
-use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\TransferCompletion;
 use App\Domain\Kingdoms\Models\TransferParticipant;
-use App\Domain\Kingdoms\Queries\RosterQuery;
 use App\Domain\Kingdoms\Queries\TransferParticipantQuery;
 use App\Domain\Kingdoms\Queries\TransferPlanQuery;
 use App\Domain\Platform\Http\Controllers\Controller;
@@ -33,32 +30,15 @@ final class TransferCompletionController extends Controller
         AllianceAuthorization $authorization,
         TransferPlanQuery $plans,
         TransferParticipantQuery $participants,
-        RosterQuery $roster,
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
 
         $plan = $plans->currentForAlliance($alliance);
-        $rosterOptions = $roster->forAlliance($alliance)
-            ->filter(static fn (AllianceRosterEntry $entry): bool => in_array(
-                $entry->state,
-                [RosterState::Active, RosterState::Tracked],
-                true,
-            ))
-            ->map(static fn (AllianceRosterEntry $entry): array => [
-                'id' => (string) $entry->id,
-                'name' => (string) $entry->observed_name,
-                'state' => $entry->state->value,
-                'gamePlayerId' => $entry->player->game_player_id,
-                'membershipId' => $entry->membership_id,
-            ])
-            ->values()
-            ->all();
-
         return Inertia::render('Alliance/TransferCompletionManage', [
             'user' => [
                 'name' => (string) $user->name,
@@ -77,7 +57,6 @@ final class TransferCompletionController extends Controller
                 : $participants->forPlan($alliance, $plan, true)
                     ->map(fn (TransferParticipant $participant): array => $this->participant($participant))
                     ->all(),
-            'rosterOptions' => $rosterOptions,
         ]);
     }
 
@@ -88,17 +67,11 @@ final class TransferCompletionController extends Controller
         string $plan,
         string $participant,
     ): RedirectResponse {
-        /** @var array{roster_entry_id?: string|null} $validated */
-        $validated = $request->validate([
-            'roster_entry_id' => ['nullable', 'string', 'max:26'],
-        ]);
-
         $complete->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $plan,
             $participant,
-            $validated['roster_entry_id'] ?? null,
         );
 
         return back()->with('status', 'transfer-participant-completed');
@@ -134,7 +107,7 @@ final class TransferCompletionController extends Controller
                     'completedAt' => $completion->completed_at->toIso8601String(),
                     'completedBy' => $completion->completedBy === null
                         ? null
-                        : ['name' => (string) $completion->completedBy->name],
+                        : ['name' => (string) $completion->completedBy->current_name],
                     'rosterEntry' => $completion->rosterEntry === null
                         ? null
                         : [

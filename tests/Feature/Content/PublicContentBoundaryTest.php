@@ -10,6 +10,8 @@ use App\Domain\Content\Actions\SaveContentItem;
 use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -21,22 +23,29 @@ final class PublicContentBoundaryTest extends TestCase
     public function test_public_routes_expose_only_published_public_content(): void
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4801]);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'public-content-r5',
+            'current_name' => 'Public Content R5',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Public Boundary', 'public-boundary');
+            ->handle($ownerPlayer, 'Public Boundary', 'public-boundary');
         $save = $this->app->make(SaveContentItem::class);
         $publish = $this->app->make(PublishContentItem::class);
 
-        $public = $save->handle($alliance, $owner, $this->attributes('Public Notice', 'public-notice'));
-        $publish->handle($alliance, $owner, $public->id);
+        $public = $save->handle($alliance, $ownerPlayer, $this->attributes('Public Notice', 'public-notice'));
+        $publish->handle($alliance, $ownerPlayer, $public->id);
 
         $members = $save->handle(
             $alliance,
-            $owner,
+            $ownerPlayer,
             $this->attributes('Member Secret', 'member-secret', ContentVisibility::Members),
         );
-        $publish->handle($alliance, $owner, $members->id);
+        $publish->handle($alliance, $ownerPlayer, $members->id);
 
-        $save->handle($alliance, $owner, $this->attributes('Draft Notice', 'draft-notice'));
+        $save->handle($alliance, $ownerPlayer, $this->attributes('Draft Notice', 'draft-notice'));
 
         $this->get('/alliances/public-boundary')
             ->assertOk()
@@ -59,48 +68,75 @@ final class PublicContentBoundaryTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->has('content', 0));
     }
 
-    public function test_member_only_content_requires_active_membership_and_explicit_alliance_context(): void
+    public function test_member_only_content_requires_the_active_player_to_have_an_active_alliance_membership(): void
     {
         $owner = User::factory()->create();
+        $outsider = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4811]);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'member-content-r5',
+            'current_name' => 'Member Content R5',
+        ]);
+        $outsiderPlayer = Player::query()->create([
+            'user_id' => $outsider->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'member-content-outsider',
+            'current_name' => 'Member Content Outsider',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Member Boundary', 'member-boundary');
+            ->handle($ownerPlayer, 'Member Boundary', 'member-boundary');
         $item = $this->app->make(SaveContentItem::class)->handle(
             $alliance,
-            $owner,
+            $ownerPlayer,
             $this->attributes('Members Guide', 'members-guide', ContentVisibility::Members),
         );
-        $this->app->make(PublishContentItem::class)->handle($alliance, $owner, $item->id);
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+        $this->app->make(PublishContentItem::class)->handle($alliance, $ownerPlayer, $item->id);
+        $sessionKey = (string) config('identity.active_player_session_key');
 
         $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([$sessionKey => $ownerPlayer->id])
             ->get('/alliance/content/members-guide')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Alliance/ContentDetail')
                 ->where('content.visibility', 'members'));
 
-        $outsider = User::factory()->create();
         $this->actingAs($outsider)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([$sessionKey => $outsiderPlayer->id])
             ->get('/alliance/content/members-guide')
-            ->assertForbidden();
+            ->assertConflict();
     }
 
     public function test_public_slug_is_scoped_to_the_requested_alliance(): void
     {
         $firstOwner = User::factory()->create();
         $secondOwner = User::factory()->create();
+        $firstKingdom = Kingdom::query()->create(['number' => 4821]);
+        $secondKingdom = Kingdom::query()->create(['number' => 4822]);
+        $firstPlayer = Player::query()->create([
+            'user_id' => $firstOwner->id,
+            'current_kingdom_id' => $firstKingdom->id,
+            'game_player_id' => 'public-slug-r5-1',
+            'current_name' => 'Public Slug R5 One',
+        ]);
+        $secondPlayer = Player::query()->create([
+            'user_id' => $secondOwner->id,
+            'current_kingdom_id' => $secondKingdom->id,
+            'game_player_id' => 'public-slug-r5-2',
+            'current_name' => 'Public Slug R5 Two',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $first = $createAlliance->handle($firstOwner, 'First Public', 'first-public');
-        $second = $createAlliance->handle($secondOwner, 'Second Public', 'second-public');
+        $first = $createAlliance->handle($firstPlayer, 'First Public', 'first-public');
+        $second = $createAlliance->handle($secondPlayer, 'Second Public', 'second-public');
         $save = $this->app->make(SaveContentItem::class);
         $publish = $this->app->make(PublishContentItem::class);
 
-        $firstItem = $save->handle($first, $firstOwner, $this->attributes('First Shared', 'shared-slug'));
-        $secondItem = $save->handle($second, $secondOwner, $this->attributes('Second Shared', 'shared-slug'));
-        $publish->handle($first, $firstOwner, $firstItem->id);
-        $publish->handle($second, $secondOwner, $secondItem->id);
+        $firstItem = $save->handle($first, $firstPlayer, $this->attributes('First Shared', 'shared-slug'));
+        $secondItem = $save->handle($second, $secondPlayer, $this->attributes('Second Shared', 'shared-slug'));
+        $publish->handle($first, $firstPlayer, $firstItem->id);
+        $publish->handle($second, $secondPlayer, $secondItem->id);
 
         $this->get('/alliances/first-public/content/shared-slug')
             ->assertOk()

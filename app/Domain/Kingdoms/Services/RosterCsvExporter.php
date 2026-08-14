@@ -6,7 +6,7 @@ namespace App\Domain\Kingdoms\Services;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
@@ -23,7 +23,7 @@ final readonly class RosterCsvExporter
     ) {}
 
     /** @return array{content: string, filename: string, row_count: int, checksum: string} */
-    public function export(Alliance $alliance, User $actor, bool $includePrivate): array
+    public function export(Alliance $alliance, Player $actor, bool $includePrivate): array
     {
         $entries = $this->roster->forAlliance($alliance)
             ->filter(static fn (AllianceRosterEntry $entry): bool => in_array(
@@ -36,7 +36,7 @@ final readonly class RosterCsvExporter
 
         $headers = RosterCsvParser::HEADERS;
         if ($includePrivate) {
-            $headers[] = 'membership_id';
+            $headers[] = 'player_id';
             $headers[] = 'manager_notes';
         }
 
@@ -52,7 +52,7 @@ final readonly class RosterCsvExporter
             $row = $this->row($entry, $snapshot);
 
             if ($includePrivate) {
-                $row['membership_id'] = $entry->membership_id ?? '';
+                $row['player_id'] = (string) $entry->player_id;
                 $row['manager_notes'] = $entry->manager_notes ?? '';
             }
 

@@ -12,7 +12,7 @@ This review closes the security boundary across the complete Kingdoms roster-int
 Protected assets include:
 
 - Alliance→Kingdom association state;
-- neutral global `Kingdom` and `KingdomPlayer` references;
+- neutral global `Kingdom` and `Player` references;
 - alliance-owned roster state and membership links;
 - private manager notes;
 - append-only player snapshots and actor/import provenance;
@@ -26,7 +26,7 @@ The relevant trust boundaries are authenticated browser access, active-Alliance 
 
 ## Cross-alliance isolation
 
-A Kingdom and a `KingdomPlayer` are global neutral references. They are never authorization keys.
+A Kingdom and a `Player` are global neutral references. They are never authorization keys.
 
 Alliance-owned roster entries, membership links, private notes, snapshots, imports, exports and derived metrics are always re-established from the active Alliance. Submitted roster, membership, import and ambiguity-resolution identifiers are resolved inside that tenant boundary. Two alliances may share the same Kingdom and neutral player identity without gaining access to each other's observations or management data.
 
@@ -84,7 +84,7 @@ Manager comparison detail is alphabetical and diagnostic. The implementation doe
 
 `KINGDOMS-001` does **not** approve a public roster/snapshot/intelligence API or an external Kingdoms webhook schema.
 
-The read-only `/api/v1` contract remains limited to alliance, events and contributions. `K1-P6` closes an inherited generic-webhook fan-out hazard: `alliance.kingdom_updated` and all `kingdoms.*` outbox events are explicitly excluded from external webhook delivery, including wildcard subscriptions. The events remain durable internal outbox evidence and can be exposed later only through an explicitly approved integration-contract change.
+The read-only `/api/v1` contract remains limited to alliance, events and contributions. `K1-P6` closes an inherited generic-webhook fan-out hazard: all `kingdoms.*` outbox events are explicitly excluded from external webhook delivery, including wildcard subscriptions. The events remain durable internal outbox evidence and can be exposed later only through an explicitly approved integration-contract change.
 
 This distinction is important because the generic webhook subsystem otherwise treats published tenant outbox events as eligible for wildcard subscriptions. Acceptance tests guard both the API route surface and the webhook exclusion.
 

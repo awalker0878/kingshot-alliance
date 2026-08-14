@@ -8,6 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\KingdomAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\ArchiveTrackedKingdomAlliance;
 use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
@@ -30,12 +31,13 @@ final class KingdomAllianceController extends Controller
         Request $request,
         AllianceContext $context,
         AllianceAuthorization $authorization,
+        KingdomAuthorization $kingdomAuthorization,
         KingdomAllianceQuery $tracking,
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
             throw new AuthorizationException;
         }
 
@@ -45,7 +47,9 @@ final class KingdomAllianceController extends Controller
                 'email' => (string) $user->email,
             ],
             'alliance' => $this->allianceSummary($alliance),
-            'canManage' => $authorization->allows($user, $alliance, PermissionKey::KingdomManage),
+            'canManage' => $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage),
+            'canManageKingdomRoles' => $alliance->kingdom !== null
+                && $kingdomAuthorization->allows($context->player(), $alliance->kingdom, PermissionKey::KingdomRoleManage),
             'tracking' => $this->trackingRows($tracking->forAlliance($alliance), $alliance, false),
         ]);
     }
@@ -59,7 +63,7 @@ final class KingdomAllianceController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
 
@@ -74,7 +78,7 @@ final class KingdomAllianceController extends Controller
         AllianceContext $context,
         StartTrackingKingdomAlliance $start,
     ): RedirectResponse {
-        $start->handle($context->alliance(), $this->user($request), $this->validated($request));
+        $start->handle($context->alliance(), $context->player(), $this->validated($request));
 
         return back()->with('status', 'kingdom-alliance-tracking-started');
     }
@@ -85,7 +89,7 @@ final class KingdomAllianceController extends Controller
         UpdateTrackedKingdomAlliance $update,
         string $tracking,
     ): RedirectResponse {
-        $update->handle($context->alliance(), $this->user($request), $tracking, $this->validated($request));
+        $update->handle($context->alliance(), $context->player(), $tracking, $this->validated($request));
 
         return back()->with('status', 'kingdom-alliance-tracking-updated');
     }
@@ -96,7 +100,7 @@ final class KingdomAllianceController extends Controller
         ArchiveTrackedKingdomAlliance $archive,
         string $tracking,
     ): RedirectResponse {
-        $archive->handle($context->alliance(), $this->user($request), $tracking);
+        $archive->handle($context->alliance(), $context->player(), $tracking);
 
         return back()->with('status', 'kingdom-alliance-tracking-archived');
     }

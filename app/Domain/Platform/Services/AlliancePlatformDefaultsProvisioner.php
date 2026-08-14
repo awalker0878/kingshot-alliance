@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Platform\Services;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
 use Illuminate\Support\Facades\DB;
 
 final class AlliancePlatformDefaultsProvisioner
 {
-    public function provision(Alliance $alliance, ?User $actor = null): void
+    public function provision(Alliance $alliance): void
     {
         $now = now();
 
@@ -18,7 +17,6 @@ final class AlliancePlatformDefaultsProvisioner
             ['alliance_id' => $alliance->id],
             [
                 'plan_code' => 'standard',
-                'assigned_by_user_id' => $actor?->id,
                 'assigned_at' => $now,
                 'created_at' => $now,
                 'updated_at' => $now,

@@ -6,8 +6,6 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\AssignTransferParticipantGroup;
 use App\Domain\Kingdoms\Actions\CloseTransferPlan;
@@ -27,11 +25,13 @@ use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Enums\TransferReadinessState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
 use App\Domain\Kingdoms\Models\TransferCompletion;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Kingdoms\Models\TransferReadinessTransition;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,57 +48,61 @@ final class TransferIncrementAcceptanceTest extends TestCase
         $owner = User::factory()->create();
         $member = User::factory()->create();
         $otherOwner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 5601, 'status' => 'active']);
+        $ownerPlayer = $this->player($owner, $kingdom, 'accepted-transfers-r5', 'Accepted Transfers R5');
+        $memberPlayer = $this->player($member, $kingdom, 'accepted-transfers-member', (string) $member->name);
+        $otherOwnerPlayer = $this->player($otherOwner, $kingdom, 'other-accepted-transfers-r5', 'Other Accepted Transfers R5');
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $alliance = $createAlliance->handle($owner, 'Accepted Transfers', 'accepted-transfers', 5601);
-        $otherAlliance = $createAlliance->handle($otherOwner, 'Other Accepted Transfers', 'other-accepted-transfers', 5601);
-        $memberMembership = $this->addMember($alliance, $member);
-        $confirmed = $this->confirmedSession($alliance->id);
+        $alliance = $createAlliance->handle($ownerPlayer, 'Accepted Transfers', 'accepted-transfers');
+        $otherAlliance = $createAlliance->handle($otherOwnerPlayer, 'Other Accepted Transfers', 'other-accepted-transfers');
+        $this->addMember($alliance, $memberPlayer);
+        $confirmed = $this->confirmedSession($ownerPlayer->id);
 
         self::assertSame($alliance->kingdom_id, $otherAlliance->kingdom_id);
 
-        $outgoingRoster = $this->app->make(SaveRosterEntry::class)->handle($alliance, $owner, [
+        $outgoingRoster = $this->app->make(SaveRosterEntry::class)->handle($alliance, $ownerPlayer, [
             'name' => 'Outgoing Alpha',
             'game_player_id' => 'k2-outgoing-1',
             'manager_notes' => 'Private outgoing roster note',
         ]);
-        $stayingRoster = $this->app->make(SaveRosterEntry::class)->handle($alliance, $owner, [
+        $stayingRoster = $this->app->make(SaveRosterEntry::class)->handle($alliance, $ownerPlayer, [
             'name' => 'Staying Bravo',
             'game_player_id' => 'k2-staying-1',
             'manager_notes' => 'Private staying roster note',
         ]);
 
-        $plan = $this->app->make(CreateTransferPlan::class)->handle($alliance, $owner, [
+        $plan = $this->app->make(CreateTransferPlan::class)->handle($alliance, $ownerPlayer, [
             'label' => 'Accepted transfer cycle',
         ]);
         $source = Kingdom::query()->create(['number' => 5701, 'status' => 'active']);
         $destination = Kingdom::query()->create(['number' => 5699, 'status' => 'active']);
 
-        $outgoing = $this->participant($alliance, $owner, $plan, TransferDirection::Outgoing, [
+        $outgoing = $this->participant($alliance, $ownerPlayer, $plan, TransferDirection::Outgoing, [
             'roster_entry_id' => $outgoingRoster->id,
             'destination_kingdom' => $destination->number,
             'manager_notes' => 'Private outgoing transfer note',
         ]);
-        $staying = $this->participant($alliance, $owner, $plan, TransferDirection::Staying, [
+        $staying = $this->participant($alliance, $ownerPlayer, $plan, TransferDirection::Staying, [
             'roster_entry_id' => $stayingRoster->id,
             'manager_notes' => 'Private staying transfer note',
         ]);
-        $incoming = $this->participant($alliance, $owner, $plan, TransferDirection::Incoming, [
+        $incoming = $this->participant($alliance, $ownerPlayer, $plan, TransferDirection::Incoming, [
             'name' => 'Incoming Charlie',
             'game_player_id' => 'k2-incoming-1',
             'source_kingdom' => $source->number,
             'manager_notes' => 'Private incoming transfer note',
         ]);
 
-        $group = $this->app->make(SaveTransferGroup::class)->handle($alliance, $owner, (string) $plan->id, [
+        $group = $this->app->make(SaveTransferGroup::class)->handle($alliance, $ownerPlayer, (string) $plan->id, [
             'name' => 'Outbound 5699',
             'direction' => TransferDirection::Outgoing,
             'destination_kingdom' => $destination->number,
-            'coordinator_membership_id' => $memberMembership->id,
+            'coordinator_player_id' => $memberPlayer->id,
             'manager_notes' => 'Private group note',
         ]);
         $this->app->make(AssignTransferParticipantGroup::class)->handle(
             $alliance,
-            $owner,
+            $ownerPlayer,
             (string) $plan->id,
             (string) $outgoing->id,
             (string) $group->id,
@@ -106,7 +110,7 @@ final class TransferIncrementAcceptanceTest extends TestCase
 
         $blocker = $this->app->make(CreateTransferBlocker::class)->handle(
             $alliance,
-            $owner,
+            $ownerPlayer,
             (string) $plan->id,
             (string) $incoming->id,
             'Waiting for the transfer window',
@@ -115,21 +119,21 @@ final class TransferIncrementAcceptanceTest extends TestCase
         $transition = $this->app->make(TransitionTransferReadiness::class);
         $transition->handle(
             $alliance,
-            $owner,
+            $ownerPlayer,
             (string) $plan->id,
             (string) $incoming->id,
             TransferReadinessState::Blocked,
         );
         $this->app->make(ResolveTransferBlocker::class)->handle(
             $alliance,
-            $owner,
+            $ownerPlayer,
             (string) $plan->id,
             (string) $incoming->id,
             (string) $blocker->id,
         );
-        $this->confirm($alliance, $owner, $incoming, true);
-        $this->confirm($alliance, $owner, $outgoing);
-        $this->confirm($alliance, $owner, $staying);
+        $this->confirm($alliance, $ownerPlayer, $incoming, true);
+        $this->confirm($alliance, $ownerPlayer, $outgoing);
+        $this->confirm($alliance, $ownerPlayer, $staying);
 
         self::assertSame(TransferReadinessState::Confirmed, $incoming->refresh()->readiness_state);
         self::assertGreaterThanOrEqual(
@@ -139,7 +143,7 @@ final class TransferIncrementAcceptanceTest extends TestCase
         self::assertSame(0, TransferCompletion::query()->count(), 'Confirmed is planning-only before explicit completion.');
 
         $this->actingAs($member)
-            ->withSession($this->activeSession($alliance->id))
+            ->withSession($this->activeSession($memberPlayer->id))
             ->get('/alliance/transfers')
             ->assertOk()
             ->assertInertia(fn (Assert $page): Assert => $page
@@ -149,7 +153,7 @@ final class TransferIncrementAcceptanceTest extends TestCase
                 ->where('groups.0.name', 'Outbound 5699')
                 ->where('groups.0.coordinator.name', $member->name)
                 ->missing('groups.0.managerNotes')
-                ->missing('groups.0.coordinatorMembershipId')
+                ->missing('groups.0.coordinatorPlayerId')
                 ->missing('participants.0.managerNotes')
                 ->missing('participants.1.managerNotes')
                 ->missing('participants.2.managerNotes'));
@@ -158,7 +162,7 @@ final class TransferIncrementAcceptanceTest extends TestCase
         $this->get('/alliance/transfers/readiness')->assertForbidden();
         $this->get('/alliance/transfers/completion')->assertForbidden();
 
-        $this->withSession($this->confirmedSession($alliance->id))
+        $this->withSession($this->confirmedSession($memberPlayer->id))
             ->patch("/alliance/transfers/{$plan->id}/groups/{$group->id}", [
                 'name' => 'Coordinator cannot mutate',
                 'direction' => 'outgoing',
@@ -167,16 +171,16 @@ final class TransferIncrementAcceptanceTest extends TestCase
             ->assertForbidden();
 
         $this->actingAs($owner);
-        $this->app->make(OpenTransferPlan::class)->handle($alliance, $owner, (string) $plan->id);
-        $this->app->make(LockTransferPlan::class)->handle($alliance, $owner, (string) $plan->id);
+        $this->app->make(OpenTransferPlan::class)->handle($alliance, $ownerPlayer, (string) $plan->id);
+        $this->app->make(LockTransferPlan::class)->handle($alliance, $ownerPlayer, (string) $plan->id);
         self::assertSame(TransferPlanState::Locked, $plan->refresh()->state);
 
         $snapshotsBefore = PlayerSnapshot::query()->count();
         $complete = $this->app->make(CompleteTransferParticipant::class);
-        $incomingCompletion = $complete->handle($alliance, $owner, (string) $plan->id, (string) $incoming->id);
-        $outgoingCompletion = $complete->handle($alliance, $owner, (string) $plan->id, (string) $outgoing->id);
-        $stayingCompletion = $complete->handle($alliance, $owner, (string) $plan->id, (string) $staying->id);
-        $outgoingRetry = $complete->handle($alliance, $owner, (string) $plan->id, (string) $outgoing->id);
+        $incomingCompletion = $complete->handle($alliance, $ownerPlayer, (string) $plan->id, (string) $incoming->id);
+        $outgoingCompletion = $complete->handle($alliance, $ownerPlayer, (string) $plan->id, (string) $outgoing->id);
+        $stayingCompletion = $complete->handle($alliance, $ownerPlayer, (string) $plan->id, (string) $staying->id);
+        $outgoingRetry = $complete->handle($alliance, $ownerPlayer, (string) $plan->id, (string) $outgoing->id);
 
         self::assertSame($outgoingCompletion->id, $outgoingRetry->id);
         self::assertSame(3, TransferCompletion::query()->where('transfer_plan_id', $plan->id)->count());
@@ -187,7 +191,7 @@ final class TransferIncrementAcceptanceTest extends TestCase
             ->where('observed_name', 'Incoming Charlie')
             ->sole();
         self::assertSame($incomingCompletion->roster_entry_id, $incomingRoster->id);
-        self::assertSame($alliance->kingdom_id, $incomingRoster->player->kingdom_id);
+        self::assertSame($alliance->kingdom_id, $incomingRoster->player->current_kingdom_id);
         self::assertSame('k2-incoming-1', $incomingRoster->player->game_player_id);
         self::assertSame(RosterState::Left, $outgoingRoster->refresh()->state);
         self::assertNotNull($outgoingRoster->left_at);
@@ -197,7 +201,7 @@ final class TransferIncrementAcceptanceTest extends TestCase
         self::assertSame($stayingRoster->id, $stayingCompletion->roster_entry_id);
 
         $this->actingAs($member)
-            ->withSession($this->activeSession($alliance->id))
+            ->withSession($this->activeSession($memberPlayer->id))
             ->get('/alliance/transfers')
             ->assertOk()
             ->assertInertia(fn (Assert $page): Assert => $page
@@ -210,11 +214,11 @@ final class TransferIncrementAcceptanceTest extends TestCase
                 ->missing('participants.2.completion'));
 
         $this->actingAs($owner);
-        $this->app->make(CloseTransferPlan::class)->handle($alliance, $owner, (string) $plan->id);
+        $this->app->make(CloseTransferPlan::class)->handle($alliance, $ownerPlayer, (string) $plan->id);
         self::assertSame(TransferPlanState::Closed, $plan->refresh()->state);
 
         $this->actingAs($otherOwner)
-            ->withSession($this->confirmedSession($otherAlliance->id))
+            ->withSession($this->confirmedSession($otherOwnerPlayer->id))
             ->post("/alliance/transfers/{$plan->id}/cancel")
             ->assertNotFound();
 
@@ -238,14 +242,14 @@ final class TransferIncrementAcceptanceTest extends TestCase
 
     private function participant(
         Alliance $alliance,
-        User $owner,
+        Player $actor,
         TransferPlan $plan,
         TransferDirection $direction,
         array $attributes,
     ): TransferParticipant {
         return $this->app->make(SaveTransferParticipant::class)->handle(
             $alliance,
-            $owner,
+            $actor,
             (string) $plan->id,
             ['direction' => $direction, ...$attributes],
         );
@@ -253,7 +257,7 @@ final class TransferIncrementAcceptanceTest extends TestCase
 
     private function confirm(
         Alliance $alliance,
-        User $owner,
+        Player $actor,
         TransferParticipant $participant,
         bool $fromBlocked = false,
     ): void {
@@ -265,7 +269,7 @@ final class TransferIncrementAcceptanceTest extends TestCase
         ] as $state) {
             $transition->handle(
                 $alliance,
-                $owner,
+                $actor,
                 (string) $participant->transfer_plan_id,
                 (string) $participant->id,
                 $state,
@@ -277,34 +281,38 @@ final class TransferIncrementAcceptanceTest extends TestCase
         }
     }
 
-    private function addMember(Alliance $alliance, User $user): AllianceMembership
+    private function addMember(Alliance $alliance, Player $player): AllianceMembership
     {
-        $membership = AllianceMembership::query()->create([
+        return AllianceMembership::query()->create([
             'alliance_id' => $alliance->id,
-            'user_id' => $user->id,
+            'player_id' => $player->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $role = Role::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
+    }
 
-        return $membership;
+    private function player(User $user, Kingdom $kingdom, string $gamePlayerId, string $name): Player
+    {
+        return Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => $gamePlayerId,
+            'current_name' => $name,
+        ]);
     }
 
     /** @return array<string, string> */
-    private function activeSession(string $allianceId): array
+    private function activeSession(string $playerId): array
     {
-        return [(string) config('identity.active_alliance_session_key') => $allianceId];
+        return [(string) config('identity.active_player_session_key') => $playerId];
     }
 
     /** @return array<string, int|string> */
-    private function confirmedSession(string $allianceId): array
+    private function confirmedSession(string $playerId): array
     {
         return [
-            ...$this->activeSession($allianceId),
+            ...$this->activeSession($playerId),
             'auth.password_confirmed_at' => time(),
         ];
     }

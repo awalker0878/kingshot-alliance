@@ -6,10 +6,12 @@ namespace Tests\Performance;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomAlliance;
 use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacy;
 use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyContact;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Services\KingdomAllianceIntelligence;
 use Illuminate\Database\Events\QueryExecuted;
@@ -32,8 +34,15 @@ final class KingdomAllianceIntelligencePerformanceTest extends TestCase
     {
         Carbon::setTestNow(Carbon::parse('2026-08-10 16:00:00 UTC'));
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 6601, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'alliance-intelligence-performance-owner',
+            'current_name' => 'Alliance Intelligence Performance Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Alliance Intelligence Performance', 'alliance-intelligence-performance', 6601);
+            ->handle($ownerPlayer, 'Alliance Intelligence Performance', 'alliance-intelligence-performance');
         self::assertNotNull($alliance->kingdom_id);
 
         for ($index = 1; $index <= 120; $index++) {
@@ -56,7 +65,7 @@ final class KingdomAllianceIntelligencePerformanceTest extends TestCase
                     'alliance_id' => $alliance->id,
                     'tracked_kingdom_alliance_id' => $tracking->id,
                     'kingdom_alliance_id' => $reference->id,
-                    'actor_user_id' => $owner->id,
+                    'actor_player_id' => $ownerPlayer->id,
                     'observed_name' => $reference->current_name,
                     'observed_tag' => $reference->current_tag,
                     'power' => ($index * 1000) + (50 - $daysAgo),
@@ -74,7 +83,7 @@ final class KingdomAllianceIntelligencePerformanceTest extends TestCase
                 'current_state' => $index % 3 === 0 ? 'nap' : 'neutral',
                 'effective_at' => now()->subDays(20),
                 'review_at' => $index % 10 === 0 ? now()->subDay() : now()->addDays(10),
-                'last_transition_user_id' => $owner->id,
+                'last_transition_player_id' => $ownerPlayer->id,
             ]);
 
             if ($index % 2 === 0) {
@@ -88,8 +97,8 @@ final class KingdomAllianceIntelligencePerformanceTest extends TestCase
                     'handle' => 'diplomat-'.$index,
                     'state' => 'active',
                     'last_verified_at' => $index % 4 === 0 ? now()->subDays(40) : now()->subDays(5),
-                    'created_by_user_id' => $owner->id,
-                    'updated_by_user_id' => $owner->id,
+                    'created_by_player_id' => $ownerPlayer->id,
+                    'updated_by_player_id' => $ownerPlayer->id,
                 ]);
             }
         }

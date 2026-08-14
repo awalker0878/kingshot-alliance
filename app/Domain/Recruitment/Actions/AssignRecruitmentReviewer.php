@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Services\OutboxRecorder;
@@ -27,27 +27,32 @@ final class AssignRecruitmentReviewer
     ) {}
 
     public function handle(
-        User $actor,
+        Player $actor,
         Alliance $alliance,
         RecruitmentCandidate $candidate,
-        AllianceMembership $reviewer,
+        Player $reviewer,
     ): void {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
             throw new AuthorizationException('You are not allowed to assign recruitment reviewers.');
         }
 
-        if ($candidate->alliance_id !== $alliance->id || $reviewer->alliance_id !== $alliance->id) {
-            throw new AuthorizationException('The candidate and reviewer must belong to the active alliance.');
+        if ($candidate->alliance_id !== $alliance->id) {
+            throw new AuthorizationException('The candidate must belong to the active Alliance.');
         }
 
-        if ($reviewer->status !== MembershipStatus::Active) {
-            throw ValidationException::withMessages(['reviewer' => 'Recruitment reviewers must be active alliance members.']);
+        $reviewerMembership = AllianceMembership::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('player_id', $reviewer->id)
+            ->where('status', MembershipStatus::Active->value)
+            ->first();
+        if (! $reviewerMembership instanceof AllianceMembership) {
+            throw ValidationException::withMessages(['reviewer_player_id' => 'Recruitment reviewers must be active Alliance Players.']);
         }
 
         DB::transaction(function () use ($actor, $alliance, $candidate, $reviewer): void {
             $existing = DB::table('recruitment_candidate_reviewers')
                 ->where('candidate_id', $candidate->id)
-                ->where('membership_id', $reviewer->id)
+                ->where('reviewer_player_id', $reviewer->id)
                 ->lockForUpdate()
                 ->exists();
 
@@ -59,18 +64,18 @@ final class AssignRecruitmentReviewer
                 'id' => (string) Str::ulid(),
                 'alliance_id' => $alliance->id,
                 'candidate_id' => $candidate->id,
-                'membership_id' => $reviewer->id,
-                'assigned_by_user_id' => $actor->id,
+                'reviewer_player_id' => $reviewer->id,
+                'assigned_by_player_id' => $actor->id,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
             $this->audit->record('recruitment.reviewer.assigned', $actor, $candidate, $alliance, [
-                'reviewer_membership_id' => $reviewer->id,
+                'reviewer_player_id' => $reviewer->id,
             ]);
             $this->outbox->record('recruitment.reviewer.assigned', (string) $alliance->id, $candidate, [
                 'candidate_id' => $candidate->id,
-                'reviewer_membership_id' => $reviewer->id,
+                'reviewer_player_id' => $reviewer->id,
             ]);
         });
     }

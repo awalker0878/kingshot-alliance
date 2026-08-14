@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Domain\Alliances\Http\Controllers\ActivateAllianceController;
 use App\Domain\Alliances\Http\Controllers\AllianceOverviewController;
 use App\Domain\Alliances\Http\Controllers\CreateAllianceController;
 use App\Domain\Alliances\Http\Controllers\DashboardController;
@@ -11,8 +10,14 @@ use App\Domain\Content\Http\Controllers\MemberContentController;
 use App\Domain\Content\Http\Controllers\PublicAllianceController;
 use App\Domain\Content\Http\Controllers\PublicBrandingMediaController;
 use App\Domain\Content\Http\Controllers\PublicContentController;
+use App\Domain\Events\Http\Controllers\EventBattlePlanController;
 use App\Domain\Events\Http\Controllers\EventCalendarController;
 use App\Domain\Events\Http\Controllers\EventManagementController;
+use App\Domain\Events\Http\Controllers\EventOperationsController;
+use App\Domain\Events\Http\Controllers\EventParticipationController;
+use App\Domain\Events\Http\Controllers\EventReminderController;
+use App\Domain\Events\Http\Controllers\EventResultController;
+use App\Domain\Events\Http\Controllers\EventRosterController;
 use App\Domain\Identity\Http\Controllers\AuthenticatedSessionController;
 use App\Domain\Identity\Http\Controllers\ConfirmPasswordController;
 use App\Domain\Identity\Http\Controllers\EmailVerificationNotificationController;
@@ -25,11 +30,15 @@ use App\Domain\Identity\Http\Controllers\TwoFactorChallengeController;
 use App\Domain\Identity\Http\Controllers\TwoFactorController;
 use App\Domain\Identity\Http\Controllers\VerifyEmailController;
 use App\Domain\Memberships\Http\Controllers\InvitationAcceptanceController;
+use App\Domain\Kingdoms\Http\Controllers\ActivatePlayerController;
 use App\Domain\Memberships\Http\Controllers\InvitationController;
 use App\Domain\Memberships\Http\Controllers\MembershipController;
 use App\Domain\Recruitment\Http\Controllers\PublicRecruitmentController;
 use App\Domain\Recruitment\Http\Controllers\RecruitmentCandidateController;
 use App\Domain\Recruitment\Http\Controllers\RecruitmentManagementController;
+use App\Domain\Rallies\Http\Controllers\EventRallyController;
+use App\Domain\Rallies\Http\Controllers\PlayerFormationController;
+use App\Domain\Rallies\Http\Controllers\RallyGuidanceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -129,12 +138,176 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
         });
 
         Route::post('/alliances', CreateAllianceController::class)->name('alliances.store');
-        Route::put('/alliances/{alliance}/active', ActivateAllianceController::class)
-            ->whereUlid('alliance')
-            ->name('alliances.activate');
         Route::post('/invitations/{token}/accept', [InvitationAcceptanceController::class, 'accept'])
             ->where('token', '[A-Fa-f0-9]{64}')
             ->name('invitations.accept');
+
+        Route::post('/players/{player}/activate', ActivatePlayerController::class)
+            ->whereUlid('player')
+            ->name('players.activate');
+
+        Route::get('/events', [EventCalendarController::class, 'index'])->name('events.index');
+        Route::get('/events/create', [EventManagementController::class, 'create'])->name('events.create');
+        Route::get('/events/export.csv', [EventCalendarController::class, 'export'])->name('events.export');
+        Route::get('/events/feed.ics', [EventCalendarController::class, 'ical'])->name('events.ical');
+        Route::get('/events/{occurrence}', [EventCalendarController::class, 'show'])
+            ->whereUlid('occurrence')
+            ->name('events.show');
+        Route::get('/events/{event}/manage', [EventManagementController::class, 'manage'])
+            ->whereUlid('event')
+            ->name('events.management');
+
+        Route::post('/events/{occurrence}/responses', [EventParticipationController::class, 'respond'])
+            ->whereUlid('occurrence')
+            ->name('events.responses.store');
+        Route::post('/events/{occurrence}/registrations', [EventParticipationController::class, 'register'])
+            ->whereUlid('occurrence')
+            ->name('events.registrations.store');
+        Route::delete('/events/{occurrence}/registrations', [EventParticipationController::class, 'cancelRegistration'])
+            ->whereUlid('occurrence')
+            ->name('events.registrations.cancel');
+        Route::put('/events/{occurrence}/attendance/{player}', [EventParticipationController::class, 'attendance'])
+            ->whereUlid('occurrence')
+            ->whereUlid('player')
+            ->name('events.attendance.update');
+        Route::put('/events/{occurrence}/polls/{poll}/vote', [EventOperationsController::class, 'vote'])
+            ->whereUlid('occurrence')
+            ->whereUlid('poll')
+            ->name('events.polls.vote');
+        Route::put('/events/{occurrence}/roster-members/{member}/response', [EventRosterController::class, 'respond'])
+            ->whereUlid('occurrence')
+            ->whereUlid('member')
+            ->name('events.roster-members.response');
+
+        Route::post('/player/formations', [PlayerFormationController::class, 'store'])
+            ->name('player.formations.store');
+        Route::patch('/player/formations/{formation}', [PlayerFormationController::class, 'update'])
+            ->whereUlid('formation')
+            ->name('player.formations.update');
+        Route::delete('/player/formations/{formation}', [PlayerFormationController::class, 'destroy'])
+            ->whereUlid('formation')
+            ->name('player.formations.destroy');
+        Route::put('/events/{occurrence}/rally-assignments/{assignment}/response', [EventRallyController::class, 'respond'])
+            ->whereUlid('occurrence')
+            ->whereUlid('assignment')
+            ->name('events.rally-assignments.response');
+
+        Route::middleware('password.confirm')->group(function (): void {
+            Route::post('/events', [EventManagementController::class, 'store'])->name('events.store');
+            Route::patch('/events/{event}', [EventManagementController::class, 'update'])
+                ->whereUlid('event')
+                ->name('events.update');
+            Route::delete('/events/{event}', [EventManagementController::class, 'cancel'])
+                ->whereUlid('event')
+                ->name('events.cancel');
+            Route::post('/event-templates', [EventManagementController::class, 'storeTemplate'])
+                ->name('event-templates.store');
+            Route::post('/event-templates/{template}/events', [EventManagementController::class, 'storeFromTemplate'])
+                ->whereUlid('template')
+                ->name('event-templates.events.store');
+            Route::post('/events/{occurrence}/phases', [EventOperationsController::class, 'storePhase'])
+                ->whereUlid('occurrence')
+                ->name('events.phases.store');
+            Route::patch('/events/{occurrence}/phases/{phase}', [EventOperationsController::class, 'updatePhase'])
+                ->whereUlid('occurrence')
+                ->whereUlid('phase')
+                ->name('events.phases.update');
+            Route::post('/events/{occurrence}/polls', [EventOperationsController::class, 'storePoll'])
+                ->whereUlid('occurrence')
+                ->name('events.polls.store');
+            Route::patch('/events/{occurrence}/polls/{poll}', [EventOperationsController::class, 'updatePoll'])
+                ->whereUlid('occurrence')
+                ->whereUlid('poll')
+                ->name('events.polls.update');
+            Route::post('/events/{event}/reminders', [EventReminderController::class, 'store'])
+                ->whereUlid('event')
+                ->name('events.reminders.store');
+            Route::delete('/events/{event}/reminders/{rule}', [EventReminderController::class, 'destroy'])
+                ->whereUlid('event')
+                ->whereUlid('rule')
+                ->name('events.reminders.destroy');
+            Route::post('/events/{occurrence}/rosters', [EventRosterController::class, 'store'])
+                ->whereUlid('occurrence')
+                ->name('events.rosters.store');
+            Route::patch('/events/{occurrence}/rosters/{roster}', [EventRosterController::class, 'update'])
+                ->whereUlid('occurrence')
+                ->whereUlid('roster')
+                ->name('events.rosters.update');
+            Route::put('/events/{occurrence}/rosters/{roster}/players/{player}', [EventRosterController::class, 'assign'])
+                ->whereUlid('occurrence')
+                ->whereUlid('roster')
+                ->whereUlid('player')
+                ->name('events.rosters.players.assign');
+            Route::delete('/events/{occurrence}/rosters/{roster}/players/{player}', [EventRosterController::class, 'remove'])
+                ->whereUlid('occurrence')
+                ->whereUlid('roster')
+                ->whereUlid('player')
+                ->name('events.rosters.players.remove');
+
+            Route::post('/alliances/{alliance}/rally-guidance', [RallyGuidanceController::class, 'store'])
+                ->whereUlid('alliance')
+                ->name('alliances.rally-guidance.store');
+            Route::patch('/alliances/{alliance}/rally-guidance/{rule}', [RallyGuidanceController::class, 'update'])
+                ->whereUlid('alliance')
+                ->whereUlid('rule')
+                ->name('alliances.rally-guidance.update');
+            Route::post('/events/{occurrence}/rally-formations', [EventRallyController::class, 'storeFormation'])
+                ->whereUlid('occurrence')
+                ->name('events.rally-formations.store');
+            Route::patch('/events/{occurrence}/rally-formations/{formation}', [EventRallyController::class, 'updateFormation'])
+                ->whereUlid('occurrence')
+                ->whereUlid('formation')
+                ->name('events.rally-formations.update');
+            Route::post('/events/{occurrence}/rally-groups', [EventRallyController::class, 'storeGroup'])
+                ->whereUlid('occurrence')
+                ->name('events.rally-groups.store');
+            Route::patch('/events/{occurrence}/rally-groups/{group}', [EventRallyController::class, 'updateGroup'])
+                ->whereUlid('occurrence')
+                ->whereUlid('group')
+                ->name('events.rally-groups.update');
+            Route::put('/events/{occurrence}/rally-groups/{group}/players/{player}', [EventRallyController::class, 'assign'])
+                ->whereUlid('occurrence')
+                ->whereUlid('group')
+                ->whereUlid('player')
+                ->name('events.rally-groups.players.assign');
+            Route::delete('/events/{occurrence}/rally-groups/{group}/players/{player}', [EventRallyController::class, 'remove'])
+                ->whereUlid('occurrence')
+                ->whereUlid('group')
+                ->whereUlid('player')
+                ->name('events.rally-groups.players.remove');
+            Route::patch('/events/{occurrence}/rally-assignments/{assignment}/participation', [EventRallyController::class, 'participation'])
+                ->whereUlid('occurrence')
+                ->whereUlid('assignment')
+                ->name('events.rally-assignments.participation');
+            Route::post('/events/{occurrence}/objectives', [EventBattlePlanController::class, 'storeObjective'])
+                ->whereUlid('occurrence')
+                ->name('events.objectives.store');
+            Route::patch('/events/{occurrence}/objectives/{objective}', [EventBattlePlanController::class, 'updateObjective'])
+                ->whereUlid('occurrence')
+                ->whereUlid('objective')
+                ->name('events.objectives.update');
+            Route::put('/events/{occurrence}/objectives/{objective}/players/{player}', [EventBattlePlanController::class, 'assignPlayer'])
+                ->whereUlid('occurrence')
+                ->whereUlid('objective')
+                ->whereUlid('player')
+                ->name('events.objectives.players.assign');
+            Route::put('/events/{occurrence}/objectives/{objective}/rosters/{roster}', [EventBattlePlanController::class, 'assignRoster'])
+                ->whereUlid('occurrence')
+                ->whereUlid('objective')
+                ->whereUlid('roster')
+                ->name('events.objectives.rosters.assign');
+            Route::delete('/events/{occurrence}/objective-assignments/{assignment}', [EventBattlePlanController::class, 'removeAssignment'])
+                ->whereUlid('occurrence')
+                ->whereUlid('assignment')
+                ->name('events.objective-assignments.destroy');
+            Route::put('/events/{occurrence}/result', [EventResultController::class, 'saveOccurrence'])
+                ->whereUlid('occurrence')
+                ->name('events.results.update');
+            Route::put('/events/{occurrence}/results/players/{player}', [EventResultController::class, 'savePlayer'])
+                ->whereUlid('occurrence')
+                ->whereUlid('player')
+                ->name('events.player-results.update');
+        });
 
         Route::middleware('alliance.context')->group(function (): void {
             Route::get('/alliance', AllianceOverviewController::class)->name('alliance.overview');
@@ -153,26 +326,6 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                 ->where('contentSlug', '[a-z0-9]+(?:-[a-z0-9]+)*')
                 ->name('alliance.content.show');
 
-            Route::get('/alliance/events', [EventCalendarController::class, 'index'])
-                ->name('alliance.events.index');
-            Route::get('/alliance/events/manage', [EventManagementController::class, 'index'])
-                ->name('alliance.events.manage');
-            Route::get('/alliance/events/export.csv', [EventCalendarController::class, 'export'])
-                ->name('alliance.events.export');
-            Route::get('/alliance/events/feed.ics', [EventCalendarController::class, 'ical'])
-                ->name('alliance.events.ical');
-            Route::post('/alliance/formations', [EventCalendarController::class, 'saveFormation'])
-                ->name('alliance.formations.store');
-            Route::post('/alliance/events/{occurrence}/registration', [EventCalendarController::class, 'register'])
-                ->whereUlid('occurrence')
-                ->name('alliance.events.registration.store');
-            Route::delete('/alliance/events/{occurrence}/registration', [EventCalendarController::class, 'cancel'])
-                ->whereUlid('occurrence')
-                ->name('alliance.events.registration.destroy');
-            Route::get('/alliance/events/{occurrence}', [EventCalendarController::class, 'show'])
-                ->whereUlid('occurrence')
-                ->name('alliance.events.show');
-
             Route::middleware('password.confirm')->group(function (): void {
                 Route::patch('/alliance/recruitment/settings', [RecruitmentManagementController::class, 'updateSettings'])
                     ->name('alliance.recruitment.settings.update');
@@ -187,9 +340,9 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                 Route::patch('/alliance/recruitment/{candidate}/stage', [RecruitmentCandidateController::class, 'updateStage'])
                     ->whereUlid('candidate')
                     ->name('alliance.recruitment.candidates.stage.update');
-                Route::put('/alliance/recruitment/{candidate}/reviewers/{membership}', [RecruitmentCandidateController::class, 'assignReviewer'])
+                Route::put('/alliance/recruitment/{candidate}/reviewers/{player}', [RecruitmentCandidateController::class, 'assignReviewer'])
                     ->whereUlid('candidate')
-                    ->whereUlid('membership')
+                    ->whereUlid('player')
                     ->name('alliance.recruitment.candidates.reviewers.store');
                 Route::post('/alliance/recruitment/{candidate}/notes', [RecruitmentCandidateController::class, 'addNote'])
                     ->whereUlid('candidate')
@@ -214,34 +367,6 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                 Route::patch('/alliance/recruitment/onboarding/{onboarding}', [RecruitmentCandidateController::class, 'updateOnboarding'])
                     ->whereUlid('onboarding')
                     ->name('alliance.recruitment.onboarding.update');
-
-                Route::post('/alliance/events', [EventManagementController::class, 'storeEvent'])
-                    ->name('alliance.events.store');
-                Route::post('/alliance/event-templates', [EventManagementController::class, 'storeTemplate'])
-                    ->name('alliance.event-templates.store');
-                Route::post('/alliance/event-templates/events', [EventManagementController::class, 'storeTemplateEvent'])
-                    ->name('alliance.event-templates.events.store');
-                Route::post('/alliance/events/{event}/reminders', [EventManagementController::class, 'storeReminder'])
-                    ->whereUlid('event')
-                    ->name('alliance.events.reminders.store');
-                Route::post('/alliance/rally-guidance', [EventManagementController::class, 'storeGuidance'])
-                    ->name('alliance.rally-guidance.store');
-                Route::post('/alliance/events/{occurrence}/formations', [EventManagementController::class, 'storeRecommendedFormation'])
-                    ->whereUlid('occurrence')
-                    ->name('alliance.events.formations.store');
-                Route::post('/alliance/events/{occurrence}/rally-groups', [EventManagementController::class, 'storeRallyGroup'])
-                    ->whereUlid('occurrence')
-                    ->name('alliance.events.rally-groups.store');
-                Route::put('/alliance/rally-groups/{group}/assignments', [EventManagementController::class, 'assignMember'])
-                    ->whereUlid('group')
-                    ->name('alliance.rally-groups.assignments.store');
-                Route::patch('/alliance/events/{occurrence}/registrations/{registration}/attendance', [EventManagementController::class, 'recordAttendance'])
-                    ->whereUlid('occurrence')
-                    ->whereUlid('registration')
-                    ->name('alliance.events.attendance.update');
-                Route::patch('/alliance/rally-assignments/{assignment}/participation', [EventManagementController::class, 'recordParticipation'])
-                    ->whereUlid('assignment')
-                    ->name('alliance.rally-assignments.participation.update');
 
                 Route::patch('/alliance/public-profile', [ContentManagementController::class, 'updateProfile'])
                     ->name('alliance.public-profile.update');
@@ -289,6 +414,9 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                 Route::patch('/alliance/memberships/{membership}/status', [MembershipController::class, 'updateStatus'])
                     ->whereUlid('membership')
                     ->name('alliance.memberships.status');
+                Route::patch('/alliance/memberships/{membership}/rank', [MembershipController::class, 'updateRank'])
+                    ->whereUlid('membership')
+                    ->name('alliance.memberships.rank');
                 Route::put('/alliance/memberships/{membership}/roles/{role}', [MembershipController::class, 'assignRole'])
                     ->whereUlid('membership')
                     ->whereUlid('role')
@@ -297,6 +425,8 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                     ->whereUlid('membership')
                     ->whereUlid('role')
                     ->name('alliance.memberships.roles.remove');
+                Route::post('/alliance/leadership/transfer', [MembershipController::class, 'transferLeadership'])
+                    ->name('alliance.leadership.transfer');
                 Route::delete('/alliance/membership', [MembershipController::class, 'leave'])
                     ->name('alliance.membership.leave');
             });

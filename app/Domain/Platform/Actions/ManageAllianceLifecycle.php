@@ -11,6 +11,7 @@ use App\Domain\Identity\Models\User;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
 use App\Domain\Platform\Services\LegalHoldService;
 use App\Domain\Platform\Services\OutboxRecorder;
+use App\Domain\Platform\Services\PlatformAdministratorAuthorization;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -20,10 +21,13 @@ final readonly class ManageAllianceLifecycle
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
         private LegalHoldService $legalHolds,
+        private PlatformAdministratorAuthorization $authorization,
     ) {}
 
     public function suspend(User $actor, Alliance $alliance, string $reason): Alliance
     {
+        $this->authorization->authorize($actor);
+
         if ($alliance->status !== AllianceStatus::Active) {
             throw new InvalidArgumentException('Only active alliances can be suspended.');
         }
@@ -35,6 +39,8 @@ final readonly class ManageAllianceLifecycle
 
     public function close(User $actor, Alliance $alliance, string $reason): Alliance
     {
+        $this->authorization->authorize($actor);
+
         if (! in_array($alliance->status, [AllianceStatus::Active, AllianceStatus::Suspended], true)) {
             throw new InvalidArgumentException('Only active or suspended alliances can be closed.');
         }
@@ -52,6 +58,8 @@ final readonly class ManageAllianceLifecycle
 
     public function delete(User $actor, Alliance $alliance, string $reason): Alliance
     {
+        $this->authorization->authorize($actor);
+
         if ($alliance->status !== AllianceStatus::Closed) {
             throw new InvalidArgumentException('An alliance must be closed before it can be deleted.');
         }
@@ -66,6 +74,8 @@ final readonly class ManageAllianceLifecycle
 
     public function restore(User $actor, Alliance $alliance, string $reason): Alliance
     {
+        $this->authorization->authorize($actor);
+
         if (! in_array($alliance->status, [AllianceStatus::Suspended, AllianceStatus::Closed, AllianceStatus::Deleted], true)) {
             throw new InvalidArgumentException('Only suspended, closed, or deleted alliances can be restored.');
         }

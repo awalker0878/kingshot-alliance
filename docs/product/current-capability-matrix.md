@@ -48,10 +48,10 @@ This matrix identifies implemented capability, primary ownership, and explicit c
 
 | Area | Current state | Meaning |
 | --- | --- | --- |
-| Neutral `Kingdom` / `KingdomPlayer` / `KingdomAlliance` | Reference data | Shared identity never grants cross-Alliance access to tenant-owned state. |
+| Neutral `Kingdom` / `Player` / `KingdomAlliance` | Reference data | Shared identity never grants cross-Alliance access to tenant-owned state. |
 | Platform `Alliance` vs game `KingdomAlliance` | Distinct | Application tenant and neutral game reference are different concepts. |
 | Kingdoms public API | **Not approved / not implemented** | No roster/snapshot/transfer/diplomacy/ingestion/shared-intelligence `/api/v1` scope/route. |
-| Kingdoms public webhooks | **Not approved / not implemented** | `alliance.kingdom_updated` and all `kingdoms.*` events remain internally excluded from fan-out. |
+| Kingdoms public webhooks | **Not approved / not implemented** | All `kingdoms.*` events remain internally excluded from fan-out. |
 | K4 production adapter allowlist | **Empty** | Generic control/promotion/scheduler/retention/health mechanics are accepted, but no real source runs in default production state. |
 | Real automated external Kingshot acquisition | **Not approved / not configured** | Generic acquisition interface exists; no approved production endpoint/credential/provider adapter is configured. |
 | K4 player/game-Alliance observation promotion | **Accepted for existing owning-Alliance relationships only** | No name/tag matching or auto roster/tracking creation/reactivation; machine K3 correction/invalidation remains unavailable. |

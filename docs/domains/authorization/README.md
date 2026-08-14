@@ -2,220 +2,213 @@
 
 [← Domain documentation](../README.md)
 
-**Document type:** Living domain contract  
-**Status:** Current  
-**Code owner:** `app/Domain/Authorization`  
-**Primary authorization boundary:** policy/permission evaluation against an active membership in the target Alliance
+**Document type:** Living domain contract
+**Status:** Current — EVENTS-002 P1
+**Code owner:** `app/Domain/Authorization`
+**Primary authorization boundary:** exact-context permission evaluation from Alliance rank/specialist roles or explicit Kingdom role assignments
 
 ## 1. Purpose and ownership
 
-Authorization owns Alliance roles, permission keys, role assignment/removal, and permission evaluation. Authorization is permission based, not controller-name or leadership-label based.
+Authorization owns the fixed permission vocabulary, Alliance rank-derived permission policy, additive Alliance specialist roles, Kingdom-scoped role templates/assignments, and permission evaluation services.
 
-`PermissionKey` is authoritative for the permission vocabulary. `DefaultAllianceRole` is authoritative for built-in role templates. A membership may hold multiple roles; effective permissions are the union of permissions from its assigned roles.
+Memberships owns the authoritative R1–R5 rank value. Platform owns platform-administrator grants. Authorization never treats those concepts as interchangeable.
 
 ## 2. Scope
 
 ### In scope
 
-- fixed Alliance permission vocabulary;
-- built-in Alliance role templates;
-- role assignment/removal;
-- permission evaluation for active memberships;
-- effective role ranking used by Memberships administration safety; and
-- last-active-Owner role-removal protection in coordination with Memberships.
+- fixed `PermissionKey` vocabulary;
+- baseline Alliance permissions derived from `AllianceMembership.rank`;
+- additive Alliance specialist roles and assignments;
+- Kingdom Admin / Kingdom Event Coordinator / Kingdom Viewer roles and exact-Kingdom assignments;
+- Alliance, Kingdom, and role-assignment authorization services;
+- audited/durable role-assignment changes; and
 
 ### Out of scope
 
-- global authentication/MFA, owned by Identity;
-- membership/invitation lifecycle, owned by Memberships;
+- authentication, MFA and session assurance, owned by Identity;
+- membership/invitation lifecycle and authoritative rank value, owned by Memberships;
 - active Alliance context, owned by Alliances;
-- platform-administrator grants, owned by Platform; and
-- arbitrary custom role-template/permission-vocabulary editing, which is not currently supported.
+- neutral Kingdom/player identity, owned by Kingdoms;
+- platform-administrator lifecycle, owned by Platform; and
+- arbitrary custom permission vocabulary or custom role-template editing.
 
 ## 3. Domain model
 
-### Permission vocabulary
+### Alliance rank and specialist roles
 
-The current permission vocabulary is:
+Every active Alliance membership has one rank: R1, R2, R3, R4, or R5. R5 is the single Alliance owner/leader; R4 is officer; R3/R2/R1 are member ranks. Rank contributes baseline permissions and hierarchy.
 
-| Permission | Capability |
+`DefaultAllianceRole` contains only additive specialist responsibilities: Recruiter, Event Coordinator, and Content Manager. Specialist roles never change hierarchy.
+
+### Scoped Event permissions
+
+Event permissions are scoped by operational context:
+
+```text
+events.player.view
+events.player.create
+events.player.manage
+events.alliance.view
+events.alliance.create
+events.alliance.manage
+events.kingdom.view
+events.kingdom.create
+events.kingdom.manage
+events.types.manage
+```
+
+### Kingdom roles
+
+Kingdom roles are instantiated per Kingdom and use the global permission catalogue:
+
+| Role | Permission bundle |
 | --- | --- |
-| `alliance.view` | View Alliance member areas, including the Alliance roster. |
-| `alliance.manage` | Manage Alliance settings and integration administration surfaces. |
-| `membership.manage` | Manage Alliance membership status. |
-| `roles.manage` | Assign and remove Alliance roles. |
-| `invitations.manage` | Create, revoke, and resend membership invitations. |
-| `content.manage` | Manage Alliance content and public-presence content. |
-| `events.manage` | Manage Events and Rally configuration. |
-| `recruitment.manage` | Manage Recruitment workflows. |
-| `contributions.manage` | Manage Contribution records, reporting, exports, and report schedules. |
-| `kingdoms.manage` | Manage Kingdoms roster/observation/transfer/intelligence workflows authorized for managers. |
+| Kingdom Admin | `events.kingdom.view/create/manage`, `kingdom.roles.manage` |
+| Kingdom Event Coordinator | `events.kingdom.view/create/manage` |
+| Kingdom Viewer | `events.kingdom.view` |
 
-`app/Domain/Authorization/Enums/PermissionKey.php` is authoritative if this table drifts.
-
-### Built-in role templates
-
-The built-in templates currently resolve as follows:
-
-| Role | View | Alliance | Membership | Roles | Invitations | Content | Events | Recruitment | Contributions | Kingdoms |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Owner | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Leader | ✓ | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Officer | ✓ | — | ✓ | — | ✓ | — | ✓ | — | — | ✓ |
-| Member | ✓ | — | — | — | — | — | — | — | — | — |
-| Recruiter | ✓ | — | — | — | ✓ | — | — | ✓ | — | — |
-| Event Coordinator | ✓ | — | — | — | — | — | ✓ | — | — | — |
-| Content Manager | ✓ | — | — | — | — | ✓ | — | — | — | — |
-
-The abbreviated columns map to `alliance.view`, `alliance.manage`, `membership.manage`, `roles.manage`, `invitations.manage`, `content.manage`, `events.manage`, `recruitment.manage`, `contributions.manage`, and `kingdoms.manage`.
-
-Only Owner currently includes `roles.manage`. `kingdoms.manage` is granted by default to Owner, Leader, and Officer; specialist roles and Member do not receive it by default.
-
-### Effective role rank
-
-Membership administration uses this effective rank model:
-
-| Role | Rank |
-| --- | ---: |
-| Owner | 100 |
-| Leader | 80 |
-| Officer | 60 |
-| Recruiter / Event Coordinator / Content Manager | 40 |
-| Member | 10 |
+See [Kingdom-scoped roles](kingdom-scoped-roles.md).
 
 ## 4. Core invariants
 
-1. Permission is granted only when the User has an **active membership in the target Alliance** and at least one assigned role grants the requested permission.
-2. Permission evaluation is tenant-specific; a role in one Alliance grants nothing in another.
-3. A membership may hold multiple roles; effective permissions are the union.
-4. Controllers/features authorize by permission/policy, not by hard-coded role-name shortcuts.
-5. Role assignment/removal re-resolves both membership and role under the active Alliance.
-6. Only active memberships can receive a role.
-7. Assigning an already-present role is a no-op rather than duplicate state.
-8. Role changes are audited and emit durable events where required.
-9. Owner-role removal is subject to last-active-Owner safety.
-10. Platform-administrator access is not an Alliance permission/role.
+1. Alliance permission requires an active membership in the exact target Alliance.
+2. Effective Alliance permission is rank-derived permission plus assigned specialist-role permission.
+3. Specialist roles never alter R1–R5 hierarchy.
+4. Exactly one active R5 is enforced per Alliance by Memberships persistence/lifecycle controls.
+5. Alliance rank/role authority never grants `events.kingdom.*`, `events.types.manage`, or `kingdom.roles.manage`.
+6. Kingdom permission requires an explicit assignment whose role belongs to the exact target Kingdom.
+7. A Kingdom role from one Kingdom cannot be attached through another Kingdom context.
+8. Platform administrators may bootstrap/recover Kingdom assignments but do not automatically receive Kingdom Event authority.
+9. Controllers/features authorize by permission and exact target, never rank/role-name shortcuts.
+10. Assignment/removal changes are attributable and auditable.
 
 ## 5. Lifecycles and workflows
 
-### Evaluate permission
+### Alliance permission evaluation
 
-`AllianceAuthorization` evaluates the active membership in the target Alliance and the union of permissions from assigned roles.
+`AllianceAuthorization` resolves the actor's active target-Alliance membership, checks `AllianceRankPermissions`, then checks additive specialist roles.
 
-### Assign role
+### Alliance specialist role assignment
 
-Role assignment requires `roles.manage`. The target membership and role are resolved within the active Alliance. Only active memberships can receive a role. Duplicate assignment is a no-op.
+R5-authorized role administration uses `roles.manage`. The membership and role are re-resolved within the same Alliance. Duplicate assignment is a no-op.
 
-### Remove role
+### Kingdom role provisioning and assignment
 
-Role removal requires `roles.manage`, remains Alliance-scoped, and is rejected when it would violate last-active-Owner safety.
+`KingdomRoleProvisioner` materializes the three system roles for one Kingdom and synchronizes their exact permission bundles. `AssignKingdomRole` serializes mutation on the target Kingdom, permits bootstrap by an active Platform administrator, otherwise requires `kingdom.roles.manage`, and is idempotent for an existing assignment.
 
-### Provision built-in roles
+### Kingdom role removal
 
-Alliance creation provisions built-in role templates and assigns Owner to the creator through the supported creation workflow.
-
-### Permission use across features
-
-Feature domains consume stable permissions rather than reimplementing authorization. Examples include `content.manage`, `events.manage`, `recruitment.manage`, `contributions.manage`, and `kingdoms.manage`.
+`RemoveKingdomRole` repeats authorization inside the target-Kingdom lock, verifies exact assignment scope, and prevents a non-Platform actor from removing the final Kingdom Admin.
 
 ## 6. Authorization and tenancy
 
-Authorization itself depends on explicit Alliance context and Memberships-owned active membership.
+Alliance and Kingdom are separate authorization contexts. R5/R4 can have broad authority inside their Alliance but receive no Kingdom Event authority unless separately assigned a Kingdom role.
 
-A global User, Kingdom, KingdomPlayer, game Alliance reference, coordinator assignment, or display-name leadership label never grants a permission.
+A global User, `Kingdom`, `Player`, game-side title, display name, roster presence, or Platform-administrator status does not itself grant a feature permission.
 
-Recent password confirmation/MFA may be required by a sensitive route, but those identity-assurance controls are additional to—not substitutes for—the permission decision.
+Identity assurance such as recent-password confirmation or MFA is additive to—not a substitute for—the contextual permission decision.
 
 ## 7. Cross-domain contracts
 
 ### Consumes
 
-- **Alliances** — target Alliance/active tenant context.
-- **Memberships** — active membership and membership status.
-- **Identity** — authenticated User identity used to locate membership; password/MFA assurance is independent.
-- **Audit** — role/permission administration evidence.
+- **Alliances** — target Alliance identity/context.
+- **Memberships** — active membership and R1–R5 rank.
+- **Kingdoms** — exact target Kingdom identity for Kingdom-scoped authorization.
+- **Identity** — authenticated User identity.
+- **Platform** — Platform-administrator bootstrap/recovery status and outbox infrastructure.
+- **Audit** — attributable authorization-state changes.
 
 ### Exposes
 
-- `PermissionKey` permission vocabulary;
-- `DefaultAllianceRole` built-in templates/ranks;
-- `AllianceAuthorization` permission evaluation; and
-- supported role assignment/removal actions used by Memberships/Alliance administration.
+- `PermissionKey`;
+- `AllianceRankPermissions` and `AllianceAuthorization`;
+- `DefaultAllianceRole` specialist templates;
+- `DefaultKingdomRole`, `KingdomRoleProvisioner`, and `KingdomAuthorization`;
+- supported Alliance/Kingdom role assignment/removal actions.
+
+Events composes these services through its own exact-target `EventAuthorization` facade.
 
 ## 8. Persistence and data ownership
 
-Authorization owns role, permission, membership-role assignment, and permission-evaluation configuration/persistence belonging to the Alliance authorization model.
+Authorization owns `permissions`, Alliance specialist `roles`/`role_permissions`/`membership_roles`, and Kingdom `kingdom_roles`/`kingdom_role_permissions`/`kingdom_role_assignments`.
 
-Membership status remains Memberships-owned. User identity remains Identity-owned. Platform-administrator grants remain Platform-owned.
+Memberships owns `alliance_memberships.rank` and membership status. Kingdoms owns the target `kingdoms` rows. Platform owns `platform_administrators`.
+
+The schema defines R1–R5 membership rank and specialist-role authorization directly.
 
 ## 9. Events, outbox and integrations
 
-Role assignment/removal produces attributable audit evidence and unique outbox events where required so legitimate assign/remove/reassign cycles do not collide with prior durable event identity.
+Alliance specialist-role and Kingdom-role changes produce attributable audit/outbox evidence where required. Kingdom role evidence uses `kingdom_id` metadata while leaving the Alliance outbox partition nullable because Kingdom authorization is not Alliance tenancy.
 
-Role/permission state is not exposed as an external webhook/API contract merely because an internal event exists.
+Authorization state is not automatically an external webhook/API contract.
 
 ## 10. HTTP, UI and API surfaces
 
-Role administration is a first-party Alliance management surface protected by `roles.manage` and recent password confirmation for privileged mutation.
+Alliance specialist-role/rank administration remains exposed through Alliance management adapters with recent-password protection for mutation.
 
-Feature UI visibility may reflect permissions, but server-side policy/permission evaluation remains authoritative.
+EVENTS-002 P1 provides a dedicated Kingdom-role management UI backed by the same server-side authorization actions. The UI may reflect effective permissions, but it never infers or grants authority client-side.
 
 ## 11. Background processing
 
-Permission evaluation and role assignment are synchronous. Authorization does not depend on a background worker to make a permission effective.
+Authorization evaluation and role mutation are synchronous. No queue/scheduler is required for permission convergence.
 
 ## 12. Failure, idempotency and concurrency
 
-- Cross-Alliance role/membership IDs fail closed when re-resolved.
-- Assigning an existing role is a no-op.
-- Removing the final active Owner role fails closed.
-- An inactive membership cannot receive a role.
-- Permission denial is not bypassed by password confirmation/MFA or coordinator responsibility.
+- cross-Alliance and cross-Kingdom identifiers fail closed;
+- duplicate Alliance/Kingdom role assignment is a no-op;
+- Kingdom assignment/removal serializes on the target Kingdom row;
+- authorization is rechecked inside the Kingdom mutation lock;
+- a non-Platform actor cannot remove the final Kingdom Admin;
+- inactive Alliance membership cannot satisfy Alliance authorization;
+- R5 lifecycle safety is Memberships-owned and remains transactionally protected.
 
 ## 13. Security and privacy
 
-Least privilege is defined in terms of stable permissions. Avoid role-name shortcuts in controllers because a leadership-sounding role does not necessarily include every permission.
+Authorization state is security-control data. Least privilege is expressed as stable permissions tied to exact contexts. Platform bootstrap is deliberately separated from Event authority, and Player identity is not inferred here from neutral Kingdom identity.
 
-Platform administration remains deliberately separate from Alliance RBAC.
+See [Authorization security](security/README.md) and [Kingdom-scoped roles](kingdom-scoped-roles.md).
 
 ## 14. Observability and operations
 
-Authorization failures should be diagnosed by active Alliance, membership status, assigned roles, and effective permission—not by assuming a role name implies a capability.
+Diagnose denial from target context, actor membership/Kingdom assignment, rank, specialist roles, and effective permission. Never diagnose by assuming an R-number or leadership-sounding label implies a capability.
 
-See [Alliances](../alliances/README.md), [Memberships](../memberships/README.md), [Identity](../identity/README.md), and [Security baseline](../../security/security-baseline.md).
+See [Authorization operations](operations/README.md).
 
 ## 15. Testing and architecture enforcement
 
-Tests should protect:
+Tests protect:
 
-- permission-union behavior;
-- built-in role matrix;
-- cross-Alliance role isolation;
-- role assignment/removal authorization;
-- inactive-membership rejection;
-- Owner safety; and
-- feature-domain use of policy/permission checks rather than role-name authorization shortcuts.
+- rank permission bundles and specialist-role separation;
+- scoped Event permission vocabulary;
+- rank and specialist-role provisioning;
+- exact-Kingdom role isolation and composite constraints;
+- Platform bootstrap without implicit Event authority;
+- Kingdom assignment idempotency and final-admin safety;
+- cross-Alliance/cross-Kingdom denial; and
+- feature-domain use of permission services rather than rank/role shortcuts.
+
+See [Authorization testing](testing/README.md).
 
 ## 16. Explicit non-capabilities
 
-Authorization does not currently provide:
-
-- arbitrary custom role templates;
-- editing of the permission vocabulary;
-- platform-administrator grants;
-- global User authentication; or
-- authorization derived from Kingdom/game identity, coordinator assignment, or contact data.
+Authorization does not currently provide arbitrary custom Alliance or Kingdom role templates, editable permission vocabulary, automatic Kingdom administrator inference from Alliance R5, Platform-administrator Event authority, or authentication/session assurance.
 
 ## 17. Capability documents
 
-No separate Authorization capability files are required at present.
+- [Kingdom-scoped roles](kingdom-scoped-roles.md)
+- [Authorization security](security/README.md)
+- [Authorization operations](operations/README.md)
+- [Authorization interfaces](interfaces/README.md)
+- [Authorization testing](testing/README.md)
 
 ## 18. Related documentation
 
-- [Alliances domain](../alliances/README.md)
-- [Memberships domain](../memberships/README.md)
-- [Identity domain](../identity/README.md)
-- [Audit domain](../audit/README.md)
-- [Platform domain](../platform/README.md)
-- [Security baseline](../../security/security-baseline.md)
+- [Memberships](../memberships/README.md)
+- [Alliances](../alliances/README.md)
+- [Events](../events/README.md)
+- [Kingdoms](../kingdoms/README.md)
+- [Identity](../identity/README.md)
+- [Platform](../platform/README.md)
 - [`app/Domain/Authorization/README.md`](../../../app/Domain/Authorization/README.md)

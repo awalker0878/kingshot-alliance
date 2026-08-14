@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Alliances\Http\Middleware\ResolveAllianceContext;
 use App\Domain\Integrations\Http\Middleware\AuthenticateApiCredential;
+use App\Domain\Kingdoms\Http\Middleware\ResolvePlayerContext;
 use App\Domain\Platform\Http\Controllers\ReadinessController;
 use App\Domain\Platform\Http\Middleware\AssignRequestContext;
 use App\Domain\Platform\Http\Middleware\HandleInertiaRequests;
@@ -60,6 +61,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            ResolvePlayerContext::class,
             HandleInertiaRequests::class,
         ]);
     })

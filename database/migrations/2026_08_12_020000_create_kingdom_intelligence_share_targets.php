@@ -19,8 +19,8 @@ return new class extends Migration
                 ->constrained('tracked_kingdom_alliances')
                 ->cascadeOnDelete();
             $table->string('state', 24)->default('active');
-            $table->foreignId('shared_by_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('removed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('shared_by_player_id')->constrained('players')->restrictOnDelete();
+            $table->foreignUlid('removed_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestampTz('shared_at');
             $table->timestampTz('removed_at')->nullable();
             $table->timestamps();

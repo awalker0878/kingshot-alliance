@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
@@ -37,13 +37,13 @@ final readonly class SaveTransferGroup
      *   name: string,
      *   direction: TransferDirection,
      *   destination_kingdom?: int|string|null,
-     *   coordinator_membership_id?: string|null,
+     *   coordinator_player_id?: string|null,
      *   manager_notes?: string|null
      * } $attributes
      */
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $planId,
         array $attributes,
         ?string $groupId = null,
@@ -122,7 +122,7 @@ final readonly class SaveTransferGroup
 
             $coordinator = $this->coordinator(
                 $currentAlliance,
-                $attributes['coordinator_membership_id'] ?? null,
+                $attributes['coordinator_player_id'] ?? null,
             );
             $managerNotes = $this->nullableText($attributes['manager_notes'] ?? null);
             $destinationId = $destination === null ? null : (string) $destination->id;
@@ -141,9 +141,9 @@ final readonly class SaveTransferGroup
                 && $group->name === $name
                 && $group->direction === $direction
                 && $group->destination_kingdom_id === $destinationId
-                && $group->coordinator_membership_id === $coordinatorId
+                && $group->coordinator_player_id === $coordinatorId
                 && $group->manager_notes === $managerNotes) {
-                return $group->load(['coordinator.user:id,name,email', 'destinationKingdom:id,number']);
+                return $group->load(['coordinator:id,current_name', 'destinationKingdom:id,number']);
             }
 
             $group->forceFill([
@@ -151,7 +151,7 @@ final readonly class SaveTransferGroup
                 'direction' => $direction,
                 'destination_kingdom_id' => $destinationId,
                 'state' => TransferGroupState::Active,
-                'coordinator_membership_id' => $coordinatorId,
+                'coordinator_player_id' => $coordinatorId,
                 'manager_notes' => $managerNotes,
             ])->save();
 
@@ -163,14 +163,14 @@ final readonly class SaveTransferGroup
                 'transfer_group_id' => (string) $group->id,
                 'direction' => $direction->value,
                 'destination_kingdom_id' => $destinationId,
-                'coordinator_membership_id' => $coordinatorId,
+                'coordinator_player_id' => $coordinatorId,
             ];
 
             $this->audit->record($event, $actor, $group, $currentAlliance, $metadata);
             $this->outbox->record($event, (string) $currentAlliance->id, $group, $metadata);
 
             return $group->refresh()->load([
-                'coordinator.user:id,name,email',
+                'coordinator:id,current_name',
                 'destinationKingdom:id,number',
             ]);
         });
@@ -212,26 +212,27 @@ final readonly class SaveTransferGroup
         }
     }
 
-    private function coordinator(Alliance $alliance, mixed $membershipId): ?AllianceMembership
+    private function coordinator(Alliance $alliance, mixed $playerId): ?Player
     {
-        $membershipId = is_string($membershipId) ? trim($membershipId) : '';
-        if ($membershipId === '') {
+        $playerId = is_string($playerId) ? trim($playerId) : '';
+        if ($playerId === '') {
             return null;
         }
 
         $membership = AllianceMembership::query()
             ->where('alliance_id', $alliance->id)
+            ->where('player_id', $playerId)
             ->where('status', MembershipStatus::Active->value)
             ->lockForUpdate()
-            ->find($membershipId);
+            ->first();
 
         if (! $membership instanceof AllianceMembership) {
             throw ValidationException::withMessages([
-                'coordinator_membership_id' => 'The coordinator must be an active membership in this alliance.',
+                'coordinator_player_id' => 'The coordinator must be an active Player in this Alliance.',
             ]);
         }
 
-        return $membership;
+        return Player::query()->findOrFail($playerId);
     }
 
     private function kingdom(mixed $number): ?Kingdom
@@ -264,7 +265,7 @@ final readonly class SaveTransferGroup
 
         if ($alliance->kingdom_id !== $plan->home_kingdom_id) {
             throw ValidationException::withMessages([
-                'group' => 'The alliance Kingdom changed after this transfer cycle was created. Cancel the stale cycle before changing groups.',
+                'group' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.',
             ]);
         }
     }

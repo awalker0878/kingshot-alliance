@@ -4,50 +4,45 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Kingdoms\Models\Player;
+
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventTemplate;
-use App\Domain\Identity\Models\User;
+use App\Domain\Events\Services\EventTargetResolver;
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\Access\AuthorizationException;
-use InvalidArgumentException;
 
 final class CreateEventFromTemplate
 {
-    public function __construct(private CreateEvent $createEvent) {}
+    public function __construct(
+        private CreateEvent $create,
+        private EventTargetResolver $targets,
+    ) {}
 
     public function handle(
-        User $actor,
-        Alliance $alliance,
+        Player $actor,
         EventTemplate $template,
-        ?CarbonImmutable $firstLocalStart,
+        CarbonImmutable $firstLocalStart,
         ?CarbonImmutable $recurrenceUntilLocal = null,
         ?string $title = null,
         bool $publish = true,
     ): Event {
-        if ($template->alliance_id !== $alliance->id || ! $template->is_active) {
-            throw new AuthorizationException('The event template is not available in the active alliance.');
-        }
+        $template->loadMissing('typeScope');
 
-        if (! $firstLocalStart instanceof CarbonImmutable) {
-            throw new InvalidArgumentException('Event start date is required.');
-        }
-
-        return $this->createEvent->handle(
+        return $this->create->handle(
             actor: $actor,
-            alliance: $alliance,
-            title: $title === null || trim($title) === '' ? (string) $template->name : $title,
+            configuration: $template->typeScope,
+            target: $this->targets->forTemplate($template),
             firstLocalStart: $firstLocalStart,
-            durationMinutes: (int) $template->duration_minutes,
-            capacity: $template->capacity === null ? null : (int) $template->capacity,
-            registrationOpensMinutesBefore: $template->registration_opens_minutes_before === null
-                ? null
-                : (int) $template->registration_opens_minutes_before,
-            registrationClosesMinutesBefore: (int) $template->registration_closes_minutes_before,
-            frequency: $template->recurrence_frequency,
-            recurrenceInterval: (int) $template->recurrence_interval,
-            recurrenceUntilLocal: $recurrenceUntilLocal,
+            title: $title,
             instructions: $template->instructions,
+            durationMinutes: $template->duration_minutes,
+            capacity: $template->capacity,
+            registrationOpensMinutesBefore: $template->registration_opens_minutes_before,
+            registrationClosesMinutesBefore: $template->registration_closes_minutes_before,
+            frequency: $template->recurrence_frequency,
+            recurrenceInterval: $template->recurrence_interval,
+            recurrenceUntilLocal: $recurrenceUntilLocal,
+            settings: $template->settings ?? [],
             publish: $publish,
             template: $template,
         );

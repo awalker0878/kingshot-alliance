@@ -6,12 +6,12 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\OutboxMessage;
@@ -26,7 +26,7 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
 
     public function test_manager_creates_hash_only_bounded_invitation_without_observation_sharing(): void
     {
-        [$owner, $source, $session] = $this->ownerAlliance('K5 Source', 'k5-source', 7501);
+        [$owner, $ownerPlayer, $source, $session] = $this->ownerAlliance('K5 Source', 'k5-source', 7501);
 
         $response = $this->actingAs($owner)->withSession($session)
             ->postJson('/alliance/kingdom-sharing/invitations');
@@ -55,7 +55,7 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $source->id,
-            'actor_user_id' => $owner->id,
+            'actor_player_id' => $ownerPlayer->id,
             'event' => 'kingdoms.shared_intelligence_invitation_created',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
@@ -73,9 +73,9 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
 
     public function test_consent_mutations_require_recent_password_and_kingdom_manage(): void
     {
-        [$owner, $source] = $this->ownerAlliance('K5 Password', 'k5-password', 7502);
+        [$owner, $ownerPlayer, $source] = $this->ownerAlliance('K5 Password', 'k5-password', 7502);
         $staleSession = [
-            (string) config('identity.active_alliance_session_key') => $source->id,
+            ...$this->activeSession($ownerPlayer->id),
             'auth.password_confirmed_at' => 0,
         ];
 
@@ -84,8 +84,8 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
             ->assertRedirect(route('password.confirm'));
         self::assertSame(0, KingdomIntelligenceShare::query()->count());
 
-        $member = $this->member($source);
-        $this->actingAs($member)->withSession($this->confirmedSession((string) $source->id))
+        [$memberUser, $memberPlayer] = $this->member($source);
+        $this->actingAs($memberUser)->withSession($this->confirmedSession($memberPlayer->id))
             ->postJson('/alliance/kingdom-sharing/invitations')
             ->assertForbidden();
         self::assertSame(0, KingdomIntelligenceShare::query()->count());
@@ -93,8 +93,8 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
 
     public function test_same_kingdom_recipient_accepts_once_and_duplicate_or_self_share_fails_closed(): void
     {
-        [$sourceOwner, $source, $sourceSession] = $this->ownerAlliance('K5 Source Accept', 'k5-source-accept', 7503);
-        [$recipientOwner, $recipient, $recipientSession] = $this->ownerAlliance('K5 Recipient Accept', 'k5-recipient-accept', 7503);
+        [$sourceOwner, $sourcePlayer, $source, $sourceSession] = $this->ownerAlliance('K5 Source Accept', 'k5-source-accept', 7503);
+        [$recipientOwner, $recipientPlayer, $recipient, $recipientSession] = $this->ownerAlliance('K5 Recipient Accept', 'k5-recipient-accept', 7503);
 
         $token = $this->issueViaHttp($sourceOwner, $sourceSession);
 
@@ -126,8 +126,8 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
 
     public function test_wrong_kingdom_acceptance_fails_closed_without_binding_recipient(): void
     {
-        [$sourceOwner, $source, $sourceSession] = $this->ownerAlliance('K5 Source Kingdom', 'k5-source-kingdom', 7504);
-        [$recipientOwner, $recipient, $recipientSession] = $this->ownerAlliance('K5 Other Kingdom', 'k5-other-kingdom', 7505);
+        [$sourceOwner, $sourcePlayer, $source, $sourceSession] = $this->ownerAlliance('K5 Source Kingdom', 'k5-source-kingdom', 7504);
+        [$recipientOwner, $recipientPlayer, $recipient, $recipientSession] = $this->ownerAlliance('K5 Other Kingdom', 'k5-other-kingdom', 7505);
 
         $token = $this->issueViaHttp($sourceOwner, $sourceSession);
 
@@ -146,8 +146,8 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
 
     public function test_invitation_decline_revoke_and_recipient_leave_terminate_the_capability(): void
     {
-        [$sourceOwner, $source, $sourceSession] = $this->ownerAlliance('K5 Source Lifecycle', 'k5-source-life', 7506);
-        [$recipientOwner, $recipient, $recipientSession] = $this->ownerAlliance('K5 Recipient Lifecycle', 'k5-recipient-life', 7506);
+        [$sourceOwner, $sourcePlayer, $source, $sourceSession] = $this->ownerAlliance('K5 Source Lifecycle', 'k5-source-life', 7506);
+        [$recipientOwner, $recipientPlayer, $recipient, $recipientSession] = $this->ownerAlliance('K5 Recipient Lifecycle', 'k5-recipient-life', 7506);
 
         $declineToken = $this->issueViaHttp($sourceOwner, $sourceSession);
         $declineShare = $this->shareForToken($declineToken);
@@ -185,8 +185,8 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
 
     public function test_membership_and_kingdom_context_changes_fail_closed(): void
     {
-        [$sourceOwner, $source, $sourceSession] = $this->ownerAlliance('K5 Source Context', 'k5-source-context', 7507);
-        [$recipientOwner, $recipient, $recipientSession] = $this->ownerAlliance('K5 Recipient Context', 'k5-recipient-context', 7507);
+        [$sourceOwner, $sourcePlayer, $source, $sourceSession] = $this->ownerAlliance('K5 Source Context', 'k5-source-context', 7507);
+        [$recipientOwner, $recipientPlayer, $recipient, $recipientSession] = $this->ownerAlliance('K5 Recipient Context', 'k5-recipient-context', 7507);
 
         $token = $this->issueViaHttp($sourceOwner, $sourceSession);
         $recipientMembership = AllianceMembership::query()
@@ -223,38 +223,63 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
             ->sole();
     }
 
-    /** @return array{0: User, 1: Alliance, 2: array<string, mixed>} */
+    /** @return array{0: User, 1: Player, 2: Alliance, 3: array<string, mixed>} */
     private function ownerAlliance(string $name, string $slug, int $kingdomNumber): array
     {
-        $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdomNumber);
+        $ownerUser = User::factory()->create();
+        $kingdom = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdomNumber],
+            ['status' => 'active'],
+        );
+        $ownerPlayer = $this->player($ownerUser, $kingdom, $slug.'-r5', $name.' R5');
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, $name, $slug);
 
-        return [$owner, $alliance, $this->confirmedSession((string) $alliance->id)];
+        return [$ownerUser, $ownerPlayer, $alliance, $this->confirmedSession($ownerPlayer->id)];
     }
 
-    private function member(Alliance $alliance): User
+    private function player(User $user, Kingdom $kingdom, string $gamePlayerId, string $name): Player
     {
-        $member = User::factory()->create();
-        $membership = AllianceMembership::query()->create([
+        return Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => $gamePlayerId,
+            'current_name' => $name,
+        ]);
+    }
+
+    /** @return array{0: User, 1: Player} */
+    private function member(Alliance $alliance): array
+    {
+        $memberUser = User::factory()->create();
+        $kingdom = Kingdom::query()->findOrFail($alliance->kingdom_id);
+        $memberPlayer = $this->player(
+            $memberUser,
+            $kingdom,
+            'sharing-member-'.$memberUser->id,
+            'Sharing Member',
+        );
+        AllianceMembership::query()->create([
             'alliance_id' => $alliance->id,
-            'user_id' => $member->id,
+            'player_id' => $memberPlayer->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $role = Role::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
 
-        return $member;
+        return [$memberUser, $memberPlayer];
     }
 
     /** @return array<string, mixed> */
-    private function confirmedSession(string $allianceId): array
+    private function activeSession(string $playerId): array
+    {
+        return [(string) config('identity.active_player_session_key') => $playerId];
+    }
+
+    /** @return array<string, mixed> */
+    private function confirmedSession(string $playerId): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            ...$this->activeSession($playerId),
             'auth.password_confirmed_at' => time(),
         ];
     }

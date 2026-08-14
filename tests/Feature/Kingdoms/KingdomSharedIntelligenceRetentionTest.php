@@ -16,9 +16,11 @@ use App\Domain\Kingdoms\Actions\RemoveKingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Actions\RevokeKingdomIntelligenceShare;
 use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
+use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
 use App\Domain\Kingdoms\Models\KingdomIntelligenceShareTarget;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -61,9 +63,9 @@ final class KingdomSharedIntelligenceRetentionTest extends TestCase
         $terminalTracking = $this->tracking($sourceOwner, $source, 'retention-terminal', 'Terminal Target');
         $terminalObservation = $this->observation($sourceOwner, $source, $terminalTracking, 'Terminal Target');
         $terminalTarget = $this->app->make(AddKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $terminalShare->id, (string) $terminalTracking->id);
+            ->handle($source, $this->player($sourceOwner), (string) $terminalShare->id, (string) $terminalTracking->id);
         $this->app->make(RevokeKingdomIntelligenceShare::class)
-            ->handle($source, $sourceOwner, (string) $terminalShare->id);
+            ->handle($source, $this->player($sourceOwner), (string) $terminalShare->id);
         DB::table('kingdom_intelligence_shares')->where('id', $terminalShare->id)->update([
             'revoked_at' => now()->subDays(31),
             'updated_at' => now()->subDays(31),
@@ -73,9 +75,9 @@ final class KingdomSharedIntelligenceRetentionTest extends TestCase
         $removedTracking = $this->tracking($sourceOwner, $source, 'retention-removed', 'Removed Target');
         $removedObservation = $this->observation($sourceOwner, $source, $removedTracking, 'Removed Target');
         $removedTarget = $this->app->make(AddKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $activeShare->id, (string) $removedTracking->id);
+            ->handle($source, $this->player($sourceOwner), (string) $activeShare->id, (string) $removedTracking->id);
         $this->app->make(RemoveKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $activeShare->id, (string) $removedTarget->id);
+            ->handle($source, $this->player($sourceOwner), (string) $activeShare->id, (string) $removedTarget->id);
         DB::table('kingdom_intelligence_share_targets')->where('id', $removedTarget->id)->update([
             'removed_at' => now()->subDays(21),
             'updated_at' => now()->subDays(21),
@@ -84,7 +86,7 @@ final class KingdomSharedIntelligenceRetentionTest extends TestCase
         $activeTracking = $this->tracking($sourceOwner, $source, 'retention-active', 'Active Target');
         $activeObservation = $this->observation($sourceOwner, $source, $activeTracking, 'Active Target');
         $activeTarget = $this->app->make(AddKingdomIntelligenceShareTarget::class)
-            ->handle($source, $sourceOwner, (string) $activeShare->id, (string) $activeTracking->id);
+            ->handle($source, $this->player($sourceOwner), (string) $activeShare->id, (string) $activeTracking->id);
 
         $result = $this->app->make(EnforceKingdomIntelligenceSharingRetention::class)->handle(20);
 
@@ -161,7 +163,8 @@ final class KingdomSharedIntelligenceRetentionTest extends TestCase
 
     private function pendingShare(User $owner, Alliance $source): KingdomIntelligenceShare
     {
-        $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)->handle($source, $owner);
+        $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)
+            ->handle($source, $this->player($owner));
 
         return KingdomIntelligenceShare::query()->findOrFail($issued->shareId);
     }
@@ -172,15 +175,16 @@ final class KingdomSharedIntelligenceRetentionTest extends TestCase
         User $recipientOwner,
         Alliance $recipient,
     ): KingdomIntelligenceShare {
-        $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)->handle($source, $sourceOwner);
+        $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)
+            ->handle($source, $this->player($sourceOwner));
 
         return $this->app->make(AcceptKingdomIntelligenceShareInvitation::class)
-            ->handle($recipient, $recipientOwner, $issued->token);
+            ->handle($recipient, $this->player($recipientOwner), $issued->token);
     }
 
     private function tracking(User $owner, Alliance $source, string $gameId, string $name): TrackedKingdomAlliance
     {
-        return $this->app->make(StartTrackingKingdomAlliance::class)->handle($source, $owner, [
+        return $this->app->make(StartTrackingKingdomAlliance::class)->handle($source, $this->player($owner), [
             'game_alliance_id' => $gameId,
             'current_name' => $name,
             'current_tag' => strtoupper(substr($gameId, -3)),
@@ -195,7 +199,7 @@ final class KingdomSharedIntelligenceRetentionTest extends TestCase
     ): KingdomAllianceObservation {
         return $this->app->make(RecordKingdomAllianceObservation::class)->handle(
             $source,
-            $owner,
+            $this->player($owner),
             (string) $tracking->id,
             [
                 'observed_name' => $name,
@@ -211,8 +215,23 @@ final class KingdomSharedIntelligenceRetentionTest extends TestCase
     private function ownerAlliance(string $name, string $slug, int $kingdom): array
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $kingdomModel = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdom],
+            ['status' => 'active'],
+        );
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdomModel->id,
+            'game_player_id' => 'owner-'.$slug,
+            'current_name' => $name.' Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, $name, $slug);
 
         return [$owner, $alliance];
+    }
+
+    private function player(User $owner): Player
+    {
+        return $owner->players()->sole();
     }
 }

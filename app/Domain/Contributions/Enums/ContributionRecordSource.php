@@ -8,5 +8,4 @@ enum ContributionRecordSource: string
 {
     case Manual = 'manual';
     case SelfReported = 'self_reported';
-    case EventParticipation = 'event_participation';
 }

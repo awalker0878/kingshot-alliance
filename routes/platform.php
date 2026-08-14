@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Events\Http\Controllers\EventTypeAdministrationController;
 use App\Domain\Platform\Http\Controllers\PlatformAdministrationController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,20 +12,21 @@ Route::middleware(['auth', 'auth.session', 'verified', 'platform.admin', 'passwo
     ->group(function (): void {
         Route::get('/', [PlatformAdministrationController::class, 'index'])
             ->name('administration.index');
+        Route::get('/event-types', [EventTypeAdministrationController::class, 'index'])
+            ->name('event-types.index');
+        Route::patch('/event-types/{eventType}/scopes/{scope}', [EventTypeAdministrationController::class, 'update'])
+            ->whereUlid('eventType')
+            ->whereIn('scope', ['player', 'alliance', 'kingdom'])
+            ->name('event-types.scopes.update');
         Route::post('/administrators', [PlatformAdministrationController::class, 'grantAdministrator'])
             ->name('administrators.store');
         Route::delete('/administrators/{administrator}', [PlatformAdministrationController::class, 'revokeAdministrator'])
             ->whereUlid('administrator')
             ->name('administrators.destroy');
-        Route::post('/alliances', [PlatformAdministrationController::class, 'provisionAlliance'])
-            ->name('alliances.store');
         Route::post('/alliances/{alliance}/lifecycle/{operation}', [PlatformAdministrationController::class, 'lifecycle'])
             ->whereUlid('alliance')
             ->whereIn('operation', ['suspend', 'close', 'delete', 'restore'])
             ->name('alliances.lifecycle');
-        Route::post('/alliances/{alliance}/ownership', [PlatformAdministrationController::class, 'transferOwnership'])
-            ->whereUlid('alliance')
-            ->name('alliances.ownership');
         Route::put('/alliances/{alliance}/plan', [PlatformAdministrationController::class, 'assignPlan'])
             ->whereUlid('alliance')
             ->name('alliances.plan');

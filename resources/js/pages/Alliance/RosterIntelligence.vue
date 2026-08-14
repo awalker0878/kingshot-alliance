@@ -117,7 +117,7 @@ function rosterStateTone(value: string): string {
 <template>
   <Head :title="`${t('roster.intelligenceTitle')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div class="max-w-3xl">
         <Link

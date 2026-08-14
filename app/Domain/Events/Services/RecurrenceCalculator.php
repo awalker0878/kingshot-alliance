@@ -10,22 +10,24 @@ use InvalidArgumentException;
 
 final class RecurrenceCalculator
 {
-    /**
-     * @return list<CarbonImmutable>
-     */
+    /** @return list<CarbonImmutable> */
     public function calculate(
         CarbonImmutable $firstLocalStart,
         RecurrenceFrequency $frequency,
         int $interval = 1,
         ?CarbonImmutable $untilLocal = null,
-        int $limit = 32,
+        int $limit = 64,
     ): array {
-        if ($interval < 1) {
-            throw new InvalidArgumentException('Recurrence interval must be at least one.');
+        if ($interval < 1 || $interval > 52) {
+            throw new InvalidArgumentException('Recurrence interval must be between 1 and 52.');
         }
 
-        if ($limit < 1 || $limit > 100) {
-            throw new InvalidArgumentException('Occurrence generation limit must be between 1 and 100.');
+        if ($limit < 1 || $limit > 366) {
+            throw new InvalidArgumentException('Occurrence generation limit must be between 1 and 366.');
+        }
+
+        if ($untilLocal !== null && $untilLocal->lessThan($firstLocalStart)) {
+            throw new InvalidArgumentException('Recurrence end must not be before the first occurrence.');
         }
 
         $occurrences = [];
@@ -38,15 +40,15 @@ final class RecurrenceCalculator
 
             $occurrences[] = $candidate;
 
+            if ($frequency === RecurrenceFrequency::None) {
+                break;
+            }
+
             $candidate = match ($frequency) {
                 RecurrenceFrequency::None => $candidate,
                 RecurrenceFrequency::Daily => $candidate->addDays($interval),
                 RecurrenceFrequency::Weekly => $candidate->addWeeks($interval),
             };
-
-            if ($frequency === RecurrenceFrequency::None) {
-                break;
-            }
         }
 
         return $occurrences;

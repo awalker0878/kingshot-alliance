@@ -65,7 +65,7 @@ final class KingdomAllianceAcceptanceStructureTest extends TestCase
         self::assertIsString($contacts);
 
         foreach ([
-            'kingdom_player_id',
+            'player_id',
             'alliance_membership_id',
             'role_id',
             'permission_id',

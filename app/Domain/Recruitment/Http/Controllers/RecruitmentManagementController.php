@@ -9,6 +9,7 @@ use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Http\Controllers\Controller;
@@ -33,7 +34,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use LogicException;
 
 final class RecruitmentManagementController extends Controller
 {
@@ -45,7 +45,7 @@ final class RecruitmentManagementController extends Controller
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance();
-        $this->authorize($authorization, $user, $alliance->id, $alliance);
+        $this->authorize($authorization, $context->player(), $alliance);
 
         $settings = RecruitmentSetting::query()->where('alliance_id', $alliance->id)->first();
         $questions = RecruitmentQuestion::query()
@@ -63,7 +63,7 @@ final class RecruitmentManagementController extends Controller
         $memberships = AllianceMembership::query()
             ->where('alliance_id', $alliance->id)
             ->where('status', MembershipStatus::Active->value)
-            ->with('user:id,name')
+            ->with('player:id,current_name')
             ->orderBy('created_at')
             ->get();
         $templates = RecruitmentDecisionTemplate::query()
@@ -107,14 +107,15 @@ final class RecruitmentManagementController extends Controller
 
         $memberData = [];
         foreach ($memberships as $membership) {
-            $member = $membership->user;
-            if (! $member instanceof User) {
-                throw new LogicException('An active recruitment reviewer membership must reference a user.');
+            $player = $membership->player;
+            if (! $player instanceof Player) {
+                continue;
             }
 
             $memberData[] = [
-                'id' => (string) $membership->id,
-                'name' => (string) $member->name,
+                'id' => (string) $player->id,
+                'name' => (string) $player->current_name,
+                'rank' => $membership->rank->value,
             ];
         }
 
@@ -195,7 +196,7 @@ final class RecruitmentManagementController extends Controller
         ]);
 
         $configure->handle(
-            $this->user($request),
+            $context->player(),
             $context->alliance(),
             RecruitmentApplicationMode::from($validated['mode']),
             $validated['title'],
@@ -225,7 +226,7 @@ final class RecruitmentManagementController extends Controller
             'active' => ['required', 'boolean'],
         ]);
 
-        $actor = $this->user($request);
+        $actor = $context->player();
         $alliance = $context->alliance();
         $type = RecruitmentQuestionType::from($validated['type']);
         $options = $validated['options'] ?? [];
@@ -278,7 +279,7 @@ final class RecruitmentManagementController extends Controller
         ]);
         $alliance = $context->alliance();
         $issued = $issue->handle(
-            $this->user($request),
+            $context->player(),
             $alliance,
             $validated['email'] ?? null,
             (int) $validated['ttl_hours'],
@@ -306,7 +307,7 @@ final class RecruitmentManagementController extends Controller
         ]);
 
         $create->handle(
-            $this->user($request),
+            $context->player(),
             $context->alliance(),
             $validated['name'],
             RecruitmentStage::from($validated['decision_stage']),
@@ -332,7 +333,7 @@ final class RecruitmentManagementController extends Controller
         ]);
 
         $create->handle(
-            $this->user($request),
+            $context->player(),
             $context->alliance(),
             $validated['name'],
             $validated['description'] ?? null,
@@ -354,11 +355,10 @@ final class RecruitmentManagementController extends Controller
 
     private function authorize(
         AllianceAuthorization $authorization,
-        User $user,
-        string $allianceId,
+        Player $actor,
         Alliance $alliance,
     ): void {
-        if ($alliance->id !== $allianceId || ! $authorization->allows($user, $alliance, PermissionKey::RecruitmentManage)) {
+        if (! $authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
             throw new AuthorizationException;
         }
     }

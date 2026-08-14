@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Contributions\Enums\ContributionRecordStatus;
 use App\Domain\Contributions\Models\ContributionRecord;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -21,7 +21,7 @@ final class ReverseContributionRecord
     ) {}
 
     public function handle(
-        User $actor,
+        Player $actor,
         Alliance $alliance,
         ContributionRecord $record,
         string $reason,
@@ -42,7 +42,7 @@ final class ReverseContributionRecord
             $record->forceFill([
                 'status' => ContributionRecordStatus::Reversed,
                 'reversed_at' => now(),
-                'reversed_by_user_id' => $actor->id,
+                'reversed_by_player_id' => $actor->id,
                 'reversal_reason' => $reason,
             ])->save();
 

@@ -6,14 +6,14 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\CreateTransferPlan;
 use App\Domain\Kingdoms\Enums\KingdomStatus;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TransferPlan;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,9 +25,9 @@ final class TransferPlanTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_owner_can_create_and_view_a_draft_transfer_cycle_with_captured_home_kingdom(): void
+    public function test_r5_player_can_create_and_view_a_draft_transfer_cycle_with_captured_home_kingdom(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Transfer Alpha', 'transfer-alpha', 4101);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Transfer Alpha', 'transfer-alpha', 4101);
 
         $this->actingAs($owner)
             ->withSession($session)
@@ -47,7 +47,8 @@ final class TransferPlanTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,
-            'actor_user_id' => $owner->id,
+            'actor_player_id' => $ownerPlayer->id,
+            'actor_user_id' => null,
             'event' => 'kingdoms.transfer_plan_created',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
@@ -55,7 +56,7 @@ final class TransferPlanTest extends TestCase
             'event_type' => 'kingdoms.transfer_plan_created',
         ]);
 
-        $this->withSession([(string) config('identity.active_alliance_session_key') => $alliance->id])
+        $this->withSession($this->activeSession($ownerPlayer->id))
             ->get('/alliance/transfers')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -68,77 +69,75 @@ final class TransferPlanTest extends TestCase
                 ->where('plan.state', TransferPlanState::Draft->value));
     }
 
-    public function test_transfer_cycle_creation_requires_an_alliance_kingdom(): void
+    public function test_transfer_cycle_creation_requires_the_derived_alliance_kingdom_to_be_active(): void
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4199, 'status' => KingdomStatus::Archived]);
+        $ownerPlayer = $this->player($owner, $kingdom, 'transfer-inactive-r5', 'Inactive Kingdom R5');
         $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'No Kingdom Transfers', 'no-kingdom-transfers');
-        $session = $this->confirmedSession($alliance->id);
+            ->handle($ownerPlayer, 'Inactive Kingdom Transfers', 'inactive-kingdom-transfers');
 
         $this->actingAs($owner)
-            ->withSession($session)
+            ->withSession($this->confirmedSession($ownerPlayer->id))
             ->from('/alliance/transfers/manage')
             ->post('/alliance/transfers', ['label' => 'Impossible cycle'])
             ->assertRedirect('/alliance/transfers/manage')
             ->assertSessionHasErrors('plan');
 
+        self::assertSame($kingdom->id, $alliance->kingdom_id);
         self::assertSame(0, TransferPlan::query()->count());
     }
 
     public function test_transfer_lifecycle_requires_recent_password_confirmation(): void
     {
-        [$owner, $alliance] = $this->ownerAlliance('Password Transfer', 'password-transfer', 4102);
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+        [$owner, $ownerPlayer] = $this->ownerAlliance('Password Transfer', 'password-transfer', 4102);
 
         $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession($this->activeSession($ownerPlayer->id))
             ->post('/alliance/transfers', ['label' => 'Protected cycle'])
             ->assertRedirect(route('password.confirm'));
 
         self::assertSame(0, TransferPlan::query()->count());
     }
 
-    public function test_member_can_view_transfer_cycle_but_cannot_manage_it(): void
+    public function test_r1_player_can_view_transfer_cycle_but_cannot_manage_it(): void
     {
-        [$owner, $alliance, $ownerSession] = $this->ownerAlliance('Member Transfers', 'member-transfers', 4103);
+        [$owner, $ownerPlayer, $alliance, $ownerSession] = $this->ownerAlliance('Member Transfers', 'member-transfers', 4103);
         $this->actingAs($owner)->withSession($ownerSession)
             ->post('/alliance/transfers', ['label' => 'Member-visible cycle'])
             ->assertRedirect();
 
         $member = User::factory()->create();
-        $membership = AllianceMembership::query()->create([
+        $memberPlayer = $this->player($member, $alliance->kingdom, 'transfer-member-r1', 'Transfer Member');
+        AllianceMembership::query()->create([
             'alliance_id' => $alliance->id,
-            'user_id' => $member->id,
+            'player_id' => $memberPlayer->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $role = Role::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
-        $sessionKey = (string) config('identity.active_alliance_session_key');
 
         $this->actingAs($member)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession($this->activeSession($memberPlayer->id))
             ->get('/alliance/transfers')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Alliance/TransferPlans')
                 ->where('canManage', false));
 
-        $this->withSession([$sessionKey => $alliance->id])
-            ->get('/alliance/transfers/manage')
-            ->assertForbidden();
+        $this->get('/alliance/transfers/manage')->assertForbidden();
 
-        $this->withSession($this->confirmedSession($alliance->id))
+        $this->withSession($this->confirmedSession($memberPlayer->id))
             ->post('/alliance/transfers', ['label' => 'Unauthorized'])
             ->assertForbidden();
+
+        // Owning an R5 sibling Player does not grant the selected R1 Player R5 authority.
+        self::assertNotSame($ownerPlayer->id, $memberPlayer->id);
     }
 
     public function test_normal_lifecycle_is_draft_open_locked_closed_and_retries_are_idempotent(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Lifecycle Transfers', 'lifecycle-transfers', 4104);
+        [$owner, $ownerPlayer, $alliance, $session] = $this->ownerAlliance('Lifecycle Transfers', 'lifecycle-transfers', 4104);
         $this->actingAs($owner)->withSession($session)
             ->post('/alliance/transfers', ['label' => 'Lifecycle cycle'])
             ->assertRedirect();
@@ -159,11 +158,17 @@ final class TransferPlanTest extends TestCase
         $this->withSession($session)->post("/alliance/transfers/{$plan->id}/close")->assertRedirect();
         self::assertSame($auditCount, $this->eventCount('audit_events', 'event', 'kingdoms.transfer_plan_closed', $alliance->id));
         self::assertSame($outboxCount, $this->eventCount('outbox_messages', 'event_type', 'kingdoms.transfer_plan_closed', $alliance->id));
+
+        $this->assertDatabaseHas('audit_events', [
+            'alliance_id' => $alliance->id,
+            'actor_player_id' => $ownerPlayer->id,
+            'event' => 'kingdoms.transfer_plan_closed',
+        ]);
     }
 
     public function test_invalid_lifecycle_transition_fails_closed(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Invalid Transfer', 'invalid-transfer', 4105);
+        [$owner, , , $session] = $this->ownerAlliance('Invalid Transfer', 'invalid-transfer', 4105);
         $this->actingAs($owner)->withSession($session)
             ->post('/alliance/transfers', ['label' => 'Draft cycle'])
             ->assertRedirect();
@@ -180,7 +185,7 @@ final class TransferPlanTest extends TestCase
 
     public function test_only_one_transfer_cycle_can_be_open_for_an_alliance(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Single Open Transfer', 'single-open-transfer', 4106);
+        [$owner, , , $session] = $this->ownerAlliance('Single Open Transfer', 'single-open-transfer', 4106);
         $this->actingAs($owner)->withSession($session)
             ->post('/alliance/transfers', ['label' => 'First'])
             ->assertRedirect();
@@ -202,11 +207,11 @@ final class TransferPlanTest extends TestCase
         self::assertSame(TransferPlanState::Draft, $second->refresh()->state);
     }
 
-    public function test_submitted_plan_id_is_re_resolved_under_active_alliance(): void
+    public function test_submitted_plan_id_is_re_resolved_under_active_players_alliance(): void
     {
-        [$ownerA, $allianceA, $sessionA] = $this->ownerAlliance('Tenant A', 'transfer-tenant-a', 4107);
-        [$ownerB, $allianceB] = $this->ownerAlliance('Tenant B', 'transfer-tenant-b', 4108);
-        $planB = $this->app->make(CreateTransferPlan::class)->handle($allianceB, $ownerB, ['label' => 'B plan']);
+        [$ownerA, , $allianceA, $sessionA] = $this->ownerAlliance('Tenant A', 'transfer-tenant-a', 4107);
+        [, $ownerPlayerB, $allianceB] = $this->ownerAlliance('Tenant B', 'transfer-tenant-b', 4108);
+        $planB = $this->app->make(CreateTransferPlan::class)->handle($allianceB, $ownerPlayerB, ['label' => 'B plan']);
 
         $this->actingAs($ownerA)
             ->withSession($sessionA)
@@ -217,47 +222,72 @@ final class TransferPlanTest extends TestCase
         self::assertSame(0, TransferPlan::query()->where('alliance_id', $allianceA->id)->count());
     }
 
-    public function test_home_kingdom_drift_blocks_progress_but_cancellation_remains_a_safe_recovery(): void
+    public function test_mismatched_plan_home_kingdom_is_an_integrity_failure_not_an_alliance_kingdom_change_workflow(): void
     {
-        [$owner, $alliance, $session] = $this->ownerAlliance('Drift Transfer', 'drift-transfer', 4109);
+        [$owner, , $alliance, $session] = $this->ownerAlliance('Integrity Transfer', 'integrity-transfer', 4109);
         $this->actingAs($owner)->withSession($session)
-            ->post('/alliance/transfers', ['label' => 'Drift cycle'])
+            ->post('/alliance/transfers', ['label' => 'Integrity cycle'])
             ->assertRedirect();
         $plan = TransferPlan::query()->sole();
 
-        $newKingdom = Kingdom::query()->create([
+        $otherKingdom = Kingdom::query()->create([
             'number' => 4110,
             'status' => KingdomStatus::Active,
         ]);
-        $alliance->forceFill(['kingdom_id' => $newKingdom->id])->save();
+        $plan->forceFill(['home_kingdom_id' => $otherKingdom->id])->save();
+
+        self::assertNotSame($alliance->kingdom_id, $plan->refresh()->home_kingdom_id);
 
         $this->withSession($session)
             ->from('/alliance/transfers/manage')
             ->post("/alliance/transfers/{$plan->id}/open")
             ->assertRedirect('/alliance/transfers/manage')
             ->assertSessionHasErrors('plan');
-        self::assertSame(TransferPlanState::Draft, $plan->refresh()->state);
 
         $this->withSession($session)
+            ->from('/alliance/transfers/manage')
             ->post("/alliance/transfers/{$plan->id}/cancel")
-            ->assertRedirect();
-        self::assertSame(TransferPlanState::Cancelled, $plan->refresh()->state);
+            ->assertRedirect('/alliance/transfers/manage')
+            ->assertSessionHasErrors('plan');
+
+        self::assertSame(TransferPlanState::Draft, $plan->refresh()->state);
     }
 
-    /** @return array{0: User, 1: Alliance, 2: array<string, mixed>} */
-    private function ownerAlliance(string $name, string $slug, int $kingdom): array
+    /** @return array{0: User, 1: Player, 2: Alliance, 3: array<string, mixed>} */
+    private function ownerAlliance(string $name, string $slug, int $kingdomNumber): array
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $kingdom = Kingdom::query()->create([
+            'number' => $kingdomNumber,
+            'status' => KingdomStatus::Active,
+        ]);
+        $ownerPlayer = $this->player($owner, $kingdom, $slug.'-r5', $name.' R5');
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, $name, $slug);
 
-        return [$owner, $alliance, $this->confirmedSession($alliance->id)];
+        return [$owner, $ownerPlayer, $alliance, $this->confirmedSession($ownerPlayer->id)];
+    }
+
+    private function player(User $user, Kingdom $kingdom, string $gamePlayerId, string $name): Player
+    {
+        return Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => $gamePlayerId,
+            'current_name' => $name,
+        ]);
     }
 
     /** @return array<string, mixed> */
-    private function confirmedSession(string $allianceId): array
+    private function activeSession(string $playerId): array
+    {
+        return [(string) config('identity.active_player_session_key') => $playerId];
+    }
+
+    /** @return array<string, mixed> */
+    private function confirmedSession(string $playerId): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            ...$this->activeSession($playerId),
             'auth.password_confirmed_at' => time(),
         ];
     }

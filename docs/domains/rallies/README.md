@@ -5,223 +5,106 @@
 **Document type:** Living domain contract  
 **Status:** Current  
 **Code owner:** `app/Domain/Rallies`  
-**Primary authorization boundary:** `alliance.view` for member Rally guidance; `events.manage` for Rally coordination/mutation
+**Primary authorization boundary:** Event scope/target permissions plus exact Rally-operating Alliance context; self actions use authenticated Player Context
 
 ## 1. Purpose and ownership
 
-Rallies owns Alliance-scoped Rally guidance, member saved formations, Event-specific recommended formations, Rally groups, lead/joiner/standby assignments, and Rally participation records.
+Rallies owns Player-saved troop formations, reusable Alliance Rally guidance, occurrence-specific recommended formations, Rally groups, Player assignments, assignment responses, and Rally participation evidence.
 
-Rallies is coordinated around Events occurrences but does not own Event schedules, recurrence, registration/waitlist capacity, or Event attendance.
+Events owns Event types, schedules, occurrences, participation, rosters, phases and polls. Rallies consumes an Event occurrence as the coordination boundary.
 
 ## 2. Scope
 
-### In scope
+In scope are Player formations, 100%-total troop compositions, hero recommendations, effective-dated Alliance guidance, occurrence recommendations, Rally groups, lead/joiner/standby roles, numbered slots, Player confirmation/decline, and participated/absent evidence.
 
-- effective-dated Rally guidance;
-- troop ratios, hero recommendations, lead/joiner guidance, source/rationale, and notes;
-- member saved formations;
-- Event-occurrence recommended formations;
-- Rally groups and joiner-capacity configuration;
-- lead/joiner assignments and standby behavior; and
-- Rally participation (`participated`/`no-show`).
-
-### Out of scope
-
-- Event recurrence/scheduling;
-- Event registration/waitlist/attendance;
-- Notifications reminder-delivery state;
-- hard-coded game advice in controllers/UI; and
-- automatic in-game Rally execution.
+Rally groups may be operated by one Alliance within an Alliance, Player, or Kingdom Event. A Kingdom occurrence can contain multiple Alliance Rally groups concurrently.
 
 ## 3. Domain model
 
-### Guidance
+`PlayerFormation` belongs to one durable Player. `RallyGuidanceRule` belongs to one Alliance. `EventRecommendedFormation` belongs to one occurrence and one Rally-operating Alliance. `RallyGroup` belongs to one occurrence and one Rally-operating Alliance. `RallyAssignment` belongs to one Rally group and one durable Player.
 
-Guidance is configuration data rather than hard-coded game logic. A guidance record can contain:
-
-- troop ratio;
-- hero recommendations;
-- lead requirements;
-- joiner guidance;
-- notes;
-- effective-from date;
-- optional effective-until date;
-- source; and
-- rationale.
-
-### Member saved formation
-
-A member can save a named formation with:
-
-- optional hero names;
-- infantry percentage;
-- cavalry percentage;
-- archer percentage;
-- optional notes; and
-- optional default status.
-
-The three troop percentages must total exactly **100%**.
-
-### Event recommended formation
-
-For an Event occurrence, coordinators can create a named formation for a role such as lead or joiner. It may link to an effective-dated guidance rule and includes its own troop ratio/heroes/notes.
-
-### Rally group and assignment
-
-A Rally group belongs to an Event occurrence, may define maximum joiners, and may reference a recommended formation.
-
-Assignments associate active Alliance members with lead/joiner roles and optional numbered slots. When configured joiner capacity is reached, additional joiners become `standby` rather than silently overbooking the group.
-
-### Participation
-
-Coordinators record Rally participation as `participated` or `no-show`, distinct from Events-owned attendance.
+Troop composition is infantry + cavalry + archer and must total exactly 100%. Guidance may include heroes, lead requirements, joiner guidance, source, rationale and an effective date window.
 
 ## 4. Core invariants
 
-1. All Rally records are scoped to the active Alliance and applicable Event occurrence.
-2. Guidance is configuration/evidence-driven, not embedded as controller/UI constants.
-3. Effective dates/source/rationale should be preserved when recommendations change.
-4. Saved/recommended formation troop percentages total exactly 100%.
-5. Rally group capacity never silently overbooks joiners; excess assignments are standby.
-6. Only active same-Alliance memberships may be assigned to Rally roles.
-7. Rally participation remains distinct from Event attendance.
-8. Rallies does not acquire Event scheduling/registration ownership merely because it references an occurrence.
-9. A coordinator assignment is workflow responsibility, not a new authorization grant.
+1. Rally participant identity is `player_id`.
+2. Player formation ownership is authoritative through `players.user_id`; self actions require the exact active Player Context.
+3. Rally-operating Alliance is explicit on guidance, recommendations and groups.
+4. A Player must be Event-eligible and actively rostered in the exact Rally-operating Alliance before assignment.
+5. A Player has at most one active Rally group assignment per occurrence + Rally Alliance.
+6. A Rally group has at most one active lead.
+7. Active numbered slots are unique within a Rally group.
+8. `max_joiners` limits active joiners only; standby does not consume joiner capacity.
+9. Declined/removed assignments release lead, slot and joiner capacity while remaining historical evidence.
+10. Rally participation is separate from Event attendance.
+11. Kingdom Events can coordinate multiple Alliances without changing Player identity or Event ownership.
 
 ## 5. Lifecycles and workflows
 
-### View Rally guidance
+A Player selects their active Player Context and creates/updates/deletes saved formations. An authorized Alliance operator maintains reusable guidance. Event managers create occurrence recommendations and Rally groups for a valid operating Alliance, then assign eligible Players.
 
-Event detail presents Rallies-owned:
-
-- recommended formations;
-- troop percentages and hero recommendations;
-- guidance source/rationale and effective dates;
-- Rally groups/current assignments; and
-- the member's saved formations.
-
-### Save member formation
-
-From Event detail a member creates a named formation, optional heroes, 100%-total troop ratio, notes, and optional default status.
-
-If a formation fails validation, infantry + cavalry + archer must be corrected to exactly 100%.
-
-### Maintain effective-dated guidance
-
-Authorized coordinators create/update guidance with explicit effective dates and source/rationale when recommendations change so members can understand why current advice is displayed.
-
-### Configure Event recommended formation
-
-A coordinator creates role-oriented recommended formations for an occurrence and may link them to effective-dated guidance.
-
-### Create Rally group
-
-Create one or more groups for an Event occurrence. A group may define maximum joiners and recommended formation.
-
-### Assign Rally roles
-
-Assign active Alliance members to lead/joiner roles and optional numbered slots. If joiner capacity is full, the assignment becomes standby.
-
-### Record Rally participation
-
-Coordinators record `participated` or `no-show` for Rally participation. This is a privileged mutation and remains separate from Events-owned Event attendance.
+Managers may move a Player between groups in the same occurrence/Alliance; the previous assignment becomes removed evidence. The assigned Player can confirm or decline only through their active Player Context. Managers record participated/absent after the Rally.
 
 ## 6. Authorization and tenancy
 
-Member-safe Rally guidance/formation views require authenticated/verified active-Alliance context and `alliance.view` through the Event/member workspace.
+Self formation and assignment-response actions require an authenticated User whose active Player is owned through `players.user_id`. No Player identifier is accepted for self-response routing.
 
-Rally coordination/mutation requires `events.manage`; privileged mutations additionally require recent password confirmation.
-
-Submitted occurrence/group/assignment/membership/formation identifiers are re-resolved beneath the active Alliance.
+Occurrence Rally mutations require the Event's exact manage permission for its Player, Alliance, or Kingdom scope. Alliance guidance requires `events.alliance.manage` for the exact Alliance. Selecting a Player does not grant Alliance or Kingdom authority.
 
 ## 7. Cross-domain contracts
 
-### Consumes
+Consumes Events occurrence/capability/authorization contracts, Alliances as operating context, Kingdoms Player/Kingdom/roster facts, Authorization permissions, and Audit/Platform evidence services.
 
-- **Events** — occurrence identity/context; Event registration/attendance remain Events-owned.
-- **Alliances** — active tenant and time-zone/context.
-- **Memberships** — active same-Alliance member identity for assignments/saved formations.
-- **Authorization** — `alliance.view`/`events.manage`.
-- **Audit/Platform** — privileged evidence/outbox foundation.
-
-### Exposes
-
-- Rally guidance and recommended formations shown by Event detail;
-- Rally group/assignment coordination state; and
-- Rally participation state for first-party reporting where an explicit supported contract exists.
+Exposes saved formations, effective guidance, occurrence recommendations, Rally groups, assignments and Rally participation to first-party Event workspaces and later Results/Intelligence processing.
 
 ## 8. Persistence and data ownership
 
-Rallies owns guidance, saved formations, occurrence-specific recommended formations, Rally groups, Rally assignments, and Rally participation records.
-
-Events owns Event/occurrence/registration/attendance persistence. Rallies references those identities rather than duplicating their lifecycle truth.
+Rallies owns `player_formations`, `rally_guidance_rules`, `event_recommended_formations`, `rally_groups`, and `rally_assignments`. Event and Player records remain owned by their source domains and are referenced by foreign key.
 
 ## 9. Events, outbox and integrations
 
-Privileged Rally mutations are auditable/use the shared outbox where required. A Rally domain event does not automatically create a public external webhook contract.
-
-No accepted public Rally write API or automated game execution contract exists.
+Material Rally mutations write audit evidence and outbox events. Event-related Rally messages use the parent Event scope target as the partition key (`player:{id}`, `alliance:{id}`, or `kingdom:{id}`) while retaining the operating Alliance in payload/evidence.
 
 ## 10. HTTP, UI and API surfaces
 
-Rally information is presented within the first-party Event detail/coordinator workflows. Members can view relevant guidance/saved formations; coordinators manage guidance/formations/groups/assignments/participation.
+Player formation endpoints are `/player/formations`. Event Rally operations are under `/events/{occurrence}/...`; assignment self-response uses `/events/{occurrence}/rally-assignments/{assignment}/response`. Alliance guidance is under `/alliances/{alliance}/rally-guidance`.
 
-No standalone public Rally API is currently documented.
+Show presents saved formations, effective guidance, recommendations and the active Player's assignments. Manage provides Alliance-aware Rally planning and participation recording.
 
 ## 11. Background processing
 
-Current Rally configuration/coordination is request-driven. Rallies does not own Event reminder scheduler commands and does not execute game actions in a background bot.
+Rally state is request-driven. The domain does not execute game actions. Future reminders/intelligence may consume Rally assignment facts through supported domain contracts.
 
 ## 12. Failure, idempotency and concurrency
 
-- Formation validation rejects ratios not totaling exactly 100%.
-- Group capacity yields standby state rather than silent overbooking.
-- Cross-Alliance or wrong-occurrence identifiers fail closed when re-resolved.
-- Assignment requires an active same-Alliance membership.
-- Privileged mutations require fresh authorization/password confirmation rather than trusting UI state.
+Formation composition failures reject the mutation. Occurrence rows serialize assignment changes across groups, preventing simultaneous double-assignment. Group locks protect joiner capacity, lead and numbered-slot checks. Reconfirmation rechecks all constraints.
 
 ## 13. Security and privacy
 
-Rally pages, saved formations, groups, assignments, and participation are Alliance-scoped. Submitted IDs are re-resolved under active tenant context.
-
-Game guidance/rationale should not contain unrelated private member data or secrets.
+`players.user_id` is authoritative for self-owned Player state. Event visibility/management and Rally Alliance eligibility are re-evaluated server-side. Free-text strategy fields are Alliance-private operational data and must not be used as secret storage.
 
 ## 14. Observability and operations
 
-Rally issues should be diagnosed through occurrence identity, active-Alliance/member scope, guidance effective dates, group capacity, assignment state, and participation state—not by direct database edits.
-
-See [Events](../events/README.md), [Operations](../../operations/README.md), and [Security baseline](../../security/security-baseline.md).
+Operational diagnosis uses Event/occurrence ID, Rally Alliance ID, group ID, Player ID, role/status, audit actor User/Player, and scope-aware outbox partition. See [operations](operations/README.md).
 
 ## 15. Testing and architecture enforcement
 
-Tests should protect:
-
-- 100% formation-ratio validation;
-- guidance effective-date/source behavior;
-- active same-Alliance assignment scope;
-- group capacity/standby behavior;
-- participation state;
-- cross-tenant isolation; and
-- the architecture separation between Rallies ownership and Events scheduling/attendance ownership.
+Tests protect Player-context isolation, 100% compositions, joiner capacity, active lead/slot uniqueness, cross-group moves, cross-Alliance assignment rejection, multi-Alliance Kingdom Rally plans, exact authorization.
 
 ## 16. Explicit non-capabilities
 
-Rallies does not:
-
-- own Event recurrence/registration/attendance;
-- send Event reminders;
-- hard-code game guidance as controller/UI business logic; or
-- execute automated in-game Rally actions.
+Rallies does not own Event scheduling, Event attendance, Player ownership, Alliance roster lifecycle, Kingdom authorization, or automated in-game execution.
 
 ## 17. Capability documents
 
-No separate Rallies capability files are required at present. The root contract is the canonical owner for guidance, formations, groups, assignments, and participation.
+- [Interfaces](interfaces/README.md)
+- [Security](security/README.md)
+- [Operations](operations/README.md)
+- [Testing](testing/README.md)
 
 ## 18. Related documentation
 
-- [Events domain](../events/README.md)
-- [Notifications domain](../notifications/README.md)
-- [Memberships domain](../memberships/README.md)
-- [Authorization domain](../authorization/README.md)
-- [Security baseline](../../security/security-baseline.md)
+- [Events](../events/README.md)
+- [Kingdoms](../kingdoms/README.md)
+- [Authorization](../authorization/README.md)
 - [`app/Domain/Rallies/README.md`](../../../app/Domain/Rallies/README.md)

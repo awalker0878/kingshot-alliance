@@ -35,7 +35,7 @@ The accepted identity contract is preserved end to end:
 - stable game alliance ID within one Kingdom is the only automatic game-alliance identity match key;
 - name/tag collisions do not merge neutral references;
 - contact display names/handles are coordination labels, not identity keys;
-- a diplomacy contact does not create/link a `KingdomPlayer`, `User`, membership, role or permission; and
+- a diplomacy contact does not create/link a `Player`, `User`, membership, role or permission; and
 - sharing a neutral `KingdomAlliance` reference across tenants grants no access to another tenant's tracking/intelligence.
 
 Whole-increment acceptance tests create two tenants that deliberately share one stable neutral game-side reference and verify their private state remains separate.

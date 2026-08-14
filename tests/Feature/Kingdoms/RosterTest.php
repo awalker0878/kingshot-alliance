@@ -11,7 +11,9 @@ use App\Domain\Authorization\Models\Role;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\KingdomPlayer;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,20 +23,37 @@ final class RosterTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_owner_can_create_a_manual_roster_entry_with_a_same_alliance_membership_link(): void
+    public function test_owner_can_create_manual_roster_entry_for_existing_member_player_and_linkage_is_derived(): void
     {
         $owner = User::factory()->create();
         $member = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Roster Alliance', 'roster-alliance', 3001);
-        $membership = $this->addMember($alliance->id, $member);
+        $kingdom = Kingdom::query()->create(['number' => 3001, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'owner-3001',
+            'current_name' => 'Roster Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $member->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'player-1001',
+            'current_name' => 'Rafah',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Roster Alliance', 'roster-alliance');
+        AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $memberPlayer->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
+            'joined_at' => now(),
+        ]);
 
         $this->actingAs($owner)
-            ->withSession($this->confirmedSession($alliance->id))
+            ->withSession($this->confirmedSession($ownerPlayer->id))
             ->post('/alliance/roster', [
                 'name' => 'Rafah',
                 'game_player_id' => 'player-1001',
-                'membership_id' => $membership->id,
                 'game_role' => 'R4',
                 'state' => 'active',
                 'joined_at' => '2026-08-01',
@@ -44,7 +63,7 @@ final class RosterTest extends TestCase
 
         $entry = AllianceRosterEntry::query()->sole();
         self::assertSame($alliance->id, $entry->alliance_id);
-        self::assertSame($membership->id, $entry->membership_id);
+        self::assertSame($memberPlayer->id, $entry->player_id);
         self::assertSame('Rafah', $entry->observed_name);
         self::assertSame('R4', $entry->game_role);
         self::assertSame('active', $entry->state->value);
@@ -54,7 +73,8 @@ final class RosterTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,
-            'actor_user_id' => $owner->id,
+            'actor_player_id' => $ownerPlayer->id,
+            'actor_user_id' => null,
             'event' => 'kingdoms.roster_entry_created',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
@@ -63,15 +83,20 @@ final class RosterTest extends TestCase
         ]);
     }
 
-    public function test_roster_mutation_requires_recent_password_confirmation(): void
+    public function test_roster_mutation_requires_recent_password_confirmation_for_active_player(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Confirmation Alliance', 'confirmation-alliance', 3002);
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+        $kingdom = Kingdom::query()->create(['number' => 3002, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'owner-3002',
+            'current_name' => 'Confirmation Owner',
+        ]);
+        $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Confirmation Alliance', 'confirmation-alliance');
 
         $this->actingAs($owner)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([(string) config('identity.active_player_session_key') => $ownerPlayer->id])
             ->post('/alliance/roster', [
                 'name' => 'Pending Player',
                 'state' => 'active',
@@ -81,54 +106,120 @@ final class RosterTest extends TestCase
         $this->assertDatabaseCount('alliance_roster_entries', 0);
     }
 
-    public function test_member_can_view_roster_but_cannot_manage_it(): void
+    public function test_member_player_can_view_roster_but_cannot_manage_it(): void
     {
         $owner = User::factory()->create();
         $member = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'View Alliance', 'view-alliance', 3003);
-        $this->addMember($alliance->id, $member);
-        $sessionKey = (string) config('identity.active_alliance_session_key');
+        $kingdom = Kingdom::query()->create(['number' => 3003, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'owner-3003',
+            'current_name' => 'View Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $member->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'member-3003',
+            'current_name' => 'View Member',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'View Alliance', 'view-alliance');
+        AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $memberPlayer->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
+            'joined_at' => now(),
+        ]);
 
         $this->actingAs($member)
-            ->withSession([$sessionKey => $alliance->id])
+            ->withSession([(string) config('identity.active_player_session_key') => $memberPlayer->id])
             ->get('/alliance/roster')
             ->assertOk();
 
         $this->get('/alliance/roster/manage')->assertForbidden();
 
-        $this->withSession([
-            $sessionKey => $alliance->id,
-            'auth.password_confirmed_at' => time(),
-        ])->post('/alliance/roster', [
-            'name' => 'Unauthorized Player',
-            'state' => 'active',
-        ])->assertForbidden();
+        $this->withSession($this->confirmedSession($memberPlayer->id))
+            ->post('/alliance/roster', [
+                'name' => 'Unauthorized Player',
+                'state' => 'active',
+            ])->assertForbidden();
     }
 
-    public function test_default_leadership_roles_receive_kingdom_manage_but_member_and_specialist_roles_do_not(): void
+    public function test_r5_and_r4_players_receive_kingdom_manage_but_lower_ranks_and_specialists_do_not(): void
     {
-        $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Permission Alliance', 'permission-alliance', 3004);
+        $r5User = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 3004, 'status' => 'active']);
+        $r5 = Player::query()->create([
+            'user_id' => $r5User->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'r5-3004',
+            'current_name' => 'R5 Player',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($r5, 'Permission Alliance', 'permission-alliance');
         $authorization = $this->app->make(AllianceAuthorization::class);
 
-        foreach ([DefaultAllianceRole::Leader, DefaultAllianceRole::Officer] as $roleKey) {
+        self::assertTrue($authorization->allows($r5, $alliance, PermissionKey::KingdomManage));
+
+        $r4User = User::factory()->create();
+        $r4 = Player::query()->create([
+            'user_id' => $r4User->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'r4-3004',
+            'current_name' => 'R4 Player',
+        ]);
+        AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $r4->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R4,
+            'joined_at' => now(),
+        ]);
+        self::assertTrue($authorization->allows($r4, $alliance, PermissionKey::KingdomManage));
+
+        foreach ([AllianceRank::R1, AllianceRank::R2, AllianceRank::R3] as $index => $rank) {
             $user = User::factory()->create();
-            $membership = $this->addMember($alliance->id, $user, $roleKey);
-            self::assertTrue($authorization->allows($user, $alliance, PermissionKey::KingdomManage));
-            self::assertTrue($membership->roles()->where('roles.key', $roleKey->value)->exists());
+            $player = Player::query()->create([
+                'user_id' => $user->id,
+                'current_kingdom_id' => $kingdom->id,
+                'game_player_id' => 'lower-3004-'.$index,
+                'current_name' => 'Lower Rank '.$rank->value,
+            ]);
+            AllianceMembership::query()->create([
+                'alliance_id' => $alliance->id,
+                'player_id' => $player->id,
+                'status' => MembershipStatus::Active,
+                'rank' => $rank,
+                'joined_at' => now(),
+            ]);
+            self::assertFalse($authorization->allows($player, $alliance, PermissionKey::KingdomManage));
         }
 
         foreach ([
-            DefaultAllianceRole::Member,
             DefaultAllianceRole::Recruiter,
             DefaultAllianceRole::EventCoordinator,
             DefaultAllianceRole::ContentManager,
-        ] as $roleKey) {
+        ] as $index => $specialistRole) {
             $user = User::factory()->create();
-            $this->addMember($alliance->id, $user, $roleKey);
-            self::assertFalse($authorization->allows($user, $alliance, PermissionKey::KingdomManage));
+            $player = Player::query()->create([
+                'user_id' => $user->id,
+                'current_kingdom_id' => $kingdom->id,
+                'game_player_id' => 'specialist-3004-'.$index,
+                'current_name' => 'Specialist '.$specialistRole->value,
+            ]);
+            $membership = AllianceMembership::query()->create([
+                'alliance_id' => $alliance->id,
+                'player_id' => $player->id,
+                'status' => MembershipStatus::Active,
+                'rank' => AllianceRank::R1,
+                'joined_at' => now(),
+            ]);
+            $role = Role::query()
+                ->where('alliance_id', $alliance->id)
+                ->where('key', $specialistRole->value)
+                ->sole();
+            $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
+            self::assertFalse($authorization->allows($player, $alliance, PermissionKey::KingdomManage));
         }
     }
 
@@ -136,12 +227,25 @@ final class RosterTest extends TestCase
     {
         $firstOwner = User::factory()->create();
         $secondOwner = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 3005, 'status' => 'active']);
+        $firstOwnerPlayer = Player::query()->create([
+            'user_id' => $firstOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'first-owner-3005',
+            'current_name' => 'First Owner',
+        ]);
+        $secondOwnerPlayer = Player::query()->create([
+            'user_id' => $secondOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'second-owner-3005',
+            'current_name' => 'Second Owner',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $first = $createAlliance->handle($firstOwner, 'First Roster', 'first-roster', 3005);
-        $second = $createAlliance->handle($secondOwner, 'Second Roster', 'second-roster', 3005);
+        $first = $createAlliance->handle($firstOwnerPlayer, 'First Roster', 'first-roster');
+        $second = $createAlliance->handle($secondOwnerPlayer, 'Second Roster', 'second-roster');
 
         $this->actingAs($firstOwner)
-            ->withSession($this->confirmedSession($first->id))
+            ->withSession($this->confirmedSession($firstOwnerPlayer->id))
             ->post('/alliance/roster', [
                 'name' => 'Shared Player',
                 'game_player_id' => 'stable-3005',
@@ -150,7 +254,7 @@ final class RosterTest extends TestCase
             ])->assertRedirect();
 
         $this->actingAs($secondOwner)
-            ->withSession($this->confirmedSession($second->id))
+            ->withSession($this->confirmedSession($secondOwnerPlayer->id))
             ->post('/alliance/roster', [
                 'name' => 'Renamed Shared Player',
                 'game_player_id' => 'stable-3005',
@@ -158,11 +262,11 @@ final class RosterTest extends TestCase
                 'manager_notes' => 'Second alliance private note.',
             ])->assertRedirect();
 
-        self::assertSame(1, KingdomPlayer::query()->where('game_player_id', 'stable-3005')->count());
+        self::assertSame(1, Player::query()->where('game_player_id', 'stable-3005')->count());
         self::assertSame(2, AllianceRosterEntry::query()->count());
         $firstEntry = AllianceRosterEntry::query()->where('alliance_id', $first->id)->sole();
         $secondEntry = AllianceRosterEntry::query()->where('alliance_id', $second->id)->sole();
-        self::assertSame($firstEntry->kingdom_player_id, $secondEntry->kingdom_player_id);
+        self::assertSame($firstEntry->player_id, $secondEntry->player_id);
         self::assertSame('First alliance private note.', $firstEntry->manager_notes);
         self::assertSame('Second alliance private note.', $secondEntry->manager_notes);
         self::assertSame('Shared Player', $firstEntry->observed_name);
@@ -172,9 +276,15 @@ final class RosterTest extends TestCase
     public function test_duplicate_display_names_without_stable_ids_do_not_merge_player_identity(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'Duplicate Names', 'duplicate-names', 3006);
-        $session = $this->confirmedSession($alliance->id);
+        $kingdom = Kingdom::query()->create(['number' => 3006, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'owner-3006',
+            'current_name' => 'Duplicate Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Duplicate Names', 'duplicate-names');
+        $session = $this->confirmedSession($ownerPlayer->id);
 
         $this->actingAs($owner)->withSession($session)->post('/alliance/roster', [
             'name' => 'Same Name',
@@ -185,38 +295,66 @@ final class RosterTest extends TestCase
             'state' => 'tracked',
         ])->assertRedirect();
 
-        self::assertSame(2, KingdomPlayer::query()->where('current_name', 'Same Name')->count());
+        self::assertSame(2, Player::query()->where('current_name', 'Same Name')->count());
         self::assertSame(2, AllianceRosterEntry::query()->where('alliance_id', $alliance->id)->count());
     }
 
-    public function test_cross_alliance_membership_and_entry_ids_fail_closed(): void
+    public function test_foreign_membership_id_cannot_rebind_roster_identity_and_cross_alliance_entry_ids_fail_closed(): void
     {
         $firstOwner = User::factory()->create();
         $secondOwner = User::factory()->create();
         $secondMember = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 3007, 'status' => 'active']);
+        $firstOwnerPlayer = Player::query()->create([
+            'user_id' => $firstOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'first-owner-3007',
+            'current_name' => 'First Tenant Owner',
+        ]);
+        $secondOwnerPlayer = Player::query()->create([
+            'user_id' => $secondOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'second-owner-3007',
+            'current_name' => 'Second Tenant Owner',
+        ]);
+        $secondMemberPlayer = Player::query()->create([
+            'user_id' => $secondMember->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'second-member-3007',
+            'current_name' => 'Second Member',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $first = $createAlliance->handle($firstOwner, 'Tenant One', 'tenant-one', 3007);
-        $second = $createAlliance->handle($secondOwner, 'Tenant Two', 'tenant-two', 3007);
-        $secondMembership = $this->addMember($second->id, $secondMember);
+        $first = $createAlliance->handle($firstOwnerPlayer, 'Tenant One', 'tenant-one');
+        $second = $createAlliance->handle($secondOwnerPlayer, 'Tenant Two', 'tenant-two');
+        $secondMembership = AllianceMembership::query()->create([
+            'alliance_id' => $second->id,
+            'player_id' => $secondMemberPlayer->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
+            'joined_at' => now(),
+        ]);
 
         $this->actingAs($secondOwner)
-            ->withSession($this->confirmedSession($second->id))
+            ->withSession($this->confirmedSession($secondOwnerPlayer->id))
             ->post('/alliance/roster', [
                 'name' => 'Second Player',
+                'game_player_id' => 'second-roster-player-3007',
                 'state' => 'active',
             ])->assertRedirect();
-        $secondEntry = AllianceRosterEntry::query()->where('alliance_id', $second->id)->sole();
+        $secondEntry = AllianceRosterEntry::query()->where('alliance_id', $second->id)->where('observed_name', 'Second Player')->sole();
 
         $this->actingAs($firstOwner)
-            ->withSession($this->confirmedSession($first->id))
-            ->from('/alliance/roster/manage')
+            ->withSession($this->confirmedSession($firstOwnerPlayer->id))
             ->post('/alliance/roster', [
-                'name' => 'Bad Link',
+                'name' => 'Foreign Link Ignored',
+                'game_player_id' => 'first-roster-player-3007',
                 'membership_id' => $secondMembership->id,
                 'state' => 'active',
-            ])
-            ->assertRedirect('/alliance/roster/manage')
-            ->assertSessionHasErrors('membership_id');
+            ])->assertRedirect();
+
+        $firstEntry = AllianceRosterEntry::query()->where('alliance_id', $first->id)->sole();
+        self::assertNotSame($secondMemberPlayer->id, $firstEntry->player_id);
+        self::assertSame('first-roster-player-3007', $firstEntry->player->game_player_id);
 
         $this->patch('/alliance/roster/'.$secondEntry->id, [
             'name' => 'Cross Tenant Edit',
@@ -224,23 +362,39 @@ final class RosterTest extends TestCase
         ])->assertNotFound();
     }
 
-    public function test_mark_left_retains_identity_and_membership_link(): void
+    public function test_mark_left_retains_player_identity_while_membership_remains_independent(): void
     {
         $owner = User::factory()->create();
         $member = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'History Alliance', 'history-alliance', 3008);
-        $membership = $this->addMember($alliance->id, $member);
-        $session = $this->confirmedSession($alliance->id);
+        $kingdom = Kingdom::query()->create(['number' => 3008, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'owner-3008',
+            'current_name' => 'History Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $member->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'leaving-3008',
+            'current_name' => 'Leaving Player',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'History Alliance', 'history-alliance');
+        $membership = AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $memberPlayer->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
+            'joined_at' => now(),
+        ]);
+        $session = $this->confirmedSession($ownerPlayer->id);
 
         $this->actingAs($owner)->withSession($session)->post('/alliance/roster', [
             'name' => 'Leaving Player',
             'game_player_id' => 'leaving-3008',
-            'membership_id' => $membership->id,
             'state' => 'active',
         ])->assertRedirect();
         $entry = AllianceRosterEntry::query()->sole();
-        $playerId = $entry->kingdom_player_id;
 
         $this->withSession($session)
             ->post('/alliance/roster/'.$entry->id.'/leave')
@@ -248,41 +402,23 @@ final class RosterTest extends TestCase
 
         $entry->refresh();
         self::assertSame('left', $entry->state->value);
-        self::assertSame($playerId, $entry->kingdom_player_id);
-        self::assertSame($membership->id, $entry->membership_id);
+        self::assertSame($memberPlayer->id, $entry->player_id);
         self::assertNotNull($entry->left_at);
-        $this->assertDatabaseHas('kingdom_players', ['id' => $playerId]);
+        self::assertSame(MembershipStatus::Active, $membership->refresh()->status);
+        self::assertSame($memberPlayer->id, $membership->player_id);
+        $this->assertDatabaseHas('players', ['id' => $memberPlayer->id]);
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,
+            'actor_player_id' => $ownerPlayer->id,
             'event' => 'kingdoms.roster_entry_left',
         ]);
     }
 
-    private function addMember(
-        string $allianceId,
-        User $user,
-        DefaultAllianceRole $roleKey = DefaultAllianceRole::Member,
-    ): AllianceMembership {
-        $membership = AllianceMembership::query()->create([
-            'alliance_id' => $allianceId,
-            'user_id' => $user->id,
-            'status' => MembershipStatus::Active,
-            'joined_at' => now(),
-        ]);
-        $role = Role::query()
-            ->where('alliance_id', $allianceId)
-            ->where('key', $roleKey->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $allianceId]);
-
-        return $membership;
-    }
-
     /** @return array<string, int|string> */
-    private function confirmedSession(string $allianceId): array
+    private function confirmedSession(string $playerId): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            (string) config('identity.active_player_session_key') => $playerId,
             'auth.password_confirmed_at' => time(),
         ];
     }

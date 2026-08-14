@@ -6,10 +6,6 @@ namespace App\Domain\Authorization\Enums;
 
 enum DefaultAllianceRole: string
 {
-    case Owner = 'owner';
-    case Leader = 'leader';
-    case Officer = 'officer';
-    case Member = 'member';
     case Recruiter = 'recruiter';
     case EventCoordinator = 'event_coordinator';
     case ContentManager = 'content_manager';
@@ -17,10 +13,6 @@ enum DefaultAllianceRole: string
     public function name(): string
     {
         return match ($this) {
-            self::Owner => 'Owner',
-            self::Leader => 'Leader',
-            self::Officer => 'Officer',
-            self::Member => 'Member',
             self::Recruiter => 'Recruiter',
             self::EventCoordinator => 'Event Coordinator',
             self::ContentManager => 'Content Manager',
@@ -31,37 +23,15 @@ enum DefaultAllianceRole: string
     public function permissions(): array
     {
         return match ($this) {
-            self::Owner => PermissionKey::cases(),
-            self::Leader => [
-                PermissionKey::AllianceView,
-                PermissionKey::AllianceManage,
-                PermissionKey::MembershipManage,
-                PermissionKey::InvitationManage,
-                PermissionKey::ContentManage,
-                PermissionKey::EventManage,
-                PermissionKey::RecruitmentManage,
-                PermissionKey::ContributionManage,
-                PermissionKey::KingdomManage,
-            ],
-            self::Officer => [
-                PermissionKey::AllianceView,
-                PermissionKey::MembershipManage,
-                PermissionKey::InvitationManage,
-                PermissionKey::EventManage,
-                PermissionKey::KingdomManage,
-            ],
-            self::Member => [PermissionKey::AllianceView],
             self::Recruiter => [
-                PermissionKey::AllianceView,
                 PermissionKey::InvitationManage,
                 PermissionKey::RecruitmentManage,
             ],
             self::EventCoordinator => [
-                PermissionKey::AllianceView,
-                PermissionKey::EventManage,
+                PermissionKey::EventAllianceCreate,
+                PermissionKey::EventAllianceManage,
             ],
             self::ContentManager => [
-                PermissionKey::AllianceView,
                 PermissionKey::ContentManage,
             ],
         };

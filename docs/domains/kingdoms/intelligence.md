@@ -113,7 +113,7 @@ Individual comparison detail requires `kingdoms.manage`.
 
 Member response excludes individual comparison rows, manager notes, membership emails/IDs, snapshot actor identity, and import-management metadata.
 
-Every source query begins with active `alliance_id`; a shared Kingdom/KingdomPlayer never authorizes aggregation across tenants.
+Every source query begins with active `alliance_id`; a shared Kingdom/Player never authorizes aggregation across tenants.
 
 ## 7. Persistence and query semantics
 

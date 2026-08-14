@@ -22,7 +22,7 @@ type Group = {
   destinationKingdom: string | null;
   state: 'active' | 'archived';
   coordinator: { name: string } | null;
-  coordinatorMembershipId: string | null;
+  coordinatorPlayerId: string | null;
   managerNotes: string | null;
 };
 
@@ -42,7 +42,7 @@ type Participant = {
   transferGroupId: string | null;
   sourceKingdom: string | null;
   destinationKingdom: string | null;
-  membership: { id: string; name: string; email: string } | null;
+  player: { id: string; name: string };
   group: ParticipantGroup | null;
   managerNotes: string | null;
   withdrawnAt: string | null;
@@ -52,13 +52,12 @@ type RosterOption = {
   id: string;
   name: string;
   gamePlayerId: string | null;
-  membershipId: string | null;
+  playerId: string;
 };
 
-type MembershipOption = {
+type PlayerOption = {
   id: string;
   name: string;
-  email: string;
 };
 
 const props = defineProps<{
@@ -69,7 +68,7 @@ const props = defineProps<{
   groups: Group[];
   participants: Participant[];
   rosterOptions: RosterOption[];
-  memberships: MembershipOption[];
+  players: PlayerOption[];
 }>();
 
 const { t, formatDate } = useLocale();
@@ -80,7 +79,7 @@ const groupForm = useForm({
   name: '',
   direction: 'incoming' as 'incoming' | 'outgoing',
   destination_kingdom: '',
-  coordinator_membership_id: '',
+  coordinator_player_id: '',
   manager_notes: '',
 });
 const participantForm = useForm({
@@ -88,7 +87,7 @@ const participantForm = useForm({
   roster_entry_id: '',
   name: '',
   game_player_id: '',
-  membership_id: '',
+
   source_kingdom: '',
   destination_kingdom: '',
   manager_notes: '',
@@ -108,7 +107,7 @@ const groupDrafts = reactive(
         name: group.name,
         direction: group.direction,
         destination_kingdom: group.destinationKingdom ?? '',
-        coordinator_membership_id: group.coordinatorMembershipId ?? '',
+        coordinator_player_id: group.coordinatorPlayerId ?? '',
         manager_notes: group.managerNotes ?? '',
       },
     ]),
@@ -118,7 +117,7 @@ const groupDrafts = reactive(
       name: string;
       direction: 'incoming' | 'outgoing';
       destination_kingdom: string;
-      coordinator_membership_id: string;
+      coordinator_player_id: string;
       manager_notes: string;
     }
   >,
@@ -139,7 +138,7 @@ const drafts = reactive(
         roster_entry_id: participant.rosterEntryId ?? '',
         name: participant.name,
         game_player_id: participant.gamePlayerId ?? '',
-        membership_id: participant.membership?.id ?? '',
+
         source_kingdom: participant.sourceKingdom ?? '',
         destination_kingdom: participant.destinationKingdom ?? '',
         manager_notes: participant.managerNotes ?? '',
@@ -152,7 +151,7 @@ const drafts = reactive(
       roster_entry_id: string;
       name: string;
       game_player_id: string;
-      membership_id: string;
+
       source_kingdom: string;
       destination_kingdom: string;
       manager_notes: string;
@@ -294,7 +293,7 @@ const labelClass =
 <template>
   <Head :title="`${t('kingdomP7D.manageTitle')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-5">
       <div class="max-w-3xl">
         <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
@@ -526,12 +525,12 @@ const labelClass =
             }}</label
             ><select
               id="group-coordinator"
-              v-model="groupForm.coordinator_membership_id"
+              v-model="groupForm.coordinator_player_id"
               :class="inputClass"
             >
               <option value="">{{ t('kingdomP7D.unassigned') }}</option>
-              <option v-for="membership in memberships" :key="membership.id" :value="membership.id">
-                {{ membership.name }} · {{ membership.email }}
+              <option v-for="player in players" :key="player.id" :value="player.id">
+                {{ player.name }}
               </option>
             </select>
           </div>
@@ -631,17 +630,13 @@ const labelClass =
                   }}</label
                   ><select
                     :id="`group-coordinator-${group.id}`"
-                    v-model="groupDrafts[group.id].coordinator_membership_id"
+                    v-model="groupDrafts[group.id].coordinator_player_id"
                     :class="inputClass"
                     :disabled="group.state !== 'active'"
                   >
                     <option value="">{{ t('kingdomP7D.unassigned') }}</option>
-                    <option
-                      v-for="membership in memberships"
-                      :key="membership.id"
-                      :value="membership.id"
-                    >
-                      {{ membership.name }}
+                    <option v-for="player in players" :key="player.id" :value="player.id">
+                      {{ player.name }}
                     </option>
                   </select>
                 </td>
@@ -780,25 +775,7 @@ const labelClass =
                 type="text"
               />
             </div>
-            <div>
-              <label :class="labelClass" for="participant-membership">{{
-                t('kingdomP7D.allianceMembership')
-              }}</label
-              ><select
-                id="participant-membership"
-                v-model="participantForm.membership_id"
-                :class="inputClass"
-              >
-                <option value="">{{ t('kingdomP7D.noMembership') }}</option>
-                <option
-                  v-for="membership in memberships"
-                  :key="membership.id"
-                  :value="membership.id"
-                >
-                  {{ membership.name }}
-                </option>
-              </select>
-            </div></template
+            </template
           >
           <div class="md:col-span-2">
             <label :class="labelClass" for="participant-notes">{{
@@ -843,7 +820,7 @@ const labelClass =
               <tr>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.player') }}</th>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.directionDestination') }}</th>
-                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.membership') }}</th>
+                <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.player') }}</th>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.groupAssignment') }}</th>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.managerNotes') }}</th>
                 <th class="px-3 py-3" scope="col">{{ t('kingdomP7D.actions') }}</th>
@@ -929,30 +906,12 @@ const labelClass =
                   /></template>
                 </td>
                 <td class="px-3 py-4">
-                  <template v-if="participant.rosterEntryId"
-                    ><p class="text-sm text-[var(--ks-text-secondary)]">
-                      {{ t('kingdomP7D.rosterEntry') }} · {{ participant.name }}
-                    </p></template
-                  ><template v-else
-                    ><label class="sr-only" :for="`membership-${participant.id}`">{{
-                      t('kingdomP7D.allianceMembership')
-                    }}</label
-                    ><select
-                      :id="`membership-${participant.id}`"
-                      v-model="drafts[participant.id].membership_id"
-                      :class="inputClass"
-                      :disabled="participant.withdrawnAt !== null"
-                    >
-                      <option value="">{{ t('kingdomP7D.noMembership') }}</option>
-                      <option
-                        v-for="membership in memberships"
-                        :key="membership.id"
-                        :value="membership.id"
-                      >
-                        {{ membership.name }}
-                      </option>
-                    </select></template
-                  >
+                  <p class="text-sm font-medium text-[var(--ks-text)]">
+                    {{ participant.player.name }}
+                  </p>
+                  <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
+                    {{ participant.rosterEntryId ? t('kingdomP7D.rosterEntry') : t('kingdomP7D.player') }}
+                  </p>
                 </td>
                 <td class="px-3 py-4">
                   <template v-if="participant.direction === 'staying'"

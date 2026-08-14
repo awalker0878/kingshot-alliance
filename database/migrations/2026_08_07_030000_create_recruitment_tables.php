@@ -22,8 +22,8 @@ return new class extends Migration
             $table->text('introduction')->nullable();
             $table->unsignedSmallInteger('retention_unsuccessful_days')->default(90);
             $table->boolean('is_open')->default(true)->index();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('updated_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
+            $table->foreignUlid('updated_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
@@ -40,8 +40,8 @@ return new class extends Migration
             $table->boolean('is_required')->default(false);
             $table->unsignedSmallInteger('position')->default(0);
             $table->boolean('is_active')->default(true)->index();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('updated_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
+            $table->foreignUlid('updated_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
@@ -56,7 +56,7 @@ return new class extends Migration
             $table->char('token_hash', 64)->unique();
             $table->timestamp('expires_at')->index();
             $table->timestamp('used_at')->nullable();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
@@ -68,6 +68,7 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->ulid('alliance_id');
             $table->foreignId('applicant_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->ulid('application_invite_id')->nullable();
             $table->ulid('membership_invitation_id')->nullable();
             $table->ulid('merged_into_id')->nullable();
@@ -84,8 +85,7 @@ return new class extends Migration
             $table->timestamp('withdrawn_at')->nullable();
             $table->timestamp('joined_at')->nullable();
             $table->timestamp('retention_due_at')->nullable()->index();
-            $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('updated_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
@@ -137,8 +137,8 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->ulid('alliance_id');
             $table->ulid('candidate_id');
-            $table->ulid('membership_id');
-            $table->foreignId('assigned_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('reviewer_player_id')->constrained('players')->restrictOnDelete();
+            $table->foreignUlid('assigned_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
@@ -146,19 +146,15 @@ return new class extends Migration
                 ->references(['id', 'alliance_id'])
                 ->on('recruitment_candidates')
                 ->cascadeOnDelete();
-            $table->foreign(['membership_id', 'alliance_id'])
-                ->references(['id', 'alliance_id'])
-                ->on('alliance_memberships')
-                ->cascadeOnDelete();
-            $table->unique(['candidate_id', 'membership_id']);
-            $table->index(['alliance_id', 'membership_id']);
+            $table->unique(['candidate_id', 'reviewer_player_id']);
+            $table->index(['alliance_id', 'reviewer_player_id']);
         });
 
         Schema::create('recruitment_notes', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->ulid('alliance_id');
             $table->ulid('candidate_id');
-            $table->ulid('author_membership_id');
+            $table->foreignUlid('author_player_id')->constrained('players')->restrictOnDelete();
             $table->text('body');
             $table->timestamps();
 
@@ -167,10 +163,6 @@ return new class extends Migration
                 ->references(['id', 'alliance_id'])
                 ->on('recruitment_candidates')
                 ->cascadeOnDelete();
-            $table->foreign(['author_membership_id', 'alliance_id'])
-                ->references(['id', 'alliance_id'])
-                ->on('alliance_memberships')
-                ->restrictOnDelete();
             $table->index(['alliance_id', 'candidate_id', 'created_at']);
         });
 
@@ -211,7 +203,7 @@ return new class extends Migration
             $table->string('from_stage', 24)->nullable();
             $table->string('to_stage', 24);
             $table->text('reason')->nullable();
-            $table->foreignId('changed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('changed_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamp('changed_at')->index();
             $table->timestamps();
 
@@ -231,8 +223,8 @@ return new class extends Migration
             $table->string('subject', 200);
             $table->text('body');
             $table->boolean('is_active')->default(true)->index();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('updated_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
+            $table->foreignUlid('updated_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
@@ -250,7 +242,7 @@ return new class extends Migration
             $table->text('body');
             $table->string('status', 24)->default('prepared')->index();
             $table->char('idempotency_key', 64)->unique();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamp('sent_at')->nullable();
             $table->text('last_error')->nullable();
             $table->timestamps();
@@ -276,8 +268,8 @@ return new class extends Migration
             $table->unsignedSmallInteger('position')->default(0);
             $table->boolean('is_required')->default(true);
             $table->boolean('is_active')->default(true)->index();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('updated_by_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
+            $table->foreignUlid('updated_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
@@ -292,7 +284,7 @@ return new class extends Migration
             $table->ulid('onboarding_item_id');
             $table->string('status', 24)->default('pending')->index();
             $table->timestamp('completed_at')->nullable();
-            $table->foreignId('completed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('completed_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
 
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();

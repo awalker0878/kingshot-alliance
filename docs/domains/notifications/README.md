@@ -5,7 +5,7 @@
 **Document type:** Living domain contract  
 **Status:** Current  
 **Code owner:** `app/Domain/Notifications`  
-**Primary authorization boundary:** source-domain authorization/eligibility; tenant/member identity remains explicit in persisted coordination state
+**Primary authorization boundary:** source-domain authorization/eligibility; tenant/Player identity remains explicit in persisted coordination state
 
 ## 1. Purpose and ownership
 
@@ -15,7 +15,7 @@ The current runtime has two independent capabilities: Event reminder delivery co
 
 ## 2. Scope
 
-In scope: durable Event reminder state, scheduler materialization/queueing/catch-up, scheduled Contribution report due-time coordination, deterministic request identity, and shared outbox interaction.
+In scope: durable Event reminder state, scheduler audience resolution/queueing/catch-up, scheduled Contribution report due-time coordination, deterministic request identity, and shared outbox interaction.
 
 Out of scope: Events/Contributions source-state ownership, generic messaging providers, and webhook transport.
 
@@ -23,21 +23,21 @@ Out of scope: Events/Contributions source-state ownership, generic messaging pro
 
 The domain intentionally separates:
 
-- [Event reminders](event-reminders.md) — reminder rules/deliveries and `pending`/`queued`/`sent`/`cancelled` lifecycle.
+- [Event reminders](event-reminders.md) — reminder rules/deliveries and `pending`/`queued`/`sent`/`failed`/`skipped` lifecycle.
 - [Scheduled Contribution report coordination](scheduled-report-coordination.md) — deterministic due schedule occurrence and durable report request.
 
 ## 4. Core invariants
 
 1. Source feature domains remain authoritative for the facts/configuration that trigger notification work.
 2. Scheduler execution is at-least-once and safe to rerun.
-3. Persisted coordination state carries explicit Alliance/member/source identity.
+3. Persisted coordination state carries explicit Event scope/Player/source identity.
 4. Deterministic identities prevent routine duplicate logical work.
 5. Shared outbox publication is at-least-once; downstream handling remains idempotent.
 6. Notifications is not generic external message transport.
 
 ## 5. Lifecycles and workflows
 
-Event reminder materialization/due queueing/publication completion is defined in [event-reminders.md](event-reminders.md).
+Event reminder audience resolution/due queueing/publication completion is defined in [event-reminders.md](event-reminders.md).
 
 Contribution report schedule due-time selection/request identity/next-due advancement is defined in [scheduled-report-coordination.md](scheduled-report-coordination.md).
 
@@ -45,11 +45,11 @@ Both are designed for safe catch-up after scheduler/outbox interruption.
 
 ## 6. Authorization and tenancy
 
-Source domains decide who may configure Event reminders or report schedules. Notifications coordinates persisted authorized state and keeps tenant/member identity explicit. Member-facing reminder reads resolve under active Alliance/membership context.
+Source domains decide who may configure Event reminders or report schedules. Notifications coordinates persisted authorized state and keeps tenant/Player identity explicit. Member-facing reminder reads resolve under authenticated User and Player ownership context.
 
 ## 7. Cross-domain contracts
 
-Consumes Events occurrence/registration/reminder context, Contributions report schedule/version/run semantics, Platform transactional outbox/scheduler infrastructure, and Alliances/Memberships identity.
+Consumes Events occurrence/participation facts, Kingdoms Player ownership/current context, Contributions report schedule/version/run semantics, and Platform transactional outbox/scheduler infrastructure.
 
 Exposes durable reminder status to Events and scheduled report-request coordination to Contributions.
 
@@ -75,7 +75,7 @@ Both capabilities use deterministic identities and concurrency-safe due claiming
 
 ## 13. Security and privacy
 
-Payloads/logs contain only information needed for downstream coordination; unrelated private candidate/member data and secrets are excluded. Tenant identity is never inferred from hidden global process state.
+Payloads/logs contain only information needed for downstream coordination; unrelated private candidate/Player data and secrets are excluded. Event scope identity is never inferred from hidden global process state.
 
 ## 14. Observability and operations
 

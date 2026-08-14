@@ -12,9 +12,13 @@ use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Queries\ContentQuery;
 use App\Domain\Content\Services\ContentPresenter;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Queries\AllianceEventQuery;
+use App\Domain\Events\Queries\EventCalendarQuery;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Enums\RosterState;
+use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\InvitationStatus;
+use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Memberships\Models\Invitation;
 use App\Domain\Platform\Http\Controllers\Controller;
@@ -31,120 +35,130 @@ final class AllianceOverviewController extends Controller
         AllianceAuthorization $authorization,
         ContentQuery $contentQuery,
         ContentPresenter $contentPresenter,
-        AllianceEventQuery $eventQuery,
+        EventCalendarQuery $eventQuery,
     ): Response {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
+        $actor = $context->player();
         $alliance = $context->alliance()->load('kingdom');
         $membership = $context->membership()->loadMissing('roles:id,alliance_id,key,name');
-        $canManageInvitations = $authorization->allows($user, $alliance, PermissionKey::InvitationManage);
-        $canManageMembers = $authorization->allows($user, $alliance, PermissionKey::MembershipManage);
-        $canManageRoles = $authorization->allows($user, $alliance, PermissionKey::RoleManage);
-        $canManageContent = $authorization->allows($user, $alliance, PermissionKey::ContentManage);
-        $canManageEvents = $authorization->allows($user, $alliance, PermissionKey::EventManage);
-        $canManageRecruitment = $authorization->allows($user, $alliance, PermissionKey::RecruitmentManage);
-        $canManageIntegrations = $authorization->allows($user, $alliance, PermissionKey::AllianceManage);
+        $canManageInvitations = $authorization->allows($actor, $alliance, PermissionKey::InvitationManage);
+        $canManageMembers = $authorization->allows($actor, $alliance, PermissionKey::MembershipManage);
+        $canManageRoles = $authorization->allows($actor, $alliance, PermissionKey::RoleManage);
+        $canManageContent = $authorization->allows($actor, $alliance, PermissionKey::ContentManage);
+        $canManageEvents = $authorization->allows($actor, $alliance, PermissionKey::EventAllianceManage);
+        $canManageRecruitment = $authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage);
+        $canManageIntegrations = $authorization->allows($actor, $alliance, PermissionKey::AllianceManage);
 
-        /** @var list<array{key: string, name: string}> $roles */
-        $roles = [];
-
-        foreach ($membership->roles as $role) {
-            if (! $role instanceof Role) {
-                throw new LogicException('A membership role relation returned an unexpected model.');
-            }
-
-            $roles[] = [
+        $roles = $membership->roles->map(static function (Role $role): array {
+            return [
                 'key' => (string) $role->key,
                 'name' => (string) $role->name,
             ];
-        }
+        })->values()->all();
 
-        /** @var list<array{id: string, email: string, status: string, expiresAt: string|null, createdAt: string|null}> $invitations */
         $invitations = [];
+        $invitationCandidates = [];
 
         if ($canManageInvitations) {
-            foreach (Invitation::query()
+            $invitations = Invitation::query()
                 ->where('alliance_id', $alliance->id)
+                ->with('player:id,current_name,game_player_id')
                 ->latest('created_at')
                 ->limit(50)
-                ->get() as $invitation) {
-                $status = $invitation->status;
+                ->get()
+                ->map(static function (Invitation $invitation): array {
+                    $status = $invitation->status;
+                    if ($status === InvitationStatus::Pending && $invitation->expires_at?->isPast()) {
+                        $status = InvitationStatus::Expired;
+                    }
 
-                if ($status === InvitationStatus::Pending && $invitation->expires_at?->isPast()) {
-                    $status = InvitationStatus::Expired;
-                }
+                    return [
+                        'id' => (string) $invitation->id,
+                        'player' => [
+                            'id' => (string) $invitation->player_id,
+                            'name' => (string) $invitation->player->current_name,
+                            'gamePlayerId' => $invitation->player->game_player_id,
+                        ],
+                        'email' => (string) $invitation->email,
+                        'status' => $status->value,
+                        'expiresAt' => $invitation->expires_at?->toIso8601String(),
+                        'createdAt' => $invitation->created_at?->toIso8601String(),
+                    ];
+                })
+                ->values()
+                ->all();
 
-                $invitations[] = [
-                    'id' => (string) $invitation->id,
-                    'email' => (string) $invitation->email,
-                    'status' => $status->value,
-                    'expiresAt' => $invitation->expires_at?->toIso8601String(),
-                    'createdAt' => $invitation->created_at?->toIso8601String(),
-                ];
-            }
+            $activeMemberPlayerIds = AllianceMembership::query()
+                ->where('alliance_id', $alliance->id)
+                ->where('status', MembershipStatus::Active->value)
+                ->pluck('player_id');
+
+            $invitationCandidates = AllianceRosterEntry::query()
+                ->where('alliance_id', $alliance->id)
+                ->where('state', RosterState::Active->value)
+                ->whereNotIn('player_id', $activeMemberPlayerIds)
+                ->with('player:id,current_name,game_player_id,user_id')
+                ->orderBy('observed_name')
+                ->get()
+                ->map(static fn (AllianceRosterEntry $entry): array => [
+                    'id' => (string) $entry->player_id,
+                    'name' => (string) $entry->player->current_name,
+                    'gamePlayerId' => $entry->player->game_player_id,
+                    'claimed' => $entry->player->user_id !== null,
+                ])
+                ->values()
+                ->all();
         }
 
-        /** @var list<array{id: string, user: array{id: int, name: string, email: string}, status: string, roles: list<array{id: string, key: string, name: string}>}> $members */
         $members = [];
-
         if ($canManageMembers || $canManageRoles) {
-            foreach (AllianceMembership::query()
+            $members = AllianceMembership::query()
                 ->where('alliance_id', $alliance->id)
                 ->with([
-                    'user:id,name,email',
+                    'player:id,current_name,game_player_id,user_id',
                     'roles:id,alliance_id,key,name',
                 ])
                 ->orderBy('created_at')
-                ->get() as $member) {
-                $memberUser = $member->user;
-
-                if (! $memberUser instanceof User) {
-                    throw new LogicException('An alliance membership must reference a user.');
-                }
-
-                /** @var list<array{id: string, key: string, name: string}> $memberRoles */
-                $memberRoles = [];
-
-                foreach ($member->roles as $role) {
-                    if (! $role instanceof Role) {
-                        throw new LogicException('A membership role relation returned an unexpected model.');
-                    }
-
-                    $memberRoles[] = [
+                ->get()
+                ->map(static function (AllianceMembership $member): array {
+                    $memberRoles = $member->roles->map(static fn (Role $role): array => [
                         'id' => (string) $role->id,
                         'key' => (string) $role->key,
                         'name' => (string) $role->name,
-                    ];
-                }
+                    ])->values()->all();
 
-                $members[] = [
-                    'id' => (string) $member->id,
-                    'user' => [
-                        'id' => (int) $memberUser->id,
-                        'name' => (string) $memberUser->name,
-                        'email' => (string) $memberUser->email,
-                    ],
-                    'status' => $member->status->value,
-                    'roles' => $memberRoles,
-                ];
-            }
+                    return [
+                        'id' => (string) $member->id,
+                        'player' => [
+                            'id' => (string) $member->player_id,
+                            'name' => (string) $member->player->current_name,
+                            'gamePlayerId' => $member->player->game_player_id,
+                            'claimed' => $member->player->user_id !== null,
+                        ],
+                        'status' => $member->status->value,
+                        'rank' => $member->rank->value,
+                        'roles' => $memberRoles,
+                    ];
+                })
+                ->values()
+                ->all();
         }
 
-        /** @var list<array{id: string, key: string, name: string}> $roleCatalog */
         $roleCatalog = [];
-
         if ($canManageRoles) {
-            foreach (Role::query()
+            $roleCatalog = Role::query()
                 ->where('alliance_id', $alliance->id)
                 ->orderBy('name')
-                ->get() as $role) {
-                $roleCatalog[] = [
+                ->get()
+                ->map(static fn (Role $role): array => [
                     'id' => (string) $role->id,
                     'key' => (string) $role->key,
                     'name' => (string) $role->name,
-                ];
-            }
+                ])
+                ->values()
+                ->all();
         }
 
         $notices = $contentQuery
@@ -154,14 +168,11 @@ final class AllianceOverviewController extends Controller
             ->values()
             ->all();
 
-        /** @var list<array{id: string, title: string, startsAt: string, allianceTimezone: string}> $upcomingActivities */
         $upcomingActivities = [];
-
-        foreach ($eventQuery->calendar($alliance, pastDays: 0, futureDays: 30)->take(5) as $occurrence) {
+        foreach ($eventQuery->forAlliance($actor, $alliance, pastDays: 0, futureDays: 30)->take(5) as $occurrence) {
             $event = $occurrence->event;
-
             if (! $event instanceof Event) {
-                throw new LogicException('An event occurrence must reference an event.');
+                throw new LogicException('An Event occurrence must reference an Event.');
             }
 
             $upcomingActivities[] = [
@@ -188,6 +199,7 @@ final class AllianceOverviewController extends Controller
             ],
             'membership' => [
                 'id' => $membership->id,
+                'rank' => $membership->rank->value,
                 'roles' => $roles,
             ],
             'contentHub' => [
@@ -200,15 +212,22 @@ final class AllianceOverviewController extends Controller
             ],
             'invitationManagement' => [
                 'allowed' => $canManageInvitations,
+                'candidates' => $invitationCandidates,
                 'invitations' => $invitations,
                 'issuedLink' => $request->session()->get('invitationLink'),
             ],
             'membershipManagement' => [
                 'allowed' => $canManageMembers,
                 'rolesAllowed' => $canManageRoles,
+                'rankAllowed' => $canManageRoles,
+                'leadershipTransferAllowed' => $membership->rank === AllianceRank::R5,
+                'rankOptions' => array_map(
+                    static fn (AllianceRank $rank): string => $rank->value,
+                    [AllianceRank::R1, AllianceRank::R2, AllianceRank::R3, AllianceRank::R4],
+                ),
                 'members' => $members,
                 'roleCatalog' => $roleCatalog,
-                'currentUserId' => $user->id,
+                'currentPlayerId' => (string) $actor->id,
             ],
         ]);
     }

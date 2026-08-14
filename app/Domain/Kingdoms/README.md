@@ -36,7 +36,7 @@ Source observations remain source-owned; K5 creates no recipient canonical track
 
 - `Alliances` — active tenant/current Kingdom, K5 source/recipient identities, and the supported Kingdom-change lifecycle that terminalizes affected K5 agreements.
 - `Memberships` — optional existing roster/coordinator references only.
-- `Authorization` — `alliance.view`, `alliance.manage`, and `kingdoms.manage`.
+- `Authorization` — `alliance.view`, `alliance.manage`, and `kingdoms.manage` for Alliance-owned workflows; EVENTS-002 consumes the same `Kingdom` identity through separate exact-Kingdom role assignments.
 - `Identity` — human actor identity and recent-password assurance.
 - `Audit` — attributable/safe consent/grant evidence; counterpart records avoid cross-tenant manager identity disclosure where appropriate.
 - `Platform` — transactional outbox, encryption and shared runtime infrastructure.

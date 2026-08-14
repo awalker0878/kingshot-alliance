@@ -13,7 +13,7 @@
 
 Alliances testing must prove that active tenant context is explicit and fail-closed, that Alliance creation/activation cannot fabricate access, and that feature domains receive the same resolved tenant identity rather than trusting caller-selected IDs.
 
-Material claims include active membership as a prerequisite to active context, stale/suspended membership invalidating context, tenant snapshot consistency, and the internal-only boundary for `alliance.kingdom_updated`.
+Material claims include active Player membership as a prerequisite to active context, stale/suspended membership invalidating context, tenant snapshot consistency, and Alliance Kingdom being derived rather than independently mutable.
 
 ## 2. Executable suite mapping
 
@@ -43,7 +43,7 @@ Interface ownership and the internal-only Kingdom event boundary are documented 
 
 Alliance lifecycle mutations rely on owning transactional actions. Material outbox evidence is tested through the shared Platform integration path; outbox retries must not replay the originating Alliance mutation.
 
-`alliance.kingdom_updated` may be published internally but Integrations regression evidence must keep it externally ineligible.
+Alliance Kingdom has no standalone mutation event; Integrations regression evidence keeps all `kingdoms.*` event families externally ineligible.
 
 ## 7. Persistence, migration, rollback and recovery evidence
 

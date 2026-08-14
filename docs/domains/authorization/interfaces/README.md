@@ -11,7 +11,7 @@
 
 ## 1. Boundary purpose and ownership
 
-Authorization owns Alliance role/permission vocabulary, effective-role hierarchy, permission evaluation, and supported role-assignment/removal actions. Its principal P4 boundary is internal even though Memberships exposes first-party HTTP routes that adapt role-management requests into Authorization-owned actions.
+Authorization owns Alliance role/permission vocabulary, R1–R5 rank hierarchy, permission evaluation, and supported role-assignment/removal actions. Its principal P4 boundary is internal even though Memberships exposes first-party HTTP routes that adapt role-management requests into Authorization-owned actions.
 
 Authorization determines **may this authenticated member perform this Alliance operation?** It does not authenticate the User or establish active tenant context.
 
@@ -30,7 +30,7 @@ There is no direct public/external Authorization API and no caller-supplied perm
 
 Feature domains call Authorization only after Identity/Alliances/Memberships establish an authenticated active-Alliance context. Permission evaluation is always Alliance scoped.
 
-Membership role mutations additionally enforce management permission, effective hierarchy, target tenancy, and last-Owner/safety rules coordinated with Memberships. A role identifier from another tenant is never authority to cross tenant boundaries.
+Membership role mutations additionally enforce management permission, effective hierarchy, target tenancy, and R5 leadership/safety rules coordinated with Memberships. A role identifier from another tenant is never authority to cross tenant boundaries.
 
 ## 4. Input and validation contracts
 
@@ -75,7 +75,7 @@ Operational integrity and recovery are documented in [Authorization operations](
 
 ## 10. Failure, idempotency, versioning and compatibility
 
-Missing permission, wrong tenant, hierarchy violations, invalid target role/membership, or last-Owner risk fail closed. Callers must not retry by bypassing supported actions with direct persistence edits.
+Missing permission, wrong tenant, hierarchy violations, invalid target role/membership, or R5 leadership risk fail closed. Callers must not retry by bypassing supported actions with direct persistence edits.
 
 Permission-key names and role semantics are internal cross-domain compatibility contracts. Changes require synchronized domain docs/tests/callers.
 

@@ -19,9 +19,9 @@ return new class extends Migration
             $table->string('direction', 24)->index();
             $table->foreignUlid('destination_kingdom_id')->nullable()->constrained('kingdoms')->restrictOnDelete();
             $table->string('state', 24)->default('active')->index();
-            $table->foreignUlid('coordinator_membership_id')
+            $table->foreignUlid('coordinator_player_id')
                 ->nullable()
-                ->constrained('alliance_memberships')
+                ->constrained('players')
                 ->nullOnDelete();
             $table->text('manager_notes')->nullable();
             $table->timestamps();

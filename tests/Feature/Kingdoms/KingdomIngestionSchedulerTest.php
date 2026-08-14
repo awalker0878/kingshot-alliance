@@ -25,6 +25,8 @@ use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\PlayerSnapshot;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -88,14 +90,15 @@ final class KingdomIngestionSchedulerTest extends TestCase
     public function test_scheduled_page_promotes_both_accepted_targets_and_exact_window_replay_is_idempotent(): void
     {
         [$owner, $alliance] = $this->alliance(6802, 'k4-p4-run');
+        $player = $owner->players()->sole();
         $entry = $this->app->make(SaveRosterEntry::class)->handle(
             $alliance,
-            $owner,
+            $player,
             ['name' => 'Scheduled Player', 'game_player_id' => 'player-6802'],
         );
         $tracking = $this->app->make(StartTrackingKingdomAlliance::class)->handle(
             $alliance,
-            $owner,
+            $player,
             [
                 'current_name' => 'Scheduled Alliance',
                 'current_tag' => 'AUTO',
@@ -202,6 +205,7 @@ final class KingdomIngestionSchedulerTest extends TestCase
     public function test_manager_replay_requires_password_confirmation_and_re_drives_existing_promotion_action(): void
     {
         [$owner, $alliance] = $this->alliance(6805, 'k4-p4-replay');
+        $player = $owner->players()->sole();
         $subscription = $this->subscription($owner, $alliance);
         $batch = $this->app->make(StartKingdomIngestionBatch::class)
             ->handle((string) $subscription->id, 'replay-window-6805');
@@ -227,7 +231,7 @@ final class KingdomIngestionSchedulerTest extends TestCase
         self::assertSame('unknown_player', $candidate->quarantine_code);
 
         $unconfirmed = [
-            (string) config('identity.active_alliance_session_key') => (string) $alliance->id,
+            (string) config('identity.active_player_session_key') => (string) $player->id,
             'auth.password_confirmed_at' => 0,
         ];
         $path = "/alliance/kingdom-ingestion/subscriptions/{$subscription->id}/candidates/{$candidate->id}/replay";
@@ -238,10 +242,10 @@ final class KingdomIngestionSchedulerTest extends TestCase
 
         $entry = $this->app->make(SaveRosterEntry::class)->handle(
             $alliance,
-            $owner,
+            $player,
             ['name' => 'Replay Player', 'game_player_id' => 'player-6805'],
         );
-        $this->withSession($this->confirmedSession((string) $alliance->id))
+        $this->withSession($this->confirmedSession($player))
             ->post($path)
             ->assertRedirect();
 
@@ -258,11 +262,20 @@ final class KingdomIngestionSchedulerTest extends TestCase
     private function alliance(int $kingdomNumber, string $slug): array
     {
         $owner = User::factory()->create();
+        $kingdom = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdomNumber],
+            ['status' => 'active'],
+        );
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'owner-'.$slug,
+            'current_name' => 'K4 P4 '.str_replace('-', ' ', $slug).' Owner',
+        ]);
         $alliance = $this->app->make(CreateAlliance::class)->handle(
-            $owner,
+            $player,
             'K4 P4 '.str_replace('-', ' ', $slug),
             $slug,
-            $kingdomNumber,
         );
 
         return [$owner, $alliance];
@@ -271,14 +284,14 @@ final class KingdomIngestionSchedulerTest extends TestCase
     private function subscription(User $owner, Alliance $alliance): KingdomIngestionSubscription
     {
         return $this->app->make(CreateKingdomIngestionSubscription::class)
-            ->handle($alliance, $owner, 'fixture.scheduled-ingestion');
+            ->handle($alliance, $owner->players()->sole(), 'fixture.scheduled-ingestion');
     }
 
     /** @return array<string, mixed> */
-    private function confirmedSession(string $allianceId): array
+    private function confirmedSession(Player $player): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            (string) config('identity.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => time(),
         ];
     }

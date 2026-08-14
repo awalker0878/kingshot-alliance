@@ -71,7 +71,7 @@ An authorized manager revokes a pending invitation. It becomes unusable for acce
 
 ### Accept
 
-The authenticated User presents the bearer invitation, must have matching normalized email, and must satisfy verification requirements. Memberships transactionally creates/reactivates membership, restores the built-in Member role when appropriate, marks the invitation accepted, and records required evidence.
+The authenticated User presents the bearer invitation, must have matching normalized email, and must satisfy verification requirements. Memberships transactionally creates/reactivates membership, restores the R1 rank when appropriate, marks the invitation accepted, and records required evidence.
 
 ## 6. Authorization, tenancy and privacy
 

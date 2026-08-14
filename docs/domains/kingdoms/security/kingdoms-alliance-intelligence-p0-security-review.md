@@ -129,11 +129,11 @@ K3 audit/outbox messages remain internal. Existing `kingdoms.*` webhook exclusio
 
 ### 4.7 Contact becomes identity/authentication shortcut
 
-**Threat:** A Discord/in-game handle is used to create/link a `User`, `AllianceMembership` or `KingdomPlayer`, or to grant permissions.
+**Threat:** A Discord/in-game handle is used to create/link a `User`, `AllianceMembership` or `Player`, or to grant permissions.
 
 **Controls:**
 
-- K3 initial contacts have no `KingdomPlayer` linkage;
+- K3 initial contacts have no `Player` linkage;
 - contact creation never creates application identity or membership;
 - contact fields do not participate in authorization;
 - display name/handle are never stable identity keys;

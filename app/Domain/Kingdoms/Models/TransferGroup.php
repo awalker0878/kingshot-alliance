@@ -7,7 +7,6 @@ namespace App\Domain\Kingdoms\Models;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
-use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,12 +19,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property TransferDirection $direction
  * @property string|null $destination_kingdom_id
  * @property TransferGroupState $state
- * @property string|null $coordinator_membership_id
+ * @property string|null $coordinator_player_id
  * @property string|null $manager_notes
  * @property-read Alliance $alliance
  * @property-read TransferPlan $plan
  * @property-read Kingdom|null $destinationKingdom
- * @property-read AllianceMembership|null $coordinator
+ * @property-read Player|null $coordinator
  */
 final class TransferGroup extends Model
 {
@@ -42,7 +41,7 @@ final class TransferGroup extends Model
         'direction',
         'destination_kingdom_id',
         'state',
-        'coordinator_membership_id',
+        'coordinator_player_id',
         'manager_notes',
     ];
 
@@ -72,10 +71,10 @@ final class TransferGroup extends Model
         return $this->belongsTo(Kingdom::class, 'destination_kingdom_id');
     }
 
-    /** @return BelongsTo<AllianceMembership, $this> */
+    /** @return BelongsTo<Player, $this> */
     public function coordinator(): BelongsTo
     {
-        return $this->belongsTo(AllianceMembership::class, 'coordinator_membership_id');
+        return $this->belongsTo(Player::class, 'coordinator_player_id');
     }
 
     /** @return HasMany<TransferParticipant, $this> */

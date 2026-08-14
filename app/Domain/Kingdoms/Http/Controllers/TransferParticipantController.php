@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Http\Controllers;
 
 use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\SaveTransferParticipant;
 use App\Domain\Kingdoms\Actions\WithdrawTransferParticipant;
 use App\Domain\Kingdoms\Enums\TransferDirection;
@@ -24,7 +23,7 @@ final class TransferParticipantController extends Controller
     ): RedirectResponse {
         $save->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $plan,
             $this->validated($request),
         );
@@ -41,7 +40,7 @@ final class TransferParticipantController extends Controller
     ): RedirectResponse {
         $save->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $plan,
             $this->validated($request),
             $participant,
@@ -59,7 +58,7 @@ final class TransferParticipantController extends Controller
     ): RedirectResponse {
         $withdraw->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $plan,
             $participant,
         );
@@ -73,7 +72,6 @@ final class TransferParticipantController extends Controller
      *   roster_entry_id?: string|null,
      *   name?: string|null,
      *   game_player_id?: string|null,
-     *   membership_id?: string|null,
      *   source_kingdom?: int|null,
      *   destination_kingdom?: int|null,
      *   manager_notes?: string|null
@@ -86,8 +84,7 @@ final class TransferParticipantController extends Controller
          *   roster_entry_id?: string|null,
          *   name?: string|null,
          *   game_player_id?: string|null,
-         *   membership_id?: string|null,
-         *   source_kingdom?: int|null,
+             *   source_kingdom?: int|null,
          *   destination_kingdom?: int|null,
          *   manager_notes?: string|null
          * } $validated
@@ -97,7 +94,6 @@ final class TransferParticipantController extends Controller
             'roster_entry_id' => ['nullable', 'string', 'ulid'],
             'name' => ['nullable', 'string', 'max:160'],
             'game_player_id' => ['nullable', 'string', 'max:100'],
-            'membership_id' => ['nullable', 'string', 'ulid'],
             'source_kingdom' => ['nullable', 'integer', 'min:1'],
             'destination_kingdom' => ['nullable', 'integer', 'min:1'],
             'manager_notes' => ['nullable', 'string', 'max:5000'],
@@ -105,13 +101,5 @@ final class TransferParticipantController extends Controller
         $validated['direction'] = TransferDirection::from($validated['direction']);
 
         return $validated;
-    }
-
-    private function user(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
-
-        return $user;
     }
 }

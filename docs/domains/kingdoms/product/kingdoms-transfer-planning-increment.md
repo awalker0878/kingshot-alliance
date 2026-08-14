@@ -38,15 +38,15 @@ The increment reuses the accepted `KINGDOMS-001` identity and tenancy model rath
 
 Transfer plans, participants, groups, coordinator assignments, readiness state, blockers, manager notes and completion records are alliance-owned tenant data.
 
-Sharing a `Kingdom`, `KingdomPlayer`, destination Kingdom, player name or transfer group label never grants one alliance access to another alliance's plan.
+Sharing a `Kingdom`, `Player`, destination Kingdom, player name or transfer group label never grants one alliance access to another alliance's plan.
 
 All submitted plan, participant, group, roster, membership, player and Kingdom identifiers are re-resolved under the active Alliance and the specific transfer-plan boundary before mutation.
 
 ### Application identity, membership and game identity remain separate
 
-`User`, `AllianceMembership`, `KingdomPlayer` and transfer participation remain distinct concepts.
+`User`, `AllianceMembership`, `Player` and transfer participation remain distinct concepts.
 
-Outgoing and staying participants normally reference an existing same-alliance roster entry. Incoming participants may be planned before they become alliance members or roster entries, so an incoming participant may carry an optional neutral `KingdomPlayer` reference plus plan-scoped observed identity fields.
+Outgoing and staying participants normally reference an existing same-alliance roster entry. Incoming participants may be planned before they become alliance members or roster entries, so an incoming participant may carry an optional neutral `Player` reference plus plan-scoped observed identity fields.
 
 Display name alone is never sufficient to merge or relink neutral game identity. Stable game-player identifiers follow the accepted `KINGDOMS-001` matching rules.
 
@@ -66,7 +66,7 @@ An outgoing participant may have a destination Kingdom. An incoming participant'
 
 A transfer plan captures the alliance's home Kingdom when the plan is created/opened. If the Alliance Kingdom association changes while an active transfer plan exists, transfer mutations fail closed until an authorized manager explicitly reconciles the plan. The system does not silently retarget incoming participants.
 
-Destination Kingdom is planning metadata only. Selecting a destination does not move a `KingdomPlayer`, alter the Alliance Kingdom association, or mutate another alliance.
+Destination Kingdom is planning metadata only. Selecting a destination does not move a `Player`, alter the Alliance Kingdom association, or mutate another alliance.
 
 ### Transfer groups are coordination cohorts
 
@@ -103,7 +103,7 @@ When an authorized manager explicitly confirms real-world completion:
 
 Completion must be idempotent and must not duplicate roster entries, snapshots or history when retried.
 
-Planning completion does not rewrite historical player snapshots and does not automatically change the neutral `KingdomPlayer` Kingdom relationship based only on an intended destination.
+Planning completion does not rewrite historical player snapshots and does not automatically change the neutral `Player` Kingdom relationship based only on an intended destination.
 
 ## 4. In-scope capabilities
 
@@ -207,7 +207,7 @@ Platform administrators do not implicitly become transfer managers. Cross-tenant
 | Audit event | Audit | Correlated to actor/alliance as applicable |
 | Durable internal event | Platform outbox | Alliance-scoped where tenant data is involved |
 
-Global Kingdom/KingdomPlayer records do not contain transfer-plan notes, readiness, blockers or alliance-private coordination state.
+Global Kingdom/Player records do not contain transfer-plan notes, readiness, blockers or alliance-private coordination state.
 
 ## 7. Cross-domain contracts
 

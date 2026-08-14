@@ -44,7 +44,7 @@ Every completion re-resolves the active Alliance, transfer plan, participant, an
 
 Cross-alliance submitted roster identifiers fail closed. Coordinator assignment remains workflow responsibility only and grants no completion authority.
 
-Incoming completion does not move the planning/source neutral `KingdomPlayer` into the home Kingdom. Accepted roster resolution produces the roster result, which is referenced by the completion record. Completion does not create or rewrite player snapshots.
+Incoming completion does not move the planning/source neutral `Player` into the home Kingdom. Accepted roster resolution produces the roster result, which is referenced by the completion record. Completion does not create or rewrite player snapshots.
 
 Private participant/group notes and blocker text are not copied into completion event metadata. Ordinary member transfer payloads do not expose completion actor, completion record IDs, selected/result roster IDs, or richer handoff provenance.
 

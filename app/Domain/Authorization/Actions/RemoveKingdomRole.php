@@ -1,0 +1,84 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Authorization\Actions;
+
+use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Authorization\Enums\DefaultKingdomRole;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Models\KingdomRole;
+use App\Domain\Authorization\Models\KingdomRoleAssignment;
+use App\Domain\Authorization\Services\KingdomAuthorization;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Platform\Services\OutboxRecorder;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use LogicException;
+
+final readonly class RemoveKingdomRole
+{
+    public function __construct(
+        private KingdomAuthorization $authorization,
+        private AuditRecorder $audit,
+        private OutboxRecorder $outbox,
+    ) {}
+
+    public function handle(Player $actor, Kingdom $kingdom, KingdomRoleAssignment $assignment): void
+    {
+        if ((string) $assignment->kingdom_id !== (string) $kingdom->id) {
+            throw new AuthorizationException;
+        }
+
+        if (! $this->authorization->allows($actor, $kingdom, PermissionKey::KingdomRoleManage)) {
+            throw new AuthorizationException;
+        }
+
+        DB::transaction(function () use ($actor, $kingdom, $assignment): void {
+            $lockedKingdom = Kingdom::query()->whereKey($kingdom->id)->lockForUpdate()->firstOrFail();
+
+            if (! $this->authorization->allows($actor, $lockedKingdom, PermissionKey::KingdomRoleManage)) {
+                throw new AuthorizationException;
+            }
+
+            $locked = KingdomRoleAssignment::query()
+                ->whereKey($assignment->id)
+                ->where('kingdom_id', $lockedKingdom->id)
+                ->with('role:id,key')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $role = $locked->role;
+            if (! $role instanceof KingdomRole) {
+                throw new LogicException('A Kingdom role assignment must reference a Kingdom role.');
+            }
+
+            if ($role->key === DefaultKingdomRole::Administrator->value) {
+                $anotherAdministratorExists = KingdomRoleAssignment::query()
+                    ->where('kingdom_id', $lockedKingdom->id)
+                    ->where('id', '!=', $locked->id)
+                    ->whereHas('role', static fn ($query) => $query->where('key', DefaultKingdomRole::Administrator->value))
+                    ->exists();
+
+                if (! $anotherAdministratorExists) {
+                    throw ValidationException::withMessages([
+                        'role' => 'A Kingdom must retain at least one Kingdom Admin.',
+                    ]);
+                }
+            }
+
+            $metadata = [
+                'kingdom_id' => (string) $lockedKingdom->id,
+                'kingdom_number' => (int) $lockedKingdom->number,
+                'target_player_id' => (string) $locked->player_id,
+                'role_key' => $role->key,
+            ];
+
+            $this->audit->record('kingdom.role_removed', $actor, $locked, null, $metadata);
+            $this->outbox->record('kingdom.role_removed', null, $locked, $metadata);
+            $locked->delete();
+        });
+    }
+}

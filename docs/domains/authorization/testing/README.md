@@ -2,16 +2,16 @@
 
 [← Authorization domain](../README.md)
 
-**Document type:** Living domain testing and evidence profile  
-**Status:** Current  
-**Owning domain:** Authorization  
-**Code owner:** `app/Domain/Authorization`  
-**Primary validation boundary:** Alliance-scoped permission evaluation, role hierarchy/assignment safety, and separation from Identity/Platform authority  
+**Document type:** Living domain testing and evidence profile
+**Status:** Current
+**Owning domain:** Authorization
+**Code owner:** `app/Domain/Authorization`
+**Primary validation boundary:** Alliance and exact-Kingdom permission evaluation, rank hierarchy/assignment safety, Player identity binding, and separation from Identity/Platform authority
 **P5 evidence decision:** Living suite map with Phase 1/6 historical evidence reused
 
 ## 1. Critical claims and validation ownership
 
-Authorization validation must prove stable permission vocabulary, Alliance scoping, hierarchy-aware role mutation, inactive-membership denial, last-active-Owner protection, and strict separation between Alliance authorization and Platform-administrator grants.
+Authorization validation must prove stable permission vocabulary, Alliance scoping, exact-Kingdom role scoping, Player current-roster identity binding, hierarchy-aware mutation, active-R5 leadership protection, final-Kingdom-Admin safety, and strict separation from Platform-administrator grants.
 
 ## 2. Executable suite mapping
 
@@ -25,7 +25,7 @@ It also protects Platform administrator authority as a different domain contract
 
 ## 4. Authorization, tenancy, security and privacy validation
 
-Feature/Integration/TenantIsolation evidence covers permission denial, cross-Alliance role/membership substitution, effective hierarchy, active-membership requirements, last-Owner safety, and recent password-confirmed privileged mutation through the first-party adapters.
+Feature/Integration/TenantIsolation evidence covers permission denial, cross-Alliance role/membership substitution, cross-Kingdom role substitution, Player roster/membership mismatch, effective hierarchy, active-membership requirements, R5 leadership safety, final-Kingdom-Admin safety, and privileged mutation boundaries.
 
 [Authorization security](../security/README.md) defines the fail-closed boundary that the test evidence must preserve.
 
@@ -37,13 +37,13 @@ Memberships-mediated role routes are validated as adapters into Authorization-ow
 
 ## 6. Idempotency, concurrency and asynchronous validation
 
-Duplicate role assignment is a no-op; remove/reassign cycles can produce legitimate new transitions without outbox identity collisions. Last-Owner and membership-state mutations are transactionally guarded.
+Duplicate role assignment is a no-op; remove/reassign cycles can produce legitimate new transitions without outbox identity collisions. R5 leadership and Kingdom-role mutations are transactionally guarded.
 
 These repeat/concurrency semantics were specifically hardened in Phase 1 and remain regression-sensitive.
 
 ## 7. Persistence, migration, rollback and recovery evidence
 
-Phase 1 acceptance covers role/permission persistence, composite same-Alliance constraints and protected migration/recovery gates. Current CI continues forward migrations and database backup/restore.
+Phase 1 acceptance covers role/permission persistence and composite same-Alliance constraints. EVENTS-002 adds a forward rank/permission conversion migration and composite Kingdom role-assignment constraints; rollback/reapply tests protect both boundaries.
 
 Recovery behavior is documented in [Authorization operations](../operations/README.md); direct row edits that bypass hierarchy/tenant constraints are not an accepted test or recovery path.
 

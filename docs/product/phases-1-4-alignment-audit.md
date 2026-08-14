@@ -46,7 +46,7 @@ Phase 3 remains authoritative for:
 - rally groups, assignments, participation facts;
 - authenticated event exports and member event views.
 
-Member self-service registration/cancellation and saved formations do not require password reconfirmation. Privileged coordinator mutations require recent password confirmation in addition to verified identity, active-alliance context, `events.manage`, tenant-safe object resolution, and audit attribution.
+Member self-service registration/cancellation and saved formations do not require password reconfirmation. Privileged coordinator mutations require recent password confirmation in addition to verified identity, active-alliance context, `events.alliance.manage`, tenant-safe object resolution, and audit attribution.
 
 ### Phase 4 — Recruitment
 

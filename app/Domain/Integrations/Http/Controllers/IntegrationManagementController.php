@@ -35,7 +35,7 @@ final class IntegrationManagementController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 401);
         $alliance = $context->alliance();
-        abort_unless($authorization->allows($user, $alliance, PermissionKey::AllianceManage), 403);
+        abort_unless($authorization->allows($context->player(), $alliance, PermissionKey::AllianceManage), 403);
         $settings = AlliancePlatformSetting::query()->whereKey($alliance->id)->first();
         $apiAccessEnabled = $settings instanceof AlliancePlatformSetting
             ? (bool) $settings->api_access_enabled
@@ -104,7 +104,6 @@ final class IntegrationManagementController extends Controller
 
     public function createCredential(Request $request, AllianceContext $context, CreateApiCredential $create): RedirectResponse
     {
-        $user = $this->user($request);
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'scopes' => ['required', 'array', 'min:1', 'max:3'],
@@ -113,7 +112,7 @@ final class IntegrationManagementController extends Controller
         ]);
         $issued = $create->handle(
             $context->alliance(),
-            $user,
+            $context->player(),
             (string) $validated['name'],
             array_values(array_map('strval', $validated['scopes'])),
             isset($validated['expires_at']) ? CarbonImmutable::parse((string) $validated['expires_at'], 'UTC') : null,
@@ -136,7 +135,7 @@ final class IntegrationManagementController extends Controller
     ): RedirectResponse {
         $alliance = $context->alliance();
         $target = ApiCredential::query()->where('alliance_id', $alliance->id)->findOrFail($credential);
-        $revoke->handle($alliance, $this->user($request), $target);
+        $revoke->handle($alliance, $context->player(), $target);
 
         return back()->with('status', 'api-credential-revoked');
     }
@@ -151,7 +150,7 @@ final class IntegrationManagementController extends Controller
         ]);
         $subscription = $create->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             (string) $validated['name'],
             (string) $validated['url'],
             array_values(array_map('strval', $validated['events'])),
@@ -174,16 +173,9 @@ final class IntegrationManagementController extends Controller
     ): RedirectResponse {
         $alliance = $context->alliance();
         $target = WebhookSubscription::query()->where('alliance_id', $alliance->id)->findOrFail($subscription);
-        $revoke->handle($alliance, $this->user($request), $target);
+        $revoke->handle($alliance, $context->player(), $target);
 
         return back()->with('status', 'webhook-revoked');
     }
 
-    private function user(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
-
-        return $user;
-    }
 }

@@ -39,7 +39,7 @@ final class TransferReadinessController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($user, $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
             throw new AuthorizationException;
         }
 
@@ -80,7 +80,7 @@ final class TransferReadinessController extends Controller
 
         $transition->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $plan,
             $participant,
             TransferReadinessState::from($validated['readiness']),
@@ -104,7 +104,7 @@ final class TransferReadinessController extends Controller
 
         $create->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $plan,
             $participant,
             $validated['summary'],
@@ -124,7 +124,7 @@ final class TransferReadinessController extends Controller
     ): RedirectResponse {
         $resolve->handle(
             $context->alliance(),
-            $this->user($request),
+            $context->player(),
             $plan,
             $participant,
             $blocker,
@@ -169,10 +169,10 @@ final class TransferReadinessController extends Controller
                     'resolvedAt' => $blocker->resolved_at?->toIso8601String(),
                     'createdBy' => $blocker->createdBy === null
                         ? null
-                        : ['name' => (string) $blocker->createdBy->name],
+                        : ['name' => (string) $blocker->createdBy->current_name],
                     'resolvedBy' => $blocker->resolvedBy === null
                         ? null
-                        : ['name' => (string) $blocker->resolvedBy->name],
+                        : ['name' => (string) $blocker->resolvedBy->current_name],
                 ])
                 ->all(),
             'readinessHistory' => $participant->readinessTransitions
@@ -184,7 +184,7 @@ final class TransferReadinessController extends Controller
                     'changedAt' => $transition->created_at->toIso8601String(),
                     'actor' => $transition->actor === null
                         ? null
-                        : ['name' => (string) $transition->actor->name],
+                        : ['name' => (string) $transition->actor->current_name],
                 ])
                 ->all(),
         ];

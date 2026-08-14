@@ -10,7 +10,7 @@ This review covers game-player identity and manual alliance-roster management. H
 
 ## Trust model
 
-`KingdomPlayer` is global neutral game identity scoped to a Kingdom. An `AllianceRosterEntry` is alliance-owned observation/state.
+`Player` is global neutral game identity scoped to a Kingdom. An `AllianceRosterEntry` is alliance-owned observation/state.
 
 A shared neutral player identity does not create a shared tenant record. The following remain alliance-scoped:
 
@@ -50,10 +50,10 @@ Roster read requires `alliance.view`. Management views and mutations require `ki
 | Submitted roster-entry ID targets another alliance | Mutation actions re-resolve the entry with the active `alliance_id`; foreign IDs fail closed. |
 | Submitted membership ID links another alliance's account | Membership resolution requires the active alliance and active membership state. |
 | One membership is attached to multiple roster identities | Database uniqueness plus action validation permit only one roster link per alliance membership. Updates exclude the current roster entry so retaining its own valid link is allowed. |
-| One game player is duplicated on the same alliance roster | Database uniqueness plus action validation permit one alliance roster entry per KingdomPlayer. |
+| One game player is duplicated on the same alliance roster | Database uniqueness plus action validation permit one alliance roster entry per Player. |
 | Same display name causes accidental merge | Resolver never deduplicates by player name. |
 | Stable game ID from another Kingdom causes collision | Stable identifier reuse is scoped by `kingdom_id`. |
-| Shared game identity leaks another alliance's private observations | Mutable names, role/state, membership links and manager notes live on `AllianceRosterEntry`, not the global KingdomPlayer. Read queries begin from active `alliance_id`. |
+| Shared game identity leaks another alliance's private observations | Mutable names, role/state, membership links and manager notes live on `AllianceRosterEntry`, not the global Player. Read queries begin from active `alliance_id`. |
 | Search/filter query discloses another alliance in the same Kingdom | Every roster search/filter predicate is applied to a query already constrained by the active Alliance. Kingdom/player identity is never an authorization key. |
 | Ordinary member sees private membership/contact or manager data | Member-facing roster serialization emits linked member display name only; membership IDs/email and manager notes are excluded. Management serialization is gated by `kingdoms.manage`. |
 | Privileged roster mutation is unattributable | Create/update/leave actions emit alliance-scoped audit records and matching transactional-outbox messages. |

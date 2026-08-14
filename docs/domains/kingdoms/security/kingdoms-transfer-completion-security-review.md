@@ -57,7 +57,7 @@ When the participant has a stable game-player identifier, an explicitly selected
 
 Existing accepted roster name, game role, state, joined date and manager notes are retained when linking an existing result.
 
-The incoming planning/source `KingdomPlayer` is not moved between Kingdoms. The resulting roster entry is recorded on the completion instead.
+The incoming planning/source `Player` is not moved between Kingdoms. The resulting roster entry is recorded on the completion instead.
 
 ## Outgoing and staying safety
 

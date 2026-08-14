@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Enums\TransferBlockerState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Enums\TransferReadinessState;
@@ -31,7 +31,7 @@ final readonly class TransitionTransferReadiness
 
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $planId,
         string $participantId,
         TransferReadinessState $target,
@@ -118,7 +118,7 @@ final readonly class TransitionTransferReadiness
                 'transfer_participant_id' => $participant->id,
                 'from_state' => $current,
                 'to_state' => $target,
-                'actor_user_id' => $actor->id,
+                'actor_player_id' => $actor->id,
                 'created_at' => now(),
             ]);
 
@@ -179,7 +179,7 @@ final readonly class TransitionTransferReadiness
 
         if ($alliance->kingdom_id !== $plan->home_kingdom_id) {
             throw ValidationException::withMessages([
-                'readiness' => 'The alliance Kingdom changed after this transfer cycle was created. Cancel the stale cycle before changing readiness.',
+                'readiness' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.',
             ]);
         }
     }

@@ -6,6 +6,7 @@ namespace App\Domain\Audit\Models;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,7 @@ final class AuditEvent extends Model
     protected $fillable = [
         'alliance_id',
         'actor_user_id',
+        'actor_player_id',
         'event',
         'subject_type',
         'subject_id',
@@ -48,9 +50,15 @@ final class AuditEvent extends Model
     }
 
     /** @return BelongsTo<User, $this> */
-    public function actor(): BelongsTo
+    public function actorUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'actor_user_id');
+    }
+
+    /** @return BelongsTo<Player, $this> */
+    public function actorPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'actor_player_id');
     }
 
     /** @return MorphTo<Model, $this> */

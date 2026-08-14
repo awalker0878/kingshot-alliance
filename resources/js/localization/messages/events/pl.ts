@@ -1,109 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: 'Wróć do wydarzeń',
-    eyebrow: 'Obsługa wydarzeń',
-    title: 'Koordynator wydarzeń',
-    description:
-      'Planuj wydarzenia, publikuj wskazówki rajdu, organizuj formacje i grupy oraz zapisuj obecność i udział.',
-    scheduling: 'Planowanie i szablony',
-    remindersGuidance: 'Przypomnienia i wskazówki',
-    rallySetup: 'Formacje i rajdy',
-    readiness: 'Gotowość i obecność',
-    createEvent: 'Utwórz wydarzenie',
-    eventTitle: 'Tytuł wydarzenia',
-    firstStart: 'Pierwszy start',
-    durationMinutes: 'Czas trwania (minuty)',
-    registrationOpens: 'Otwarcie zapisów (minuty wcześniej)',
-    registrationCloses: 'Zamknięcie zapisów (minuty wcześniej)',
-    recurrence: 'Powtarzanie',
-    interval: 'Interwał',
-    recurrenceEnd: 'Koniec powtarzania',
-    createEventAction: 'Utwórz wydarzenie',
-    eventValidation: 'Sprawdź pola wydarzenia i okno zapisów.',
-    createTemplate: 'Utwórz szablon wydarzenia',
-    saveTemplate: 'Zapisz szablon',
-    scheduleFromTemplate: 'Zaplanuj z szablonu',
-    chooseTemplate: 'Wybierz szablon',
-    optionalTitle: 'Opcjonalny tytuł',
-    scheduleTemplate: 'Zaplanuj szablon',
-    reminderRule: 'Reguła przypomnienia',
-    reminderHelp: 'Utwórz przypomnienie w aplikacji dla każdego wystąpienia wybranego wydarzenia.',
-    chooseEvent: 'Wybierz wydarzenie',
-    minutesBefore: 'Minuty przed startem',
-    addReminder: 'Dodaj przypomnienie',
-    rallyGuidance: 'Wskazówki rajdu',
-    guidanceHelp:
-      'Publikuj wielokrotnego użytku proporcje wojsk i wskazówki bohaterów z datami obowiązywania.',
-    heroRecommendations: 'Zalecenia bohaterów',
-    effectiveFrom: 'Obowiązuje od',
-    effectiveUntil: 'Obowiązuje do',
-    leadRequirements: 'Wymagania lidera',
-    joinerGuidance: 'Wskazówki dla uczestników',
-    guidanceValidation: 'Sprawdź daty i upewnij się, że proporcje wojsk sumują się do 100%.',
-    publishGuidance: 'Opublikuj wskazówki',
-    eventFormation: 'Formacja wydarzenia',
-    occurrence: 'Wystąpienie',
-    chooseOccurrence: 'Wybierz wystąpienie',
-    noGuidance: 'Brak powiązanych wskazówek',
-    addFormation: 'Dodaj formację',
-    rallyGroup: 'Grupa rajdu',
-    maxJoiners: 'Maks. uczestników',
-    none: 'Brak',
-    createGroup: 'Utwórz grupę',
-    assignMember: 'Przypisz członka do rajdu',
-    member: 'Członek',
-    chooseGroup: 'Wybierz grupę',
-    chooseMember: 'Wybierz członka',
-    slotNumber: 'Numer miejsca',
-    saveAssignment: 'Zapisz przypisanie',
-    registrations: 'Zapisy',
-    noRegistrations: 'Brak aktywnych zapisów dla tego wystąpienia.',
-    rallyAssignments: 'Przypisania rajdu',
-    noAssignments: 'Brak przypisań rajdu dla tego wystąpienia.',
-    participated: 'Uczestniczył',
-    statusAssigned: 'Przypisany',
-    statusParticipated: 'Uczestniczył',
-    recurrenceNone: 'Brak',
-    recurrenceDaily: 'Codziennie',
-    recurrenceWeekly: 'Co tydzień',
-    roleLead: 'Lider',
-    roleJoiner: 'Uczestnik',
-  },
-  eventDetail: {
-    participation: 'Uczestnictwo',
-    registeredCount: 'Zapisani: {count}',
-    waitlistedCount: 'Lista oczekujących: {count}',
-    noLimit: 'Bez limitu',
-    instructions: 'Instrukcje',
-    recommendedFormations: 'Zalecane formacje',
-    noRecommendedFormations: 'Nie opublikowano wskazówek formacji dla tego wydarzenia.',
-    assignmentRole: 'Rola przydziału',
-    troopRatio: 'Proporcje wojsk',
-    infantry: 'Piechota',
-    cavalry: 'Kawaleria',
-    archers: 'Łucznicy',
-    heroes: 'Bohaterowie',
-    notes: 'Notatki',
-    guidance: 'Wskazówki',
-    source: 'Źródło',
-    effective: 'Obowiązuje od {date}',
-    through: 'do {date}',
-    rallyGroups: 'Grupy rajdu',
-    maxJoiners: 'Maks. uczestników: {count}',
-    noAssigned: 'Nie przydzielono jeszcze członków.',
-    noRallyGroups: 'Nie skonfigurowano grup rajdu dla tego wydarzenia.',
-    savedFormations: 'Twoje zapisane formacje',
-    default: 'Domyślna',
-    noSavedFormations: 'Nie zapisano jeszcze żadnej formacji.',
-    saveFormation: 'Zapisz formację',
-    formationName: 'Nazwa',
-    heroesHint: 'Bohater pierwszy, drugi, trzeci',
-    makeDefault: 'Ustaw jako domyślną formację',
-    formationValidation: 'Sprawdź wartości. Procenty wojsk muszą sumować się do 100%.',
-    save: 'Zapisz formację',
-  },
+  "events": {
+    "scope": {
+      "player": "Gracz",
+      "alliance": "Sojusz",
+      "kingdom": "Królestwo"
+    },
+    "actions": {
+      "save": "Zapisz",
+      "cancel": "Anuluj"
+    },
+    "calendar": {
+      "title": "Wydarzenia",
+      "create": "Utwórz wydarzenie",
+      "agenda": "Agenda",
+      "month": "Kalendarz",
+      "all": "Wszystkie zakresy",
+      "manageable": "Zarządzaj",
+      "empty": "Brak wydarzeń pasujących do tego widoku.",
+      "previousMonth": "Poprzedni miesiąc",
+      "nextMonth": "Następny miesiąc",
+      "scopeFilters": "Filtruj wydarzenia według zakresu",
+      "viewOptions": "Wybierz widok wydarzeń"
+    },
+    "create": {
+      "title": "Utwórz wydarzenie",
+      "back": "Wróć do wydarzeń",
+      "noContexts": "Obecnie nie masz uprawnień do tworzenia wydarzenia.",
+      "context": "Kontekst wydarzenia",
+      "eventType": "Typ wydarzenia",
+      "start": "Czas rozpoczęcia",
+      "duration": "Czas trwania (minuty)",
+      "capacity": "Limit",
+      "instructions": "Instrukcje",
+      "submit": "Utwórz wydarzenie"
+    },
+    "show": {
+      "back": "Wróć do wydarzeń",
+      "manage": "Zarządzaj wydarzeniem",
+      "details": "Szczegóły wydarzenia",
+      "status": "Status",
+      "capacity": "Limit",
+      "recurrence": "Powtarzanie",
+      "modules": "Moduły operacyjne"
+    },
+    "manage": {
+      "title": "Zarządzaj wydarzeniem",
+      "back": "Wróć do wydarzeń",
+      "save": "Zapisz wydarzenie",
+      "cancel": "Anuluj wydarzenie"
+    },
+    "attention": {
+      "title": "Akcje wydarzenia",
+      "response": "Wymagana odpowiedź",
+      "registration": "Rejestracja dostępna",
+      "vote": "Wymagany głos",
+      "roster_confirmation": "Wymagane potwierdzenie składu"
+    },
+    "reminders": {
+      "title": "Ostatnie przypomnienia"
+    },
+    "participation": {
+      "register": "Zarejestruj",
+      "cancelRegistration": "Anuluj rejestrację"
+    },
+    "responses": {
+      "going": "Idę",
+      "maybe": "Może",
+      "unavailable": "Niedostępny"
+    },
+    "registration": {
+      "registered": "Zarejestrowany",
+      "waitlisted": "Lista oczekujących",
+      "cancelled": "Anulowany"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "Kontrolowane przez sojusz",
+      "game_calendar": "Kalendarz gry",
+      "matchmaking": "Dobieranie",
+      "manual": "Ręcznie"
+    },
+    "recurrencePolicies": {
+      "disabled": "Bez powtarzania",
+      "fixed_interval": "Stały odstęp",
+      "configurable": "Konfigurowalne"
+    },
+    "recurrenceFrequencies": {
+      "none": "Bez powtarzania",
+      "daily": "Codziennie",
+      "weekly": "Co tydzień"
+    },
+    "attendanceStatuses": {
+      "present": "Obecny",
+      "absent": "Nieobecny",
+      "excused": "Usprawiedliwiony",
+      "unknown": "Nieznany"
+    },
+    "eventStatuses": {
+      "draft": "Szkic",
+      "published": "Opublikowane",
+      "cancelled": "Anulowane",
+      "completed": "Zakończone"
+    },
+    "capabilities": {
+      "responses": "Odpowiedzi",
+      "registration": "Rejestracja",
+      "waitlist": "Lista oczekujących",
+      "attendance": "Obecność",
+      "phases": "Fazy",
+      "polls": "Głosowania",
+      "rosters": "Składy",
+      "substitutes": "Rezerwowi",
+      "teams": "Drużyny",
+      "legions": "Legiony",
+      "rally_guidance": "Wskazówki rajdu",
+      "formations": "Formacje",
+      "objectives": "Cele",
+      "scoring": "Punktacja",
+      "results": "Wyniki"
+    },
+    "reminderAudiences": {
+      "target": "Cel wydarzenia",
+      "responded": "Gracze, którzy odpowiedzieli",
+      "registered": "Zarejestrowani gracze",
+      "rostered": "Gracze w składzie",
+      "all_scope_players": "Wszyscy uprawnieni gracze"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;

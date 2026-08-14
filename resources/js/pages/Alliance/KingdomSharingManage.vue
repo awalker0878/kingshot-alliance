@@ -181,7 +181,7 @@ function formatDate(value: string | null): string {
 <template>
   <Head :title="`${t('kingdomP7C.manageTitle')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <p class="text-sm font-semibold tracking-[0.2em] text-[var(--ks-blue-strong)] uppercase">

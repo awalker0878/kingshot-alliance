@@ -10,7 +10,7 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Models\ContentItem;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +23,7 @@ final readonly class ArchiveContentItem
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $alliance, User $actor, string $contentItemId): ContentItem
+    public function handle(Alliance $alliance, Player $actor, string $contentItemId): ContentItem
     {
         if (! $this->authorization->allows($actor, $alliance, PermissionKey::ContentManage)) {
             throw new AuthorizationException;
@@ -40,7 +40,7 @@ final readonly class ArchiveContentItem
                 'status' => ContentStatus::Archived,
                 'scheduled_for' => null,
                 'archived_at' => now(),
-                'updated_by_user_id' => $actor->id,
+                'updated_by_player_id' => $actor->id,
             ])->save();
 
             $this->audit->record('content.archived', $actor, $item, $alliance, [

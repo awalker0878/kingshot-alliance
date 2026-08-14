@@ -185,7 +185,7 @@ Allowed initial channel semantics are handle-based coordination such as in-game,
 
 ### 7.2 Contacts are not identity or authorization
 
-`KINGDOMS-003` does **not** link diplomacy contacts to `KingdomPlayer` in the initial increment.
+`KINGDOMS-003` does **not** link diplomacy contacts to `Player` in the initial increment.
 
 A display name or handle therefore cannot become an automatic player-identity bridge.
 

@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Integrations\Models\ApiCredential;
 use App\Domain\Integrations\ValueObjects\IssuedApiCredential;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
@@ -38,7 +38,7 @@ final readonly class CreateApiCredential
     /** @param list<string> $scopes */
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $name,
         array $scopes,
         ?CarbonImmutable $expiresAt = null,
@@ -73,7 +73,7 @@ final readonly class CreateApiCredential
                 'secret_hash' => hash('sha256', $secret),
                 'scopes' => $scopes,
                 'expires_at' => $expiresAt?->utc(),
-                'created_by_user_id' => $actor->id,
+                'created_by_player_id' => $actor->id,
             ]);
 
             $this->audit->record('integration.api-credential.created', $actor, $credential, $alliance, [

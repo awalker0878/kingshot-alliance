@@ -67,7 +67,6 @@ final class QueueWebhookDeliveries
 
     private function isExternallyContracted(string $eventType): bool
     {
-        return $eventType !== 'alliance.kingdom_updated'
-            && ! str_starts_with($eventType, 'kingdoms.');
+        return ! str_starts_with($eventType, 'kingdoms.');
     }
 }

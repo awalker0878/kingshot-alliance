@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { computed, reactive } from 'vue';
+import { computed } from 'vue';
 
 import AppLayout from '../../layouts/AppLayout.vue';
 import { useLocale } from '../../localization';
@@ -33,30 +33,18 @@ type Participant = {
   completion: Completion | null;
 };
 
-type RosterOption = {
-  id: string;
-  name: string;
-  state: string;
-  gamePlayerId: string | null;
-  membershipId: string | null;
-};
+
 
 const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string | null };
   plan: Plan | null;
   participants: Participant[];
-  rosterOptions: RosterOption[];
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
 
-const rosterDrafts = reactive(
-  Object.fromEntries(props.participants.map((participant) => [participant.id, ''])) as Record<
-    string,
-    string
-  >,
-);
+
 
 const completionCounts = computed(() => ({
   completed: props.participants.filter((participant) => participant.completion !== null).length,
@@ -111,10 +99,7 @@ function destinationLabel(participant: Participant): string {
   return participant.destinationKingdom ?? '—';
 }
 
-function eligibleRosterOptions(participant: Participant): RosterOption[] {
-  if (participant.gamePlayerId === null) return props.rosterOptions;
-  return props.rosterOptions.filter((option) => option.gamePlayerId === participant.gamePlayerId);
-}
+
 
 function canComplete(participant: Participant): boolean {
   return (
@@ -137,10 +122,9 @@ function confirmationText(participant: Participant): string {
 function completeParticipant(participant: Participant): void {
   if (props.plan === null || !canComplete(participant)) return;
   if (!window.confirm(confirmationText(participant))) return;
-  const rosterEntryId = participant.direction === 'incoming' ? rosterDrafts[participant.id] : '';
   router.post(
     `/alliance/transfers/${props.plan.id}/participants/${participant.id}/complete`,
-    { roster_entry_id: rosterEntryId || null },
+    {},
     { preserveScroll: true },
   );
 }
@@ -156,7 +140,7 @@ const inputClass =
 <template>
   <Head :title="`${t('kingdomP7D.completionTitle')} · ${alliance.name}`" />
 
-  <AppLayout :user="user" :alliance-name="alliance.name" :has-active-alliance="true">
+  <AppLayout :user="user" :player-alliance-name="alliance.name" :has-player-alliance="true">
     <header class="flex flex-wrap items-start justify-between gap-5">
       <div class="max-w-3xl">
         <p class="text-xs font-bold tracking-[0.2em] text-[var(--ks-gold)] uppercase">
@@ -314,30 +298,6 @@ const inputClass =
           v-else
           class="mt-5 rounded-xl border border-[var(--ks-border)] bg-white/[0.02] p-4"
         >
-          <template v-if="participant.direction === 'incoming'">
-            <label :for="`roster-result-${participant.id}`" class="block text-sm font-semibold">{{
-              t('kingdomP7D.existingRosterResult')
-            }}</label>
-            <select
-              :id="`roster-result-${participant.id}`"
-              v-model="rosterDrafts[participant.id]"
-              :disabled="!canComplete(participant)"
-              :class="inputClass"
-            >
-              <option value="">{{ t('kingdomP7D.createAcceptedRosterEntry') }}</option>
-              <option
-                v-for="option in eligibleRosterOptions(participant)"
-                :key="option.id"
-                :value="option.id"
-              >
-                {{ option.name }} · {{ stateLabel(option.state)
-                }}{{ option.gamePlayerId ? ` · ID ${option.gamePlayerId}` : '' }}
-              </option>
-            </select>
-            <p class="mt-2 text-xs leading-5 text-[var(--ks-text-muted)]">
-              {{ t('kingdomP7D.incomingRosterHelp') }}
-            </p>
-          </template>
           <p
             v-if="participant.direction === 'outgoing'"
             class="text-sm leading-6 text-[var(--ks-text-secondary)]"

@@ -6,8 +6,6 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
@@ -17,7 +15,9 @@ use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacy;
 use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyContact;
 use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyTransition;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,8 +40,8 @@ final class KingdomAllianceAcceptanceTest extends TestCase
     {
         Carbon::setTestNow(Carbon::parse('2026-08-10 16:00:00 UTC'));
 
-        [$ownerA, $allianceA, $sessionA] = $this->ownerAlliance('Acceptance A', 'acceptance-a', 6601);
-        [$ownerB, $allianceB, $sessionB] = $this->ownerAlliance('Acceptance B', 'acceptance-b', 6601);
+        [$ownerA, $ownerPlayerA, $allianceA, $sessionA] = $this->ownerAlliance('Acceptance A', 'acceptance-a', 6601);
+        [$ownerB, $ownerPlayerB, $allianceB, $sessionB] = $this->ownerAlliance('Acceptance B', 'acceptance-b', 6601);
 
         $trackingSecret = 'PRIVATE-TRACKING-6601';
         $correctionSecret = 'PRIVATE-CORRECTION-6601';
@@ -170,9 +170,8 @@ final class KingdomAllianceAcceptanceTest extends TestCase
             self::assertStringNotContainsString($secret, $managerResponse->getContent());
         }
 
-        $member = $this->member($allianceA);
-        $memberSession = [(string) config('identity.active_alliance_session_key') => $allianceA->id];
-        $memberResponse = $this->actingAs($member)->withSession($memberSession)
+        [$member, $memberPlayer] = $this->member($allianceA);
+        $memberResponse = $this->actingAs($member)->withSession($this->activePlayerSession($memberPlayer))
             ->get('/alliance/kingdom-alliances/intelligence')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -245,7 +244,7 @@ final class KingdomAllianceAcceptanceTest extends TestCase
         }
 
         $newKingdom = Kingdom::query()->create(['number' => 6699, 'status' => 'active']);
-        $allianceA->forceFill(['kingdom_id' => $newKingdom->id])->save();
+        $trackingA->forceFill(['kingdom_id' => $newKingdom->id])->save();
 
         $this->actingAs($ownerA)->withSession($sessionA)
             ->get("/alliance/kingdom-alliances/{$trackingA->id}/history")
@@ -293,40 +292,59 @@ final class KingdomAllianceAcceptanceTest extends TestCase
         self::assertNotNull($trackingA->archived_at);
     }
 
-    /** @return array{0: User, 1: Alliance, 2: array<string, mixed>} */
+    /** @return array{0: User, 1: Player, 2: Alliance, 3: array<string, mixed>} */
     private function ownerAlliance(string $name, string $slug, int $kingdom): array
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)->handle($owner, $name, $slug, $kingdom);
+        $kingdomModel = Kingdom::query()->firstOrCreate(
+            ['number' => $kingdom],
+            ['status' => 'active'],
+        );
+        $player = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdomModel->id,
+            'game_player_id' => 'owner-'.$slug,
+            'current_name' => $name.' Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, $name, $slug);
 
-        return [$owner, $alliance, $this->confirmedSession($alliance->id)];
+        return [$owner, $player, $alliance, $this->confirmedSession($player)];
     }
 
-    private function member(Alliance $alliance): User
+    /** @return array{0: User, 1: Player} */
+    private function member(Alliance $alliance): array
     {
         $member = User::factory()->create();
-        $membership = AllianceMembership::query()->create([
-            'alliance_id' => $alliance->id,
+        $player = Player::query()->create([
             'user_id' => $member->id,
+            'current_kingdom_id' => $alliance->kingdom_id,
+            'game_player_id' => 'member-'.$member->id,
+            'current_name' => 'Acceptance Member',
+        ]);
+        AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $player->id,
             'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $role = Role::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
 
-        return $member;
+        return [$member, $player];
     }
 
     /** @return array<string, mixed> */
-    private function confirmedSession(string $allianceId): array
+    private function confirmedSession(Player $player): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            (string) config('identity.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => time(),
         ];
+    }
+
+    /** @return array<string, mixed> */
+    private function activePlayerSession(Player $player): array
+    {
+        return [(string) config('identity.active_player_session_key') => $player->id];
     }
 
     /** @return list<string> */

@@ -6,13 +6,14 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Audit\Models\AuditEvent;
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
-use App\Domain\Authorization\Models\Role;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Actions\RecordPlayerSnapshot;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\RosterImport;
 use App\Domain\Kingdoms\Services\RosterCsvParser;
+use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,9 +27,15 @@ final class RosterCsvImportTest extends TestCase
     public function test_preview_classifies_stable_updates_creates_and_name_ambiguity_without_persisting_roster_changes(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'CSV Preview', 'csv-preview', 4101);
-        $session = $this->confirmedSession($alliance->id);
+        $kingdom = Kingdom::query()->create(['number' => 4101, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'csv-preview-owner',
+            'current_name' => 'CSV Preview Owner',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'CSV Preview', 'csv-preview');
+        $session = $this->confirmedSession($ownerPlayer->id);
 
         $this->actingAs($owner)->withSession($session)->post('/alliance/roster', [
             'name' => 'Stable Existing',
@@ -62,22 +69,41 @@ final class RosterCsvImportTest extends TestCase
         $this->assertDatabaseCount('player_snapshots', 0);
     }
 
-    public function test_commit_requires_ambiguity_resolution_preserves_private_fields_and_is_idempotent(): void
+    public function test_commit_requires_ambiguity_resolution_preserves_private_fields_and_player_identity_and_is_idempotent(): void
     {
         $owner = User::factory()->create();
         $member = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'CSV Commit', 'csv-commit', 4102);
-        $membership = $this->addMember($alliance->id, $member);
-        $session = $this->confirmedSession($alliance->id);
+        $kingdom = Kingdom::query()->create(['number' => 4102, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'csv-commit-owner',
+            'current_name' => 'CSV Commit Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $member->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'ambiguous-4102',
+            'current_name' => 'Ambiguous Player',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'CSV Commit', 'csv-commit');
+        AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $memberPlayer->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
+            'joined_at' => now(),
+        ]);
+        $session = $this->confirmedSession($ownerPlayer->id);
 
         $this->actingAs($owner)->withSession($session)->post('/alliance/roster', [
             'name' => 'Ambiguous Player',
-            'membership_id' => $membership->id,
+            'game_player_id' => 'ambiguous-4102',
             'state' => 'active',
             'manager_notes' => 'Private note must survive CSV update.',
         ])->assertRedirect();
         $entry = AllianceRosterEntry::query()->sole();
+        self::assertSame($memberPlayer->id, $entry->player_id);
 
         $csv = $this->csv([
             ['', 'Ambiguous Player', '123456789', '32', 'ALLY', 'R4', 'tracked', '2026-07-01', '2026-08-08T18:10:00Z'],
@@ -104,7 +130,7 @@ final class RosterCsvImportTest extends TestCase
         $import->refresh();
         self::assertSame('tracked', $entry->state->value);
         self::assertSame('csv', $entry->source);
-        self::assertSame($membership->id, $entry->membership_id);
+        self::assertSame($memberPlayer->id, $entry->player_id);
         self::assertSame('Private note must survive CSV update.', $entry->manager_notes);
         self::assertSame(RosterImport::STATUS_COMMITTED, $import->status);
         self::assertSame(1, $import->committed_summary['rows_committed'] ?? null);
@@ -113,12 +139,14 @@ final class RosterCsvImportTest extends TestCase
         $this->assertDatabaseHas('player_snapshots', [
             'alliance_id' => $alliance->id,
             'roster_entry_id' => $entry->id,
+            'player_id' => $memberPlayer->id,
             'roster_import_id' => $import->id,
             'source' => 'csv',
             'power' => 123456789,
         ]);
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,
+            'actor_player_id' => $ownerPlayer->id,
             'event' => 'kingdoms.roster_import_committed',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
@@ -131,8 +159,7 @@ final class RosterCsvImportTest extends TestCase
                 'resolutions' => ['2' => (string) $entry->id],
             ])->assertRedirect();
         $this->assertDatabaseCount('player_snapshots', 1);
-        self::assertSame(1, AuditEvent::query()
-            ->where('event', 'kingdoms.roster_import_committed')->count());
+        self::assertSame(1, AuditEvent::query()->where('event', 'kingdoms.roster_import_committed')->count());
 
         $this->withSession($session)->post('/alliance/roster/import/preview', [
             'file' => UploadedFile::fake()->createWithContent('same-content.csv', $csv),
@@ -144,9 +171,15 @@ final class RosterCsvImportTest extends TestCase
     public function test_rejected_rows_and_preview_drift_fail_closed(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'CSV Fail Closed', 'csv-fail-closed', 4103);
-        $session = $this->confirmedSession($alliance->id);
+        $kingdom = Kingdom::query()->create(['number' => 4103, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'csv-fail-owner',
+            'current_name' => 'CSV Fail Owner',
+        ]);
+        $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'CSV Fail Closed', 'csv-fail-closed');
+        $session = $this->confirmedSession($ownerPlayer->id);
         $this->actingAs($owner);
 
         $rejectedCsv = $this->csv([
@@ -186,34 +219,59 @@ final class RosterCsvImportTest extends TestCase
         $this->assertDatabaseCount('player_snapshots', 0);
     }
 
-    public function test_import_access_is_permission_and_tenant_scoped(): void
+    public function test_import_access_is_permission_and_active_player_tenant_scoped(): void
     {
         $firstOwner = User::factory()->create();
         $secondOwner = User::factory()->create();
         $member = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 4104, 'status' => 'active']);
+        $firstOwnerPlayer = Player::query()->create([
+            'user_id' => $firstOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'csv-first-owner',
+            'current_name' => 'CSV First Owner',
+        ]);
+        $secondOwnerPlayer = Player::query()->create([
+            'user_id' => $secondOwner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'csv-second-owner',
+            'current_name' => 'CSV Second Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $member->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'csv-member',
+            'current_name' => 'CSV Member',
+        ]);
         $createAlliance = $this->app->make(CreateAlliance::class);
-        $first = $createAlliance->handle($firstOwner, 'CSV Tenant One', 'csv-tenant-one', 4104);
-        $second = $createAlliance->handle($secondOwner, 'CSV Tenant Two', 'csv-tenant-two', 4104);
-        $this->addMember($first->id, $member);
+        $first = $createAlliance->handle($firstOwnerPlayer, 'CSV Tenant One', 'csv-tenant-one');
+        $second = $createAlliance->handle($secondOwnerPlayer, 'CSV Tenant Two', 'csv-tenant-two');
+        AllianceMembership::query()->create([
+            'alliance_id' => $first->id,
+            'player_id' => $memberPlayer->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
+            'joined_at' => now(),
+        ]);
 
         $csv = $this->csv([
             ['tenant-1', 'Tenant Player', '100', '', '', '', 'active', '', '2026-08-08T18:30:00Z'],
         ]);
         $this->actingAs($firstOwner)
-            ->withSession($this->confirmedSession($first->id))
+            ->withSession($this->confirmedSession($firstOwnerPlayer->id))
             ->post('/alliance/roster/import/preview', [
                 'file' => UploadedFile::fake()->createWithContent('tenant.csv', $csv),
             ])->assertRedirect();
         $import = RosterImport::query()->sole();
 
         $this->actingAs($secondOwner)
-            ->withSession($this->confirmedSession($second->id))
+            ->withSession($this->confirmedSession($secondOwnerPlayer->id))
             ->get('/alliance/roster/import/'.$import->id)
             ->assertNotFound();
         $this->post('/alliance/roster/import/'.$import->id.'/commit')->assertNotFound();
 
         $this->actingAs($member)
-            ->withSession($this->confirmedSession($first->id))
+            ->withSession($this->confirmedSession($memberPlayer->id))
             ->get('/alliance/roster/import')
             ->assertForbidden();
         $this->post('/alliance/roster/import/preview', [
@@ -225,10 +283,28 @@ final class RosterCsvImportTest extends TestCase
     {
         $owner = User::factory()->create();
         $member = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'CSV Export', 'csv-export', 4105);
-        $this->addMember($alliance->id, $member);
-        $session = $this->confirmedSession($alliance->id);
+        $kingdom = Kingdom::query()->create(['number' => 4105, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'csv-export-owner',
+            'current_name' => 'CSV Export Owner',
+        ]);
+        $memberPlayer = Player::query()->create([
+            'user_id' => $member->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'csv-export-member',
+            'current_name' => 'CSV Export Member',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'CSV Export', 'csv-export');
+        AllianceMembership::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $memberPlayer->id,
+            'status' => MembershipStatus::Active,
+            'rank' => AllianceRank::R1,
+            'joined_at' => now(),
+        ]);
+        $session = $this->confirmedSession($ownerPlayer->id);
 
         $this->actingAs($owner)->withSession($session)->post('/alliance/roster', [
             'name' => '=HYPERLINK("https://example.test")',
@@ -238,7 +314,7 @@ final class RosterCsvImportTest extends TestCase
             'manager_notes' => '@SUM(1,1)',
         ])->assertRedirect();
         $entry = AllianceRosterEntry::query()->sole();
-        $this->app->make(RecordPlayerSnapshot::class)->handle($alliance, $owner, (string) $entry->id, [
+        $this->app->make(RecordPlayerSnapshot::class)->handle($alliance, $ownerPlayer, (string) $entry->id, [
             'observed_name' => '=HYPERLINK("https://example.test")',
             'power' => '9000',
             'progression_level' => '35',
@@ -247,7 +323,7 @@ final class RosterCsvImportTest extends TestCase
         ]);
 
         $memberResponse = $this->actingAs($member)
-            ->withSession([(string) config('identity.active_alliance_session_key') => $alliance->id])
+            ->withSession([(string) config('identity.active_player_session_key') => $memberPlayer->id])
             ->get('/alliance/roster/export.csv?scope=member')
             ->assertOk()
             ->assertHeader('X-Content-Type-Options', 'nosniff');
@@ -267,7 +343,7 @@ final class RosterCsvImportTest extends TestCase
         $this->get('/alliance/roster/export.csv?scope=management')->assertForbidden();
 
         $managerResponse = $this->actingAs($owner)
-            ->withSession([(string) config('identity.active_alliance_session_key') => $alliance->id])
+            ->withSession([(string) config('identity.active_player_session_key') => $ownerPlayer->id])
             ->get('/alliance/roster/export.csv?scope=management')
             ->assertOk();
         $managerContent = $managerResponse->getContent();
@@ -279,9 +355,15 @@ final class RosterCsvImportTest extends TestCase
     public function test_parser_enforces_maximum_row_count_and_file_size(): void
     {
         $owner = User::factory()->create();
-        $alliance = $this->app->make(CreateAlliance::class)
-            ->handle($owner, 'CSV Limits', 'csv-limits', 4106);
-        $session = $this->confirmedSession($alliance->id);
+        $kingdom = Kingdom::query()->create(['number' => 4106, 'status' => 'active']);
+        $ownerPlayer = Player::query()->create([
+            'user_id' => $owner->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'csv-limits-owner',
+            'current_name' => 'CSV Limits Owner',
+        ]);
+        $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'CSV Limits', 'csv-limits');
+        $session = $this->confirmedSession($ownerPlayer->id);
         $this->actingAs($owner);
 
         $rows = [];
@@ -321,24 +403,7 @@ final class RosterCsvImportTest extends TestCase
             ])->assertSessionHasErrors('file');
     }
 
-    private function addMember(string $allianceId, User $user): AllianceMembership
-    {
-        $membership = AllianceMembership::query()->create([
-            'alliance_id' => $allianceId,
-            'user_id' => $user->id,
-            'status' => MembershipStatus::Active,
-            'joined_at' => now(),
-        ]);
-        $role = Role::query()
-            ->where('alliance_id', $allianceId)
-            ->where('key', DefaultAllianceRole::Member->value)
-            ->sole();
-        $membership->roles()->attach($role->id, ['alliance_id' => $allianceId]);
-
-        return $membership;
-    }
-
-    /** @param  list<list<string>>  $rows */
+    /** @param list<list<string>> $rows */
     private function csv(array $rows): string
     {
         $handle = fopen('php://temp', 'w+b');
@@ -356,10 +421,10 @@ final class RosterCsvImportTest extends TestCase
     }
 
     /** @return array<string, int|string> */
-    private function confirmedSession(string $allianceId): array
+    private function confirmedSession(string $playerId): array
     {
         return [
-            (string) config('identity.active_alliance_session_key') => $allianceId,
+            (string) config('identity.active_player_session_key') => $playerId,
             'auth.password_confirmed_at' => time(),
         ];
     }

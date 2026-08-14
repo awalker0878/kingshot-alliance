@@ -9,7 +9,7 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\OutboxMessage;
@@ -27,7 +27,7 @@ final readonly class AssignMembershipRole
 
     public function handle(
         Alliance $alliance,
-        User $actor,
+        Player $actor,
         string $membershipId,
         string $roleId,
     ): AllianceMembership {
@@ -44,7 +44,7 @@ final readonly class AssignMembershipRole
 
             if ($membership->status !== MembershipStatus::Active) {
                 throw ValidationException::withMessages([
-                    'membership' => 'Only active memberships can receive role assignments.',
+                    'membership' => 'Only active memberships can receive specialist roles.',
                 ]);
             }
 
@@ -57,24 +57,19 @@ final readonly class AssignMembershipRole
                 return $membership->refresh();
             }
 
-            $membership->roles()->attach($role->id, [
-                'alliance_id' => $alliance->id,
-            ]);
+            $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
 
-            $this->audit->record(
-                event: 'membership.role_assigned',
-                actor: $actor,
-                subject: $membership,
-                alliance: $alliance,
-                metadata: [
-                    'role_id' => $role->id,
-                    'role_key' => $role->key,
-                    'user_id' => $membership->user_id,
-                ],
-            );
+            $metadata = [
+                'role_id' => $role->id,
+                'role_key' => $role->key,
+                'player_id' => $membership->player_id,
+            ];
+
+            $this->audit->record('membership.role_assigned', $actor, $membership, $alliance, $metadata);
 
             OutboxMessage::query()->create([
                 'alliance_id' => $alliance->id,
+                'partition_key' => 'alliance:'.$alliance->id,
                 'event_type' => 'membership.role_assigned',
                 'aggregate_type' => AllianceMembership::class,
                 'aggregate_id' => $membership->id,
@@ -82,7 +77,7 @@ final readonly class AssignMembershipRole
                 'payload' => [
                     'alliance_id' => $alliance->id,
                     'membership_id' => $membership->id,
-                    'user_id' => $membership->user_id,
+                    'player_id' => $membership->player_id,
                     'role_id' => $role->id,
                     'role_key' => $role->key,
                 ],

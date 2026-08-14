@@ -14,11 +14,11 @@ final class KingdomRosterStructureTest extends TestCase
 
         foreach ([
             'Enums/RosterState.php',
-            'Models/KingdomPlayer.php',
+            'Models/Player.php',
             'Models/AllianceRosterEntry.php',
             'Models/PlayerSnapshot.php',
             'Models/RosterImport.php',
-            'Actions/ResolveKingdomPlayer.php',
+            'Actions/ResolvePlayer.php',
             'Actions/SaveRosterEntry.php',
             'Actions/MarkRosterEntryLeft.php',
             'Actions/RecordPlayerSnapshot.php',
@@ -74,7 +74,6 @@ final class KingdomRosterStructureTest extends TestCase
         $fanout = file_get_contents($root.'/app/Domain/Integrations/Actions/QueueWebhookDeliveries.php');
         self::assertIsString($fanout);
 
-        self::assertStringContainsString("\$eventType !== 'alliance.kingdom_updated'", $fanout);
         self::assertStringContainsString("str_starts_with(\$eventType, 'kingdoms.')", $fanout);
     }
 }

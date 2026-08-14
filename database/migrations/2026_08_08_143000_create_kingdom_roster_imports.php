@@ -13,8 +13,8 @@ return new class extends Migration
         Schema::create('kingdom_roster_imports', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('alliance_id')->constrained('alliances')->cascadeOnDelete();
-            $table->foreignId('created_by_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('committed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
+            $table->foreignUlid('committed_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->string('status', 24)->default('previewed');
             $table->string('schema_version', 32);
             $table->string('original_filename', 255);

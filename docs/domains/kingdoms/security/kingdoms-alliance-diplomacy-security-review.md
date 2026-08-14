@@ -36,7 +36,7 @@ A tracking ID belonging to another tenant fails closed before relationship looku
 
 `KingdomAlliance` remains neutral reference data only. Diplomacy state, dates, private terms/rationale, actors and transition history live on tenant-owned tables.
 
-Diplomacy does not create, merge, relink or authorize platform `Alliance`, `User`, `AllianceMembership`, or `KingdomPlayer` records.
+Diplomacy does not create, merge, relink or authorize platform `Alliance`, `User`, `AllianceMembership`, or `Player` records.
 
 Name/tag/handle values never become identity keys through this slice.
 
@@ -106,7 +106,7 @@ Slice C1 adds no:
 - automatic state change from power/observations/attacks/transfers;
 - automated negotiation/message generation;
 - contact directory;
-- `KingdomPlayer` contact linkage;
+- `Player` contact linkage;
 - scraping/OCR/bot/automated game ingestion; or
 - cross-tenant/shared intelligence.
 

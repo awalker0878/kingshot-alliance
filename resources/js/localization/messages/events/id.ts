@@ -1,106 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  eventCoordinator: {
-    backToEvents: 'Kembali ke event',
-    eyebrow: 'Operasi event',
-    title: 'Koordinator event',
-    description:
-      'Jadwalkan event, terbitkan panduan rally, atur formasi dan grup, lalu catat kehadiran dan partisipasi.',
-    scheduling: 'Jadwal & template',
-    remindersGuidance: 'Pengingat & panduan',
-    rallySetup: 'Formasi & setup rally',
-    readiness: 'Kesiapan & kehadiran',
-    createEvent: 'Buat event',
-    eventTitle: 'Judul event',
-    firstStart: 'Mulai pertama',
-    durationMinutes: 'Durasi (menit)',
-    registrationOpens: 'Pendaftaran dibuka (menit sebelum)',
-    registrationCloses: 'Pendaftaran ditutup (menit sebelum)',
-    recurrence: 'Pengulangan',
-    recurrenceEnd: 'Akhir pengulangan',
-    createEventAction: 'Buat event',
-    eventValidation: 'Periksa kolom event dan jendela pendaftaran.',
-    createTemplate: 'Buat template event',
-    saveTemplate: 'Simpan template',
-    scheduleFromTemplate: 'Jadwalkan dari template',
-    chooseTemplate: 'Pilih template',
-    optionalTitle: 'Judul opsional',
-    scheduleTemplate: 'Jadwalkan template',
-    reminderRule: 'Aturan pengingat',
-    reminderHelp: 'Buat pengingat di aplikasi untuk setiap kejadian dari event yang dipilih.',
-    chooseEvent: 'Pilih event',
-    minutesBefore: 'Menit sebelum mulai',
-    addReminder: 'Tambah pengingat',
-    rallyGuidance: 'Panduan rally',
-    guidanceHelp:
-      'Terbitkan rasio pasukan dan panduan hero yang dapat digunakan ulang dengan tanggal berlaku.',
-    heroRecommendations: 'Rekomendasi hero',
-    effectiveFrom: 'Berlaku mulai',
-    effectiveUntil: 'Berlaku sampai',
-    leadRequirements: 'Persyaratan pemimpin',
-    joinerGuidance: 'Panduan joiner',
-    guidanceValidation: 'Periksa tanggal berlaku dan pastikan rasio pasukan berjumlah 100%.',
-    publishGuidance: 'Terbitkan panduan',
-    eventFormation: 'Formasi event',
-    occurrence: 'Kejadian',
-    chooseOccurrence: 'Pilih kejadian',
-    noGuidance: 'Tanpa panduan terkait',
-    addFormation: 'Tambah formasi',
-    rallyGroup: 'Grup rally',
-    maxJoiners: 'Maks. joiner',
-    none: 'Tidak ada',
-    createGroup: 'Buat grup',
-    assignMember: 'Tugaskan anggota rally',
-    member: 'Anggota',
-    chooseGroup: 'Pilih grup',
-    chooseMember: 'Pilih anggota',
-    slotNumber: 'Nomor slot',
-    saveAssignment: 'Simpan penugasan',
-    registrations: 'Pendaftaran',
-    noRegistrations: 'Tidak ada pendaftaran aktif untuk kejadian ini.',
-    rallyAssignments: 'Penugasan rally',
-    noAssignments: 'Tidak ada penugasan rally untuk kejadian ini.',
-    participated: 'Berpartisipasi',
-    statusAssigned: 'Ditugaskan',
-    statusParticipated: 'Berpartisipasi',
-    recurrenceNone: 'Tidak ada',
-    recurrenceDaily: 'Harian',
-    recurrenceWeekly: 'Mingguan',
-    roleLead: 'Pemimpin',
-  },
-  eventDetail: {
-    participation: 'Partisipasi',
-    registeredCount: '{count} terdaftar',
-    waitlistedCount: '{count} dalam daftar tunggu',
-    noLimit: 'Tanpa batas',
-    instructions: 'Instruksi',
-    recommendedFormations: 'Formasi yang disarankan',
-    noRecommendedFormations: 'Belum ada panduan formasi khusus untuk event ini.',
-    assignmentRole: 'Peran penugasan',
-    troopRatio: 'Rasio pasukan',
-    infantry: 'Infanteri',
-    cavalry: 'Kavaleri',
-    archers: 'Pemanah',
-    heroes: 'Hero',
-    notes: 'Catatan',
-    guidance: 'Panduan',
-    source: 'Sumber',
-    effective: 'Berlaku {date}',
-    through: 'hingga {date}',
-    rallyGroups: 'Grup rally',
-    maxJoiners: 'Maks. anggota: {count}',
-    noAssigned: 'Belum ada anggota yang ditugaskan.',
-    noRallyGroups: 'Belum ada grup rally untuk event ini.',
-    savedFormations: 'Formasi tersimpan Anda',
-    noSavedFormations: 'Anda belum menyimpan formasi.',
-    saveFormation: 'Simpan formasi',
-    formationName: 'Nama',
-    heroesHint: 'Hero satu, Hero dua, Hero tiga',
-    makeDefault: 'Jadikan formasi default saya',
-    formationValidation: 'Periksa nilai formasi. Persentase pasukan harus berjumlah 100%.',
-    save: 'Simpan formasi',
-  },
+  "events": {
+    "scope": {
+      "player": "Pemain",
+      "alliance": "Aliansi",
+      "kingdom": "Kerajaan"
+    },
+    "actions": {
+      "save": "Simpan",
+      "cancel": "Batal"
+    },
+    "calendar": {
+      "title": "Event",
+      "create": "Buat event",
+      "agenda": "Agenda",
+      "month": "Kalender",
+      "all": "Semua cakupan",
+      "manageable": "Kelola",
+      "empty": "Tidak ada event yang cocok dengan tampilan ini.",
+      "previousMonth": "Bulan sebelumnya",
+      "nextMonth": "Bulan berikutnya",
+      "scopeFilters": "Filter event berdasarkan cakupan",
+      "viewOptions": "Pilih tampilan event"
+    },
+    "create": {
+      "title": "Buat event",
+      "back": "Kembali ke event",
+      "noContexts": "Saat ini Anda tidak memiliki izin untuk membuat event.",
+      "context": "Konteks event",
+      "eventType": "Jenis event",
+      "start": "Waktu mulai",
+      "duration": "Durasi (menit)",
+      "capacity": "Kapasitas",
+      "instructions": "Petunjuk",
+      "submit": "Buat event"
+    },
+    "show": {
+      "back": "Kembali ke event",
+      "manage": "Kelola event",
+      "details": "Detail event",
+      "status": "Status",
+      "capacity": "Kapasitas",
+      "recurrence": "Pengulangan",
+      "modules": "Modul operasional"
+    },
+    "manage": {
+      "title": "Kelola event",
+      "back": "Kembali ke event",
+      "save": "Simpan event",
+      "cancel": "Batalkan event"
+    },
+    "attention": {
+      "title": "Tindakan event",
+      "response": "Perlu respons",
+      "registration": "Pendaftaran tersedia",
+      "vote": "Perlu suara",
+      "roster_confirmation": "Perlu konfirmasi roster"
+    },
+    "reminders": {
+      "title": "Pengingat terbaru"
+    },
+    "participation": {
+      "register": "Daftar",
+      "cancelRegistration": "Batalkan pendaftaran"
+    },
+    "responses": {
+      "going": "Ikut",
+      "maybe": "Mungkin",
+      "unavailable": "Tidak tersedia"
+    },
+    "registration": {
+      "registered": "Terdaftar",
+      "waitlisted": "Daftar tunggu",
+      "cancelled": "Dibatalkan"
+    },
+    "scheduleSources": {
+      "alliance_controlled": "Dikendalikan aliansi",
+      "game_calendar": "Kalender game",
+      "matchmaking": "Matchmaking",
+      "manual": "Manual"
+    },
+    "recurrencePolicies": {
+      "disabled": "Tanpa pengulangan",
+      "fixed_interval": "Interval tetap",
+      "configurable": "Dapat dikonfigurasi"
+    },
+    "recurrenceFrequencies": {
+      "none": "Tanpa pengulangan",
+      "daily": "Harian",
+      "weekly": "Mingguan"
+    },
+    "attendanceStatuses": {
+      "present": "Hadir",
+      "absent": "Tidak hadir",
+      "excused": "Berhalangan",
+      "unknown": "Tidak diketahui"
+    },
+    "eventStatuses": {
+      "draft": "Draf",
+      "published": "Dipublikasikan",
+      "cancelled": "Dibatalkan",
+      "completed": "Selesai"
+    },
+    "capabilities": {
+      "responses": "Respons",
+      "registration": "Pendaftaran",
+      "waitlist": "Daftar tunggu",
+      "attendance": "Kehadiran",
+      "phases": "Fase",
+      "polls": "Polling",
+      "rosters": "Roster",
+      "substitutes": "Pengganti",
+      "teams": "Tim",
+      "legions": "Legiun",
+      "rally_guidance": "Panduan rally",
+      "formations": "Formasi",
+      "objectives": "Objektif",
+      "scoring": "Skor",
+      "results": "Hasil"
+    },
+    "reminderAudiences": {
+      "target": "Target event",
+      "responded": "Pemain yang merespons",
+      "registered": "Pemain terdaftar",
+      "rostered": "Pemain di roster",
+      "all_scope_players": "Semua pemain yang memenuhi syarat"
+    }
+  }
 } satisfies MessageCatalogue;
 
 export default messages;
