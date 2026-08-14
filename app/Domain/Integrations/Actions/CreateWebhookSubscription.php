@@ -8,9 +8,9 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Integrations\Models\WebhookSubscription;
 use App\Domain\Integrations\Services\WebhookEndpointPolicy;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Platform\Services\PlanEntitlementService;
@@ -35,9 +35,9 @@ final readonly class CreateWebhookSubscription
             throw new AuthorizationException;
         }
 
-        $settings = AlliancePlatformSetting::query()->find($alliance->id);
-        if ($settings !== null && ! $settings->webhooks_enabled) {
-            throw ValidationException::withMessages(['webhooks' => 'Webhooks are disabled for this alliance.']);
+        $name = trim($name);
+        if ($name === '') {
+            throw ValidationException::withMessages(['name' => 'Webhook subscription name is required.']);
         }
 
         $events = array_values(array_unique(array_map('strval', $events)));
@@ -51,25 +51,37 @@ final readonly class CreateWebhookSubscription
         }
 
         $this->endpointPolicy->assertAllowed($url);
-        $this->entitlements->assertWebhookCapacity($alliance);
 
         return DB::transaction(function () use ($alliance, $actor, $name, $url, $events): WebhookSubscription {
+            $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $lockedActor = Player::query()->lockForUpdate()->findOrFail($actor->id);
+            if (! $this->authorization->allows($lockedActor, $currentAlliance, PermissionKey::AllianceManage)) {
+                throw new AuthorizationException;
+            }
+
+            $settings = AlliancePlatformSetting::query()->lockForUpdate()->find($currentAlliance->id);
+            if ($settings !== null && ! $settings->webhooks_enabled) {
+                throw ValidationException::withMessages(['webhooks' => 'Webhooks are disabled for this alliance.']);
+            }
+
+            $this->entitlements->assertWebhookCapacity($currentAlliance);
+
             $subscription = WebhookSubscription::query()->create([
-                'alliance_id' => $alliance->id,
-                'name' => trim($name),
+                'alliance_id' => $currentAlliance->id,
+                'name' => $name,
                 'url' => $url,
                 'events' => $events,
                 'signing_secret' => bin2hex(random_bytes(32)),
                 'is_active' => true,
-                'created_by_player_id' => $actor->id,
+                'created_by_player_id' => $lockedActor->id,
             ]);
 
-            $this->audit->record('integration.webhook.created', $actor, $subscription, $alliance, [
+            $this->audit->record('integration.webhook.created', $lockedActor, $subscription, $currentAlliance, [
                 'subscription_id' => $subscription->id,
                 'url_host' => parse_url($url, PHP_URL_HOST),
                 'events' => $events,
             ]);
-            $this->outbox->record('integration.webhook.created', $alliance->id, $subscription, [
+            $this->outbox->record('integration.webhook.created', $currentAlliance->id, $subscription, [
                 'subscription_id' => $subscription->id,
                 'events' => $events,
             ]);
