@@ -17,17 +17,21 @@ final readonly class MembershipAdministrationGuard
 {
     public function __construct(private AllianceAuthorization $authorization) {}
 
+    /**
+     * Validate membership administration while locking the actor membership.
+     * Call this only from an existing database transaction.
+     */
     public function assertCanManage(Player $actor, Alliance $alliance, AllianceMembership $target): void
     {
         if ((string) $target->alliance_id !== (string) $alliance->id) {
             throw new AuthorizationException;
         }
 
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::MembershipManage)) {
+        if (! $this->authorization->allowsForUpdate($actor, $alliance, PermissionKey::MembershipManage)) {
             throw new AuthorizationException;
         }
 
-        $actorMembership = $this->authorization->activeMembership($actor, $alliance);
+        $actorMembership = $this->authorization->activeMembershipForUpdate($actor, $alliance);
 
         if (! $actorMembership instanceof AllianceMembership) {
             throw new AuthorizationException;
