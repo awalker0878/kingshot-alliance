@@ -10,6 +10,7 @@ use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -53,19 +54,26 @@ final class ResetPasswordController extends Controller
                     return;
                 }
 
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+                $currentUser = DB::transaction(function () use ($user, $password): User {
+                    $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+                    $locked->forceFill([
+                        'password' => Hash::make($password),
+                        'remember_token' => Str::random(60),
+                    ])->save();
+                    $locked->tokens()->delete();
 
-                $user->tokens()->delete();
-                event(new PasswordReset($user));
+                    $this->audit->record(
+                        event: 'auth.password.reset',
+                        actor: $locked,
+                        subject: $locked,
+                    );
 
-                $this->audit->record(
-                    event: 'auth.password.reset',
-                    actor: $user,
-                    subject: $user,
-                );
+                    return $locked->refresh();
+                });
+
+                // Framework/event listeners run after our User-row transaction so mail or
+                // other external side effects cannot extend the database lock lifetime.
+                event(new PasswordReset($currentUser));
             },
         );
 
