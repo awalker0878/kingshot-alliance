@@ -25,7 +25,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveTransferParticipant
 {
     public function __construct(
-        private AllianceMutationAuthority $mutations,
+        private AllianceMutationAuthority $authority,
         private ResolveKingdom $kingdoms,
         private ResolveTransferPlayer $players,
         private AuditRecorder $audit,
@@ -51,27 +51,48 @@ final readonly class SaveTransferParticipant
         ?string $participantId = null,
     ): TransferParticipant {
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $participantId): TransferParticipant {
-            $authority = $this->mutations->require($actor, $alliance, PermissionKey::KingdomManage);
-            $currentAlliance = $authority->alliance;
-            $currentActor = $authority->actor;
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
 
             $plan = TransferPlan::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($planId)
                 ->lockForUpdate()
-                ->findOrFail($planId);
+                ->firstOrFail();
 
-            $this->assertMutable($currentAlliance, $plan);
+            $this->assertMutable($context->alliance, $plan);
+
+            $routing = $participantId === null
+                ? null
+                : TransferParticipant::query()
+                    ->select(['id', 'transfer_group_id'])
+                    ->where('alliance_id', $context->alliance->id)
+                    ->where('transfer_plan_id', $plan->id)
+                    ->whereKey($participantId)
+                    ->firstOrFail();
+
+            // Transfer domain order is plan -> group -> participant. Resolve the
+            // participant's immutable group route first, then lock the group before
+            // the participant so group edits and participant edits cannot invert.
+            $group = $routing?->transfer_group_id === null
+                ? null
+                : TransferGroup::query()
+                    ->where('alliance_id', $context->alliance->id)
+                    ->where('transfer_plan_id', $plan->id)
+                    ->whereKey($routing->transfer_group_id)
+                    ->lockForUpdate()
+                    ->first();
 
             $participant = $participantId === null
                 ? new TransferParticipant([
-                    'alliance_id' => $currentAlliance->id,
+                    'alliance_id' => $context->alliance->id,
                     'transfer_plan_id' => $plan->id,
                 ])
                 : TransferParticipant::query()
-                    ->where('alliance_id', $currentAlliance->id)
+                    ->where('alliance_id', $context->alliance->id)
                     ->where('transfer_plan_id', $plan->id)
+                    ->whereKey($participantId)
                     ->lockForUpdate()
-                    ->findOrFail($participantId);
+                    ->firstOrFail();
 
             if ($participant->exists && $participant->withdrawn_at !== null) {
                 throw ValidationException::withMessages([
@@ -79,15 +100,21 @@ final readonly class SaveTransferParticipant
                 ]);
             }
 
+            if ($participant->exists
+                && $participant->transfer_group_id !== null
+                && ! $group instanceof TransferGroup) {
+                throw ValidationException::withMessages([
+                    'participant' => 'The assigned transfer group no longer exists. Unassign or recreate the participant before editing it.',
+                ]);
+            }
+
             $direction = $attributes['direction'];
             $values = $direction->isRosterBound()
-                ? $this->rosterBoundValues($currentAlliance, $plan, $direction, $attributes, $participant)
+                ? $this->rosterBoundValues($context->alliance, $plan, $direction, $attributes, $participant)
                 : $this->incomingValues($plan, $attributes, $participant);
 
             $this->assertGroupCompatibility(
-                $currentAlliance,
-                $plan,
-                $participant,
+                $group,
                 $direction,
                 $values['destination_kingdom_id'],
             );
@@ -115,8 +142,8 @@ final readonly class SaveTransferParticipant
                 'destination_kingdom_id' => $participant->destination_kingdom_id,
             ];
 
-            $this->audit->record($event, $currentActor, $participant, $currentAlliance, $metadata);
-            $this->outbox->record($event, (string) $currentAlliance->id, $participant, $metadata);
+            $this->audit->record($event, $context->actor, $participant, $context->alliance, $metadata);
+            $this->outbox->record($event, (string) $context->alliance->id, $participant, $metadata);
 
             return $participant->refresh()->load([
                 'rosterEntry.player',
@@ -131,6 +158,9 @@ final readonly class SaveTransferParticipant
 
     private function assertUniquePlayer(TransferPlan $plan, string $playerId, TransferParticipant $participant): void
     {
+        // All participant mutations lock the plan first, so the non-withdrawn
+        // uniqueness decision is serialized within a transfer cycle. The schema's
+        // unique/foreign-key rules remain the hard persistence backstop.
         $duplicate = TransferParticipant::query()
             ->where('transfer_plan_id', $plan->id)
             ->where('player_id', $playerId)
@@ -148,24 +178,15 @@ final readonly class SaveTransferParticipant
     }
 
     private function assertGroupCompatibility(
-        Alliance $alliance,
-        TransferPlan $plan,
-        TransferParticipant $participant,
+        ?TransferGroup $group,
         TransferDirection $direction,
         ?string $destinationKingdomId,
     ): void {
-        if (! $participant->exists || $participant->transfer_group_id === null) {
+        if (! $group instanceof TransferGroup) {
             return;
         }
 
-        $group = TransferGroup::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('transfer_plan_id', $plan->id)
-            ->where('state', TransferGroupState::Active->value)
-            ->lockForUpdate()
-            ->find($participant->transfer_group_id);
-
-        if (! $group instanceof TransferGroup) {
+        if ($group->state !== TransferGroupState::Active) {
             throw ValidationException::withMessages([
                 'participant' => 'The assigned transfer group is no longer active. Unassign it before editing this participant.',
             ]);
@@ -216,11 +237,32 @@ final readonly class SaveTransferParticipant
             ]);
         }
 
+        // Roster identity order is Player -> roster. Route to the Player without a
+        // lock, lock the durable Player, then lock/revalidate the exact roster row.
+        $routing = AllianceRosterEntry::query()
+            ->select(['id', 'player_id'])
+            ->where('alliance_id', $alliance->id)
+            ->whereKey($rosterId)
+            ->first();
+
+        if (! $routing instanceof AllianceRosterEntry) {
+            throw ValidationException::withMessages([
+                'roster_entry_id' => 'The selected roster entry must belong to this Alliance.',
+            ]);
+        }
+
+        $rosterPlayer = Player::query()
+            ->whereKey($routing->player_id)
+            ->lockForUpdate()
+            ->firstOrFail();
+
         $roster = AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
+            ->where('player_id', $rosterPlayer->id)
             ->whereIn('state', [RosterState::Active->value, RosterState::Tracked->value])
+            ->whereKey($rosterId)
             ->lockForUpdate()
-            ->find($rosterId);
+            ->first();
 
         if (! $roster instanceof AllianceRosterEntry) {
             throw ValidationException::withMessages([
@@ -228,7 +270,6 @@ final readonly class SaveTransferParticipant
             ]);
         }
 
-        $rosterPlayer = Player::query()->lockForUpdate()->findOrFail($roster->player_id);
         if ((string) $rosterPlayer->current_kingdom_id !== (string) $alliance->kingdom_id
             || (string) $rosterPlayer->current_kingdom_id !== (string) $plan->home_kingdom_id) {
             throw ValidationException::withMessages([
