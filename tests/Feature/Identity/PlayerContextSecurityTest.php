@@ -78,7 +78,6 @@ final class PlayerContextSecurityTest extends TestCase
             ->assertNotFound();
     }
 
-
     public function test_single_owned_player_is_activated_automatically(): void
     {
         $user = User::factory()->create();
@@ -117,7 +116,7 @@ final class PlayerContextSecurityTest extends TestCase
             ->assertSessionMissing($sessionKey);
     }
 
-    public function test_forged_player_session_is_cleared_at_request_boundary(): void
+    public function test_forged_player_session_is_rejected_and_cleared_at_request_boundary(): void
     {
         $owner = User::factory()->create();
         $attacker = User::factory()->create();
@@ -134,7 +133,47 @@ final class PlayerContextSecurityTest extends TestCase
         $this->actingAs($attacker)
             ->withSession([$sessionKey => $player->id])
             ->get(route('dashboard'))
-            ->assertOk()
+            ->assertForbidden()
+            ->assertSessionMissing($sessionKey);
+    }
+
+    public function test_stale_player_session_is_rejected_instead_of_substituting_an_owned_player(): void
+    {
+        $user = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 7706, 'status' => 'active']);
+        Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'p-7706-owned',
+            'current_name' => 'Owned Player',
+        ]);
+        $stale = Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'p-7706-stale',
+            'current_name' => 'Deleted Player',
+        ]);
+        $staleId = (string) $stale->id;
+        $stale->delete();
+
+        $sessionKey = (string) config('identity.active_player_session_key');
+
+        $this->actingAs($user)
+            ->withSession([$sessionKey => $staleId])
+            ->get(route('dashboard'))
+            ->assertForbidden()
+            ->assertSessionMissing($sessionKey);
+    }
+
+    public function test_malformed_player_session_is_rejected_and_cleared(): void
+    {
+        $user = User::factory()->create();
+        $sessionKey = (string) config('identity.active_player_session_key');
+
+        $this->actingAs($user)
+            ->withSession([$sessionKey => ['not-a-player-id']])
+            ->get(route('dashboard'))
+            ->assertForbidden()
             ->assertSessionMissing($sessionKey);
     }
 }
