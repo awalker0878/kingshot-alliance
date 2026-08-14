@@ -52,7 +52,22 @@ final readonly class RespondRallyAssignment
         return DB::transaction(function () use ($actor, $assignment, $player, $status, $group, $occurrence, $event, $alliance, $target): RallyAssignment {
             EventOccurrence::query()->whereKey($occurrence->id)->lockForUpdate()->firstOrFail();
             $lockedGroup = RallyGroup::query()->whereKey($group->id)->lockForUpdate()->firstOrFail();
-            $locked = RallyAssignment::query()->whereKey($assignment->id)->where('player_id', $player->id)->lockForUpdate()->firstOrFail();
+            $lockedPlayer = Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
+            if ((string) $actor->id !== (string) $lockedPlayer->id) {
+                throw new AuthorizationException;
+            }
+
+            $this->authorization->authorizeSelf($lockedPlayer, $event, $lockedPlayer);
+            if (! $this->eligibility->eligible($event, $alliance, $lockedPlayer)) {
+                throw new AuthorizationException;
+            }
+
+            $locked = RallyAssignment::query()
+                ->whereKey($assignment->id)
+                ->where('rally_group_id', $lockedGroup->id)
+                ->where('player_id', $lockedPlayer->id)
+                ->lockForUpdate()
+                ->firstOrFail();
             if (in_array($locked->status, [RallyAssignmentStatus::Removed, RallyAssignmentStatus::Participated, RallyAssignmentStatus::Absent], true)) {
                 throw ValidationException::withMessages(['status' => 'This Rally assignment can no longer be confirmed or declined.']);
             }
@@ -87,7 +102,7 @@ final readonly class RespondRallyAssignment
                     throw ValidationException::withMessages(['status' => 'This Rally slot has been reassigned.']);
                 }
                 if (RallyAssignment::query()
-                    ->where('player_id', $player->id)
+                    ->where('player_id', $lockedPlayer->id)
                     ->whereIn('status', $occupying)
                     ->where('id', '!=', $locked->id)
                     ->whereHas('rallyGroup', static fn ($query) => $query
@@ -100,7 +115,7 @@ final readonly class RespondRallyAssignment
 
             $locked->forceFill([
                 'status' => $status,
-                'responded_by_player_id' => $player->id,
+                'responded_by_player_id' => $lockedPlayer->id,
                 'responded_at' => now(),
             ])->save();
             $metadata = [
@@ -108,10 +123,10 @@ final readonly class RespondRallyAssignment
                 'occurrence_id' => (string) $occurrence->id,
                 'alliance_id' => (string) $alliance->id,
                 'rally_group_id' => (string) $lockedGroup->id,
-                'player_id' => (string) $player->id,
+                'player_id' => (string) $lockedPlayer->id,
                 'status' => $status->value,
             ];
-            $this->audit->record('rally.assignment.responded', $actor, $locked, $alliance, $metadata);
+            $this->audit->record('rally.assignment.responded', $lockedPlayer, $locked, $alliance, $metadata);
             $this->outbox->record('rally.assignment.responded', (string) $alliance->id, $locked, $metadata, partitionKey: $event->scope->value.':'.$target->id);
 
             return $locked->refresh()->load(['rallyGroup', 'player']);
