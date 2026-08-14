@@ -33,25 +33,22 @@ final readonly class AcceptInvitation
 
     public function handle(User $user, string $token): AllianceMembership
     {
-        return DB::transaction(function () use ($user, $token): AllianceMembership {
-            $invitation = Invitation::query()
-                ->where('token_hash', $this->tokens->hash($token))
-                ->where('status', InvitationStatus::Pending->value)
-                ->where('expires_at', '>', now())
-                ->with(['alliance', 'player'])
-                ->lockForUpdate()
+        $tokenHash = $this->tokens->hash($token);
+
+        // Resolve the immutable routing keys without taking locks so the transaction
+        // can acquire them in the repository-standard lifecycle-first order.
+        $candidate = Invitation::query()
+            ->select(['id', 'alliance_id'])
+            ->where('token_hash', $tokenHash)
+            ->where('status', InvitationStatus::Pending->value)
+            ->where('expires_at', '>', now())
+            ->firstOrFail();
+
+        return DB::transaction(function () use ($user, $tokenHash, $candidate): AllianceMembership {
+            $alliance = Alliance::query()
+                ->whereKey($candidate->alliance_id)
+                ->sharedLock()
                 ->firstOrFail();
-
-            if (! hash_equals(Str::lower((string) $invitation->email), Str::lower((string) $user->email))) {
-                throw new AuthorizationException;
-            }
-
-            $alliance = $invitation->alliance;
-            $player = $invitation->player;
-
-            if (! $alliance instanceof Alliance || ! $player instanceof Player) {
-                throw new LogicException('An invitation must reference an Alliance and Player.');
-            }
 
             if ($alliance->status !== AllianceStatus::Active) {
                 throw ValidationException::withMessages([
@@ -59,16 +56,38 @@ final readonly class AcceptInvitation
                 ]);
             }
 
-            $lockedPlayer = Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
+            $invitation = Invitation::query()
+                ->whereKey($candidate->id)
+                ->where('alliance_id', $alliance->id)
+                ->where('token_hash', $tokenHash)
+                ->where('status', InvitationStatus::Pending->value)
+                ->where('expires_at', '>', now())
+                ->lockForUpdate()
+                ->firstOrFail();
 
-            if ($lockedPlayer->user_id !== null && (int) $lockedPlayer->user_id !== (int) $user->id) {
+            $currentUser = User::query()
+                ->whereKey($user->id)
+                ->sharedLock()
+                ->firstOrFail();
+
+            if (! hash_equals(Str::lower((string) $invitation->email), Str::lower((string) $currentUser->email))) {
+                throw new AuthorizationException;
+            }
+
+            $player = $invitation->player()->first();
+            if (! $player instanceof Player) {
+                throw new LogicException('An invitation must reference a Player.');
+            }
+
+            $lockedPlayer = Player::query()
+                ->whereKey($player->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedPlayer->user_id !== null && (int) $lockedPlayer->user_id !== (int) $currentUser->id) {
                 throw ValidationException::withMessages([
                     'invitation' => 'This Player belongs to another account.',
                 ]);
-            }
-
-            if ($lockedPlayer->user_id === null) {
-                $lockedPlayer->forceFill(['user_id' => $user->id])->save();
             }
 
             if ((string) $lockedPlayer->current_kingdom_id !== (string) $alliance->kingdom_id) {
@@ -77,11 +96,14 @@ final readonly class AcceptInvitation
                 ]);
             }
 
-            if (! AllianceRosterEntry::query()
+            $roster = AllianceRosterEntry::query()
                 ->where('alliance_id', $alliance->id)
                 ->where('player_id', $lockedPlayer->id)
                 ->where('state', RosterState::Active->value)
-                ->exists()) {
+                ->sharedLock()
+                ->first();
+
+            if (! $roster instanceof AllianceRosterEntry) {
                 throw ValidationException::withMessages([
                     'invitation' => 'This Player is no longer active on the Alliance roster.',
                 ]);
@@ -91,9 +113,10 @@ final readonly class AcceptInvitation
                 ->where('player_id', $lockedPlayer->id)
                 ->where('status', MembershipStatus::Active->value)
                 ->where('alliance_id', '!=', $alliance->id)
-                ->exists();
+                ->lockForUpdate()
+                ->first();
 
-            if ($otherActiveMembership) {
+            if ($otherActiveMembership instanceof AllianceMembership) {
                 throw ValidationException::withMessages([
                     'invitation' => 'This Player is already active in another Alliance.',
                 ]);
@@ -120,6 +143,10 @@ final readonly class AcceptInvitation
                     'joined_at' => $membership->joined_at ?? now(),
                     'left_at' => null,
                 ])->save();
+            }
+
+            if ($lockedPlayer->user_id === null) {
+                $lockedPlayer->forceFill(['user_id' => $currentUser->id])->save();
             }
 
             $invitation->forceFill([
