@@ -6,6 +6,8 @@ namespace App\Domain\Contributions\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Contributions\Enums\ContributionRecordStatus;
 use App\Domain\Contributions\Models\ContributionRecord;
 use App\Domain\Kingdoms\Models\Player;
@@ -16,6 +18,7 @@ use InvalidArgumentException;
 final class ReverseContributionRecord
 {
     public function __construct(
+        private readonly AllianceMutationAuthority $authority,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
     ) {}
@@ -26,34 +29,40 @@ final class ReverseContributionRecord
         ContributionRecord $record,
         string $reason,
     ): ContributionRecord {
-        if ($record->alliance_id !== $alliance->id) {
-            throw new InvalidArgumentException('Contribution record does not belong to the active alliance.');
-        }
-
-        if ($record->status === ContributionRecordStatus::Reversed) {
-            return $record;
-        }
-
-        if (trim($reason) === '') {
+        $reason = trim($reason);
+        if ($reason === '') {
             throw new InvalidArgumentException('A reversal reason is required.');
         }
 
         return DB::transaction(function () use ($actor, $alliance, $record, $reason): ContributionRecord {
-            $record->forceFill([
+            $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+            $locked = ContributionRecord::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($record->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($locked->status === ContributionRecordStatus::Reversed) {
+                return $locked;
+            }
+
+            $locked->forceFill([
                 'status' => ContributionRecordStatus::Reversed,
                 'reversed_at' => now(),
-                'reversed_by_player_id' => $actor->id,
+                'reversed_by_player_id' => $context->actor->id,
                 'reversal_reason' => $reason,
             ])->save();
 
-            $this->audit->record('contribution.record.reversed', $actor, $record, $alliance, [
+            $this->audit->record('contribution.record.reversed', $context->actor, $locked, $context->alliance, [
+                'player_id' => $locked->player_id,
                 'reason' => $reason,
             ]);
-            $this->outbox->record('contribution.record.reversed', $alliance->id, $record, [
-                'record_id' => $record->id,
+            $this->outbox->record('contribution.record.reversed', $context->alliance->id, $locked, [
+                'record_id' => $locked->id,
+                'player_id' => $locked->player_id,
             ]);
 
-            return $record->refresh();
+            return $locked->refresh();
         });
     }
 }
