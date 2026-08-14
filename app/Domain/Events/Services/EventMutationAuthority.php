@@ -55,9 +55,8 @@ final readonly class EventMutationAuthority
         $permission = PermissionKey::from((string) $typeScope->view_permission_key);
         $context = $this->require($actor, $currentEvent, $typeScope, $permission);
 
-        // Alliance/Kingdom Events allow an eligible Player to act for itself even
-        // though the Event target is the wider scope. Revalidate exact eligibility
-        // using locked/current Player and roster state before returning.
+        // Player identity is a mutation anchor. Acquire it exclusively from the start
+        // rather than taking a shared lock that callers later upgrade.
         if ($currentEvent->scope === EventScope::Alliance) {
             $alliance = $context->target;
             if (! $alliance instanceof Alliance) {
@@ -66,7 +65,7 @@ final readonly class EventMutationAuthority
 
             $currentParticipant = Player::query()
                 ->whereKey($participant->id)
-                ->sharedLock()
+                ->lockForUpdate()
                 ->firstOrFail();
 
             if ((string) $currentParticipant->current_kingdom_id !== (string) $alliance->kingdom_id
@@ -78,7 +77,11 @@ final readonly class EventMutationAuthority
                     ->exists()) {
                 throw new AuthorizationException;
             }
-        } elseif ($currentEvent->scope === EventScope::Kingdom) {
+
+            return new EventMutationContext($currentEvent, $typeScope, $currentParticipant, $alliance);
+        }
+
+        if ($currentEvent->scope === EventScope::Kingdom) {
             $kingdom = $context->target;
             if (! $kingdom instanceof Kingdom) {
                 throw new LogicException('Kingdom Event mutation context must resolve a Kingdom target.');
@@ -86,12 +89,14 @@ final readonly class EventMutationAuthority
 
             $currentParticipant = Player::query()
                 ->whereKey($participant->id)
-                ->sharedLock()
+                ->lockForUpdate()
                 ->firstOrFail();
 
             if ((string) $currentParticipant->current_kingdom_id !== (string) $kingdom->id) {
                 throw new AuthorizationException;
             }
+
+            return new EventMutationContext($currentEvent, $typeScope, $currentParticipant, $kingdom);
         }
 
         return $context;
@@ -104,9 +109,10 @@ final readonly class EventMutationAuthority
             throw new LogicException('Event mutation authority must be acquired inside a database transaction.');
         }
 
-        // Event scope/target/type-scope are the immutable routing contract for the
-        // mutation. Share-lock them so platform scope configuration or Event edits
-        // cannot change the permission vocabulary mid-write.
+        // Event scope/target/type-scope are the routing contract for child mutations.
+        // Share-lock them so platform scope configuration or Event edits cannot change
+        // the permission vocabulary mid-write. Event-owning mutations use their own
+        // exclusive Event lock before changing this contract.
         $currentEvent = Event::query()
             ->whereKey($event->id)
             ->sharedLock()
@@ -182,7 +188,8 @@ final readonly class EventMutationAuthority
 
         // Route through active roster Alliances deterministically. The selected
         // Alliance mutation authority serializes the manager's rank/role state;
-        // target Player + roster are then shared-locked to stabilize eligibility.
+        // target Player is then locked exclusively so its Kingdom/roster identity
+        // cannot move during the Player-scoped Event mutation.
         $candidateAllianceIds = AllianceRosterEntry::query()
             ->where('player_id', $target->id)
             ->where('state', RosterState::Active->value)
@@ -205,7 +212,7 @@ final readonly class EventMutationAuthority
 
             $currentTarget = Player::query()
                 ->whereKey($target->id)
-                ->sharedLock()
+                ->lockForUpdate()
                 ->firstOrFail();
 
             $eligible = (string) $currentTarget->current_kingdom_id === (string) $managerContext->alliance->kingdom_id
