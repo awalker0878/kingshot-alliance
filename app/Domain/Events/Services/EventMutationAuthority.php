@@ -36,30 +36,35 @@ final readonly class EventMutationAuthority
 
     public function requireManager(Player $actor, Event $event): EventMutationContext
     {
-        [$currentEvent, $typeScope] = $this->lockEventContract($event);
-        $permission = PermissionKey::from((string) $typeScope->manage_permission_key);
+        return $this->requireManagerWithEventLock($actor, $event, false);
+    }
 
-        return $this->require($actor, $currentEvent, $typeScope, $permission);
+    /** Use only when the caller owns an Event-aggregate mutation. */
+    public function requireManagerExclusive(Player $actor, Event $event): EventMutationContext
+    {
+        return $this->requireManagerWithEventLock($actor, $event, true);
     }
 
     public function requireSelf(Player $actor, Event $event, Player $participant): EventMutationContext
     {
-        [$currentEvent, $typeScope] = $this->lockEventContract($event);
+        $this->assertTransaction();
+        $route = $this->freshRoute($event);
+        $typeScope = $this->lockTypeScope($route);
 
         if ((string) $actor->id !== (string) $participant->id
-            || $currentEvent->scope === EventScope::Player
-                && (string) $currentEvent->player_id !== (string) $participant->id) {
+            || ($route->scope === EventScope::Player
+                && (string) $route->player_id !== (string) $participant->id)) {
             throw new AuthorizationException;
         }
 
         $permission = PermissionKey::from((string) $typeScope->view_permission_key);
-        $context = $this->require($actor, $currentEvent, $typeScope, $permission);
+        [$currentActor, $target] = $this->authorizeScope($actor, $route, $permission);
+        $currentEvent = $this->lockAndRevalidateEvent($route, false);
 
         // Player identity is a mutation anchor. Acquire it exclusively from the start
         // rather than taking a shared lock that callers later upgrade.
         if ($currentEvent->scope === EventScope::Alliance) {
-            $alliance = $context->target;
-            if (! $alliance instanceof Alliance) {
+            if (! $target instanceof Alliance) {
                 throw new LogicException('Alliance Event mutation context must resolve an Alliance target.');
             }
 
@@ -68,9 +73,9 @@ final readonly class EventMutationAuthority
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ((string) $currentParticipant->current_kingdom_id !== (string) $alliance->kingdom_id
+            if ((string) $currentParticipant->current_kingdom_id !== (string) $target->kingdom_id
                 || ! AllianceRosterEntry::query()
-                    ->where('alliance_id', $alliance->id)
+                    ->where('alliance_id', $target->id)
                     ->where('player_id', $currentParticipant->id)
                     ->where('state', RosterState::Active->value)
                     ->sharedLock()
@@ -78,12 +83,11 @@ final readonly class EventMutationAuthority
                 throw new AuthorizationException;
             }
 
-            return new EventMutationContext($currentEvent, $typeScope, $currentParticipant, $alliance);
+            return new EventMutationContext($currentEvent, $typeScope, $currentParticipant, $target);
         }
 
         if ($currentEvent->scope === EventScope::Kingdom) {
-            $kingdom = $context->target;
-            if (! $kingdom instanceof Kingdom) {
+            if (! $target instanceof Kingdom) {
                 throw new LogicException('Kingdom Event mutation context must resolve a Kingdom target.');
             }
 
@@ -92,94 +96,105 @@ final readonly class EventMutationAuthority
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ((string) $currentParticipant->current_kingdom_id !== (string) $kingdom->id) {
+            if ((string) $currentParticipant->current_kingdom_id !== (string) $target->id) {
                 throw new AuthorizationException;
             }
 
-            return new EventMutationContext($currentEvent, $typeScope, $currentParticipant, $kingdom);
+            return new EventMutationContext($currentEvent, $typeScope, $currentParticipant, $target);
         }
 
-        return $context;
+        return new EventMutationContext($currentEvent, $typeScope, $currentActor, $target);
     }
 
-    /** @return array{Event,EventTypeScope} */
-    private function lockEventContract(Event $event): array
+    private function requireManagerWithEventLock(Player $actor, Event $event, bool $exclusiveEvent): EventMutationContext
+    {
+        $this->assertTransaction();
+        $route = $this->freshRoute($event);
+        $typeScope = $this->lockTypeScope($route);
+        $permission = PermissionKey::from((string) $typeScope->manage_permission_key);
+        [$currentActor, $target] = $this->authorizeScope($actor, $route, $permission);
+        $currentEvent = $this->lockAndRevalidateEvent($route, $exclusiveEvent);
+
+        return new EventMutationContext($currentEvent, $typeScope, $currentActor, $target);
+    }
+
+    private function assertTransaction(): void
     {
         if (DB::transactionLevel() < 1) {
             throw new LogicException('Event mutation authority must be acquired inside a database transaction.');
         }
-
-        // Event scope/target/type-scope are the routing contract for child mutations.
-        // Share-lock them so platform scope configuration or Event edits cannot change
-        // the permission vocabulary mid-write. Event-owning mutations use their own
-        // exclusive Event lock before changing this contract.
-        $currentEvent = Event::query()
-            ->whereKey($event->id)
-            ->sharedLock()
-            ->firstOrFail();
-
-        $typeScope = EventTypeScope::query()
-            ->whereKey($currentEvent->event_type_scope_id)
-            ->where('scope', $currentEvent->scope->value)
-            ->sharedLock()
-            ->firstOrFail();
-
-        return [$currentEvent, $typeScope];
     }
 
-    private function require(
-        Player $actor,
-        Event $event,
-        EventTypeScope $typeScope,
-        PermissionKey $permission,
-    ): EventMutationContext {
+    /**
+     * Read current immutable routing values without a lock so authority rows can be
+     * acquired before the Event aggregate. The later Event lock revalidates all route
+     * fields before the caller is allowed to persist anything.
+     */
+    private function freshRoute(Event $event): Event
+    {
+        return Event::query()
+            ->select([
+                'id',
+                'event_type_scope_id',
+                'scope',
+                'alliance_id',
+                'kingdom_id',
+                'player_id',
+            ])
+            ->whereKey($event->id)
+            ->firstOrFail();
+    }
+
+    private function lockTypeScope(Event $route): EventTypeScope
+    {
+        return EventTypeScope::query()
+            ->whereKey($route->event_type_scope_id)
+            ->where('scope', $route->scope->value)
+            ->sharedLock()
+            ->firstOrFail();
+    }
+
+    /** @return array{Player,Alliance|Kingdom|Player} */
+    private function authorizeScope(Player $actor, Event $event, PermissionKey $permission): array
+    {
         if (! $this->authorization->supports($event->scope, $permission)) {
             throw new AuthorizationException;
         }
 
         return match ($event->scope) {
-            EventScope::Alliance => $this->requireAllianceScope($actor, $event, $typeScope, $permission),
-            EventScope::Kingdom => $this->requireKingdomScope($actor, $event, $typeScope, $permission),
-            EventScope::Player => $this->requirePlayerScope($actor, $event, $typeScope, $permission),
+            EventScope::Alliance => $this->authorizeAllianceScope($actor, $event, $permission),
+            EventScope::Kingdom => $this->authorizeKingdomScope($actor, $event, $permission),
+            EventScope::Player => $this->authorizePlayerScope($actor, $event, $permission),
         };
     }
 
-    private function requireAllianceScope(
-        Player $actor,
-        Event $event,
-        EventTypeScope $typeScope,
-        PermissionKey $permission,
-    ): EventMutationContext {
+    /** @return array{Player,Alliance} */
+    private function authorizeAllianceScope(Player $actor, Event $event, PermissionKey $permission): array
+    {
         $alliance = Alliance::query()->whereKey($event->alliance_id)->firstOrFail();
         $context = $this->allianceAuthority->require($actor, $alliance, $permission);
 
-        return new EventMutationContext($event, $typeScope, $context->actor, $context->alliance);
+        return [$context->actor, $context->alliance];
     }
 
-    private function requireKingdomScope(
-        Player $actor,
-        Event $event,
-        EventTypeScope $typeScope,
-        PermissionKey $permission,
-    ): EventMutationContext {
+    /** @return array{Player,Kingdom} */
+    private function authorizeKingdomScope(Player $actor, Event $event, PermissionKey $permission): array
+    {
         $kingdom = Kingdom::query()->whereKey($event->kingdom_id)->firstOrFail();
         $context = $this->kingdomAuthority->require($actor, $kingdom, $permission);
 
-        return new EventMutationContext($event, $typeScope, $context->actor, $context->kingdom);
+        return [$context->actor, $context->kingdom];
     }
 
-    private function requirePlayerScope(
-        Player $actor,
-        Event $event,
-        EventTypeScope $typeScope,
-        PermissionKey $permission,
-    ): EventMutationContext {
+    /** @return array{Player,Player} */
+    private function authorizePlayerScope(Player $actor, Event $event, PermissionKey $permission): array
+    {
         $target = Player::query()->whereKey($event->player_id)->firstOrFail();
 
         if ((string) $actor->id === (string) $target->id) {
             $context = $this->playerAuthority->require($actor);
 
-            return new EventMutationContext($event, $typeScope, $context->actor, $context->actor);
+            return [$context->actor, $context->actor];
         }
 
         if ($permission === PermissionKey::EventPlayerCreate) {
@@ -224,15 +239,28 @@ final readonly class EventMutationAuthority
                     ->exists();
 
             if ($eligible) {
-                return new EventMutationContext(
-                    $event,
-                    $typeScope,
-                    $managerContext->actor,
-                    $currentTarget,
-                );
+                return [$managerContext->actor, $currentTarget];
             }
         }
 
         throw new AuthorizationException;
+    }
+
+    private function lockAndRevalidateEvent(Event $route, bool $exclusive): Event
+    {
+        $query = Event::query()->whereKey($route->id);
+        $locked = $exclusive
+            ? $query->lockForUpdate()->firstOrFail()
+            : $query->sharedLock()->firstOrFail();
+
+        if ($locked->scope !== $route->scope
+            || (string) $locked->event_type_scope_id !== (string) $route->event_type_scope_id
+            || (string) ($locked->alliance_id ?? '') !== (string) ($route->alliance_id ?? '')
+            || (string) ($locked->kingdom_id ?? '') !== (string) ($route->kingdom_id ?? '')
+            || (string) ($locked->player_id ?? '') !== (string) ($route->player_id ?? '')) {
+            throw new AuthorizationException('The Event authority target changed while the mutation was being prepared.');
+        }
+
+        return $locked;
     }
 }
