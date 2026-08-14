@@ -42,14 +42,20 @@ final readonly class UpdateAllianceRank
         }
 
         return DB::transaction(function () use ($alliance, $actor, $membershipId, $rank): AllianceMembership {
+            $currentAlliance = Alliance::query()->whereKey($alliance->id)->lockForUpdate()->firstOrFail();
+            $lockedActor = Player::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
+            if (! $this->authorization->allowsForUpdate($lockedActor, $currentAlliance, PermissionKey::RoleManage)) {
+                throw new AuthorizationException;
+            }
+
             $locked = AllianceMembership::query()
                 ->whereKey($membershipId)
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $currentAlliance->id)
                 ->where('status', MembershipStatus::Active->value)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ((string) $locked->player_id === (string) $actor->id) {
+            if ((string) $locked->player_id === (string) $lockedActor->id) {
                 throw ValidationException::withMessages([
                     'rank' => 'The active Player cannot change its own rank through rank administration.',
                 ]);
@@ -76,8 +82,8 @@ final readonly class UpdateAllianceRank
                 'rank' => $rank->value,
             ];
 
-            $this->audit->record('membership.rank_changed', $actor, $locked, $alliance, $metadata);
-            $this->outbox->record('membership.rank_changed', (string) $alliance->id, $locked, $metadata);
+            $this->audit->record('membership.rank_changed', $lockedActor, $locked, $currentAlliance, $metadata);
+            $this->outbox->record('membership.rank_changed', (string) $currentAlliance->id, $locked, $metadata);
 
             return $locked->refresh();
         });
