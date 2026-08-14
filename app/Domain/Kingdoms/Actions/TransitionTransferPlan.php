@@ -52,6 +52,10 @@ final readonly class TransitionTransferPlan
             $currentAlliance = Alliance::query()
                 ->lockForUpdate()
                 ->findOrFail($alliance->id);
+            $lockedActor = Player::query()->lockForUpdate()->findOrFail($actor->id);
+            if ($this->authorization->allows($lockedActor, $currentAlliance, PermissionKey::KingdomManage) === false) {
+                throw new AuthorizationException;
+            }
 
             $plan = TransferPlan::query()
                 ->where('alliance_id', $currentAlliance->id)
@@ -119,7 +123,7 @@ final readonly class TransitionTransferPlan
                 'state' => $target->value,
             ];
 
-            $this->audit->record($event, $actor, $plan, $currentAlliance, $metadata);
+            $this->audit->record($event, $lockedActor, $plan, $currentAlliance, $metadata);
             $this->outbox->record($event, (string) $currentAlliance->id, $plan, $metadata);
 
             return $plan->refresh()->load('homeKingdom');
