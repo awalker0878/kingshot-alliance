@@ -24,8 +24,15 @@ final readonly class LeaveAlliance
     public function handle(Alliance $alliance, Player $player): AllianceMembership
     {
         return DB::transaction(function () use ($alliance, $player): AllianceMembership {
+            // Leaving is Player-self lifecycle, not Alliance-management authority.
+            // Still serialize against Alliance lifecycle/transfer operations first.
+            $currentAlliance = Alliance::query()
+                ->whereKey($alliance->id)
+                ->sharedLock()
+                ->firstOrFail();
+
             $membership = AllianceMembership::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $currentAlliance->id)
                 ->where('player_id', $player->id)
                 ->where('status', MembershipStatus::Active->value)
                 ->lockForUpdate()
@@ -39,19 +46,19 @@ final readonly class LeaveAlliance
             ])->save();
             $membership->roles()->detach();
 
-            $this->audit->record('membership.left', $player, $membership, $alliance);
+            $this->audit->record('membership.left', $player, $membership, $currentAlliance);
 
             OutboxMessage::query()->create([
-                'alliance_id' => $alliance->id,
-                'partition_key' => 'alliance:'.$alliance->id,
+                'alliance_id' => $currentAlliance->id,
+                'partition_key' => 'alliance:'.$currentAlliance->id,
                 'event_type' => 'membership.left',
                 'aggregate_type' => AllianceMembership::class,
                 'aggregate_id' => $membership->id,
                 'idempotency_key' => 'membership.left:'.$membership->id.':'.Str::ulid(),
                 'payload' => [
-                    'alliance_id' => $alliance->id,
+                    'alliance_id' => $currentAlliance->id,
                     'membership_id' => $membership->id,
-                    'player_id' => $player->id,
+                    'player_id' => $membership->player_id,
                 ],
                 'occurred_at' => now(),
                 'available_at' => now(),
