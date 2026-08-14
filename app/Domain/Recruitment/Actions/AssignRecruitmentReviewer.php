@@ -13,7 +13,6 @@ use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -21,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 final class AssignRecruitmentReviewer
 {
     public function __construct(
-        private AllianceMutationAuthority $mutations,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -32,34 +31,36 @@ final class AssignRecruitmentReviewer
         RecruitmentCandidate $candidate,
         Player $reviewer,
     ): void {
-        if ((string) $candidate->alliance_id !== (string) $alliance->id) {
-            throw new AuthorizationException('The candidate must belong to the active Alliance.');
-        }
-
         DB::transaction(function () use ($actor, $alliance, $candidate, $reviewer): void {
-            $authority = $this->mutations->require($actor, $alliance, PermissionKey::RecruitmentManage);
-            $currentAlliance = $authority->alliance;
-            $currentActor = $authority->actor;
+            $context = $this->authority->require($actor, $alliance, PermissionKey::RecruitmentManage);
 
-            $lockedCandidate = RecruitmentCandidate::query()
-                ->where('alliance_id', $currentAlliance->id)
+            // Reviewer assignment is a child mutation: share-lock candidate state so
+            // independent candidate children can proceed while merge remains exclusive.
+            $currentCandidate = RecruitmentCandidate::query()
+                ->where('alliance_id', $context->alliance->id)
                 ->whereKey($candidate->id)
-                ->lockForUpdate()
+                ->sharedLock()
                 ->firstOrFail();
+
+            if ($currentCandidate->merged_into_id !== null) {
+                throw ValidationException::withMessages([
+                    'candidate' => 'Reviewers must be assigned to the current merged candidate record.',
+                ]);
+            }
 
             $lockedReviewer = Player::query()
                 ->whereKey($reviewer->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ((string) $lockedReviewer->current_kingdom_id !== (string) $currentAlliance->kingdom_id) {
+            if ((string) $lockedReviewer->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
                 throw ValidationException::withMessages([
                     'reviewer_player_id' => 'Recruitment reviewers must currently belong to the Alliance Kingdom.',
                 ]);
             }
 
             $reviewerMembership = AllianceMembership::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->where('player_id', $lockedReviewer->id)
                 ->where('status', MembershipStatus::Active->value)
                 ->lockForUpdate()
@@ -71,31 +72,27 @@ final class AssignRecruitmentReviewer
                 ]);
             }
 
-            $existing = DB::table('recruitment_candidate_reviewers')
-                ->where('candidate_id', $lockedCandidate->id)
-                ->where('reviewer_player_id', $lockedReviewer->id)
-                ->lockForUpdate()
-                ->first();
+            // The unique(candidate_id, reviewer_player_id) constraint is the atomic
+            // duplicate-assignment boundary; do not lock a row that may not exist.
+            $inserted = DB::table('recruitment_candidate_reviewers')->insertOrIgnore([
+                'id' => (string) Str::ulid(),
+                'alliance_id' => $context->alliance->id,
+                'candidate_id' => $currentCandidate->id,
+                'reviewer_player_id' => $lockedReviewer->id,
+                'assigned_by_player_id' => $context->actor->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]) === 1;
 
-            if ($existing !== null) {
+            if (! $inserted) {
                 return;
             }
 
-            DB::table('recruitment_candidate_reviewers')->insert([
-                'id' => (string) Str::ulid(),
-                'alliance_id' => $currentAlliance->id,
-                'candidate_id' => $lockedCandidate->id,
-                'reviewer_player_id' => $lockedReviewer->id,
-                'assigned_by_player_id' => $currentActor->id,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            $this->audit->record('recruitment.reviewer.assigned', $currentActor, $lockedCandidate, $currentAlliance, [
+            $this->audit->record('recruitment.reviewer.assigned', $context->actor, $currentCandidate, $context->alliance, [
                 'reviewer_player_id' => $lockedReviewer->id,
             ]);
-            $this->outbox->record('recruitment.reviewer.assigned', (string) $currentAlliance->id, $lockedCandidate, [
-                'candidate_id' => $lockedCandidate->id,
+            $this->outbox->record('recruitment.reviewer.assigned', (string) $context->alliance->id, $currentCandidate, [
+                'candidate_id' => $currentCandidate->id,
                 'reviewer_player_id' => $lockedReviewer->id,
             ]);
         });
