@@ -57,6 +57,11 @@ final readonly class SaveTransferParticipant
 
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $participantId): TransferParticipant {
             $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $lockedActor = Player::query()->lockForUpdate()->findOrFail($actor->id);
+            if (! $this->authorization->allows($lockedActor, $currentAlliance, PermissionKey::KingdomManage)) {
+                throw new AuthorizationException;
+            }
+
             $plan = TransferPlan::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->lockForUpdate()
@@ -117,7 +122,7 @@ final readonly class SaveTransferParticipant
                 'destination_kingdom_id' => $participant->destination_kingdom_id,
             ];
 
-            $this->audit->record($event, $actor, $participant, $currentAlliance, $metadata);
+            $this->audit->record($event, $lockedActor, $participant, $currentAlliance, $metadata);
             $this->outbox->record($event, (string) $currentAlliance->id, $participant, $metadata);
 
             return $participant->refresh()->load([
@@ -221,7 +226,7 @@ final readonly class SaveTransferParticipant
         $roster = AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
             ->whereIn('state', [RosterState::Active->value, RosterState::Tracked->value])
-            ->with('player')
+            ->lockForUpdate()
             ->find($rosterId);
 
         if (! $roster instanceof AllianceRosterEntry) {
@@ -230,7 +235,15 @@ final readonly class SaveTransferParticipant
             ]);
         }
 
-        if ($participant->exists && (string) $participant->player_id !== (string) $roster->player_id) {
+        $rosterPlayer = Player::query()->lockForUpdate()->findOrFail($roster->player_id);
+        if ((string) $rosterPlayer->current_kingdom_id !== (string) $alliance->kingdom_id
+            || (string) $rosterPlayer->current_kingdom_id !== (string) $plan->home_kingdom_id) {
+            throw ValidationException::withMessages([
+                'roster_entry_id' => 'The selected roster Player no longer belongs to the Alliance Kingdom.',
+            ]);
+        }
+
+        if ($participant->exists && (string) $participant->player_id !== (string) $rosterPlayer->id) {
             throw ValidationException::withMessages([
                 'roster_entry_id' => 'Withdraw and recreate the participant to change the Player identity.',
             ]);
@@ -248,9 +261,9 @@ final readonly class SaveTransferParticipant
 
         return [
             'roster_entry_id' => (string) $roster->id,
-            'player_id' => (string) $roster->player_id,
+            'player_id' => (string) $rosterPlayer->id,
             'observed_name' => (string) $roster->observed_name,
-            'game_player_id' => $roster->player->game_player_id,
+            'game_player_id' => $rosterPlayer->game_player_id,
             'source_kingdom_id' => (string) $plan->home_kingdom_id,
             'destination_kingdom_id' => $destination === null ? null : (string) $destination->id,
         ];
