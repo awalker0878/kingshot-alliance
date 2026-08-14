@@ -7,7 +7,7 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
@@ -19,14 +19,13 @@ use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class SaveTransferParticipant
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $mutations,
         private ResolveKingdom $kingdoms,
         private ResolveTransferPlayer $players,
         private AuditRecorder $audit,
@@ -51,16 +50,10 @@ final readonly class SaveTransferParticipant
         array $attributes,
         ?string $participantId = null,
     ): TransferParticipant {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $participantId): TransferParticipant {
-            $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
-            $lockedActor = Player::query()->lockForUpdate()->findOrFail($actor->id);
-            if (! $this->authorization->allowsForUpdate($lockedActor, $currentAlliance, PermissionKey::KingdomManage)) {
-                throw new AuthorizationException;
-            }
+            $authority = $this->mutations->require($actor, $alliance, PermissionKey::KingdomManage);
+            $currentAlliance = $authority->alliance;
+            $currentActor = $authority->actor;
 
             $plan = TransferPlan::query()
                 ->where('alliance_id', $currentAlliance->id)
@@ -122,7 +115,7 @@ final readonly class SaveTransferParticipant
                 'destination_kingdom_id' => $participant->destination_kingdom_id,
             ];
 
-            $this->audit->record($event, $lockedActor, $participant, $currentAlliance, $metadata);
+            $this->audit->record($event, $currentActor, $participant, $currentAlliance, $metadata);
             $this->outbox->record($event, (string) $currentAlliance->id, $participant, $metadata);
 
             return $participant->refresh()->load([
