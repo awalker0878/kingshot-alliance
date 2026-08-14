@@ -7,19 +7,18 @@ namespace App\Domain\Recruitment\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentQuestionType;
 use App\Domain\Recruitment\Models\RecruitmentQuestion;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class UpdateRecruitmentQuestion
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -37,14 +36,6 @@ final class UpdateRecruitmentQuestion
         array $options = [],
         bool $isActive = true,
     ): RecruitmentQuestion {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
-            throw new AuthorizationException('You are not allowed to manage recruitment questions.');
-        }
-
-        if ($question->alliance_id !== $alliance->id) {
-            throw new AuthorizationException('The recruitment question belongs to another alliance.');
-        }
-
         $cleanPrompt = trim($prompt);
         if ($cleanPrompt === '') {
             throw ValidationException::withMessages(['prompt' => 'Recruitment question prompt is required.']);
@@ -75,8 +66,10 @@ final class UpdateRecruitmentQuestion
             $cleanOptions,
             $isActive,
         ): RecruitmentQuestion {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::RecruitmentManage);
+
             $locked = RecruitmentQuestion::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->whereKey($question->id)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -89,16 +82,16 @@ final class UpdateRecruitmentQuestion
                 'is_required' => $isRequired,
                 'position' => $position,
                 'is_active' => $isActive,
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ])->save();
 
-            $this->audit->record('recruitment.question.updated', $actor, $locked, $alliance, [
+            $this->audit->record('recruitment.question.updated', $context->actor, $locked, $context->alliance, [
                 'question_type' => $type->value,
                 'is_required' => $isRequired,
                 'position' => $position,
                 'is_active' => $isActive,
             ]);
-            $this->outbox->record('recruitment.question.updated', (string) $alliance->id, $locked, [
+            $this->outbox->record('recruitment.question.updated', (string) $context->alliance->id, $locked, [
                 'question_type' => $type->value,
                 'is_required' => $isRequired,
                 'position' => $position,

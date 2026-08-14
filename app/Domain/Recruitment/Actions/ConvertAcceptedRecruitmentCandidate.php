@@ -7,9 +7,10 @@ namespace App\Domain\Recruitment\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
+use App\Domain\Authorization\Services\AlliancePermissionEvaluator;
 use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Memberships\Actions\CreateInvitation;
+use App\Domain\Memberships\Services\IssueAllianceInvitation;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentOnboardingStatus;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
@@ -24,8 +25,9 @@ use Illuminate\Validation\ValidationException;
 final class ConvertAcceptedRecruitmentCandidate
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
-        private CreateInvitation $createInvitation,
+        private AllianceMutationAuthority $authority,
+        private AlliancePermissionEvaluator $permissions,
+        private IssueAllianceInvitation $invitationIssuer,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -36,17 +38,27 @@ final class ConvertAcceptedRecruitmentCandidate
         RecruitmentCandidate $candidate,
         Player $target,
     ): ConvertedRecruitmentCandidate {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
-            throw new AuthorizationException('You are not allowed to convert recruitment candidates.');
-        }
-
-        if ($candidate->alliance_id !== $alliance->id) {
-            throw new AuthorizationException('The candidate belongs to another alliance.');
-        }
-
         return DB::transaction(function () use ($actor, $alliance, $candidate, $target): ConvertedRecruitmentCandidate {
+            // Conversion creates a member-capacity reservation, so acquire the
+            // Alliance-wide boundary before candidate/Player child state.
+            $context = $this->authority->requireExclusive(
+                $actor,
+                $alliance,
+                PermissionKey::RecruitmentManage,
+            );
+
+            // Conversion composes Recruitment and Memberships. Both permissions must
+            // be true on the same locked membership authority snapshot.
+            if (! $this->permissions->allows(
+                $context->membership,
+                $context->alliance,
+                PermissionKey::InvitationManage,
+            )) {
+                throw new AuthorizationException('Invitation management permission is required to convert a candidate.');
+            }
+
             $locked = RecruitmentCandidate::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->whereKey($candidate->id)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -60,6 +72,12 @@ final class ConvertAcceptedRecruitmentCandidate
             }
 
             if ($locked->membership_invitation_id !== null) {
+                if ($locked->player_id !== null && (string) $locked->player_id !== (string) $target->id) {
+                    throw ValidationException::withMessages([
+                        'player_id' => 'This candidate was already converted for a different Player.',
+                    ]);
+                }
+
                 return new ConvertedRecruitmentCandidate(
                     $locked,
                     (string) $locked->membership_invitation_id,
@@ -68,19 +86,20 @@ final class ConvertAcceptedRecruitmentCandidate
                 );
             }
 
-            $issued = $this->createInvitation->handle($alliance, $actor, $target, (string) $locked->email);
+            $issued = $this->invitationIssuer->handle($context, $target, (string) $locked->email);
 
             $locked->forceFill([
                 'player_id' => $target->id,
                 'membership_invitation_id' => $issued->invitationId,
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ])->save();
 
             $items = RecruitmentOnboardingItem::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->where('is_active', true)
                 ->orderBy('position')
                 ->orderBy('id')
+                ->sharedLock()
                 ->get();
 
             foreach ($items as $item) {
@@ -90,18 +109,18 @@ final class ConvertAcceptedRecruitmentCandidate
                         'onboarding_item_id' => $item->id,
                     ],
                     [
-                        'alliance_id' => $alliance->id,
+                        'alliance_id' => $context->alliance->id,
                         'status' => RecruitmentOnboardingStatus::Pending,
                     ],
                 );
             }
 
-            $this->audit->record('recruitment.candidate.converted', $actor, $locked, $alliance, [
+            $this->audit->record('recruitment.candidate.converted', $context->actor, $locked, $context->alliance, [
                 'player_id' => $target->id,
                 'membership_invitation_id' => $issued->invitationId,
                 'onboarding_item_count' => $items->count(),
             ]);
-            $this->outbox->record('recruitment.candidate.converted', (string) $alliance->id, $locked, [
+            $this->outbox->record('recruitment.candidate.converted', (string) $context->alliance->id, $locked, [
                 'candidate_id' => $locked->id,
                 'player_id' => $target->id,
                 'membership_invitation_id' => $issued->invitationId,

@@ -7,17 +7,36 @@ namespace App\Domain\Integrations\Actions;
 use App\Domain\Integrations\Enums\WebhookDeliveryStatus;
 use App\Domain\Integrations\Jobs\DeliverWebhookJob;
 use App\Domain\Integrations\Models\WebhookDelivery;
+use Illuminate\Support\Facades\DB;
 
 final class QueueDueWebhookDeliveries
 {
     public function handle(int $limit = 100): int
     {
+        $limit = max(1, min(500, $limit));
+        $now = now();
+
+        DB::transaction(function () use ($now): void {
+            WebhookDelivery::query()
+                ->where('status', WebhookDeliveryStatus::Delivering->value)
+                ->where('last_attempt_at', '<=', $now->copy()->subMinutes(5))
+                ->lockForUpdate()
+                ->get()
+                ->each(static function (WebhookDelivery $delivery) use ($now): void {
+                    $delivery->forceFill([
+                        'status' => WebhookDeliveryStatus::Pending,
+                        'available_at' => $now,
+                        'last_error' => 'Recovered a stale webhook delivery claim after worker interruption.',
+                    ])->save();
+                });
+        });
+
         $queued = 0;
         $deliveries = WebhookDelivery::query()
             ->where('status', WebhookDeliveryStatus::Pending->value)
-            ->where('available_at', '<=', now())
+            ->where('available_at', '<=', $now)
             ->orderBy('available_at')
-            ->limit(max(1, min(500, $limit)))
+            ->limit($limit)
             ->get();
 
         foreach ($deliveries as $delivery) {

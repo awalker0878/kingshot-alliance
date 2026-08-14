@@ -7,14 +7,13 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\KingdomStatus;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -22,7 +21,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreateTransferPlan
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -32,29 +31,21 @@ final readonly class CreateTransferPlan
      */
     public function handle(Alliance $alliance, Player $actor, array $attributes): TransferPlan
     {
-        if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $attributes): TransferPlan {
-            $currentAlliance = Alliance::query()
-                ->lockForUpdate()
-                ->findOrFail($alliance->id);
-
-            if ($currentAlliance->kingdom_id === null) {
-                throw ValidationException::withMessages([
-                    'plan' => 'Set the alliance Kingdom before creating a transfer cycle.',
-                ]);
-            }
+            // Creating a Draft transfer plan is not an Alliance-wide singleton. The
+            // ordinary mutation boundary protects lifecycle/authority without turning
+            // unrelated Draft creation into an Alliance mutex.
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
 
             $homeKingdom = Kingdom::query()
-                ->whereKey($currentAlliance->kingdom_id)
+                ->whereKey($context->alliance->kingdom_id)
                 ->where('status', KingdomStatus::Active->value)
+                ->sharedLock()
                 ->first();
 
-            if (($homeKingdom instanceof Kingdom) === false) {
+            if (! $homeKingdom instanceof Kingdom) {
                 throw ValidationException::withMessages([
-                    'plan' => 'The alliance must reference an active Kingdom before creating a transfer cycle.',
+                    'plan' => 'The Alliance must reference an active Kingdom before creating a transfer cycle.',
                 ]);
             }
 
@@ -72,7 +63,7 @@ final readonly class CreateTransferPlan
             }
 
             $plan = TransferPlan::query()->create([
-                'alliance_id' => $currentAlliance->id,
+                'alliance_id' => $context->alliance->id,
                 'home_kingdom_id' => $homeKingdom->id,
                 'label' => $label,
                 'starts_on' => $startsOn?->toDateString(),
@@ -88,8 +79,8 @@ final readonly class CreateTransferPlan
                 'ends_on' => $plan->ends_on?->toDateString(),
             ];
 
-            $this->audit->record('kingdoms.transfer_plan_created', $actor, $plan, $currentAlliance, $metadata);
-            $this->outbox->record('kingdoms.transfer_plan_created', (string) $currentAlliance->id, $plan, $metadata);
+            $this->audit->record('kingdoms.transfer_plan_created', $context->actor, $plan, $context->alliance, $metadata);
+            $this->outbox->record('kingdoms.transfer_plan_created', (string) $context->alliance->id, $plan, $metadata);
 
             return $plan->refresh()->load('homeKingdom');
         });

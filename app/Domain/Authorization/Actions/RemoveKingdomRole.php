@@ -9,7 +9,7 @@ use App\Domain\Authorization\Enums\DefaultKingdomRole;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\KingdomRole;
 use App\Domain\Authorization\Models\KingdomRoleAssignment;
-use App\Domain\Authorization\Services\KingdomAuthorization;
+use App\Domain\Authorization\Services\KingdomMutationAuthority;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
@@ -21,7 +21,7 @@ use LogicException;
 final readonly class RemoveKingdomRole
 {
     public function __construct(
-        private KingdomAuthorization $authorization,
+        private KingdomMutationAuthority $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -32,23 +32,21 @@ final readonly class RemoveKingdomRole
             throw new AuthorizationException;
         }
 
-        if (! $this->authorization->allows($actor, $kingdom, PermissionKey::KingdomRoleManage)) {
-            throw new AuthorizationException;
-        }
-
         DB::transaction(function () use ($actor, $kingdom, $assignment): void {
-            $lockedKingdom = Kingdom::query()->whereKey($kingdom->id)->lockForUpdate()->firstOrFail();
-
-            if (! $this->authorization->allows($actor, $lockedKingdom, PermissionKey::KingdomRoleManage)) {
-                throw new AuthorizationException;
-            }
+            $authority = $this->mutations->require($actor, $kingdom, PermissionKey::KingdomRoleManage);
+            $currentKingdom = $authority->kingdom;
+            $currentActor = $authority->actor;
 
             $locked = KingdomRoleAssignment::query()
                 ->whereKey($assignment->id)
-                ->where('kingdom_id', $lockedKingdom->id)
+                ->where('kingdom_id', $currentKingdom->id)
                 ->with('role:id,key')
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            // Lock the target Player authority anchor so removal serializes with
+            // Kingdom movement and mutations authorized by this Player's roles.
+            Player::query()->whereKey($locked->player_id)->lockForUpdate()->firstOrFail();
 
             $role = $locked->role;
             if (! $role instanceof KingdomRole) {
@@ -57,7 +55,7 @@ final readonly class RemoveKingdomRole
 
             if ($role->key === DefaultKingdomRole::Administrator->value) {
                 $anotherAdministratorExists = KingdomRoleAssignment::query()
-                    ->where('kingdom_id', $lockedKingdom->id)
+                    ->where('kingdom_id', $currentKingdom->id)
                     ->where('id', '!=', $locked->id)
                     ->whereHas('role', static fn ($query) => $query->where('key', DefaultKingdomRole::Administrator->value))
                     ->exists();
@@ -70,13 +68,13 @@ final readonly class RemoveKingdomRole
             }
 
             $metadata = [
-                'kingdom_id' => (string) $lockedKingdom->id,
-                'kingdom_number' => (int) $lockedKingdom->number,
+                'kingdom_id' => (string) $currentKingdom->id,
+                'kingdom_number' => (int) $currentKingdom->number,
                 'target_player_id' => (string) $locked->player_id,
                 'role_key' => $role->key,
             ];
 
-            $this->audit->record('kingdom.role_removed', $actor, $locked, null, $metadata);
+            $this->audit->record('kingdom.role_removed', $currentActor, $locked, null, $metadata);
             $this->outbox->record('kingdom.role_removed', null, $locked, $metadata);
             $locked->delete();
         });

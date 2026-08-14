@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Actions;
 
+use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
-use App\Domain\Events\Services\EventParticipantAuthorization;
-use App\Domain\Events\Services\EventTargetResolver;
+use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Rallies\Enums\RallyAssignmentRole;
@@ -26,10 +26,9 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveEventRecommendedFormation
 {
     public function __construct(
-        private EventParticipantAuthorization $authorization,
+        private EventMutationAuthority $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private RallyAllianceResolver $alliances,
-        private EventTargetResolver $targets,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -49,18 +48,8 @@ final readonly class SaveEventRecommendedFormation
         int $sortOrder = 0,
         ?EventRecommendedFormation $formation = null,
     ): EventRecommendedFormation {
-        $occurrence->loadMissing('event.typeScope');
+        $occurrence->loadMissing('event');
         $event = $occurrence->event;
-        $this->capabilities->require($event, EventCapability::Formations);
-        $this->authorization->authorizeManager($actor, $event);
-        $alliance = $this->alliances->resolve($event, $allianceId);
-        if ($guidance instanceof RallyGuidanceRule && (string) $guidance->alliance_id !== (string) $alliance->id) {
-            throw new AuthorizationException;
-        }
-        if ($formation instanceof EventRecommendedFormation
-            && ((string) $formation->occurrence_id !== (string) $occurrence->id || (string) $formation->alliance_id !== (string) $alliance->id)) {
-            throw new AuthorizationException;
-        }
 
         $key = Str::slug($key);
         $name = trim($name);
@@ -70,20 +59,65 @@ final readonly class SaveEventRecommendedFormation
         if ($name === '' || mb_strlen($name) > 120) {
             throw ValidationException::withMessages(['name' => 'Formation name is required and must be 120 characters or fewer.']);
         }
-        $heroes = array_values(array_slice(array_filter(array_map(static fn ($hero): string => trim((string) $hero), $heroes), static fn (string $hero): bool => $hero !== ''), 0, 5));
-        $target = $this->targets->forEvent($event);
+        $heroes = array_values(array_slice(array_filter(
+            array_map(static fn ($hero): string => trim((string) $hero), $heroes),
+            static fn (string $hero): bool => $hero !== '',
+        ), 0, 5));
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $alliance, $key, $name, $composition, $heroes, $assignmentRole, $guidance, $notes, $sortOrder, $formation, $target): EventRecommendedFormation {
-            EventOccurrence::query()->whereKey($occurrence->id)->lockForUpdate()->firstOrFail();
+        return DB::transaction(function () use ($actor, $occurrence, $event, $allianceId, $key, $name, $composition, $heroes, $assignmentRole, $guidance, $notes, $sortOrder, $formation): EventRecommendedFormation {
+            $context = $this->eventAuthority->requireManager($actor, $event);
+            $this->capabilities->require($context->event, EventCapability::Formations);
+
+            $lockedOccurrence = EventOccurrence::query()
+                ->whereKey($occurrence->id)
+                ->where('event_id', $context->event->id)
+                ->sharedLock()
+                ->firstOrFail();
+
+            $resolvedAlliance = $this->alliances->resolve($context->event, $allianceId);
+            $alliance = Alliance::query()
+                ->whereKey($resolvedAlliance->id)
+                ->where('status', AllianceStatus::Active->value)
+                ->sharedLock()
+                ->firstOrFail();
+
+            $lockedGuidance = null;
+            if ($guidance instanceof RallyGuidanceRule) {
+                if ((string) $guidance->alliance_id !== (string) $alliance->id) {
+                    throw new AuthorizationException;
+                }
+
+                $lockedGuidance = RallyGuidanceRule::query()
+                    ->whereKey($guidance->id)
+                    ->where('alliance_id', $alliance->id)
+                    ->sharedLock()
+                    ->firstOrFail();
+            }
+
+            if ($formation instanceof EventRecommendedFormation
+                && ((string) $formation->occurrence_id !== (string) $lockedOccurrence->id
+                    || (string) $formation->alliance_id !== (string) $alliance->id)) {
+                throw new AuthorizationException;
+            }
+
             $record = $formation instanceof EventRecommendedFormation
-                ? EventRecommendedFormation::query()->whereKey($formation->id)->where('occurrence_id', $occurrence->id)->where('alliance_id', $alliance->id)->lockForUpdate()->firstOrFail()
-                : new EventRecommendedFormation(['occurrence_id' => $occurrence->id, 'alliance_id' => $alliance->id]);
+                ? EventRecommendedFormation::query()
+                    ->whereKey($formation->id)
+                    ->where('occurrence_id', $lockedOccurrence->id)
+                    ->where('alliance_id', $alliance->id)
+                    ->lockForUpdate()
+                    ->firstOrFail()
+                : new EventRecommendedFormation([
+                    'occurrence_id' => $lockedOccurrence->id,
+                    'alliance_id' => $alliance->id,
+                ]);
+
             $created = ! $record->exists;
             if ($created) {
-                $record->created_by_player_id = $actor->id;
+                $record->created_by_player_id = $context->actor->id;
             }
             $record->forceFill([
-                'guidance_rule_id' => $guidance?->id,
+                'guidance_rule_id' => $lockedGuidance?->id,
                 'key' => $key,
                 'name' => $name,
                 'assignment_role' => $assignmentRole?->value,
@@ -91,19 +125,26 @@ final readonly class SaveEventRecommendedFormation
                 'heroes' => $heroes,
                 'notes' => $notes === null || trim($notes) === '' ? null : trim($notes),
                 'sort_order' => max(0, $sortOrder),
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ])->save();
 
+            // unique(occurrence_id, alliance_id, key) remains the race-proof key invariant.
             $eventName = $created ? 'rally.recommended_formation.created' : 'rally.recommended_formation.updated';
             $metadata = [
-                'event_id' => (string) $event->id,
-                'occurrence_id' => (string) $occurrence->id,
+                'event_id' => (string) $context->event->id,
+                'occurrence_id' => (string) $lockedOccurrence->id,
                 'alliance_id' => (string) $alliance->id,
                 'formation_id' => (string) $record->id,
-                'actor_player_id' => $actor->id,
+                'actor_player_id' => $context->actor->id,
             ];
-            $this->audit->record($eventName, $actor, $record, $alliance, $metadata);
-            $this->outbox->record($eventName, (string) $alliance->id, $record, $metadata, partitionKey: $event->scope->value.':'.$target->id);
+            $this->audit->record($eventName, $context->actor, $record, $alliance, $metadata);
+            $this->outbox->record(
+                $eventName,
+                (string) $alliance->id,
+                $record,
+                $metadata,
+                partitionKey: $context->event->scope->value.':'.$context->target->id,
+            );
 
             return $record->refresh();
         });

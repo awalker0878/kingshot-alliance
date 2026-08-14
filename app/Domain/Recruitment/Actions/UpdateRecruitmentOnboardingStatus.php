@@ -7,18 +7,19 @@ namespace App\Domain\Recruitment\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentOnboardingStatus;
+use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentCandidateOnboarding;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final class UpdateRecruitmentOnboardingStatus
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -29,17 +30,24 @@ final class UpdateRecruitmentOnboardingStatus
         RecruitmentCandidateOnboarding $onboarding,
         RecruitmentOnboardingStatus $status,
     ): RecruitmentCandidateOnboarding {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
-            throw new AuthorizationException('You are not allowed to update recruitment onboarding.');
-        }
-
-        if ($onboarding->alliance_id !== $alliance->id) {
-            throw new AuthorizationException('The onboarding item belongs to another alliance.');
-        }
-
         return DB::transaction(function () use ($actor, $alliance, $onboarding, $status): RecruitmentCandidateOnboarding {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::RecruitmentManage);
+
+            $candidate = RecruitmentCandidate::query()
+                ->whereKey($onboarding->candidate_id)
+                ->where('alliance_id', $context->alliance->id)
+                ->sharedLock()
+                ->firstOrFail();
+
+            if ($candidate->merged_into_id !== null) {
+                throw ValidationException::withMessages([
+                    'candidate' => 'Update onboarding on the current merged candidate record.',
+                ]);
+            }
+
             $locked = RecruitmentCandidateOnboarding::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
+                ->where('candidate_id', $candidate->id)
                 ->whereKey($onboarding->id)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -47,14 +55,14 @@ final class UpdateRecruitmentOnboardingStatus
             $locked->forceFill([
                 'status' => $status,
                 'completed_at' => $status === RecruitmentOnboardingStatus::Completed ? now() : null,
-                'completed_by_player_id' => $status === RecruitmentOnboardingStatus::Completed ? $actor->id : null,
+                'completed_by_player_id' => $status === RecruitmentOnboardingStatus::Completed ? $context->actor->id : null,
             ])->save();
 
-            $this->audit->record('recruitment.onboarding.updated', $actor, $locked, $alliance, [
+            $this->audit->record('recruitment.onboarding.updated', $context->actor, $locked, $context->alliance, [
                 'candidate_id' => $locked->candidate_id,
                 'status' => $status->value,
             ]);
-            $this->outbox->record('recruitment.onboarding.updated', (string) $alliance->id, $locked, [
+            $this->outbox->record('recruitment.onboarding.updated', (string) $context->alliance->id, $locked, [
                 'candidate_id' => $locked->candidate_id,
                 'status' => $status->value,
             ]);

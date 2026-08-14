@@ -9,6 +9,7 @@ use App\Domain\Alliances\ValueObjects\TenantContextSnapshot;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Content\Enums\MediaLifecycleStatus;
 use App\Domain\Content\Enums\MediaScanStatus;
 use App\Domain\Content\Models\MediaAsset;
@@ -27,7 +28,8 @@ use Throwable;
 final readonly class UploadMediaAsset
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceAuthorization $readAuthorization,
+        private AllianceMutationAuthority $mutationAuthority,
         private MediaScanner $scanner,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -36,7 +38,9 @@ final readonly class UploadMediaAsset
 
     public function handle(Alliance $alliance, Player $actor, UploadedFile $file): MediaAsset
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::ContentManage)) {
+        // Cheap preflight only. The authoritative permission/quota decision is repeated
+        // after external file work, inside the transaction that persists the asset.
+        if (! $this->readAuthorization->allows($actor, $alliance, PermissionKey::ContentManage)) {
             throw new AuthorizationException;
         }
 
@@ -62,7 +66,6 @@ final readonly class UploadMediaAsset
             ]);
         }
 
-        $this->entitlements->assertStorageCapacity($alliance, $size);
         $scan = $this->scanner->scan($file);
 
         if (! $scan->clean) {
@@ -106,8 +109,17 @@ final readonly class UploadMediaAsset
 
         try {
             return DB::transaction(function () use ($alliance, $actor, $file, $disk, $path, $mimeType, $size, $sha256): MediaAsset {
+                // Storage capacity is Alliance-wide, so creation takes the exclusive
+                // authority variant to serialize the quota check with this insert.
+                $context = $this->mutationAuthority->requireExclusive(
+                    $actor,
+                    $alliance,
+                    PermissionKey::ContentManage,
+                );
+                $this->entitlements->assertStorageCapacity($context->alliance, $size);
+
                 $asset = MediaAsset::query()->create([
-                    'alliance_id' => $alliance->id,
+                    'alliance_id' => $context->alliance->id,
                     'original_name' => $file->getClientOriginalName(),
                     'disk' => $disk,
                     'path' => $path,
@@ -116,16 +128,16 @@ final readonly class UploadMediaAsset
                     'sha256' => $sha256,
                     'scan_status' => MediaScanStatus::Clean,
                     'lifecycle_status' => MediaLifecycleStatus::Active,
-                    'uploaded_by_player_id' => $actor->id,
+                    'uploaded_by_player_id' => $context->actor->id,
                     'scanned_at' => now(),
                 ]);
 
-                $this->audit->record('content.media_uploaded', $actor, $asset, $alliance, [
+                $this->audit->record('content.media_uploaded', $context->actor, $asset, $context->alliance, [
                     'mime_type' => $mimeType,
                     'size_bytes' => $size,
                     'sha256' => $sha256,
                 ]);
-                $this->outbox->record('content.media_uploaded', (string) $alliance->id, $asset, [
+                $this->outbox->record('content.media_uploaded', (string) $context->alliance->id, $asset, [
                     'media_id' => $asset->id,
                     'mime_type' => $mimeType,
                     'size_bytes' => $size,
@@ -135,6 +147,8 @@ final readonly class UploadMediaAsset
                 return $asset;
             });
         } catch (Throwable $exception) {
+            // The external object was written before the authoritative transaction;
+            // compensate if permission, lifecycle, quota, or persistence now rejects it.
             Storage::disk($disk)->delete($path);
             throw $exception;
         }

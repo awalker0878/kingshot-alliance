@@ -8,12 +8,11 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\Role;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\OutboxMessage;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -21,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class AssignMembershipRole
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
     ) {}
 
@@ -31,14 +30,12 @@ final readonly class AssignMembershipRole
         string $membershipId,
         string $roleId,
     ): AllianceMembership {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::RoleManage)) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $membershipId, $roleId): AllianceMembership {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::RoleManage);
+
             $membership = AllianceMembership::query()
                 ->where('id', $membershipId)
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -50,14 +47,15 @@ final readonly class AssignMembershipRole
 
             $role = Role::query()
                 ->where('id', $roleId)
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
+                ->sharedLock()
                 ->firstOrFail();
 
             if ($membership->roles()->where('roles.id', $role->id)->exists()) {
                 return $membership->refresh();
             }
 
-            $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
+            $membership->roles()->attach($role->id, ['alliance_id' => $context->alliance->id]);
 
             $metadata = [
                 'role_id' => $role->id,
@@ -65,17 +63,17 @@ final readonly class AssignMembershipRole
                 'player_id' => $membership->player_id,
             ];
 
-            $this->audit->record('membership.role_assigned', $actor, $membership, $alliance, $metadata);
+            $this->audit->record('membership.role_assigned', $context->actor, $membership, $context->alliance, $metadata);
 
             OutboxMessage::query()->create([
-                'alliance_id' => $alliance->id,
-                'partition_key' => 'alliance:'.$alliance->id,
+                'alliance_id' => $context->alliance->id,
+                'partition_key' => 'alliance:'.$context->alliance->id,
                 'event_type' => 'membership.role_assigned',
                 'aggregate_type' => AllianceMembership::class,
                 'aggregate_id' => $membership->id,
                 'idempotency_key' => 'membership.role_assigned:'.$membership->id.':'.$role->id.':'.Str::ulid(),
                 'payload' => [
-                    'alliance_id' => $alliance->id,
+                    'alliance_id' => $context->alliance->id,
                     'membership_id' => $membership->id,
                     'player_id' => $membership->player_id,
                     'role_id' => $role->id,

@@ -54,10 +54,6 @@ final class SubmitRecruitmentApplication
             throw ValidationException::withMessages(['email' => 'A valid email address is required.']);
         }
 
-        if ($applicant instanceof User && Str::lower((string) $applicant->email) !== $normalizedEmail) {
-            throw ValidationException::withMessages(['email' => 'Use the email address associated with your account.']);
-        }
-
         return DB::transaction(function () use (
             $alliance,
             $cleanName,
@@ -68,31 +64,55 @@ final class SubmitRecruitmentApplication
             $applicationToken,
             $applicant,
         ): RecruitmentCandidate {
-            $alliance = Alliance::query()->whereKey($alliance->id)->lockForUpdate()->firstOrFail();
-            if ($alliance->status !== AllianceStatus::Active) {
+            // Public submission has no game-domain actor. Use the Alliance only as a
+            // lifecycle barrier; Recruitment's singleton settings row is the natural
+            // exclusive intake/policy anchor and serializes duplicate-email decisions.
+            $currentAlliance = Alliance::query()
+                ->whereKey($alliance->id)
+                ->sharedLock()
+                ->firstOrFail();
+
+            if ($currentAlliance->status !== AllianceStatus::Active) {
                 throw ValidationException::withMessages([
                     'application' => 'Recruitment applications are unavailable while the Alliance is not active.',
                 ]);
             }
 
             $settings = RecruitmentSetting::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $currentAlliance->id)
                 ->lockForUpdate()
                 ->first();
 
-            if (! $settings instanceof RecruitmentSetting || ! $settings->is_open || $settings->application_mode === RecruitmentApplicationMode::Closed) {
+            if (! $settings instanceof RecruitmentSetting
+                || ! $settings->is_open
+                || $settings->application_mode === RecruitmentApplicationMode::Closed) {
                 throw ValidationException::withMessages(['application' => 'Recruitment applications are currently closed.']);
             }
 
+            $currentApplicant = null;
+            if ($applicant instanceof User) {
+                $currentApplicant = User::query()
+                    ->whereKey($applicant->id)
+                    ->sharedLock()
+                    ->firstOrFail();
+
+                if (Str::lower((string) $currentApplicant->email) !== $normalizedEmail) {
+                    throw ValidationException::withMessages(['email' => 'Use the email address associated with your account.']);
+                }
+            }
+
             $applicationInvite = $this->resolveApplicationInvite(
-                $alliance,
+                $currentAlliance,
                 $settings->application_mode,
                 $normalizedEmail,
                 $applicationToken,
             );
 
+            // RecruitmentSetting is held exclusively for the transaction, so all
+            // application submissions for this Alliance serialize this non-terminal
+            // duplicate-email decision without using the Alliance as a global mutex.
             $duplicate = RecruitmentCandidate::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $currentAlliance->id)
                 ->where('email', $normalizedEmail)
                 ->whereNull('merged_into_id')
                 ->whereNotIn('stage', [
@@ -100,7 +120,6 @@ final class SubmitRecruitmentApplication
                     RecruitmentStage::Withdrawn->value,
                     RecruitmentStage::Joined->value,
                 ])
-                ->lockForUpdate()
                 ->first();
 
             if ($duplicate instanceof RecruitmentCandidate) {
@@ -110,10 +129,11 @@ final class SubmitRecruitmentApplication
             }
 
             $questions = RecruitmentQuestion::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $currentAlliance->id)
                 ->where('is_active', true)
                 ->orderBy('position')
                 ->orderBy('id')
+                ->sharedLock()
                 ->get();
 
             /** @var list<array{question: RecruitmentQuestion, answer: array<string, mixed>}> $validatedAnswers */
@@ -145,8 +165,8 @@ final class SubmitRecruitmentApplication
             }
 
             $candidate = RecruitmentCandidate::query()->create([
-                'alliance_id' => $alliance->id,
-                'applicant_user_id' => $applicant?->id,
+                'alliance_id' => $currentAlliance->id,
+                'applicant_user_id' => $currentApplicant?->id,
                 'application_invite_id' => $applicationInvite?->id,
                 'full_name' => $cleanName,
                 'email' => $normalizedEmail,
@@ -159,7 +179,7 @@ final class SubmitRecruitmentApplication
             foreach ($validatedAnswers as $validated) {
                 $question = $validated['question'];
                 RecruitmentAnswer::query()->create([
-                    'alliance_id' => $alliance->id,
+                    'alliance_id' => $currentAlliance->id,
                     'candidate_id' => $candidate->id,
                     'question_id' => $question->id,
                     'prompt_snapshot' => $question->prompt,
@@ -169,7 +189,7 @@ final class SubmitRecruitmentApplication
             }
 
             RecruitmentStageHistory::query()->create([
-                'alliance_id' => $alliance->id,
+                'alliance_id' => $currentAlliance->id,
                 'candidate_id' => $candidate->id,
                 'from_stage' => null,
                 'to_stage' => RecruitmentStage::New,
@@ -182,12 +202,12 @@ final class SubmitRecruitmentApplication
                 $applicationInvite->forceFill(['used_at' => now()])->save();
             }
 
-            $this->audit->record('recruitment.application.submitted', $applicant, $candidate, $alliance, [
+            $this->audit->record('recruitment.application.submitted', $currentApplicant, $candidate, $currentAlliance, [
                 'source' => $candidate->source,
                 'question_count' => count($validatedAnswers),
                 'invitation_based' => $applicationInvite instanceof RecruitmentApplicationInvite,
             ]);
-            $this->outbox->record('recruitment.application.submitted', (string) $alliance->id, $candidate, [
+            $this->outbox->record('recruitment.application.submitted', (string) $currentAlliance->id, $candidate, [
                 'candidate_id' => $candidate->id,
                 'source' => $candidate->source,
             ]);

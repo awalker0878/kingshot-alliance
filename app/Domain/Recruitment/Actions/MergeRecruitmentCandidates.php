@@ -7,12 +7,11 @@ namespace App\Domain\Recruitment\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentNote;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -20,7 +19,7 @@ use Illuminate\Validation\ValidationException;
 final class MergeRecruitmentCandidates
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -32,21 +31,17 @@ final class MergeRecruitmentCandidates
         RecruitmentCandidate $target,
         ?string $reason = null,
     ): RecruitmentCandidate {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
-            throw new AuthorizationException('You are not allowed to merge recruitment candidates.');
-        }
-
-        if ($source->alliance_id !== $alliance->id || $target->alliance_id !== $alliance->id) {
-            throw new AuthorizationException('Both recruitment candidates must belong to the active alliance.');
-        }
-
-        if ($source->id === $target->id) {
+        if ((string) $source->id === (string) $target->id) {
             throw ValidationException::withMessages(['candidate' => 'A recruitment candidate cannot be merged into itself.']);
         }
 
         return DB::transaction(function () use ($actor, $alliance, $source, $target, $reason): RecruitmentCandidate {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::RecruitmentManage);
+
+            // Candidate-wide merge state is serialized by locking both candidate
+            // aggregates in deterministic id order.
             $locked = RecruitmentCandidate::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->whereIn('id', [$source->id, $target->id])
                 ->orderBy('id')
                 ->lockForUpdate()
@@ -59,10 +54,12 @@ final class MergeRecruitmentCandidates
             $targetCandidate = $locked->get($target->id);
 
             if (! $sourceCandidate instanceof RecruitmentCandidate || ! $targetCandidate instanceof RecruitmentCandidate) {
-                throw new AuthorizationException('Both recruitment candidates must belong to the active alliance.');
+                throw ValidationException::withMessages([
+                    'candidate' => 'Both recruitment candidates must belong to the active Alliance.',
+                ]);
             }
 
-            if ($sourceCandidate->merged_into_id === $targetCandidate->id) {
+            if ((string) $sourceCandidate->merged_into_id === (string) $targetCandidate->id) {
                 return $targetCandidate;
             }
 
@@ -74,21 +71,21 @@ final class MergeRecruitmentCandidates
                 throw ValidationException::withMessages(['target' => 'A candidate that was merged into another record cannot be the merge target.']);
             }
 
-            $this->copyReviewers($alliance, $sourceCandidate, $targetCandidate, $actor);
-            $this->copyTags($alliance, $sourceCandidate, $targetCandidate);
+            $this->copyReviewers($context->alliance, $sourceCandidate, $targetCandidate, $context->actor);
+            $this->copyTags($context->alliance, $sourceCandidate, $targetCandidate);
 
             $targetCandidate->forceFill([
                 'contact_handle' => $targetCandidate->contact_handle ?: $sourceCandidate->contact_handle,
                 'source' => $targetCandidate->source ?: $sourceCandidate->source,
                 'next_action_at' => $targetCandidate->next_action_at ?: $sourceCandidate->next_action_at,
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ])->save();
 
             if ($reason !== null && trim($reason) !== '') {
                 RecruitmentNote::query()->create([
-                    'alliance_id' => $alliance->id,
+                    'alliance_id' => $context->alliance->id,
                     'candidate_id' => $targetCandidate->id,
-                    'author_player_id' => $actor->id,
+                    'author_player_id' => $context->actor->id,
                     'body' => 'Merge reason: '.trim($reason),
                 ]);
             }
@@ -96,14 +93,14 @@ final class MergeRecruitmentCandidates
             $sourceCandidate->forceFill([
                 'merged_into_id' => $targetCandidate->id,
                 'next_action_at' => null,
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ])->save();
 
-            $this->audit->record('recruitment.candidate.merged', $actor, $sourceCandidate, $alliance, [
+            $this->audit->record('recruitment.candidate.merged', $context->actor, $sourceCandidate, $context->alliance, [
                 'source_candidate_id' => $sourceCandidate->id,
                 'target_candidate_id' => $targetCandidate->id,
             ]);
-            $this->outbox->record('recruitment.candidate.merged', (string) $alliance->id, $sourceCandidate, [
+            $this->outbox->record('recruitment.candidate.merged', (string) $context->alliance->id, $sourceCandidate, [
                 'source_candidate_id' => $sourceCandidate->id,
                 'target_candidate_id' => $targetCandidate->id,
             ]);
@@ -120,25 +117,19 @@ final class MergeRecruitmentCandidates
     ): void {
         $reviewerIds = DB::table('recruitment_candidate_reviewers')
             ->where('candidate_id', $source->id)
+            ->orderBy('reviewer_player_id')
             ->pluck('reviewer_player_id');
 
         foreach ($reviewerIds as $reviewerPlayerId) {
-            $exists = DB::table('recruitment_candidate_reviewers')
-                ->where('candidate_id', $target->id)
-                ->where('reviewer_player_id', $reviewerPlayerId)
-                ->exists();
-
-            if (! $exists) {
-                DB::table('recruitment_candidate_reviewers')->insert([
-                    'id' => (string) Str::ulid(),
-                    'alliance_id' => $alliance->id,
-                    'candidate_id' => $target->id,
-                    'reviewer_player_id' => $reviewerPlayerId,
-                    'assigned_by_player_id' => $actor->id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
+            DB::table('recruitment_candidate_reviewers')->insertOrIgnore([
+                'id' => (string) Str::ulid(),
+                'alliance_id' => $alliance->id,
+                'candidate_id' => $target->id,
+                'reviewer_player_id' => $reviewerPlayerId,
+                'assigned_by_player_id' => $actor->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
     }
 
@@ -146,6 +137,7 @@ final class MergeRecruitmentCandidates
     {
         $tagIds = DB::table('recruitment_candidate_tags')
             ->where('candidate_id', $source->id)
+            ->orderBy('tag_id')
             ->pluck('tag_id');
 
         foreach ($tagIds as $tagId) {

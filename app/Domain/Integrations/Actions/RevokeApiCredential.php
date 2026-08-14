@@ -7,47 +7,51 @@ namespace App\Domain\Integrations\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Integrations\Models\ApiCredential;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 final readonly class RevokeApiCredential
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(Alliance $alliance, Player $actor, ApiCredential $credential): ApiCredential
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::AllianceManage)) {
-            throw new AuthorizationException;
-        }
-
-        if ($credential->alliance_id !== $alliance->id) {
+        if ((string) $credential->alliance_id !== (string) $alliance->id) {
             throw new InvalidArgumentException('API credential does not belong to the active alliance.');
         }
 
-        if ($credential->revoked_at !== null) {
-            return $credential;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $credential): ApiCredential {
-            $credential->forceFill(['revoked_at' => now()])->save();
-            $this->audit->record('integration.api-credential.revoked', $actor, $credential, $alliance, [
-                'credential_id' => $credential->id,
-                'prefix' => $credential->prefix,
+            $authority = $this->mutations->require($actor, $alliance, PermissionKey::AllianceManage);
+            $currentAlliance = $authority->alliance;
+            $currentActor = $authority->actor;
+
+            $locked = ApiCredential::query()
+                ->where('alliance_id', $currentAlliance->id)
+                ->lockForUpdate()
+                ->findOrFail($credential->id);
+
+            if ($locked->revoked_at !== null) {
+                return $locked;
+            }
+
+            $locked->forceFill(['revoked_at' => now()])->save();
+            $this->audit->record('integration.api-credential.revoked', $currentActor, $locked, $currentAlliance, [
+                'credential_id' => $locked->id,
+                'prefix' => $locked->prefix,
             ]);
-            $this->outbox->record('integration.api-credential.revoked', $alliance->id, $credential, [
-                'credential_id' => $credential->id,
+            $this->outbox->record('integration.api-credential.revoked', $currentAlliance->id, $locked, [
+                'credential_id' => $locked->id,
             ]);
 
-            return $credential->refresh();
+            return $locked->refresh();
         });
     }
 }

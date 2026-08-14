@@ -8,8 +8,7 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
-use App\Domain\Events\Services\EventParticipantAuthorization;
-use App\Domain\Events\Services\EventTargetResolver;
+use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Rallies\Enums\RallyAssignmentRole;
@@ -23,10 +22,9 @@ use Illuminate\Validation\ValidationException;
 final readonly class AssignRallyPlayer
 {
     public function __construct(
-        private EventParticipantAuthorization $authorization,
+        private EventMutationAuthority $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private RallyPlayerEligibility $eligibility,
-        private EventTargetResolver $targets,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -39,35 +37,45 @@ final readonly class AssignRallyPlayer
         ?int $slotNumber = null,
         ?string $notes = null,
     ): RallyAssignment {
-        $group->loadMissing('occurrence.event.typeScope', 'alliance');
-        $occurrence = $group->occurrence;
-        $event = $occurrence->event;
-        $alliance = $group->alliance;
-        $this->capabilities->require($event, EventCapability::RallyGuidance);
-        $this->authorization->authorizeManager($actor, $event);
-        if (! $this->eligibility->eligible($event, $alliance, $player)) {
-            throw ValidationException::withMessages(['player' => 'This Player is not eligible for this Rally Alliance.']);
-        }
         if ($slotNumber !== null && $slotNumber < 1) {
             throw ValidationException::withMessages(['slot_number' => 'Slot number must be at least one.']);
         }
-        $target = $this->targets->forEvent($event);
 
-        return DB::transaction(function () use ($actor, $group, $player, $role, $slotNumber, $notes, $occurrence, $event, $alliance, $target): RallyAssignment {
-            EventOccurrence::query()->whereKey($occurrence->id)->lockForUpdate()->firstOrFail();
-            $lockedGroup = RallyGroup::query()->whereKey($group->id)->lockForUpdate()->firstOrFail();
-            $lockedActor = Player::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
-            $lockedPlayer = Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
+        $group->loadMissing('occurrence.event', 'alliance');
+        $event = $group->occurrence->event;
 
-            // Revalidate authority and target eligibility at the mutation boundary. A Player
-            // must not remain assignable from a stale pre-transaction roster snapshot.
-            $this->authorization->authorizeManager($lockedActor, $event);
-            if (! $this->eligibility->eligible($event, $alliance, $lockedPlayer)) {
-                throw ValidationException::withMessages(['player' => 'This Player is no longer eligible for this Rally Alliance.']);
+        return DB::transaction(function () use ($actor, $group, $player, $role, $slotNumber, $notes, $event): RallyAssignment {
+            $context = $this->eventAuthority->requireManager($actor, $event);
+            $this->capabilities->require($context->event, EventCapability::RallyGuidance);
+
+            // One Player may occupy only one Rally group per occurrence, so the
+            // occurrence is a legitimate occurrence-wide exclusive coordination row.
+            $occurrence = EventOccurrence::query()
+                ->whereKey($group->occurrence_id)
+                ->where('event_id', $context->event->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $lockedGroup = RallyGroup::query()
+                ->whereKey($group->id)
+                ->where('occurrence_id', $occurrence->id)
+                ->lockForUpdate()
+                ->firstOrFail()
+                ->load('alliance');
+            $alliance = $lockedGroup->alliance;
+
+            // Player eligibility/Kingdom identity is stabilized by the Player row;
+            // roster mutation workflows use the same Player anchor before roster state.
+            $lockedPlayer = Player::query()
+                ->whereKey($player->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (! $this->eligibility->eligible($context->event, $alliance, $lockedPlayer)) {
+                throw ValidationException::withMessages(['player' => 'This Player is not eligible for this Rally Alliance.']);
             }
 
             $occupying = $this->occupyingStatuses();
-
             $conflicts = RallyAssignment::query()
                 ->where('player_id', $lockedPlayer->id)
                 ->whereIn('status', $occupying)
@@ -75,15 +83,17 @@ final readonly class AssignRallyPlayer
                 ->whereHas('rallyGroup', static fn ($query) => $query
                     ->where('occurrence_id', $occurrence->id)
                     ->where('alliance_id', $alliance->id))
+                ->orderBy('id')
                 ->lockForUpdate()
                 ->get();
+
             $movedFrom = [];
             foreach ($conflicts as $conflict) {
                 $movedFrom[] = (string) $conflict->rally_group_id;
                 $conflict->forceFill([
                     'status' => RallyAssignmentStatus::Removed,
                     'slot_number' => null,
-                    'removed_by_player_id' => $lockedActor->id,
+                    'removed_by_player_id' => $context->actor->id,
                     'removed_at' => now(),
                 ])->save();
             }
@@ -105,6 +115,7 @@ final readonly class AssignRallyPlayer
                     throw ValidationException::withMessages(['role' => 'This Rally group has reached its maximum joiners.']);
                 }
             }
+
             if ($role === RallyAssignmentRole::Lead && RallyAssignment::query()
                 ->where('rally_group_id', $lockedGroup->id)
                 ->where('role', RallyAssignmentRole::Lead->value)
@@ -113,6 +124,7 @@ final readonly class AssignRallyPlayer
                 ->exists()) {
                 throw ValidationException::withMessages(['role' => 'This Rally group already has an active lead.']);
             }
+
             if ($slotNumber !== null && RallyAssignment::query()
                 ->where('rally_group_id', $lockedGroup->id)
                 ->where('slot_number', $slotNumber)
@@ -128,7 +140,7 @@ final readonly class AssignRallyPlayer
                 'role' => $role,
                 'slot_number' => $slotNumber,
                 'status' => RallyAssignmentStatus::Assigned,
-                'assigned_by_player_id' => $lockedActor->id,
+                'assigned_by_player_id' => $context->actor->id,
                 'assigned_at' => now(),
                 'responded_by_player_id' => null,
                 'responded_at' => null,
@@ -141,7 +153,7 @@ final readonly class AssignRallyPlayer
 
             $eventName = $created ? 'rally.assignment.created' : 'rally.assignment.updated';
             $metadata = [
-                'event_id' => (string) $event->id,
+                'event_id' => (string) $context->event->id,
                 'occurrence_id' => (string) $occurrence->id,
                 'alliance_id' => (string) $alliance->id,
                 'rally_group_id' => (string) $lockedGroup->id,
@@ -149,10 +161,16 @@ final readonly class AssignRallyPlayer
                 'role' => $role->value,
                 'slot_number' => $slotNumber,
                 'moved_from_group_ids' => $movedFrom,
-                'actor_player_id' => $lockedActor->id,
+                'actor_player_id' => $context->actor->id,
             ];
-            $this->audit->record($eventName, $lockedActor, $assignment, $alliance, $metadata);
-            $this->outbox->record($eventName, (string) $alliance->id, $assignment, $metadata, partitionKey: $event->scope->value.':'.$target->id);
+            $this->audit->record($eventName, $context->actor, $assignment, $alliance, $metadata);
+            $this->outbox->record(
+                $eventName,
+                (string) $alliance->id,
+                $assignment,
+                $metadata,
+                partitionKey: $context->event->scope->value.':'.$context->target->id,
+            );
 
             return $assignment->refresh()->load(['player', 'rallyGroup']);
         });
@@ -163,7 +181,10 @@ final readonly class AssignRallyPlayer
     {
         return array_map(
             static fn (RallyAssignmentStatus $status): string => $status->value,
-            array_values(array_filter(RallyAssignmentStatus::cases(), static fn (RallyAssignmentStatus $status): bool => $status->occupiesAssignment())),
+            array_values(array_filter(
+                RallyAssignmentStatus::cases(),
+                static fn (RallyAssignmentStatus $status): bool => $status->occupiesAssignment(),
+            )),
         );
     }
 }

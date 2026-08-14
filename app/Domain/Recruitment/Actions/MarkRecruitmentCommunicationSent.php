@@ -7,18 +7,19 @@ namespace App\Domain\Recruitment\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentCommunicationStatus;
+use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentCommunication;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final class MarkRecruitmentCommunicationSent
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -28,17 +29,24 @@ final class MarkRecruitmentCommunicationSent
         Alliance $alliance,
         RecruitmentCommunication $communication,
     ): RecruitmentCommunication {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
-            throw new AuthorizationException('You are not allowed to update recruitment communications.');
-        }
-
-        if ($communication->alliance_id !== $alliance->id) {
-            throw new AuthorizationException('The recruitment communication belongs to another alliance.');
-        }
-
         return DB::transaction(function () use ($actor, $alliance, $communication): RecruitmentCommunication {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::RecruitmentManage);
+
+            $candidate = RecruitmentCandidate::query()
+                ->whereKey($communication->candidate_id)
+                ->where('alliance_id', $context->alliance->id)
+                ->sharedLock()
+                ->firstOrFail();
+
+            if ($candidate->merged_into_id !== null) {
+                throw ValidationException::withMessages([
+                    'candidate' => 'Communication state must be updated on the current merged candidate record.',
+                ]);
+            }
+
             $locked = RecruitmentCommunication::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
+                ->where('candidate_id', $candidate->id)
                 ->whereKey($communication->id)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -53,10 +61,10 @@ final class MarkRecruitmentCommunicationSent
                 'last_error' => null,
             ])->save();
 
-            $this->audit->record('recruitment.communication.sent', $actor, $locked, $alliance, [
+            $this->audit->record('recruitment.communication.sent', $context->actor, $locked, $context->alliance, [
                 'candidate_id' => $locked->candidate_id,
             ]);
-            $this->outbox->record('recruitment.communication.sent', (string) $alliance->id, $locked, [
+            $this->outbox->record('recruitment.communication.sent', (string) $context->alliance->id, $locked, [
                 'candidate_id' => $locked->candidate_id,
             ]);
 

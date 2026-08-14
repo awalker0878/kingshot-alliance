@@ -9,21 +9,17 @@ use App\Domain\Authorization\Enums\DefaultKingdomRole;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\KingdomRole;
 use App\Domain\Authorization\Models\KingdomRoleAssignment;
-use App\Domain\Authorization\Services\KingdomAuthorization;
-use App\Domain\Authorization\Services\KingdomRoleProvisioner;
+use App\Domain\Authorization\Services\KingdomMutationAuthority;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use RuntimeException;
 
 final readonly class AssignKingdomRole
 {
     public function __construct(
-        private KingdomAuthorization $authorization,
-        private KingdomRoleProvisioner $provisioner,
+        private KingdomMutationAuthority $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -34,39 +30,27 @@ final readonly class AssignKingdomRole
         Player $target,
         DefaultKingdomRole $roleTemplate,
     ): KingdomRoleAssignment {
-        if (! $this->authorization->allows($actor, $kingdom, PermissionKey::KingdomRoleManage)) {
-            throw new AuthorizationException;
-        }
-
-        if ((string) $target->current_kingdom_id !== (string) $kingdom->id) {
-            throw ValidationException::withMessages([
-                'player_id' => 'The selected Player is not currently in this Kingdom.',
-            ]);
-        }
-
         return DB::transaction(function () use ($actor, $kingdom, $target, $roleTemplate): KingdomRoleAssignment {
-            $lockedKingdom = Kingdom::query()->whereKey($kingdom->id)->lockForUpdate()->firstOrFail();
+            $authority = $this->mutations->require($actor, $kingdom, PermissionKey::KingdomRoleManage);
+            $currentKingdom = $authority->kingdom;
+            $currentActor = $authority->actor;
 
-            if (! $this->authorization->allows($actor, $lockedKingdom, PermissionKey::KingdomRoleManage)) {
-                throw new AuthorizationException;
-            }
-
+            // A Player row is the Kingdom-authority/state anchor. Lock the target so
+            // role changes serialize with Kingdom movement and role-dependent writes.
             $lockedTarget = Player::query()->whereKey($target->id)->lockForUpdate()->firstOrFail();
-            if ((string) $lockedTarget->current_kingdom_id !== (string) $lockedKingdom->id) {
+            if ((string) $lockedTarget->current_kingdom_id !== (string) $currentKingdom->id) {
                 throw ValidationException::withMessages([
                     'player_id' => 'The selected Player is not currently in this Kingdom.',
                 ]);
             }
 
-            $roles = $this->provisioner->provision($lockedKingdom);
-            $role = $roles[$roleTemplate->value] ?? null;
-
-            if (! $role instanceof KingdomRole) {
-                throw new RuntimeException('The requested Kingdom role was not provisioned.');
-            }
+            $role = KingdomRole::query()
+                ->where('kingdom_id', $currentKingdom->id)
+                ->where('key', $roleTemplate->value)
+                ->firstOrFail();
 
             $assignment = KingdomRoleAssignment::query()->firstOrCreate([
-                'kingdom_id' => $lockedKingdom->id,
+                'kingdom_id' => $currentKingdom->id,
                 'player_id' => $lockedTarget->id,
                 'kingdom_role_id' => $role->id,
             ]);
@@ -76,13 +60,13 @@ final readonly class AssignKingdomRole
             }
 
             $metadata = [
-                'kingdom_id' => (string) $lockedKingdom->id,
-                'kingdom_number' => (int) $lockedKingdom->number,
+                'kingdom_id' => (string) $currentKingdom->id,
+                'kingdom_number' => (int) $currentKingdom->number,
                 'target_player_id' => (string) $lockedTarget->id,
                 'role_key' => $roleTemplate->value,
             ];
 
-            $this->audit->record('kingdom.role_assigned', $actor, $assignment, null, $metadata);
+            $this->audit->record('kingdom.role_assigned', $currentActor, $assignment, null, $metadata);
             $this->outbox->record('kingdom.role_assigned', null, $assignment, $metadata);
 
             return $assignment;

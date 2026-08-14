@@ -7,7 +7,7 @@ namespace App\Domain\Content\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;
@@ -17,14 +17,13 @@ use App\Domain\Content\Services\ContentRevisionWriter;
 use App\Domain\Content\Services\ContentSanitizer;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class SaveContentItem
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private ContentSanitizer $sanitizer,
         private ContentRevisionWriter $revisions,
         private AuditRecorder $audit,
@@ -46,23 +45,20 @@ final readonly class SaveContentItem
      */
     public function handle(Alliance $alliance, Player $actor, array $attributes, ?string $contentItemId = null): ContentItem
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::ContentManage)) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $attributes, $contentItemId): ContentItem {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::ContentManage);
             $categoryId = $attributes['category_id'] ?? null;
-            $this->assertCategory($alliance, $categoryId);
+            $this->assertCategory($context->alliance, $categoryId);
 
             $item = $contentItemId === null
                 ? new ContentItem([
-                    'alliance_id' => $alliance->id,
-                    'created_by_player_id' => $actor->id,
+                    'alliance_id' => $context->alliance->id,
+                    'created_by_player_id' => $context->actor->id,
                     'current_revision_number' => 1,
                 ])
                 : ContentItem::query()
                     ->where('id', $contentItemId)
-                    ->where('alliance_id', $alliance->id)
+                    ->where('alliance_id', $context->alliance->id)
                     ->lockForUpdate()
                     ->firstOrFail();
 
@@ -84,18 +80,18 @@ final readonly class SaveContentItem
                 'scheduled_for' => null,
                 'published_at' => null,
                 'archived_at' => null,
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ])->save();
 
-            $revision = $this->revisions->write($item, $actor);
+            $revision = $this->revisions->write($item, $context->actor);
             $event = $contentItemId === null ? 'content.created' : 'content.updated';
 
-            $this->audit->record($event, $actor, $item, $alliance, [
+            $this->audit->record($event, $context->actor, $item, $context->alliance, [
                 'revision_number' => $revision->revision_number,
                 'visibility' => $item->visibility->value,
                 'type' => $item->type->value,
             ]);
-            $this->outbox->record($event, (string) $alliance->id, $item, [
+            $this->outbox->record($event, (string) $context->alliance->id, $item, [
                 'content_item_id' => $item->id,
                 'revision_number' => $revision->revision_number,
                 'visibility' => $item->visibility->value,
@@ -112,10 +108,13 @@ final readonly class SaveContentItem
             return;
         }
 
-        if (! ContentCategory::query()
+        $category = ContentCategory::query()
             ->where('id', $categoryId)
             ->where('alliance_id', $alliance->id)
-            ->exists()) {
+            ->sharedLock()
+            ->first();
+
+        if (! $category instanceof ContentCategory) {
             throw ValidationException::withMessages([
                 'category_id' => 'The selected category does not belong to this alliance.',
             ]);

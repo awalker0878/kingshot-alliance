@@ -7,7 +7,7 @@ namespace App\Domain\Recruitment\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
@@ -15,14 +15,13 @@ use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentSetting;
 use App\Domain\Recruitment\Models\RecruitmentStageHistory;
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class ChangeRecruitmentStage
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -35,20 +34,20 @@ final class ChangeRecruitmentStage
         ?string $reason = null,
         ?CarbonImmutable $nextActionAt = null,
     ): RecruitmentCandidate {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
-            throw new AuthorizationException('You are not allowed to change recruitment stages.');
-        }
-
-        if ($candidate->alliance_id !== $alliance->id) {
-            throw new AuthorizationException('The candidate belongs to another alliance.');
-        }
-
         return DB::transaction(function () use ($actor, $alliance, $candidate, $target, $reason, $nextActionAt): RecruitmentCandidate {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::RecruitmentManage);
+
             $locked = RecruitmentCandidate::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->whereKey($candidate->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            if ($locked->merged_into_id !== null) {
+                throw ValidationException::withMessages([
+                    'candidate' => 'Change the stage on the current merged candidate record.',
+                ]);
+            }
 
             $from = $locked->stage;
             if ($from === $target) {
@@ -67,7 +66,13 @@ final class ChangeRecruitmentStage
                 ]);
             }
 
-            $settings = RecruitmentSetting::query()->where('alliance_id', $alliance->id)->first();
+            // Retention policy is configuration state consumed by this transition.
+            // Share-lock it so a concurrent settings update cannot change the policy
+            // midway through a candidate transition.
+            $settings = RecruitmentSetting::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->sharedLock()
+                ->first();
             $retentionDays = $settings instanceof RecruitmentSetting
                 ? $settings->retention_unsuccessful_days
                 : 90;
@@ -76,7 +81,7 @@ final class ChangeRecruitmentStage
             $updates = [
                 'stage' => $target,
                 'next_action_at' => $nextActionAt?->utc(),
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $context->actor->id,
                 'retention_due_at' => $target->isUnsuccessful() ? $now->copy()->addDays($retentionDays) : null,
             ];
 
@@ -127,20 +132,20 @@ final class ChangeRecruitmentStage
             $locked->forceFill($updates)->save();
 
             RecruitmentStageHistory::query()->create([
-                'alliance_id' => $alliance->id,
+                'alliance_id' => $context->alliance->id,
                 'candidate_id' => $locked->id,
                 'from_stage' => $from,
                 'to_stage' => $target,
                 'reason' => $reason === null ? null : trim($reason),
-                'changed_by_player_id' => $actor->id,
+                'changed_by_player_id' => $context->actor->id,
                 'changed_at' => $now,
             ]);
 
-            $this->audit->record('recruitment.candidate.stage_changed', $actor, $locked, $alliance, [
+            $this->audit->record('recruitment.candidate.stage_changed', $context->actor, $locked, $context->alliance, [
                 'from_stage' => $from->value,
                 'to_stage' => $target->value,
             ]);
-            $this->outbox->record('recruitment.candidate.stage_changed', (string) $alliance->id, $locked, [
+            $this->outbox->record('recruitment.candidate.stage_changed', (string) $context->alliance->id, $locked, [
                 'candidate_id' => $locked->id,
                 'from_stage' => $from->value,
                 'to_stage' => $target->value,

@@ -7,26 +7,25 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class SaveTransferGroup
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private ResolveKingdom $kingdoms,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -48,32 +47,30 @@ final readonly class SaveTransferGroup
         array $attributes,
         ?string $groupId = null,
     ): TransferGroup {
-        if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $groupId): TransferGroup {
-            $currentAlliance = Alliance::query()
-                ->lockForUpdate()
-                ->findOrFail($alliance->id);
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
 
+            // Child mutations share-lock the transfer-plan lifecycle so unrelated
+            // groups can change concurrently while plan transitions remain exclusive.
             $plan = TransferPlan::query()
-                ->where('alliance_id', $currentAlliance->id)
-                ->lockForUpdate()
-                ->findOrFail($planId);
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($planId)
+                ->sharedLock()
+                ->firstOrFail();
 
-            $this->assertMutable($currentAlliance, $plan);
+            $this->assertMutable($context->alliance, $plan);
 
             $group = $groupId === null
                 ? new TransferGroup([
-                    'alliance_id' => $currentAlliance->id,
+                    'alliance_id' => $context->alliance->id,
                     'transfer_plan_id' => $plan->id,
                 ])
                 : TransferGroup::query()
-                    ->where('alliance_id', $currentAlliance->id)
+                    ->where('alliance_id', $context->alliance->id)
                     ->where('transfer_plan_id', $plan->id)
+                    ->whereKey($groupId)
                     ->lockForUpdate()
-                    ->findOrFail($groupId);
+                    ->firstOrFail();
 
             if ($group->exists && $group->state === TransferGroupState::Archived) {
                 throw ValidationException::withMessages([
@@ -95,6 +92,8 @@ final readonly class SaveTransferGroup
                 ]);
             }
 
+            // The partial unique index on (plan, lower(name)) WHERE active is the
+            // hard duplicate-name invariant. This precheck provides a domain error.
             $duplicate = TransferGroup::query()
                 ->where('transfer_plan_id', $plan->id)
                 ->where('state', TransferGroupState::Active->value)
@@ -121,7 +120,7 @@ final readonly class SaveTransferGroup
             }
 
             $coordinator = $this->coordinator(
-                $currentAlliance,
+                $context->alliance,
                 $attributes['coordinator_player_id'] ?? null,
             );
             $managerNotes = $this->nullableText($attributes['manager_notes'] ?? null);
@@ -129,7 +128,7 @@ final readonly class SaveTransferGroup
             $coordinatorId = $coordinator === null ? null : (string) $coordinator->id;
 
             $this->assertAssignedParticipantsCompatible(
-                $currentAlliance,
+                $context->alliance,
                 $plan,
                 $group,
                 $direction,
@@ -166,8 +165,8 @@ final readonly class SaveTransferGroup
                 'coordinator_player_id' => $coordinatorId,
             ];
 
-            $this->audit->record($event, $actor, $group, $currentAlliance, $metadata);
-            $this->outbox->record($event, (string) $currentAlliance->id, $group, $metadata);
+            $this->audit->record($event, $context->actor, $group, $context->alliance, $metadata);
+            $this->outbox->record($event, (string) $context->alliance->id, $group, $metadata);
 
             return $group->refresh()->load([
                 'coordinator:id,current_name',
@@ -187,12 +186,15 @@ final readonly class SaveTransferGroup
             return;
         }
 
+        // We only inspect participant compatibility; shared row locks block participant
+        // writers while allowing independent readers and avoid over-serializing groups.
         $participants = TransferParticipant::query()
             ->where('alliance_id', $alliance->id)
             ->where('transfer_plan_id', $plan->id)
             ->where('transfer_group_id', $group->id)
             ->whereNull('withdrawn_at')
-            ->lockForUpdate()
+            ->orderBy('id')
+            ->sharedLock()
             ->get();
 
         foreach ($participants as $participant) {
@@ -223,7 +225,7 @@ final readonly class SaveTransferGroup
             ->where('alliance_id', $alliance->id)
             ->where('player_id', $playerId)
             ->where('status', MembershipStatus::Active->value)
-            ->lockForUpdate()
+            ->sharedLock()
             ->first();
 
         if (! $membership instanceof AllianceMembership) {
@@ -232,7 +234,7 @@ final readonly class SaveTransferGroup
             ]);
         }
 
-        return Player::query()->findOrFail($playerId);
+        return Player::query()->whereKey($playerId)->firstOrFail();
     }
 
     private function kingdom(mixed $number): ?Kingdom

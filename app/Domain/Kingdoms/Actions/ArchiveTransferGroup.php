@@ -7,22 +7,21 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class ArchiveTransferGroup
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -33,41 +32,40 @@ final readonly class ArchiveTransferGroup
         string $planId,
         string $groupId,
     ): TransferGroup {
-        if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $planId, $groupId): TransferGroup {
-            $currentAlliance = Alliance::query()
-                ->lockForUpdate()
-                ->findOrFail($alliance->id);
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
 
             $plan = TransferPlan::query()
-                ->where('alliance_id', $currentAlliance->id)
-                ->lockForUpdate()
-                ->findOrFail($planId);
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($planId)
+                ->sharedLock()
+                ->firstOrFail();
 
-            $this->assertMutable($currentAlliance, $plan);
+            $this->assertMutable($context->alliance, $plan);
 
             $group = TransferGroup::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->where('transfer_plan_id', $plan->id)
+                ->whereKey($groupId)
                 ->lockForUpdate()
-                ->findOrFail($groupId);
+                ->firstOrFail();
 
             if ($group->state === TransferGroupState::Archived) {
                 return $group->load(['coordinator:id,current_name', 'destinationKingdom:id,number']);
             }
 
-            $activeParticipant = TransferParticipant::query()
-                ->where('alliance_id', $currentAlliance->id)
+            // Participant writers take exclusive participant locks; shared locks here
+            // are enough to keep the membership of this group stable during the empty check.
+            $activeParticipants = TransferParticipant::query()
+                ->where('alliance_id', $context->alliance->id)
                 ->where('transfer_plan_id', $plan->id)
                 ->where('transfer_group_id', $group->id)
                 ->whereNull('withdrawn_at')
-                ->lockForUpdate()
-                ->first();
+                ->orderBy('id')
+                ->sharedLock()
+                ->get(['id']);
 
-            if ($activeParticipant instanceof TransferParticipant) {
+            if ($activeParticipants->isNotEmpty()) {
                 throw ValidationException::withMessages([
                     'group' => 'Unassign or move active participants before archiving this transfer group.',
                 ]);
@@ -82,19 +80,8 @@ final readonly class ArchiveTransferGroup
                 'destination_kingdom_id' => $group->destination_kingdom_id,
             ];
 
-            $this->audit->record(
-                'kingdoms.transfer_group_archived',
-                $actor,
-                $group,
-                $currentAlliance,
-                $metadata,
-            );
-            $this->outbox->record(
-                'kingdoms.transfer_group_archived',
-                (string) $currentAlliance->id,
-                $group,
-                $metadata,
-            );
+            $this->audit->record('kingdoms.transfer_group_archived', $context->actor, $group, $context->alliance, $metadata);
+            $this->outbox->record('kingdoms.transfer_group_archived', (string) $context->alliance->id, $group, $metadata);
 
             return $group->refresh()->load([
                 'coordinator:id,current_name',

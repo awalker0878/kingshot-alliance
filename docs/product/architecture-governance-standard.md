@@ -10,7 +10,7 @@
 
 This standard defines how repository-wide architecture and program governance are documented after domain-level contracts, security, operations, interfaces, and validation traceability are complete.
 
-P6 does not create a second implementation plan or duplicate domain contracts. It provides a stable system-level view that links the existing sources of truth and makes cross-domain direction, ADR lifecycle, shared terminology, current-state navigation, and historical boundaries explicit.
+P6 does not create a second implementation plan or duplicate domain contracts. It provides a stable system-level view that links the existing sources of truth and makes cross-domain direction, ADR lifecycle, shared terminology, current-state navigation, historical boundaries, and repository-wide mutation/concurrency principles explicit.
 
 ## 2. Authority model
 
@@ -138,7 +138,7 @@ Add a glossary term only when inconsistent use can change ownership, authorizati
 
 The glossary is normative for shared vocabulary but does not redefine a domain model owned by a domain contract.
 
-Where a general English word conflicts with a product/domain term, use the explicit qualified form in system-level docs. Important examples include platform `Alliance` versus game-side `KingdomAlliance`, global identity versus Alliance membership, internal outbox event versus externally eligible webhook event, and repository acceptance versus production approval.
+Where a general English word conflicts with a product/domain term, use the explicit qualified form in system-level docs. Important examples include platform `Alliance` versus game-side `KingdomAlliance`, global User identity versus active Player authority, internal outbox event versus externally eligible webhook event, and repository acceptance versus production approval.
 
 ## 11. Obsolete narrative classification
 
@@ -161,12 +161,42 @@ P6 architecture tests should enforce stable, high-signal rules only:
 - dependency inventory links to each code-local/living domain owner;
 - shared top-level README ownership statements remain program/shared rather than claiming single-domain authority;
 - current architecture audits no longer carry migration-candidate status wording;
-- current capability/status navigation links the P6 architecture surfaces; and
+- current capability/status navigation links the P6 architecture surfaces;
+- repository-wide transactional mutation principles remain indexed and referenced; and
 - local Markdown links remain valid through repository-wide documentation checks.
 
-Do not build brittle CI that parses every code import or forces documentation churn for harmless refactors.
+Do not build brittle CI that parses every code import or forces documentation churn for harmless refactors. Concurrency correctness should be proven primarily through domain behavior tests for concrete races/invariants plus focused architecture checks for durable repository-wide boundaries.
 
-## 13. Change obligations
+## 13. Transactional mutation and concurrency governance
+
+[ADR 0010](../adr/0010-transactional-mutation-authority.md) is the repository-wide concurrency authority.
+
+The architecture standard is **shared principles with domain-owned implementation**:
+
+- every domain owns its business mutation Actions/services, aggregate semantics, state machines, persistence choices, and domain-specific lock choices;
+- no repository-wide mutation superclass, generic orchestration framework, or synthetic global lock table is required;
+- a domain may reuse a canonical authority service when the authority model itself is shared, but the business mutation remains owned by the domain performing it;
+- writes re-establish current authority and required state inside the same transaction as persistence;
+- database constraints and atomic compare-and-set transitions are preferred when they can directly express the invariant;
+- row locks protect the smallest natural authority/state/aggregate rows that serialize the conflicting transition;
+- exclusive parent locks are reserved for genuine parent-wide invariants such as quota, lifecycle, leadership, singleton/open-state, or parent-wide counters;
+- equivalent workflows within one aggregate family use deterministic lock ordering;
+- external network/object-storage/email side effects do not execute while database locks are held; and
+- rare global coordination without a natural row is explicitly owned and documented by the responsible domain rather than hidden behind an application-wide lock abstraction.
+
+Code review of a state-changing workflow should ask, in order:
+
+1. Can PostgreSQL enforce this invariant with a constraint or atomic conditional update?
+2. What current authority/state must be re-established inside the write transaction?
+3. What is the smallest natural row or aggregate that serializes the competing transition?
+4. Is the lock order consistent with other workflows touching the same rows?
+5. Is any broad parent lock actually protecting a parent-wide invariant?
+6. Are audit/outbox records written from authoritative locked/current state?
+7. Does any external side effect occur only after durable state or claim is committed?
+
+Existing workflows that do not meet these principles are migration debt and should be improved within their owning domains.
+
+## 14. Change obligations
 
 When architecture changes materially:
 
@@ -175,7 +205,8 @@ When architecture changes materially:
 3. update the cross-domain dependency map when ownership/collaboration direction changes;
 4. update current capability/status navigation when capability state changes;
 5. refresh affected architecture audits;
-6. update glossary terms only if shared meaning changed; and
-7. change architecture tests with the accepted architecture.
+6. update glossary terms only if shared meaning changed;
+7. change architecture tests with the accepted architecture; and
+8. when mutation/concurrency semantics change, update the affected domain behavior tests and ADR 0010 only if the repository-wide principle itself changed.
 
 Historical acceptance records remain evidence unless the change is specifically an evidence correction/hardening action.

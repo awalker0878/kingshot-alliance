@@ -27,6 +27,8 @@ final readonly class TransferAllianceLeadership
     public function handle(Alliance $alliance, Player $actor, string $targetPlayerId): void
     {
         DB::transaction(function () use ($alliance, $actor, $targetPlayerId): void {
+            // Leadership is a genuine Alliance-wide invariant: lifecycle first,
+            // then every active membership in deterministic key order.
             $lockedAlliance = Alliance::query()
                 ->whereKey($alliance->id)
                 ->lockForUpdate()
@@ -41,6 +43,7 @@ final readonly class TransferAllianceLeadership
             $activeMemberships = AllianceMembership::query()
                 ->where('alliance_id', $lockedAlliance->id)
                 ->where('status', MembershipStatus::Active->value)
+                ->orderBy('id')
                 ->lockForUpdate()
                 ->get();
 

@@ -10,11 +10,10 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
-use Illuminate\Database\Eloquent\Builder;
 
-final class AllianceAuthorization
+final readonly class AllianceAuthorization
 {
-    public function __construct(private AllianceRankPermissions $rankPermissions) {}
+    public function __construct(private AlliancePermissionEvaluator $permissions) {}
 
     public function activeMembership(Player $player, Alliance $alliance): ?AllianceMembership
     {
@@ -34,19 +33,7 @@ final class AllianceAuthorization
     {
         $membership = $this->activeMembership($player, $alliance);
 
-        if (! $membership instanceof AllianceMembership) {
-            return false;
-        }
-
-        if ($this->rankPermissions->allows($membership->rank, $permission)) {
-            return true;
-        }
-
-        return $membership->roles()
-            ->where('roles.alliance_id', $alliance->id)
-            ->whereHas('permissions', static function (Builder $permissionQuery) use ($permission): void {
-                $permissionQuery->where('permissions.key', $permission->value);
-            })
-            ->exists();
+        return $membership instanceof AllianceMembership
+            && $this->permissions->allows($membership, $alliance, $permission);
     }
 }
