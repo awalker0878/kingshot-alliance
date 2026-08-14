@@ -61,7 +61,7 @@ final readonly class CreateApiCredential
             $lockedAlliance = Alliance::query()->whereKey($alliance->id)->lockForUpdate()->firstOrFail();
             $lockedActor = Player::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
 
-            if (! $this->authorization->allows($lockedActor, $lockedAlliance, PermissionKey::AllianceManage)) {
+            if (! $this->authorization->allowsForUpdate($lockedActor, $lockedAlliance, PermissionKey::AllianceManage)) {
                 throw new AuthorizationException;
             }
 
