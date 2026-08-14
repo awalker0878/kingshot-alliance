@@ -56,10 +56,20 @@ final readonly class AssignRallyPlayer
         return DB::transaction(function () use ($actor, $group, $player, $role, $slotNumber, $notes, $occurrence, $event, $alliance, $target): RallyAssignment {
             EventOccurrence::query()->whereKey($occurrence->id)->lockForUpdate()->firstOrFail();
             $lockedGroup = RallyGroup::query()->whereKey($group->id)->lockForUpdate()->firstOrFail();
+            $lockedActor = Player::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
+            $lockedPlayer = Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
+
+            // Revalidate authority and target eligibility at the mutation boundary. A Player
+            // must not remain assignable from a stale pre-transaction roster snapshot.
+            $this->authorization->authorizeManager($lockedActor, $event);
+            if (! $this->eligibility->eligible($event, $alliance, $lockedPlayer)) {
+                throw ValidationException::withMessages(['player' => 'This Player is no longer eligible for this Rally Alliance.']);
+            }
+
             $occupying = $this->occupyingStatuses();
 
             $conflicts = RallyAssignment::query()
-                ->where('player_id', $player->id)
+                ->where('player_id', $lockedPlayer->id)
                 ->whereIn('status', $occupying)
                 ->where('rally_group_id', '!=', $lockedGroup->id)
                 ->whereHas('rallyGroup', static fn ($query) => $query
@@ -73,14 +83,14 @@ final readonly class AssignRallyPlayer
                 $conflict->forceFill([
                     'status' => RallyAssignmentStatus::Removed,
                     'slot_number' => null,
-                    'removed_by_player_id' => $actor->id,
+                    'removed_by_player_id' => $lockedActor->id,
                     'removed_at' => now(),
                 ])->save();
             }
 
             $assignment = RallyAssignment::query()
                 ->where('rally_group_id', $lockedGroup->id)
-                ->where('player_id', $player->id)
+                ->where('player_id', $lockedPlayer->id)
                 ->lockForUpdate()
                 ->first();
             $alreadyOccupies = $assignment instanceof RallyAssignment && $assignment->status->occupiesAssignment();
@@ -113,12 +123,12 @@ final readonly class AssignRallyPlayer
             }
 
             $created = ! ($assignment instanceof RallyAssignment);
-            $assignment ??= new RallyAssignment(['rally_group_id' => $lockedGroup->id, 'player_id' => $player->id]);
+            $assignment ??= new RallyAssignment(['rally_group_id' => $lockedGroup->id, 'player_id' => $lockedPlayer->id]);
             $assignment->forceFill([
                 'role' => $role,
                 'slot_number' => $slotNumber,
                 'status' => RallyAssignmentStatus::Assigned,
-                'assigned_by_player_id' => $actor->id,
+                'assigned_by_player_id' => $lockedActor->id,
                 'assigned_at' => now(),
                 'responded_by_player_id' => null,
                 'responded_at' => null,
@@ -135,13 +145,13 @@ final readonly class AssignRallyPlayer
                 'occurrence_id' => (string) $occurrence->id,
                 'alliance_id' => (string) $alliance->id,
                 'rally_group_id' => (string) $lockedGroup->id,
-                'player_id' => (string) $player->id,
+                'player_id' => (string) $lockedPlayer->id,
                 'role' => $role->value,
                 'slot_number' => $slotNumber,
                 'moved_from_group_ids' => $movedFrom,
-                'actor_player_id' => $actor->id,
+                'actor_player_id' => $lockedActor->id,
             ];
-            $this->audit->record($eventName, $actor, $assignment, $alliance, $metadata);
+            $this->audit->record($eventName, $lockedActor, $assignment, $alliance, $metadata);
             $this->outbox->record($eventName, (string) $alliance->id, $assignment, $metadata, partitionKey: $event->scope->value.':'.$target->id);
 
             return $assignment->refresh()->load(['player', 'rallyGroup']);
