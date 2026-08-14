@@ -35,7 +35,7 @@ final readonly class RevokeWebhookSubscription
         return DB::transaction(function () use ($alliance, $actor, $subscription): WebhookSubscription {
             $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
             $lockedActor = Player::query()->lockForUpdate()->findOrFail($actor->id);
-            if (! $this->authorization->allows($lockedActor, $currentAlliance, PermissionKey::AllianceManage)) {
+            if (! $this->authorization->allowsForUpdate($lockedActor, $currentAlliance, PermissionKey::AllianceManage)) {
                 throw new AuthorizationException;
             }
 
