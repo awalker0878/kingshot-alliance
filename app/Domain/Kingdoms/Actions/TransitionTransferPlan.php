@@ -7,21 +7,20 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class TransitionTransferPlan
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -37,10 +36,6 @@ final readonly class TransitionTransferPlan
         array $allowedFrom,
         string $event,
     ): TransferPlan {
-        if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use (
             $alliance,
             $actor,
@@ -49,13 +44,12 @@ final readonly class TransitionTransferPlan
             $allowedFrom,
             $event,
         ): TransferPlan {
-            $currentAlliance = Alliance::query()
-                ->lockForUpdate()
-                ->findOrFail($alliance->id);
-            $lockedActor = Player::query()->lockForUpdate()->findOrFail($actor->id);
-            if ($this->authorization->allowsForUpdate($lockedActor, $currentAlliance, PermissionKey::KingdomManage) === false) {
-                throw new AuthorizationException;
-            }
+            // Opening enforces the Alliance-wide singleton-open-plan invariant.
+            $authority = $target === TransferPlanState::Open
+                ? $this->mutations->requireExclusive($actor, $alliance, PermissionKey::KingdomManage)
+                : $this->mutations->require($actor, $alliance, PermissionKey::KingdomManage);
+            $currentAlliance = $authority->alliance;
+            $currentActor = $authority->actor;
 
             $plan = TransferPlan::query()
                 ->where('alliance_id', $currentAlliance->id)
@@ -123,7 +117,7 @@ final readonly class TransitionTransferPlan
                 'state' => $target->value,
             ];
 
-            $this->audit->record($event, $lockedActor, $plan, $currentAlliance, $metadata);
+            $this->audit->record($event, $currentActor, $plan, $currentAlliance, $metadata);
             $this->outbox->record($event, (string) $currentAlliance->id, $plan, $metadata);
 
             return $plan->refresh()->load('homeKingdom');
