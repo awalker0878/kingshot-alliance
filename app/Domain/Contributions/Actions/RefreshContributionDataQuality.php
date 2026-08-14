@@ -6,6 +6,8 @@ namespace App\Domain\Contributions\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Contributions\Enums\ContributionRecordStatus;
 use App\Domain\Contributions\Models\ContributionCategory;
 use App\Domain\Contributions\Models\ContributionDataQualityFlag;
@@ -19,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 final class RefreshContributionDataQuality
 {
     public function __construct(
+        private readonly AllianceMutationAuthority $authority,
         private readonly ContributionPeriodResolver $periods,
         private readonly AuditRecorder $audit,
     ) {}
@@ -27,35 +30,50 @@ final class RefreshContributionDataQuality
     public function handle(Player $actor, Alliance $alliance): array
     {
         return DB::transaction(function () use ($actor, $alliance): array {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+
+            // Refresh is a Contributions-wide derived-state rebuild. Stabilize the two
+            // source sets in the same order used by contribution entry: membership then category.
+            $memberships = AllianceMembership::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->where('status', MembershipStatus::Active->value)
+                ->orderBy('id')
+                ->sharedLock()
+                ->get();
+            $categories = ContributionCategory::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->where('is_active', true)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
             ContributionDataQualityFlag::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->where('status', 'open')
                 ->whereIn('code', ['missing_evidence', 'missing_period_record'])
-                ->update([
-                    'status' => 'resolved',
-                    'resolved_at' => now(),
-                    'resolved_by_player_id' => $actor->id,
-                    'updated_at' => now(),
-                ]);
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->each(function (ContributionDataQualityFlag $flag) use ($context): void {
+                    $flag->forceFill([
+                        'status' => 'resolved',
+                        'resolved_at' => now(),
+                        'resolved_by_player_id' => $context->actor->id,
+                    ])->save();
+                });
 
             $missingEvidence = 0;
             $missingRecords = 0;
 
             foreach (ContributionRecord::query()
-                ->where('alliance_id', $alliance->id)
-                ->whereIn('status', [
-                    ContributionRecordStatus::Pending->value,
-                    ContributionRecordStatus::Approved->value,
-                ])
-                ->where(function ($query): void {
-                    $query->whereNull('evidence')->orWhere('evidence', '');
-                })
-                ->whereHas('category', static function ($query): void {
-                    $query->where('evidence_required', true);
-                })
+                ->where('alliance_id', $context->alliance->id)
+                ->whereIn('status', [ContributionRecordStatus::Pending->value, ContributionRecordStatus::Approved->value])
+                ->where(fn ($query) => $query->whereNull('evidence')->orWhere('evidence', ''))
+                ->whereHas('category', static fn ($query) => $query->where('evidence_required', true))
+                ->orderBy('id')
                 ->get() as $record) {
                 ContributionDataQualityFlag::query()->create([
-                    'alliance_id' => $alliance->id,
+                    'alliance_id' => $context->alliance->id,
                     'player_id' => $record->player_id,
                     'category_id' => $record->category_id,
                     'record_id' => $record->id,
@@ -68,38 +86,23 @@ final class RefreshContributionDataQuality
                 $missingEvidence++;
             }
 
-            $memberships = AllianceMembership::query()
-                ->where('alliance_id', $alliance->id)
-                ->where('status', MembershipStatus::Active->value)
-                ->orderBy('id')
-                ->get();
-
-            foreach (ContributionCategory::query()
-                ->where('alliance_id', $alliance->id)
-                ->where('is_active', true)
-                ->orderBy('id')
-                ->get() as $category) {
-                $period = $this->periods->current($category, $alliance->timezone);
-
+            foreach ($categories as $category) {
+                $period = $this->periods->current($category, $context->alliance->timezone);
                 foreach ($memberships as $membership) {
                     $hasRecord = ContributionRecord::query()
-                        ->where('alliance_id', $alliance->id)
+                        ->where('alliance_id', $context->alliance->id)
                         ->where('category_id', $category->id)
                         ->where('player_id', $membership->player_id)
-                        ->whereIn('status', [
-                            ContributionRecordStatus::Pending->value,
-                            ContributionRecordStatus::Approved->value,
-                        ])
+                        ->whereIn('status', [ContributionRecordStatus::Pending->value, ContributionRecordStatus::Approved->value])
                         ->whereDate('period_start', $period['start']->toDateString())
                         ->whereDate('period_end', $period['end']->toDateString())
                         ->exists();
-
                     if ($hasRecord) {
                         continue;
                     }
 
                     ContributionDataQualityFlag::query()->create([
-                        'alliance_id' => $alliance->id,
+                        'alliance_id' => $context->alliance->id,
                         'player_id' => $membership->player_id,
                         'category_id' => $category->id,
                         'code' => 'missing_period_record',
@@ -112,15 +115,12 @@ final class RefreshContributionDataQuality
                 }
             }
 
-            $this->audit->record('contribution.data-quality.refreshed', $actor, $alliance, $alliance, [
+            $this->audit->record('contribution.data-quality.refreshed', $context->actor, $context->alliance, $context->alliance, [
                 'missing_evidence' => $missingEvidence,
                 'missing_records' => $missingRecords,
             ]);
 
-            return [
-                'missing_evidence' => $missingEvidence,
-                'missing_records' => $missingRecords,
-            ];
+            return ['missing_evidence' => $missingEvidence, 'missing_records' => $missingRecords];
         });
     }
 }
