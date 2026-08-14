@@ -40,42 +40,63 @@ final class AssignRecruitmentReviewer
             throw new AuthorizationException('The candidate must belong to the active Alliance.');
         }
 
-        $reviewerMembership = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('player_id', $reviewer->id)
-            ->where('status', MembershipStatus::Active->value)
-            ->first();
-        if (! $reviewerMembership instanceof AllianceMembership) {
-            throw ValidationException::withMessages(['reviewer_player_id' => 'Recruitment reviewers must be active Alliance Players.']);
-        }
-
         DB::transaction(function () use ($actor, $alliance, $candidate, $reviewer): void {
-            $existing = DB::table('recruitment_candidate_reviewers')
-                ->where('candidate_id', $candidate->id)
-                ->where('reviewer_player_id', $reviewer->id)
+            $lockedCandidate = RecruitmentCandidate::query()
+                ->where('alliance_id', $alliance->id)
+                ->whereKey($candidate->id)
                 ->lockForUpdate()
-                ->exists();
+                ->firstOrFail();
 
-            if ($existing) {
+            $lockedReviewer = Player::query()
+                ->whereKey($reviewer->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ((string) $lockedReviewer->current_kingdom_id !== (string) $alliance->kingdom_id) {
+                throw ValidationException::withMessages([
+                    'reviewer_player_id' => 'Recruitment reviewers must currently belong to the Alliance Kingdom.',
+                ]);
+            }
+
+            $reviewerMembership = AllianceMembership::query()
+                ->where('alliance_id', $alliance->id)
+                ->where('player_id', $lockedReviewer->id)
+                ->where('status', MembershipStatus::Active->value)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $reviewerMembership instanceof AllianceMembership) {
+                throw ValidationException::withMessages([
+                    'reviewer_player_id' => 'Recruitment reviewers must be active Alliance Players.',
+                ]);
+            }
+
+            $existing = DB::table('recruitment_candidate_reviewers')
+                ->where('candidate_id', $lockedCandidate->id)
+                ->where('reviewer_player_id', $lockedReviewer->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing !== null) {
                 return;
             }
 
             DB::table('recruitment_candidate_reviewers')->insert([
                 'id' => (string) Str::ulid(),
                 'alliance_id' => $alliance->id,
-                'candidate_id' => $candidate->id,
-                'reviewer_player_id' => $reviewer->id,
+                'candidate_id' => $lockedCandidate->id,
+                'reviewer_player_id' => $lockedReviewer->id,
                 'assigned_by_player_id' => $actor->id,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            $this->audit->record('recruitment.reviewer.assigned', $actor, $candidate, $alliance, [
-                'reviewer_player_id' => $reviewer->id,
+            $this->audit->record('recruitment.reviewer.assigned', $actor, $lockedCandidate, $alliance, [
+                'reviewer_player_id' => $lockedReviewer->id,
             ]);
-            $this->outbox->record('recruitment.reviewer.assigned', (string) $alliance->id, $candidate, [
-                'candidate_id' => $candidate->id,
-                'reviewer_player_id' => $reviewer->id,
+            $this->outbox->record('recruitment.reviewer.assigned', (string) $alliance->id, $lockedCandidate, [
+                'candidate_id' => $lockedCandidate->id,
+                'reviewer_player_id' => $lockedReviewer->id,
             ]);
         });
     }
