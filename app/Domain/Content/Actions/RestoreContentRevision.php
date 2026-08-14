@@ -7,20 +7,21 @@ namespace App\Domain\Content\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Content\Enums\ContentStatus;
+use App\Domain\Content\Models\ContentCategory;
 use App\Domain\Content\Models\ContentItem;
 use App\Domain\Content\Models\ContentRevision;
 use App\Domain\Content\Services\ContentRevisionWriter;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final readonly class RestoreContentRevision
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private ContentRevisionWriter $revisions,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -28,22 +29,34 @@ final readonly class RestoreContentRevision
 
     public function handle(Alliance $alliance, Player $actor, string $contentItemId, string $revisionId): ContentItem
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::ContentManage)) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $contentItemId, $revisionId): ContentItem {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::ContentManage);
+
             $item = ContentItem::query()
                 ->where('id', $contentItemId)
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
             $revision = ContentRevision::query()
                 ->where('id', $revisionId)
                 ->where('content_item_id', $item->id)
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->firstOrFail();
+
+            if ($revision->category_id !== null) {
+                $category = ContentCategory::query()
+                    ->whereKey($revision->category_id)
+                    ->where('alliance_id', $context->alliance->id)
+                    ->sharedLock()
+                    ->first();
+
+                if (! $category instanceof ContentCategory) {
+                    throw ValidationException::withMessages([
+                        'revision' => 'This revision references a category that no longer exists. Choose a current category before restoring it.',
+                    ]);
+                }
+            }
 
             $restoredFrom = $revision->revision_number;
             $item->forceFill([
@@ -60,16 +73,16 @@ final readonly class RestoreContentRevision
                 'scheduled_for' => null,
                 'published_at' => null,
                 'archived_at' => null,
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ])->save();
 
-            $newRevision = $this->revisions->write($item, $actor);
+            $newRevision = $this->revisions->write($item, $context->actor);
 
-            $this->audit->record('content.revision_restored', $actor, $item, $alliance, [
+            $this->audit->record('content.revision_restored', $context->actor, $item, $context->alliance, [
                 'restored_from_revision' => $restoredFrom,
                 'revision_number' => $newRevision->revision_number,
             ]);
-            $this->outbox->record('content.revision_restored', (string) $alliance->id, $item, [
+            $this->outbox->record('content.revision_restored', (string) $context->alliance->id, $item, [
                 'content_item_id' => $item->id,
                 'restored_from_revision' => $restoredFrom,
                 'revision_number' => $newRevision->revision_number,
