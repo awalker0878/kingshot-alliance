@@ -53,10 +53,13 @@ final readonly class SaveTransferParticipant
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $participantId): TransferParticipant {
             $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
 
+            // Ordinary participant work shares the transfer-plan lifecycle. Plan
+            // transitions retain the exclusive plan lock and therefore wait for all
+            // child mutations without serializing unrelated participants together.
             $plan = TransferPlan::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($planId)
-                ->lockForUpdate()
+                ->sharedLock()
                 ->firstOrFail();
 
             $this->assertMutable($context->alliance, $plan);
@@ -70,16 +73,15 @@ final readonly class SaveTransferParticipant
                     ->whereKey($participantId)
                     ->firstOrFail();
 
-            // Transfer domain order is plan -> group -> participant. Resolve the
-            // participant's immutable group route first, then lock the group before
-            // the participant so group edits and participant edits cannot invert.
+            // Group properties are only read for compatibility, so a shared group
+            // lock is sufficient and blocks concurrent group edits/archives.
             $group = $routing?->transfer_group_id === null
                 ? null
                 : TransferGroup::query()
                     ->where('alliance_id', $context->alliance->id)
                     ->where('transfer_plan_id', $plan->id)
                     ->whereKey($routing->transfer_group_id)
-                    ->lockForUpdate()
+                    ->sharedLock()
                     ->first();
 
             $participant = $participantId === null
@@ -97,6 +99,13 @@ final readonly class SaveTransferParticipant
             if ($participant->exists && $participant->withdrawn_at !== null) {
                 throw ValidationException::withMessages([
                     'participant' => 'Withdrawn transfer participants cannot be edited.',
+                ]);
+            }
+
+            if ($routing !== null
+                && (string) ($participant->transfer_group_id ?? '') !== (string) ($routing->transfer_group_id ?? '')) {
+                throw ValidationException::withMessages([
+                    'participant' => 'The participant group changed while this edit was being prepared. Reload the transfer cycle and try again.',
                 ]);
             }
 
@@ -158,9 +167,9 @@ final readonly class SaveTransferParticipant
 
     private function assertUniquePlayer(TransferPlan $plan, string $playerId, TransferParticipant $participant): void
     {
-        // All participant mutations lock the plan first, so the non-withdrawn
-        // uniqueness decision is serialized within a transfer cycle. The schema's
-        // unique/foreign-key rules remain the hard persistence backstop.
+        // The partial unique index on (transfer_plan_id, player_id) WHERE not
+        // withdrawn is the hard race-proof invariant; this precheck keeps the normal
+        // path in domain-validation terms.
         $duplicate = TransferParticipant::query()
             ->where('transfer_plan_id', $plan->id)
             ->where('player_id', $playerId)
