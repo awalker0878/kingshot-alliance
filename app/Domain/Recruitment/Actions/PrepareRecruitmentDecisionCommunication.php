@@ -7,21 +7,20 @@ namespace App\Domain\Recruitment\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentCommunicationStatus;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use App\Domain\Recruitment\Models\RecruitmentCommunication;
 use App\Domain\Recruitment\Models\RecruitmentDecisionTemplate;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class PrepareRecruitmentDecisionCommunication
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -32,72 +31,73 @@ final class PrepareRecruitmentDecisionCommunication
         RecruitmentCandidate $candidate,
         RecruitmentDecisionTemplate $template,
     ): RecruitmentCommunication {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::RecruitmentManage)) {
-            throw new AuthorizationException('You are not allowed to prepare recruitment communications.');
-        }
+        return DB::transaction(function () use ($actor, $alliance, $candidate, $template): RecruitmentCommunication {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::RecruitmentManage);
 
-        if ($candidate->alliance_id !== $alliance->id || $template->alliance_id !== $alliance->id) {
-            throw new AuthorizationException('The candidate and template must belong to the active alliance.');
-        }
+            $currentCandidate = RecruitmentCandidate::query()
+                ->whereKey($candidate->id)
+                ->where('alliance_id', $context->alliance->id)
+                ->sharedLock()
+                ->firstOrFail();
 
-        if (! $template->is_active) {
-            throw ValidationException::withMessages(['template' => 'This recruitment decision template is inactive.']);
-        }
-
-        if ($candidate->stage !== $template->decision_stage) {
-            throw ValidationException::withMessages([
-                'template' => 'The candidate stage must match the selected decision template.',
-            ]);
-        }
-
-        $subject = $this->render((string) $template->subject, $candidate, $alliance);
-        $body = $this->render((string) $template->body, $candidate, $alliance);
-        $idempotencyKey = hash('sha256', implode('|', [
-            $alliance->id,
-            $candidate->id,
-            $template->id,
-            $candidate->stage->value,
-            $subject,
-            $body,
-        ]));
-
-        return DB::transaction(function () use (
-            $actor,
-            $alliance,
-            $candidate,
-            $template,
-            $subject,
-            $body,
-            $idempotencyKey,
-        ): RecruitmentCommunication {
-            $existing = RecruitmentCommunication::query()
-                ->where('alliance_id', $alliance->id)
-                ->where('idempotency_key', $idempotencyKey)
-                ->first();
-
-            if ($existing instanceof RecruitmentCommunication) {
-                return $existing;
+            if ($currentCandidate->merged_into_id !== null) {
+                throw ValidationException::withMessages([
+                    'candidate' => 'Prepare communications from the current merged candidate record.',
+                ]);
             }
 
-            $communication = RecruitmentCommunication::query()->create([
-                'alliance_id' => $alliance->id,
-                'candidate_id' => $candidate->id,
-                'template_id' => $template->id,
-                'channel' => 'email',
-                'subject' => $subject,
-                'body' => $body,
-                'status' => RecruitmentCommunicationStatus::Prepared,
-                'idempotency_key' => $idempotencyKey,
-                'created_by_player_id' => $actor->id,
-            ]);
+            $currentTemplate = RecruitmentDecisionTemplate::query()
+                ->whereKey($template->id)
+                ->where('alliance_id', $context->alliance->id)
+                ->sharedLock()
+                ->firstOrFail();
 
-            $this->audit->record('recruitment.communication.prepared', $actor, $communication, $alliance, [
-                'candidate_id' => $candidate->id,
-                'template_id' => $template->id,
+            if (! $currentTemplate->is_active) {
+                throw ValidationException::withMessages(['template' => 'This recruitment decision template is inactive.']);
+            }
+
+            if ($currentCandidate->stage !== $currentTemplate->decision_stage) {
+                throw ValidationException::withMessages([
+                    'template' => 'The candidate stage must match the selected decision template.',
+                ]);
+            }
+
+            $subject = $this->render((string) $currentTemplate->subject, $currentCandidate, $context->alliance);
+            $body = $this->render((string) $currentTemplate->body, $currentCandidate, $context->alliance);
+            $idempotencyKey = hash('sha256', implode('|', [
+                $context->alliance->id,
+                $currentCandidate->id,
+                $currentTemplate->id,
+                $currentCandidate->stage->value,
+                $subject,
+                $body,
+            ]));
+
+            $communication = RecruitmentCommunication::query()->firstOrCreate(
+                ['idempotency_key' => $idempotencyKey],
+                [
+                    'alliance_id' => $context->alliance->id,
+                    'candidate_id' => $currentCandidate->id,
+                    'template_id' => $currentTemplate->id,
+                    'channel' => 'email',
+                    'subject' => $subject,
+                    'body' => $body,
+                    'status' => RecruitmentCommunicationStatus::Prepared,
+                    'created_by_player_id' => $context->actor->id,
+                ],
+            );
+
+            if (! $communication->wasRecentlyCreated) {
+                return $communication;
+            }
+
+            $this->audit->record('recruitment.communication.prepared', $context->actor, $communication, $context->alliance, [
+                'candidate_id' => $currentCandidate->id,
+                'template_id' => $currentTemplate->id,
             ]);
-            $this->outbox->record('recruitment.communication.prepared', (string) $alliance->id, $communication, [
-                'candidate_id' => $candidate->id,
-                'template_id' => $template->id,
+            $this->outbox->record('recruitment.communication.prepared', (string) $context->alliance->id, $communication, [
+                'candidate_id' => $currentCandidate->id,
+                'template_id' => $currentTemplate->id,
             ]);
 
             return $communication;
