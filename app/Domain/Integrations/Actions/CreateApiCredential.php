@@ -7,7 +7,7 @@ namespace App\Domain\Integrations\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Integrations\Models\ApiCredential;
 use App\Domain\Integrations\ValueObjects\IssuedApiCredential;
 use App\Domain\Kingdoms\Models\Player;
@@ -15,7 +15,6 @@ use App\Domain\Platform\Models\AlliancePlatformSetting;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Platform\Services\PlanEntitlementService;
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -29,7 +28,7 @@ final readonly class CreateApiCredential
     ];
 
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $mutations,
         private PlanEntitlementService $entitlements,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -58,40 +57,37 @@ final readonly class CreateApiCredential
         }
 
         return DB::transaction(function () use ($alliance, $actor, $name, $scopes, $expiresAt): IssuedApiCredential {
-            $lockedAlliance = Alliance::query()->whereKey($alliance->id)->lockForUpdate()->firstOrFail();
-            $lockedActor = Player::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
+            // Credential capacity is Alliance-wide, so acquire the exclusive mutation boundary.
+            $authority = $this->mutations->requireExclusive($actor, $alliance, PermissionKey::AllianceManage);
+            $currentAlliance = $authority->alliance;
+            $currentActor = $authority->actor;
 
-            if (! $this->authorization->allowsForUpdate($lockedActor, $lockedAlliance, PermissionKey::AllianceManage)) {
-                throw new AuthorizationException;
-            }
-
-            $settings = AlliancePlatformSetting::query()->whereKey($lockedAlliance->id)->lockForUpdate()->first();
+            $settings = AlliancePlatformSetting::query()->whereKey($currentAlliance->id)->lockForUpdate()->first();
             if ($settings !== null && ! $settings->api_access_enabled) {
                 throw ValidationException::withMessages(['api' => 'API access is disabled for this alliance.']);
             }
 
-            // The Alliance row lock serializes capacity-sensitive credential creation.
-            $this->entitlements->assertApiCredentialCapacity($lockedAlliance);
+            $this->entitlements->assertApiCredentialCapacity($currentAlliance);
 
             $prefix = strtolower(bin2hex(random_bytes(6)));
             $secret = bin2hex(random_bytes(32));
             $credential = ApiCredential::query()->create([
-                'alliance_id' => $lockedAlliance->id,
+                'alliance_id' => $currentAlliance->id,
                 'name' => $name,
                 'prefix' => $prefix,
                 'secret_hash' => hash('sha256', $secret),
                 'scopes' => $scopes,
                 'expires_at' => $expiresAt?->utc(),
-                'created_by_player_id' => $lockedActor->id,
+                'created_by_player_id' => $currentActor->id,
             ]);
 
-            $this->audit->record('integration.api-credential.created', $lockedActor, $credential, $lockedAlliance, [
+            $this->audit->record('integration.api-credential.created', $currentActor, $credential, $currentAlliance, [
                 'credential_id' => $credential->id,
                 'prefix' => $prefix,
                 'scopes' => $scopes,
                 'expires_at' => $expiresAt?->toIso8601String(),
             ]);
-            $this->outbox->record('integration.api-credential.created', $lockedAlliance->id, $credential, [
+            $this->outbox->record('integration.api-credential.created', $currentAlliance->id, $credential, [
                 'credential_id' => $credential->id,
                 'prefix' => $prefix,
                 'scopes' => $scopes,
