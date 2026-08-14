@@ -1,7 +1,10 @@
-# ADR 0010: Transactional mutation and concurrency principles
+# ADR 0010 — Transactional mutation and concurrency principles
 
-**Status:** Accepted  
-**Date:** 2026-08-14
+- **Status:** Accepted
+- **Date:** 2026-08-14
+- **Owners:** Architecture / all business domains
+- **Related scope:** Repository-wide transactional writes, authorization revalidation, concurrency, locking, asynchronous claims
+- **Supersedes:** None
 
 ## Context
 
