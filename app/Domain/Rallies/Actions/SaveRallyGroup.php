@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Actions;
 
+use App\Domain\Alliances\Enums\AllianceStatus;
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
-use App\Domain\Events\Services\EventParticipantAuthorization;
-use App\Domain\Events\Services\EventTargetResolver;
+use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
+use App\Domain\Rallies\Enums\RallyAssignmentRole;
+use App\Domain\Rallies\Enums\RallyAssignmentStatus;
 use App\Domain\Rallies\Models\EventRecommendedFormation;
 use App\Domain\Rallies\Models\RallyGroup;
 use App\Domain\Rallies\Services\RallyAllianceResolver;
@@ -22,10 +25,9 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveRallyGroup
 {
     public function __construct(
-        private EventParticipantAuthorization $authorization,
+        private EventMutationAuthority $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private RallyAllianceResolver $alliances,
-        private EventTargetResolver $targets,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -41,65 +43,119 @@ final readonly class SaveRallyGroup
         int $sortOrder = 0,
         ?RallyGroup $group = null,
     ): RallyGroup {
-        $occurrence->loadMissing('event.typeScope');
+        $occurrence->loadMissing('event');
         $event = $occurrence->event;
-        $this->capabilities->require($event, EventCapability::RallyGuidance);
-        $this->authorization->authorizeManager($actor, $event);
-        $alliance = $this->alliances->resolve($event, $allianceId);
+
         if ($recommendedFormation instanceof EventRecommendedFormation
-            && ((string) $recommendedFormation->occurrence_id !== (string) $occurrence->id || (string) $recommendedFormation->alliance_id !== (string) $alliance->id)) {
+            && ((string) $recommendedFormation->occurrence_id !== (string) $occurrence->id
+                || (string) $recommendedFormation->alliance_id !== $allianceId)) {
             throw new AuthorizationException;
         }
+
         if ($group instanceof RallyGroup
-            && ((string) $group->occurrence_id !== (string) $occurrence->id || (string) $group->alliance_id !== (string) $alliance->id)) {
+            && ((string) $group->occurrence_id !== (string) $occurrence->id
+                || (string) $group->alliance_id !== $allianceId)) {
             throw new AuthorizationException;
         }
+
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 120) {
             throw ValidationException::withMessages(['name' => 'Rally group name is required and must be 120 characters or fewer.']);
         }
+
         if ($maxJoiners !== null && $maxJoiners < 1) {
             throw ValidationException::withMessages(['max_joiners' => 'Maximum joiners must be at least one.']);
         }
-        $target = $this->targets->forEvent($event);
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $alliance, $name, $maxJoiners, $recommendedFormation, $notes, $sortOrder, $group, $target): RallyGroup {
-            EventOccurrence::query()->whereKey($occurrence->id)->lockForUpdate()->firstOrFail();
+        return DB::transaction(function () use ($actor, $occurrence, $event, $allianceId, $name, $maxJoiners, $recommendedFormation, $notes, $sortOrder, $group): RallyGroup {
+            $context = $this->eventAuthority->requireManager($actor, $event);
+            $this->capabilities->require($context->event, EventCapability::RallyGuidance);
+
+            // Group metadata is not occurrence-wide occupancy state. Share-lock the
+            // occurrence lifecycle; assignment/move workflows take it exclusively.
+            $lockedOccurrence = EventOccurrence::query()
+                ->whereKey($occurrence->id)
+                ->where('event_id', $context->event->id)
+                ->sharedLock()
+                ->firstOrFail();
+
+            $resolvedAlliance = $this->alliances->resolve($context->event, $allianceId);
+            $alliance = Alliance::query()
+                ->whereKey($resolvedAlliance->id)
+                ->where('status', AllianceStatus::Active->value)
+                ->sharedLock()
+                ->firstOrFail();
+
+            $formation = null;
+            if ($recommendedFormation instanceof EventRecommendedFormation) {
+                $formation = EventRecommendedFormation::query()
+                    ->whereKey($recommendedFormation->id)
+                    ->where('occurrence_id', $lockedOccurrence->id)
+                    ->where('alliance_id', $alliance->id)
+                    ->sharedLock()
+                    ->firstOrFail();
+            }
+
             $record = $group instanceof RallyGroup
-                ? RallyGroup::query()->whereKey($group->id)->where('occurrence_id', $occurrence->id)->where('alliance_id', $alliance->id)->lockForUpdate()->firstOrFail()
-                : new RallyGroup(['occurrence_id' => $occurrence->id, 'alliance_id' => $alliance->id]);
+                ? RallyGroup::query()
+                    ->whereKey($group->id)
+                    ->where('occurrence_id', $lockedOccurrence->id)
+                    ->where('alliance_id', $alliance->id)
+                    ->lockForUpdate()
+                    ->firstOrFail()
+                : new RallyGroup([
+                    'occurrence_id' => $lockedOccurrence->id,
+                    'alliance_id' => $alliance->id,
+                ]);
+
             if ($record->exists && $maxJoiners !== null) {
+                // AssignRallyPlayer locks this group exclusively before occupancy
+                // changes, so the active joiner count is stable while max is reduced.
                 $activeJoiners = $record->assignments()
-                    ->where('role', \App\Domain\Rallies\Enums\RallyAssignmentRole::Joiner->value)
-                    ->whereNotIn('status', [\App\Domain\Rallies\Enums\RallyAssignmentStatus::Declined->value, \App\Domain\Rallies\Enums\RallyAssignmentStatus::Removed->value])
+                    ->where('role', RallyAssignmentRole::Joiner->value)
+                    ->whereNotIn('status', [
+                        RallyAssignmentStatus::Declined->value,
+                        RallyAssignmentStatus::Removed->value,
+                    ])
                     ->count();
+
                 if ($activeJoiners > $maxJoiners) {
-                    throw ValidationException::withMessages(['max_joiners' => 'Maximum joiners cannot be lower than the current active joiner count.']);
+                    throw ValidationException::withMessages([
+                        'max_joiners' => 'Maximum joiners cannot be lower than the current active joiner count.',
+                    ]);
                 }
             }
+
             $created = ! $record->exists;
             if ($created) {
-                $record->created_by_player_id = $actor->id;
+                $record->created_by_player_id = $context->actor->id;
             }
+
             $record->forceFill([
-                'recommended_formation_id' => $recommendedFormation?->id,
+                'recommended_formation_id' => $formation?->id,
                 'name' => $name,
                 'max_joiners' => $maxJoiners,
                 'notes' => $notes === null || trim($notes) === '' ? null : trim($notes),
                 'sort_order' => max(0, $sortOrder),
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ])->save();
 
             $eventName = $created ? 'rally.group.created' : 'rally.group.updated';
             $metadata = [
-                'event_id' => (string) $event->id,
-                'occurrence_id' => (string) $occurrence->id,
+                'event_id' => (string) $context->event->id,
+                'occurrence_id' => (string) $lockedOccurrence->id,
                 'alliance_id' => (string) $alliance->id,
                 'rally_group_id' => (string) $record->id,
-                'actor_player_id' => $actor->id,
+                'actor_player_id' => $context->actor->id,
             ];
-            $this->audit->record($eventName, $actor, $record, $alliance, $metadata);
-            $this->outbox->record($eventName, (string) $alliance->id, $record, $metadata, partitionKey: $event->scope->value.':'.$target->id);
+            $this->audit->record($eventName, $context->actor, $record, $alliance, $metadata);
+            $this->outbox->record(
+                $eventName,
+                (string) $alliance->id,
+                $record,
+                $metadata,
+                partitionKey: $context->event->scope->value.':'.$context->target->id,
+            );
 
             return $record->refresh();
         });
