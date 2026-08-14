@@ -54,13 +54,16 @@ final readonly class CreateInvitation
             ]);
         }
 
-        if (AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
+        $activeMembership = AllianceMembership::query()
             ->where('player_id', $target->id)
             ->where('status', MembershipStatus::Active->value)
-            ->exists()) {
+            ->first();
+
+        if ($activeMembership instanceof AllianceMembership) {
             throw ValidationException::withMessages([
-                'player_id' => 'This Player is already an active Alliance member.',
+                'player_id' => (string) $activeMembership->alliance_id === (string) $alliance->id
+                    ? 'This Player is already an active Alliance member.'
+                    : 'This Player is already active in another Alliance.',
             ]);
         }
 
@@ -75,6 +78,18 @@ final readonly class CreateInvitation
 
         return DB::transaction(function () use ($alliance, $actor, $target, $email): IssuedInvitation {
             Alliance::query()->whereKey($alliance->id)->lockForUpdate()->firstOrFail();
+
+            // Revalidate membership after acquiring the Alliance lock so a Player cannot
+            // be invited through a stale caller snapshot after joining another Alliance.
+            if (AllianceMembership::query()
+                ->where('player_id', $target->id)
+                ->where('status', MembershipStatus::Active->value)
+                ->lockForUpdate()
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'player_id' => 'This Player is already active in an Alliance.',
+                ]);
+            }
 
             $supersededInvitations = Invitation::query()
                 ->where('alliance_id', $alliance->id)
