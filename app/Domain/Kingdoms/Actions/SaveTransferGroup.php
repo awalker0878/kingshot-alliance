@@ -50,10 +50,12 @@ final readonly class SaveTransferGroup
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $groupId): TransferGroup {
             $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
 
+            // Child mutations share-lock the transfer-plan lifecycle so unrelated
+            // groups can change concurrently while plan transitions remain exclusive.
             $plan = TransferPlan::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($planId)
-                ->lockForUpdate()
+                ->sharedLock()
                 ->firstOrFail();
 
             $this->assertMutable($context->alliance, $plan);
@@ -125,8 +127,6 @@ final readonly class SaveTransferGroup
             $destinationId = $destination === null ? null : (string) $destination->id;
             $coordinatorId = $coordinator === null ? null : (string) $coordinator->id;
 
-            // Transfer domain lock order is plan -> group -> participant. Group edits
-            // therefore lock assigned participants only after the group row itself.
             $this->assertAssignedParticipantsCompatible(
                 $context->alliance,
                 $plan,
@@ -186,13 +186,15 @@ final readonly class SaveTransferGroup
             return;
         }
 
+        // We only inspect participant compatibility; shared row locks block participant
+        // writers while allowing independent readers and avoid over-serializing groups.
         $participants = TransferParticipant::query()
             ->where('alliance_id', $alliance->id)
             ->where('transfer_plan_id', $plan->id)
             ->where('transfer_group_id', $group->id)
             ->whereNull('withdrawn_at')
             ->orderBy('id')
-            ->lockForUpdate()
+            ->sharedLock()
             ->get();
 
         foreach ($participants as $participant) {
@@ -219,14 +221,11 @@ final readonly class SaveTransferGroup
             return null;
         }
 
-        // Active membership is the coordinator eligibility anchor. Locking it makes
-        // the selection stable against leave/suspend/rank workflow changes; an active
-        // membership already prevents incompatible Player Kingdom movement.
         $membership = AllianceMembership::query()
             ->where('alliance_id', $alliance->id)
             ->where('player_id', $playerId)
             ->where('status', MembershipStatus::Active->value)
-            ->lockForUpdate()
+            ->sharedLock()
             ->first();
 
         if (! $membership instanceof AllianceMembership) {
