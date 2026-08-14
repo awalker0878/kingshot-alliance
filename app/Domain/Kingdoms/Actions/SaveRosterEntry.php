@@ -7,12 +7,11 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -21,7 +20,7 @@ use InvalidArgumentException;
 final readonly class SaveRosterEntry
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private ResolvePlayer $players,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -46,28 +45,27 @@ final readonly class SaveRosterEntry
         ?string $importId = null,
         ?string $expectedPlayerId = null,
     ): AllianceRosterEntry {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
-            throw new AuthorizationException;
-        }
-
         if (! in_array($source, ['manual', 'csv'], true)) {
             throw new InvalidArgumentException('Unsupported roster source.');
         }
 
         return DB::transaction(function () use ($alliance, $actor, $attributes, $entryId, $source, $importId, $expectedPlayerId): AllianceRosterEntry {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
             $name = trim($attributes['name']);
             $state = $attributes['state'] ?? RosterState::Active;
 
             if ($entryId === null) {
+                // ResolvePlayer locks the durable Player identity before any roster row
+                // is created, matching the Player -> roster order used by transfer flows.
                 $player = $this->players->handle(
-                    $alliance,
+                    $context->alliance,
                     $name,
                     $attributes['game_player_id'] ?? null,
                     $expectedPlayerId,
                 );
 
                 if (AllianceRosterEntry::query()
-                    ->where('alliance_id', $alliance->id)
+                    ->where('alliance_id', $context->alliance->id)
                     ->where('player_id', $player->id)
                     ->exists()) {
                     throw ValidationException::withMessages([
@@ -76,20 +74,38 @@ final readonly class SaveRosterEntry
                 }
 
                 $entry = new AllianceRosterEntry([
-                    'alliance_id' => $alliance->id,
+                    'alliance_id' => $context->alliance->id,
                     'player_id' => $player->id,
                 ]);
                 $event = 'kingdoms.roster_entry_created';
             } else {
-                $entry = AllianceRosterEntry::query()
-                    ->where('alliance_id', $alliance->id)
+                // Resolve immutable routing identity without a row lock, then acquire
+                // Player before roster to avoid reversing Kingdom-transfer lock order.
+                $routing = AllianceRosterEntry::query()
+                    ->select(['id', 'player_id'])
+                    ->where('alliance_id', $context->alliance->id)
+                    ->whereKey($entryId)
+                    ->firstOrFail();
+
+                $player = Player::query()
+                    ->whereKey($routing->player_id)
                     ->lockForUpdate()
-                    ->findOrFail($entryId);
+                    ->firstOrFail();
+
+                $entry = AllianceRosterEntry::query()
+                    ->where('alliance_id', $context->alliance->id)
+                    ->where('player_id', $player->id)
+                    ->whereKey($entryId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
                 $event = 'kingdoms.roster_entry_updated';
             }
 
-            $player = Player::query()->lockForUpdate()->findOrFail($entry->player_id);
-            if ((string) $player->current_kingdom_id !== (string) $alliance->kingdom_id) {
+            if (! isset($player)) {
+                $player = Player::query()->whereKey($entry->player_id)->lockForUpdate()->firstOrFail();
+            }
+
+            if ((string) $player->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
                 throw ValidationException::withMessages([
                     'game_player_id' => 'The Player must currently belong to the Alliance Kingdom.',
                 ]);
@@ -116,8 +132,8 @@ final readonly class SaveRosterEntry
                 'import_id' => $importId,
             ];
 
-            $this->audit->record($event, $actor, $entry, $alliance, $metadata);
-            $this->outbox->record($event, (string) $alliance->id, $entry, $metadata);
+            $this->audit->record($event, $context->actor, $entry, $context->alliance, $metadata);
+            $this->outbox->record($event, (string) $context->alliance->id, $entry, $metadata);
 
             return $entry->refresh()->load('player');
         });
