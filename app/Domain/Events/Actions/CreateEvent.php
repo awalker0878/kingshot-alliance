@@ -98,23 +98,34 @@ final class CreateEvent
                 'minimum_repeat_interval_minutes' => $currentTemplate->minimum_repeat_interval_minutes,
             ];
 
-            $duration = $durationMinutes ?? $storedDefaults['default_duration_minutes'];
+            $duration = $durationMinutes
+                ?? ($currentTemplate instanceof EventTemplate
+                    ? (int) $currentTemplate->duration_minutes
+                    : $storedDefaults['default_duration_minutes']);
             if (! is_int($duration) || $duration < 1 || $duration > 10080) {
                 throw new InvalidArgumentException('Event duration is required and must be between 1 and 10080 minutes.');
             }
 
-            $resolvedCapacity = $capacity ?? $storedDefaults['default_capacity'];
+            $resolvedCapacity = $capacity ?? ($currentTemplate instanceof EventTemplate
+                ? $currentTemplate->capacity
+                : $storedDefaults['default_capacity']);
             if ($resolvedCapacity !== null && ((int) $resolvedCapacity < 1 || (int) $resolvedCapacity > 100000)) {
                 throw new InvalidArgumentException('Event capacity must be between 1 and 100000 when provided.');
             }
 
-            $opens = $registrationOpensMinutesBefore ?? $storedDefaults['default_registration_opens_minutes_before'];
-            $closes = $registrationClosesMinutesBefore ?? $storedDefaults['default_registration_closes_minutes_before'];
+            $opens = $registrationOpensMinutesBefore ?? ($currentTemplate instanceof EventTemplate
+                ? $currentTemplate->registration_opens_minutes_before
+                : $storedDefaults['default_registration_opens_minutes_before']);
+            $closes = $registrationClosesMinutesBefore ?? ($currentTemplate instanceof EventTemplate
+                ? $currentTemplate->registration_closes_minutes_before
+                : $storedDefaults['default_registration_closes_minutes_before']);
             if ($opens !== null && $closes !== null && (int) $opens < (int) $closes) {
                 throw new InvalidArgumentException('Registration must open before it closes.');
             }
 
-            $resolvedSchedule = $this->schedulePolicy->resolve($scheduleDefaults, $frequency, $recurrenceInterval);
+            $resolvedFrequency = $frequency ?? ($currentTemplate?->recurrence_frequency);
+            $resolvedInterval = $recurrenceInterval ?? ($currentTemplate?->recurrence_interval);
+            $resolvedSchedule = $this->schedulePolicy->resolve($scheduleDefaults, $resolvedFrequency, $resolvedInterval);
             if ($resolvedSchedule['frequency'] === RecurrenceFrequency::None && $recurrenceUntilLocal !== null) {
                 throw new InvalidArgumentException('A non-recurring event cannot have a recurrence end date.');
             }
@@ -145,6 +156,7 @@ final class CreateEvent
 
             $baseSettings = $currentTemplate?->settings ?? $storedDefaults['default_settings'];
             $resolvedSettings = array_replace_recursive($baseSettings, $settings);
+            $resolvedInstructions = $instructions ?? $currentTemplate?->instructions;
 
             $event = Event::query()->create([
                 'event_type_scope_id' => $currentConfiguration->id,
@@ -153,7 +165,7 @@ final class CreateEvent
                 ...$targetColumns,
                 'template_id' => $currentTemplate?->id,
                 'title' => $title === null || trim($title) === '' ? null : trim($title),
-                'instructions' => $instructions === null || trim($instructions) === '' ? null : trim($instructions),
+                'instructions' => $resolvedInstructions === null || trim($resolvedInstructions) === '' ? null : trim($resolvedInstructions),
                 'timezone' => $timezone,
                 'schedule_source' => $currentTemplate?->schedule_source ?? $storedDefaults['schedule_source'],
                 'recurrence_policy' => $scheduleDefaults['recurrence_policy'],
