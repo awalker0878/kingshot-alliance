@@ -7,33 +7,45 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 
 final readonly class MarkRosterEntryLeft
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(Alliance $alliance, Player $actor, string $entryId): AllianceRosterEntry
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $entryId): AllianceRosterEntry {
-            $entry = AllianceRosterEntry::query()
-                ->where('alliance_id', $alliance->id)
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+
+            $routing = AllianceRosterEntry::query()
+                ->select(['id', 'player_id'])
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($entryId)
+                ->firstOrFail();
+
+            // Player is the durable Kingdom/roster identity anchor. Lock it before
+            // the roster row so leave/manual cleanup cannot race a Player transfer.
+            Player::query()
+                ->whereKey($routing->player_id)
                 ->lockForUpdate()
-                ->findOrFail($entryId);
+                ->firstOrFail();
+
+            $entry = AllianceRosterEntry::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->where('player_id', $routing->player_id)
+                ->whereKey($entryId)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if ($entry->state === RosterState::Left) {
                 return $entry->load('player');
@@ -51,8 +63,8 @@ final readonly class MarkRosterEntryLeft
                 'player_id' => (string) $entry->player_id,
             ];
 
-            $this->audit->record('kingdoms.roster_entry_left', $actor, $entry, $alliance, $metadata);
-            $this->outbox->record('kingdoms.roster_entry_left', (string) $alliance->id, $entry, $metadata);
+            $this->audit->record('kingdoms.roster_entry_left', $context->actor, $entry, $context->alliance, $metadata);
+            $this->outbox->record('kingdoms.roster_entry_left', (string) $context->alliance->id, $entry, $metadata);
 
             return $entry->refresh()->load('player');
         });
