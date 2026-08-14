@@ -26,19 +26,26 @@ final readonly class ResolvePlayerContext
         $sessionKey = (string) config('identity.active_player_session_key');
         $activePlayerId = $request->session()->get($sessionKey);
 
-        if (is_string($activePlayerId) && $activePlayerId !== '') {
+        if ($request->session()->exists($sessionKey)) {
+            if (! is_string($activePlayerId) || $activePlayerId === '') {
+                $request->session()->forget($sessionKey);
+                abort(403, 'The selected Player is not available to this account.');
+            }
+
             $player = Player::query()
                 ->whereKey($activePlayerId)
                 ->where('user_id', $user->id)
                 ->with('currentKingdom')
                 ->first();
 
-            if ($player instanceof Player) {
-                $this->activate($request, $user, $player);
-            } else {
-                // Session input is never trusted as ownership evidence.
+            if (! $player instanceof Player) {
+                // Clear invalid state so a subsequent request can recover, but never
+                // continue the current request under a different game principal.
                 $request->session()->forget($sessionKey);
+                abort(403, 'The selected Player is not available to this account.');
             }
+
+            $this->activate($request, $user, $player);
         } else {
             $owned = Player::query()
                 ->where('user_id', $user->id)
