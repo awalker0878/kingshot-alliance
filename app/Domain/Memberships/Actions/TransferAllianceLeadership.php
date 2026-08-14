@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Memberships\Actions;
 
+use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Kingdoms\Models\Player;
@@ -26,8 +27,19 @@ final readonly class TransferAllianceLeadership
     public function handle(Alliance $alliance, Player $actor, string $targetPlayerId): void
     {
         DB::transaction(function () use ($alliance, $actor, $targetPlayerId): void {
+            $lockedAlliance = Alliance::query()
+                ->whereKey($alliance->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedAlliance->status !== AllianceStatus::Active) {
+                throw ValidationException::withMessages([
+                    'alliance' => 'Leadership can only be transferred for an active Alliance.',
+                ]);
+            }
+
             $activeMemberships = AllianceMembership::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $lockedAlliance->id)
                 ->where('status', MembershipStatus::Active->value)
                 ->lockForUpdate()
                 ->get();
@@ -70,9 +82,9 @@ final readonly class TransferAllianceLeadership
                 'previous_r5_new_rank' => AllianceRank::R4->value,
             ];
 
-            $this->audit->record('alliance.leadership_transferred', $actor, $alliance, $alliance, $metadata);
-            $this->outbox->record('alliance.leadership_transferred', (string) $alliance->id, $alliance, [
-                'alliance_id' => (string) $alliance->id,
+            $this->audit->record('alliance.leadership_transferred', $actor, $lockedAlliance, $lockedAlliance, $metadata);
+            $this->outbox->record('alliance.leadership_transferred', (string) $lockedAlliance->id, $lockedAlliance, [
+                'alliance_id' => (string) $lockedAlliance->id,
                 ...$metadata,
             ]);
         });
