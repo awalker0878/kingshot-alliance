@@ -7,18 +7,17 @@ namespace App\Domain\Content\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Content\Models\ContentCategory;
 use App\Domain\Content\Services\ContentSanitizer;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 
 final readonly class SaveContentCategory
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private ContentSanitizer $sanitizer,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -32,16 +31,14 @@ final readonly class SaveContentCategory
         int $sortOrder = 0,
         ?string $categoryId = null,
     ): ContentCategory {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::ContentManage)) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $name, $slug, $sortOrder, $categoryId): ContentCategory {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::ContentManage);
+
             $category = $categoryId === null
-                ? new ContentCategory(['alliance_id' => $alliance->id])
+                ? new ContentCategory(['alliance_id' => $context->alliance->id])
                 : ContentCategory::query()
                     ->where('id', $categoryId)
-                    ->where('alliance_id', $alliance->id)
+                    ->where('alliance_id', $context->alliance->id)
                     ->lockForUpdate()
                     ->firstOrFail();
 
@@ -52,8 +49,8 @@ final readonly class SaveContentCategory
             ])->save();
 
             $event = $categoryId === null ? 'content.category_created' : 'content.category_updated';
-            $this->audit->record($event, $actor, $category, $alliance);
-            $this->outbox->record($event, (string) $alliance->id, $category, [
+            $this->audit->record($event, $context->actor, $category, $context->alliance);
+            $this->outbox->record($event, (string) $context->alliance->id, $category, [
                 'category_id' => $category->id,
                 'slug' => $category->slug,
             ]);
