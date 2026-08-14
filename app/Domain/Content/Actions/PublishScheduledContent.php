@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Content\Actions;
 
+use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Content\Enums\ContentStatus;
@@ -33,8 +34,29 @@ final readonly class PublishScheduledContent
 
         foreach ($ids as $id) {
             $didPublish = DB::transaction(function () use ($id): bool {
+                // Resolve the immutable tenant key before locking, then follow the
+                // same lifecycle -> child aggregate lock order as interactive writes.
+                $candidate = ContentItem::query()
+                    ->select(['id', 'alliance_id'])
+                    ->whereKey($id)
+                    ->first();
+
+                if (! $candidate instanceof ContentItem) {
+                    return false;
+                }
+
+                $alliance = Alliance::query()
+                    ->whereKey($candidate->alliance_id)
+                    ->sharedLock()
+                    ->first();
+
+                if (! $alliance instanceof Alliance || $alliance->status !== AllianceStatus::Active) {
+                    return false;
+                }
+
                 $item = ContentItem::query()
                     ->where('id', $id)
+                    ->where('alliance_id', $alliance->id)
                     ->where('status', ContentStatus::Scheduled->value)
                     ->whereNotNull('scheduled_for')
                     ->where('scheduled_for', '<=', now())
@@ -45,7 +67,6 @@ final readonly class PublishScheduledContent
                     return false;
                 }
 
-                $alliance = Alliance::query()->findOrFail($item->alliance_id);
                 $item->forceFill([
                     'status' => ContentStatus::Published,
                     'published_at' => now(),
