@@ -7,22 +7,21 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\TransferBlockerState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TransferBlocker;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class ResolveTransferBlocker
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -34,24 +33,23 @@ final readonly class ResolveTransferBlocker
         string $participantId,
         string $blockerId,
     ): TransferBlocker {
-        if ($this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage) === false) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $planId, $participantId, $blockerId): TransferBlocker {
-            $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
-            $plan = TransferPlan::query()
-                ->where('alliance_id', $currentAlliance->id)
-                ->lockForUpdate()
-                ->findOrFail($planId);
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
 
-            $this->assertMutable($currentAlliance, $plan);
+            $plan = TransferPlan::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($planId)
+                ->sharedLock()
+                ->firstOrFail();
+
+            $this->assertMutable($context->alliance, $plan);
 
             $participant = TransferParticipant::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->where('transfer_plan_id', $plan->id)
-                ->lockForUpdate()
-                ->findOrFail($participantId);
+                ->whereKey($participantId)
+                ->sharedLock()
+                ->firstOrFail();
 
             if ($participant->withdrawn_at !== null) {
                 throw ValidationException::withMessages([
@@ -60,11 +58,12 @@ final readonly class ResolveTransferBlocker
             }
 
             $blocker = TransferBlocker::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->where('transfer_plan_id', $plan->id)
                 ->where('transfer_participant_id', $participant->id)
+                ->whereKey($blockerId)
                 ->lockForUpdate()
-                ->findOrFail($blockerId);
+                ->firstOrFail();
 
             if ($blocker->state === TransferBlockerState::Resolved) {
                 return $blocker->refresh();
@@ -72,7 +71,7 @@ final readonly class ResolveTransferBlocker
 
             $blocker->forceFill([
                 'state' => TransferBlockerState::Resolved,
-                'resolved_by_player_id' => $actor->id,
+                'resolved_by_player_id' => $context->actor->id,
                 'resolved_at' => now(),
             ])->save();
 
@@ -83,19 +82,8 @@ final readonly class ResolveTransferBlocker
                 'state' => $blocker->state->value,
             ];
 
-            $this->audit->record(
-                'kingdoms.transfer_blocker_resolved',
-                $actor,
-                $blocker,
-                $currentAlliance,
-                $metadata,
-            );
-            $this->outbox->record(
-                'kingdoms.transfer_blocker_resolved',
-                (string) $currentAlliance->id,
-                $blocker,
-                $metadata,
-            );
+            $this->audit->record('kingdoms.transfer_blocker_resolved', $context->actor, $blocker, $context->alliance, $metadata);
+            $this->outbox->record('kingdoms.transfer_blocker_resolved', (string) $context->alliance->id, $blocker, $metadata);
 
             return $blocker->refresh()->load(['createdBy:id,current_name', 'resolvedBy:id,current_name']);
         });
