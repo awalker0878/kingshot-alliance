@@ -53,7 +53,7 @@ final readonly class TransitionTransferPlan
                 ->lockForUpdate()
                 ->findOrFail($alliance->id);
             $lockedActor = Player::query()->lockForUpdate()->findOrFail($actor->id);
-            if ($this->authorization->allows($lockedActor, $currentAlliance, PermissionKey::KingdomManage) === false) {
+            if ($this->authorization->allowsForUpdate($lockedActor, $currentAlliance, PermissionKey::KingdomManage) === false) {
                 throw new AuthorizationException;
             }
 
