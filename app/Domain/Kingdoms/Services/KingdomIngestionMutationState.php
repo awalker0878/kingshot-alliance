@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Services;
 
+use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\ValueObjects\KingdomIngestionMutationContext;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use LogicException;
 
 /** Kingdoms-owned lock-order boundary for automated ingestion state. */
@@ -37,12 +39,18 @@ final readonly class KingdomIngestionMutationState
             return null;
         }
 
-        $allianceQuery = Alliance::query()
-            ->whereKey($route->alliance_id)
-            ->sharedLock();
+        $allianceQuery = Alliance::query()->whereKey($route->alliance_id)->sharedLock();
         $alliance = $nullable ? $allianceQuery->first() : $allianceQuery->firstOrFail();
         if (! $alliance instanceof Alliance) {
             return null;
+        }
+        if ($alliance->status !== AllianceStatus::Active) {
+            if ($nullable) {
+                return null;
+            }
+            throw ValidationException::withMessages([
+                'subscription' => 'Automated Kingdom ingestion is unavailable while the Alliance is not active.',
+            ]);
         }
 
         $subscriptionQuery = KingdomIngestionSubscription::query()
