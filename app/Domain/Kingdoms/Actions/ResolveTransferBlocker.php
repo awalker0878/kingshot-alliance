@@ -44,18 +44,15 @@ final readonly class ResolveTransferBlocker
 
             $this->assertMutable($context->alliance, $plan);
 
+            // Existing blockers remain resolvable after participant withdrawal so
+            // manual blocker history can be closed cleanly. New blockers are still
+            // forbidden for withdrawn participants by CreateTransferBlocker.
             $participant = TransferParticipant::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->where('transfer_plan_id', $plan->id)
                 ->whereKey($participantId)
                 ->sharedLock()
                 ->firstOrFail();
-
-            if ($participant->withdrawn_at !== null) {
-                throw ValidationException::withMessages([
-                    'blocker' => 'Withdrawn transfer participants cannot change blockers.',
-                ]);
-            }
 
             $blocker = TransferBlocker::query()
                 ->where('alliance_id', $context->alliance->id)
