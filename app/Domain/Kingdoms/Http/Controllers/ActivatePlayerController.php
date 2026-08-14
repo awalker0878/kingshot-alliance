@@ -10,6 +10,7 @@ use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 final class ActivatePlayerController extends Controller
 {
@@ -18,21 +19,29 @@ final class ActivatePlayerController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
-        // The route identifier is scoped by authoritative ownership. A Player owned by
-        // another User is intentionally indistinguishable from a nonexistent Player.
-        $target = Player::query()
-            ->whereKey($player)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
-
         $sessionKey = (string) config('identity.active_player_session_key');
         $previousPlayerId = $request->session()->get($sessionKey);
-        $request->session()->put($sessionKey, (string) $target->id);
 
-        $audit->record('player.context_changed', $user, $target, null, [
-            'previous_player_id' => is_string($previousPlayerId) ? $previousPlayerId : null,
-            'player_id' => (string) $target->id,
-        ]);
+        $target = DB::transaction(function () use ($user, $player, $audit, $previousPlayerId): Player {
+            // Ownership mutation/account deletion uses User -> Player. Share-lock the
+            // same rows while selecting a new game principal so the activation evidence
+            // cannot be recorded for a Player that is being detached concurrently.
+            $currentUser = User::query()->whereKey($user->id)->sharedLock()->firstOrFail();
+            $currentPlayer = Player::query()
+                ->whereKey($player)
+                ->where('user_id', $currentUser->id)
+                ->sharedLock()
+                ->firstOrFail();
+
+            $audit->record('player.context_changed', $currentUser, $currentPlayer, null, [
+                'previous_player_id' => is_string($previousPlayerId) ? $previousPlayerId : null,
+                'player_id' => (string) $currentPlayer->id,
+            ]);
+
+            return $currentPlayer;
+        });
+
+        $request->session()->put($sessionKey, (string) $target->id);
 
         return back();
     }
