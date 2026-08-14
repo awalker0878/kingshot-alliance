@@ -113,6 +113,21 @@ final readonly class ManageAllianceLifecycle
             if (! $locked instanceof Alliance) {
                 throw new InvalidArgumentException('Alliance no longer exists.');
             }
+
+            $this->assertTransitionAllowed($locked->status, $target);
+
+            if ($target === AllianceStatus::Deleted
+                && $this->legalHolds->active('alliance', (string) $locked->id)) {
+                throw new InvalidArgumentException('This alliance is protected by an active legal hold.');
+            }
+
+            if ($target === AllianceStatus::Active
+                && $locked->status === AllianceStatus::Deleted
+                && $locked->retention_until !== null
+                && $locked->retention_until->isPast()) {
+                throw new InvalidArgumentException('The alliance restoration window has expired.');
+            }
+
             $previous = $locked->status;
             $locked->forceFill([
                 ...$attributes,
@@ -134,5 +149,23 @@ final readonly class ManageAllianceLifecycle
 
             return $locked->refresh();
         });
+    }
+
+    private function assertTransitionAllowed(AllianceStatus $from, AllianceStatus $to): void
+    {
+        $allowed = match ($to) {
+            AllianceStatus::Suspended => [AllianceStatus::Active],
+            AllianceStatus::Closed => [AllianceStatus::Active, AllianceStatus::Suspended],
+            AllianceStatus::Deleted => [AllianceStatus::Closed],
+            AllianceStatus::Active => [AllianceStatus::Suspended, AllianceStatus::Closed, AllianceStatus::Deleted],
+        };
+
+        if (! in_array($from, $allowed, true)) {
+            throw new InvalidArgumentException(sprintf(
+                'Alliance lifecycle transition from %s to %s is not allowed.',
+                $from->value,
+                $to->value,
+            ));
+        }
     }
 }
