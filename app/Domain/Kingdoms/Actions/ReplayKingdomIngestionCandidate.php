@@ -7,24 +7,23 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
 use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class ReplayKingdomIngestionCandidate
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private KingdomIngestionAdapterRegistry $adapters,
         private PromoteKingdomIngestionPlayerSnapshot $promotePlayer,
         private PromoteKingdomIngestionAllianceObservation $promoteAlliance,
@@ -38,54 +37,56 @@ final readonly class ReplayKingdomIngestionCandidate
         string $subscriptionId,
         string $candidateId,
     ): KingdomIngestionCandidate {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $subscriptionId, $candidateId): KingdomIngestionCandidate {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
             $subscription = KingdomIngestionSubscription::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($subscriptionId)
                 ->lockForUpdate()
-                ->findOrFail($subscriptionId);
-            $candidate = KingdomIngestionCandidate::query()
-                ->where('alliance_id', $alliance->id)
+                ->firstOrFail();
+
+            $route = KingdomIngestionCandidate::query()
+                ->select(['id', 'batch_id'])
                 ->where('subscription_id', $subscription->id)
+                ->whereKey($candidateId)
+                ->firstOrFail();
+            $batch = KingdomIngestionBatch::query()
+                ->where('subscription_id', $subscription->id)
+                ->whereKey($route->batch_id)
                 ->lockForUpdate()
-                ->findOrFail($candidateId);
+                ->firstOrFail();
+            $candidate = KingdomIngestionCandidate::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->where('subscription_id', $subscription->id)
+                ->where('batch_id', $batch->id)
+                ->whereKey($route->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if ($candidate->state !== KingdomIngestionCandidateState::Quarantined) {
                 throw ValidationException::withMessages([
                     'candidate' => 'Only quarantined ingestion candidates can be replayed.',
                 ]);
             }
-
             if ($subscription->state !== KingdomIngestionSubscriptionState::Active) {
                 throw ValidationException::withMessages([
                     'subscription' => 'The ingestion subscription must be active before replay.',
                 ]);
             }
-
-            $lockedAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
-            if ($lockedAlliance->kingdom_id === null || $lockedAlliance->kingdom_id !== $subscription->kingdom_id) {
+            if ($context->alliance->kingdom_id === null
+                || (string) $context->alliance->kingdom_id !== (string) $subscription->kingdom_id) {
                 throw ValidationException::withMessages([
                     'subscription' => 'Replay is blocked because the alliance Kingdom no longer matches the subscription context.',
                 ]);
             }
 
             $adapter = $this->adapters->require($subscription->adapter_key);
-            if (
-                $adapter->version() !== $subscription->adapter_version
-                || in_array($candidate->target_kind, $adapter->supportedTargetKinds(), true) === false
-            ) {
+            if ($adapter->version() !== $subscription->adapter_version
+                || ! in_array($candidate->target_kind, $adapter->supportedTargetKinds(), true)) {
                 throw ValidationException::withMessages([
                     'subscription' => 'Replay is blocked because the candidate source/version is no longer approved.',
                 ]);
             }
-
-            $batch = KingdomIngestionBatch::query()
-                ->where('subscription_id', $subscription->id)
-                ->lockForUpdate()
-                ->findOrFail($candidate->batch_id);
 
             $previousCode = $candidate->quarantine_code;
             $candidate->forceFill([
@@ -103,10 +104,11 @@ final readonly class ReplayKingdomIngestionCandidate
                 'candidate_id' => (string) $candidate->id,
                 'target_kind' => $candidate->target_kind->value,
                 'previous_quarantine_code' => $previousCode,
+                'origin' => 'player',
             ];
             $event = 'kingdoms.ingestion_replay_requested';
-            $this->audit->record($event, $actor, $candidate, $lockedAlliance, $metadata);
-            $this->outbox->record($event, (string) $lockedAlliance->id, $candidate, $metadata);
+            $this->audit->record($event, $context->actor, $candidate, $context->alliance, $metadata);
+            $this->outbox->record($event, (string) $context->alliance->id, $candidate, $metadata);
 
             match ($candidate->target_kind) {
                 KingdomIngestionTargetKind::PlayerSnapshot => $this->promotePlayer->handle(
