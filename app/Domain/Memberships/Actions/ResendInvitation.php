@@ -7,35 +7,46 @@ namespace App\Domain\Memberships\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
+use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Enums\RosterState;
+use App\Domain\Kingdoms\Models\AllianceRosterEntry;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\InvitationStatus;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Memberships\Models\Invitation;
 use App\Domain\Memberships\Services\InvitationTokenService;
 use App\Domain\Memberships\ValueObjects\IssuedInvitation;
 use App\Domain\Platform\Models\OutboxMessage;
-use Illuminate\Auth\Access\AuthorizationException;
+use App\Domain\Platform\Services\PlanEntitlementService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 final readonly class ResendInvitation
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private InvitationTokenService $tokens,
         private AuditRecorder $audit,
+        private PlanEntitlementService $entitlements,
     ) {}
 
     public function handle(Alliance $alliance, Player $actor, string $invitationId): IssuedInvitation
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::InvitationManage)) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $invitationId): IssuedInvitation {
+            // Resend can revive an expired invitation and therefore reserve member
+            // capacity again; serialize it with other capacity-sensitive membership writes.
+            $context = $this->authority->requireExclusive(
+                $actor,
+                $alliance,
+                PermissionKey::InvitationManage,
+            );
+
             $invitation = Invitation::query()
                 ->where('id', $invitationId)
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -43,6 +54,53 @@ final readonly class ResendInvitation
                 throw ValidationException::withMessages([
                     'invitation' => 'Accepted or revoked invitations cannot be resent.',
                 ]);
+            }
+
+            $target = Player::query()
+                ->whereKey($invitation->player_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $roster = AllianceRosterEntry::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->where('player_id', $target->id)
+                ->where('state', RosterState::Active->value)
+                ->sharedLock()
+                ->first();
+
+            if (! $roster instanceof AllianceRosterEntry
+                || (string) $target->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
+                throw ValidationException::withMessages([
+                    'invitation' => 'The invited Player is no longer active on this Alliance roster.',
+                ]);
+            }
+
+            if (AllianceMembership::query()
+                ->where('player_id', $target->id)
+                ->where('status', MembershipStatus::Active->value)
+                ->lockForUpdate()
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'invitation' => 'The invited Player is already active in an Alliance.',
+                ]);
+            }
+
+            if ($target->user_id !== null) {
+                $ownerEmail = User::query()->whereKey($target->user_id)->value('email');
+                if (! is_string($ownerEmail)
+                    || ! hash_equals(Str::lower($ownerEmail), Str::lower((string) $invitation->email))) {
+                    throw ValidationException::withMessages([
+                        'invitation' => 'The invited Player is now owned by a different account.',
+                    ]);
+                }
+            }
+
+            $alreadyConsumesCapacity = $invitation->status === InvitationStatus::Pending
+                && $invitation->expires_at !== null
+                && $invitation->expires_at->isFuture();
+
+            if (! $alreadyConsumesCapacity) {
+                $this->entitlements->assertMemberCapacity($context->alliance);
             }
 
             $token = $this->tokens->issue();
@@ -55,20 +113,20 @@ final readonly class ResendInvitation
                 'revoked_at' => null,
             ])->save();
 
-            $this->audit->record('invitation.resent', $actor, $invitation, $alliance, [
+            $this->audit->record('invitation.resent', $context->actor, $invitation, $context->alliance, [
                 'player_id' => (string) $invitation->player_id,
             ]);
 
             OutboxMessage::query()->create([
-                'alliance_id' => $alliance->id,
-                'partition_key' => 'alliance:'.$alliance->id,
+                'alliance_id' => $context->alliance->id,
+                'partition_key' => 'alliance:'.$context->alliance->id,
                 'event_type' => 'invitation.resent',
                 'aggregate_type' => Invitation::class,
                 'aggregate_id' => $invitation->id,
                 'idempotency_key' => 'invitation.resent:'.$invitation->id.':'.hash('sha256', $token),
                 'payload' => [
                     'invitation_id' => $invitation->id,
-                    'alliance_id' => $alliance->id,
+                    'alliance_id' => $context->alliance->id,
                     'player_id' => $invitation->player_id,
                     'email' => $invitation->email,
                 ],
