@@ -28,13 +28,26 @@ final class MarkRecruitmentCandidateJoined
         }
 
         $invitationId = $event->payload['invitation_id'] ?? null;
-        if (! is_string($invitationId) || $invitationId === '') {
+        $playerId = $event->payload['player_id'] ?? null;
+        if (! is_string($invitationId) || $invitationId === '' || ! is_string($playerId) || $playerId === '') {
             return;
         }
 
-        DB::transaction(function () use ($event, $invitationId): void {
+        DB::transaction(function () use ($event, $invitationId, $playerId): void {
+            // This is an event projection, not a new human-authorized mutation. The
+            // durable invitation.accepted event is the cause, but the projection still
+            // follows lifecycle -> aggregate lock order and verifies the captured Player.
+            $alliance = Alliance::query()
+                ->whereKey($event->allianceId)
+                ->sharedLock()
+                ->first();
+
+            if (! $alliance instanceof Alliance) {
+                return;
+            }
+
             $candidate = RecruitmentCandidate::query()
-                ->where('alliance_id', $event->allianceId)
+                ->where('alliance_id', $alliance->id)
                 ->where('membership_invitation_id', $invitationId)
                 ->whereNull('merged_into_id')
                 ->lockForUpdate()
@@ -44,24 +57,23 @@ final class MarkRecruitmentCandidateJoined
                 return;
             }
 
-            if ($candidate->stage !== RecruitmentStage::Accepted) {
+            if ($candidate->stage !== RecruitmentStage::Accepted
+                || $candidate->player_id === null
+                || (string) $candidate->player_id !== $playerId) {
                 return;
             }
 
-            $alliance = Alliance::query()->find($event->allianceId);
-            if (! $alliance instanceof Alliance) {
+            $actor = Player::query()->whereKey($playerId)->first();
+            if (! $actor instanceof Player) {
                 return;
             }
 
-            $playerId = $event->payload['player_id'] ?? null;
-            $actor = is_string($playerId) ? Player::query()->find($playerId) : null;
             $now = now();
-
             $candidate->forceFill([
                 'stage' => RecruitmentStage::Joined,
                 'joined_at' => $now,
                 'retention_due_at' => null,
-                'updated_by_player_id' => $actor?->id,
+                'updated_by_player_id' => $actor->id,
             ])->save();
 
             RecruitmentStageHistory::query()->create([
@@ -70,7 +82,7 @@ final class MarkRecruitmentCandidateJoined
                 'from_stage' => RecruitmentStage::Accepted,
                 'to_stage' => RecruitmentStage::Joined,
                 'reason' => 'Alliance invitation accepted',
-                'changed_by_player_id' => $actor?->id,
+                'changed_by_player_id' => $actor->id,
                 'changed_at' => $now,
             ]);
 
