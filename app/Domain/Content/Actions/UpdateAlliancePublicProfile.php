@@ -7,7 +7,7 @@ namespace App\Domain\Content\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Content\Enums\MediaLifecycleStatus;
 use App\Domain\Content\Enums\MediaScanStatus;
 use App\Domain\Content\Models\AllianceBrandingMedia;
@@ -16,14 +16,13 @@ use App\Domain\Content\Models\MediaAsset;
 use App\Domain\Content\Services\ContentSanitizer;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class UpdateAlliancePublicProfile
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private ContentSanitizer $sanitizer,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -42,12 +41,11 @@ final readonly class UpdateAlliancePublicProfile
      */
     public function handle(Alliance $alliance, Player $actor, array $attributes): Alliance
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::ContentManage)) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $attributes): Alliance {
-            $locked = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            // This workflow changes the Alliance aggregate itself, so the exclusive
+            // parent boundary is intentional rather than an ordinary child lock.
+            $context = $this->authority->requireExclusive($actor, $alliance, PermissionKey::ContentManage);
+            $locked = $context->alliance;
 
             $locked->forceFill([
                 'name' => $this->sanitizer->line($attributes['name']) ?? $locked->name,
@@ -70,7 +68,7 @@ final readonly class UpdateAlliancePublicProfile
 
             $this->audit->record(
                 event: 'alliance.public_profile_updated',
-                actor: $actor,
+                actor: $context->actor,
                 subject: $locked,
                 alliance: $locked,
                 metadata: [
@@ -104,6 +102,7 @@ final readonly class UpdateAlliancePublicProfile
             ->where('alliance_id', $alliance->id)
             ->where('scan_status', MediaScanStatus::Clean->value)
             ->where('lifecycle_status', MediaLifecycleStatus::Active->value)
+            ->lockForUpdate()
             ->first();
 
         if (! $media instanceof MediaAsset || ! str_starts_with((string) $media->mime_type, 'image/')) {
