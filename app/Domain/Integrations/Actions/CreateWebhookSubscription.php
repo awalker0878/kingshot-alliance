@@ -7,21 +7,20 @@ namespace App\Domain\Integrations\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Integrations\Models\WebhookSubscription;
 use App\Domain\Integrations\Services\WebhookEndpointPolicy;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Platform\Services\PlanEntitlementService;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class CreateWebhookSubscription
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $mutations,
         private PlanEntitlementService $entitlements,
         private WebhookEndpointPolicy $endpointPolicy,
         private AuditRecorder $audit,
@@ -31,10 +30,6 @@ final readonly class CreateWebhookSubscription
     /** @param list<string> $events */
     public function handle(Alliance $alliance, Player $actor, string $name, string $url, array $events): WebhookSubscription
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::AllianceManage)) {
-            throw new AuthorizationException;
-        }
-
         $name = trim($name);
         if ($name === '') {
             throw ValidationException::withMessages(['name' => 'Webhook subscription name is required.']);
@@ -53,11 +48,10 @@ final readonly class CreateWebhookSubscription
         $this->endpointPolicy->assertAllowed($url);
 
         return DB::transaction(function () use ($alliance, $actor, $name, $url, $events): WebhookSubscription {
-            $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
-            $lockedActor = Player::query()->lockForUpdate()->findOrFail($actor->id);
-            if (! $this->authorization->allowsForUpdate($lockedActor, $currentAlliance, PermissionKey::AllianceManage)) {
-                throw new AuthorizationException;
-            }
+            // Webhook capacity is Alliance-wide, so serialize this quota-sensitive mutation.
+            $authority = $this->mutations->requireExclusive($actor, $alliance, PermissionKey::AllianceManage);
+            $currentAlliance = $authority->alliance;
+            $currentActor = $authority->actor;
 
             $settings = AlliancePlatformSetting::query()->lockForUpdate()->find($currentAlliance->id);
             if ($settings !== null && ! $settings->webhooks_enabled) {
@@ -73,10 +67,10 @@ final readonly class CreateWebhookSubscription
                 'events' => $events,
                 'signing_secret' => bin2hex(random_bytes(32)),
                 'is_active' => true,
-                'created_by_player_id' => $lockedActor->id,
+                'created_by_player_id' => $currentActor->id,
             ]);
 
-            $this->audit->record('integration.webhook.created', $lockedActor, $subscription, $currentAlliance, [
+            $this->audit->record('integration.webhook.created', $currentActor, $subscription, $currentAlliance, [
                 'subscription_id' => $subscription->id,
                 'url_host' => parse_url($url, PHP_URL_HOST),
                 'events' => $events,
