@@ -6,52 +6,83 @@ namespace App\Domain\Rallies\Actions;
 
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
+use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
-use App\Domain\Events\Services\EventParticipantAuthorization;
-use App\Domain\Events\Services\EventTargetResolver;
+use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Rallies\Enums\RallyAssignmentStatus;
 use App\Domain\Rallies\Models\RallyAssignment;
+use App\Domain\Rallies\Models\RallyGroup;
 use Illuminate\Support\Facades\DB;
 
 final readonly class RemoveRallyPlayer
 {
     public function __construct(
-        private EventParticipantAuthorization $authorization,
+        private EventMutationAuthority $eventAuthority,
         private EventCapabilityGuard $capabilities,
-        private EventTargetResolver $targets,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(Player $actor, RallyAssignment $assignment): RallyAssignment
     {
-        $assignment->loadMissing('rallyGroup.occurrence.event.typeScope', 'rallyGroup.alliance');
+        $assignment->loadMissing('rallyGroup.occurrence.event');
         $group = $assignment->rallyGroup;
         $event = $group->occurrence->event;
-        $this->capabilities->require($event, EventCapability::RallyGuidance);
-        $this->authorization->authorizeManager($actor, $event);
-        $target = $this->targets->forEvent($event);
 
-        return DB::transaction(function () use ($actor, $assignment, $group, $event, $target): RallyAssignment {
-            $locked = RallyAssignment::query()->whereKey($assignment->id)->lockForUpdate()->firstOrFail();
+        return DB::transaction(function () use ($actor, $assignment, $group, $event): RallyAssignment {
+            $context = $this->eventAuthority->requireManager($actor, $event);
+            $this->capabilities->require($context->event, EventCapability::RallyGuidance);
+
+            // Removal changes only one assignment. Shared occurrence/group locks make
+            // lifecycle/context stable and block occurrence-wide placement mutations.
+            $occurrence = EventOccurrence::query()
+                ->whereKey($group->occurrence_id)
+                ->where('event_id', $context->event->id)
+                ->sharedLock()
+                ->firstOrFail();
+
+            $lockedGroup = RallyGroup::query()
+                ->whereKey($group->id)
+                ->where('occurrence_id', $occurrence->id)
+                ->sharedLock()
+                ->firstOrFail()
+                ->load('alliance');
+
+            $locked = RallyAssignment::query()
+                ->whereKey($assignment->id)
+                ->where('rally_group_id', $lockedGroup->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($locked->status === RallyAssignmentStatus::Removed) {
+                return $locked;
+            }
+
             $locked->forceFill([
                 'status' => RallyAssignmentStatus::Removed,
                 'slot_number' => null,
-                'removed_by_player_id' => $actor->id,
+                'removed_by_player_id' => $context->actor->id,
                 'removed_at' => now(),
             ])->save();
+
             $metadata = [
-                'event_id' => (string) $event->id,
-                'occurrence_id' => (string) $group->occurrence_id,
-                'alliance_id' => (string) $group->alliance_id,
-                'rally_group_id' => (string) $group->id,
+                'event_id' => (string) $context->event->id,
+                'occurrence_id' => (string) $occurrence->id,
+                'alliance_id' => (string) $lockedGroup->alliance_id,
+                'rally_group_id' => (string) $lockedGroup->id,
                 'player_id' => (string) $locked->player_id,
-                'actor_player_id' => $actor->id,
+                'actor_player_id' => $context->actor->id,
             ];
-            $this->audit->record('rally.assignment.removed', $actor, $locked, $group->alliance, $metadata);
-            $this->outbox->record('rally.assignment.removed', (string) $group->alliance_id, $locked, $metadata, partitionKey: $event->scope->value.':'.$target->id);
+            $this->audit->record('rally.assignment.removed', $context->actor, $locked, $lockedGroup->alliance, $metadata);
+            $this->outbox->record(
+                'rally.assignment.removed',
+                (string) $lockedGroup->alliance_id,
+                $locked,
+                $metadata,
+                partitionKey: $context->event->scope->value.':'.$context->target->id,
+            );
 
             return $locked->refresh();
         });
