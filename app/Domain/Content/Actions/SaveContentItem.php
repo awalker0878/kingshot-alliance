@@ -108,10 +108,13 @@ final readonly class SaveContentItem
             return;
         }
 
-        if (! ContentCategory::query()
+        $category = ContentCategory::query()
             ->where('id', $categoryId)
             ->where('alliance_id', $alliance->id)
-            ->exists()) {
+            ->sharedLock()
+            ->first();
+
+        if (! $category instanceof ContentCategory) {
             throw ValidationException::withMessages([
                 'category_id' => 'The selected category does not belong to this alliance.',
             ]);
