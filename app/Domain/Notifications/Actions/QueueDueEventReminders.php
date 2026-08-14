@@ -9,8 +9,11 @@ use App\Domain\Events\Enums\EventOccurrenceStatus;
 use App\Domain\Events\Enums\EventPollStatus;
 use App\Domain\Events\Enums\EventReminderDeliveryStatus;
 use App\Domain\Events\Enums\EventReminderTrigger;
+use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
+use App\Domain\Events\Models\EventPoll;
 use App\Domain\Events\Services\EventTargetResolver;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Notifications\Models\EventReminderDelivery;
 use App\Domain\Notifications\Models\EventReminderRule;
 use App\Domain\Notifications\Services\EventReminderAudienceResolver;
@@ -54,21 +57,79 @@ final readonly class QueueDueEventReminders
                     if ($queued >= $limit) {
                         return $queued;
                     }
-                    if ($player->user_id === null) {
-                        continue;
-                    }
 
-                    $created = DB::transaction(function () use ($rule, $occurrence, $player, $dueAt): bool {
-                        $key = hash('sha256', implode(':', ['event-reminder', $rule->id, $occurrence->id, $player->id]));
+                    $created = DB::transaction(function () use ($rule, $occurrence, $player, $now): bool {
+                        // Human reminder mutations acquire Event authority before the rule.
+                        // System delivery follows the same Event -> occurrence/poll -> rule order.
+                        $currentEvent = Event::query()
+                            ->whereKey($rule->event_id)
+                            ->sharedLock()
+                            ->first();
+                        if (! $currentEvent instanceof Event) {
+                            return false;
+                        }
+
+                        $currentOccurrence = EventOccurrence::query()
+                            ->whereKey($occurrence->id)
+                            ->where('event_id', $currentEvent->id)
+                            ->where('status', EventOccurrenceStatus::Scheduled->value)
+                            ->sharedLock()
+                            ->first();
+                        if (! $currentOccurrence instanceof EventOccurrence) {
+                            return false;
+                        }
+
+                        $currentPoll = null;
+                        if ($rule->poll_id !== null) {
+                            $currentPoll = EventPoll::query()
+                                ->whereKey($rule->poll_id)
+                                ->where('occurrence_id', $currentOccurrence->id)
+                                ->sharedLock()
+                                ->first();
+                            if (! $currentPoll instanceof EventPoll) {
+                                return false;
+                            }
+                        }
+
+                        $currentRule = EventReminderRule::query()
+                            ->whereKey($rule->id)
+                            ->where('event_id', $currentEvent->id)
+                            ->sharedLock()
+                            ->first();
+                        if (! $currentRule instanceof EventReminderRule || ! $currentRule->is_enabled) {
+                            return false;
+                        }
+
+                        $currentDueAt = $this->dueAt($currentRule, $currentOccurrence, $currentPoll);
+                        if ($currentDueAt === null || $currentDueAt->greaterThan($now)) {
+                            return false;
+                        }
+
+                        $currentPlayer = Player::query()
+                            ->whereKey($player->id)
+                            ->whereNotNull('user_id')
+                            ->sharedLock()
+                            ->first();
+                        if (! $currentPlayer instanceof Player
+                            || ! $this->audiences->includes($currentOccurrence, $currentRule->audience, $currentPlayer)) {
+                            return false;
+                        }
+
+                        $key = hash('sha256', implode(':', [
+                            'event-reminder',
+                            $currentRule->id,
+                            $currentOccurrence->id,
+                            $currentPlayer->id,
+                        ]));
                         $delivery = EventReminderDelivery::query()->firstOrCreate(
                             [
-                                'rule_id' => $rule->id,
-                                'occurrence_id' => $occurrence->id,
-                                'player_id' => $player->id,
+                                'rule_id' => $currentRule->id,
+                                'occurrence_id' => $currentOccurrence->id,
+                                'player_id' => $currentPlayer->id,
                             ],
                             [
-                                'recipient_user_id' => $player->user_id,
-                                'due_at' => $dueAt,
+                                'recipient_user_id' => $currentPlayer->user_id,
+                                'due_at' => $currentDueAt,
                                 'status' => EventReminderDeliveryStatus::Queued,
                                 'attempts' => 0,
                                 'idempotency_key' => $key,
@@ -80,19 +141,19 @@ final readonly class QueueDueEventReminders
                             return false;
                         }
 
-                        $event = $occurrence->event;
-                        $target = $this->targets->forEvent($event);
+                        $target = $this->targets->forEvent($currentEvent);
                         $alliance = $target instanceof Alliance ? $target : null;
                         $payload = [
                             'delivery_id' => (string) $delivery->id,
-                            'occurrence_id' => (string) $occurrence->id,
-                            'event_id' => (string) $event->id,
-                            'poll_id' => $rule->poll_id,
-                            'trigger_type' => $rule->trigger_type->value,
-                            'recipient_user_id' => (int) $player->user_id,
-                            'player_id' => (string) $player->id,
-                            'channel' => (string) $rule->channel,
-                            'due_at' => $dueAt->toIso8601String(),
+                            'occurrence_id' => (string) $currentOccurrence->id,
+                            'event_id' => (string) $currentEvent->id,
+                            'poll_id' => $currentRule->poll_id,
+                            'trigger_type' => $currentRule->trigger_type->value,
+                            'recipient_user_id' => (int) $currentPlayer->user_id,
+                            'player_id' => (string) $currentPlayer->id,
+                            'channel' => (string) $currentRule->channel,
+                            'due_at' => $currentDueAt->toIso8601String(),
+                            'origin' => 'system',
                         ];
                         $this->outbox->record(
                             'event.reminder.requested',
@@ -100,7 +161,7 @@ final readonly class QueueDueEventReminders
                             $delivery,
                             $payload,
                             idempotencyKey: 'event.reminder.requested:'.$delivery->id,
-                            partitionKey: $event->scope->value.':'.$target->id,
+                            partitionKey: $currentEvent->scope->value.':'.$target->id,
                         );
 
                         return true;
@@ -114,6 +175,24 @@ final readonly class QueueDueEventReminders
         }
 
         return $queued;
+    }
+
+    private function dueAt(
+        EventReminderRule $rule,
+        EventOccurrence $occurrence,
+        ?EventPoll $poll,
+    ): ?CarbonImmutable {
+        if ($rule->trigger_type === EventReminderTrigger::BeforePollClose) {
+            if (! $poll instanceof EventPoll
+                || $poll->status !== EventPollStatus::Open
+                || $poll->closes_at === null) {
+                return null;
+            }
+
+            return CarbonImmutable::instance($poll->closes_at)->utc()->subMinutes((int) $rule->minutes_before);
+        }
+
+        return CarbonImmutable::instance($occurrence->starts_at)->utc()->subMinutes((int) $rule->minutes_before);
     }
 
     /** @return Collection<int, array{0: EventOccurrence, 1: CarbonImmutable}> */
