@@ -143,6 +143,8 @@ result_score_higher_is_better
 
 The primary score is therefore stored once rather than copied into a metric row merely to attach Event-specific semantics.
 
+A score is comparable historically only within compatible Event Type/scope semantics; a numeric score from one Event family is not automatically comparable with another simply because both use the `score` column.
+
 ### Normalized component metrics
 
 Additional contribution facts use `event_metric_definitions` and normalized metric value rows. A definition identifies:
