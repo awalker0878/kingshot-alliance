@@ -8,6 +8,7 @@ use App\Contexts\Accounts\Models\User;
 use App\Contexts\Communications\Reminders\Enums\EventReminderDeliveryStatus;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
+use App\Contexts\Operations\Reminders\Models\EventReminderRule;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
