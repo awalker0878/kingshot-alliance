@@ -32,6 +32,11 @@ final class RallyAssignment extends Model
         ];
     }
 
+    public function roleEnum(): RallyAssignmentRole
+    {
+        return RallyAssignmentRole::from((string) $this->getRawOriginal('role'));
+    }
+
     public function statusEnum(): RallyAssignmentStatus
     {
         return RallyAssignmentStatus::from((string) $this->getRawOriginal('status'));
