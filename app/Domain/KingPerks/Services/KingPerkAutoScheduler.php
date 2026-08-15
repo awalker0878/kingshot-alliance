@@ -119,13 +119,18 @@ final readonly class KingPerkAutoScheduler
                     ->get();
 
                 foreach ($candidates as $request) {
+                    $target = $request->player;
+                    if (! $target instanceof Player) {
+                        continue;
+                    }
+
                     try {
-                        $appointment = DB::transaction(function () use ($actor, $authorizedPlan, $type, $request, $cursor, $category): KingPerkAppointment {
+                        $appointment = DB::transaction(function () use ($actor, $authorizedPlan, $type, $request, $target, $cursor, $category): KingPerkAppointment {
                             $appointment = $this->scheduler->assignAppointment(
                                 actor: $actor,
                                 plan: $authorizedPlan,
                                 type: $type,
-                                target: $request->player,
+                                target: $target,
                                 startsAt: $cursor,
                                 notes: sprintf('Auto-scheduled from %s request.', $category->label()),
                             );
