@@ -37,9 +37,8 @@ final readonly class RecordRallyParticipation
             throw ValidationException::withMessages(['status' => 'Participation must be recorded as participated or absent.']);
         }
 
-        $assignment->loadMissing('rallyGroup.occurrence.event');
-        $group = $assignment->rallyGroup;
-        $event = $group->occurrence->event;
+        $group = $assignment->rallyGroup()->firstOrFail();
+        $event = $group->occurrence()->firstOrFail()->event()->firstOrFail();
 
         return DB::transaction(function () use ($actor, $assignment, $status, $group, $event): RallyAssignment {
             $context = $this->eventAuthority->requireManager($actor, $event);
@@ -55,8 +54,8 @@ final readonly class RecordRallyParticipation
                 ->whereKey($group->id)
                 ->where('occurrence_id', $occurrence->id)
                 ->sharedLock()
-                ->firstOrFail()
-                ->load('alliance');
+                ->firstOrFail();
+            $alliance = $lockedGroup->alliance()->firstOrFail();
 
             $locked = RallyAssignment::query()
                 ->whereKey($assignment->id)
@@ -64,7 +63,7 @@ final readonly class RecordRallyParticipation
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (in_array($locked->status, [RallyAssignmentStatus::Declined, RallyAssignmentStatus::Removed], true)) {
+            if (in_array($locked->statusEnum(), [RallyAssignmentStatus::Declined, RallyAssignmentStatus::Removed], true)) {
                 throw ValidationException::withMessages(['status' => 'Declined or removed assignments cannot receive participation.']);
             }
 
@@ -77,13 +76,13 @@ final readonly class RecordRallyParticipation
                 if ((string) $context->actor->id !== (string) $player->id) {
                     $player = Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
                 }
-                if (! $this->eligibility->eligible($context->event, $lockedGroup->alliance, $player)) {
+                if (! $this->eligibility->eligible($context->event, $alliance, $player)) {
                     throw ValidationException::withMessages([
                         'player' => 'This Player is not eligible for this Rally Alliance.',
                     ]);
                 }
 
-                $this->contexts->freeze($occurrence, $player, $lockedGroup->alliance);
+                $this->contexts->freeze($occurrence, $player, $alliance);
             }
 
             $locked->forceFill([
@@ -99,15 +98,15 @@ final readonly class RecordRallyParticipation
                 'rally_group_id' => (string) $lockedGroup->id,
                 'player_id' => (string) $locked->player_id,
                 'status' => $status->value,
-                'actor_player_id' => $context->actor->id,
+                'actor_player_id' => (string) $context->actor->id,
             ];
-            $this->audit->record('rally.participation.recorded', $context->actor, $locked, $lockedGroup->alliance, $metadata);
+            $this->audit->record('rally.participation.recorded', $context->actor, $locked, $alliance, $metadata);
             $this->outbox->record(
                 'rally.participation.recorded',
                 (string) $lockedGroup->alliance_id,
                 $locked,
                 $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
+                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
             );
 
             return $locked->refresh();
