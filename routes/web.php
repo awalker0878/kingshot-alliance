@@ -8,7 +8,6 @@ use App\Contexts\Accounts\Http\Controllers\EmailVerificationNotificationControll
 use App\Contexts\Accounts\Http\Controllers\EmailVerificationPromptController;
 use App\Contexts\Accounts\Http\Controllers\ForgotPasswordController;
 use App\Contexts\Accounts\Http\Controllers\ProfileController;
-use App\Contexts\Accounts\Http\Controllers\RegistrationController;
 use App\Contexts\Accounts\Http\Controllers\ResetPasswordController;
 use App\Contexts\Accounts\Http\Controllers\TwoFactorChallengeController;
 use App\Contexts\Accounts\Http\Controllers\TwoFactorController;
@@ -39,6 +38,7 @@ use App\Domain\Kingdoms\Http\Controllers\ActivatePlayerController;
 use App\Domain\Rallies\Http\Controllers\EventRallyController;
 use App\Domain\Rallies\Http\Controllers\PlayerFormationController;
 use App\Domain\Rallies\Http\Controllers\RallyGuidanceController;
+use App\Workflows\Registration\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
