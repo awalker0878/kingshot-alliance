@@ -264,10 +264,6 @@ final readonly class EventContributionIntelligenceQuery
         $series = [];
         $leaderboards = [];
         foreach ($groups as $groupSamples) {
-            if ($groupSamples === []) {
-                continue;
-            }
-
             $latestKey = array_key_last($groupSamples);
             if ($latestKey === null) {
                 continue;
@@ -320,10 +316,6 @@ final readonly class EventContributionIntelligenceQuery
 
             $entries = [];
             foreach ($byPlayer as $playerSamples) {
-                if ($playerSamples === []) {
-                    continue;
-                }
-
                 $playerLatestKey = array_key_last($playerSamples);
                 if ($playerLatestKey === null) {
                     continue;
