@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Http\Controllers;
 
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +19,7 @@ final class ActivatePlayerController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
         $previousPlayerId = $request->session()->get($sessionKey);
 
         $target = DB::transaction(function () use ($user, $player, $audit, $previousPlayerId): Player {

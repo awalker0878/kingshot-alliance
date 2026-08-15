@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Recruitment\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentStage;
 use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use Illuminate\Support\Facades\DB;

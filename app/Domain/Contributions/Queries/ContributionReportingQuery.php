@@ -12,7 +12,7 @@ use App\Domain\Contributions\Models\ContributionRecord;
 use App\Domain\Contributions\Models\ContributionReportRun;
 use App\Domain\Contributions\Models\ContributionReportSchedule;
 use App\Domain\Contributions\Services\ContributionPeriodResolver;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Recruitment\Enums\RecruitmentStage;

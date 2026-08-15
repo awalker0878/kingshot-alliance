@@ -6,7 +6,7 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\CompleteKingdomIngestionBatch;
 use App\Domain\Kingdoms\Actions\StageKingdomIngestionCandidate;
 use App\Domain\Kingdoms\Actions\StartKingdomIngestionBatch;
@@ -15,12 +15,12 @@ use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Models\PlayerSnapshot;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Models\PlayerSnapshot;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -63,7 +63,7 @@ final class KingdomIngestionFoundationTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,
-            'actor_player_id' => $owner->players()->sole()->id,
+            'actor_player_id' => \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole()->id,
             'event' => 'kingdoms.ingestion_subscription_created',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
@@ -98,7 +98,7 @@ final class KingdomIngestionFoundationTest extends TestCase
 
         config()->set('kingdoms.ingestion_adapters', [FixtureKingdomIngestionAdapter::class]);
         $member = $this->member($alliance);
-        $memberSession = $this->confirmedSession($member->players()->sole());
+        $memberSession = $this->confirmedSession(\App\Contexts\GameWorld\Models\Player::query()->where('user_id', $member->id)->sole());
 
         $this->actingAs($member)->withSession($memberSession)
             ->get('/alliance/kingdom-ingestion/manage')
@@ -111,9 +111,9 @@ final class KingdomIngestionFoundationTest extends TestCase
     public function test_subscription_mutations_require_recent_password_confirmation(): void
     {
         [$owner, $alliance] = $this->ownerAlliance('K4 Password', 'k4-password', 6403);
-        $player = $owner->players()->sole();
+        $player = \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole();
         $activeSession = [
-            (string) config('identity.active_player_session_key') => $player->id,
+            (string) config('game_world.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => 0,
         ];
 
@@ -292,7 +292,7 @@ final class KingdomIngestionFoundationTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $allianceB->id,
-            'actor_player_id' => $ownerB->players()->sole()->id,
+            'actor_player_id' => \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $ownerB->id)->sole()->id,
             'event' => 'kingdoms.ingestion_candidate_rejected',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
@@ -345,7 +345,7 @@ final class KingdomIngestionFoundationTest extends TestCase
     private function confirmedSession(Player $player): array
     {
         return [
-            (string) config('identity.active_player_session_key') => $player->id,
+            (string) config('game_world.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => time(),
         ];
     }

@@ -6,8 +6,8 @@ namespace App\Domain\Events\ValueObjects;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Events\Models\EventTypeScope;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 
 final readonly class EventCreationMutationContext
 {

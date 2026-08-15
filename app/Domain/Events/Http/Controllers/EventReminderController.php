@@ -6,13 +6,13 @@ namespace App\Domain\Events\Http\Controllers;
 
 use App\Domain\Events\Enums\EventReminderAudience;
 use App\Domain\Events\Queries\EventCalendarQuery;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Services\PlayerContext;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Notifications\Actions\CreateEventReminderRule;
 use App\Domain\Notifications\Actions\DisableEventReminderRule;
 use App\Domain\Notifications\Models\EventReminderRule;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

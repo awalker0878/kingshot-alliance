@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Services;
 
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 
 final readonly class ActivePlayerEventVisibilityResolver
 {

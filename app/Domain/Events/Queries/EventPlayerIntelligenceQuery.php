@@ -13,7 +13,7 @@ use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventRosterMember;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Rallies\Enums\RallyAssignmentStatus;
 use App\Domain\Rallies\Models\RallyAssignment;
 use Illuminate\Support\Collection;

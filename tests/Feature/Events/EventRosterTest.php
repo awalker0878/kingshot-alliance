@@ -20,10 +20,10 @@ use App\Domain\Events\Models\EventRosterMember;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Queries\EventAttentionQuery;
 use App\Domain\Events\Services\EventTypeRegistry;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Notifications\Actions\CreateEventReminderRule;
 use App\Domain\Notifications\Actions\QueueDueEventReminders;
 use App\Domain\Notifications\Models\EventReminderDelivery;
@@ -229,7 +229,7 @@ final class EventRosterTest extends TestCase
         $assignment = $this->app->make(AssignEventRosterPlayer::class)->handle($firstPlayer, $roster, $secondPlayer);
 
         $this->actingAs($owner)
-            ->withSession([(string) config('identity.active_player_session_key') => (string) $firstPlayer->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => (string) $firstPlayer->id])
             ->put('/events/'.$occurrence->id.'/roster-members/'.$assignment->id.'/response', ['status' => 'confirmed'])
             ->assertForbidden();
 

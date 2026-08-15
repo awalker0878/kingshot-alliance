@@ -6,10 +6,10 @@ namespace Tests\Feature\Memberships;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Enums\AllianceStatus;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Actions\AcceptInvitation;
 use App\Domain\Memberships\Actions\CreateInvitation;
 use App\Domain\Memberships\Actions\TransferAllianceLeadership;

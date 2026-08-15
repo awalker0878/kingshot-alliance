@@ -6,6 +6,7 @@ namespace App\Contexts\GameWorld\Http\Middleware;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Queries\PlayerOwnershipQuery;
 use App\Contexts\GameWorld\Services\PlayerContext;
 use Closure;
 use Illuminate\Http\Request;
@@ -13,7 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 final readonly class ResolvePlayerContext
 {
-    public function __construct(private PlayerContext $context) {}
+    public function __construct(
+        private PlayerContext $context,
+        private PlayerOwnershipQuery $players,
+    ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -23,7 +27,7 @@ final readonly class ResolvePlayerContext
             return $next($request);
         }
 
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
         $activePlayerId = $request->session()->get($sessionKey);
 
         if ($request->session()->exists($sessionKey)) {
@@ -32,11 +36,7 @@ final readonly class ResolvePlayerContext
                 abort(403, 'The selected Player is not available to this account.');
             }
 
-            $player = Player::query()
-                ->whereKey($activePlayerId)
-                ->where('user_id', $user->id)
-                ->with('currentKingdom')
-                ->first();
+            $player = $this->players->find($user, $activePlayerId);
 
             if (! $player instanceof Player) {
                 $request->session()->forget($sessionKey);
@@ -45,12 +45,7 @@ final readonly class ResolvePlayerContext
 
             $this->activate($request, $user, $player);
         } else {
-            $owned = Player::query()
-                ->where('user_id', $user->id)
-                ->with('currentKingdom')
-                ->orderBy('id')
-                ->limit(2)
-                ->get();
+            $owned = $this->players->upTo($user, 2);
 
             if ($owned->count() === 1) {
                 $player = $owned->first();

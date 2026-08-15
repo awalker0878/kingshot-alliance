@@ -6,8 +6,8 @@ namespace App\Domain\KingPerks\Models;
 
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\KingPerks\Enums\KingPerkPlanStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;

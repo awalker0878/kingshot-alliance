@@ -6,9 +6,9 @@ namespace Tests\Feature\Platform;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Enums\AllianceStatus;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Platform\Actions\ManageAllianceLifecycle;
 use App\Domain\Platform\Actions\ManagePlatformAdministrator;
 use App\Domain\Platform\Services\LegalHoldService;
@@ -82,7 +82,7 @@ final class PlatformAdministrationTest extends TestCase
         ]);
         $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Lifecycle Tenant', 'lifecycle-tenant');
         $lifecycle = $this->app->make(ManageAllianceLifecycle::class);
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
 
         $lifecycle->suspend($administrator, $alliance, 'Operational investigation');
         self::assertSame(AllianceStatus::Suspended, $alliance->refresh()->status);

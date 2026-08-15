@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

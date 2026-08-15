@@ -6,10 +6,10 @@ namespace Tests\Feature\Alliances;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\ValueObjects\TenantContextSnapshot;
-use App\Domain\Audit\Models\AuditEvent;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Shared\Audit\Models\AuditEvent;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -44,7 +44,7 @@ final class ActiveAllianceHttpTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->withSession([(string) config('identity.active_player_session_key') => $player->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => $player->id])
             ->get('/alliance')
             ->assertStatus(409);
     }
@@ -59,7 +59,7 @@ final class ActiveAllianceHttpTest extends TestCase
             'game_player_id' => 'http-create-player',
             'current_name' => 'HTTP Creator',
         ]);
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
 
         $response = $this->actingAs($user)
             ->withSession([$sessionKey => $player->id])
@@ -108,7 +108,7 @@ final class ActiveAllianceHttpTest extends TestCase
         $createAlliance = $this->app->make(CreateAlliance::class);
         $first = $createAlliance->handle($firstPlayer, 'First', 'player-context-first');
         $second = $createAlliance->handle($secondPlayer, 'Second', 'player-context-second');
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
 
         $this->actingAs($user)
             ->withSession([$sessionKey => $firstPlayer->id])
@@ -153,7 +153,7 @@ final class ActiveAllianceHttpTest extends TestCase
         ]);
         $alliance = $this->app->make(CreateAlliance::class)
             ->handle($ownerPlayer, 'Snapshot Alliance', 'snapshot-alliance');
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
 
         $response = $this->actingAs($owner)
             ->withSession([$sessionKey => $ownerPlayer->id])
@@ -178,7 +178,7 @@ final class ActiveAllianceHttpTest extends TestCase
         ]);
         $alliance = $this->app->make(CreateAlliance::class)
             ->handle($ownerPlayer, 'Suspended', 'suspended');
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
 
         AllianceMembership::query()
             ->where('alliance_id', $alliance->id)

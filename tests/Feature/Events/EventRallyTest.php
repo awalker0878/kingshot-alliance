@@ -10,11 +10,11 @@ use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventTypeRegistry;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Services\PlayerContext;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Rallies\Actions\AssignRallyPlayer;
 use App\Domain\Rallies\Actions\RespondRallyAssignment;
 use App\Domain\Rallies\Actions\SavePlayerFormation;
@@ -154,7 +154,7 @@ final class EventRallyTest extends TestCase
         $assignment = $this->app->make(AssignRallyPlayer::class)->handle($first, $group, $second, RallyAssignmentRole::Joiner);
 
         $this->actingAs($owner)
-            ->withSession([(string) config('identity.active_player_session_key') => (string) $first->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => (string) $first->id])
             ->put('/events/'.$occurrence->id.'/rally-assignments/'.$assignment->id.'/response', ['status' => 'confirmed'])
             ->assertForbidden();
 

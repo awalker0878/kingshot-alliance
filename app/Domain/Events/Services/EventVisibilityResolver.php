@@ -10,7 +10,7 @@ use App\Domain\Authorization\Models\KingdomRoleAssignment;
 use App\Domain\Authorization\Services\AllianceRankPermissions;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Database\Eloquent\Builder;

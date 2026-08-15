@@ -6,7 +6,7 @@ namespace App\Domain\Events\Queries;
 
 use App\Domain\Events\Models\EventTemplate;
 use App\Domain\Events\Services\EventCreationContextResolver;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 

@@ -12,10 +12,10 @@ use App\Domain\Authorization\Enums\DefaultKingdomRole;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\KingdomRoleAssignment;
 use App\Domain\Authorization\Services\KingdomAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\ResolvePlayer;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -237,7 +237,7 @@ final class KingdomAuthorizationTest extends TestCase
         $this->app->make(BootstrapKingdomAdministrator::class)->handle($kingdom, $adminPlayer);
 
         $session = [
-            (string) config('identity.active_player_session_key') => $adminPlayer->id,
+            (string) config('game_world.active_player_session_key') => $adminPlayer->id,
             'auth.password_confirmed_at' => time(),
         ];
 

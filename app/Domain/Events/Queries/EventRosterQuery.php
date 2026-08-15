@@ -13,7 +13,7 @@ use App\Domain\Events\Models\EventResponse;
 use App\Domain\Events\Models\EventRoster;
 use App\Domain\Events\Models\EventRosterMember;
 use App\Domain\Events\Services\EventRosterAvailabilityService;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 
 final readonly class EventRosterQuery
 {

@@ -6,8 +6,8 @@ namespace App\Domain\Kingdoms\Queries;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
-use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use Illuminate\Database\Eloquent\Collection;
 
 final class KingdomIngestionQuery

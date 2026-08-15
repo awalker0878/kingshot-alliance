@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Alliances\Http\Middleware\ResolveAllianceContext;
 use App\Domain\Integrations\Http\Middleware\AuthenticateApiCredential;
-use App\Domain\Kingdoms\Http\Middleware\ResolvePlayerContext;
+use App\Contexts\GameWorld\Http\Middleware\ResolvePlayerContext;
 use App\Domain\Notifications\Actions\QueueDueKingPerkReminders;
 use App\Domain\Platform\Http\Controllers\ReadinessController;
 use App\Domain\Platform\Http\Middleware\AssignRequestContext;

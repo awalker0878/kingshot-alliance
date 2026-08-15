@@ -6,7 +6,7 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\CreateKingdomIngestionSubscription;
 use App\Domain\Kingdoms\Actions\PromoteKingdomIngestionAllianceObservation;
 use App\Domain\Kingdoms\Actions\StageKingdomIngestionCandidate;
@@ -16,12 +16,12 @@ use App\Domain\Kingdoms\Contracts\KingdomIngestionAdapter;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
-use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
-use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -116,7 +116,7 @@ final class KingdomIngestionAlliancePromotionTest extends TestCase
         self::assertSame(2, KingdomAllianceObservation::query()->count());
         self::assertSame('Observed Machine Alliance Updated', $tracking->kingdomAlliance()->firstOrFail()->current_name);
 
-        $session = [(string) config('identity.active_player_session_key') => (string) $owner->players()->sole()->id];
+        $session = [(string) config('game_world.active_player_session_key') => (string) \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole()->id];
         $this->actingAs($owner)->withSession($session)
             ->get("/alliance/kingdom-alliances/{$tracking->id}/history")
             ->assertOk()

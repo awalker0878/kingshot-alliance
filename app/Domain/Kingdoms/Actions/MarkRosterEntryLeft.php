@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 
 final readonly class MarkRosterEntryLeft

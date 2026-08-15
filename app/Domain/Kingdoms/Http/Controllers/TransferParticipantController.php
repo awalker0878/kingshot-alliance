@@ -8,7 +8,7 @@ use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Kingdoms\Actions\SaveTransferParticipant;
 use App\Domain\Kingdoms\Actions\WithdrawTransferParticipant;
 use App\Domain\Kingdoms\Enums\TransferDirection;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

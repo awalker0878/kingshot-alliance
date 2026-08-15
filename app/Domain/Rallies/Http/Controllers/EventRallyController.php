@@ -6,10 +6,10 @@ namespace App\Domain\Rallies\Http\Controllers;
 
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Queries\EventCalendarQuery;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Services\PlayerContext;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Shared\Http\Controller;
 use App\Domain\Rallies\Actions\AssignRallyPlayer;
 use App\Domain\Rallies\Actions\RecordRallyParticipation;
 use App\Domain\Rallies\Actions\RemoveRallyPlayer;

@@ -8,7 +8,7 @@ use App\Domain\Authorization\Enums\DefaultKingdomRole;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\KingdomRole;
 use App\Domain\Authorization\Models\Permission;
-use App\Domain\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Kingdom;
 use Illuminate\Support\Str;
 use RuntimeException;
 

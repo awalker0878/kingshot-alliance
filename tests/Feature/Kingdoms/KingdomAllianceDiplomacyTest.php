@@ -6,13 +6,13 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacy;
-use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyTransition;
-use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy;
+use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyTransition;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
@@ -199,7 +199,7 @@ final class KingdomAllianceDiplomacyTest extends TestCase
         )->assertRedirect();
 
         $member = $this->member($alliance);
-        $memberSession = $this->activePlayerSession($member->players()->sole());
+        $memberSession = $this->activePlayerSession(\App\Contexts\GameWorld\Models\Player::query()->where('user_id', $member->id)->sole());
         $this->actingAs($member)->withSession($memberSession)
             ->get('/alliance/kingdom-alliances')
             ->assertOk()
@@ -344,12 +344,12 @@ final class KingdomAllianceDiplomacyTest extends TestCase
     public function test_diplomacy_mutations_require_recent_password_confirmation(): void
     {
         [$owner, $alliance] = $this->ownerAlliance('Diplomacy Password', 'diplomacy-password', 6310);
-        $player = $owner->players()->sole();
+        $player = \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole();
         $session = $this->confirmedSession($player);
         $tracking = $this->track($owner, $alliance, $session, 'Password Target', 'password-target-6310');
 
         $this->actingAs($owner)->withSession([
-            (string) config('identity.active_player_session_key') => $player->id,
+            (string) config('game_world.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => 0,
         ])->post(
             "/alliance/kingdom-alliances/{$tracking->id}/diplomacy/transitions",
@@ -457,7 +457,7 @@ final class KingdomAllianceDiplomacyTest extends TestCase
     private function confirmedSession(Player $player): array
     {
         return [
-            (string) config('identity.active_player_session_key') => $player->id,
+            (string) config('game_world.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => time(),
         ];
     }
@@ -465,7 +465,7 @@ final class KingdomAllianceDiplomacyTest extends TestCase
     /** @return array<string, mixed> */
     private function activePlayerSession(Player $player): array
     {
-        return [(string) config('identity.active_player_session_key') => $player->id];
+        return [(string) config('game_world.active_player_session_key') => $player->id];
     }
 
     private function eventCount(string $table, string $eventColumn, string $event, string $allianceId): int

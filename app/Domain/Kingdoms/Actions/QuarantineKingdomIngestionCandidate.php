@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Actions;
 
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
-use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
-use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Services\KingdomIngestionMutationState;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

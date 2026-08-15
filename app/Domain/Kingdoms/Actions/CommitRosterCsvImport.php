@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Models\RosterImport;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

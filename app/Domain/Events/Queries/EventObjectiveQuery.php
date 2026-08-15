@@ -10,7 +10,7 @@ use App\Domain\Events\Models\EventObjective;
 use App\Domain\Events\Models\EventObjectiveAssignment;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRosterMember;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 
 final readonly class EventObjectiveQuery
 {

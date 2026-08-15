@@ -7,7 +7,7 @@ namespace App\Domain\Memberships\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceMutationAuthority;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Services\IssueAllianceInvitation;
 use App\Domain\Memberships\ValueObjects\IssuedInvitation;
 use Illuminate\Support\Facades\DB;

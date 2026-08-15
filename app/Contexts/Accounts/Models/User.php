@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\Models;
 
 use Database\Factories\UserFactory;
+use App\Shared\Audit\Contracts\AuditActor;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,7 +24,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $deletion_requested_at
  * @property Carbon|null $anonymized_at
  */
-final class User extends Authenticatable implements MustVerifyEmailContract
+final class User extends Authenticatable implements AuditActor, MustVerifyEmailContract
 {
     use HasApiTokens;
 
@@ -64,4 +65,14 @@ final class User extends Authenticatable implements MustVerifyEmailContract
             'anonymized_at' => 'datetime',
         ];
     }
+    public function auditUserId(): ?int
+    {
+        return (int) $this->id;
+    }
+
+    public function auditPlayerId(): ?string
+    {
+        return null;
+    }
+
 }

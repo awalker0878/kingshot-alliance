@@ -9,7 +9,7 @@ use App\Domain\Events\Enums\EventPhaseStatus;
 use App\Domain\Events\Enums\EventPhaseType;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventPhase;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 
 final readonly class EventPhaseService

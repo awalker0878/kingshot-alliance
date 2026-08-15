@@ -6,13 +6,13 @@ namespace App\Domain\Rallies\Actions;
 
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMutationAuthority;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use App\Domain\Rallies\Enums\RallyAssignmentRole;
 use App\Domain\Rallies\Models\EventRecommendedFormation;
 use App\Domain\Rallies\Models\RallyGuidanceRule;

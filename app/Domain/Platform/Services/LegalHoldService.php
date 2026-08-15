@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Platform\Services;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Identity\Models\User;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Platform\Models\LegalHold;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;

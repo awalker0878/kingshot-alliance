@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Services;
 
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Platform\Models\PlatformAdministrator;
 use Illuminate\Auth\Access\AuthorizationException;
 

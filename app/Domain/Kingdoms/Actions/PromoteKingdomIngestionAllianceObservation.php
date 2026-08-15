@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Kingdoms\Enums\KingdomAllianceStatus;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\GameWorld\Enums\KingdomAllianceStatus;
 use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
-use App\Domain\Kingdoms\Models\KingdomAlliance;
-use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
-use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\KingdomAlliance;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
 use App\Domain\Kingdoms\Services\KingdomIngestionMutationState;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

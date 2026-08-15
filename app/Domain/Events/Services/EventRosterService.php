@@ -8,7 +8,7 @@ use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventRosterType;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRoster;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 
 final readonly class EventRosterService
 {

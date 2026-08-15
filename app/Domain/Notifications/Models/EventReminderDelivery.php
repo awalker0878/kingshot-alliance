@@ -6,8 +6,8 @@ namespace App\Domain\Notifications\Models;
 
 use App\Domain\Events\Enums\EventReminderDeliveryStatus;
 use App\Domain\Events\Models\EventOccurrence;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

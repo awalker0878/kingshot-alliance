@@ -8,7 +8,7 @@ use App\Domain\Events\Enums\EventReminderAudience;
 use App\Domain\Events\Enums\EventReminderTrigger;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventPoll;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

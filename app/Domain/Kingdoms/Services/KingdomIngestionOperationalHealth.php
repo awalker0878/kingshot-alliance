@@ -7,9 +7,9 @@ namespace App\Domain\Kingdoms\Services;
 use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
-use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
-use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 
 final class KingdomIngestionOperationalHealth
 {

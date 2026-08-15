@@ -214,6 +214,8 @@ Historical acceptance/security evidence may remain in an archive/evidence locati
 - rebuild Player/Kingdom/game-Alliance identity in GameWorld;
 - remove cross-context ORM navigation from foundation models;
 - rebuild active Player context.
+- keep invitation onboarding out of Accounts; the Alliance onboarding workflow is rebuilt in P3.
+- defer cross-context account deletion orchestration to Workflows in P8 rather than importing V1 dependencies.
 
 ### ARCH-V2-P3 — Alliance context
 

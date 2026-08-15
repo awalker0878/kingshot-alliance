@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Authorization\Models;
 
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

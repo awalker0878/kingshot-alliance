@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Integrations\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Integrations\Models\WebhookSubscription;
 use App\Domain\Integrations\Services\WebhookEndpointPolicy;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use App\Domain\Platform\Services\PlanEntitlementService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

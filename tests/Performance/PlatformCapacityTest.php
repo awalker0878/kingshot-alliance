@@ -6,7 +6,7 @@ namespace Tests\Performance;
 
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Platform\Queries\PlatformAdministrationQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

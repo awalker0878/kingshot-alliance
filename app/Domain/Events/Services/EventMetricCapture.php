@@ -17,7 +17,7 @@ use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Events\Models\EventPlayerResultMetric;
 use App\Domain\Events\Models\EventResult;
 use App\Domain\Events\Models\EventResultMetric;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;

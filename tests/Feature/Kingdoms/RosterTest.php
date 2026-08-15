@@ -9,10 +9,10 @@ use App\Domain\Authorization\Enums\DefaultAllianceRole;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -96,7 +96,7 @@ final class RosterTest extends TestCase
         $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Confirmation Alliance', 'confirmation-alliance');
 
         $this->actingAs($owner)
-            ->withSession([(string) config('identity.active_player_session_key') => $ownerPlayer->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => $ownerPlayer->id])
             ->post('/alliance/roster', [
                 'name' => 'Pending Player',
                 'state' => 'active',
@@ -133,7 +133,7 @@ final class RosterTest extends TestCase
         ]);
 
         $this->actingAs($member)
-            ->withSession([(string) config('identity.active_player_session_key') => $memberPlayer->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => $memberPlayer->id])
             ->get('/alliance/roster')
             ->assertOk();
 
@@ -418,7 +418,7 @@ final class RosterTest extends TestCase
     private function confirmedSession(string $playerId): array
     {
         return [
-            (string) config('identity.active_player_session_key') => $playerId,
+            (string) config('game_world.active_player_session_key') => $playerId,
             'auth.password_confirmed_at' => time(),
         ];
     }

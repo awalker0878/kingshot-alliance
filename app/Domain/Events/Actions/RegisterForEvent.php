@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Events\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Models\EventOccurrence;
@@ -15,8 +15,8 @@ use App\Domain\Events\Services\EventCapabilityResolver;
 use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Events\Services\EventPlayerContextFreezer;
 use App\Domain\Events\Services\EventRegistrationWindow;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

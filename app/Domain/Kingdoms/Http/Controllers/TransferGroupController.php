@@ -9,7 +9,7 @@ use App\Domain\Kingdoms\Actions\ArchiveTransferGroup;
 use App\Domain\Kingdoms\Actions\AssignTransferParticipantGroup;
 use App\Domain\Kingdoms\Actions\SaveTransferGroup;
 use App\Domain\Kingdoms\Enums\TransferDirection;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

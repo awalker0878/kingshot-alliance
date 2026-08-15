@@ -8,7 +8,7 @@ use App\Domain\Contributions\Models\ContributionCategory;
 use App\Domain\Contributions\Models\ContributionRecord;
 use App\Domain\Events\Queries\EventPlayerHistoryQuery;
 use App\Domain\Events\Queries\EventPlayerHistorySummaryQuery;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;

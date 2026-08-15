@@ -9,9 +9,9 @@ use App\Domain\Content\Actions\PublishContentItem;
 use App\Domain\Content\Actions\SaveContentItem;
 use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -93,7 +93,7 @@ final class PublicContentBoundaryTest extends TestCase
             $this->attributes('Members Guide', 'members-guide', ContentVisibility::Members),
         );
         $this->app->make(PublishContentItem::class)->handle($alliance, $ownerPlayer, $item->id);
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
 
         $this->actingAs($owner)
             ->withSession([$sessionKey => $ownerPlayer->id])

@@ -9,7 +9,7 @@ use App\Domain\Events\Models\EventAttendance;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventResponse;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 
 final class EventParticipationQuery
 {

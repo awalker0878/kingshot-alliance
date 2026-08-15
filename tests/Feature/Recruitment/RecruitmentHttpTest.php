@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Recruitment;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -193,7 +193,7 @@ final class RecruitmentHttpTest extends TestCase
         ]);
 
         $this->actingAs($member)
-            ->withSession([(string) config('identity.active_player_session_key') => $memberPlayer->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => $memberPlayer->id])
             ->get('/alliance/recruitment')
             ->assertForbidden();
     }
@@ -226,7 +226,7 @@ final class RecruitmentHttpTest extends TestCase
         $secondCandidate = $submit->handle($second, 'Hidden Candidate', 'hidden@example.com', []);
 
         $this->actingAs($owner)->withSession([
-            (string) config('identity.active_player_session_key') => $firstPlayer->id,
+            (string) config('game_world.active_player_session_key') => $firstPlayer->id,
             'auth.password_confirmed_at' => time(),
         ]);
 
@@ -251,7 +251,7 @@ final class RecruitmentHttpTest extends TestCase
         ])->assertNotFound();
 
         $this->withSession([
-            (string) config('identity.active_player_session_key') => $secondPlayer->id,
+            (string) config('game_world.active_player_session_key') => $secondPlayer->id,
             'auth.password_confirmed_at' => time(),
         ])->get('/alliance/recruitment')
             ->assertOk()
@@ -274,7 +274,7 @@ final class RecruitmentHttpTest extends TestCase
             ->handle($ownerPlayer, 'Confirmed Recruiting', 'confirmed-recruiting');
 
         $this->actingAs($owner)
-            ->withSession([(string) config('identity.active_player_session_key') => $ownerPlayer->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => $ownerPlayer->id])
             ->post('/alliance/recruitment/questions', [
                 'prompt' => 'Blocked until confirmed',
                 'help_text' => null,
@@ -329,7 +329,7 @@ final class RecruitmentHttpTest extends TestCase
         );
 
         $this->actingAs($owner)->withSession([
-            (string) config('identity.active_player_session_key') => $firstPlayer->id,
+            (string) config('game_world.active_player_session_key') => $firstPlayer->id,
             'auth.password_confirmed_at' => time(),
         ]);
 
@@ -386,7 +386,7 @@ final class RecruitmentHttpTest extends TestCase
         $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Recruitment Navigation', 'recruitment-navigation');
 
         $this->actingAs($owner)
-            ->withSession([(string) config('identity.active_player_session_key') => $ownerPlayer->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => $ownerPlayer->id])
             ->get('/alliance')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page

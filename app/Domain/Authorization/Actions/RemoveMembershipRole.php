@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Authorization\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\Role;
 use App\Domain\Authorization\Services\AllianceMutationAuthority;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Models\AllianceMembership;
-use App\Domain\Platform\Models\OutboxMessage;
+use App\Shared\Messaging\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 
 final readonly class RemoveMembershipRole

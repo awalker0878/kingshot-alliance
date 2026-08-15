@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Http\Controllers;
 
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Services\PlayerContext;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Shared\Http\Controller;
 use App\Domain\Rallies\Actions\DeletePlayerFormation;
 use App\Domain\Rallies\Actions\SavePlayerFormation;
 use App\Domain\Rallies\Models\PlayerFormation;

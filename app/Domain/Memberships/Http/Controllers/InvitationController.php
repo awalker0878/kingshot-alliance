@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Memberships\Http\Controllers;
 
 use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Actions\CreateInvitation;
 use App\Domain\Memberships\Actions\ResendInvitation;
 use App\Domain\Memberships\Actions\RevokeInvitation;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

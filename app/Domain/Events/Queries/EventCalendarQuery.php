@@ -13,7 +13,7 @@ use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventAuthorization;
 use App\Domain\Events\Services\EventTargetResolver;
 use App\Domain\Events\Services\EventVisibilityResolver;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;

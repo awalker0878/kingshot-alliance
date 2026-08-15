@@ -7,14 +7,14 @@ namespace Tests\Feature\Kingdoms;
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Authorization\Models\Role;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Enums\KingdomAllianceContactState;
 use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacy;
-use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyContact;
-use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyTransition;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy;
+use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyContact;
+use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyTransition;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
@@ -137,7 +137,7 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
         )->assertRedirect();
 
         $member = $this->member($alliance);
-        $memberSession = $this->activePlayerSession($member->players()->sole());
+        $memberSession = $this->activePlayerSession(\App\Contexts\GameWorld\Models\Player::query()->where('user_id', $member->id)->sole());
 
         $this->actingAs($member)->withSession($memberSession)
             ->get('/alliance/kingdom-alliances')
@@ -257,7 +257,7 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
         [$owner, $alliance, $session] = $this->ownerAlliance('Contact Password', 'contact-password', 6408);
         $tracking = $this->track($owner, $alliance, $session, 'Password Target', 'password-target-6408');
         $staleSession = [
-            (string) config('identity.active_player_session_key') => $owner->players()->sole()->id,
+            (string) config('game_world.active_player_session_key') => \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole()->id,
             'auth.password_confirmed_at' => 0,
         ];
 
@@ -404,7 +404,7 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
     private function confirmedSession(Player $player): array
     {
         return [
-            (string) config('identity.active_player_session_key') => $player->id,
+            (string) config('game_world.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => time(),
         ];
     }
@@ -412,7 +412,7 @@ final class KingdomAllianceDiplomacyContactTest extends TestCase
     /** @return array<string, mixed> */
     private function activePlayerSession(Player $player): array
     {
-        return [(string) config('identity.active_player_session_key') => $player->id];
+        return [(string) config('game_world.active_player_session_key') => $player->id];
     }
 
     /** @return array<string, string|null> */

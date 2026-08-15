@@ -5,20 +5,20 @@ declare(strict_types=1);
 namespace App\Domain\Memberships\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceMutationAuthority;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Enums\InvitationStatus;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Memberships\Models\Invitation;
 use App\Domain\Memberships\Services\InvitationTokenService;
 use App\Domain\Memberships\ValueObjects\IssuedInvitation;
-use App\Domain\Platform\Models\OutboxMessage;
+use App\Shared\Messaging\Models\OutboxMessage;
 use App\Domain\Platform\Services\PlanEntitlementService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -104,7 +104,7 @@ final readonly class ResendInvitation
             }
 
             $token = $this->tokens->issue();
-            $ttlHours = max(1, (int) config('identity.invitation_ttl_hours', 72));
+            $ttlHours = max(1, (int) config('alliance.invitation_ttl_hours', 72));
 
             $invitation->forceFill([
                 'token_hash' => $this->tokens->hash($token),

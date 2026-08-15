@@ -8,7 +8,7 @@ use App\Domain\Integrations\Enums\WebhookDeliveryStatus;
 use App\Domain\Integrations\Jobs\DeliverWebhookJob;
 use App\Domain\Integrations\Models\WebhookDelivery;
 use App\Domain\Integrations\Models\WebhookSubscription;
-use App\Domain\Platform\Events\OutboxPublished;
+use App\Shared\Messaging\Events\OutboxPublished;
 
 final class QueueWebhookDeliveries
 {

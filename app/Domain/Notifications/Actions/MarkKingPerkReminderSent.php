@@ -6,7 +6,7 @@ namespace App\Domain\Notifications\Actions;
 
 use App\Domain\Events\Enums\EventReminderDeliveryStatus;
 use App\Domain\Notifications\Models\KingPerkReminderDelivery;
-use App\Domain\Platform\Events\OutboxPublished;
+use App\Shared\Messaging\Events\OutboxPublished;
 
 final class MarkKingPerkReminderSent
 {

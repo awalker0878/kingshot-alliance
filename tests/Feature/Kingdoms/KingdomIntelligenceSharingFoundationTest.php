@@ -6,15 +6,15 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomIntelligenceShare;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
-use App\Domain\Platform\Models\OutboxMessage;
+use App\Shared\Messaging\Models\OutboxMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -272,7 +272,7 @@ final class KingdomIntelligenceSharingFoundationTest extends TestCase
     /** @return array<string, mixed> */
     private function activeSession(string $playerId): array
     {
-        return [(string) config('identity.active_player_session_key') => $playerId];
+        return [(string) config('game_world.active_player_session_key') => $playerId];
     }
 
     /** @return array<string, mixed> */

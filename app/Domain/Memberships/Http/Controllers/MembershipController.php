@@ -13,7 +13,7 @@ use App\Domain\Memberships\Actions\UpdateAllianceRank;
 use App\Domain\Memberships\Actions\UpdateMembershipStatus;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

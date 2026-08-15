@@ -19,7 +19,7 @@ use App\Domain\Events\Models\EventRosterMember;
 use App\Domain\Events\Services\ActivePlayerEventVisibilityResolver;
 use App\Domain\Events\Services\EventCapabilityResolver;
 use App\Domain\Events\Services\EventRegistrationWindow;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 

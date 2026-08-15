@@ -15,6 +15,7 @@ final class PlayerOwnershipQuery
     {
         return Player::query()
             ->where('user_id', $user->id)
+            ->with('currentKingdom')
             ->orderBy('id')
             ->get();
     }
@@ -24,6 +25,7 @@ final class PlayerOwnershipQuery
     {
         return Player::query()
             ->where('user_id', $user->id)
+            ->with('currentKingdom')
             ->orderBy('id')
             ->limit(max(1, $limit))
             ->get();
@@ -34,6 +36,7 @@ final class PlayerOwnershipQuery
         return Player::query()
             ->whereKey($playerId)
             ->where('user_id', $user->id)
+            ->with('currentKingdom')
             ->first();
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\KingPerks\Models;
 
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\KingPerks\Enums\KingAppointmentType;
 use App\Domain\KingPerks\Enums\KingPerkPushCategory;
 use App\Domain\KingPerks\Enums\KingPerkRequestStatus;

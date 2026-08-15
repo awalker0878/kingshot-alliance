@@ -6,7 +6,7 @@ namespace App\Domain\Notifications\Actions;
 
 use App\Domain\Events\Enums\EventReminderDeliveryStatus;
 use App\Domain\Notifications\Models\EventReminderDelivery;
-use App\Domain\Platform\Events\OutboxPublished;
+use App\Shared\Messaging\Events\OutboxPublished;
 
 final class MarkEventReminderSent
 {

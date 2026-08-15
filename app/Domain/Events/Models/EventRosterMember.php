@@ -6,7 +6,7 @@ namespace App\Domain\Events\Models;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Events\Enums\EventRosterMemberStatus;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

@@ -6,7 +6,7 @@ namespace App\Domain\Content\Services;
 
 use App\Domain\Content\Models\ContentItem;
 use App\Domain\Content\Models\ContentRevision;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 
 final class ContentRevisionWriter
 {

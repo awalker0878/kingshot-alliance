@@ -9,7 +9,7 @@ use App\Domain\Events\Enums\EventPollStatus;
 use App\Domain\Events\Enums\EventPollType;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventPoll;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 
 final readonly class EventPollTemplateMaterializer

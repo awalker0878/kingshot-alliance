@@ -14,9 +14,9 @@ use App\Domain\Content\Enums\ContentStatus;
 use App\Domain\Content\Enums\ContentType;
 use App\Domain\Content\Enums\ContentVisibility;
 use App\Domain\Content\Models\ContentRevision;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

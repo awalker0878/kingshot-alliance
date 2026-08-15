@@ -9,7 +9,7 @@ use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventMetricDefinition;
 use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Events\Models\EventPlayerResultMetric;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Database\Query\Builder;

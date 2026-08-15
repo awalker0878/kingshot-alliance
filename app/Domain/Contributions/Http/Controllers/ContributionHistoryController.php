@@ -6,9 +6,9 @@ namespace App\Domain\Contributions\Http\Controllers;
 
 use App\Domain\Contributions\Queries\PlayerContributionHistoryQuery;
 use App\Domain\Events\Queries\EventContributionIntelligenceQuery;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Services\PlayerContext;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;

@@ -6,7 +6,7 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\AcceptKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Actions\AddKingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation;
@@ -16,11 +16,11 @@ use App\Domain\Kingdoms\Actions\RemoveKingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Actions\RevokeKingdomIntelligenceShare;
 use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
-use App\Domain\Kingdoms\Models\KingdomIntelligenceShareTarget;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\KingdomIntelligenceShare;
+use App\Contexts\GameWorld\Models\KingdomIntelligenceShareTarget;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -232,6 +232,6 @@ final class KingdomSharedIntelligenceRetentionTest extends TestCase
 
     private function player(User $owner): Player
     {
-        return $owner->players()->sole();
+        return \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole();
     }
 }

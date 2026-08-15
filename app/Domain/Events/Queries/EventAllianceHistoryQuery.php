@@ -8,7 +8,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Services\EventAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use DateTimeInterface;
 
 final readonly class EventAllianceHistoryQuery

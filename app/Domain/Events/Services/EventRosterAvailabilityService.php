@@ -10,7 +10,7 @@ use App\Domain\Events\Enums\EventResponseChoice;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventResponse;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 
 final readonly class EventRosterAvailabilityService

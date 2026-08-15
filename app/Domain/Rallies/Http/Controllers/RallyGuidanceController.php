@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Rallies\Http\Controllers;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Services\PlayerContext;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Shared\Http\Controller;
 use App\Domain\Rallies\Actions\SaveRallyGuidanceRule;
 use App\Domain\Rallies\Models\RallyGuidanceRule;
 use App\Domain\Rallies\ValueObjects\FormationComposition;

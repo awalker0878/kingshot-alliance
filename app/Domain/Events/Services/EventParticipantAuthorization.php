@@ -11,7 +11,7 @@ use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\Event;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Auth\Access\AuthorizationException;
 
 final readonly class EventParticipantAuthorization

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Memberships\Http\Controllers;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Memberships\Actions\AcceptInvitation;
 use App\Domain\Memberships\Queries\FindPendingInvitation;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -63,7 +63,7 @@ final class InvitationAcceptanceController extends Controller
         $membership = $acceptInvitation->handle($user, $token);
 
         $request->session()->put(
-            (string) config('identity.active_player_session_key'),
+            (string) config('game_world.active_player_session_key'),
             (string) $membership->player_id,
         );
 

@@ -9,8 +9,8 @@ use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Authorization\Services\KingdomAuthorization;
 use App\Domain\Events\Enums\EventScope;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Auth\Access\AuthorizationException;
 
 final class EventAuthorization

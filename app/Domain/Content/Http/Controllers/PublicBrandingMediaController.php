@@ -10,7 +10,7 @@ use App\Domain\Content\Enums\MediaLifecycleStatus;
 use App\Domain\Content\Enums\MediaScanStatus;
 use App\Domain\Content\Models\AllianceBrandingMedia;
 use App\Domain\Content\Models\MediaAsset;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Shared\Http\Controller;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

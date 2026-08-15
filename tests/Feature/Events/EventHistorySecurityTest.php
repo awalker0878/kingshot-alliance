@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Events;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Audit\Models\AuditEvent;
+use App\Shared\Audit\Models\AuditEvent;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Actions\SaveEventPlayerResult;
 use App\Domain\Events\Enums\EventScope;
@@ -13,10 +13,10 @@ use App\Domain\Events\Models\EventPlayerContext;
 use App\Domain\Events\Models\EventPlayerResultMetric;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventTypeRegistry;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Platform\Models\PlatformAdministrator;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -41,7 +41,7 @@ final class EventHistorySecurityTest extends TestCase
         $platformPlayer = $this->player($platformUser, $kingdom, 'Platform Admin Player', '9011-platform');
 
         $this->actingAs($platformUser)
-            ->withSession([(string) config('identity.active_player_session_key') => $platformPlayer->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => $platformPlayer->id])
             ->get(route('alliances.events.history', ['alliance' => $alliance->id]))
             ->assertForbidden();
     }

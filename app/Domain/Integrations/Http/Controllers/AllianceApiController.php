@@ -6,7 +6,7 @@ namespace App\Domain\Integrations\Http\Controllers;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Events\Enums\EventScope;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Shared\Http\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

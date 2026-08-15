@@ -11,7 +11,7 @@ use App\Domain\Events\Models\EventPhase;
 use App\Domain\Events\Models\EventPoll;
 use App\Domain\Events\Models\EventPollVote;
 use App\Domain\Events\Services\EventPhaseService;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 
 final readonly class EventPhasePollQuery

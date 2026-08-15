@@ -6,9 +6,9 @@ namespace App\Domain\Recruitment\Actions;
 
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Identity\Models\User;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Accounts\Models\User;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Recruitment\Enums\RecruitmentQuestionType;
 use App\Domain\Recruitment\Enums\RecruitmentStage;

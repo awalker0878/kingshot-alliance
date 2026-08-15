@@ -6,7 +6,7 @@ namespace App\Domain\Kingdoms\Services;
 
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\ValueObjects\KingdomIngestionMutationContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

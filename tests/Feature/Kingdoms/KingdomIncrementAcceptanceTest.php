@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Models\RosterImport;
 use App\Domain\Kingdoms\Services\RosterCsvParser;
 use App\Domain\Memberships\Enums\AllianceRank;
@@ -119,7 +119,14 @@ final class KingdomIncrementAcceptanceTest extends TestCase
         $entry->refresh();
         self::assertSame('Manual Player Renamed', $entry->observed_name);
         self::assertSame($memberPlayer->id, $entry->player_id);
-        self::assertSame($membership->id, $entry->player->memberships()->where('alliance_id', $alliance->id)->sole()->id);
+        self::assertSame(
+            $membership->id,
+            AllianceMembership::query()
+                ->where('player_id', $entry->player_id)
+                ->where('alliance_id', $alliance->id)
+                ->sole()
+                ->id,
+        );
         self::assertSame('Private acceptance note.', $entry->manager_notes);
         self::assertSame('csv', $entry->source);
         $this->assertDatabaseCount('player_snapshots', 3);
@@ -215,7 +222,7 @@ final class KingdomIncrementAcceptanceTest extends TestCase
     private function activeSession(string $playerId): array
     {
         return [
-            (string) config('identity.active_player_session_key') => $playerId,
+            (string) config('game_world.active_player_session_key') => $playerId,
         ];
     }
 

@@ -7,7 +7,7 @@ namespace App\Domain\Kingdoms\Services;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Enums\RosterState;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\PlayerSnapshot;
+use App\Contexts\GameWorld\Models\PlayerSnapshot;
 use App\Domain\Kingdoms\Queries\PlayerSnapshotQuery;
 use App\Domain\Kingdoms\Queries\RosterQuery;
 use App\Domain\Memberships\Enums\MembershipStatus;

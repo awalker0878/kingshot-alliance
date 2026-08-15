@@ -6,7 +6,7 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\CreateKingdomIngestionSubscription;
 use App\Domain\Kingdoms\Actions\PromoteKingdomIngestionPlayerSnapshot;
 use App\Domain\Kingdoms\Actions\QueueDueKingdomIngestionSubscriptions;
@@ -21,13 +21,13 @@ use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
 use App\Domain\Kingdoms\Jobs\RunKingdomIngestionSubscriptionJob;
-use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
-use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Models\PlayerSnapshot;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Models\PlayerSnapshot;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -90,7 +90,7 @@ final class KingdomIngestionSchedulerTest extends TestCase
     public function test_scheduled_page_promotes_both_accepted_targets_and_exact_window_replay_is_idempotent(): void
     {
         [$owner, $alliance] = $this->alliance(6802, 'k4-p4-run');
-        $player = $owner->players()->sole();
+        $player = \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole();
         $entry = $this->app->make(SaveRosterEntry::class)->handle(
             $alliance,
             $player,
@@ -205,7 +205,7 @@ final class KingdomIngestionSchedulerTest extends TestCase
     public function test_manager_replay_requires_password_confirmation_and_re_drives_existing_promotion_action(): void
     {
         [$owner, $alliance] = $this->alliance(6805, 'k4-p4-replay');
-        $player = $owner->players()->sole();
+        $player = \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole();
         $subscription = $this->subscription($owner, $alliance);
         $batch = $this->app->make(StartKingdomIngestionBatch::class)
             ->handle((string) $subscription->id, 'replay-window-6805');
@@ -231,7 +231,7 @@ final class KingdomIngestionSchedulerTest extends TestCase
         self::assertSame('unknown_player', $candidate->quarantine_code);
 
         $unconfirmed = [
-            (string) config('identity.active_player_session_key') => (string) $player->id,
+            (string) config('game_world.active_player_session_key') => (string) $player->id,
             'auth.password_confirmed_at' => 0,
         ];
         $path = "/alliance/kingdom-ingestion/subscriptions/{$subscription->id}/candidates/{$candidate->id}/replay";
@@ -284,14 +284,14 @@ final class KingdomIngestionSchedulerTest extends TestCase
     private function subscription(User $owner, Alliance $alliance): KingdomIngestionSubscription
     {
         return $this->app->make(CreateKingdomIngestionSubscription::class)
-            ->handle($alliance, $owner->players()->sole(), 'fixture.scheduled-ingestion');
+            ->handle($alliance, \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole(), 'fixture.scheduled-ingestion');
     }
 
     /** @return array<string, mixed> */
     private function confirmedSession(Player $player): array
     {
         return [
-            (string) config('identity.active_player_session_key') => $player->id,
+            (string) config('game_world.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => time(),
         ];
     }

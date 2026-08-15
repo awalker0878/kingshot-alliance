@@ -24,11 +24,11 @@ use App\Domain\Events\Models\EventResponse;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Queries\EventAttentionQuery;
 use App\Domain\Events\Services\EventTypeRegistry;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Services\PlayerContext;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Memberships\Actions\AcceptInvitation;
 use App\Domain\Memberships\Actions\CreateInvitation;
 use App\Domain\Notifications\Actions\CreateEventReminderRule;
@@ -37,8 +37,8 @@ use App\Domain\Notifications\Actions\MarkEventReminderSent;
 use App\Domain\Notifications\Actions\QueueDueEventReminders;
 use App\Domain\Notifications\Models\EventReminderDelivery;
 use App\Domain\Notifications\Queries\EventReminderInboxQuery;
-use App\Domain\Platform\Events\OutboxPublished;
-use App\Domain\Platform\Models\OutboxMessage;
+use App\Shared\Messaging\Events\OutboxPublished;
+use App\Shared\Messaging\Models\OutboxMessage;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -479,7 +479,7 @@ final class EventParticipationTest extends TestCase
         $occurrence = $event->occurrences->firstOrFail();
 
         $this->actingAs($user)
-            ->withSession([(string) config('identity.active_player_session_key') => (string) $firstPlayer->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => (string) $firstPlayer->id])
             ->post('/events/'.$occurrence->id.'/responses', ['response' => EventResponseChoice::Going->value])
             ->assertForbidden();
 

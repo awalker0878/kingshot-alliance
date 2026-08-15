@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\TenantIsolation\Integrations;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Integrations\Actions\CreateApiCredential;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -69,7 +69,7 @@ final class IntegrationTenantIsolationTest extends TestCase
         $first = $createAlliance->handle($firstPlayer, 'First Management Tenant', 'first-management-tenant');
         $second = $createAlliance->handle($secondPlayer, 'Second Management Tenant', 'second-management-tenant');
         $foreign = $this->app->make(CreateApiCredential::class)->handle($second, $secondPlayer, 'Foreign credential', ['alliance:read']);
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
 
         $this->actingAs($firstOwner)
             ->withSession([

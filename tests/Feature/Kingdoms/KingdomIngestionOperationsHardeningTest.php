@@ -6,7 +6,7 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\CreateKingdomIngestionSubscription;
 use App\Domain\Kingdoms\Actions\EnforceKingdomIngestionRetention;
 use App\Domain\Kingdoms\Actions\ReconcileKingdomIngestionSources;
@@ -18,11 +18,11 @@ use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
-use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
-use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Services\KingdomIngestionOperationalHealth;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -186,7 +186,7 @@ final class KingdomIngestionOperationsHardeningTest extends TestCase
     private function subscription(User $owner, Alliance $alliance): KingdomIngestionSubscription
     {
         return $this->app->make(CreateKingdomIngestionSubscription::class)
-            ->handle($alliance, $owner->players()->sole(), 'fixture.operations-hardening');
+            ->handle($alliance, \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole(), 'fixture.operations-hardening');
     }
 
     private function candidate(

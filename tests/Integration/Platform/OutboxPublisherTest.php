@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Integration\Platform;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
-use App\Domain\Platform\Actions\PublishOutboxBatch;
-use App\Domain\Platform\Events\OutboxPublished;
-use App\Domain\Platform\Models\OutboxMessage;
+use App\Contexts\Accounts\Models\User;
+use App\Shared\Messaging\Actions\PublishOutboxBatch;
+use App\Shared\Messaging\Events\OutboxPublished;
+use App\Shared\Messaging\Models\OutboxMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use RuntimeException;

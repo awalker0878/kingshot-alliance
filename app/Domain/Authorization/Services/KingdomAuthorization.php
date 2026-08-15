@@ -6,8 +6,8 @@ namespace App\Domain\Authorization\Services;
 
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\KingdomRoleAssignment;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Builder;
 
 final class KingdomAuthorization

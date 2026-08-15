@@ -6,7 +6,7 @@ namespace App\Domain\Notifications\Actions;
 
 use App\Domain\Contributions\Models\ContributionReportRun;
 use App\Domain\Contributions\Models\ContributionReportSchedule;
-use App\Domain\Platform\Models\OutboxMessage;
+use App\Shared\Messaging\Models\OutboxMessage;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;

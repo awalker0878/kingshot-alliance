@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Domain\Kingdoms\Enums\KingdomStatus;
-use App\Domain\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Enums\KingdomStatus;
+use App\Contexts\GameWorld\Models\Kingdom;
 use Illuminate\Validation\ValidationException;
 
 final class ResolveKingdom

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Events\Queries;
 
 use App\Domain\Events\Enums\EventScope;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 

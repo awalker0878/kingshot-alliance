@@ -6,16 +6,16 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\KingdomAlliance;
-use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacy;
-use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyContact;
-use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyTransition;
-use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomAlliance;
+use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy;
+use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyContact;
+use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyTransition;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
@@ -336,7 +336,7 @@ final class KingdomAllianceAcceptanceTest extends TestCase
     private function confirmedSession(Player $player): array
     {
         return [
-            (string) config('identity.active_player_session_key') => $player->id,
+            (string) config('game_world.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => time(),
         ];
     }
@@ -344,7 +344,7 @@ final class KingdomAllianceAcceptanceTest extends TestCase
     /** @return array<string, mixed> */
     private function activePlayerSession(Player $player): array
     {
-        return [(string) config('identity.active_player_session_key') => $player->id];
+        return [(string) config('game_world.active_player_session_key') => $player->id];
     }
 
     /** @return list<string> */

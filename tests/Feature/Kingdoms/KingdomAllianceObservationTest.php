@@ -6,10 +6,10 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
@@ -360,7 +360,7 @@ final class KingdomAllianceObservationTest extends TestCase
     /** @return array<string, mixed> */
     private function activeSession(string $playerId): array
     {
-        return [(string) config('identity.active_player_session_key') => $playerId];
+        return [(string) config('game_world.active_player_session_key') => $playerId];
     }
 
     /** @return array<string, mixed> */

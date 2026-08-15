@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Domain\Notifications\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Notifications\Models\EventReminderRule;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 
 final readonly class DisableEventReminderRule

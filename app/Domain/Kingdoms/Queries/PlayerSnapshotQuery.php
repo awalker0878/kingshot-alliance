@@ -6,7 +6,7 @@ namespace App\Domain\Kingdoms\Queries;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\PlayerSnapshot;
+use App\Contexts\GameWorld\Models\PlayerSnapshot;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 

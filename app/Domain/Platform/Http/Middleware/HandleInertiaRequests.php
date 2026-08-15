@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Http\Middleware;
 
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Services\PlayerContext;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 

@@ -10,9 +10,9 @@ use App\Domain\Contributions\Actions\RecordContribution;
 use App\Domain\Contributions\Enums\ContributionDataClass;
 use App\Domain\Contributions\Enums\ContributionPeriod;
 use App\Domain\Contributions\Enums\ContributionRecordSource;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -48,7 +48,7 @@ final class ContributionAuthorizationIsolationTest extends TestCase
             'rank' => AllianceRank::R1,
             'joined_at' => now(),
         ]);
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
 
         $this->actingAs($member)
             ->withSession([$sessionKey => $memberPlayer->id])
@@ -72,7 +72,7 @@ final class ContributionAuthorizationIsolationTest extends TestCase
             'current_name' => 'Contribution Confirmation Owner',
         ]);
         $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Contribution Confirmation', 'contribution-confirmation');
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
 
         $response = $this->actingAs($owner)
             ->withSession([$sessionKey => $ownerPlayer->id])
@@ -131,7 +131,7 @@ final class ContributionAuthorizationIsolationTest extends TestCase
             10,
             ContributionRecordSource::Manual,
         );
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
 
         $this->actingAs($firstOwner)
             ->withSession([

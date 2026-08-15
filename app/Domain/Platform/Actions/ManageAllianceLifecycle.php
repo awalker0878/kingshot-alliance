@@ -6,11 +6,11 @@ namespace App\Domain\Platform\Actions;
 
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Identity\Models\User;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
 use App\Domain\Platform\Services\LegalHoldService;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use App\Domain\Platform\Services\PlatformMutationAuthority;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;

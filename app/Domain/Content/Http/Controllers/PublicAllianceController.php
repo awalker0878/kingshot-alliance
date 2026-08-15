@@ -14,7 +14,7 @@ use App\Domain\Content\Models\ContentCategory;
 use App\Domain\Content\Models\ContentItem;
 use App\Domain\Content\Queries\ContentQuery;
 use App\Domain\Content\Services\ContentPresenter;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Shared\Http\Controller;
 use App\Domain\Recruitment\Queries\PublicRecruitmentQuery;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

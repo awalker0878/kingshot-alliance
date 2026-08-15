@@ -6,8 +6,8 @@ namespace App\Domain\Recruitment\Http\Controllers;
 
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
-use App\Domain\Platform\Http\Controllers\Controller;
+use App\Contexts\Accounts\Models\User;
+use App\Shared\Http\Controller;
 use App\Domain\Recruitment\Actions\SubmitRecruitmentApplication;
 use App\Domain\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Domain\Recruitment\Models\RecruitmentApplicationInvite;

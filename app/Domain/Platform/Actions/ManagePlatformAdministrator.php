@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Actions;
 
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Identity\Models\User;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Platform\Models\PlatformAdministrator;
 use App\Domain\Platform\Services\PlatformAdministratorBootstrapCoordinator;
 use Illuminate\Auth\Access\AuthorizationException;

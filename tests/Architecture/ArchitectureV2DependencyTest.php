@@ -176,6 +176,43 @@ final class ArchitectureV2DependencyTest extends TestCase
         }
     }
 
+    public function test_p2_legacy_identity_and_game_world_foundations_are_deleted(): void
+    {
+        self::assertDirectoryDoesNotExist($this->root().'/app/Domain/Identity');
+
+        foreach ([
+            '/app/Domain/Kingdoms/Models/Player.php',
+            '/app/Domain/Kingdoms/Models/Kingdom.php',
+            '/app/Domain/Kingdoms/Models/KingdomAlliance.php',
+            '/app/Domain/Kingdoms/Enums/KingdomStatus.php',
+            '/app/Domain/Kingdoms/Enums/KingdomAllianceStatus.php',
+            '/app/Domain/Kingdoms/Services/PlayerContext.php',
+            '/app/Domain/Kingdoms/Http/Middleware/ResolvePlayerContext.php',
+            '/config/identity.php',
+        ] as $path) {
+            self::assertFileDoesNotExist($this->root().$path);
+        }
+    }
+
+    public function test_p2_application_has_no_references_to_superseded_foundation_namespaces(): void
+    {
+        $forbidden = [
+            'App\\Domain\\Identity\\Models\\User',
+            'App\\Domain\\Kingdoms\\Models\\Player',
+            'App\\Domain\\Kingdoms\\Models\\Kingdom',
+            'App\\Domain\\Kingdoms\\Models\\KingdomAlliance',
+            'App\\Domain\\Kingdoms\\Services\\PlayerContext',
+            'App\\Domain\\Kingdoms\\Http\\Middleware\\ResolvePlayerContext',
+        ];
+
+        foreach ($this->phpFiles($this->root().'/app') as $file) {
+            $source = $this->source($file);
+            foreach ($forbidden as $namespace) {
+                self::assertStringNotContainsString($namespace, $source, $file.' still references a superseded P2 foundation.');
+            }
+        }
+    }
+
     public function test_alliance_does_not_depend_on_downstream_operational_or_intelligence_contexts(): void
     {
         $this->assertFilesDoNotImport(

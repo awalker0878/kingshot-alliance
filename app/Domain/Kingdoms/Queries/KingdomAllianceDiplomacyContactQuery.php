@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Queries;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyContact;
+use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyContact;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use Illuminate\Database\Eloquent\Collection;
 

@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Domain\Platform\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Player;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Actions\LeaveAlliance;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\AccountDeletionRequest;
-use App\Domain\Platform\Models\OutboxMessage;
+use App\Shared\Messaging\Models\OutboxMessage;
 use App\Domain\Platform\Models\PlatformAdministrator;
 use App\Domain\Platform\Services\LegalHoldService;
 use Illuminate\Support\Facades\DB;
@@ -184,15 +184,15 @@ final readonly class ProcessAccountDeletionRequests
 
             // This is a system retention/privacy workflow. The deleted User is the
             // subject, not the actor who performed the anonymization.
-            $this->audit->record('identity.account-deletion.processed', null, $user, null, [
+            $this->audit->record('platform.account-deletion.processed', null, $user, null, [
                 'request_id' => $lockedRequest->id,
             ]);
             OutboxMessage::query()->create([
                 'alliance_id' => null,
-                'event_type' => 'identity.account-deletion.processed',
+                'event_type' => 'platform.account-deletion.processed',
                 'aggregate_type' => User::class,
                 'aggregate_id' => (string) $user->id,
-                'idempotency_key' => 'identity.account-deletion.processed:'.$lockedRequest->id,
+                'idempotency_key' => 'platform.account-deletion.processed:'.$lockedRequest->id,
                 'payload' => [
                     'user_id' => $user->id,
                     'request_id' => $lockedRequest->id,

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Actions;
 
-use App\Domain\Audit\Services\AuditRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventRecurrencePolicy;
 use App\Domain\Events\Enums\EventScheduleSource;
 use App\Domain\Events\Enums\RecurrenceFrequency;
 use App\Domain\Events\Models\EventTypeScope;
-use App\Domain\Identity\Models\User;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Contexts\Accounts\Models\User;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use App\Domain\Platform\Services\PlatformMutationAuthority;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;

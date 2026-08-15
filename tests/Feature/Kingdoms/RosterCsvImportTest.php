@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Audit\Models\AuditEvent;
-use App\Domain\Identity\Models\User;
+use App\Shared\Audit\Models\AuditEvent;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\RecordPlayerSnapshot;
 use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Models\RosterImport;
 use App\Domain\Kingdoms\Services\RosterCsvParser;
 use App\Domain\Memberships\Enums\AllianceRank;
@@ -323,7 +323,7 @@ final class RosterCsvImportTest extends TestCase
         ]);
 
         $memberResponse = $this->actingAs($member)
-            ->withSession([(string) config('identity.active_player_session_key') => $memberPlayer->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => $memberPlayer->id])
             ->get('/alliance/roster/export.csv?scope=member')
             ->assertOk()
             ->assertHeader('X-Content-Type-Options', 'nosniff');
@@ -343,7 +343,7 @@ final class RosterCsvImportTest extends TestCase
         $this->get('/alliance/roster/export.csv?scope=management')->assertForbidden();
 
         $managerResponse = $this->actingAs($owner)
-            ->withSession([(string) config('identity.active_player_session_key') => $ownerPlayer->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => $ownerPlayer->id])
             ->get('/alliance/roster/export.csv?scope=management')
             ->assertOk();
         $managerContent = $managerResponse->getContent();
@@ -424,7 +424,7 @@ final class RosterCsvImportTest extends TestCase
     private function confirmedSession(string $playerId): array
     {
         return [
-            (string) config('identity.active_player_session_key') => $playerId,
+            (string) config('game_world.active_player_session_key') => $playerId,
             'auth.password_confirmed_at' => time(),
         ];
     }

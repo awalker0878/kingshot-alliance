@@ -6,11 +6,11 @@ namespace Tests\Feature\Memberships;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Enums\AllianceStatus;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\MarkRosterEntryLeft;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Actions\AcceptInvitation;
 use App\Domain\Memberships\Actions\CreateInvitation;
 use App\Domain\Memberships\Actions\ResendInvitation;
@@ -238,7 +238,7 @@ final class InvitationLifecycleTest extends TestCase
 
     public function test_invitation_only_registration_claims_player_and_activates_player_context(): void
     {
-        config()->set('identity.registration_mode', 'invitation_only');
+        config()->set('accounts.registration_mode', 'invitation_only');
 
         $owner = User::factory()->create();
         $kingdom = Kingdom::query()->create(['number' => 4006, 'status' => 'active']);
@@ -268,7 +268,7 @@ final class InvitationLifecycleTest extends TestCase
 
         $newUser = User::query()->where('email', 'newmember@example.com')->sole();
         $response->assertRedirect(route('alliance.overview'));
-        $response->assertSessionHas((string) config('identity.active_player_session_key'), $target->id);
+        $response->assertSessionHas((string) config('game_world.active_player_session_key'), $target->id);
         $this->assertAuthenticatedAs($newUser);
         self::assertSame($newUser->id, $target->refresh()->user_id);
         $this->assertDatabaseHas('alliance_memberships', [
@@ -285,7 +285,7 @@ final class InvitationLifecycleTest extends TestCase
 
     public function test_invitation_only_registration_rejects_missing_or_mismatched_invite(): void
     {
-        config()->set('identity.registration_mode', 'invitation_only');
+        config()->set('accounts.registration_mode', 'invitation_only');
 
         $missing = $this->post('/register', [
             'name' => 'No Invite',

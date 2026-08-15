@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Memberships;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Audit\Models\AuditEvent;
-use App\Domain\Identity\Models\User;
+use App\Shared\Audit\Models\AuditEvent;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Actions\CreateInvitation;
 use App\Domain\Memberships\Enums\InvitationStatus;
 use App\Domain\Memberships\Models\Invitation;

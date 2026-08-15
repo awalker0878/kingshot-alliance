@@ -7,7 +7,7 @@ namespace App\Domain\Events\Actions;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventTemplate;
 use App\Domain\Events\Services\EventTargetResolver;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 
 final class CreateEventFromTemplate

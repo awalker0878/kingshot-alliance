@@ -7,12 +7,12 @@ namespace App\Domain\Platform\Providers;
 use App\Domain\Alliances\Services\AllianceContext;
 use App\Domain\Content\Services\BasicMediaScanner;
 use App\Domain\Content\Services\MediaScanner;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Integrations\Actions\QueueWebhookDeliveries;
-use App\Domain\Kingdoms\Services\PlayerContext;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Notifications\Actions\MarkEventReminderSent;
 use App\Domain\Notifications\Actions\MarkKingPerkReminderSent;
-use App\Domain\Platform\Events\OutboxPublished;
+use App\Shared\Messaging\Events\OutboxPublished;
 use App\Domain\Platform\Models\PlatformAdministrator;
 use App\Domain\Recruitment\Actions\MarkRecruitmentCandidateJoined;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -103,7 +103,7 @@ final class AppServiceProvider extends ServiceProvider
         RateLimiter::for(
             'two-factor-challenge',
             static fn (Request $request): Limit => Limit::perMinute(5)->by(
-                (string) $request->session()->get('identity.two_factor_challenge_user_id', 'guest')
+                (string) $request->session()->get('accounts.two_factor_challenge_user_id', 'guest')
                 .'|'.(string) $request->ip(),
             ),
         );

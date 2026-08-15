@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Actions;
 
-use App\Domain\Audit\Services\AuditRecorder;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventPlayerContext;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Events\Services\EventPlayerContextFreezer;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Platform\Services\OutboxRecorder;
+use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use App\Domain\Rallies\Enums\RallyAssignmentStatus;
 use App\Domain\Rallies\Models\RallyAssignment;
 use App\Domain\Rallies\Models\RallyGroup;

@@ -9,7 +9,7 @@ use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareTargetState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
-use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 

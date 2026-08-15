@@ -6,16 +6,16 @@ namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Identity\Models\User;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\AcceptKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Actions\AddKingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Actions\RecordKingdomAllianceObservation;
 use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Models\KingdomIntelligenceShare;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Models\KingdomIntelligenceShare;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Queries\SharedKingdomIntelligenceCurrentQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -126,7 +126,7 @@ final class KingdomSharedIntelligenceIsolationTest extends TestCase
         [$owner, $player, $alliance] = $this->ownerAlliance($name, $slug, $kingdomNumber);
 
         return [$owner, $player, $alliance, [
-            (string) config('identity.active_player_session_key') => $player->id,
+            (string) config('game_world.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => time(),
         ]];
     }

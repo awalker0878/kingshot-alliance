@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Kingdoms;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -31,7 +31,7 @@ final class KingdomSettingsTest extends TestCase
         ]);
         $alliance = $this->app->make(CreateAlliance::class)
             ->handle($ownerPlayer, 'Kingdom Settings', 'kingdom-settings');
-        $sessionKey = (string) config('identity.active_player_session_key');
+        $sessionKey = (string) config('game_world.active_player_session_key');
 
         $this->actingAs($owner)
             ->withSession([$sessionKey => $ownerPlayer->id])
@@ -80,7 +80,7 @@ final class KingdomSettingsTest extends TestCase
         ]);
 
         $this->actingAs($member)
-            ->withSession([(string) config('identity.active_player_session_key') => $memberPlayer->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => $memberPlayer->id])
             ->get('/alliance/settings/kingdom')
             ->assertForbidden();
     }
@@ -105,7 +105,7 @@ final class KingdomSettingsTest extends TestCase
             ->handle($r5, 'Sibling Authority', 'sibling-authority');
 
         $this->actingAs($user)
-            ->withSession([(string) config('identity.active_player_session_key') => $sibling->id])
+            ->withSession([(string) config('game_world.active_player_session_key') => $sibling->id])
             ->get('/alliance/settings/kingdom')
             ->assertStatus(409);
     }

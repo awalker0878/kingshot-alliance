@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Notifications\Models;
 
 use App\Domain\Events\Enums\EventReminderDeliveryStatus;
-use App\Domain\Identity\Models\User;
-use App\Domain\Kingdoms\Models\Player;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\KingPerks\Enums\KingPerkReminderKind;
 use App\Domain\KingPerks\Models\KingPerkAppointment;
 use App\Domain\KingPerks\Models\KingPerkPlan;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Models;
 
 use App\Contexts\Accounts\Models\User;
+use App\Shared\Audit\Contracts\AuditActor;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read User|null $user
  * @property-read Kingdom $currentKingdom
  */
-final class Player extends Model
+final class Player extends Model implements AuditActor
 {
     use HasUlids;
 
@@ -45,4 +46,14 @@ final class Player extends Model
     {
         return $this->belongsTo(Kingdom::class, 'current_kingdom_id');
     }
+    public function auditUserId(): ?int
+    {
+        return null;
+    }
+
+    public function auditPlayerId(): ?string
+    {
+        return (string) $this->id;
+    }
+
 }

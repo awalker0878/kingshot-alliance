@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\ValueObjects;
 
 use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 
 final readonly class KingdomIngestionMutationContext
 {

@@ -6,7 +6,7 @@ namespace App\Domain\Alliances\Models;
 
 use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Domain\Authorization\Models\Role;
-use App\Domain\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Kingdom;
 use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;

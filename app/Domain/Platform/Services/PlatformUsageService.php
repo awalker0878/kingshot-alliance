@@ -11,7 +11,7 @@ use App\Domain\Integrations\Models\WebhookSubscription;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\AllianceUsageSnapshot;
-use App\Domain\Platform\Models\OutboxMessage;
+use App\Shared\Messaging\Models\OutboxMessage;
 
 final class PlatformUsageService
 {
