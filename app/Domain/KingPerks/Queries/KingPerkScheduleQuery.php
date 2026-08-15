@@ -7,8 +7,10 @@ namespace App\Domain\KingPerks\Queries;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
+use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Queries\EventCalendarQuery;
 use App\Domain\Events\Services\EventCapabilityGuard;
+use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\KingPerks\Enums\KingAppointmentType;
 use App\Domain\KingPerks\Enums\KingPerkAppointmentStatus;
@@ -147,13 +149,21 @@ final readonly class KingPerkScheduleQuery
     /** @return array<string, mixed> */
     private function eventPayload(Event $event, EventOccurrence $occurrence): array
     {
+        $eventType = $event->eventType;
+        $kingdom = $event->kingdom;
+        if (! $eventType instanceof EventType || ! $kingdom instanceof Kingdom) {
+            throw ValidationException::withMessages([
+                'event' => 'King Perks require a Kingdom-scoped Event with a valid Event type.',
+            ]);
+        }
+
         return [
             'event' => [
                 'id' => (string) $event->id,
                 'title' => $event->title,
-                'typeSlug' => (string) $event->eventType->slug,
+                'typeSlug' => (string) $eventType->slug,
                 'kingdomId' => (string) $event->kingdom_id,
-                'kingdomName' => 'Kingdom #'.(string) ($event->kingdom?->number ?? ''),
+                'kingdomName' => 'Kingdom #'.(string) $kingdom->number,
             ],
             'occurrence' => [
                 'id' => (string) $occurrence->id,
@@ -279,11 +289,15 @@ final readonly class KingPerkScheduleQuery
             $nowAppointment = $appointments->first(static fn (KingPerkAppointment $appointment): bool => $appointment->status === KingPerkAppointmentStatus::Active
                 || (! $appointment->starts_at->isAfter($now) && $appointment->ends_at->isAfter($now)));
             $upcoming = $appointments
-                ->filter(static fn (KingPerkAppointment $appointment): bool => $appointment->starts_at->greaterThanOrEqualTo($now))
-                ->when($nowAppointment instanceof KingPerkAppointment, static fn ($items) => $items->reject(
-                    static fn (KingPerkAppointment $appointment): bool => (string) $appointment->id === (string) $nowAppointment->id,
-                ))
-                ->values();
+                ->filter(static fn (KingPerkAppointment $appointment): bool => $appointment->starts_at->greaterThanOrEqualTo($now));
+
+            if ($nowAppointment instanceof KingPerkAppointment) {
+                $nowId = (string) $nowAppointment->id;
+                $upcoming = $upcoming->reject(
+                    static fn (KingPerkAppointment $appointment): bool => (string) $appointment->id === $nowId,
+                );
+            }
+            $upcoming = $upcoming->values();
 
             $lanes[] = [
                 'type' => $type->value,
