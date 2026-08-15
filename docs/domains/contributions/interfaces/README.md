@@ -7,7 +7,7 @@
 **Owning domain:** Contributions  
 **Code owner:** `app/Domain/Contributions`  
 **Primary boundary:** Player/Alliance/Kingdom contribution-history reporting, Contributions-owned record management, privileged report exports, and read-only external representation  
-**P4 inventory decision:** Focused contract added — `report-exports.md`; existing `../event-reconciliation.md` path reused for the current Event-history composition contract
+**P4 inventory decision:** Focused contracts include `report-exports.md` and the canonical `../event-history-composition.md` Event-history composition contract
 
 ## 1. Boundary purpose and ownership
 
@@ -43,7 +43,7 @@ History filters may include date, Event scope/type, historical Alliance/Kingdom 
 
 Report schedules validate active recipient Player authority/eligibility, supported cadence (`daily`, `weekly`, `monthly`), timezone, and next due time. Export requests cannot select an unauthorized target.
 
-Event-history composition follows [Event history composition](../event-reconciliation.md).
+Event-history composition follows [Event history composition](../event-history-composition.md).
 
 ## 5. Output and disclosure contracts
 
@@ -103,7 +103,7 @@ Contributions does not:
 Focused contracts:
 
 - [Report exports](report-exports.md) — compatibility-sensitive CSV/SpreadsheetML contract.
-- [Event history composition](../event-reconciliation.md) — Contributions-side Events history/read composition contract.
+- [Event history composition](../event-history-composition.md) — Contributions-side Events history/read composition contract.
 - [Event contribution and historical intelligence](../../events/event-contribution-history.md) — durable historical ownership and metric semantics.
 
 Related documentation:
