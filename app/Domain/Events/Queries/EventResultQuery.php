@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Events\Queries;
 
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\EventKingdomAllianceResult;
-use App\Domain\Events\Models\EventKingdomAllianceResultMetric;
+use App\Domain\Events\Models\EventAllianceResult;
+use App\Domain\Events\Models\EventAllianceResultMetric;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Events\Models\EventPlayerResultMetric;
@@ -51,13 +51,13 @@ final readonly class EventResultQuery
             ->with('metrics.definition')
             ->get()
             ->keyBy(static fn (EventResult $result): string => (string) $result->occurrence_id);
-        $kingdomAllianceResults = EventKingdomAllianceResult::query()
+        $allianceResults = EventAllianceResult::query()
             ->whereIn('occurrence_id', $occurrenceIds)
-            ->with(['kingdomAlliance', 'metrics.definition'])
+            ->with(['alliance', 'metrics.definition'])
             ->orderByDesc('score')
             ->orderBy('rank')
             ->get()
-            ->groupBy(static fn (EventKingdomAllianceResult $result): string => (string) $result->occurrence_id);
+            ->groupBy(static fn (EventAllianceResult $result): string => (string) $result->occurrence_id);
         $playerResults = EventPlayerResult::query()
             ->whereIn('occurrence_id', $occurrenceIds)
             ->with(['player', 'metrics.definition'])
@@ -70,18 +70,18 @@ final readonly class EventResultQuery
             'name' => (string) $player->current_name,
         ])->all();
 
-        return $occurrences->map(function (EventOccurrence $occurrence) use ($summaries, $kingdomAllianceResults, $playerResults, $playerOptions): array {
+        return $occurrences->map(function (EventOccurrence $occurrence) use ($summaries, $allianceResults, $playerResults, $playerOptions): array {
             $occurrenceId = (string) $occurrence->id;
             $summary = $summaries->get($occurrenceId);
-            $kingdomAllianceRows = $kingdomAllianceResults->get($occurrenceId, collect());
+            $allianceRows = $allianceResults->get($occurrenceId, collect());
             $playerRows = $playerResults->get($occurrenceId, collect());
 
             return [
                 'occurrenceId' => $occurrenceId,
                 'startsAt' => $occurrence->starts_at->toIso8601String(),
                 'summary' => $summary instanceof EventResult ? $this->summary($summary) : null,
-                'kingdomAllianceResults' => $kingdomAllianceRows
-                    ->map(fn (EventKingdomAllianceResult $result): array => $this->kingdomAllianceResult($result))
+                'allianceResults' => $allianceRows
+                    ->map(fn (EventAllianceResult $result): array => $this->allianceResult($result))
                     ->all(),
                 'playerResults' => $playerRows->map(fn (EventPlayerResult $result): array => $this->playerResult($result))->all(),
                 'players' => $playerOptions,
@@ -105,15 +105,14 @@ final readonly class EventResultQuery
     }
 
     /** @return array<string,mixed> */
-    private function kingdomAllianceResult(EventKingdomAllianceResult $result): array
+    private function allianceResult(EventAllianceResult $result): array
     {
         return [
             'id' => (string) $result->id,
-            'kingdomAllianceId' => (string) $result->kingdom_alliance_id,
+            'allianceId' => (string) $result->alliance_id,
             'allianceName' => (string) $result->alliance_name_snapshot,
             'allianceTag' => $result->alliance_tag_snapshot,
-            'currentAllianceName' => $result->kingdomAlliance?->current_name,
-            'currentAllianceTag' => $result->kingdomAlliance?->current_tag,
+            'currentAllianceName' => $result->alliance?->name,
             'outcome' => $result->outcome,
             'score' => $result->score,
             'rank' => $result->rank,
@@ -140,12 +139,12 @@ final readonly class EventResultQuery
     }
 
     /**
-     * @param EloquentCollection<int, EventResultMetric|EventKingdomAllianceResultMetric|EventPlayerResultMetric> $metrics
+     * @param EloquentCollection<int, EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric> $metrics
      * @return list<array<string,mixed>>
      */
     private function metrics(EloquentCollection $metrics): array
     {
-        return $metrics->map(static fn (EventResultMetric|EventKingdomAllianceResultMetric|EventPlayerResultMetric $metric): array => [
+        return $metrics->map(static fn (EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric $metric): array => [
             'key' => $metric->definition?->key,
             'labelKey' => $metric->definition?->label_key,
             'unit' => $metric->definition?->unit,
