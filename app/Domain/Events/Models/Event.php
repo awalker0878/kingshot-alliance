@@ -78,6 +78,11 @@ final class Event extends Model
         ];
     }
 
+    public function scopeEnum(): EventScope
+    {
+        return EventScope::from((string) $this->getRawOriginal('scope'));
+    }
+
     /** @return BelongsTo<EventType, $this> */
     public function eventType(): BelongsTo
     {
