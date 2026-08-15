@@ -1,0 +1,146 @@
+name: Architecture V2 P4 Finalize
+
+on:
+  push:
+    branches: [architecture-v2]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v2
+          fetch-depth: 0
+
+      - name: Verify no external V1 Authorization runtime references remain
+        shell: bash
+        run: |
+          matches=$(grep -R -n -F --include='*.php' 'App\Domain\Authorization' app routes bootstrap config database tests 2>/dev/null \
+            | grep -v '^app/Domain/Authorization/' \
+            | grep -v '^tests/Architecture/' || true)
+          if [ -n "$matches" ]; then
+            echo "$matches"
+            exit 1
+          fi
+
+      - name: Switch CLI bootstrap to cross-context workflow
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('routes/console.php')
+          text = path.read_text()
+          old = r'use App\Contexts\GameWorld\Governance\Actions\BootstrapKingdomAdministrator;'
+          new = r'use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;'
+          if old not in text:
+              raise SystemExit('Expected GameWorld bootstrap import was not found in routes/console.php')
+          path.write_text(text.replace(old, new, 1))
+          PY
+
+      - name: Delete superseded Authorization domain and migration tooling
+        shell: bash
+        run: |
+          rm -rf app/Domain/Authorization
+          rm -f .github/workflows/architecture-v2-p4-inventory.yml
+          rm -f .github/workflows/architecture-v2-p4-migrate.yml
+          rm -f .github/workflows/architecture-v2-p4-finalize.yml
+
+      - name: Add hard P4 architecture contracts
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          test = Path('tests/Architecture/ArchitectureV2DependencyTest.php')
+          text = test.read_text()
+          marker = '    public function test_operations_does_not_depend_on_downstream_intelligence_or_delivery_contexts(): void\n'
+          if marker not in text:
+              raise SystemExit('P4 insertion marker was not found in ArchitectureV2DependencyTest.php')
+
+          addition = r'''    public function test_p4_legacy_authorization_domain_and_global_permission_catalogue_are_deleted(): void
+    {
+        self::assertDirectoryDoesNotExist($this->root().'/app/Domain/Authorization');
+        self::assertFileDoesNotExist($this->root().'/app/Domain/Authorization/Enums/PermissionKey.php');
+    }
+
+    public function test_p4_runtime_has_no_v1_authorization_references(): void
+    {
+        foreach (['app', 'routes', 'bootstrap', 'config', 'database'] as $root) {
+            foreach ($this->phpFiles($this->root().'/'.$root) as $file) {
+                self::assertStringNotContainsString(
+                    'App\\Domain\\Authorization',
+                    $this->source($file),
+                    $file.' still references the deleted V1 Authorization domain.',
+                );
+            }
+        }
+    }
+
+    public function test_p4_game_authority_is_player_scoped_and_never_user_scoped(): void
+    {
+        $membership = $this->source($this->root().'/app/Contexts/Alliance/Membership/Models/AllianceMembership.php');
+        $assignment = $this->source($this->root().'/app/Contexts/GameWorld/Governance/Models/KingdomRoleAssignment.php');
+        $kingdomAuthorization = $this->source($this->root().'/app/Contexts/GameWorld/Governance/Services/KingdomAuthorization.php');
+
+        self::assertStringContainsString("'player_id'", $membership);
+        self::assertStringNotContainsString("'user_id'", $membership);
+        self::assertStringContainsString("'player_id'", $assignment);
+        self::assertStringNotContainsString("'user_id'", $assignment);
+        self::assertStringContainsString('allows(Player $player, Kingdom $kingdom, Permission $permission)', $kingdomAuthorization);
+        self::assertStringContainsString("->where('player_id', $player->id)", $kingdomAuthorization);
+        self::assertStringNotContainsString('User $user', $kingdomAuthorization);
+    }
+
+'''
+          if 'test_p4_legacy_authorization_domain_and_global_permission_catalogue_are_deleted' not in text:
+              text = text.replace(marker, addition + marker, 1)
+          test.write_text(text)
+
+          workflow = Path('.github/workflows/architecture-v2-verification.yml')
+          workflow_text = workflow.read_text()
+          workflow_text = workflow_text.replace('            app/Domain/Authorization \\\n', '')
+          workflow_text = workflow_text.replace('          app/Domain/Authorization\n', '')
+          old_inventory = '''      - name: Inventory remaining V1 Authorization references\n        shell: bash\n        run: |\n          matches=$(grep -R -l -F --include='*.php' 'App\\Domain\\Authorization' app routes tests bootstrap config database 2>/dev/null || true)\n          if [ -n "$matches" ]; then\n            details=${matches//'%'/'%25'}\n            details=${details//$'\\r'/'%0D'}\n            details=${details//$'\\n'/'%0A'}\n            echo "::warning title=P4 remaining V1 Authorization references::$details"\n          fi\n\n'''
+          new_inventory = '''      - name: Verify V1 Authorization domain is absent\n        shell: bash\n        run: |\n          test ! -d app/Domain/Authorization\n          matches=$(grep -R -n -F --include='*.php' 'App\\Domain\\Authorization' app routes bootstrap config database 2>/dev/null || true)\n          if [ -n "$matches" ]; then\n            echo "$matches"\n            exit 1\n          fi\n\n'''
+          if old_inventory in workflow_text:
+              workflow_text = workflow_text.replace(old_inventory, new_inventory, 1)
+          workflow.write_text(workflow_text)
+          PY
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Format P4 final cut
+        run: vendor/bin/pint routes/console.php tests/Architecture/ArchitectureV2DependencyTest.php
+
+      - name: Verify P4 architecture contracts
+        run: php artisan test tests/Architecture/ArchitectureV2DependencyTest.php tests/Architecture/ArchitectureV2AllianceTest.php
+
+      - name: Verify no deleted Authorization domain remains
+        shell: bash
+        run: |
+          test ! -d app/Domain/Authorization
+          test ! -e app/Domain/Authorization/Enums/PermissionKey.php
+
+      - name: Commit P4 hard cut
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'refactor: delete V1 authorization domain'
+          git push origin HEAD:architecture-v2
