@@ -50,6 +50,6 @@ final class EventMetricDefinition extends Model
     /** @return BelongsTo<EventTypeScope, $this> */
     public function typeScope(): BelongsTo
     {
-        return $this->belongsTo(EventTypeScope::class, 'event_type_scope_id');
+        return $this->belongsTo(EventTypeScope::class);
     }
 }
