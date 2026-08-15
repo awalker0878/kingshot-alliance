@@ -6,6 +6,7 @@ namespace App\Domain\Events\Http\Controllers;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Events\Queries\EventAllianceHistoryQuery;
+use App\Domain\Events\Queries\EventContributionIntelligenceQuery;
 use App\Domain\Events\Queries\EventKingdomHistoryQuery;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\Kingdom;
@@ -25,10 +26,12 @@ final class EventHistoryController extends Controller
         Request $request,
         Alliance $alliance,
         EventAllianceHistoryQuery $history,
+        EventContributionIntelligenceQuery $intelligence,
     ): Response {
         $user = $this->user($request);
         $actor = $this->playerContext->player();
         $validated = $this->validatedFilters($request);
+        $filters = $this->filters($validated);
 
         return Inertia::render('Events/OrganizationHistory', [
             'user' => $this->identity($user),
@@ -39,7 +42,8 @@ final class EventHistoryController extends Controller
                 'secondaryLabel' => null,
             ],
             'filters' => $this->filterPayload($validated),
-            'history' => $history->forAlliance($actor, $alliance, $this->filters($validated)),
+            'intelligence' => $intelligence->forAlliance($actor, $alliance, $filters),
+            'history' => $history->forAlliance($actor, $alliance, $filters),
         ]);
     }
 
@@ -47,10 +51,12 @@ final class EventHistoryController extends Controller
         Request $request,
         Kingdom $kingdom,
         EventKingdomHistoryQuery $history,
+        EventContributionIntelligenceQuery $intelligence,
     ): Response {
         $user = $this->user($request);
         $actor = $this->playerContext->player();
         $validated = $this->validatedFilters($request);
+        $filters = $this->filters($validated);
 
         return Inertia::render('Events/OrganizationHistory', [
             'user' => $this->identity($user),
@@ -61,7 +67,8 @@ final class EventHistoryController extends Controller
                 'secondaryLabel' => null,
             ],
             'filters' => $this->filterPayload($validated),
-            'history' => $history->forKingdom($actor, $kingdom, $this->filters($validated)),
+            'intelligence' => $intelligence->forKingdom($actor, $kingdom, $filters),
+            'history' => $history->forKingdom($actor, $kingdom, $filters),
         ]);
     }
 
