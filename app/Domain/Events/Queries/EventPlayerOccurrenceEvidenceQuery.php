@@ -251,17 +251,6 @@ final class EventPlayerOccurrenceEvidenceQuery
         });
     }
 
-    private function orWhereAttendance(Builder $query, Player $player, string $occurrenceColumn, string $status): Builder
-    {
-        return $query->orWhereExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $status): void {
-            $subquery->selectRaw('1')
-                ->from('event_attendance as participation_attendance')
-                ->whereColumn('participation_attendance.occurrence_id', $occurrenceColumn)
-                ->where('participation_attendance.player_id', $player->id)
-                ->where('participation_attendance.status', $status);
-        });
-    }
-
     private function whereNotAttendance(Builder $query, Player $player, string $occurrenceColumn, string $status): Builder
     {
         return $query->whereNotExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $status): void {
