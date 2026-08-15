@@ -47,10 +47,11 @@ return new class extends Migration
                 ->cascadeOnDelete();
         });
 
-
         $driver = DB::connection()->getDriverName();
 
         if ($driver === 'pgsql') {
+            DB::statement('DROP FUNCTION IF EXISTS kingdom_role_assignments_validate_player_kingdom()');
+            DB::statement('DROP FUNCTION IF EXISTS players_prevent_kingdom_role_drift()');
             DB::statement("CREATE FUNCTION kingdom_role_assignments_validate_player_kingdom() RETURNS trigger AS $$ BEGIN IF NOT EXISTS (SELECT 1 FROM players p WHERE p.id = NEW.player_id AND p.current_kingdom_id = NEW.kingdom_id) THEN RAISE EXCEPTION 'kingdom role player must currently belong to the role kingdom'; END IF; RETURN NEW; END; $$ LANGUAGE plpgsql");
             DB::statement("CREATE TRIGGER kingdom_role_assignments_player_kingdom_insert BEFORE INSERT ON kingdom_role_assignments FOR EACH ROW EXECUTE FUNCTION kingdom_role_assignments_validate_player_kingdom()");
             DB::statement("CREATE TRIGGER kingdom_role_assignments_player_kingdom_update BEFORE UPDATE OF kingdom_id, player_id ON kingdom_role_assignments FOR EACH ROW EXECUTE FUNCTION kingdom_role_assignments_validate_player_kingdom()");
