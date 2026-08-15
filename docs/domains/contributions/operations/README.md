@@ -116,7 +116,7 @@ Scheduled operations are covered by [Notifications scheduled delivery](../../not
 Related documentation:
 
 - [Contributions domain](../README.md)
-- [Event history composition](../event-reconciliation.md)
+- [Event history composition](../event-history-composition.md)
 - [Event contribution and historical intelligence](../../events/event-contribution-history.md)
 - [Contributions security profile](../security/README.md)
 - [Background processing](../../../operations/background-processing.md)
