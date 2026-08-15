@@ -210,7 +210,7 @@ Historical acceptance/security evidence may remain in an archive/evidence locati
 
 ### ARCH-V2-P2 — Accounts and GameWorld foundation
 
-**Implementation status:** hard cut landed; targeted verification in progress.
+**Implementation status:** hard cut landed; static-analysis contract fixes applied; targeted verification in progress.
 
 - move User/account security to Accounts;
 - rebuild Player/Kingdom/game-Alliance identity in GameWorld;
