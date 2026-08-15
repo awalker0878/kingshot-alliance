@@ -4,21 +4,39 @@
 
 **Document type:** Living capability contract  
 **Status:** Current  
-**Owning domain:** Events  
-**Program:** EVENT-CONTRIB-001 / EC-P2
+**Owning domain:** Events
 
 ## 1. Purpose
 
-Defines the measurement vocabulary for supported KingShot Event Type/scope combinations.
+Defines the measurement vocabulary for supported KingShot Event Type/scope combinations under `EVENT-CONTRIB-001 / EC-P2`.
 
-The catalogue separates:
+The catalogue separates first-class result fields (`score`, `rank`, and `outcome`) from normalized component metrics that explain contribution inside an Event. A primary Event score is stored once and is not copied into `event_*_result_metrics` merely to attach a label or unit.
 
-1. **first-class result fields** — `score`, `rank`, and `outcome`; and
-2. **normalized component metrics** — additional facts that explain contribution inside an Event.
+## 2. Scope and non-scope
 
-A primary Event score is stored once. It is not copied into `event_*_result_metrics` merely to attach a label or unit.
+In scope:
 
-## 2. Score semantics
+- Event-Type/scope-specific meaning for the first-class `score` field;
+- normalized Event, Alliance, and Player component metric definitions;
+- units, value types, aggregation rules and comparison direction;
+- optional phase/objective dimensions;
+- contribution/reporting relevance; and
+- stable localization keys.
+
+Out of scope for EC-P2:
+
+- writing metric values;
+- deriving metrics from participation/Rally/attendance state;
+- occurrence-time Player-context freezing;
+- custom manager-defined metric schemas;
+- cross-Event normalization; and
+- any universal contribution score.
+
+Those capture/derivation concerns begin in EC-P3.
+
+## 3. Model and state
+
+### First-class score semantics
 
 Each `event_type_scope` may define:
 
@@ -28,15 +46,11 @@ result_score_unit
 result_score_higher_is_better
 ```
 
-These fields explain what the existing result `score` means for that Event Type/scope.
+These fields explain what the existing result `score` means for that Event Type/scope. `rank` and `outcome` remain separate first-class result fields. A scope with no meaningful score leaves score metadata null.
 
-Examples include damage, battle/relic points, castle points, or ordinary points. `rank` and `outcome` remain separate first-class result fields.
+### Component metric definitions
 
-A scope with no meaningful score may leave the score metadata null.
-
-## 3. Component metric definition
-
-Each normalized metric definition contains:
+Each `event_metric_definition` contains:
 
 ```text
 event_type_scope_id
@@ -59,42 +73,51 @@ Metric identity is:
 Event Type scope + subject + key
 ```
 
-A matching key in another Event Type scope does not make values automatically comparable.
+A matching key in another Event Type scope does not make the values automatically comparable.
 
-## 4. Subjects
+### Subjects
 
-- `event` — an occurrence-wide fact.
-- `alliance` — an Alliance result/fact inside a Kingdom Event, using canonical `alliance_id`.
-- `player` — a durable Player result/fact using `player_id`.
+- `event` — occurrence-wide fact;
+- `alliance` — Alliance result/fact inside a Kingdom Event using canonical `alliance_id`; and
+- `player` — durable Player result/fact using `player_id`.
 
 There is no parallel GameAlliance/KingdomAlliance metric subject.
 
-## 5. Dimensions
+### Dimensions
 
-Dimensioned metrics intentionally reuse one stable metric definition for named subcomponents.
+Dimensioned metrics reuse one stable definition for named subcomponents.
 
-### `phase`
+`phase_points` uses `dimension_kind = phase`; its value rows use an occurrence phase key as `dimension_key`.
 
-`phase_points` uses the Event phase key as `dimension_key`.
+`objective_occupation_seconds` uses `dimension_kind = objective`; its value rows use an exact occurrence objective key/identifier as `dimension_key`.
 
-Example:
+P3 validates those keys against the exact occurrence before accepting a value.
 
-```text
-metric = phase_points
-dimension_kind = phase
-dimension_key = preparation
-value = ...
-```
+## 4. Invariants
 
-### `objective`
+1. `score`, `rank`, and `outcome` remain first-class results and are not duplicated as component metrics.
+2. Metric subject is exactly `event | alliance | player`.
+3. Alliance metric identity uses canonical `alliance_id`.
+4. A metric definition is unique by Event Type scope + subject + key.
+5. Dimension kind is part of metric semantics; arbitrary dimension strings are not authoritative.
+6. `is_contribution_metric` makes a metric reportable but does not make unrelated Event metrics comparable.
+7. Compatible comparison normally requires the same Event Type scope, subject, metric key, and compatible dimension.
+8. `higher_is_better = null` means the metric cannot safely be reduced to a better/worse direction.
+9. The system never creates an unexplained universal cross-Event contribution score.
+10. Custom Events do not inherit arbitrary KingShot component metrics.
 
-`objective_occupation_seconds` uses the Event objective key/identifier as `dimension_key`.
+## 5. Workflows
 
-P3 validates dimension keys against the exact occurrence before accepting a value. Arbitrary dimension strings are not authoritative.
+`KingShotEventMetricCatalog` resolves a measurement profile for every supported Event Type/scope in the existing Event Type catalogue.
 
-## 6. System measurement profiles
+The greenfield catalogue migration persists:
 
-The following component metrics are predefined by `KingShotEventMetricCatalog`. Score/rank/outcome remain available independently where the Event supports them.
+1. score semantics on `event_type_scopes`; and
+2. normalized component definitions in `event_metric_definitions`.
+
+Runtime Event Type resolution loads the persisted definitions and score semantics so future capture and UI code consume the database-backed contract instead of implementing separate switches.
+
+### System measurement profiles
 
 | Event Type | Scope | Score meaning | Normalized component metrics |
 | --- | --- | --- | --- |
@@ -122,56 +145,43 @@ The following component metrics are predefined by `KingShotEventMetricCatalog`. 
 | Eternity's Reach | Player | Points | Player phase points |
 | Custom | Player / Alliance / Kingdom | Points when used | no predefined system component metrics |
 
-## 7. Conservative catalogue rule
+The catalogue is intentionally conservative. If the application only has a trustworthy score/rank/outcome result for an Event, those first-class fields are sufficient.
 
-The system does not invent a component metric merely because an Event exists.
+## 6. Authorization, tenancy and privacy
 
-Where the application only has a trustworthy score/rank/outcome result, those first-class fields are sufficient. Additional metrics are introduced only when their meaning, subject, unit, and aggregation semantics are explicit enough to persist and report consistently.
+Metric definitions do not grant authority.
 
-Custom Events therefore do not inherit arbitrary system component metrics. A future custom-metric workflow must validate and govern its own definitions rather than overloading the KingShot system catalogue.
+- Player metric visibility follows the owning Event/history authorization contract.
+- Alliance metrics inside Kingdom Events use canonical Alliance identity but are visible only through authorized Kingdom or other explicitly supported historical surfaces.
+- historical metric values never grant Alliance membership, Kingdom roles, or Event permissions;
+- Platform Administrator status does not bypass game-domain Event history authorization; and
+- localization labels, units, rankings, or historical snapshots are never security state.
 
-## 8. Contribution semantics
+Metric mutations in P3 use the current active Player and the Events-owned mutation authority appropriate to the exact Event scope.
 
-`is_contribution_metric` means the metric may participate in contribution history/reporting. It does not imply that values from different Event Type scopes can be summed together.
+## 7. Persistence and query semantics
 
-The system may compare or trend a metric when the comparison uses compatible definition semantics, normally:
+Score semantics are stored on `event_type_scopes`:
 
 ```text
-same Event Type scope
-+ same subject
-+ same metric key
-+ compatible dimension
+result_score_label_key
+result_score_unit
+result_score_higher_is_better
 ```
 
-Cross-Event normalization, if ever introduced, requires a separately approved model. EC-P2 creates no universal contribution score.
+Component definitions are stored in `event_metric_definitions` and later values live in the subject-appropriate normalized metric table.
 
-## 9. Aggregation semantics
+Aggregation meanings are:
 
-- `sum` — additive observations within the compatible grouping.
-- `max` — furthest/best reached value where that meaning is explicit.
-- `min` — lower observed value when a metric requires it.
-- `average` — arithmetic mean for compatible observations.
+- `sum` — additive observations within a compatible grouping;
+- `max` — furthest/highest reached value where explicitly meaningful;
+- `min` — lower observed value where explicitly meaningful;
+- `average` — arithmetic mean over compatible observations; and
 - `latest` — most recent authoritative value.
 
-`higher_is_better` is presentation/comparison metadata only. Null means the direction is not safely reducible to better/worse.
+Query/report code may compare or trend a metric only when definition semantics are compatible. Cross-Event normalization, if ever added, requires its own governed model.
 
-## 10. Provenance
-
-Metric values record one of:
-
-```text
-manual
-derived
-imported
-```
-
-P2 defines the vocabulary only. P3 owns the write paths and determines which source is valid for each capture workflow.
-
-Derived facts should be produced from existing authoritative Event state where possible instead of asking a manager to enter the same fact twice.
-
-## 11. Localization
-
-Metric definitions store stable localization keys such as:
+Metric definitions use stable localization keys such as:
 
 ```text
 events.metrics.damage
@@ -179,25 +189,60 @@ events.metrics.rallies_joined
 events.metrics.phase_points
 ```
 
-The metric key is domain identity; translated labels are presentation. Adding or changing a translation never changes metric identity or historical meaning.
+Metric keys are domain identity; translated labels are presentation only.
 
-## 12. Mutation ownership
+## 8. Events, integrations and background processing
 
-Events owns metric definition/value persistence and capture workflows. Contributions consumes the supported read model for unified history/reporting but does not mutate Event metrics or copy them into a second Event ledger.
+Events owns metric definitions and metric-value capture. Contributions consumes the supported read model for unified history/reporting but does not mutate Event metrics or copy them into another Event ledger.
 
-All metric/result mutations follow ADR 0010 and use Events-owned mutation boundaries and natural result aggregates.
+Metric values carry provenance:
 
-## 13. Next phase
+```text
+manual
+derived
+imported
+```
 
-EC-P3 will:
+P2 defines the source vocabulary only. P3 decides which provenance is valid for each capture path.
 
-- validate and persist normalized metric values;
-- validate `phase` and `objective` dimensions against the exact occurrence;
-- derive supported participation/Rally/attendance facts from authoritative Event state;
-- freeze occurrence-time Player context once from authoritative identity/Alliance/Kingdom state; and
-- retain manual/imported provenance where those capture modes are supported.
+Derived facts should come from existing authoritative Event state where possible instead of requiring duplicate manual entry. Integrations may later provide imported values through an explicit Events-owned contract; imported input does not bypass validation of Event scope, subject, definition, dimension, or target identity.
 
-## 14. Related documentation
+## 9. Failure, idempotency and concurrency
+
+- unknown Event Type/scope catalogue combinations fail closed at persistence/resolution boundaries;
+- duplicate Event Type scope + subject + metric-key definitions are rejected by database uniqueness;
+- invalid subject/value-type/aggregation vocabularies are rejected by application enum contracts;
+- P3 must reject a phase/objective dimension that does not exist in the exact occurrence;
+- metric result/value writes will lock their natural result aggregate rather than a global metric mutex;
+- retries of the same logical metric write must be idempotent on result + definition + dimension; and
+- incompatible metrics are never silently summed into a common total.
+
+## 10. Operations and observability
+
+Operational diagnostics should identify Event Type slug, scope, metric subject/key, dimension kind/key when applicable, provenance source, actor Player for human writes, and success/failure outcome.
+
+Logs and telemetry should avoid dumping private notes or unrelated participation payloads. Catalogue synchronization/migration failure is a deployment failure because result semantics must not become partially defined.
+
+## 11. Tests and validation
+
+Coverage protects:
+
+- every supported Event Type/scope resolving a measurement profile;
+- subject/key uniqueness within a profile;
+- Bear Hunt damage/Rally semantics;
+- Viking wave/failure semantics;
+- battlefield kills/capture/occupation semantics;
+- Castle Event/Alliance/Player point components;
+- Kingdom of Power phase dimensions for Event/Alliance/Player subjects;
+- conservative no-extra-component behavior for Custom and Fishing;
+- persisted score semantics and metric definitions after fresh migration;
+- `dimension_kind` persistence;
+- canonical `alliance` metric subject with no KingdomAlliance history identity; and
+- absence of a universal contribution score.
+
+P3 adds write-time, derivation, dimension-validation, idempotency and concurrency coverage.
+
+## 12. Related documentation
 
 - [Event contribution and historical intelligence](event-contribution-history.md)
 - [Event results and Player intelligence](results-and-intelligence.md)
