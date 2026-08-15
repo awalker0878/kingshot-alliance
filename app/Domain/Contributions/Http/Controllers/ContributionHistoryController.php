@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-final readonly class ContributionHistoryController extends Controller
+final class ContributionHistoryController extends Controller
 {
     public function __construct(private PlayerContext $playerContext) {}
 
