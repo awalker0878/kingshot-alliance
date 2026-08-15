@@ -19,6 +19,7 @@ use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Queries\EventPlayerHistoryQuery;
 use App\Domain\Events\Services\EventTypeRegistry;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Actions\SaveRosterEntry;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\Player;
 use Carbon\CarbonImmutable;
@@ -35,6 +36,12 @@ final class EventPlayerHistoryQueryTest extends TestCase
         $player = $this->player($kingdom, 'History Player', '8891-player');
         $this->grantKingdomAdministrator($player, $kingdom);
         $alliance = $this->app->make(CreateAlliance::class)->handle($player, 'History Alliance', 'history-alliance');
+        $this->app->make(SaveRosterEntry::class)->handle(
+            $alliance,
+            $player,
+            ['name' => 'History Player', 'game_player_id' => '8891-player'],
+            expectedPlayerId: (string) $player->id,
+        );
 
         $playerEvent = $this->event($player, $player, 'custom', EventScope::Player, 1);
         $allianceEvent = $this->event($player, $alliance, 'custom', EventScope::Alliance, 2);
@@ -114,6 +121,12 @@ final class EventPlayerHistoryQueryTest extends TestCase
         $kingdom = Kingdom::query()->create(['number' => 8893, 'status' => 'active']);
         $player = $this->player($kingdom, 'Filter Player', '8893-player');
         $alliance = $this->app->make(CreateAlliance::class)->handle($player, 'Filter Alliance', 'filter-alliance');
+        $this->app->make(SaveRosterEntry::class)->handle(
+            $alliance,
+            $player,
+            ['name' => 'Filter Player', 'game_player_id' => '8893-player'],
+            expectedPlayerId: (string) $player->id,
+        );
         $event = $this->event($player, $alliance, 'custom', EventScope::Alliance, 1);
         $occurrence = $event->occurrences->firstOrFail();
         $this->app->make(RecordEventAttendance::class)->handle(
@@ -150,6 +163,12 @@ final class EventPlayerHistoryQueryTest extends TestCase
         $kingdom = Kingdom::query()->create(['number' => 8894, 'status' => 'active']);
         $player = $this->player($kingdom, 'Bounded History Player', '8894-player');
         $alliance = $this->app->make(CreateAlliance::class)->handle($player, 'Bounded History Alliance', 'bounded-history-alliance');
+        $this->app->make(SaveRosterEntry::class)->handle(
+            $alliance,
+            $player,
+            ['name' => 'Bounded History Player', 'game_player_id' => '8894-player'],
+            expectedPlayerId: (string) $player->id,
+        );
         $olderAbsent = $this->event($player, $alliance, 'custom', EventScope::Alliance, 1);
         $newerCompleted = $this->event($player, $alliance, 'custom', EventScope::Alliance, 2);
         $attendance = $this->app->make(RecordEventAttendance::class);
