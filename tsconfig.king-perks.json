@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "resources/js/pages/KingPerks/**/*.vue",
+    "resources/js/**/*.d.ts"
+  ]
+}

@@ -11,12 +11,24 @@ use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property EventReminderDeliveryStatus $status
+ * @property Carbon $due_at
+ * @property Carbon|null $queued_at
+ * @property Carbon|null $sent_at
+ * @property-read EventOccurrence|null $occurrence
+ * @property-read EventReminderRule|null $rule
+ * @property-read User|null $recipientUser
+ * @property-read Player|null $player
+ */
 final class EventReminderDelivery extends Model
 {
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -35,8 +47,27 @@ final class EventReminderDelivery extends Model
         ];
     }
 
-    public function occurrence(): BelongsTo { return $this->belongsTo(EventOccurrence::class); }
-    public function rule(): BelongsTo { return $this->belongsTo(EventReminderRule::class, 'rule_id'); }
-    public function recipientUser(): BelongsTo { return $this->belongsTo(User::class, 'recipient_user_id'); }
-    public function player(): BelongsTo { return $this->belongsTo(Player::class); }
+    /** @return BelongsTo<EventOccurrence, $this> */
+    public function occurrence(): BelongsTo
+    {
+        return $this->belongsTo(EventOccurrence::class);
+    }
+
+    /** @return BelongsTo<EventReminderRule, $this> */
+    public function rule(): BelongsTo
+    {
+        return $this->belongsTo(EventReminderRule::class, 'rule_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function recipientUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recipient_user_id');
+    }
+
+    /** @return BelongsTo<Player, $this> */
+    public function player(): BelongsTo
+    {
+        return $this->belongsTo(Player::class);
+    }
 }

@@ -11,6 +11,7 @@ use App\Domain\Identity\Models\User;
 use App\Domain\Integrations\Actions\QueueWebhookDeliveries;
 use App\Domain\Kingdoms\Services\PlayerContext;
 use App\Domain\Notifications\Actions\MarkEventReminderSent;
+use App\Domain\Notifications\Actions\MarkKingPerkReminderSent;
 use App\Domain\Platform\Events\OutboxPublished;
 use App\Domain\Platform\Models\PlatformAdministrator;
 use App\Domain\Recruitment\Actions\MarkRecruitmentCandidateJoined;
@@ -57,6 +58,7 @@ final class AppServiceProvider extends ServiceProvider
         Event::listen(OutboxPublished::class, function (OutboxPublished $event): void {
             $this->app->make(MarkRecruitmentCandidateJoined::class)->handle($event);
             $this->app->make(MarkEventReminderSent::class)->handle($event);
+            $this->app->make(MarkKingPerkReminderSent::class)->handle($event);
             $this->app->make(QueueWebhookDeliveries::class)->handle($event);
         });
 

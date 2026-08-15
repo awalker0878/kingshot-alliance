@@ -19,7 +19,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
-/** @property Carbon $starts_at @property Carbon|null $recurrence_until */
+/**
+ * @property EventScope $scope
+ * @property EventStatus $status
+ * @property EventScheduleSource $schedule_source
+ * @property EventRecurrencePolicy $recurrence_policy
+ * @property RecurrenceFrequency $recurrence_frequency
+ * @property Carbon $starts_at
+ * @property Carbon|null $recurrence_until
+ * @property-read EventType $eventType
+ */
 final class Event extends Model
 {
     use HasUlids;

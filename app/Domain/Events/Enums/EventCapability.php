@@ -19,6 +19,7 @@ enum EventCapability: string
     case RallyGuidance = 'rally_guidance';
     case Formations = 'formations';
     case Objectives = 'objectives';
+    case KingPerks = 'king_perks';
     case Scoring = 'scoring';
     case Results = 'results';
 }
