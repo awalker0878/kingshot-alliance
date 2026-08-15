@@ -191,6 +191,10 @@ final class KingPerkOperationalContractTest extends TestCase
                 startsAt: $now->addMinutes(5),
             );
 
+            KingdomRoleAssignment::query()
+                ->where('kingdom_id', $kingdom->id)
+                ->where('player_id', $formerManager->id)
+                ->delete();
             $formerManager->forceFill(['current_kingdom_id' => $otherKingdom->id])->save();
 
             $queue = $this->app->make(QueueDueKingPerkReminders::class);
