@@ -86,7 +86,7 @@ jobs:
             details=${matches//'%'/'%25'}
             details=${details//$'\r'/'%0D'}
             details=${details//$'\n'/'%0A'}
-            echo "::notice title=P4 remaining V1 Authorization references::$details"
+            echo "::warning title=P4 remaining V1 Authorization references::$details"
           fi
 
       - name: Configure PHP
