@@ -142,9 +142,11 @@ jobs:
           tests/Feature/Events/EventPlayerHistoryQueryTest.php
           tests/Feature/Events/EventOrganizationHistoryQueryTest.php
           tests/Feature/Events/EventTrendQueryTest.php
+          tests/Feature/Events/EventLeaderboardQueryTest.php
           tests/Feature/Events/EventHistorySecurityTest.php
           tests/Feature/Events/EventHistoryPerformanceContractTest.php
           tests/Feature/Contributions/PlayerContributionHistoryQueryTest.php
+          tests/Feature/Contributions/PlayerContributionHistorySummaryTest.php
           tests/Feature/Contributions/ContributionHistoryHttpTest.php
           tests/Feature/Contributions/AllianceContributionReportQueryTest.php
       - name: Event history frontend lint
