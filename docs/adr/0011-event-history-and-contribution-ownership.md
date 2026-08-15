@@ -1,9 +1,9 @@
 # ADR 0011 — Historical Event and contribution ownership
 
-- **Status:** Accepted
+- **Status:** Accepted and implemented
 - **Date:** 2026-08-14
 - **Owners:** Events and Contributions domains
-- **Related scope:** EVENT-CONTRIB-001 / EC-P0
+- **Related scope:** EVENT-CONTRIB-001 / EC-P0–EC-P7 and read surfaces
 - **Supersedes:** None
 
 ## Context
@@ -31,6 +31,19 @@ Historical participation context may snapshot display/context data such as Playe
 Event metrics are comparable only within a compatible metric definition. The application must not sum unrelated scores such as Bear Hunt damage, Hall of Governors score, and Swordland battle score into an unexplained universal contribution score. Cross-Event rollups may aggregate universally meaningful facts such as participation, completed/absent/excused outcomes, and reliability, while Event-specific metrics remain typed by Event Type scope and metric key.
 
 Event target identity becomes immutable after Event creation. Historical Event/result persistence must not be cascade-deleted merely because a Player leaves, an Alliance lifecycle changes, or a Player transfers Kingdoms.
+
+## Implemented boundaries
+
+The implementation now enforces the decision through these canonical paths:
+
+- `EventPlayerContextFreezer` freezes occurrence-time Player context exactly once at an evidence-bearing participation/result boundary.
+- `EventMetricCapture` validates normalized Event metrics against their exact Event Type scope, subject, value type, and occurrence dimension.
+- `EventPlayerHistoryQuery` starts from exact `event_player_contexts.player_id` and never aggregates sibling Players owned by one User.
+- `EventAllianceHistoryQuery` and `EventKingdomHistoryQuery` authorize with the current active Player and then read from immutable Event targets.
+- `EventOrganizationHistoryQuery` never uses current roster/current Kingdom placement to decide historical ownership.
+- `PlayerContributionHistoryQuery` composes Events-owned facts with genuine Contributions-owned records at read time; it does not copy Event results into `contribution_records`.
+- `/contributions/history` is intentionally independent of `alliance.context` so a Player keeps personal history after leaving an Alliance.
+- `/alliances/{alliance}/events/history` and `/kingdoms/{kingdom}/events/history` use current Player scope authority to gate organization history.
 
 ## Consequences
 
@@ -63,7 +76,7 @@ See [Events](../domains/events/README.md), [Event contribution history](../domai
 
 ## Validation
 
-Implementation and tests must prove at least:
+Implementation and tests prove:
 
 - a Player keeps personal Event history after leaving an Alliance or transferring Kingdoms;
 - a current Alliance leader can read all historical Events targeted at that Alliance, including former-member results;
@@ -72,7 +85,9 @@ Implementation and tests must prove at least:
 - sibling Players owned by the same User never share history implicitly;
 - current Alliance membership/current Kingdom placement is not used to filter historical Event participants;
 - historical context snapshots never grant authorization;
-- Event targets cannot change after creation; and
+- Event targets cannot change after creation;
+- Event metrics and phase/objective dimensions are validated at capture;
+- Event and Contribution facts remain separate canonical ledgers and are composed only at read time; and
 - incompatible Event metrics are never silently combined into a universal score.
 
 ## Revisit when
