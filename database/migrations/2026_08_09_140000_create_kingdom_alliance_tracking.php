@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('kingdom_alliances', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('kingdom_id')->constrained('kingdoms')->restrictOnDelete();
-            $table->string('game_alliance_id', 100)->unique();
+            $table->string('game_alliance_id', 100)->nullable();
             $table->string('current_name', 160);
             $table->string('current_tag', 32)->nullable();
             $table->string('status', 24)->default('active');
             $table->timestamps();
 
+            $table->unique(['kingdom_id', 'game_alliance_id']);
             $table->index(['kingdom_id', 'status', 'current_name']);
             $table->index(['kingdom_id', 'current_tag']);
         });
@@ -42,60 +43,10 @@ return new class extends Migration
         DB::statement(
             "CREATE UNIQUE INDEX tracked_kingdom_alliances_one_active_per_reference ON tracked_kingdom_alliances (alliance_id, kingdom_alliance_id) WHERE state = 'active'"
         );
-
-        $this->createKingdomAllianceIdentityGuard();
-    }
-
-    private function createKingdomAllianceIdentityGuard(): void
-    {
-        $driver = DB::connection()->getDriverName();
-
-        if ($driver === 'pgsql') {
-            DB::statement(<<<'SQL'
-CREATE FUNCTION kingdom_alliances_identity_immutable_guard() RETURNS trigger AS $$
-BEGIN
-    IF NEW.game_alliance_id IS DISTINCT FROM OLD.game_alliance_id THEN
-        RAISE EXCEPTION 'game alliance id is immutable';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql
-SQL);
-            DB::statement(<<<'SQL'
-CREATE TRIGGER kingdom_alliances_identity_immutable
-BEFORE UPDATE OF game_alliance_id ON kingdom_alliances
-FOR EACH ROW EXECUTE FUNCTION kingdom_alliances_identity_immutable_guard()
-SQL);
-
-            return;
-        }
-
-        if ($driver === 'sqlite') {
-            DB::statement(<<<'SQL'
-CREATE TRIGGER kingdom_alliances_identity_immutable
-BEFORE UPDATE OF game_alliance_id ON kingdom_alliances
-WHEN NEW.game_alliance_id IS NOT OLD.game_alliance_id
-BEGIN
-    SELECT RAISE(ABORT, 'game alliance id is immutable');
-END
-SQL);
-        }
     }
 
     public function down(): void
     {
-        $driver = DB::connection()->getDriverName();
-
-        if ($driver === 'pgsql') {
-            DB::statement('DROP TRIGGER IF EXISTS kingdom_alliances_identity_immutable ON kingdom_alliances');
-            DB::statement('DROP FUNCTION IF EXISTS kingdom_alliances_identity_immutable_guard()');
-        }
-
-        if ($driver === 'sqlite') {
-            DB::statement('DROP TRIGGER IF EXISTS kingdom_alliances_identity_immutable');
-        }
-
         Schema::dropIfExists('tracked_kingdom_alliances');
         Schema::dropIfExists('kingdom_alliances');
     }
