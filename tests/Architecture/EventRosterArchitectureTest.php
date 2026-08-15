@@ -12,10 +12,10 @@ final class EventRosterArchitectureTest extends TestCase
     {
         $migration = $this->read('database/migrations/2026_08_13_040000_create_event_roster_tables.php');
 
-        self::assertStringContainsString("foreignUlid('player_id')->constrained('players')", $migration);
-        self::assertStringContainsString("foreignUlid('alliance_id')->nullable()->constrained('alliances')", $migration);
+        self::assertStringContainsString('foreignUlid(\'player_id\')->constrained(\'players\')', $migration);
+        self::assertStringContainsString('foreignUlid(\'alliance_id\')->nullable()->constrained(\'alliances\')', $migration);
         self::assertStringNotContainsString('membership_id', $migration);
-        self::assertStringContainsString("foreign(['parent_id', 'occurrence_id'])", $migration);
+        self::assertStringContainsString('foreign([\'parent_id\', \'occurrence_id\'])', $migration);
         self::assertStringContainsString('event_roster_members_active_slot_unique', $migration);
     }
 
@@ -23,8 +23,8 @@ final class EventRosterArchitectureTest extends TestCase
     {
         $routes = $this->read('routes/web.php');
 
-        self::assertStringContainsString("/events/{occurrence}/roster-members/{member}/response", $routes);
-        self::assertStringNotContainsString("/roster-members/{member}/players/{player}", $routes);
+        self::assertStringContainsString('/events/{occurrence}/roster-members/{member}/response', $routes);
+        self::assertStringNotContainsString('/roster-members/{member}/players/{player}', $routes);
     }
 
     public function test_catalogue_defines_stable_roster_shapes_as_database_configuration(): void
@@ -62,8 +62,8 @@ final class EventRosterArchitectureTest extends TestCase
         $show = $this->read('resources/js/pages/Events/Show.vue');
         $manage = $this->read('resources/js/pages/Events/Manage.vue');
 
-        self::assertStringContainsString("event.capabilities.includes('rosters')", $show);
-        self::assertStringContainsString("event.capabilities.includes('rosters')", $manage);
+        self::assertStringContainsString('event.capabilities.includes(\'rosters\')', $show);
+        self::assertStringContainsString('event.capabilities.includes(\'rosters\')', $manage);
         self::assertStringContainsString('rosterOperations', $manage);
         self::assertStringContainsString('roster_confirmation', $this->read('resources/js/pages/Events/Index.vue'));
     }
