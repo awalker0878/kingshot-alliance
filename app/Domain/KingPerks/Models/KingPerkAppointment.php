@@ -12,8 +12,23 @@ use DateTimeInterface;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use LogicException;
 
+/**
+ * @property KingAppointmentType $appointment_type
+ * @property KingPerkAppointmentStatus $status
+ * @property Carbon $starts_at
+ * @property Carbon $ends_at
+ * @property Carbon $player_cooldown_ends_at
+ * @property Carbon|null $confirmed_at
+ * @property Carbon|null $actual_started_at
+ * @property Carbon|null $actual_ended_at
+ * @property Carbon|null $completed_at
+ * @property-read KingPerkPlan|null $plan
+ * @property-read Player|null $assignedPlayer
+ * @property-read Player|null $assignedByPlayer
+ */
 final class KingPerkAppointment extends Model
 {
     use HasUlids;
@@ -52,8 +67,8 @@ final class KingPerkAppointment extends Model
             $type = $appointment->appointmentType();
             $start = $appointment->startsAt();
             $end = $start->addMinutes($type->durationMinutes());
-            $appointment->ends_at = $end;
-            $appointment->player_cooldown_ends_at = $end->addMinutes($type->playerCooldownMinutes());
+            $appointment->ends_at = Carbon::instance($end);
+            $appointment->player_cooldown_ends_at = Carbon::instance($end->addMinutes($type->playerCooldownMinutes()));
         });
     }
 
@@ -79,16 +94,19 @@ final class KingPerkAppointment extends Model
         return $this->immutableDate('player_cooldown_ends_at');
     }
 
+    /** @return BelongsTo<KingPerkPlan, $this> */
     public function plan(): BelongsTo
     {
         return $this->belongsTo(KingPerkPlan::class, 'plan_id');
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function assignedPlayer(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'assigned_player_id');
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function assignedByPlayer(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'assigned_by_player_id');
