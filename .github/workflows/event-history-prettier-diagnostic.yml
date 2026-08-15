@@ -1,0 +1,23 @@
+name: Event History Prettier Diagnostic
+
+on:
+  push:
+    branches:
+      - feature/event-contribution-history-p0
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/event-contribution-history-p0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Apply Prettier
+        run: npx prettier --write resources/js/pages/Events/OrganizationHistory.vue resources/js/pages/Contributions/History.vue
+      - name: Print exact diff
+        run: git diff -- resources/js/pages/Events/OrganizationHistory.vue resources/js/pages/Contributions/History.vue
