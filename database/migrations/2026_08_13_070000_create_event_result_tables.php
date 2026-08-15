@@ -14,7 +14,7 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->foreignUlid('event_type_scope_id')->constrained('event_type_scopes')->restrictOnDelete();
             $table->string('key', 96);
-            $table->string('subject', 16);
+            $table->string('subject', 24);
             $table->string('label_key', 180);
             $table->string('unit', 32)->nullable();
             $table->string('value_type', 24);
@@ -35,6 +35,7 @@ return new class extends Migration
             $table->foreignUlid('player_id')->constrained('players')->restrictOnDelete();
             $table->string('player_name_snapshot', 160);
             $table->foreignUlid('represented_alliance_id')->nullable()->constrained('alliances')->restrictOnDelete();
+            $table->foreignUlid('represented_kingdom_alliance_id')->nullable()->constrained('kingdom_alliances')->restrictOnDelete();
             $table->string('represented_alliance_name_snapshot', 160)->nullable();
             $table->string('represented_alliance_tag_snapshot', 32)->nullable();
             $table->foreignUlid('kingdom_id_at_event')->constrained('kingdoms')->restrictOnDelete();
@@ -44,6 +45,7 @@ return new class extends Migration
             $table->unique(['occurrence_id', 'player_id']);
             $table->index(['player_id', 'context_frozen_at']);
             $table->index(['represented_alliance_id', 'occurrence_id']);
+            $table->index(['represented_kingdom_alliance_id', 'occurrence_id']);
             $table->index(['kingdom_id_at_event', 'occurrence_id']);
         });
 
@@ -60,11 +62,12 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('event_alliance_results', function (Blueprint $table): void {
+        Schema::create('event_kingdom_alliance_results', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('occurrence_id')->constrained('event_occurrences')->restrictOnDelete();
-            $table->foreignUlid('alliance_id')->constrained('alliances')->restrictOnDelete();
+            $table->foreignUlid('kingdom_alliance_id')->constrained('kingdom_alliances')->restrictOnDelete();
             $table->string('alliance_name_snapshot', 160);
+            $table->string('alliance_tag_snapshot', 32)->nullable();
             $table->string('outcome', 80)->nullable();
             $table->unsignedBigInteger('score')->nullable();
             $table->unsignedInteger('rank')->nullable();
@@ -73,8 +76,8 @@ return new class extends Migration
             $table->timestamp('recorded_at');
             $table->timestamps();
 
-            $table->unique(['occurrence_id', 'alliance_id']);
-            $table->index(['alliance_id', 'recorded_at']);
+            $table->unique(['occurrence_id', 'kingdom_alliance_id']);
+            $table->index(['kingdom_alliance_id', 'recorded_at']);
         });
 
         Schema::create('event_player_results', function (Blueprint $table): void {
@@ -108,9 +111,9 @@ return new class extends Migration
             $table->index(['metric_definition_id', 'recorded_at']);
         });
 
-        Schema::create('event_alliance_result_metrics', function (Blueprint $table): void {
+        Schema::create('event_kingdom_alliance_result_metrics', function (Blueprint $table): void {
             $table->ulid('id')->primary();
-            $table->foreignUlid('event_alliance_result_id')->constrained('event_alliance_results')->cascadeOnDelete();
+            $table->foreignUlid('event_kingdom_alliance_result_id')->constrained('event_kingdom_alliance_results')->cascadeOnDelete();
             $table->foreignUlid('metric_definition_id')->constrained('event_metric_definitions')->restrictOnDelete();
             $table->string('dimension_key', 96)->default('');
             $table->decimal('value', 30, 4);
@@ -119,7 +122,7 @@ return new class extends Migration
             $table->timestamp('recorded_at');
             $table->timestamps();
 
-            $table->unique(['event_alliance_result_id', 'metric_definition_id', 'dimension_key']);
+            $table->unique(['event_kingdom_alliance_result_id', 'metric_definition_id', 'dimension_key']);
             $table->index(['metric_definition_id', 'recorded_at']);
         });
 
@@ -142,10 +145,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('event_player_result_metrics');
-        Schema::dropIfExists('event_alliance_result_metrics');
+        Schema::dropIfExists('event_kingdom_alliance_result_metrics');
         Schema::dropIfExists('event_result_metrics');
         Schema::dropIfExists('event_player_results');
-        Schema::dropIfExists('event_alliance_results');
+        Schema::dropIfExists('event_kingdom_alliance_results');
         Schema::dropIfExists('event_results');
         Schema::dropIfExists('event_player_contexts');
         Schema::dropIfExists('event_metric_definitions');
