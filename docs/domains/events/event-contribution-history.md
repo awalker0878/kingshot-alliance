@@ -55,6 +55,8 @@ AND kingdom_id = requested kingdom
 
 They must not filter historical participation by each Player's current `current_kingdom_id`.
 
+Alliance-level results inside a Kingdom Event use Kingdoms-owned `KingdomAlliance` as the durable game-side Alliance identity. They do not require the represented KingShot Alliance to be a platform tenant `Alliance`. A platform `Alliance` link may be retained as optional historical context where one exists.
+
 ## 3. Current authorization versus historical ownership
 
 Historical ownership and authorization are intentionally separate.
@@ -77,7 +79,7 @@ Events remains authoritative for:
 - registration/responses/attendance;
 - roster and Rally participation facts exposed through supported contracts;
 - Event-wide results;
-- Alliance results inside Kingdom Events where supported;
+- `KingdomAlliance` results inside Kingdom Events where supported;
 - Player results;
 - normalized Event metric definitions and values; and
 - occurrence-time historical Player context.
@@ -112,18 +114,25 @@ Where current relationships would rewrite the meaning of the past, Events persis
 occurrence_id
 player_id
 player_name_snapshot
-represented_alliance_id nullable
+represented_alliance_id nullable                 # platform Alliance when applicable
+represented_kingdom_alliance_id nullable         # neutral game-side Alliance identity
 represented_alliance_name_snapshot nullable
 represented_alliance_tag_snapshot nullable
 kingdom_id_at_event
 context_frozen_at
 ```
 
-The durable `player_id` remains the identity. Snapshot fields are presentation/evidence only and never grant permission.
+The durable `player_id` remains the identity. `represented_kingdom_alliance_id` is a neutral reference used to group historical Kingdom Event participation even when the represented game Alliance is not a platform tenant. Snapshot fields are presentation/evidence only and never grant permission.
 
 ## 7. Metric semantics
 
 Event metrics are defined by Event Type scope and a stable metric key. A definition identifies at least subject, unit/value type, aggregation semantics, display metadata, and whether the metric is meaningful as a contribution metric.
+
+Metric subjects are deliberately structural:
+
+- `event` for occurrence-wide results;
+- `kingdom_alliance` for represented game-Alliance results inside Kingdom Events; and
+- `player` for durable Player results.
 
 Examples:
 
@@ -138,11 +147,11 @@ The system does not create an unexplained universal total by adding unrelated sc
 
 ## 8. Immutability and retention
 
-After Event creation, scope and target identity are immutable.
+After Event creation, scope and target identity are immutable at the database boundary. Target display snapshots are persisted from the authoritative target at creation and remain evidence only.
 
 A Player leaving an Alliance, a Player transferring Kingdoms, a leadership transfer, an Alliance suspension/closure, or a Player becoming unclaimed does not rewrite historical Event ownership.
 
-Completed/historical Event facts must not disappear merely because a target relationship changes. Destructive target deletion is therefore constrained by retained history rather than handled through cascade deletion of completed Event history.
+Completed/historical Event facts must not disappear merely because a target relationship changes. Destructive target deletion is therefore constrained by retained history rather than handled through cascade deletion of historical Event ownership/results.
 
 ## 9. Read surfaces
 
@@ -156,7 +165,7 @@ Alliance Event History is authorized from the current active Player's current Al
 
 ### Kingdom
 
-Kingdom Event History is authorized from current exact-Kingdom role authority and reads all Events permanently targeted at that Kingdom. Kingdom reports may group historical Player results by the Alliance represented at the occurrence.
+Kingdom Event History is authorized from current exact-Kingdom role authority and reads all Events permanently targeted at that Kingdom. Kingdom reports may group historical Player results by the `KingdomAlliance` represented at the occurrence.
 
 ## 10. Mutation and concurrency principles
 
@@ -172,6 +181,7 @@ The implementation must cover:
 - former leader loses Alliance-wide historical access;
 - Player transfers Kingdom and retains personal Kingdom Event history;
 - current Kingdom leadership sees historical contribution from Players who later transferred;
+- Kingdom Event Alliance results can represent non-tenant `KingdomAlliance` records;
 - sibling Players owned by one User remain isolated;
 - current membership/current Kingdom placement never filters historical participants;
 - Event target is immutable after creation;
