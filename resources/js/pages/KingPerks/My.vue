@@ -87,7 +87,9 @@ const compatibleAppointments = computed(() => {
   const category = props.pushCategories.find((item) => item.key === form.push_category);
   if (!category) return [];
 
-  return props.appointmentTypes.filter((item) => category.preferredAppointmentTypes.includes(item.key));
+  return props.appointmentTypes.filter((item) =>
+    category.preferredAppointmentTypes.includes(item.key),
+  );
 });
 
 function displayUtc(value: string): string {
@@ -172,18 +174,23 @@ function withdraw(id: string): void {
         </p>
         <h1 class="text-3xl font-semibold text-white">{{ player.name }}</h1>
         <p class="max-w-3xl text-sm text-slate-300">
-          Confirm your assigned appointment or tell Kingdom leadership when you can use a preparation bonus.
-          Times are shown in server UTC and your browser's local timezone.
+          Confirm your assigned appointment or tell Kingdom leadership when you can use a
+          preparation bonus. Times are shown in server UTC and your browser's local timezone.
         </p>
       </header>
 
-      <section v-if="!plan" class="rounded-2xl border border-white/10 bg-slate-950/50 p-6 text-sm text-slate-300">
+      <section
+        v-if="!plan"
+        class="rounded-2xl border border-white/10 bg-slate-950/50 p-6 text-sm text-slate-300"
+      >
         Kingdom leadership has not published a King Perks plan for this preparation phase yet.
       </section>
 
       <template v-else>
         <section class="rounded-2xl border border-white/10 bg-slate-950/50 p-5">
-          <p class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Preparation window</p>
+          <p class="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+            Preparation window
+          </p>
           <p class="mt-2 text-lg font-semibold text-white">
             {{ displayUtc(plan.windowStartsAt) }} → {{ displayUtc(plan.windowEndsAt) }}
           </p>
@@ -195,10 +202,15 @@ function withdraw(id: string): void {
         <section class="space-y-3 rounded-2xl border border-white/10 bg-slate-950/50 p-5">
           <div>
             <h2 class="text-lg font-semibold text-white">My appointments</h2>
-            <p class="text-sm text-slate-400">Your appointment must cover the complete game bonus window.</p>
+            <p class="text-sm text-slate-400">
+              Your appointment must cover the complete game bonus window.
+            </p>
           </div>
 
-          <p v-if="plan.appointments.length === 0" class="rounded-xl border border-dashed border-white/10 p-5 text-sm text-slate-400">
+          <p
+            v-if="plan.appointments.length === 0"
+            class="rounded-xl border border-dashed border-white/10 p-5 text-sm text-slate-400"
+          >
             You do not have an appointment yet.
           </p>
 
@@ -211,14 +223,25 @@ function withdraw(id: string): void {
               <div>
                 <div class="flex flex-wrap items-center gap-2">
                   <h3 class="font-semibold text-white">{{ item.typeLabel }}</h3>
-                  <span class="rounded-full bg-white/5 px-2 py-0.5 text-xs text-slate-300">{{ item.status.replaceAll('_', ' ') }}</span>
+                  <span class="rounded-full bg-white/5 px-2 py-0.5 text-xs text-slate-300">{{
+                    item.status.replaceAll('_', ' ')
+                  }}</span>
                 </div>
-                <p class="mt-2 text-sm text-white">{{ displayUtc(item.startsAt) }} → {{ displayUtc(item.endsAt) }}</p>
-                <p class="text-xs text-slate-400">{{ displayLocal(item.startsAt) }} → {{ displayLocal(item.endsAt) }}</p>
-                <p class="mt-2 text-xs text-slate-400">Occupancy: {{ item.durationMinutes }} minutes</p>
+                <p class="mt-2 text-sm text-white">
+                  {{ displayUtc(item.startsAt) }} → {{ displayUtc(item.endsAt) }}
+                </p>
+                <p class="text-xs text-slate-400">
+                  {{ displayLocal(item.startsAt) }} → {{ displayLocal(item.endsAt) }}
+                </p>
+                <p class="mt-2 text-xs text-slate-400">
+                  Occupancy: {{ item.durationMinutes }} minutes
+                </p>
                 <p v-if="item.notes" class="mt-2 text-sm text-slate-300">{{ item.notes }}</p>
               </div>
-              <div v-if="item.status === 'scheduled' || item.status === 'confirmed'" class="flex flex-wrap gap-2">
+              <div
+                v-if="item.status === 'scheduled' || item.status === 'confirmed'"
+                class="flex flex-wrap gap-2"
+              >
                 <button
                   v-if="item.status === 'scheduled'"
                   type="button"
@@ -243,18 +266,37 @@ function withdraw(id: string): void {
           <div class="space-y-3 rounded-2xl border border-white/10 bg-slate-950/50 p-5">
             <div>
               <h2 class="text-lg font-semibold text-white">My requests</h2>
-              <p class="text-sm text-slate-400">Requests remain category-specific; training usage is not compared to construction or research usage.</p>
+              <p class="text-sm text-slate-400">
+                Requests remain category-specific; training usage is not compared to construction or
+                research usage.
+              </p>
             </div>
-            <p v-if="plan.requests.length === 0" class="rounded-xl border border-dashed border-white/10 p-5 text-sm text-slate-400">
+            <p
+              v-if="plan.requests.length === 0"
+              class="rounded-xl border border-dashed border-white/10 p-5 text-sm text-slate-400"
+            >
               No appointment requests submitted.
             </p>
-            <article v-for="item in plan.requests" :key="item.id" class="rounded-xl border border-white/10 bg-slate-900/60 p-4">
+            <article
+              v-for="item in plan.requests"
+              :key="item.id"
+              class="rounded-xl border border-white/10 bg-slate-900/60 p-4"
+            >
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p class="font-semibold text-white">{{ item.categoryLabel }}</p>
-                  <p class="mt-1 text-sm text-slate-300">{{ displayUtc(item.availabilityStartsAt) }} → {{ displayUtc(item.availabilityEndsAt) }}</p>
-                  <p class="text-xs text-slate-400">{{ displayLocal(item.availabilityStartsAt) }} → {{ displayLocal(item.availabilityEndsAt) }}</p>
-                  <p class="mt-2 text-xs text-slate-400">Planned speedups: {{ durationLabel(item.plannedSpeedupMinutes) }} · Status: {{ item.status }}</p>
+                  <p class="mt-1 text-sm text-slate-300">
+                    {{ displayUtc(item.availabilityStartsAt) }} →
+                    {{ displayUtc(item.availabilityEndsAt) }}
+                  </p>
+                  <p class="text-xs text-slate-400">
+                    {{ displayLocal(item.availabilityStartsAt) }} →
+                    {{ displayLocal(item.availabilityEndsAt) }}
+                  </p>
+                  <p class="mt-2 text-xs text-slate-400">
+                    Planned speedups: {{ durationLabel(item.plannedSpeedupMinutes) }} · Status:
+                    {{ item.status }}
+                  </p>
                 </div>
                 <button
                   v-if="item.status === 'submitted'"
@@ -268,48 +310,96 @@ function withdraw(id: string): void {
             </article>
           </div>
 
-          <form class="space-y-4 rounded-2xl border border-white/10 bg-slate-950/50 p-5" @submit.prevent="submitRequest">
+          <form
+            class="space-y-4 rounded-2xl border border-white/10 bg-slate-950/50 p-5"
+            @submit.prevent="submitRequest"
+          >
             <div>
               <h2 class="text-lg font-semibold text-white">Request an appointment</h2>
-              <p class="text-xs text-slate-400">Availability must contain the full appointment window.</p>
+              <p class="text-xs text-slate-400">
+                Availability must contain the full appointment window.
+              </p>
             </div>
 
             <label class="block space-y-1 text-xs text-slate-300">
               <span>Preparation focus</span>
-              <select v-model="form.push_category" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" @change="form.preferred_appointment_type = ''">
-                <option v-for="category in pushCategories" :key="category.key" :value="category.key">{{ category.label }}</option>
+              <select
+                v-model="form.push_category"
+                class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+                @change="form.preferred_appointment_type = ''"
+              >
+                <option
+                  v-for="category in pushCategories"
+                  :key="category.key"
+                  :value="category.key"
+                >
+                  {{ category.label }}
+                </option>
               </select>
             </label>
 
             <label class="block space-y-1 text-xs text-slate-300">
               <span>Preferred appointment (optional)</span>
-              <select v-model="form.preferred_appointment_type" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">
+              <select
+                v-model="form.preferred_appointment_type"
+                class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+              >
                 <option value="">Any applicable appointment</option>
-                <option v-for="type in compatibleAppointments" :key="type.key" :value="type.key">{{ type.label }}</option>
+                <option v-for="type in compatibleAppointments" :key="type.key" :value="type.key">
+                  {{ type.label }}
+                </option>
               </select>
             </label>
 
             <label class="block space-y-1 text-xs text-slate-300">
               <span>Available from (UTC)</span>
-              <input v-model="form.availability_starts_at" required type="datetime-local" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+              <input
+                v-model="form.availability_starts_at"
+                required
+                type="datetime-local"
+                class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+              />
             </label>
             <label class="block space-y-1 text-xs text-slate-300">
               <span>Available until (UTC)</span>
-              <input v-model="form.availability_ends_at" required type="datetime-local" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+              <input
+                v-model="form.availability_ends_at"
+                required
+                type="datetime-local"
+                class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+              />
             </label>
             <label class="block space-y-1 text-xs text-slate-300">
               <span>Planned speedups (hours, optional)</span>
-              <input v-model.number="form.planned_speedup_hours" min="0" step="0.5" type="number" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+              <input
+                v-model.number="form.planned_speedup_hours"
+                min="0"
+                step="0.5"
+                type="number"
+                class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+              />
             </label>
             <label class="block space-y-1 text-xs text-slate-300">
               <span>Planned resource amount (optional)</span>
-              <input v-model.number="form.planned_resource_amount" min="0" type="number" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+              <input
+                v-model.number="form.planned_resource_amount"
+                min="0"
+                type="number"
+                class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+              />
             </label>
             <label class="block space-y-1 text-xs text-slate-300">
               <span>Notes</span>
-              <textarea v-model="form.notes" rows="3" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+              <textarea
+                v-model="form.notes"
+                rows="3"
+                class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+              />
             </label>
-            <button type="submit" class="w-full rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-950">
+            <button
+              type="submit"
+              class="w-full rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-950"
+            >
               Submit request
             </button>
           </form>

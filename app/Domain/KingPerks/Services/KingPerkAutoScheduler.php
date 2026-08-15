@@ -94,6 +94,7 @@ final readonly class KingPerkAutoScheduler
 
                 if ($this->positionBlocked($authorizedPlan, $type, $cursor, $slotEnd)) {
                     $cursor = $slotEnd;
+
                     continue;
                 }
 

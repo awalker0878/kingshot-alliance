@@ -17,6 +17,7 @@ final class KingPerkRequest extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

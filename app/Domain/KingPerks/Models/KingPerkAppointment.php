@@ -17,6 +17,7 @@ final class KingPerkAppointment extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -41,7 +42,7 @@ final class KingPerkAppointment extends Model
 
     protected static function booted(): void
     {
-        static::saving(static function (self $appointment): void {
+        self::saving(static function (self $appointment): void {
             if ($appointment->exists && ! $appointment->isDirty(['appointment_type', 'starts_at'])) {
                 return;
             }
@@ -54,7 +55,18 @@ final class KingPerkAppointment extends Model
         });
     }
 
-    public function plan(): BelongsTo { return $this->belongsTo(KingPerkPlan::class, 'plan_id'); }
-    public function assignedPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'assigned_player_id'); }
-    public function assignedByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'assigned_by_player_id'); }
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(KingPerkPlan::class, 'plan_id');
+    }
+
+    public function assignedPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'assigned_player_id');
+    }
+
+    public function assignedByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'assigned_by_player_id');
+    }
 }

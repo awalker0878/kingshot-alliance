@@ -271,14 +271,12 @@ final readonly class KingPerkScheduleQuery
 
         foreach (KingAppointmentType::cases() as $type) {
             $appointments = $plan->appointments
-                ->filter(static fn (KingPerkAppointment $appointment): bool =>
-                    $appointment->appointment_type === $type
+                ->filter(static fn (KingPerkAppointment $appointment): bool => $appointment->appointment_type === $type
                     && in_array($appointment->status->value, $activeStatuses, true))
                 ->sortBy('starts_at')
                 ->values();
 
-            $nowAppointment = $appointments->first(static fn (KingPerkAppointment $appointment): bool =>
-                $appointment->status === KingPerkAppointmentStatus::Active
+            $nowAppointment = $appointments->first(static fn (KingPerkAppointment $appointment): bool => $appointment->status === KingPerkAppointmentStatus::Active
                 || (! $appointment->starts_at->isAfter($now) && $appointment->ends_at->isAfter($now)));
             $upcoming = $appointments
                 ->filter(static fn (KingPerkAppointment $appointment): bool => $appointment->starts_at->greaterThanOrEqualTo($now))

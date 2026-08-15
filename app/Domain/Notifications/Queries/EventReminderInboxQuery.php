@@ -45,7 +45,7 @@ final readonly class EventReminderInboxQuery
     }
 
     /**
-     * @param array{alliance:list<string>,player:list<string>,kingdom:list<string>} $targets
+     * @param  array{alliance:list<string>,player:list<string>,kingdom:list<string>}  $targets
      * @return Collection<int, array<string, mixed>>
      */
     private function eventReminders(User $user, Player $player, array $targets, int $limit): Collection
@@ -83,7 +83,7 @@ final readonly class EventReminderInboxQuery
     }
 
     /**
-     * @param array{alliance:list<string>,player:list<string>,kingdom:list<string>} $targets
+     * @param  array{alliance:list<string>,player:list<string>,kingdom:list<string>}  $targets
      * @return Collection<int, array<string, mixed>>
      */
     private function kingPerkReminders(User $user, Player $player, array $targets, int $limit): Collection
@@ -136,7 +136,7 @@ final readonly class EventReminderInboxQuery
     }
 
     /**
-     * @param array{alliance:list<string>,player:list<string>,kingdom:list<string>} $targets
+     * @param  array{alliance:list<string>,player:list<string>,kingdom:list<string>}  $targets
      */
     private function visibleEventTarget(Event $event, array $targets): bool
     {

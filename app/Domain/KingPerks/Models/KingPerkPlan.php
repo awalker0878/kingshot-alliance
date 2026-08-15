@@ -19,6 +19,7 @@ final class KingPerkPlan extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -36,12 +37,43 @@ final class KingPerkPlan extends Model
         ];
     }
 
-    public function event(): BelongsTo { return $this->belongsTo(Event::class); }
-    public function occurrence(): BelongsTo { return $this->belongsTo(EventOccurrence::class); }
-    public function kingdom(): BelongsTo { return $this->belongsTo(Kingdom::class); }
-    public function createdByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'created_by_player_id'); }
-    public function appointments(): HasMany { return $this->hasMany(KingPerkAppointment::class, 'plan_id')->orderBy('starts_at'); }
-    public function positionBlocks(): HasMany { return $this->hasMany(KingPerkPositionBlock::class, 'plan_id')->orderBy('starts_at'); }
-    public function skills(): HasMany { return $this->hasMany(KingSkillPlan::class, 'plan_id')->orderBy('planned_activation_at'); }
-    public function requests(): HasMany { return $this->hasMany(KingPerkRequest::class, 'plan_id')->orderByDesc('planned_speedup_minutes')->orderBy('availability_starts_at'); }
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
+    }
+
+    public function occurrence(): BelongsTo
+    {
+        return $this->belongsTo(EventOccurrence::class);
+    }
+
+    public function kingdom(): BelongsTo
+    {
+        return $this->belongsTo(Kingdom::class);
+    }
+
+    public function createdByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'created_by_player_id');
+    }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(KingPerkAppointment::class, 'plan_id')->orderBy('starts_at');
+    }
+
+    public function positionBlocks(): HasMany
+    {
+        return $this->hasMany(KingPerkPositionBlock::class, 'plan_id')->orderBy('starts_at');
+    }
+
+    public function skills(): HasMany
+    {
+        return $this->hasMany(KingSkillPlan::class, 'plan_id')->orderBy('planned_activation_at');
+    }
+
+    public function requests(): HasMany
+    {
+        return $this->hasMany(KingPerkRequest::class, 'plan_id')->orderByDesc('planned_speedup_minutes')->orderBy('availability_starts_at');
+    }
 }

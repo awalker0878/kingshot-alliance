@@ -502,13 +502,11 @@ final readonly class KingPerkScheduler
             ->whereNotIn('status', [KingPerkAppointmentStatus::Cancelled->value, KingPerkAppointmentStatus::NoShow->value])
             ->when($ignoreId !== null, static fn ($query) => $query->whereKeyNot($ignoreId))
             ->lockForUpdate()
-            ->get(['id', 'appointment_type', 'starts_at', 'ends_at']);
+            ->get(['id', 'appointment_type', 'starts_at', 'ends_at', 'player_cooldown_ends_at']);
 
         $newBlockedUntil = $end->addMinutes($newType->playerCooldownMinutes());
         foreach ($appointments as $existing) {
-            $existingType = $existing->appointment_type;
-            $existingEnd = CarbonImmutable::instance($existing->ends_at);
-            $existingBlockedUntil = $existingEnd->addMinutes($existingType->playerCooldownMinutes());
+            $existingBlockedUntil = CarbonImmutable::instance($existing->player_cooldown_ends_at);
             $existingStart = CarbonImmutable::instance($existing->starts_at);
 
             if ($start->lt($existingBlockedUntil) && $existingStart->lt($newBlockedUntil)) {

@@ -16,6 +16,7 @@ final class KingSkillPlan extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -37,6 +38,13 @@ final class KingSkillPlan extends Model
         ];
     }
 
-    public function plan(): BelongsTo { return $this->belongsTo(KingPerkPlan::class, 'plan_id'); }
-    public function plannedByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'planned_by_player_id'); }
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(KingPerkPlan::class, 'plan_id');
+    }
+
+    public function plannedByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'planned_by_player_id');
+    }
 }
