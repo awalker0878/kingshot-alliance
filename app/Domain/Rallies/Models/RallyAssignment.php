@@ -16,7 +16,9 @@ final class RallyAssignment extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $fillable = ['rally_group_id', 'player_id', 'role', 'slot_number', 'status', 'assigned_by_player_id', 'assigned_at', 'responded_by_player_id', 'responded_at', 'recorded_by_player_id', 'recorded_at', 'removed_by_player_id', 'removed_at', 'notes'];
 
     protected function casts(): array

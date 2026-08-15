@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Events;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Actions\RecordEventAttendance;
 use App\Domain\Events\Actions\SaveEventPlayerResult;
@@ -147,7 +148,7 @@ final class EventTrendQueryTest extends TestCase
 
     private function event(
         Player $actor,
-        Player|\App\Domain\Alliances\Models\Alliance $target,
+        Player|Alliance $target,
         string $slug,
         EventScope $scope,
         int $hoursFromNow,

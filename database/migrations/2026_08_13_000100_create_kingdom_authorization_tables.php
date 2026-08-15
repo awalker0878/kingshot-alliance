@@ -53,14 +53,14 @@ return new class extends Migration
             DB::statement('DROP FUNCTION IF EXISTS kingdom_role_assignments_validate_player_kingdom()');
             DB::statement('DROP FUNCTION IF EXISTS players_prevent_kingdom_role_drift()');
             DB::statement("CREATE FUNCTION kingdom_role_assignments_validate_player_kingdom() RETURNS trigger AS $$ BEGIN IF NOT EXISTS (SELECT 1 FROM players p WHERE p.id = NEW.player_id AND p.current_kingdom_id = NEW.kingdom_id) THEN RAISE EXCEPTION 'kingdom role player must currently belong to the role kingdom'; END IF; RETURN NEW; END; $$ LANGUAGE plpgsql");
-            DB::statement("CREATE TRIGGER kingdom_role_assignments_player_kingdom_insert BEFORE INSERT ON kingdom_role_assignments FOR EACH ROW EXECUTE FUNCTION kingdom_role_assignments_validate_player_kingdom()");
-            DB::statement("CREATE TRIGGER kingdom_role_assignments_player_kingdom_update BEFORE UPDATE OF kingdom_id, player_id ON kingdom_role_assignments FOR EACH ROW EXECUTE FUNCTION kingdom_role_assignments_validate_player_kingdom()");
+            DB::statement('CREATE TRIGGER kingdom_role_assignments_player_kingdom_insert BEFORE INSERT ON kingdom_role_assignments FOR EACH ROW EXECUTE FUNCTION kingdom_role_assignments_validate_player_kingdom()');
+            DB::statement('CREATE TRIGGER kingdom_role_assignments_player_kingdom_update BEFORE UPDATE OF kingdom_id, player_id ON kingdom_role_assignments FOR EACH ROW EXECUTE FUNCTION kingdom_role_assignments_validate_player_kingdom()');
             DB::statement("CREATE FUNCTION players_prevent_kingdom_role_drift() RETURNS trigger AS $$ BEGIN IF NEW.current_kingdom_id IS DISTINCT FROM OLD.current_kingdom_id AND EXISTS (SELECT 1 FROM kingdom_role_assignments a WHERE a.player_id = NEW.id AND a.kingdom_id <> NEW.current_kingdom_id) THEN RAISE EXCEPTION 'remove kingdom roles before changing player kingdom'; END IF; RETURN NEW; END; $$ LANGUAGE plpgsql");
-            DB::statement("CREATE TRIGGER players_kingdom_role_guard BEFORE UPDATE OF current_kingdom_id ON players FOR EACH ROW EXECUTE FUNCTION players_prevent_kingdom_role_drift()");
+            DB::statement('CREATE TRIGGER players_kingdom_role_guard BEFORE UPDATE OF current_kingdom_id ON players FOR EACH ROW EXECUTE FUNCTION players_prevent_kingdom_role_drift()');
         }
 
         if ($driver === 'sqlite') {
-            $mismatch = "NOT EXISTS (SELECT 1 FROM players p WHERE p.id = NEW.player_id AND p.current_kingdom_id = NEW.kingdom_id)";
+            $mismatch = 'NOT EXISTS (SELECT 1 FROM players p WHERE p.id = NEW.player_id AND p.current_kingdom_id = NEW.kingdom_id)';
             DB::statement("CREATE TRIGGER kingdom_role_assignments_player_kingdom_insert BEFORE INSERT ON kingdom_role_assignments WHEN {$mismatch} BEGIN SELECT RAISE(ABORT, 'kingdom role player must currently belong to the role kingdom'); END");
             DB::statement("CREATE TRIGGER kingdom_role_assignments_player_kingdom_update BEFORE UPDATE OF kingdom_id, player_id ON kingdom_role_assignments WHEN {$mismatch} BEGIN SELECT RAISE(ABORT, 'kingdom role player must currently belong to the role kingdom'); END");
             DB::statement("CREATE TRIGGER players_kingdom_role_guard BEFORE UPDATE OF current_kingdom_id ON players WHEN EXISTS (SELECT 1 FROM kingdom_role_assignments a WHERE a.player_id = NEW.id AND a.kingdom_id <> NEW.current_kingdom_id) BEGIN SELECT RAISE(ABORT, 'remove kingdom roles before changing player kingdom'); END");

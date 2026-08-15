@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Contributions;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Contributions\Actions\CreateContributionCategory;
 use App\Domain\Contributions\Actions\RecordContribution;
 use App\Domain\Contributions\Enums\ContributionDataClass;
@@ -105,7 +106,7 @@ final class AllianceContributionReportQueryTest extends TestCase
         self::assertStringContainsString('metric_value', $export['content']);
     }
 
-    /** @return array{Player, \App\Domain\Alliances\Models\Alliance} */
+    /** @return array{Player, Alliance} */
     private function context(): array
     {
         $kingdom = Kingdom::query()->create(['number' => random_int(8950, 8999), 'status' => 'active']);

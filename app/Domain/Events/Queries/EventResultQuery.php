@@ -139,7 +139,7 @@ final readonly class EventResultQuery
     }
 
     /**
-     * @param EloquentCollection<int, EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric> $metrics
+     * @param  EloquentCollection<int, EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric>  $metrics
      * @return list<array<string,mixed>>
      */
     private function metrics(EloquentCollection $metrics): array
