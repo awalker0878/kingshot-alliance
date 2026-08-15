@@ -13,7 +13,7 @@ final class UpcomingAllianceActivitiesQuery
     /** @return list<array{id: string, title: string, startsAt: string, allianceTimezone: string}> */
     public function handle(Alliance $alliance, int $limit = 5): array
     {
-        return DB::table('event_occurrences')
+        return array_values(DB::table('event_occurrences')
             ->join('events', 'events.id', '=', 'event_occurrences.event_id')
             ->where('events.scope', 'alliance')
             ->where('events.alliance_id', $alliance->id)
@@ -27,6 +27,6 @@ final class UpcomingAllianceActivitiesQuery
                 'title' => (string) $row->title,
                 'startsAt' => Carbon::parse((string) $row->starts_at)->toIso8601String(),
                 'allianceTimezone' => (string) $row->timezone,
-            ])->values()->all();
+            ])->values()->all());
     }
 }
