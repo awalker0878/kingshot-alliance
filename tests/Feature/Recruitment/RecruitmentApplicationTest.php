@@ -23,6 +23,7 @@ use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -285,7 +286,7 @@ final class RecruitmentApplicationTest extends TestCase
         $settings->handle($firstPlayer, $first, RecruitmentApplicationMode::Public, 'Apply', null, 90, true);
         $candidate = $this->app->make(SubmitRecruitmentApplication::class)->handle($first, 'Candidate', 'candidate@example.com', []);
 
-        $this->expectException(AuthorizationException::class);
+        $this->expectException(ModelNotFoundException::class);
         $this->app->make(ChangeRecruitmentStage::class)->handle(
             $secondPlayer,
             $second,
