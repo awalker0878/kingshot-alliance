@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Domain\Events\Enums\EventMetricSource;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventAllianceResult;
 use App\Domain\Events\Models\EventAllianceResultMetric;
+use App\Domain\Events\Models\EventMetricDefinition;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Events\Models\EventPlayerResultMetric;
 use App\Domain\Events\Models\EventResult;
 use App\Domain\Events\Models\EventResultMetric;
 use App\Domain\Kingdoms\Models\Player;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Carbon\CarbonImmutable;
+use LogicException;
 
 final readonly class EventResultQuery
 {
@@ -68,7 +71,7 @@ final readonly class EventResultQuery
         $playerOptions = $players->values()->map(static fn (Player $player): array => [
             'id' => (string) $player->id,
             'name' => (string) $player->current_name,
-        ])->all();
+        ])->values()->all();
 
         return $occurrences->map(function (EventOccurrence $occurrence) use ($summaries, $allianceResults, $playerResults, $playerOptions): array {
             $occurrenceId = (string) $occurrence->id;
@@ -78,15 +81,19 @@ final readonly class EventResultQuery
 
             return [
                 'occurrenceId' => $occurrenceId,
-                'startsAt' => $occurrence->starts_at->toIso8601String(),
+                'startsAt' => $this->dateTime($occurrence->getAttribute('starts_at')),
                 'summary' => $summary instanceof EventResult ? $this->summary($summary) : null,
                 'allianceResults' => $allianceRows
                     ->map(fn (EventAllianceResult $result): array => $this->allianceResult($result))
+                    ->values()
                     ->all(),
-                'playerResults' => $playerRows->map(fn (EventPlayerResult $result): array => $this->playerResult($result))->all(),
+                'playerResults' => $playerRows
+                    ->map(fn (EventPlayerResult $result): array => $this->playerResult($result))
+                    ->values()
+                    ->all(),
                 'players' => $playerOptions,
             ];
-        })->all();
+        })->values()->all();
     }
 
     /** @return array<string,mixed> */
@@ -100,7 +107,7 @@ final readonly class EventResultQuery
             'rank' => $result->rank,
             'metrics' => $this->metrics($result->metrics),
             'notes' => $result->notes,
-            'recordedAt' => $result->recorded_at?->toIso8601String(),
+            'recordedAt' => $this->nullableDateTime($result->getAttribute('recorded_at')),
         ];
     }
 
@@ -118,7 +125,7 @@ final readonly class EventResultQuery
             'rank' => $result->rank,
             'metrics' => $this->metrics($result->metrics),
             'notes' => $result->notes,
-            'recordedAt' => $result->recorded_at?->toIso8601String(),
+            'recordedAt' => $this->nullableDateTime($result->getAttribute('recorded_at')),
         ];
     }
 
@@ -134,31 +141,58 @@ final readonly class EventResultQuery
             'rank' => $result->rank,
             'metrics' => $this->metrics($result->metrics),
             'notes' => $result->notes,
-            'recordedAt' => $result->recorded_at?->toIso8601String(),
+            'recordedAt' => $this->nullableDateTime($result->getAttribute('recorded_at')),
         ];
     }
 
     /**
-     * @param  EloquentCollection<int, EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric>  $metrics
+     * @param iterable<EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric> $metrics
      * @return list<array<string,mixed>>
      */
-    private function metrics(EloquentCollection $metrics): array
+    private function metrics(iterable $metrics): array
     {
-        return $metrics->map(static fn (EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric $metric): array => [
-            'subject' => $metric->definition?->subject->value,
-            'key' => $metric->definition?->key,
-            'labelKey' => $metric->definition?->label_key,
-            'unit' => $metric->definition?->unit,
-            'valueType' => $metric->definition?->value_type->value,
-            'aggregation' => $metric->definition?->aggregation->value,
-            'dimensionKind' => $metric->definition?->dimension_kind,
-            'dimensionKey' => $metric->dimension_key === '' ? null : $metric->dimension_key,
-            'isPrimary' => $metric->definition?->is_primary,
-            'isContributionMetric' => $metric->definition?->is_contribution_metric,
-            'higherIsBetter' => $metric->definition?->higher_is_better,
-            'value' => $metric->value,
-            'source' => $metric->source->value,
-            'recordedAt' => $metric->recorded_at?->toIso8601String(),
-        ])->values()->all();
+        $rows = [];
+
+        foreach ($metrics as $metric) {
+            $definition = $metric->getRelation('definition');
+            if (! $definition instanceof EventMetricDefinition) {
+                throw new LogicException('Event metric values require a loaded metric definition.');
+            }
+
+            $source = $metric->getAttribute('source');
+            $sourceEnum = $source instanceof EventMetricSource
+                ? $source
+                : EventMetricSource::from((string) $source);
+            $dimensionKey = (string) $metric->getAttribute('dimension_key');
+
+            $rows[] = [
+                'subject' => $definition->subject->value,
+                'key' => (string) $definition->key,
+                'labelKey' => (string) $definition->label_key,
+                'unit' => $definition->unit,
+                'valueType' => $definition->value_type->value,
+                'aggregation' => $definition->aggregation->value,
+                'dimensionKind' => $definition->dimension_kind,
+                'dimensionKey' => $dimensionKey === '' ? null : $dimensionKey,
+                'isPrimary' => (bool) $definition->is_primary,
+                'isContributionMetric' => (bool) $definition->is_contribution_metric,
+                'higherIsBetter' => $definition->higher_is_better,
+                'value' => (string) $metric->getAttribute('value'),
+                'source' => $sourceEnum->value,
+                'recordedAt' => $this->nullableDateTime($metric->getAttribute('recorded_at')),
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function dateTime(mixed $value): string
+    {
+        return CarbonImmutable::parse((string) $value)->toIso8601String();
+    }
+
+    private function nullableDateTime(mixed $value): ?string
+    {
+        return $value === null ? null : $this->dateTime($value);
     }
 }
