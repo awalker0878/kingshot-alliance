@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Events\Http\Controllers;
 
 use App\Domain\Events\Actions\AssignEventRosterPlayer;
+use App\Domain\Events\Actions\RecordEventRosterParticipation;
 use App\Domain\Events\Actions\RemoveEventRosterPlayer;
 use App\Domain\Events\Actions\RespondToEventRosterAssignment;
 use App\Domain\Events\Actions\SaveEventRoster;
@@ -128,6 +129,32 @@ final class EventRosterController extends Controller
         $respond->handle($actor, $memberRecord, $actor, EventRosterMemberStatus::from((string) $validated['status']));
 
         return back()->with('status', 'event-roster-assignment-responded');
+    }
+
+    public function participation(
+        Request $request,
+        string $occurrence,
+        string $member,
+        EventCalendarQuery $events,
+        RecordEventRosterParticipation $recordParticipation,
+    ): RedirectResponse {
+        $this->user($request);
+        $actor = $this->player();
+        $record = $events->occurrence($actor, $occurrence);
+        $memberRecord = EventRosterMember::query()
+            ->whereKey($member)
+            ->whereHas('roster', static fn ($query) => $query->where('occurrence_id', $record->id))
+            ->firstOrFail();
+        $validated = $request->validate([
+            'status' => ['required', Rule::in([EventRosterMemberStatus::Participated->value, EventRosterMemberStatus::Absent->value])],
+        ]);
+        $recordParticipation->handle(
+            $actor,
+            $memberRecord,
+            EventRosterMemberStatus::from((string) $validated['status']),
+        );
+
+        return back()->with('status', 'event-roster-participation-recorded');
     }
 
     /** @return array<string,mixed> */
