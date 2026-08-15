@@ -143,6 +143,13 @@ final readonly class EventPlayerHistoryQuery
 
         foreach ($rows as $row) {
             $occurrenceId = (string) $row->occurrence_id;
+            $scopeValue = (string) $row->scope;
+            $targetId = match ($scopeValue) {
+                EventScope::Player->value => $row->target_player_id === null ? null : (string) $row->target_player_id,
+                EventScope::Alliance->value => $row->target_alliance_id === null ? null : (string) $row->target_alliance_id,
+                EventScope::Kingdom->value => $row->target_kingdom_id === null ? null : (string) $row->target_kingdom_id,
+                default => throw new LogicException('Event history row has an unsupported scope.'),
+            };
             $participation = $evidence[$occurrenceId] ?? [
                 'committed' => false,
                 'completed' => false,
@@ -160,7 +167,8 @@ final readonly class EventPlayerHistoryQuery
                     'slug' => (string) $row->event_type_slug,
                     'nameKey' => (string) $row->event_type_name_key,
                 ],
-                'scope' => (string) $row->scope,
+                'scope' => $scopeValue,
+                'targetId' => $targetId,
                 'target' => [
                     'playerId' => $row->target_player_id === null ? null : (string) $row->target_player_id,
                     'allianceId' => $row->target_alliance_id === null ? null : (string) $row->target_alliance_id,
