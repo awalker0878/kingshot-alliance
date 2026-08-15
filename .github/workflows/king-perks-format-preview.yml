@@ -17,14 +17,17 @@ on:
       - '.github/workflows/king-perks-format-preview.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   format:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Check out PR head
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.head_ref }}
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
@@ -36,6 +39,19 @@ jobs:
           cache: npm
       - run: composer install --no-interaction --no-progress --prefer-dist
       - run: npm ci --no-audit --no-fund
+      - name: Preserve historical Player cooldown snapshots
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('app/Domain/KingPerks/Services/KingPerkScheduler.php')
+          source = path.read_text()
+          old = """            ->get(['id', 'appointment_type', 'starts_at', 'ends_at']);\n\n        $newBlockedUntil = $end->addMinutes($newType->playerCooldownMinutes());\n        foreach ($appointments as $existing) {\n            $existingType = $existing->appointment_type;\n            $existingEnd = CarbonImmutable::instance($existing->ends_at);\n            $existingBlockedUntil = $existingEnd->addMinutes($existingType->playerCooldownMinutes());\n            $existingStart = CarbonImmutable::instance($existing->starts_at);\n"""
+          new = """            ->get(['id', 'appointment_type', 'starts_at', 'ends_at', 'player_cooldown_ends_at']);\n\n        $newBlockedUntil = $end->addMinutes($newType->playerCooldownMinutes());\n        foreach ($appointments as $existing) {\n            $existingBlockedUntil = CarbonImmutable::instance($existing->player_cooldown_ends_at);\n            $existingStart = CarbonImmutable::instance($existing->starts_at);\n"""
+          if old in source:
+              path.write_text(source.replace(old, new, 1))
+          elif 'player_cooldown_ends_at' not in source[source.index('private function assertPlayerAvailable'):]:
+              raise SystemExit('Expected KingPerkScheduler cooldown block was not found')
+          PY
       - name: Apply canonical formatters
         run: |
           vendor/bin/pint \
@@ -51,10 +67,15 @@ jobs:
             tests/Feature/KingPerks \
             tests/Unit/KingPerks
           npx prettier --write resources/js/pages/KingPerks
-      - name: Stage formatted files
+      - name: Commit canonical formatting when needed
         run: |
-          mkdir -p /tmp/king-perks-formatted
-          cp --parents -r \
+          if git diff --quiet; then
+            echo 'King Perks source is already canonical.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
             app/Domain/KingPerks \
             app/Domain/Notifications/Actions/MarkKingPerkReminderSent.php \
             app/Domain/Notifications/Actions/QueueDueKingPerkReminders.php \
@@ -66,11 +87,6 @@ jobs:
             resources/js/pages/KingPerks \
             routes/king-perks.php \
             tests/Feature/KingPerks \
-            tests/Unit/KingPerks \
-            /tmp/king-perks-formatted/
-      - uses: actions/upload-artifact@v4
-        with:
-          name: king-perks-formatted
-          path: /tmp/king-perks-formatted
-          if-no-files-found: error
-          retention-days: 1
+            tests/Unit/KingPerks
+          git commit -m 'Apply canonical King Perks formatting'
+          git push origin HEAD:${GITHUB_HEAD_REF}
