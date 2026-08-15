@@ -133,6 +133,15 @@ final class ArchitectureV2DependencyTest extends TestCase
         );
     }
 
+    public function test_accounts_user_has_no_cross_context_orm_navigation(): void
+    {
+        $source = $this->source($this->root().'/app/Contexts/Accounts/Models/User.php');
+
+        foreach (['hasMany(', 'hasOne(', 'belongsTo(', 'belongsToMany(', 'morphMany(', 'morphToMany('] as $relation) {
+            self::assertStringNotContainsString($relation, $source);
+        }
+    }
+
     public function test_game_world_never_depends_on_higher_level_feature_contexts(): void
     {
         $this->assertFilesDoNotImport(
@@ -143,6 +152,28 @@ final class ArchitectureV2DependencyTest extends TestCase
             'App\\Contexts\\Communications\\',
             'App\\Contexts\\Platform\\',
         );
+    }
+
+    public function test_game_world_player_does_not_expose_feature_collection_relationships(): void
+    {
+        $source = $this->source($this->root().'/app/Contexts/GameWorld/Models/Player.php');
+
+        foreach (['hasMany(', 'hasOne(', 'belongsToMany(', 'morphMany(', 'morphToMany('] as $relation) {
+            self::assertStringNotContainsString($relation, $source);
+        }
+
+        foreach (['memberships(', 'roleAssignments(', 'rosterEntries(', 'events(', 'contributions(', 'rallies('] as $method) {
+            self::assertStringNotContainsString('function '.$method, $source);
+        }
+    }
+
+    public function test_game_world_kingdom_does_not_navigate_to_feature_aggregates(): void
+    {
+        $source = $this->source($this->root().'/app/Contexts/GameWorld/Models/Kingdom.php');
+
+        foreach (['hasMany(', 'hasOne(', 'belongsToMany(', 'morphMany(', 'morphToMany('] as $relation) {
+            self::assertStringNotContainsString($relation, $source);
+        }
     }
 
     public function test_alliance_does_not_depend_on_downstream_operational_or_intelligence_contexts(): void
