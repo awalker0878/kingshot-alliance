@@ -58,6 +58,7 @@ final class EventTypeScope extends Model
             'minimum_repeat_interval_minutes' => 'integer',
             'default_registration_opens_minutes_before' => 'integer',
             'default_registration_closes_minutes_before' => 'integer',
+            'default_instructions_key' => 'string',
             'default_settings' => 'array',
             'result_score_higher_is_better' => 'boolean',
             'is_active' => 'boolean',
@@ -80,7 +81,7 @@ final class EventTypeScope extends Model
     /** @return HasMany<EventMetricDefinition, $this> */
     public function metricDefinitions(): HasMany
     {
-        return $this->hasMany(EventMetricDefinition::class, 'event_type_scope_id')
+        return $this->hasMany(EventMetricDefinition::class)
             ->orderBy('subject')
             ->orderBy('sort_order')
             ->orderBy('key');
