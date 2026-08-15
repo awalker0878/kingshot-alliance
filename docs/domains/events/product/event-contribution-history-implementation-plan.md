@@ -45,8 +45,8 @@ Alliance names are presentation data and are not identity. The same name may exi
 | --- | --- | --- |
 | EC-P0 | Final ownership, authorization, history and metric semantics | **Complete** |
 | EC-P1 | Greenfield schema redesign and immutable historical targets | **Complete** |
-| EC-P2 | KingShot Event metric catalogue | **Next** |
-| EC-P3 | Result/metric capture and derived participation facts | Planned |
+| EC-P2 | KingShot Event metric catalogue | **Complete** |
+| EC-P3 | Result/metric capture and derived participation facts | **Next** |
 | EC-P4 | Player cross-scope history query | Planned |
 | EC-P5 | My Contributions / History UX | Planned |
 | EC-P6 | Alliance historical Event intelligence | Planned |
@@ -124,19 +124,102 @@ Canonical migrations were changed directly because the database is empty.
 - historical Player-context tests prove represented `alliance_id` cannot disagree with `kingdom_id_at_event`; and
 - architecture tests protect restrictive target retention, immutability, normalized metrics and the canonical Alliance identity.
 
-## EC-P2 — KingShot Event metric catalogue
+## EC-P2 — KingShot Event metric catalogue — COMPLETE
 
-Define metrics per supported Event Type scope, including subject, key, unit/value type, aggregation rule, contribution relevance, display metadata, and compatibility semantics.
+EC-P2 establishes a typed, persisted measurement vocabulary for every supported Event Type/scope without duplicating the primary result score or inventing a universal contribution score.
 
-Initial families include Bear Hunt, Viking Vengeance, Alliance Mobilization, Alliance Championship, Alliance Brawl, Swordland Showdown/Summit League, Tri-Alliance Clash, Flamedragon Tyrant, Cesares Fury, Outpost/Sanctuary/Castle battles, Kingdom of Power, Hall of Governors, Armament Competition, Fishing Tournament, Treasure Raiders, Merchant Empire, Eternity's Reach, and Custom Events.
+### Delivered score semantics
 
-P2 seeds definitions only for facts the application can meaningfully represent. It does not invent scores or units where KingShot/Event capability semantics do not support them.
+The existing first-class `score` field remains the one canonical primary numeric result. `event_type_scopes` now records its Event-specific meaning through:
 
-## EC-P3 — Capture and derivation
+```text
+result_score_label_key
+result_score_unit
+result_score_higher_is_better
+```
+
+This allows a Bear Hunt score to mean damage, a Swordland score to mean relic points, a Castle score to mean castle points, and ordinary scoring Events to mean points without writing the same number again as a metric row.
+
+`rank` and `outcome` remain first-class result fields.
+
+### Delivered component catalogue
+
+`KingShotEventMetricCatalog` defines normalized component metrics only where the application has meaningful semantics. The catalogue includes:
+
+- Bear Hunt Rally participation counts;
+- Viking Vengeance wave/failure execution;
+- phase-point breakdowns for multi-phase scoring Events;
+- Swordland/Tri-Alliance/Summit battlefield kills, captures and objective occupation duration;
+- Flamedragon palace occupation and Aerie capture contribution;
+- Cesares Fury progression/captain participation;
+- Outpost/Sanctuary objective occupation and supported Player combat contribution;
+- Castle Event/Alliance/Player component facts including Carnage, Occupation and Casualty point components;
+- Kingdom of Power Event/Alliance/Player phase points;
+- Hero Roulette spin count; and
+- conservative no-extra-metric profiles for Events where score/rank/outcome are sufficient.
+
+Custom Events do not inherit arbitrary system component metrics.
+
+### Metric definition semantics
+
+Normalized definitions persist:
+
+```text
+subject                 event | alliance | player
+key
+label_key
+unit
+value_type              integer | decimal | duration | percentage
+aggregation             sum | max | min | average | latest
+dimension_kind          null | phase | objective
+is_primary
+is_contribution_metric
+higher_is_better
+sort_order
+```
+
+`dimension_kind` establishes the validation contract for P3. A `phase_points` value must identify a real occurrence phase; an objective-dimensioned value must identify a real occurrence objective. Arbitrary dimension strings do not become historical facts.
+
+### Persistence/runtime integration
+
+- canonical Event Type-scope seeding persists score semantics from the same catalogue used by runtime code;
+- a greenfield metric-catalogue migration persists normalized definitions for all supported system Event Type scopes;
+- `EventTypeRegistry` loads metric definitions with scope configuration;
+- `EventTypeDefaultsResolver` exposes score semantics and normalized definitions to downstream Event workflows/UI;
+- `EventMetricDefinition` exposes dimension semantics; and
+- Event metric subjects remain `event | alliance | player`, using canonical `alliance_id` rather than a parallel Alliance identity.
+
+### Compatibility rule
+
+Metric compatibility normally requires:
+
+```text
+same Event Type scope
++ same subject
++ same metric key
++ compatible dimension
+```
+
+`is_contribution_metric` makes a metric reportable; it does not make unrelated Event metrics arithmetically comparable.
+
+No `universal_contribution_score`, `total_contribution_score`, or other unexplained cross-Event total is introduced.
+
+### Exit evidence
+
+- unit coverage validates every supported Event Type/scope resolves a measurement profile with unique subject/key definitions;
+- targeted tests protect Bear, Viking, battlefield, Castle, Kingdom of Power and conservative no-extra-metric semantics;
+- persistence tests prove score semantics, subjects, dimensions and definitions survive fresh migration;
+- schema coverage protects score-semantic and `dimension_kind` columns;
+- architecture tests protect separation of primary score versus component metrics, canonical Alliance subject identity and absence of a universal score; and
+- the living [KingShot Event metric catalogue](../event-metric-catalogue.md) documents the final P2 vocabulary and P3 capture boundary.
+
+## EC-P3 — Capture and derivation — NEXT
 
 Extend Event result workflows to persist normalized metrics. Derive participation/reliability facts from existing authoritative registration, attendance, roster and Rally outcomes where possible rather than requiring duplicate manual metrics.
 
 P3 also owns occurrence-time Player context freezing at the correct first participation/result boundary.
+
+P3 must validate `dimension_kind` against exact occurrence state and preserve metric provenance as `manual | derived | imported`.
 
 Result mutations follow ADR 0010 and remain Events-owned.
 
