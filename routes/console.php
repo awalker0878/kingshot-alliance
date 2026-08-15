@@ -115,7 +115,14 @@ Artisan::command('integrations:queue-webhooks {--limit=100}', function (QueueDue
 })->purpose('Recover and queue due webhook deliveries');
 
 Artisan::command('kingdoms:bootstrap-admin {kingdom} {player}', function (BootstrapKingdomAdministrator $bootstrap): int {
-    $kingdomArgument = trim((string) $this->argument('kingdom'));
+    $kingdomInput = $this->argument('kingdom');
+    if (! is_string($kingdomInput)) {
+        $this->error('Kingdom must be an existing positive numeric Kingdom number.');
+
+        return 1;
+    }
+
+    $kingdomArgument = trim($kingdomInput);
     if ($kingdomArgument === '' || ! ctype_digit($kingdomArgument)) {
         $this->error('Kingdom must be an existing positive numeric Kingdom number.');
 
@@ -129,7 +136,14 @@ Artisan::command('kingdoms:bootstrap-admin {kingdom} {player}', function (Bootst
         return 1;
     }
 
-    $player = Player::query()->find(trim((string) $this->argument('player')));
+    $playerInput = $this->argument('player');
+    if (! is_string($playerInput)) {
+        $this->error('No Player exists with that ID.');
+
+        return 1;
+    }
+
+    $player = Player::query()->find(trim($playerInput));
     if (! $player instanceof Player) {
         $this->error('No Player exists with that ID.');
 
