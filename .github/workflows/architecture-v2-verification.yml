@@ -42,7 +42,7 @@ concurrency:
 
 jobs:
   architecture-contract:
-    name: V2 architecture through P3 Alliance hard cut
+    name: V2 architecture through P3 plus P4 access cut
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
@@ -78,6 +78,17 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
+      - name: Inventory remaining V1 Authorization references
+        shell: bash
+        run: |
+          matches=$(grep -R -l -F --include='*.php' 'App\Domain\Authorization' app routes tests bootstrap config database 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            details=${matches//'%'/'%25'}
+            details=${details//$'\r'/'%0D'}
+            details=${details//$'\n'/'%0A'}
+            echo "::notice title=P4 remaining V1 Authorization references::$details"
+          fi
+
       - name: Configure PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
@@ -92,7 +103,7 @@ jobs:
       - name: Verify PostgreSQL schema
         run: php artisan migrate --force
 
-      - name: Check V2 through P3 PHP formatting
+      - name: Check V2 through P4 PHP formatting
         shell: bash
         run: |
           set -o pipefail
@@ -156,7 +167,7 @@ jobs:
             exit "$status"
           fi
 
-      - name: Larastan P2 and P3 contexts
+      - name: Larastan P2 through P4 contexts
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1G
           app/Contexts/Accounts
