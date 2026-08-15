@@ -13,7 +13,7 @@ use App\Domain\Events\Enums\EventScope;
 final class KingShotEventMetricCatalog
 {
     /**
-     * @param list<EventCapability> $capabilities
+     * @param  list<EventCapability>  $capabilities
      * @return array{
      *   score: array{label_key:string,unit:string|null,higher_is_better:bool|null}|null,
      *   metrics: list<array{
@@ -138,7 +138,7 @@ final class KingShotEventMetricCatalog
     }
 
     /**
-     * @param list<array<string, mixed>> $metrics
+     * @param  list<array<string, mixed>>  $metrics
      * @return array{score:array{label_key:string,unit:string|null,higher_is_better:bool|null}|null,metrics:list<array<string,mixed>>}
      */
     private static function result(?array $score, array $metrics = []): array
