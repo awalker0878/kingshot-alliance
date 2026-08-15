@@ -210,6 +210,8 @@ Historical acceptance/security evidence may remain in an archive/evidence locati
 
 ### ARCH-V2-P2 — Accounts and GameWorld foundation
 
+**Implementation status:** hard cut landed; targeted verification in progress.
+
 - move User/account security to Accounts;
 - rebuild Player/Kingdom/game-Alliance identity in GameWorld;
 - remove cross-context ORM navigation from foundation models;
