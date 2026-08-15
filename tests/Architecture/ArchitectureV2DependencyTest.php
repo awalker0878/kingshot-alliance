@@ -53,7 +53,7 @@ final class ArchitectureV2DependencyTest extends TestCase
     {
         $domainRoot = $this->root().'/app/Domain';
 
-        if (!is_dir($domainRoot)) {
+        if (! is_dir($domainRoot)) {
             self::assertTrue(true);
 
             return;
@@ -62,7 +62,7 @@ final class ArchitectureV2DependencyTest extends TestCase
         $actual = [];
 
         foreach (new \DirectoryIterator($domainRoot) as $entry) {
-            if ($entry->isDir() && !$entry->isDot()) {
+            if ($entry->isDir() && ! $entry->isDot()) {
                 $actual[] = $entry->getFilename();
             }
         }
@@ -260,7 +260,7 @@ final class ArchitectureV2DependencyTest extends TestCase
     /** @return list<string> */
     private function phpFiles(string $directory): array
     {
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return [];
         }
 
