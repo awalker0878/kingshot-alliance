@@ -36,10 +36,9 @@ final readonly class RespondToEventRosterAssignment
             throw ValidationException::withMessages(['status' => 'Roster assignment response must be confirmed or declined.']);
         }
 
-        $member->loadMissing('roster.occurrence.event');
-        $roster = $member->roster;
-        $occurrence = $roster->occurrence;
-        $event = $occurrence->event;
+        $roster = $member->roster()->firstOrFail();
+        $occurrence = $roster->occurrence()->firstOrFail();
+        $event = $occurrence->event()->firstOrFail();
 
         return DB::transaction(function () use ($actor, $member, $player, $status, $roster, $occurrence, $event): EventRosterMember {
             $context = $this->mutations->requireSelf($actor, $event, $player);
@@ -65,11 +64,11 @@ final readonly class RespondToEventRosterAssignment
             if ((string) $locked->player_id !== (string) $context->actor->id) {
                 throw new AuthorizationException;
             }
-            if (in_array($locked->status, [EventRosterMemberStatus::Removed, EventRosterMemberStatus::Participated, EventRosterMemberStatus::Absent], true)) {
+            if (in_array($locked->statusEnum(), [EventRosterMemberStatus::Removed, EventRosterMemberStatus::Participated, EventRosterMemberStatus::Absent], true)) {
                 throw ValidationException::withMessages(['status' => 'This roster assignment can no longer be confirmed or declined.']);
             }
 
-            if ($status === EventRosterMemberStatus::Confirmed && ! $locked->status->occupiesSlot()) {
+            if ($status === EventRosterMemberStatus::Confirmed && ! $locked->statusEnum()->occupiesSlot()) {
                 $occupying = $this->occupyingStatuses();
                 $activeCount = EventRosterMember::query()
                     ->where('roster_id', $lockedRoster->id)
@@ -125,7 +124,7 @@ final readonly class RespondToEventRosterAssignment
                 $alliance?->id,
                 $locked,
                 $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
+                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
             );
 
             return $locked->refresh()->load(['player', 'roster']);
