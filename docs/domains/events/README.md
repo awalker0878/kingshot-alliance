@@ -9,7 +9,7 @@
 
 ## 1. Purpose and ownership
 
-Events owns KingShot Event scheduling and operational coordination across Player, Alliance, and Kingdom scopes. It owns the Event Type catalogue, supported-scope configuration, capability configuration, scheduling, participation facts, Event workspaces, results, Event metrics, and historical Event facts.
+Events owns KingShot Event scheduling and operational coordination across Player, Alliance, and Kingdom scopes. It owns the Event Type catalogue, Event metric catalogue, supported-scope configuration, capability configuration, scheduling, participation facts, Event workspaces, results, Event metrics, and historical Event facts.
 
 Authorization owns permission grants. Kingdoms owns durable `Kingdom` and `Player` identity. Notifications owns reminder delivery state. Rallies owns Rally-specific operational persistence when enabled by an Event capability. Contributions consumes Events facts for unified contribution/history reporting without becoming the owner of those facts.
 
@@ -18,6 +18,7 @@ Authorization owns permission grants. Kingdoms owns durable `Kingdom` and `Playe
 In scope:
 
 - Event Type catalogue and per-scope configuration;
+- KingShot Event score/component metric catalogue;
 - Player, Alliance, and Kingdom Event scheduling;
 - templates and recurring occurrences;
 - responses, registration, waitlist, attendance, and reminders;
@@ -34,13 +35,14 @@ Kingdom Transfer state remains owned by the Kingdoms transfer workflow. Events m
 
 ## 3. Domain model
 
-Events separates five dimensions:
+Events separates six dimensions:
 
 1. **Event Type** — what activity is taking place.
 2. **Scope** — `player`, `alliance`, or `kingdom`.
 3. **Target** — the exact durable `Player`, `Alliance`, or `Kingdom` that owns the Event.
 4. **Capabilities** — reusable operational modules enabled for a type/scope combination.
-5. **Permission** — current authority to view, create, or manage the exact target.
+5. **Measurement profile** — first-class score semantics plus compatible Event/Alliance/Player component metric definitions.
+6. **Permission** — current authority to view, create, or manage the exact target.
 
 `Player` is the durable participant identity used for Event participation and personal history. Alliance membership and Kingdom placement are contextual and may change over time without rewriting historical Event ownership.
 
@@ -62,10 +64,12 @@ Events separates five dimensions:
 14. New Events and templates snapshot their resolved schedule source, recurrence policy, minimum repeat interval, schedule fields, instructions, and settings so later catalogue edits do not rewrite existing schedules.
 15. Participation facts remain distinct: response, registration, roster selection, confirmation, attendance, result, and metric evidence.
 16. Historical display/context snapshots are evidence only and never authorize access.
+17. `score`, `rank`, and `outcome` remain first-class result fields; score semantics are defined by exact Event Type scope rather than duplicated as metric rows.
+18. Component metric subjects are exactly `event | alliance | player`, and incompatible Event metrics are never silently combined into a universal score.
 
 ## 5. Lifecycles and workflows
 
-A user first resolves an authorized creation context. The Event Type catalogue then limits available types to those active for that scope. Scheduling creates an Event and one or more occurrences. Capability configuration determines which workflows are available for each occurrence.
+A user first resolves an authorized creation context. The Event Type catalogue then limits available types to those active for that scope. Scheduling creates an Event and one or more occurrences. Capability configuration determines which workflows are available for each occurrence. The metric catalogue determines which first-class score semantics and normalized component definitions are valid for the exact Event Type/scope.
 
 Typical operational flow:
 
@@ -114,24 +118,25 @@ Consumes:
 
 - **Authorization** — Alliance and Kingdom contextual grants;
 - **Memberships** — current Alliance membership and R1–R5 rank for current authority/eligibility only;
-- **Alliances** — Alliance target and time zone;
+- **Alliances** — Alliance target, required `kingdom_id`, and time zone;
 - **Kingdoms** — Kingdom and durable Player identity;
 - **Notifications** — reminder delivery orchestration;
 - **Rallies** — Rally-specific operations; and
 - **Audit/Platform** — attributable evidence and platform infrastructure.
 
-Exposes Event Type metadata, occurrences, participation facts, operational assignments, results, metrics, and historical Event facts to authorized consumers. Contributions consumes those facts through supported read/query contracts.
+Exposes Event Type metadata, metric definitions/score semantics, occurrences, participation facts, operational assignments, results, metrics, and historical Event facts to authorized consumers. Contributions consumes those facts through supported read/query contracts.
 
 ## 8. Persistence and data ownership
 
 Events owns:
 
 - `event_types`;
-- `event_type_scopes`;
+- `event_type_scopes`, including first-class score semantics;
 - `event_type_capabilities`;
+- `event_metric_definitions`;
 - Event schedules, templates, and occurrences;
 - responses, registrations, attendance, phases, polls, rosters, objectives, and results;
-- normalized Event metric definitions/values; and
+- normalized Event/Alliance/Player metric values; and
 - occurrence-time historical Player context required to preserve the meaning of past participation.
 
 Notifications and Rallies retain persistence specific to their own domains. Contributions does not duplicate Events facts into a second canonical ledger merely for reporting.
@@ -140,7 +145,7 @@ Notifications and Rallies retain persistence specific to their own domains. Cont
 
 Material Event mutations create audit evidence and outbox events. Outbox partitioning follows the Event target context so Player, Alliance, and Kingdom operations can be processed without inventing a different owner.
 
-Integrations owns externally published APIs/webhooks. Internal Event domain events are not automatically public integration contracts.
+Integrations owns externally published APIs/webhooks. Internal Event domain events are not automatically public integration contracts. Imported metric values, when implemented, remain subject to Events-owned definition/subject/dimension/target validation.
 
 ## 10. HTTP, UI and API surfaces
 
@@ -157,11 +162,13 @@ First-party Event surfaces include:
 - Event Type administration; and
 - authenticated exports.
 
-The management workspace renders modules from the Event Type capabilities rather than a universal fixed form.
+The management workspace renders modules from the Event Type capabilities rather than a universal fixed form. Result/history UI uses persisted Event Type-scope score semantics and compatible component metric definitions.
 
 ## 11. Background processing
 
 Recurring occurrence materialization, reminder scheduling, notification delivery, and larger Event-derived processing use the shared scheduler/queue infrastructure. Jobs must carry exact target context and remain idempotent.
+
+Derived Event metric processing must use authoritative occurrence facts and the exact persisted metric definition rather than reconstructing meaning from labels or UI state.
 
 ## 12. Failure, idempotency and concurrency
 
@@ -169,6 +176,7 @@ Recurring occurrence materialization, reminder scheduling, notification delivery
 - target-model mismatch fails closed;
 - stale Player/membership/Kingdom authority fails closed;
 - Event target mutation after creation fails closed;
+- unknown/incompatible metric definitions or dimensions fail closed;
 - registration/capacity mutations use transactional locking;
 - roster assignment enforces occurrence/Player uniqueness and capacity where configured;
 - reminder delivery uses deterministic idempotency keys;
@@ -185,7 +193,7 @@ See [Events security](security/README.md).
 
 ## 14. Observability and operations
 
-Operational diagnostics should include Event Type, scope, target identifier, occurrence identifier, domain action, actor Player identifier, and outcome without logging private instructions or sensitive participation payloads.
+Operational diagnostics should include Event Type, scope, target identifier, occurrence identifier, domain action, actor Player identifier, metric subject/key/dimension when applicable, provenance source, and outcome without logging private instructions or sensitive participation payloads.
 
 See [Events operations](operations/README.md).
 
@@ -194,6 +202,7 @@ See [Events operations](operations/README.md).
 Tests protect:
 
 - Event Type catalogue integrity;
+- metric catalogue/score semantic integrity;
 - scope/target and scope/permission matching;
 - R5/R4/Event Coordinator Alliance authority;
 - exact-Kingdom authorization;
@@ -211,6 +220,8 @@ Tests protect:
 
 Events does not infer permissions from display names, historical affiliation, game leadership labels, Kingdom identity, or Platform status. It does not duplicate the Kingdom Transfer state machine, own generic notification delivery infrastructure, or generate an unexplained universal contribution score by adding incompatible Event metrics.
 
+Custom Events do not automatically inherit arbitrary KingShot component metrics; custom metric definition is a separate future capability if required.
+
 ## 17. Capability documents
 
 - [EVENTS-002 implementation plan](product/events-002-scoped-event-operations-implementation-plan.md)
@@ -220,6 +231,7 @@ Events does not infer permissions from display names, historical affiliation, ga
 - [Event battle plans](battle-plans.md)
 - [Event results and Player intelligence](results-and-intelligence.md)
 - [Event contribution and historical intelligence](event-contribution-history.md)
+- [KingShot Event metric catalogue](event-metric-catalogue.md)
 
 - [Events security](security/README.md)
 - [Events operations](operations/README.md)
