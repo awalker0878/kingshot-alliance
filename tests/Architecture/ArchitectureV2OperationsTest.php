@@ -71,6 +71,31 @@ final class ArchitectureV2OperationsTest extends TestCase
     }
 
     #[Test]
+    public function event_management_commands_and_cross_context_projection_have_separate_owners(): void
+    {
+        $commandPath = $this->root().'/app/Contexts/Operations/EventCore/Http/Controllers/EventManagementController.php';
+        $projectionPath = $this->root().'/app/ReadModels/EventManagement/Http/Controllers/EventManagementPageController.php';
+        $routesPath = $this->root().'/routes/web.php';
+
+        self::assertFileExists($commandPath);
+        self::assertFileExists($projectionPath);
+
+        $commandSource = file_get_contents($commandPath);
+        $projectionSource = file_get_contents($projectionPath);
+        $routesSource = file_get_contents($routesPath);
+
+        self::assertIsString($commandSource);
+        self::assertIsString($projectionSource);
+        self::assertIsString($routesSource);
+
+        self::assertStringNotContainsString('EventPlayerIntelligenceQuery', $commandSource);
+        self::assertStringNotContainsString('function manage(', $commandSource);
+        self::assertStringContainsString('EventPlayerIntelligenceQuery', $projectionSource);
+        self::assertStringContainsString('EventManagementPageController::class', $routesSource);
+        self::assertDirectoryDoesNotExist($this->root().'/app/Contexts/Platform/EventOperations');
+    }
+
+    #[Test]
     public function event_reminder_policy_does_not_navigate_into_delivery_state(): void
     {
         $path = $this->root().'/app/Contexts/Operations/Reminders/Models/EventReminderRule.php';
