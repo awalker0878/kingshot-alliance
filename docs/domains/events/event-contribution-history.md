@@ -129,24 +129,42 @@ Snapshot fields are presentation/evidence only and never grant permission.
 
 ## 7. Metric semantics
 
-Event metrics are defined by Event Type scope and a stable metric key. A definition identifies at least subject, unit/value type, aggregation semantics, display metadata, and whether the metric is meaningful as a contribution metric.
+Event result measurement has two layers.
 
-Metric subjects are deliberately structural:
+### First-class result fields
 
-- `event` for occurrence-wide results;
-- `alliance` for Alliance results inside Kingdom Events; and
-- `player` for durable Player results.
+`score`, `rank`, and `outcome` remain first-class result fields. `event_type_scopes` defines the meaning of `score` for each supported Event Type/scope through:
 
-Examples:
+```text
+result_score_label_key
+result_score_unit
+result_score_higher_is_better
+```
 
-- Bear Hunt: damage, rallies joined, rallies led;
-- Swordland: battle score, objective contribution, roster/attendance outcomes;
-- Kingdom of Power: score, rank, represented Alliance, phase contribution;
-- Hall of Governors: score and rank.
+The primary score is therefore stored once rather than copied into a metric row merely to attach Event-specific semantics.
 
-Universally comparable historical facts may include Event participation count, completed/absent/excused outcomes, and reliability. Event-specific numeric metrics are compared only with compatible Event Type scope + metric definition.
+### Normalized component metrics
+
+Additional contribution facts use `event_metric_definitions` and normalized metric value rows. A definition identifies:
+
+- `event | alliance | player` subject;
+- stable metric key;
+- localization key and unit;
+- integer/decimal/duration/percentage value type;
+- aggregation semantics;
+- optional `phase | objective` dimension kind;
+- contribution/primary flags; and
+- optional higher-is-better direction.
+
+Dimensioned metrics use `dimension_key` only after P3 validates the key against the exact occurrence's phase/objective state.
+
+Examples include Bear Hunt Rally participation, battlefield kills/captures/occupation duration, Castle point components, and Kingdom of Power phase-point breakdowns.
+
+Universally comparable historical facts may include Event participation count, completed/absent/excused outcomes, and reliability. Numeric metrics are compared only when their Event Type scope, subject, metric definition, and dimension semantics are compatible.
 
 The system does not create an unexplained universal total by adding unrelated scores or units.
+
+See [KingShot Event metric catalogue](event-metric-catalogue.md).
 
 ## 8. Immutability and retention
 
@@ -188,7 +206,9 @@ The implementation must cover:
 - sibling Players owned by one User remain isolated;
 - current membership/current Kingdom placement never filters historical participants;
 - Event target is immutable after creation;
-- historical snapshots never grant authority; and
+- historical snapshots never grant authority;
+- score semantics are defined per Event Type scope without duplicating the score as a component metric;
+- dimensioned metric definitions validate against exact occurrence dimensions before write; and
 - incompatible metric definitions cannot be aggregated as one universal score.
 
 ## 12. Greenfield implementation rule
@@ -197,6 +217,7 @@ The database is treated as empty for EVENT-CONTRIB-001. Implementation modifies 
 
 ## 13. Related documentation
 
+- [KingShot Event metric catalogue](event-metric-catalogue.md)
 - [ADR 0011 — Historical Event and contribution ownership](../../adr/0011-event-history-and-contribution-ownership.md)
 - [Event results and Player intelligence](results-and-intelligence.md)
 - [Contributions](../contributions/README.md)
