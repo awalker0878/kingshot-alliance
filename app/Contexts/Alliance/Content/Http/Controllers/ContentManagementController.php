@@ -47,8 +47,7 @@ final class ContentManagementController extends Controller
         ContentQuery $content,
         ContentPresenter $presenter,
     ): Response {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        $user = $this->user($request);
         $actor = $context->player();
         $alliance = $context->alliance()->load('kingdom');
 
