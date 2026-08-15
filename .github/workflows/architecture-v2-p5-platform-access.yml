@@ -33,9 +33,9 @@ jobs:
           from pathlib import Path
 
           replacements = {
-              r'App\\Domain\\Platform\\Models\\PlatformAdministrator': r'App\\Contexts\\Platform\\Access\\Models\\PlatformAdministrator',
-              r'App\\Domain\\Platform\\Services\\PlatformMutationAuthority': r'App\\Contexts\\Platform\\Access\\Services\\PlatformMutationAuthority',
-              r'App\\Domain\\Platform\\ValueObjects\\PlatformMutationContext': r'App\\Contexts\\Platform\\Access\\ValueObjects\\PlatformMutationContext',
+              'App\\Domain\\Platform\\Models\\PlatformAdministrator': 'App\\Contexts\\Platform\\Access\\Models\\PlatformAdministrator',
+              'App\\Domain\\Platform\\Services\\PlatformMutationAuthority': 'App\\Contexts\\Platform\\Access\\Services\\PlatformMutationAuthority',
+              'App\\Domain\\Platform\\ValueObjects\\PlatformMutationContext': 'App\\Contexts\\Platform\\Access\\ValueObjects\\PlatformMutationContext',
           }
 
           for root in ('app', 'routes', 'tests', 'bootstrap', 'config', 'database'):
