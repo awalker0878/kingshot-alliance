@@ -1,0 +1,66 @@
+name: Event History Final Type Fix
+
+on:
+  push:
+    branches:
+      - feature/event-contribution-history-p0
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/event-contribution-history-p0
+          fetch-depth: 0
+      - name: Apply exact Event form typing fixes
+        shell: python
+        run: |
+          from pathlib import Path
+
+          manage = Path('resources/js/pages/Events/Manage.vue')
+          text = manage.read_text()
+          marker = "type PlayerIntelligence = { playerId: string; playerName: string; commitments: number; completed: number; absent: number; excused: number; unresolved: number; reliabilityPercent: number | null; resultCount: number; averageScore: number | null; bestScore: number | null; latestScore: number | null };\n\n"
+          addition = marker + "type EventFormValue = string | number | boolean | null | EventFormValue[] | { [key: string]: EventFormValue };\n\n"
+          if 'type EventFormValue =' not in text:
+              if marker not in text:
+                  raise SystemExit('Manage.vue insertion marker not found')
+              text = text.replace(marker, addition, 1)
+          old = "recurrencePolicy: 'disabled' | 'fixed_interval' | 'configurable'; recurrenceFrequency: 'none' | 'daily' | 'weekly'; recurrenceInterval: number;\n    recurrenceUntilLocal: string | null; settings: Record<string, unknown>; capabilities: string[]; createdByPlayerId: string | null; updatedByPlayerId: string | null; occurrences: Array<{ id: string; startsAt: string; endsAt: string; status: string }>;"
+          new = "recurrencePolicy: 'disabled' | 'fixed_interval' | 'configurable'; recurrenceFrequency: 'none' | 'daily' | 'weekly'; recurrenceInterval: number;\n    recurrenceUntilLocal: string | null; settings: Record<string, EventFormValue>; capabilities: string[]; createdByPlayerId: string | null; updatedByPlayerId: string | null; occurrences: Array<{ id: string; startsAt: string; endsAt: string; status: string }>;"
+          if old in text:
+              text = text.replace(old, new, 1)
+          elif 'settings: Record<string, EventFormValue>' not in text:
+              raise SystemExit('Manage.vue settings marker not found')
+          manage.write_text(text)
+
+          show = Path('resources/js/pages/Events/Show.vue')
+          text = show.read_text()
+          old = 'const registrationForm = useForm({});'
+          new = "const registrationForm = useForm<{ registration?: string }>({});"
+          if old in text:
+              text = text.replace(old, new, 1)
+          elif new not in text:
+              raise SystemExit('Show.vue registration form marker not found')
+          show.write_text(text)
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Prove TypeScript fix before commit
+        run: npm run types:check
+      - name: Commit exact fixes
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resources/js/pages/Events/Manage.vue resources/js/pages/Events/Show.vue
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Fix Event form TypeScript contracts'
+          git pull --rebase origin feature/event-contribution-history-p0
+          git push origin HEAD:feature/event-contribution-history-p0
