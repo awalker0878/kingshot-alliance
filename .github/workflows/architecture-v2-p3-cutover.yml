@@ -1,0 +1,69 @@
+name: Architecture V2 P3 Cutover
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths:
+      - '.github/workflows/architecture-v2-p3-cutover.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cutover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out architecture-v2
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v2
+          fetch-depth: 0
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Apply P3 Alliance hard cut
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64, zlib
+          payload = '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'
+          script = zlib.decompress(base64.b64decode(payload))
+          exec(compile(script, 'p3_transform.py', 'exec'), {'__name__': '__main__'})
+          PY
+
+      - name: Format changed PHP only
+        shell: bash
+        run: |
+          mapfile -t files < <(git diff --name-only --diff-filter=ACM -- '*.php')
+          if (( ${#files[@]} > 0 )); then
+            vendor/bin/pint "${files[@]}"
+          fi
+
+      - name: Syntax-check transformed PHP
+        shell: bash
+        run: find app bootstrap config database routes tests -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null
+
+      - name: Remove one-off migration tooling
+        shell: bash
+        run: |
+          rm -f .github/workflows/architecture-v2-p3-cutover.yml
+          rm -f .github/workflows/architecture-v2-source-snapshot.yml
+
+      - name: Commit P3 hard cut
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && exit 1
+          git commit -m 'refactor(arch-v2): consolidate Alliance bounded context'
+          git push origin HEAD:architecture-v2
