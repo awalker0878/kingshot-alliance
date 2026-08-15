@@ -3,7 +3,13 @@
 declare(strict_types=1);
 
 use App\Domain\Contributions\Http\Controllers\ContributionController;
+use App\Domain\Contributions\Http\Controllers\ContributionHistoryController;
 use Illuminate\Support\Facades\Route;
+
+Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void {
+    Route::get('/contributions/history', [ContributionHistoryController::class, 'index'])
+        ->name('contributions.history');
+});
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {
     Route::get('/alliance/contributions', [ContributionController::class, 'index'])
