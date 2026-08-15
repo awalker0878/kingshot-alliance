@@ -8,6 +8,7 @@ use App\Contexts\Operations\EventCore\Enums\EventRecurrencePolicy;
 use App\Contexts\Operations\EventCore\Enums\EventScheduleSource;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
+use App\Contexts\Operations\Results\Models\EventMetricDefinition;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
