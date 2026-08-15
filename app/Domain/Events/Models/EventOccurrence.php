@@ -12,7 +12,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
-/** @property Carbon $starts_at @property Carbon $ends_at */
+/**
+ * @property Carbon $starts_at
+ * @property Carbon $ends_at
+ * @property EventOccurrenceStatus $status
+ * @property-read Event|null $event
+ */
 final class EventOccurrence extends Model
 {
     use HasUlids;
