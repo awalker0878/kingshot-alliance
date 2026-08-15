@@ -190,6 +190,8 @@ Final work is limited to cleanup and verification:
 - run frontend checks for the new history surfaces; and
 - leave only the final accepted model in living documentation.
 
+Verification checkpoint: the pre-cleanup consolidated run passed fresh PostgreSQL migration and changed-file Pint. Its sole Larastan failure was an unused private attendance-query helper in `EventPlayerOccurrenceEvidenceQuery`; that dead helper and its temporary cleanup workflow have now been removed. The consolidated workflow is being rerun on this normal branch-authored head as the final EC-P12 gate.
+
 ## Definition of done
 
 EVENT-CONTRIB-001 is complete when the application can independently answer:
