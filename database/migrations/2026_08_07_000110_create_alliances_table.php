@@ -27,6 +27,7 @@ return new class extends Migration
         $driver = DB::connection()->getDriverName();
 
         if ($driver === 'pgsql') {
+            DB::statement('DROP FUNCTION IF EXISTS alliances_prevent_kingdom_change()');
             DB::statement("CREATE FUNCTION alliances_prevent_kingdom_change() RETURNS trigger AS $$ BEGIN IF NEW.kingdom_id IS DISTINCT FROM OLD.kingdom_id THEN RAISE EXCEPTION 'alliance kingdom is immutable'; END IF; RETURN NEW; END; $$ LANGUAGE plpgsql");
             DB::statement("CREATE TRIGGER alliances_kingdom_immutable BEFORE UPDATE OF kingdom_id ON alliances FOR EACH ROW EXECUTE FUNCTION alliances_prevent_kingdom_change()");
         }
