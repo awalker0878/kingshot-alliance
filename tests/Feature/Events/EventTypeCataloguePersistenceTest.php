@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Events;
 
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\Results\Enums\EventMetricSubject;
 use App\Contexts\Operations\EventCore\Enums\EventRecurrencePolicy;
 use App\Contexts\Operations\EventCore\Enums\EventScheduleSource;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
@@ -14,6 +13,7 @@ use App\Contexts\Operations\EventCore\Models\EventType;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityResolver;
 use App\Contexts\Operations\EventCore\Services\EventTypeDefaultsResolver;
 use App\Contexts\Operations\EventCore\Services\EventTypeRegistry;
+use App\Contexts\Operations\Results\Enums\EventMetricSubject;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

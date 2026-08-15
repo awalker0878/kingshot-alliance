@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Reminders\Models;
 
 use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\Reminders\Enums\EventReminderAudience;
-use App\Contexts\Operations\Reminders\Enums\EventReminderTrigger;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventPoll;
+use App\Contexts\Operations\Reminders\Enums\EventReminderAudience;
+use App\Contexts\Operations\Reminders\Enums\EventReminderTrigger;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -55,5 +55,4 @@ final class EventReminderRule extends Model
     {
         return $this->belongsTo(Player::class, 'updated_by_player_id');
     }
-
 }

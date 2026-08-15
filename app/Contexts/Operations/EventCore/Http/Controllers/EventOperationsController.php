@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Platform\EventAdministration\Http\Controllers;
+namespace App\Contexts\Operations\EventCore\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\GameWorld\Services\PlayerContext;
-use App\Contexts\Operations\Polls\Actions\CastEventPollVote;
 use App\Contexts\Operations\EventCore\Actions\SaveEventPhase;
-use App\Contexts\Operations\Polls\Actions\SaveEventPoll;
 use App\Contexts\Operations\EventCore\Enums\EventPhaseStatus;
 use App\Contexts\Operations\EventCore\Enums\EventPhaseType;
-use App\Contexts\Operations\Polls\Enums\EventPollStatus;
-use App\Contexts\Operations\Polls\Enums\EventPollType;
 use App\Contexts\Operations\EventCore\Models\EventPhase;
 use App\Contexts\Operations\EventCore\Models\EventPoll;
 use App\Contexts\Operations\EventCore\Queries\EventCalendarQuery;
+use App\Contexts\Operations\Polls\Actions\CastEventPollVote;
+use App\Contexts\Operations\Polls\Actions\SaveEventPoll;
+use App\Contexts\Operations\Polls\Enums\EventPollStatus;
+use App\Contexts\Operations\Polls\Enums\EventPollType;
 use App\Contexts\Operations\Reminders\Actions\SyncEventPollDeadlineReminder;
 use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;

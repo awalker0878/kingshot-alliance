@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Results\Catalog;
 
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
+use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\Results\Enums\EventMetricAggregation;
 use App\Contexts\Operations\Results\Enums\EventMetricSubject;
 use App\Contexts\Operations\Results\Enums\EventMetricValueType;
-use App\Contexts\Operations\EventCore\Enums\EventScope;
 
 /**
  * @phpstan-type ScoreProfile array{label_key:string,unit:string|null,higher_is_better:bool|null}

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\Communications\Reminders\Models;
 
 use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Communications\Reminders\Enums\EventReminderDeliveryStatus;
+use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;

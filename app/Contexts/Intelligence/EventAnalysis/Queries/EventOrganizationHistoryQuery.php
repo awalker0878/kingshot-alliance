@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\EventAnalysis\Queries;
 
-use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Models\EventAllianceResult;
 use App\Contexts\Operations\EventCore\Models\EventAllianceResultMetric;
@@ -14,6 +13,7 @@ use App\Contexts\Operations\EventCore\Models\EventPlayerResult;
 use App\Contexts\Operations\EventCore\Models\EventPlayerResultMetric;
 use App\Contexts\Operations\EventCore\Models\EventResult;
 use App\Contexts\Operations\EventCore\Models\EventResultMetric;
+use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Database\Query\Builder;

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Contexts\Platform\EventAdministration\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
-use App\Contexts\Platform\EventAdministration\Actions\UpdateEventTypeScope;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Enums\EventRecurrencePolicy;
 use App\Contexts\Operations\EventCore\Enums\EventScheduleSource;
@@ -13,6 +12,7 @@ use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\EventCore\Models\EventType;
 use App\Contexts\Operations\EventCore\Models\EventTypeScope;
+use App\Contexts\Platform\EventAdministration\Actions\UpdateEventTypeScope;
 use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\KingPerks;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Communications\Reminders\Models\KingPerkReminderDelivery;
 use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomRoleProvisioner;
@@ -28,7 +29,6 @@ use App\Contexts\Operations\KingPerks\Models\KingPerkRequest;
 use App\Contexts\Operations\KingPerks\Services\KingPerkAutoScheduler;
 use App\Contexts\Operations\KingPerks\Services\KingPerkScheduler;
 use App\Domain\Notifications\Actions\QueueDueKingPerkReminders;
-use App\Contexts\Communications\Reminders\Models\KingPerkReminderDelivery;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

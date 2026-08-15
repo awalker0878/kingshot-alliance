@@ -2,38 +2,38 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Platform\EventAdministration\Http\Controllers;
+namespace App\Contexts\Operations\EventCore\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Contexts\Intelligence\EventAnalysis\Queries\EventPlayerIntelligenceQuery;
+use App\Contexts\Operations\BattlePlans\Queries\EventObjectiveQuery;
 use App\Contexts\Operations\EventCore\Actions\CancelEvent;
 use App\Contexts\Operations\EventCore\Actions\CreateEvent;
 use App\Contexts\Operations\EventCore\Actions\CreateEventFromTemplate;
 use App\Contexts\Operations\EventCore\Actions\CreateEventTemplate;
 use App\Contexts\Operations\EventCore\Actions\UpdateEvent;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\Reminders\Enums\EventReminderAudience;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventTemplate;
 use App\Contexts\Operations\EventCore\Models\EventType;
 use App\Contexts\Operations\EventCore\Queries\EventCalendarQuery;
-use App\Contexts\Operations\BattlePlans\Queries\EventObjectiveQuery;
-use App\Contexts\Operations\Participation\Queries\EventParticipationQuery;
-use App\Contexts\Operations\Polls\Queries\EventPhasePollQuery;
-use App\Contexts\Intelligence\EventAnalysis\Queries\EventPlayerIntelligenceQuery;
-use App\Contexts\Operations\Results\Queries\EventResultQuery;
-use App\Contexts\Operations\Rosters\Queries\EventRosterQuery;
 use App\Contexts\Operations\EventCore\Queries\EventTemplateQuery;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityResolver;
 use App\Contexts\Operations\EventCore\Services\EventCreationContextResolver;
 use App\Contexts\Operations\EventCore\Services\EventTargetResolver;
 use App\Contexts\Operations\EventCore\Services\EventTypeDefaultsResolver;
 use App\Contexts\Operations\EventCore\Services\EventTypeRegistry;
-use App\Contexts\Operations\Reminders\Models\EventReminderRule;
+use App\Contexts\Operations\Participation\Queries\EventParticipationQuery;
+use App\Contexts\Operations\Polls\Queries\EventPhasePollQuery;
 use App\Contexts\Operations\Rallies\Queries\EventRallyQuery;
+use App\Contexts\Operations\Reminders\Enums\EventReminderAudience;
+use App\Contexts\Operations\Reminders\Models\EventReminderRule;
+use App\Contexts\Operations\Results\Queries\EventResultQuery;
+use App\Contexts\Operations\Rosters\Queries\EventRosterQuery;
 use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
