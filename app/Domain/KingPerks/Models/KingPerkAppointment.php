@@ -25,8 +25,8 @@ use LogicException;
  * @property Carbon|null $actual_started_at
  * @property Carbon|null $actual_ended_at
  * @property Carbon|null $completed_at
- * @property-read KingPerkPlan|null $plan
- * @property-read Player|null $assignedPlayer
+ * @property-read KingPerkPlan $plan
+ * @property-read Player $assignedPlayer
  * @property-read Player|null $assignedByPlayer
  */
 final class KingPerkAppointment extends Model
