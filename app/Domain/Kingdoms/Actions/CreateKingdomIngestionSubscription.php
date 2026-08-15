@@ -8,7 +8,7 @@ use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
@@ -32,7 +32,7 @@ final readonly class CreateKingdomIngestionSubscription
         $adapter = $this->adapters->require(trim($adapterKey));
 
         return DB::transaction(function () use ($alliance, $actor, $adapter): KingdomIngestionSubscription {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
             if ($context->alliance->kingdom_id === null) {
                 throw ValidationException::withMessages([
                     'adapter_key' => 'The alliance must have a current Kingdom before automated ingestion can be configured.',

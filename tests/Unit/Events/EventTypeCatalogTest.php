@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Events;
 
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Catalog\KingShotEventTypeCatalog;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventRecurrencePolicy;
@@ -38,9 +38,9 @@ final class EventTypeCatalogTest extends TestCase
         foreach (KingShotEventTypeCatalog::definitions() as $definition) {
             foreach ($definition['scopes'] as $scope) {
                 $expected = match ($scope['scope']) {
-                    EventScope::Player => [PermissionKey::EventPlayerView, PermissionKey::EventPlayerCreate, PermissionKey::EventPlayerManage],
-                    EventScope::Alliance => [PermissionKey::EventAllianceView, PermissionKey::EventAllianceCreate, PermissionKey::EventAllianceManage],
-                    EventScope::Kingdom => [PermissionKey::EventKingdomView, PermissionKey::EventKingdomCreate, PermissionKey::EventKingdomManage],
+                    EventScope::Player => [OperationsPermission::EventPlayerView, OperationsPermission::EventPlayerCreate, OperationsPermission::EventPlayerManage],
+                    EventScope::Alliance => [OperationsPermission::EventAllianceView, OperationsPermission::EventAllianceCreate, OperationsPermission::EventAllianceManage],
+                    EventScope::Kingdom => [OperationsPermission::EventKingdomView, OperationsPermission::EventKingdomCreate, OperationsPermission::EventKingdomManage],
                 };
 
                 self::assertSame($expected[0], $scope['view_permission']);
@@ -82,12 +82,14 @@ final class EventTypeCatalogTest extends TestCase
                     self::assertSame(RecurrenceFrequency::Daily, $scope['default_recurrence_frequency']);
                     self::assertSame(2, $scope['default_recurrence_interval']);
                     self::assertSame(2880, $scope['minimum_repeat_interval_minutes']);
+
                     continue;
                 }
 
                 if ($definition['slug'] === 'custom') {
                     self::assertSame(EventScheduleSource::Manual, $scope['schedule_source']);
                     self::assertSame(EventRecurrencePolicy::Configurable, $scope['recurrence_policy']);
+
                     continue;
                 }
 

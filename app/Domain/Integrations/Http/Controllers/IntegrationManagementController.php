@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Integrations\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
-use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Integrations\Actions\CreateApiCredential;
 use App\Domain\Integrations\Actions\CreateWebhookSubscription;
 use App\Domain\Integrations\Actions\RevokeApiCredential;
@@ -35,7 +35,7 @@ final class IntegrationManagementController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 401);
         $alliance = $context->alliance();
-        abort_unless($authorization->allows($context->player(), $alliance, PermissionKey::AllianceManage), 403);
+        abort_unless($authorization->allows($context->player(), $alliance, AlliancePermission::Manage), 403);
         $settings = AlliancePlatformSetting::query()->whereKey($alliance->id)->first();
         $apiAccessEnabled = $settings instanceof AlliancePlatformSetting
             ? (bool) $settings->api_access_enabled

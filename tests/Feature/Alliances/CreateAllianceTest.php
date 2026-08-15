@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Alliances;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Models\Role;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceRankPermissions;
@@ -14,7 +15,7 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Shared\Access\Models\Permission;
 use App\Shared\Audit\Models\AuditEvent;
 use App\Shared\Messaging\Models\OutboxMessage;
@@ -54,11 +55,11 @@ final class CreateAllianceTest extends TestCase
         self::assertNotNull($membership->joined_at);
         self::assertSame(3, Role::query()->where('alliance_id', $alliance->id)->count());
         self::assertEqualsCanonicalizing([
-            PermissionKey::InvitationManage->value,
-            PermissionKey::RecruitmentManage->value,
-            PermissionKey::EventAllianceCreate->value,
-            PermissionKey::EventAllianceManage->value,
-            PermissionKey::ContentManage->value,
+            AlliancePermission::InvitationManage->value,
+            AlliancePermission::RecruitmentManage->value,
+            OperationsPermission::EventAllianceCreate->value,
+            OperationsPermission::EventAllianceManage->value,
+            AlliancePermission::ContentManage->value,
         ], Permission::query()->pluck('key')->all());
         self::assertSame(AllianceRank::R5, $membership->rank);
         self::assertFalse($membership->roles()->exists());
@@ -72,8 +73,8 @@ final class CreateAllianceTest extends TestCase
         foreach ($rankPermissions->for(AllianceRank::R5) as $permission) {
             self::assertTrue($authorization->allows($ownerPlayer, $alliance, $permission));
         }
-        self::assertFalse($authorization->allows($ownerPlayer, $alliance, PermissionKey::EventKingdomManage));
-        self::assertFalse($authorization->allows($ownerPlayer, $alliance, PermissionKey::EventTypeManage));
+        self::assertFalse($authorization->allows($ownerPlayer, $alliance, OperationsPermission::EventKingdomManage));
+        self::assertFalse($authorization->allows($ownerPlayer, $alliance, OperationsPermission::EventTypeManage));
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,

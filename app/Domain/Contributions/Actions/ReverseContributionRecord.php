@@ -7,7 +7,7 @@ namespace App\Domain\Contributions\Actions;
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Contributions\Enums\ContributionRecordStatus;
 use App\Domain\Contributions\Models\ContributionRecord;
 use App\Shared\Audit\Services\AuditRecorder;
@@ -35,7 +35,7 @@ final class ReverseContributionRecord
         }
 
         return DB::transaction(function () use ($actor, $alliance, $record, $reason): ContributionRecord {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
             $locked = ContributionRecord::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($record->id)

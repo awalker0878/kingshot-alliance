@@ -10,7 +10,7 @@ use App\Contexts\GameWorld\Models\KingdomAlliance;
 use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy;
 use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyTransition;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
@@ -45,7 +45,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
         KingdomAllianceDiplomacyState $target,
         array $attributes,
     ): KingdomAllianceDiplomacy {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
+        if (! $this->authorization->allows($actor, $alliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
 

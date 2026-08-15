@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventRosterMemberStatus;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventObjective;
 use App\Domain\Events\Models\EventObjectiveAssignment;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRosterMember;
-use App\Contexts\GameWorld\Models\Player;
+use Carbon\CarbonImmutable;
 
 final readonly class EventObjectiveQuery
 {
@@ -53,8 +54,9 @@ final readonly class EventObjectiveQuery
             ->map(function (EventOccurrence $occurrence) use ($players): array {
                 $rosters = $occurrence->rosters()->orderBy('sort_order')->orderBy('key')->get();
                 $objectives = array_map(function (array $objective) use ($event): array {
-                    $objective['startsLocal'] = $objective['startsAt'] === null ? null : \Carbon\CarbonImmutable::parse($objective['startsAt'])->setTimezone($event->timezone)->format('Y-m-d\\TH:i');
-                    $objective['endsLocal'] = $objective['endsAt'] === null ? null : \Carbon\CarbonImmutable::parse($objective['endsAt'])->setTimezone($event->timezone)->format('Y-m-d\\TH:i');
+                    $objective['startsLocal'] = $objective['startsAt'] === null ? null : CarbonImmutable::parse($objective['startsAt'])->setTimezone($event->timezone)->format('Y-m-d\\TH:i');
+                    $objective['endsLocal'] = $objective['endsAt'] === null ? null : CarbonImmutable::parse($objective['endsAt'])->setTimezone($event->timezone)->format('Y-m-d\\TH:i');
+
                     return $objective;
                 }, $this->objectives($occurrence));
 

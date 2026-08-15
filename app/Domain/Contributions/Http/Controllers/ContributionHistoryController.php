@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Contributions\Http\Controllers;
 
-use App\Domain\Contributions\Queries\PlayerContributionHistoryQuery;
-use App\Domain\Events\Queries\EventContributionIntelligenceQuery;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Domain\Contributions\Queries\PlayerContributionHistoryQuery;
+use App\Domain\Events\Queries\EventContributionIntelligenceQuery;
 use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;

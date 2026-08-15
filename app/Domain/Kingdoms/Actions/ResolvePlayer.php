@@ -9,8 +9,8 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Models\KingdomRoleAssignment;
 use Illuminate\Validation\ValidationException;
 
 final class ResolvePlayer

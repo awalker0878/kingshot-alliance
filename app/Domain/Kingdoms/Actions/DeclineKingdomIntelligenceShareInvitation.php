@@ -8,7 +8,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomIntelligenceShare;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Domain\Kingdoms\Services\KingdomIntelligenceShareTokenService;
 use App\Shared\Audit\Services\AuditRecorder;
@@ -28,7 +28,7 @@ final readonly class DeclineKingdomIntelligenceShareInvitation
 
     public function handle(Alliance $recipientAlliance, Player $actor, string $token): KingdomIntelligenceShare
     {
-        if (! $this->authorization->allows($actor, $recipientAlliance, PermissionKey::KingdomManage)) {
+        if (! $this->authorization->allows($actor, $recipientAlliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
 

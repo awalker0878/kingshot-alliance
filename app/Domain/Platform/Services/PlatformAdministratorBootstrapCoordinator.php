@@ -15,6 +15,7 @@ use LogicException;
 final class PlatformAdministratorBootstrapCoordinator
 {
     private const LOCK_NAMESPACE = 1263556436;
+
     private const LOCK_KEY = 1;
 
     public function acquire(): void

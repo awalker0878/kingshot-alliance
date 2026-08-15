@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +25,7 @@ final readonly class MarkRosterEntryLeft
     public function handle(Alliance $alliance, Player $actor, string $entryId): AllianceRosterEntry
     {
         return DB::transaction(function () use ($alliance, $actor, $entryId): AllianceRosterEntry {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
 
             $routing = AllianceRosterEntry::query()
                 ->select(['id', 'player_id'])

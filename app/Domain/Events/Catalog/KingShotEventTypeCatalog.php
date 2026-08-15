@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Catalog;
 
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventCategory;
 use App\Domain\Events\Enums\EventRecurrencePolicy;
@@ -324,8 +324,8 @@ final class KingShotEventTypeCatalog
     }
 
     /**
-     * @param list<EventCapability> $capabilities
-     * @param array<string, array<string, int|string|bool|array<array-key, mixed>>> $capabilityConfiguration
+     * @param  list<EventCapability>  $capabilities
+     * @param  array<string, array<string, int|string|bool|array<array-key, mixed>>>  $capabilityConfiguration
      * @return array<string, mixed>
      */
     private static function scope(
@@ -345,9 +345,9 @@ final class KingShotEventTypeCatalog
         array $capabilityConfiguration = [],
     ): array {
         [$view, $create, $manage] = match ($scope) {
-            EventScope::Player => [PermissionKey::EventPlayerView, PermissionKey::EventPlayerCreate, PermissionKey::EventPlayerManage],
-            EventScope::Alliance => [PermissionKey::EventAllianceView, PermissionKey::EventAllianceCreate, PermissionKey::EventAllianceManage],
-            EventScope::Kingdom => [PermissionKey::EventKingdomView, PermissionKey::EventKingdomCreate, PermissionKey::EventKingdomManage],
+            EventScope::Player => [OperationsPermission::EventPlayerView, OperationsPermission::EventPlayerCreate, OperationsPermission::EventPlayerManage],
+            EventScope::Alliance => [OperationsPermission::EventAllianceView, OperationsPermission::EventAllianceCreate, OperationsPermission::EventAllianceManage],
+            EventScope::Kingdom => [OperationsPermission::EventKingdomView, OperationsPermission::EventKingdomCreate, OperationsPermission::EventKingdomManage],
         };
 
         return [
@@ -370,5 +370,4 @@ final class KingShotEventTypeCatalog
             'capabilities' => $capabilities,
         ];
     }
-
 }

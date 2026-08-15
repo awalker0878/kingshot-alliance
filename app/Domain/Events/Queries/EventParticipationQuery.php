@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventAttendance;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventResponse;
-use App\Contexts\GameWorld\Models\Player;
 
 final class EventParticipationQuery
 {

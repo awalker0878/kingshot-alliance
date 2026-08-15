@@ -7,7 +7,7 @@ namespace App\Domain\Contributions\Services;
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Contributions\Models\ContributionReportRun;
 use App\Domain\Contributions\Queries\AllianceContributionReportQuery;
 use App\Shared\Audit\Services\AuditRecorder;
@@ -58,7 +58,7 @@ final class ContributionReportExporter
     /** @return array{content: string, mime: string, filename: string, run: ContributionReportRun} */
     private function exportWithinTransaction(Alliance $alliance, Player $actor, string $format): array
     {
-        $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+        $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
         $rows = $this->reports->rows($context->alliance);
         $content = $format === 'csv'
             ? $this->csv($context->alliance, $rows)

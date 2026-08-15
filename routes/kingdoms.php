@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Contexts\Alliance\Access\Http\Controllers\KingdomRoleController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyContactController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyController;
@@ -9,7 +10,6 @@ use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceIntelligenceController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceObservationController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomIngestionController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomIntelligenceSharingController;
-use App\Domain\Authorization\Http\Controllers\KingdomRoleController;
 use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
 use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
 use App\Domain\Kingdoms\Http\Controllers\RosterController;

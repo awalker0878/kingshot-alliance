@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\Event;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -42,7 +42,7 @@ final readonly class EventParticipantAuthorization
             $actor,
             $event->scope,
             $target,
-            PermissionKey::from((string) $event->typeScope->view_permission_key),
+            OperationsPermission::from((string) $event->typeScope->view_permission_key),
         );
     }
 
@@ -50,7 +50,7 @@ final readonly class EventParticipantAuthorization
     {
         $event->loadMissing('typeScope');
         $target = $this->targets->forEvent($event);
-        $permission = PermissionKey::from((string) $event->typeScope->manage_permission_key);
+        $permission = OperationsPermission::from((string) $event->typeScope->manage_permission_key);
         $this->eventAuthorization->authorize($actor, $event->scope, $target, $permission);
     }
 

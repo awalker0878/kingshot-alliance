@@ -6,7 +6,7 @@ namespace App\Domain\Events\Queries;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Services\EventAuthorization;
 use DateTimeInterface;
@@ -28,7 +28,7 @@ final readonly class EventAllianceHistoryQuery
             $actor,
             EventScope::Alliance,
             $alliance,
-            PermissionKey::EventAllianceView,
+            OperationsPermission::EventAllianceView,
         );
 
         return $this->history->forTarget(EventScope::Alliance, (string) $alliance->id, $filters);

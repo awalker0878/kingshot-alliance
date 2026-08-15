@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
 use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Services\KingdomIngestionMutationState;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +53,7 @@ final readonly class QuarantineKingdomIngestionCandidate
                         'reason' => 'An already-quarantined candidate cannot be relabelled in place.',
                     ]);
                 }
+
                 return $candidate;
             }
             if ($candidate->state !== KingdomIngestionCandidateState::Pending) {

@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
@@ -50,7 +50,7 @@ final readonly class SaveRosterEntry
         }
 
         return DB::transaction(function () use ($alliance, $actor, $attributes, $entryId, $source, $importId, $expectedPlayerId): AllianceRosterEntry {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
             $name = trim($attributes['name']);
             $state = $attributes['state'] ?? RosterState::Active;
 

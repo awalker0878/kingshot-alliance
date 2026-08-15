@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Jobs;
 
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\Actions\CompleteKingdomIngestionBatch;
 use App\Domain\Kingdoms\Actions\RunKingdomIngestionSubscription;
 use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
-use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
-use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;

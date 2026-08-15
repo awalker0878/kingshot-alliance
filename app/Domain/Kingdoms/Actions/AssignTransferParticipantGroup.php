@@ -7,7 +7,7 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
@@ -35,7 +35,7 @@ final readonly class AssignTransferParticipantGroup
         ?string $groupId,
     ): TransferParticipant {
         return DB::transaction(function () use ($alliance, $actor, $planId, $participantId, $groupId): TransferParticipant {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
 
             $plan = TransferPlan::query()
                 ->where('alliance_id', $context->alliance->id)

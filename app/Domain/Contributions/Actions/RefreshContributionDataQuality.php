@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Contributions\Enums\ContributionRecordStatus;
 use App\Domain\Contributions\Models\ContributionCategory;
 use App\Domain\Contributions\Models\ContributionDataQualityFlag;
@@ -30,7 +30,7 @@ final class RefreshContributionDataQuality
     public function handle(Player $actor, Alliance $alliance): array
     {
         return DB::transaction(function () use ($actor, $alliance): array {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
 
             // Refresh is a Contributions-wide derived-state rebuild. Stabilize the two
             // source sets in the same order used by contribution entry: membership then category.

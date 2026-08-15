@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Actions\CommitRosterCsvImport;
 use App\Domain\Kingdoms\Actions\PreviewRosterCsvImport;
 use App\Domain\Kingdoms\Models\RosterImport;
@@ -113,7 +114,7 @@ final class RosterCsvController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance();
         $includePrivate = ($validated['scope'] ?? 'member') === 'management';
-        $permission = $includePrivate ? PermissionKey::KingdomManage : PermissionKey::AllianceView;
+        $permission = $includePrivate ? IntelligencePermission::KingdomManage : AlliancePermission::View;
 
         if (! $authorization->allows($context->player(), $alliance, $permission)) {
             throw new AuthorizationException;
@@ -174,7 +175,7 @@ final class RosterCsvController extends Controller
         Player $actor,
         Alliance $alliance,
     ): void {
-        if (! $authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($actor, $alliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
     }

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Models\EventTemplate;
 use App\Domain\Events\Services\EventCreationContextResolver;
-use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 

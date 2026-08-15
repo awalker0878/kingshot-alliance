@@ -95,7 +95,7 @@ final class RecruitmentExperienceTest extends TestCase
             $source = $this->read($path);
             self::assertStringContainsString("'name' => (string) \$user->name", $source);
             self::assertStringContainsString("'email' => (string) \$user->email", $source);
-            self::assertStringContainsString('PermissionKey::RecruitmentManage', $source);
+            self::assertStringContainsString('AlliancePermission::RecruitmentManage', $source);
         }
     }
 

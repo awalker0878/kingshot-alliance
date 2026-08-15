@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Notifications\Models;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventReminderAudience;
 use App\Domain\Events\Enums\EventReminderTrigger;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventPoll;
-use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,11 +19,12 @@ final class EventReminderRule extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
         'event_id', 'poll_id', 'trigger_type', 'minutes_before', 'audience', 'channel', 'is_enabled',
- 'created_by_player_id', 'updated_by_player_id',
+        'created_by_player_id', 'updated_by_player_id',
     ];
 
     protected function casts(): array
@@ -36,9 +37,28 @@ final class EventReminderRule extends Model
         ];
     }
 
-    public function event(): BelongsTo { return $this->belongsTo(Event::class); }
-    public function poll(): BelongsTo { return $this->belongsTo(EventPoll::class, 'poll_id'); }
-    public function createdByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'created_by_player_id'); }
-    public function updatedByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'updated_by_player_id'); }
-    public function deliveries(): HasMany { return $this->hasMany(EventReminderDelivery::class, 'rule_id'); }
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
+    }
+
+    public function poll(): BelongsTo
+    {
+        return $this->belongsTo(EventPoll::class, 'poll_id');
+    }
+
+    public function createdByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'created_by_player_id');
+    }
+
+    public function updatedByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'updated_by_player_id');
+    }
+
+    public function deliveries(): HasMany
+    {
+        return $this->hasMany(EventReminderDelivery::class, 'rule_id');
+    }
 }

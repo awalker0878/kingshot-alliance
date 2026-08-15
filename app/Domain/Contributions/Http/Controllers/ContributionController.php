@@ -11,7 +11,7 @@ use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Contributions\Actions\ApproveContributionRecord;
 use App\Domain\Contributions\Actions\CorrectContributionRecord;
 use App\Domain\Contributions\Actions\CreateContributionCategory;
@@ -49,7 +49,7 @@ final class ContributionController extends Controller
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
             'alliance' => ['id' => $alliance->id, 'name' => $alliance->name, 'timezone' => $alliance->timezone],
             'player' => ['id' => (string) $actor->id, 'name' => (string) $actor->current_name],
-            'canManage' => $authorization->allows($actor, $alliance, PermissionKey::ContributionManage),
+            'canManage' => $authorization->allows($actor, $alliance, IntelligencePermission::ContributionManage),
             'reporting' => $reports->memberDashboard($alliance, $actor),
         ]);
     }
@@ -244,7 +244,7 @@ final class ContributionController extends Controller
         $user = $this->user($request);
         $actor = $context->player();
         $alliance = $context->alliance();
-        abort_unless($authorization->allows($actor, $alliance, PermissionKey::ContributionManage), 403);
+        abort_unless($authorization->allows($actor, $alliance, IntelligencePermission::ContributionManage), 403);
 
         return [$user, $actor, $alliance];
     }

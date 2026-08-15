@@ -10,7 +10,7 @@ use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
@@ -51,7 +51,7 @@ final readonly class SaveTransferParticipant
         ?string $participantId = null,
     ): TransferParticipant {
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $participantId): TransferParticipant {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
 
             // Ordinary participant work shares the transfer-plan lifecycle. Plan
             // transitions retain the exclusive plan lock and therefore wait for all

@@ -91,7 +91,7 @@ final class ContentExperienceTest extends TestCase
         }
 
         $manager = $this->read('app/Domain/Content/Http/Controllers/ContentManagementController.php');
-        self::assertStringContainsString('PermissionKey::ContentManage', $manager);
+        self::assertStringContainsString('AlliancePermission::ContentManage', $manager);
         self::assertStringContainsString("'scheduled_for' => ['nullable', 'date']", $manager);
         self::assertStringContainsString('RestoreContentRevision', $manager);
         self::assertStringContainsString('UploadMediaAsset', $manager);

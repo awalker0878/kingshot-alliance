@@ -10,9 +10,9 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Models\KingdomRoleAssignment;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use Illuminate\Database\Eloquent\Builder;
 
 final class EventVisibilityResolver
@@ -24,8 +24,8 @@ final class EventVisibilityResolver
     {
         [$allianceIds, $managedPlayerAllianceIds] = $this->allianceTargets(
             $actor,
-            PermissionKey::EventAllianceView,
-            PermissionKey::EventPlayerManage,
+            OperationsPermission::EventAllianceView,
+            OperationsPermission::EventPlayerManage,
         );
 
         $playerIds = [(string) $actor->id];
@@ -34,7 +34,7 @@ final class EventVisibilityResolver
         return [
             'alliance' => $allianceIds,
             'player' => array_values(array_unique($playerIds)),
-            'kingdom' => $this->kingdomIds($actor, PermissionKey::EventKingdomView),
+            'kingdom' => $this->kingdomIds($actor, OperationsPermission::EventKingdomView),
         ];
     }
 
@@ -43,8 +43,8 @@ final class EventVisibilityResolver
     {
         [$allianceIds, $managedPlayerAllianceIds] = $this->allianceTargets(
             $actor,
-            PermissionKey::EventAllianceManage,
-            PermissionKey::EventPlayerManage,
+            OperationsPermission::EventAllianceManage,
+            OperationsPermission::EventPlayerManage,
         );
 
         $playerIds = [(string) $actor->id];
@@ -53,15 +53,15 @@ final class EventVisibilityResolver
         return [
             'alliance' => $allianceIds,
             'player' => array_values(array_unique($playerIds)),
-            'kingdom' => $this->kingdomIds($actor, PermissionKey::EventKingdomManage),
+            'kingdom' => $this->kingdomIds($actor, OperationsPermission::EventKingdomManage),
         ];
     }
 
     /** @return array{0:list<string>,1:list<string>} */
     private function allianceTargets(
         Player $actor,
-        PermissionKey $alliancePermission,
-        PermissionKey $playerPermission,
+        OperationsPermission $alliancePermission,
+        OperationsPermission $playerPermission,
     ): array {
         $membership = AllianceMembership::query()
             ->where('player_id', $actor->id)
@@ -109,7 +109,7 @@ final class EventVisibilityResolver
     }
 
     /** @return list<string> */
-    private function kingdomIds(Player $actor, PermissionKey $permission): array
+    private function kingdomIds(Player $actor, OperationsPermission $permission): array
     {
         return KingdomRoleAssignment::query()
             ->where('player_id', $actor->id)
@@ -123,7 +123,7 @@ final class EventVisibilityResolver
             ->all();
     }
 
-    private function membershipAllows(AllianceMembership $membership, PermissionKey $permission): bool
+    private function membershipAllows(AllianceMembership $membership, OperationsPermission $permission): bool
     {
         if ($this->rankPermissions->allows($membership->rank, $permission)) {
             return true;

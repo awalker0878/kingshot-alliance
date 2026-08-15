@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Models;
 
-use App\Domain\Events\Enums\EventRosterType;
 use App\Contexts\GameWorld\Models\Player;
+use App\Domain\Events\Enums\EventRosterType;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

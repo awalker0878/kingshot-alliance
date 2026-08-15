@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature\KingPerks;
 
-use App\Domain\Authorization\Enums\DefaultKingdomRole;
-use App\Domain\Authorization\Models\KingdomRoleAssignment;
-use App\Domain\Authorization\Services\KingdomRoleProvisioner;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
+use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Governance\Services\KingdomRoleProvisioner;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventTypeRegistry;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
 use App\Domain\KingPerks\Enums\KingAppointmentType;
 use App\Domain\KingPerks\Enums\KingPerkAppointmentStatus;
 use App\Domain\KingPerks\Enums\KingPerkPlanStatus;

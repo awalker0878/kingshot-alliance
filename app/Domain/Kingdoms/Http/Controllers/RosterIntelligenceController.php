@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Services\RosterIntelligence;
 use App\Shared\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -26,11 +27,11 @@ final class RosterIntelligenceController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, AlliancePermission::View)) {
             throw new AuthorizationException;
         }
 
-        $canManage = $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage);
+        $canManage = $authorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage);
         $metrics = $intelligence->forAlliance($alliance);
 
         return Inertia::render('Alliance/RosterIntelligence', [

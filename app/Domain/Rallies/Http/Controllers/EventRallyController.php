@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Http\Controllers;
 
-use App\Domain\Events\Models\EventOccurrence;
-use App\Domain\Events\Queries\EventCalendarQuery;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\GameWorld\Services\PlayerContext;
-use App\Shared\Http\Controller;
+use App\Domain\Events\Queries\EventCalendarQuery;
 use App\Domain\Rallies\Actions\AssignRallyPlayer;
 use App\Domain\Rallies\Actions\RecordRallyParticipation;
 use App\Domain\Rallies\Actions\RemoveRallyPlayer;
@@ -23,6 +21,7 @@ use App\Domain\Rallies\Models\RallyAssignment;
 use App\Domain\Rallies\Models\RallyGroup;
 use App\Domain\Rallies\Models\RallyGuidanceRule;
 use App\Domain\Rallies\ValueObjects\FormationComposition;
+use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

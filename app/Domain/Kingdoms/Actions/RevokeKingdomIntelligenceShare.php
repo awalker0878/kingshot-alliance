@@ -8,7 +8,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomIntelligenceShare;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
@@ -26,7 +26,7 @@ final readonly class RevokeKingdomIntelligenceShare
 
     public function handle(Alliance $sourceAlliance, Player $actor, string $shareId): KingdomIntelligenceShare
     {
-        if (! $this->authorization->allows($actor, $sourceAlliance, PermissionKey::KingdomManage)) {
+        if (! $this->authorization->allows($actor, $sourceAlliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
 

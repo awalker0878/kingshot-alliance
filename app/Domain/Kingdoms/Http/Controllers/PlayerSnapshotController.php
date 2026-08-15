@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\PlayerSnapshot;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Actions\RecordPlayerSnapshot;
 use App\Domain\Kingdoms\Queries\PlayerSnapshotQuery;
 use App\Shared\Http\Controller;
@@ -33,7 +34,7 @@ final class PlayerSnapshotController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, AlliancePermission::View)) {
             throw new AuthorizationException;
         }
 
@@ -46,7 +47,7 @@ final class PlayerSnapshotController extends Controller
             ->where('player_id', $rosterEntry->player_id)
             ->where('status', MembershipStatus::Active->value)
             ->first();
-        $canManage = $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage);
+        $canManage = $authorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage);
         $latest = $snapshots->latestForEntry($alliance, $rosterEntry);
 
         return Inertia::render('Alliance/RosterHistory', [

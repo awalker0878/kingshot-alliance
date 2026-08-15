@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Http\Controllers;
 
-use App\Domain\Events\Enums\EventReminderAudience;
-use App\Domain\Events\Queries\EventCalendarQuery;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Domain\Events\Enums\EventReminderAudience;
+use App\Domain\Events\Queries\EventCalendarQuery;
 use App\Domain\Notifications\Actions\CreateEventReminderRule;
 use App\Domain\Notifications\Actions\DisableEventReminderRule;
 use App\Domain\Notifications\Models\EventReminderRule;

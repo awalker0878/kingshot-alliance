@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Enums\KingdomStatus;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Shared\Audit\Services\AuditRecorder;
@@ -35,7 +35,7 @@ final readonly class CreateTransferPlan
             // Creating a Draft transfer plan is not an Alliance-wide singleton. The
             // ordinary mutation boundary protects lifecycle/authority without turning
             // unrelated Draft creation into an Alliance mutex.
-            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
 
             $homeKingdom = Kingdom::query()
                 ->whereKey($context->alliance->kingdom_id)

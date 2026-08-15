@@ -10,7 +10,7 @@ use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
 use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
 use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
@@ -32,7 +32,7 @@ final readonly class RejectKingdomIngestionCandidate
         string $candidateId,
     ): KingdomIngestionCandidate {
         return DB::transaction(function () use ($alliance, $actor, $subscriptionId, $candidateId): KingdomIngestionCandidate {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
             $subscription = KingdomIngestionSubscription::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($subscriptionId)

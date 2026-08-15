@@ -15,7 +15,7 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -159,7 +159,7 @@ final class RosterTest extends TestCase
         $alliance = $this->app->make(CreateAlliance::class)->handle($r5, 'Permission Alliance', 'permission-alliance');
         $authorization = $this->app->make(AllianceAuthorization::class);
 
-        self::assertTrue($authorization->allows($r5, $alliance, PermissionKey::KingdomManage));
+        self::assertTrue($authorization->allows($r5, $alliance, IntelligencePermission::KingdomManage));
 
         $r4User = User::factory()->create();
         $r4 = Player::query()->create([
@@ -175,7 +175,7 @@ final class RosterTest extends TestCase
             'rank' => AllianceRank::R4,
             'joined_at' => now(),
         ]);
-        self::assertTrue($authorization->allows($r4, $alliance, PermissionKey::KingdomManage));
+        self::assertTrue($authorization->allows($r4, $alliance, IntelligencePermission::KingdomManage));
 
         foreach ([AllianceRank::R1, AllianceRank::R2, AllianceRank::R3] as $index => $rank) {
             $user = User::factory()->create();
@@ -192,7 +192,7 @@ final class RosterTest extends TestCase
                 'rank' => $rank,
                 'joined_at' => now(),
             ]);
-            self::assertFalse($authorization->allows($player, $alliance, PermissionKey::KingdomManage));
+            self::assertFalse($authorization->allows($player, $alliance, IntelligencePermission::KingdomManage));
         }
 
         foreach ([
@@ -219,7 +219,7 @@ final class RosterTest extends TestCase
                 ->where('key', $specialistRole->value)
                 ->sole();
             $membership->roles()->attach($role->id, ['alliance_id' => $alliance->id]);
-            self::assertFalse($authorization->allows($player, $alliance, PermissionKey::KingdomManage));
+            self::assertFalse($authorization->allows($player, $alliance, IntelligencePermission::KingdomManage));
         }
     }
 

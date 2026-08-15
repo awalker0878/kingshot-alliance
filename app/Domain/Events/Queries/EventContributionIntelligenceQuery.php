@@ -7,7 +7,7 @@ namespace App\Domain\Events\Queries;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Services\EventAuthorization;
 use DateTimeInterface;
@@ -59,7 +59,7 @@ final readonly class EventContributionIntelligenceQuery
             $actor,
             EventScope::Alliance,
             $alliance,
-            PermissionKey::EventAllianceView,
+            OperationsPermission::EventAllianceView,
         );
 
         $samples = $this->samples(
@@ -86,7 +86,7 @@ final readonly class EventContributionIntelligenceQuery
             $actor,
             EventScope::Kingdom,
             $kingdom,
-            PermissionKey::EventKingdomView,
+            OperationsPermission::EventKingdomView,
         );
 
         $samples = $this->samples(

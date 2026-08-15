@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Actions;
 
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Domain\Authorization\Services\PlayerMutationAuthority;
+use App\Contexts\GameWorld\Governance\Services\PlayerMutationAuthority;
 use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Messaging\Services\OutboxRecorder;
 use App\Domain\Rallies\Models\PlayerFormation;
 use App\Domain\Rallies\ValueObjects\FormationComposition;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

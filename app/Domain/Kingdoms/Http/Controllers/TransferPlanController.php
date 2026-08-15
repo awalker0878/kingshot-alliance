@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
@@ -12,7 +13,7 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Actions\CancelTransferPlan;
 use App\Domain\Kingdoms\Actions\CloseTransferPlan;
 use App\Domain\Kingdoms\Actions\CreateTransferPlan;
@@ -47,7 +48,7 @@ final class TransferPlanController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, AlliancePermission::View)) {
             throw new AuthorizationException;
         }
 
@@ -59,7 +60,7 @@ final class TransferPlanController extends Controller
                 'email' => (string) $user->email,
             ],
             'alliance' => $this->alliance($alliance),
-            'canManage' => $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage),
+            'canManage' => $authorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage),
             'plan' => $current === null ? null : $this->plan($current),
             'groups' => $current === null
                 ? []
@@ -86,7 +87,7 @@ final class TransferPlanController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
 

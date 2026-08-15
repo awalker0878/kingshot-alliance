@@ -6,11 +6,11 @@ namespace App\Domain\Events\Services;
 
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Governance\Services\KingdomMutationAuthority;
+use App\Contexts\GameWorld\Governance\Services\PlayerMutationAuthority;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\KingdomMutationAuthority;
-use App\Domain\Authorization\Services\PlayerMutationAuthority;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventTypeScope;
 use App\Domain\Events\ValueObjects\EventCreationMutationContext;
@@ -62,7 +62,7 @@ final readonly class EventCreationMutationAuthority
             ->sharedLock()
             ->firstOrFail();
 
-        $permission = PermissionKey::from((string) ($manage
+        $permission = OperationsPermission::from((string) ($manage
             ? $currentConfiguration->manage_permission_key
             : $currentConfiguration->create_permission_key));
         if (! $this->authorization->supports($scope, $permission)) {
@@ -80,7 +80,7 @@ final readonly class EventCreationMutationAuthority
         Player $actor,
         EventTypeScope $configuration,
         Alliance|Kingdom|Player $target,
-        PermissionKey $permission,
+        OperationsPermission $permission,
     ): EventCreationMutationContext {
         if (! $target instanceof Alliance) {
             throw new AuthorizationException;
@@ -96,7 +96,7 @@ final readonly class EventCreationMutationAuthority
         Player $actor,
         EventTypeScope $configuration,
         Alliance|Kingdom|Player $target,
-        PermissionKey $permission,
+        OperationsPermission $permission,
     ): EventCreationMutationContext {
         if (! $target instanceof Kingdom) {
             throw new AuthorizationException;
@@ -112,11 +112,11 @@ final readonly class EventCreationMutationAuthority
         Player $actor,
         EventTypeScope $configuration,
         Alliance|Kingdom|Player $target,
-        PermissionKey $permission,
+        OperationsPermission $permission,
     ): EventCreationMutationContext {
         if (! $target instanceof Player
             || (string) $target->id !== (string) $actor->id
-            || ! in_array($permission, [PermissionKey::EventPlayerCreate, PermissionKey::EventPlayerManage], true)) {
+            || ! in_array($permission, [OperationsPermission::EventPlayerCreate, OperationsPermission::EventPlayerManage], true)) {
             throw new AuthorizationException;
         }
 

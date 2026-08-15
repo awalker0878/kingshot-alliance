@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Http\Controllers;
 
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Events\Actions\AssignEventRosterPlayer;
 use App\Domain\Events\Actions\RecordEventRosterParticipation;
 use App\Domain\Events\Actions\RemoveEventRosterPlayer;
@@ -14,9 +17,6 @@ use App\Domain\Events\Enums\EventRosterType;
 use App\Domain\Events\Models\EventRoster;
 use App\Domain\Events\Models\EventRosterMember;
 use App\Domain\Events\Queries\EventCalendarQuery;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

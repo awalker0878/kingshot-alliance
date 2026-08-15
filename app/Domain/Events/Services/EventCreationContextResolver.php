@@ -6,10 +6,10 @@ namespace App\Domain\Events\Services;
 
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Models\KingdomRoleAssignment;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Enums\EventScope;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -35,7 +35,7 @@ final class EventCreationContextResolver
             $actor,
             EventScope::Player,
             $actor,
-            PermissionKey::EventPlayerCreate,
+            OperationsPermission::EventPlayerCreate,
         )) {
             $kingdom = $actor->currentKingdom;
             if ($kingdom instanceof Kingdom) {
@@ -60,7 +60,7 @@ final class EventCreationContextResolver
             $actor,
             EventScope::Alliance,
             $alliance,
-            PermissionKey::EventAllianceCreate,
+            OperationsPermission::EventAllianceCreate,
         )) {
             $context = [
                 'scope' => EventScope::Alliance->value,
@@ -78,7 +78,7 @@ final class EventCreationContextResolver
             ->where('player_id', $actor->id)
             ->where('kingdom_id', $actor->current_kingdom_id)
             ->whereHas('role.permissions', static function (Builder $query): void {
-                $query->where('permissions.key', PermissionKey::EventKingdomCreate->value);
+                $query->where('permissions.key', OperationsPermission::EventKingdomCreate->value);
             })
             ->with('kingdom')
             ->get();
@@ -93,7 +93,7 @@ final class EventCreationContextResolver
                     $actor,
                     EventScope::Kingdom,
                     $kingdom,
-                    PermissionKey::EventKingdomCreate,
+                    OperationsPermission::EventKingdomCreate,
                 )) {
                 continue;
             }

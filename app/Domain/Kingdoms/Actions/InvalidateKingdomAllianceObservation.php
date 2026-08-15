@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
 use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Shared\Audit\Services\AuditRecorder;
@@ -33,7 +33,7 @@ final readonly class InvalidateKingdomAllianceObservation
         ?string $reason,
     ): KingdomAllianceObservation {
         return DB::transaction(function () use ($alliance, $actor, $trackingId, $observationId, $reason): KingdomAllianceObservation {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
 
             $tracking = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $context->alliance->id)

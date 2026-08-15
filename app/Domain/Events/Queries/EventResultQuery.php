@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventMetricSource;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventAllianceResult;
@@ -14,7 +15,6 @@ use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Events\Models\EventPlayerResultMetric;
 use App\Domain\Events\Models\EventResult;
 use App\Domain\Events\Models\EventResultMetric;
-use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 use LogicException;
 

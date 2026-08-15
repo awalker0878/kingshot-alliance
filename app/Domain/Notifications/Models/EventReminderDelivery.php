@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Notifications\Models;
 
-use App\Domain\Events\Enums\EventReminderDeliveryStatus;
-use App\Domain\Events\Models\EventOccurrence;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Models\Player;
+use App\Domain\Events\Enums\EventReminderDeliveryStatus;
+use App\Domain\Events\Models\EventOccurrence;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

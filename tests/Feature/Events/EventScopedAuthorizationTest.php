@@ -14,12 +14,12 @@ use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
+use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Governance\Services\KingdomRoleProvisioner;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\DefaultKingdomRole;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Models\KingdomRoleAssignment;
-use App\Domain\Authorization\Services\KingdomRoleProvisioner;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Services\EventAuthorization;
 use App\Domain\Events\Services\EventCreationContextResolver;
@@ -100,13 +100,13 @@ final class EventScopedAuthorizationTest extends TestCase
                 $actor,
                 EventScope::Alliance,
                 $alliance,
-                PermissionKey::EventAllianceCreate,
+                OperationsPermission::EventAllianceCreate,
             ));
             self::assertTrue($authorization->allows(
                 $actor,
                 EventScope::Alliance,
                 $alliance,
-                PermissionKey::EventAllianceManage,
+                OperationsPermission::EventAllianceManage,
             ));
         }
 
@@ -114,13 +114,13 @@ final class EventScopedAuthorizationTest extends TestCase
             $memberPlayer,
             EventScope::Alliance,
             $alliance,
-            PermissionKey::EventAllianceCreate,
+            OperationsPermission::EventAllianceCreate,
         ));
         self::assertFalse($authorization->allows(
             $ownerPlayer,
             EventScope::Kingdom,
             $kingdom,
-            PermissionKey::EventKingdomManage,
+            OperationsPermission::EventKingdomManage,
         ));
     }
 
@@ -148,19 +148,19 @@ final class EventScopedAuthorizationTest extends TestCase
             $adminPlayer,
             EventScope::Kingdom,
             $firstKingdom,
-            PermissionKey::EventKingdomCreate,
+            OperationsPermission::EventKingdomCreate,
         ));
         self::assertTrue($authorization->allows(
             $adminPlayer,
             EventScope::Kingdom,
             $firstKingdom,
-            PermissionKey::EventKingdomManage,
+            OperationsPermission::EventKingdomManage,
         ));
         self::assertFalse($authorization->allows(
             $adminPlayer,
             EventScope::Kingdom,
             $secondKingdom,
-            PermissionKey::EventKingdomManage,
+            OperationsPermission::EventKingdomManage,
         ));
     }
 
@@ -220,16 +220,16 @@ final class EventScopedAuthorizationTest extends TestCase
         ]);
 
         $authorization = $this->app->make(EventAuthorization::class);
-        self::assertTrue($authorization->allows($memberPlayer, EventScope::Player, $memberPlayer, PermissionKey::EventPlayerView));
-        self::assertTrue($authorization->allows($memberPlayer, EventScope::Player, $memberPlayer, PermissionKey::EventPlayerCreate));
-        self::assertTrue($authorization->allows($memberPlayer, EventScope::Player, $memberPlayer, PermissionKey::EventPlayerManage));
-        self::assertFalse($authorization->allows($peerPlayer, EventScope::Player, $memberPlayer, PermissionKey::EventPlayerView));
-        self::assertTrue($authorization->allows($ownerPlayer, EventScope::Player, $memberPlayer, PermissionKey::EventPlayerManage));
-        self::assertFalse($authorization->allows($outsiderPlayer, EventScope::Player, $memberPlayer, PermissionKey::EventPlayerManage));
+        self::assertTrue($authorization->allows($memberPlayer, EventScope::Player, $memberPlayer, OperationsPermission::EventPlayerView));
+        self::assertTrue($authorization->allows($memberPlayer, EventScope::Player, $memberPlayer, OperationsPermission::EventPlayerCreate));
+        self::assertTrue($authorization->allows($memberPlayer, EventScope::Player, $memberPlayer, OperationsPermission::EventPlayerManage));
+        self::assertFalse($authorization->allows($peerPlayer, EventScope::Player, $memberPlayer, OperationsPermission::EventPlayerView));
+        self::assertTrue($authorization->allows($ownerPlayer, EventScope::Player, $memberPlayer, OperationsPermission::EventPlayerManage));
+        self::assertFalse($authorization->allows($outsiderPlayer, EventScope::Player, $memberPlayer, OperationsPermission::EventPlayerManage));
 
         $entry->forceFill(['state' => RosterState::Left])->save();
-        self::assertTrue($authorization->allows($memberPlayer, EventScope::Player, $memberPlayer, PermissionKey::EventPlayerManage));
-        self::assertFalse($authorization->allows($ownerPlayer, EventScope::Player, $memberPlayer, PermissionKey::EventPlayerManage));
+        self::assertTrue($authorization->allows($memberPlayer, EventScope::Player, $memberPlayer, OperationsPermission::EventPlayerManage));
+        self::assertFalse($authorization->allows($ownerPlayer, EventScope::Player, $memberPlayer, OperationsPermission::EventPlayerManage));
     }
 
     public function test_one_user_multiple_players_never_aggregate_player_event_contexts(): void

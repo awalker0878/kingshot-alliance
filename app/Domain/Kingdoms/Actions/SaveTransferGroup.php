@@ -10,7 +10,7 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
@@ -48,7 +48,7 @@ final readonly class SaveTransferGroup
         ?string $groupId = null,
     ): TransferGroup {
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $groupId): TransferGroup {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
 
             // Child mutations share-lock the transfer-plan lifecycle so unrelated
             // groups can change concurrently while plan transitions remain exclusive.

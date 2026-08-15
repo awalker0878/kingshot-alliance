@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Services;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventPollStatus;
 use App\Domain\Events\Enums\EventPollType;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventPoll;
-use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 
 final readonly class EventPollTemplateMaterializer

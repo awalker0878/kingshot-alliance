@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
@@ -12,7 +13,7 @@ use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\PlayerSnapshot;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Actions\MarkRosterEntryLeft;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
 use App\Domain\Kingdoms\Queries\PlayerSnapshotQuery;
@@ -39,7 +40,7 @@ final class RosterController extends Controller
         $actor = $context->player();
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($actor, $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($actor, $alliance, AlliancePermission::View)) {
             throw new AuthorizationException;
         }
 
@@ -61,7 +62,7 @@ final class RosterController extends Controller
                 'name' => (string) $alliance->name,
                 'kingdom' => (string) $alliance->kingdom->number,
             ],
-            'canManage' => $authorization->allows($actor, $alliance, PermissionKey::KingdomManage),
+            'canManage' => $authorization->allows($actor, $alliance, IntelligencePermission::KingdomManage),
             'entries' => $this->entries($entries, false, $latestSnapshots, $memberships),
             'filters' => [
                 'q' => (string) ($filters['q'] ?? ''),
@@ -86,7 +87,7 @@ final class RosterController extends Controller
         $actor = $context->player();
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($actor, $alliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
 

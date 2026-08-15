@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Models;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventPollStatus;
 use App\Domain\Events\Enums\EventPollType;
-use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,11 +17,12 @@ final class EventPoll extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
         'occurrence_id', 'key', 'poll_type', 'question_key', 'question', 'opens_at', 'closes_at', 'status', 'max_choices', 'settings',
- 'created_by_player_id', 'updated_by_player_id',
+        'created_by_player_id', 'updated_by_player_id',
     ];
 
     protected function casts(): array
@@ -36,9 +37,28 @@ final class EventPoll extends Model
         ];
     }
 
-    public function occurrence(): BelongsTo { return $this->belongsTo(EventOccurrence::class, 'occurrence_id'); }
-    public function options(): HasMany { return $this->hasMany(EventPollOption::class, 'poll_id')->orderBy('sort_order'); }
-    public function votes(): HasMany { return $this->hasMany(EventPollVote::class, 'poll_id'); }
-    public function createdByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'created_by_player_id'); }
-    public function updatedByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'updated_by_player_id'); }
+    public function occurrence(): BelongsTo
+    {
+        return $this->belongsTo(EventOccurrence::class, 'occurrence_id');
+    }
+
+    public function options(): HasMany
+    {
+        return $this->hasMany(EventPollOption::class, 'poll_id')->orderBy('sort_order');
+    }
+
+    public function votes(): HasMany
+    {
+        return $this->hasMany(EventPollVote::class, 'poll_id');
+    }
+
+    public function createdByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'created_by_player_id');
+    }
+
+    public function updatedByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'updated_by_player_id');
+    }
 }

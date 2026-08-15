@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\GameWorld\Models\PlayerSnapshot;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
@@ -63,7 +63,7 @@ final readonly class RecordPlayerSnapshot
                 $currentActor = null;
             } else {
                 /** @var Player $actor */
-                $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+                $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
                 $currentAlliance = $context->alliance;
                 $currentActor = $context->actor;
             }

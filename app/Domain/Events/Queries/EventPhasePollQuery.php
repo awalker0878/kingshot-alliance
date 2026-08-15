@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventPollStatus;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
@@ -11,7 +12,6 @@ use App\Domain\Events\Models\EventPhase;
 use App\Domain\Events\Models\EventPoll;
 use App\Domain\Events\Models\EventPollVote;
 use App\Domain\Events\Services\EventPhaseService;
-use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 
 final readonly class EventPhasePollQuery

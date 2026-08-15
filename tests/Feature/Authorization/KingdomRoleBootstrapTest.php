@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Authorization;
 
-use App\Domain\Authorization\Actions\AssignKingdomRole;
-use App\Domain\Authorization\Actions\BootstrapKingdomAdministrator;
-use App\Domain\Authorization\Enums\DefaultKingdomRole;
-use App\Domain\Authorization\Models\KingdomRoleAssignment;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Governance\Actions\AssignKingdomRole;
+use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
+use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
+use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;

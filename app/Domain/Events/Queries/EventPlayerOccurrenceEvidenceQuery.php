@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventAttendanceStatus;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Enums\EventRosterMemberStatus;
@@ -11,7 +12,6 @@ use App\Domain\Events\Models\EventAttendance;
 use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventRosterMember;
-use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Rallies\Enums\RallyAssignmentStatus;
 use App\Domain\Rallies\Models\RallyAssignment;
 use Illuminate\Database\Query\Builder;

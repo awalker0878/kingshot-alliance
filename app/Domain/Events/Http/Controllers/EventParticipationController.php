@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Http\Controllers;
 
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Events\Actions\CancelEventRegistration;
 use App\Domain\Events\Actions\RecordEventAttendance;
 use App\Domain\Events\Actions\RegisterForEvent;
@@ -11,9 +14,6 @@ use App\Domain\Events\Actions\RespondToEvent;
 use App\Domain\Events\Enums\EventAttendanceStatus;
 use App\Domain\Events\Enums\EventResponseChoice;
 use App\Domain\Events\Queries\EventCalendarQuery;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;

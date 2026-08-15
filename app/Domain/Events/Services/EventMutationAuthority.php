@@ -8,11 +8,11 @@ use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\GameWorld\Governance\Services\KingdomMutationAuthority;
+use App\Contexts\GameWorld\Governance\Services\PlayerMutationAuthority;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\KingdomMutationAuthority;
-use App\Domain\Authorization\Services\PlayerMutationAuthority;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventTypeScope;
@@ -57,7 +57,7 @@ final readonly class EventMutationAuthority
             throw new AuthorizationException;
         }
 
-        $permission = PermissionKey::from((string) $typeScope->view_permission_key);
+        $permission = OperationsPermission::from((string) $typeScope->view_permission_key);
         [$currentActor, $target] = $this->authorizeScope($actor, $route, $permission);
         $currentEvent = $this->lockAndRevalidateEvent($route, false);
 
@@ -103,7 +103,7 @@ final readonly class EventMutationAuthority
         $this->assertTransaction();
         $route = $this->freshRoute($event);
         $typeScope = $this->lockTypeScope($route);
-        $permission = PermissionKey::from((string) $typeScope->manage_permission_key);
+        $permission = OperationsPermission::from((string) $typeScope->manage_permission_key);
         [$currentActor, $target] = $this->authorizeScope($actor, $route, $permission);
         $currentEvent = $this->lockAndRevalidateEvent($route, $exclusiveEvent);
 
@@ -147,7 +147,7 @@ final readonly class EventMutationAuthority
     }
 
     /** @return array{Player,Alliance|Kingdom|Player} */
-    private function authorizeScope(Player $actor, Event $event, PermissionKey $permission): array
+    private function authorizeScope(Player $actor, Event $event, OperationsPermission $permission): array
     {
         if (! $this->authorization->supports($event->scope, $permission)) {
             throw new AuthorizationException;
@@ -161,7 +161,7 @@ final readonly class EventMutationAuthority
     }
 
     /** @return array{Player,Alliance} */
-    private function authorizeAllianceScope(Player $actor, Event $event, PermissionKey $permission): array
+    private function authorizeAllianceScope(Player $actor, Event $event, OperationsPermission $permission): array
     {
         $alliance = Alliance::query()->whereKey($event->alliance_id)->firstOrFail();
         $context = $this->allianceAuthority->require($actor, $alliance, $permission);
@@ -170,7 +170,7 @@ final readonly class EventMutationAuthority
     }
 
     /** @return array{Player,Kingdom} */
-    private function authorizeKingdomScope(Player $actor, Event $event, PermissionKey $permission): array
+    private function authorizeKingdomScope(Player $actor, Event $event, OperationsPermission $permission): array
     {
         $kingdom = Kingdom::query()->whereKey($event->kingdom_id)->firstOrFail();
         $context = $this->kingdomAuthority->require($actor, $kingdom, $permission);
@@ -179,7 +179,7 @@ final readonly class EventMutationAuthority
     }
 
     /** @return array{Player,Player} */
-    private function authorizePlayerScope(Player $actor, Event $event, PermissionKey $permission): array
+    private function authorizePlayerScope(Player $actor, Event $event, OperationsPermission $permission): array
     {
         $target = Player::query()->whereKey($event->player_id)->firstOrFail();
 
@@ -189,7 +189,7 @@ final readonly class EventMutationAuthority
             return [$context->actor, $context->actor];
         }
 
-        if ($permission === PermissionKey::EventPlayerCreate) {
+        if ($permission === OperationsPermission::EventPlayerCreate) {
             throw new AuthorizationException;
         }
 

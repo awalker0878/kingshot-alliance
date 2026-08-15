@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Contributions\Actions;
 
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Contributions\Enums\ContributionRecordSource;
 use App\Domain\Contributions\Enums\ContributionRecordStatus;
 use App\Domain\Contributions\Models\ContributionCategory;
@@ -40,8 +41,8 @@ final class RecordContribution
     ): ContributionRecord {
         return DB::transaction(function () use ($actor, $alliance, $player, $category, $value, $source, $evidence): ContributionRecord {
             $permission = $source === ContributionRecordSource::SelfReported
-                ? PermissionKey::AllianceView
-                : PermissionKey::ContributionManage;
+                ? AlliancePermission::View
+                : IntelligencePermission::ContributionManage;
             $context = $this->authority->require($actor, $alliance, $permission);
 
             $isActorTarget = (string) $player->id === (string) $context->actor->id;

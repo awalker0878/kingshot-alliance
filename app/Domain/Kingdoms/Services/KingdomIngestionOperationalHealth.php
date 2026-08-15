@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Services;
 
-use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
-use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
-use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
 use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
 use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
+use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
+use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 
 final class KingdomIngestionOperationalHealth
 {

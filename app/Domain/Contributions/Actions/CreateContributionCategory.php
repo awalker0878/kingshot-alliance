@@ -7,7 +7,7 @@ namespace App\Domain\Contributions\Actions;
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Contributions\Enums\ContributionDataClass;
 use App\Domain\Contributions\Enums\ContributionPeriod;
 use App\Domain\Contributions\Models\ContributionCategory;
@@ -59,7 +59,7 @@ final class CreateContributionCategory
         }
 
         return DB::transaction(function () use ($actor, $alliance, $name, $slug, $unit, $period, $dataClass, $goalValue, $evidenceRequired, $allowSelfReport, $leaderboardEnabled, $description, $periodStart, $periodEnd, $calculationKey, $calculationVersion, $calculationDescription): ContributionCategory {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
 
             if (ContributionCategory::query()
                 ->where('alliance_id', $context->alliance->id)

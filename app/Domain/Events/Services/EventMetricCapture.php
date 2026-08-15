@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Services;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventMetricSource;
 use App\Domain\Events\Enums\EventMetricSubject;
 use App\Domain\Events\Enums\EventMetricValueType;
@@ -17,7 +18,6 @@ use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Events\Models\EventPlayerResultMetric;
 use App\Domain\Events\Models\EventResult;
 use App\Domain\Events\Models\EventResultMetric;
-use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;

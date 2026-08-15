@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Notifications\Actions;
 
 use App\Contexts\GameWorld\Models\Player;
-
 use App\Domain\Events\Enums\EventPollStatus;
 use App\Domain\Events\Enums\EventReminderAudience;
 use App\Domain\Events\Enums\EventReminderTrigger;

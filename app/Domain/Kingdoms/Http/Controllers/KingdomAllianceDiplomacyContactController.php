@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyContact;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Actions\DeactivateKingdomAllianceDiplomacyContact;
 use App\Domain\Kingdoms\Actions\SaveKingdomAllianceDiplomacyContact;
 use App\Domain\Kingdoms\Enums\KingdomAllianceContactChannel;
@@ -34,7 +34,7 @@ final class KingdomAllianceDiplomacyContactController extends Controller
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
-        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
 

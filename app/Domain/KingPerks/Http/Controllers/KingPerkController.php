@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\KingPerks\Http\Controllers;
 
-use App\Domain\Events\Models\EventOccurrence;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\KingPerks\Enums\KingAppointmentType;
 use App\Domain\KingPerks\Enums\KingPerkAppointmentStatus;
 use App\Domain\KingPerks\Enums\KingPerkPushCategory;

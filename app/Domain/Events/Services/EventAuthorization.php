@@ -6,10 +6,10 @@ namespace App\Domain\Events\Services;
 
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\KingdomAuthorization;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Enums\EventScope;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -25,7 +25,7 @@ final class EventAuthorization
         Player $actor,
         EventScope $scope,
         Alliance|Kingdom|Player $target,
-        PermissionKey $permission,
+        OperationsPermission $permission,
     ): bool {
         if (! $this->supports($scope, $permission)) {
             return false;
@@ -45,7 +45,7 @@ final class EventAuthorization
         Player $actor,
         EventScope $scope,
         Alliance|Kingdom|Player $target,
-        PermissionKey $permission,
+        OperationsPermission $permission,
     ): void {
         if (! $this->allows($actor, $scope, $target, $permission)) {
             throw new AuthorizationException;
@@ -53,23 +53,23 @@ final class EventAuthorization
     }
 
     /** Shared scope/permission vocabulary used by read and mutation authorization. */
-    public function supports(EventScope $scope, PermissionKey $permission): bool
+    public function supports(EventScope $scope, OperationsPermission $permission): bool
     {
         return match ($scope) {
             EventScope::Player => in_array($permission, [
-                PermissionKey::EventPlayerView,
-                PermissionKey::EventPlayerCreate,
-                PermissionKey::EventPlayerManage,
+                OperationsPermission::EventPlayerView,
+                OperationsPermission::EventPlayerCreate,
+                OperationsPermission::EventPlayerManage,
             ], true),
             EventScope::Alliance => in_array($permission, [
-                PermissionKey::EventAllianceView,
-                PermissionKey::EventAllianceCreate,
-                PermissionKey::EventAllianceManage,
+                OperationsPermission::EventAllianceView,
+                OperationsPermission::EventAllianceCreate,
+                OperationsPermission::EventAllianceManage,
             ], true),
             EventScope::Kingdom => in_array($permission, [
-                PermissionKey::EventKingdomView,
-                PermissionKey::EventKingdomCreate,
-                PermissionKey::EventKingdomManage,
+                OperationsPermission::EventKingdomView,
+                OperationsPermission::EventKingdomCreate,
+                OperationsPermission::EventKingdomManage,
             ], true),
         };
     }

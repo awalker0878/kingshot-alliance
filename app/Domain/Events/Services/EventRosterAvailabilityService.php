@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Services;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Enums\EventResponseChoice;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventResponse;
-use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 
 final readonly class EventRosterAvailabilityService

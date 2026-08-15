@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Domain\Kingdoms\Data\KingdomIngestionAcquisitionPage;
 use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
-use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
-use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
 use App\Domain\Kingdoms\Services\KingdomIngestionMutationState;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +58,7 @@ final readonly class RunKingdomIngestionSubscription
                 }
 
                 $this->advanceCursor($subscriptionId, $batch, $adapter);
+
                 return $batch->refresh();
             }
 
@@ -116,12 +117,14 @@ final readonly class RunKingdomIngestionSubscription
             if ($context->alliance->kingdom_id === null
                 || (string) $context->alliance->kingdom_id !== (string) $subscription->kingdom_id) {
                 $this->block($subscription, 'kingdom_context_changed');
+
                 return null;
             }
 
             $adapter = $this->adapters->acquisition($subscription->adapter_key);
             if ($adapter === null || $adapter->version() !== $subscription->adapter_version) {
                 $this->block($subscription, 'source_unapproved');
+
                 return null;
             }
 

@@ -7,7 +7,7 @@ namespace App\Domain\Rallies\Actions;
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Rallies\Models\RallyGuidanceRule;
 use App\Domain\Rallies\ValueObjects\FormationComposition;
 use App\Shared\Audit\Services\AuditRecorder;
@@ -59,7 +59,7 @@ final readonly class SaveRallyGuidanceRule
         $heroes = $this->normalizeHeroes($heroes);
 
         return DB::transaction(function () use ($actor, $alliance, $name, $composition, $heroes, $leadRequirements, $joinerGuidance, $source, $rationale, $effectiveFrom, $effectiveUntil, $isActive, $rule): RallyGuidanceRule {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::EventAllianceManage);
+            $context = $this->authority->require($actor, $alliance, OperationsPermission::EventAllianceManage);
 
             $record = $rule instanceof RallyGuidanceRule
                 ? RallyGuidanceRule::query()

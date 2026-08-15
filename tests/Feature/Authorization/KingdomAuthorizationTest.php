@@ -9,16 +9,17 @@ use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Governance\Actions\AssignKingdomRole;
+use App\Contexts\GameWorld\Governance\Actions\RemoveKingdomRole;
+use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
+use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
+use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Actions\AssignKingdomRole;
-use App\Domain\Authorization\Actions\BootstrapKingdomAdministrator;
-use App\Domain\Authorization\Actions\RemoveKingdomRole;
-use App\Domain\Authorization\Enums\DefaultKingdomRole;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Models\KingdomRoleAssignment;
-use App\Domain\Authorization\Services\KingdomAuthorization;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Kingdoms\Actions\ResolvePlayer;
+use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -44,8 +45,8 @@ final class KingdomAuthorizationTest extends TestCase
         $assignment = $this->app->make(BootstrapKingdomAdministrator::class)->handle($kingdom, $player);
         $authorization = $this->app->make(KingdomAuthorization::class);
 
-        self::assertTrue($authorization->allows($player, $kingdom, PermissionKey::EventKingdomManage));
-        self::assertTrue($authorization->allows($player, $kingdom, PermissionKey::KingdomRoleManage));
+        self::assertTrue($authorization->allows($player, $kingdom, OperationsPermission::EventKingdomManage));
+        self::assertTrue($authorization->allows($player, $kingdom, KingdomPermission::RoleManage));
         self::assertSame(DefaultKingdomRole::Administrator->value, $assignment->role()->sole()->key);
     }
 
@@ -80,12 +81,12 @@ final class KingdomAuthorizationTest extends TestCase
         $assign->handle($admin, $first, $viewer, DefaultKingdomRole::Viewer);
 
         $authorization = $this->app->make(KingdomAuthorization::class);
-        self::assertTrue($authorization->allows($coordinator, $first, PermissionKey::EventKingdomCreate));
-        self::assertTrue($authorization->allows($coordinator, $first, PermissionKey::EventKingdomManage));
-        self::assertFalse($authorization->allows($coordinator, $first, PermissionKey::KingdomRoleManage));
-        self::assertTrue($authorization->allows($viewer, $first, PermissionKey::EventKingdomView));
-        self::assertFalse($authorization->allows($viewer, $first, PermissionKey::EventKingdomCreate));
-        self::assertFalse($authorization->allows($admin, $second, PermissionKey::EventKingdomManage));
+        self::assertTrue($authorization->allows($coordinator, $first, OperationsPermission::EventKingdomCreate));
+        self::assertTrue($authorization->allows($coordinator, $first, OperationsPermission::EventKingdomManage));
+        self::assertFalse($authorization->allows($coordinator, $first, KingdomPermission::RoleManage));
+        self::assertTrue($authorization->allows($viewer, $first, OperationsPermission::EventKingdomView));
+        self::assertFalse($authorization->allows($viewer, $first, OperationsPermission::EventKingdomCreate));
+        self::assertFalse($authorization->allows($admin, $second, OperationsPermission::EventKingdomManage));
 
         $this->expectException(AuthorizationException::class);
         $assign->handle($admin, $second, $otherKingdomPlayer, DefaultKingdomRole::Viewer);

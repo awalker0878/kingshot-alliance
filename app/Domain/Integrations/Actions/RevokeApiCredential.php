@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Integrations\Actions;
 
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Integrations\Models\ApiCredential;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
@@ -29,7 +29,7 @@ final readonly class RevokeApiCredential
         }
 
         return DB::transaction(function () use ($alliance, $actor, $credential): ApiCredential {
-            $authority = $this->mutations->require($actor, $alliance, PermissionKey::AllianceManage);
+            $authority = $this->mutations->require($actor, $alliance, AlliancePermission::Manage);
             $currentAlliance = $authority->alliance;
             $currentActor = $authority->actor;
 

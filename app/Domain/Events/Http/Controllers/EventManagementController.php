@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Http\Controllers;
 
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Events\Actions\CancelEvent;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Actions\CreateEventFromTemplate;
@@ -19,22 +22,19 @@ use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Queries\EventCalendarQuery;
 use App\Domain\Events\Queries\EventObjectiveQuery;
 use App\Domain\Events\Queries\EventParticipationQuery;
-use App\Domain\Events\Queries\EventPlayerIntelligenceQuery;
 use App\Domain\Events\Queries\EventPhasePollQuery;
-use App\Domain\Events\Queries\EventRosterQuery;
+use App\Domain\Events\Queries\EventPlayerIntelligenceQuery;
 use App\Domain\Events\Queries\EventResultQuery;
+use App\Domain\Events\Queries\EventRosterQuery;
 use App\Domain\Events\Queries\EventTemplateQuery;
 use App\Domain\Events\Services\EventCapabilityResolver;
 use App\Domain\Events\Services\EventCreationContextResolver;
 use App\Domain\Events\Services\EventTargetResolver;
 use App\Domain\Events\Services\EventTypeDefaultsResolver;
 use App\Domain\Events\Services\EventTypeRegistry;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Notifications\Models\EventReminderRule;
-use App\Shared\Http\Controller;
 use App\Domain\Rallies\Queries\EventRallyQuery;
+use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -156,8 +156,7 @@ final class EventManagementController extends Controller
         EventRosterQuery $rosters,
         EventRallyQuery $rallies,
         EventCapabilityResolver $capabilities,
-    ): Response
-    {
+    ): Response {
         $user = $this->user($request);
         $actor = $this->player();
         $record = $query->eventForManage($actor, $event);

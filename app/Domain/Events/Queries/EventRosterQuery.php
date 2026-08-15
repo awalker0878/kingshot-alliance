@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Enums\EventRosterMemberStatus;
 use App\Domain\Events\Models\Event;
@@ -13,7 +14,6 @@ use App\Domain\Events\Models\EventResponse;
 use App\Domain\Events\Models\EventRoster;
 use App\Domain\Events\Models\EventRosterMember;
 use App\Domain\Events\Services\EventRosterAvailabilityService;
-use App\Contexts\GameWorld\Models\Player;
 
 final readonly class EventRosterQuery
 {

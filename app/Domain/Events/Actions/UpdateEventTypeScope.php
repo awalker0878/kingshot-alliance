@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Actions;
 
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventRecurrencePolicy;
 use App\Domain\Events\Enums\EventScheduleSource;
 use App\Domain\Events\Enums\RecurrenceFrequency;
 use App\Domain\Events\Models\EventTypeScope;
-use App\Contexts\Accounts\Models\User;
-use App\Shared\Messaging\Services\OutboxRecorder;
 use App\Domain\Platform\Services\PlatformMutationAuthority;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -25,8 +25,8 @@ final class UpdateEventTypeScope
     ) {}
 
     /**
-     * @param list<EventCapability> $capabilities
-     * @param array<string, mixed> $defaultSettings
+     * @param  list<EventCapability>  $capabilities
+     * @param  array<string, mixed>  $defaultSettings
      */
     public function handle(
         User $actor,

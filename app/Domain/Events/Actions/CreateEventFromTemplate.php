@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Actions;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventTemplate;
 use App\Domain\Events\Services\EventTargetResolver;
-use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 
 final class CreateEventFromTemplate

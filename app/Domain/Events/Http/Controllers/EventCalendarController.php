@@ -4,27 +4,28 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Http\Controllers;
 
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Enums\EventCapability;
+use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Queries\EventAttentionQuery;
 use App\Domain\Events\Queries\EventCalendarQuery;
 use App\Domain\Events\Queries\EventObjectiveQuery;
 use App\Domain\Events\Queries\EventParticipationQuery;
-use App\Domain\Events\Queries\EventPlayerIntelligenceQuery;
 use App\Domain\Events\Queries\EventPhasePollQuery;
-use App\Domain\Events\Queries\EventRosterQuery;
+use App\Domain\Events\Queries\EventPlayerIntelligenceQuery;
 use App\Domain\Events\Queries\EventResultQuery;
+use App\Domain\Events\Queries\EventRosterQuery;
 use App\Domain\Events\Services\EventAuthorization;
 use App\Domain\Events\Services\EventCreationContextResolver;
 use App\Domain\Events\Services\EventParticipantAuthorization;
 use App\Domain\Events\Services\EventRegistrationWindow;
 use App\Domain\Events\Services\EventTargetResolver;
 use App\Domain\Events\Services\EventVisibilityResolver;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Notifications\Queries\EventReminderInboxQuery;
 use App\Domain\Rallies\Queries\EventRallyQuery;
 use App\Shared\Http\Controller;
@@ -97,7 +98,7 @@ final class EventCalendarController extends Controller
             $actor,
             $event->scope,
             $target,
-            PermissionKey::from((string) $event->typeScope->manage_permission_key),
+            OperationsPermission::from((string) $event->typeScope->manage_permission_key),
         );
 
         $eligibleActivePlayer = $participantAuthorization->eligible($event, $actor)
@@ -260,15 +261,15 @@ final class EventCalendarController extends Controller
         }
 
         return match ($event->scope) {
-            \App\Domain\Events\Enums\EventScope::Player => $event->player_id !== null && in_array((string) $event->player_id, $manageableTargets['player'], true),
-            \App\Domain\Events\Enums\EventScope::Alliance => $event->alliance_id !== null && in_array((string) $event->alliance_id, $manageableTargets['alliance'], true),
-            \App\Domain\Events\Enums\EventScope::Kingdom => $event->kingdom_id !== null && in_array((string) $event->kingdom_id, $manageableTargets['kingdom'], true),
+            EventScope::Player => $event->player_id !== null && in_array((string) $event->player_id, $manageableTargets['player'], true),
+            EventScope::Alliance => $event->alliance_id !== null && in_array((string) $event->alliance_id, $manageableTargets['alliance'], true),
+            EventScope::Kingdom => $event->kingdom_id !== null && in_array((string) $event->kingdom_id, $manageableTargets['kingdom'], true),
         };
     }
 
     private function icsEscape(string $value): string
     {
-        return str_replace(["\\", ";", ",", "\r\n", "\r", "\n"], ["\\\\", '\\;', '\\,', '\\n', '\\n', '\\n'], $value);
+        return str_replace(['\\', ';', ',', "\r\n", "\r", "\n"], ['\\\\', '\\;', '\\,', '\\n', '\\n', '\\n'], $value);
     }
 
     private function player(): Player

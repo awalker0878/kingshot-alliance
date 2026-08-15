@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
-use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
 use App\Domain\Kingdoms\Services\KingdomIngestionMutationState;
 use App\Shared\Messaging\Services\OutboxRecorder;

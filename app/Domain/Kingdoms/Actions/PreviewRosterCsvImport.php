@@ -8,7 +8,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Models\RosterImport;
 use App\Domain\Kingdoms\Services\RosterCsvParser;
 use App\Shared\Audit\Services\AuditRecorder;
@@ -26,7 +26,7 @@ final readonly class PreviewRosterCsvImport
 
     public function handle(Alliance $alliance, Player $actor, UploadedFile $file): RosterImport
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
+        if (! $this->authorization->allows($actor, $alliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
 

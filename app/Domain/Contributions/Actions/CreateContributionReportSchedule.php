@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Contributions\Models\ContributionReportSchedule;
 use App\Domain\Contributions\Services\ContributionReportExporter;
 use App\Shared\Audit\Services\AuditRecorder;
@@ -40,7 +40,7 @@ final class CreateContributionReportSchedule
         }
 
         return DB::transaction(function () use ($actor, $alliance, $recipient, $name, $cadence, $timezone, $nextDueAt): ContributionReportSchedule {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
 
             $currentRecipient = (string) $recipient->id === (string) $context->actor->id
                 ? $context->actor

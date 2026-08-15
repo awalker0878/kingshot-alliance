@@ -8,7 +8,7 @@ use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
@@ -46,8 +46,8 @@ final readonly class TransitionTransferPlan
         ): TransferPlan {
             // Opening enforces the Alliance-wide singleton-open-plan invariant.
             $authority = $target === TransferPlanState::Open
-                ? $this->mutations->requireExclusive($actor, $alliance, PermissionKey::KingdomManage)
-                : $this->mutations->require($actor, $alliance, PermissionKey::KingdomManage);
+                ? $this->mutations->requireExclusive($actor, $alliance, IntelligencePermission::KingdomManage)
+                : $this->mutations->require($actor, $alliance, IntelligencePermission::KingdomManage);
             $currentAlliance = $authority->alliance;
             $currentActor = $authority->actor;
 

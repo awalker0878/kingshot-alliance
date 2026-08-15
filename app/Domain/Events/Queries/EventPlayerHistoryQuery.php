@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventMetricSource;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventMetricDefinition;
 use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Events\Models\EventPlayerResultMetric;
-use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Database\Query\Builder;

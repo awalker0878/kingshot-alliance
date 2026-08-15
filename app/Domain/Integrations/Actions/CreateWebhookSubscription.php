@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Integrations\Actions;
 
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Integrations\Models\WebhookSubscription;
 use App\Domain\Integrations\Services\WebhookEndpointPolicy;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
@@ -49,7 +49,7 @@ final readonly class CreateWebhookSubscription
 
         return DB::transaction(function () use ($alliance, $actor, $name, $url, $events): WebhookSubscription {
             // Webhook capacity is Alliance-wide, so serialize this quota-sensitive mutation.
-            $authority = $this->mutations->requireExclusive($actor, $alliance, PermissionKey::AllianceManage);
+            $authority = $this->mutations->requireExclusive($actor, $alliance, AlliancePermission::Manage);
             $currentAlliance = $authority->alliance;
             $currentActor = $authority->actor;
 

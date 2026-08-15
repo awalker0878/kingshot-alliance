@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
+use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\KingdomAuthorization;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Actions\ArchiveTrackedKingdomAlliance;
 use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
 use App\Domain\Kingdoms\Actions\UpdateTrackedKingdomAlliance;
@@ -37,7 +39,7 @@ final class KingdomAllianceController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, AlliancePermission::View)) {
             throw new AuthorizationException;
         }
 
@@ -47,9 +49,9 @@ final class KingdomAllianceController extends Controller
                 'email' => (string) $user->email,
             ],
             'alliance' => $this->allianceSummary($alliance),
-            'canManage' => $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage),
+            'canManage' => $authorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage),
             'canManageKingdomRoles' => $alliance->kingdom !== null
-                && $kingdomAuthorization->allows($context->player(), $alliance->kingdom, PermissionKey::KingdomRoleManage),
+                && $kingdomAuthorization->allows($context->player(), $alliance->kingdom, KingdomPermission::RoleManage),
             'tracking' => $this->trackingRows($tracking->forAlliance($alliance), $alliance, false),
         ]);
     }
@@ -63,7 +65,7 @@ final class KingdomAllianceController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
 

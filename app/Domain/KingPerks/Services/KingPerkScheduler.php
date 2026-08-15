@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\KingPerks\Services;
 
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMutationAuthority;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
 use App\Domain\KingPerks\Enums\KingAppointmentType;
 use App\Domain\KingPerks\Enums\KingPerkAppointmentStatus;
 use App\Domain\KingPerks\Enums\KingPerkPlanStatus;
@@ -21,6 +20,7 @@ use App\Domain\KingPerks\Models\KingPerkAppointment;
 use App\Domain\KingPerks\Models\KingPerkPlan;
 use App\Domain\KingPerks\Models\KingPerkPositionBlock;
 use App\Domain\KingPerks\Models\KingSkillPlan;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;

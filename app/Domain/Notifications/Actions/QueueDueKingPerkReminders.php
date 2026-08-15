@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Notifications\Actions;
 
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Models\KingdomRoleAssignment;
-use App\Domain\Events\Enums\EventReminderDeliveryStatus;
+use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use App\Domain\Events\Enums\EventReminderDeliveryStatus;
 use App\Domain\KingPerks\Enums\KingPerkAppointmentStatus;
 use App\Domain\KingPerks\Enums\KingPerkReminderKind;
 use App\Domain\KingPerks\Enums\KingSkillStatus;
@@ -136,7 +136,7 @@ final readonly class QueueDueKingPerkReminders
         return KingdomRoleAssignment::query()
             ->where('kingdom_id', $plan->kingdom_id)
             ->whereHas('role.permissions', static function ($query): void {
-                $query->where('permissions.key', PermissionKey::EventKingdomManage->value);
+                $query->where('permissions.key', OperationsPermission::EventKingdomManage->value);
             })
             ->with('player')
             ->get()

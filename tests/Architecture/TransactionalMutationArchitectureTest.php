@@ -25,8 +25,8 @@ final class TransactionalMutationArchitectureTest extends TestCase
     {
         foreach ([
             'app/Domain/Authorization/Services/AllianceMutationAuthority.php',
-            'app/Domain/Authorization/Services/KingdomMutationAuthority.php',
-            'app/Domain/Authorization/Services/PlayerMutationAuthority.php',
+            'app/Contexts/GameWorld/Governance/Services/KingdomMutationAuthority.php',
+            'app/Contexts/GameWorld/Governance/Services/PlayerMutationAuthority.php',
             'app/Domain/Platform/Services/PlatformMutationAuthority.php',
             'app/Domain/Events/Services/EventMutationAuthority.php',
         ] as $path) {
@@ -38,7 +38,7 @@ final class TransactionalMutationArchitectureTest extends TestCase
     {
         foreach ([
             'app/Domain/Authorization/Services/AllianceAuthorization.php',
-            'app/Domain/Authorization/Services/KingdomAuthorization.php',
+            'app/Contexts/GameWorld/Governance/Services/KingdomAuthorization.php',
         ] as $path) {
             $source = file_get_contents($this->root().'/'.$path);
             self::assertIsString($source);

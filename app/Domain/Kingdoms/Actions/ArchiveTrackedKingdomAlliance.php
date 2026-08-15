@@ -7,7 +7,7 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Shared\Audit\Services\AuditRecorder;
@@ -25,7 +25,7 @@ final readonly class ArchiveTrackedKingdomAlliance
 
     public function handle(Alliance $alliance, Player $actor, string $trackingId): TrackedKingdomAlliance
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
+        if (! $this->authorization->allows($actor, $alliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
 

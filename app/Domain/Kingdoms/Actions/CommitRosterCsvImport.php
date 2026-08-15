@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Models\RosterImport;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
@@ -31,7 +31,7 @@ final readonly class CommitRosterCsvImport
     /** @param array<int|string, string> $resolutions */
     public function handle(Alliance $alliance, Player $actor, string $importId, array $resolutions): RosterImport
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
+        if (! $this->authorization->allows($actor, $alliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
 

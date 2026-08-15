@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\TenantIsolation\Alliances;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Enums\DefaultAllianceRole;
 use App\Contexts\Alliance\Access\Models\Role;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
@@ -15,7 +16,6 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -63,10 +63,10 @@ final class AllianceIsolationTest extends TestCase
 
         $authorization = $this->app->make(AllianceAuthorization::class);
 
-        self::assertTrue($authorization->allows($firstPlayer, $firstAlliance, PermissionKey::AllianceManage));
-        self::assertFalse($authorization->allows($firstPlayer, $secondAlliance, PermissionKey::AllianceView));
-        self::assertTrue($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, PermissionKey::AllianceView));
-        self::assertFalse($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, PermissionKey::AllianceManage));
+        self::assertTrue($authorization->allows($firstPlayer, $firstAlliance, AlliancePermission::Manage));
+        self::assertFalse($authorization->allows($firstPlayer, $secondAlliance, AlliancePermission::View));
+        self::assertTrue($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, AlliancePermission::View));
+        self::assertFalse($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, AlliancePermission::Manage));
 
         $firstAllianceRole = Role::query()
             ->where('alliance_id', $firstAlliance->id)
@@ -82,9 +82,9 @@ final class AllianceIsolationTest extends TestCase
 
             self::fail('The database must reject a role owned by another alliance.');
         } catch (QueryException) {
-            self::assertFalse($authorization->allows($firstPlayer, $secondAlliance, PermissionKey::AllianceView));
-            self::assertTrue($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, PermissionKey::AllianceView));
-            self::assertFalse($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, PermissionKey::AllianceManage));
+            self::assertFalse($authorization->allows($firstPlayer, $secondAlliance, AlliancePermission::View));
+            self::assertTrue($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, AlliancePermission::View));
+            self::assertFalse($authorization->allows($firstOwnerSecondPlayer, $secondAlliance, AlliancePermission::Manage));
         }
     }
 
@@ -107,7 +107,7 @@ final class AllianceIsolationTest extends TestCase
             ->update(['status' => MembershipStatus::Suspended->value]);
 
         self::assertFalse($this->app->make(AllianceAuthorization::class)
-            ->allows($player, $alliance, PermissionKey::AllianceView));
+            ->allows($player, $alliance, AlliancePermission::View));
     }
 
     public function test_alliance_context_can_be_activated_and_cleared(): void

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Services;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventRosterType;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRoster;
-use App\Contexts\GameWorld\Models\Player;
 
 final readonly class EventRosterService
 {
@@ -42,6 +42,7 @@ final readonly class EventRosterService
                 ->first();
             if ($existing instanceof EventRoster && ($existing->settings['source'] ?? null) !== 'catalogue') {
                 $rows[$key] = $existing;
+
                 continue;
             }
 

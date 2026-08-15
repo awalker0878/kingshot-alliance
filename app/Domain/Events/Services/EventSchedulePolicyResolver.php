@@ -11,7 +11,7 @@ use InvalidArgumentException;
 final class EventSchedulePolicyResolver
 {
     /**
-     * @param array<string, mixed> $defaults
+     * @param  array<string, mixed>  $defaults
      * @return array{frequency: RecurrenceFrequency, interval: int}
      */
     public function resolve(

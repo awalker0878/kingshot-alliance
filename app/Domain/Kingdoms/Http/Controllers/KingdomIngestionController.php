@@ -11,7 +11,7 @@ use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
 use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
 use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Actions\CreateKingdomIngestionSubscription;
 use App\Domain\Kingdoms\Actions\RejectKingdomIngestionCandidate;
 use App\Domain\Kingdoms\Actions\ReplayKingdomIngestionCandidate;
@@ -39,7 +39,7 @@ final class KingdomIngestionController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage)) {
+        if (! $authorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
 

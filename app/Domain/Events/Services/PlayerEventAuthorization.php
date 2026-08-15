@@ -9,18 +9,18 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 
 final class PlayerEventAuthorization
 {
     public function __construct(private AllianceAuthorization $allianceAuthorization) {}
 
-    public function allows(Player $actor, Player $target, PermissionKey $permission): bool
+    public function allows(Player $actor, Player $target, OperationsPermission $permission): bool
     {
         if (! in_array($permission, [
-            PermissionKey::EventPlayerView,
-            PermissionKey::EventPlayerCreate,
-            PermissionKey::EventPlayerManage,
+            OperationsPermission::EventPlayerView,
+            OperationsPermission::EventPlayerCreate,
+            OperationsPermission::EventPlayerManage,
         ], true)) {
             return false;
         }
@@ -29,7 +29,7 @@ final class PlayerEventAuthorization
             return true;
         }
 
-        if ($permission === PermissionKey::EventPlayerCreate) {
+        if ($permission === OperationsPermission::EventPlayerCreate) {
             return false;
         }
 
@@ -43,7 +43,7 @@ final class PlayerEventAuthorization
         foreach ($entries as $entry) {
             $alliance = $entry->alliance;
             if ($alliance instanceof Alliance
-                && $this->allianceAuthorization->allows($actor, $alliance, PermissionKey::EventPlayerManage)) {
+                && $this->allianceAuthorization->allows($actor, $alliance, OperationsPermission::EventPlayerManage)) {
                 return true;
             }
         }

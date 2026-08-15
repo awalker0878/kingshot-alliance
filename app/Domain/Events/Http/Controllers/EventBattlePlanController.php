@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Http\Controllers;
 
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Events\Actions\AssignEventObjectiveTarget;
 use App\Domain\Events\Actions\RemoveEventObjectiveAssignment;
 use App\Domain\Events\Actions\SaveEventObjective;
@@ -12,9 +15,6 @@ use App\Domain\Events\Models\EventObjective;
 use App\Domain\Events\Models\EventObjectiveAssignment;
 use App\Domain\Events\Models\EventRoster;
 use App\Domain\Events\Queries\EventCalendarQuery;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;

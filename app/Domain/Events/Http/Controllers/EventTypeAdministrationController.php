@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Http\Controllers;
 
+use App\Contexts\Accounts\Models\User;
 use App\Domain\Events\Actions\UpdateEventTypeScope;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventRecurrencePolicy;
@@ -12,7 +13,6 @@ use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Enums\RecurrenceFrequency;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Models\EventTypeScope;
-use App\Contexts\Accounts\Models\User;
 use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

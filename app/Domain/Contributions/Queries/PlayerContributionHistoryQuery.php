@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Contributions\Queries;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Contributions\Models\ContributionCategory;
 use App\Domain\Contributions\Models\ContributionRecord;
 use App\Domain\Events\Queries\EventPlayerHistoryQuery;
 use App\Domain\Events\Queries\EventPlayerHistorySummaryQuery;
-use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;

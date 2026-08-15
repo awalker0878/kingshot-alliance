@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\KingdomAuthorization;
+use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
+use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Shared\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -28,7 +29,7 @@ final class KingdomSettingsController extends Controller
 
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceManage)) {
+        if (! $authorization->allows($context->player(), $alliance, AlliancePermission::Manage)) {
             throw new AuthorizationException;
         }
 
@@ -43,7 +44,7 @@ final class KingdomSettingsController extends Controller
                 'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
             ],
             'canManageKingdomRoles' => $alliance->kingdom !== null
-                && $kingdomAuthorization->allows($context->player(), $alliance->kingdom, PermissionKey::KingdomRoleManage),
+                && $kingdomAuthorization->allows($context->player(), $alliance->kingdom, KingdomPermission::RoleManage),
         ]);
     }
 }

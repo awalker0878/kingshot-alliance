@@ -38,5 +38,4 @@ final class EventArchitectureVocabularyTest extends TestCase
             'results',
         ], array_map(static fn (EventCapability $capability): string => $capability->value, EventCapability::cases()));
     }
-
 }

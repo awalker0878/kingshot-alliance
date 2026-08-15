@@ -7,7 +7,7 @@ namespace Tests\Unit\Authorization;
 use App\Contexts\Alliance\Access\Enums\DefaultAllianceRole;
 use App\Contexts\Alliance\Access\Services\AllianceRankPermissions;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use PHPUnit\Framework\TestCase;
 
 final class AllianceRankPermissionsTest extends TestCase
@@ -28,10 +28,10 @@ final class AllianceRankPermissionsTest extends TestCase
         $permissions = new AllianceRankPermissions;
 
         foreach ([AllianceRank::R5, AllianceRank::R4] as $rank) {
-            self::assertTrue($permissions->allows($rank, PermissionKey::EventAllianceCreate));
-            self::assertTrue($permissions->allows($rank, PermissionKey::EventAllianceManage));
-            self::assertFalse($permissions->allows($rank, PermissionKey::EventKingdomCreate));
-            self::assertFalse($permissions->allows($rank, PermissionKey::EventKingdomManage));
+            self::assertTrue($permissions->allows($rank, OperationsPermission::EventAllianceCreate));
+            self::assertTrue($permissions->allows($rank, OperationsPermission::EventAllianceManage));
+            self::assertFalse($permissions->allows($rank, OperationsPermission::EventKingdomCreate));
+            self::assertFalse($permissions->allows($rank, OperationsPermission::EventKingdomManage));
         }
     }
 
@@ -40,9 +40,9 @@ final class AllianceRankPermissionsTest extends TestCase
         $permissions = new AllianceRankPermissions;
 
         foreach ([AllianceRank::R1, AllianceRank::R2, AllianceRank::R3] as $rank) {
-            self::assertTrue($permissions->allows($rank, PermissionKey::EventAllianceView));
-            self::assertFalse($permissions->allows($rank, PermissionKey::EventAllianceCreate));
-            self::assertFalse($permissions->allows($rank, PermissionKey::EventAllianceManage));
+            self::assertTrue($permissions->allows($rank, OperationsPermission::EventAllianceView));
+            self::assertFalse($permissions->allows($rank, OperationsPermission::EventAllianceCreate));
+            self::assertFalse($permissions->allows($rank, OperationsPermission::EventAllianceManage));
         }
     }
 
@@ -58,7 +58,7 @@ final class AllianceRankPermissionsTest extends TestCase
             DefaultAllianceRole::EventCoordinator->permissions(),
         );
 
-        self::assertContains(PermissionKey::EventAllianceManage->value, $eventCoordinatorKeys);
-        self::assertNotContains(PermissionKey::EventKingdomManage->value, $eventCoordinatorKeys);
+        self::assertContains(OperationsPermission::EventAllianceManage->value, $eventCoordinatorKeys);
+        self::assertNotContains(OperationsPermission::EventKingdomManage->value, $eventCoordinatorKeys);
     }
 }

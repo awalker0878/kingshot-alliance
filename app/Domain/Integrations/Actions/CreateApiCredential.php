@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Integrations\Actions;
 
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Integrations\Models\ApiCredential;
 use App\Domain\Integrations\ValueObjects\IssuedApiCredential;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
@@ -58,7 +58,7 @@ final readonly class CreateApiCredential
 
         return DB::transaction(function () use ($alliance, $actor, $name, $scopes, $expiresAt): IssuedApiCredential {
             // Credential capacity is Alliance-wide, so acquire the exclusive mutation boundary.
-            $authority = $this->mutations->requireExclusive($actor, $alliance, PermissionKey::AllianceManage);
+            $authority = $this->mutations->requireExclusive($actor, $alliance, AlliancePermission::Manage);
             $currentAlliance = $authority->alliance;
             $currentActor = $authority->actor;
 

@@ -90,7 +90,7 @@ final class IntegrationExperienceTest extends TestCase
         self::assertStringContainsString("'user' => [", $source);
         self::assertStringContainsString("'name' => (string)", $source);
         self::assertStringContainsString("'email' => (string)", $source);
-        self::assertStringContainsString('PermissionKey::AllianceManage', $source);
+        self::assertStringContainsString('AlliancePermission::Manage', $source);
         self::assertStringContainsString('CreateApiCredential::allowedScopes()', $source);
         self::assertStringContainsString('PlanEntitlementService', $source);
         self::assertStringContainsString('recentDeliveries', $source);

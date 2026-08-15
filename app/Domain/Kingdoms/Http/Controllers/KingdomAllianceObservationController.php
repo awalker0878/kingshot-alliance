@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Actions\InvalidateKingdomAllianceObservation;
 use App\Domain\Kingdoms\Actions\RecordKingdomAllianceObservation;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
@@ -32,11 +33,11 @@ final class KingdomAllianceObservationController extends Controller
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
-        if (! $authorization->allows($context->player(), $alliance, PermissionKey::AllianceView)) {
+        if (! $authorization->allows($context->player(), $alliance, AlliancePermission::View)) {
             throw new AuthorizationException;
         }
 
-        $canManage = $authorization->allows($context->player(), $alliance, PermissionKey::KingdomManage);
+        $canManage = $authorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage);
         $tracked = $observations->tracking($alliance, $tracking);
         $latest = $observations->latestAccepted($alliance, $tracking);
         $history = $observations->history($alliance, $tracking, $canManage);

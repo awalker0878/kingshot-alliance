@@ -8,7 +8,7 @@ use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
@@ -33,7 +33,7 @@ final readonly class TransitionKingdomIngestionSubscription
         KingdomIngestionSubscriptionState $target,
     ): KingdomIngestionSubscription {
         return DB::transaction(function () use ($alliance, $actor, $subscriptionId, $target): KingdomIngestionSubscription {
-            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
             $subscription = KingdomIngestionSubscription::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($subscriptionId)

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventOccurrenceStatus;
 use App\Domain\Events\Enums\EventPollStatus;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Enums\EventRosterMemberStatus;
 use App\Domain\Events\Enums\EventScope;
+use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventPoll;
 use App\Domain\Events\Models\EventPollVote;
@@ -19,7 +21,6 @@ use App\Domain\Events\Models\EventRosterMember;
 use App\Domain\Events\Services\ActivePlayerEventVisibilityResolver;
 use App\Domain\Events\Services\EventCapabilityResolver;
 use App\Domain\Events\Services\EventRegistrationWindow;
-use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -99,8 +100,8 @@ final readonly class EventAttentionQuery
     }
 
     /**
-     * @param Builder<\App\Domain\Events\Models\Event> $query
-     * @param array{alliance:list<string>,player:list<string>,kingdom:list<string>} $targets
+     * @param  Builder<Event>  $query
+     * @param  array{alliance:list<string>,player:list<string>,kingdom:list<string>}  $targets
      */
     private function applyTargetScope(Builder $query, array $targets): void
     {
@@ -135,7 +136,7 @@ final readonly class EventAttentionQuery
     }
 
     /**
-     * @param list<string> $occurrenceIds
+     * @param  list<string>  $occurrenceIds
      * @return array{
      *   responses:array<string,true>,
      *   registrations:array<string,true>,

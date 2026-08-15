@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Shared\Audit\Services\AuditRecorder;
 use App\Contexts\GameWorld\Enums\KingdomAllianceStatus;
-use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
-use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
-use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
-use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
-use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
 use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
 use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
 use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
 use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
+use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
+use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
+use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
+use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
 use App\Domain\Kingdoms\Services\KingdomIngestionMutationState;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -81,19 +81,23 @@ final readonly class PromoteKingdomIngestionAllianceObservation
                 || $batch->adapter_key !== $subscription->adapter_key
                 || $batch->adapter_version !== $subscription->adapter_version) {
                 $this->quarantine($candidate, $batch, 'candidate_context_mismatch');
+
                 return null;
             }
             if ($context->alliance->kingdom_id === null
                 || (string) $context->alliance->kingdom_id !== (string) $subscription->kingdom_id) {
                 $this->quarantine($candidate, $batch, 'kingdom_context_changed');
+
                 return null;
             }
             if (! $this->sourceStillApproved($subscription)) {
                 $this->quarantine($candidate, $batch, 'source_version_unapproved');
+
                 return null;
             }
             if ($candidate->stable_game_id === null || trim($candidate->stable_game_id) === '') {
                 $this->quarantine($candidate, $batch, 'missing_stable_game_id');
+
                 return null;
             }
 
@@ -106,15 +110,18 @@ final readonly class PromoteKingdomIngestionAllianceObservation
                 ->get();
             if ($references->isEmpty()) {
                 $this->quarantine($candidate, $batch, 'unknown_game_alliance');
+
                 return null;
             }
             if ($references->count() !== 1) {
                 $this->quarantine($candidate, $batch, 'ambiguous_game_alliance_identity');
+
                 return null;
             }
             $reference = $references->first();
             if ($reference->status !== KingdomAllianceStatus::Active) {
                 $this->quarantine($candidate, $batch, 'game_alliance_inactive');
+
                 return null;
             }
 
@@ -133,10 +140,12 @@ final readonly class PromoteKingdomIngestionAllianceObservation
                     $batch,
                     $trackingRows->isEmpty() ? 'tracking_target_missing' : 'tracking_target_inactive',
                 );
+
                 return null;
             }
             if ($activeTracking->count() !== 1) {
                 $this->quarantine($candidate, $batch, 'ambiguous_tracking_target');
+
                 return null;
             }
             $tracking = $activeTracking->first();
@@ -160,6 +169,7 @@ final readonly class PromoteKingdomIngestionAllianceObservation
                 );
             } catch (ValidationException) {
                 $this->quarantine($candidate, $batch, 'observation_validation_failed');
+
                 return null;
             }
 

@@ -169,12 +169,12 @@ final class RosterExperienceTest extends TestCase
         foreach ([$roster, $intelligence, $csv, $snapshots] as $source) {
             self::assertStringContainsString("'name' => (string) \$user->name", $source);
             self::assertStringContainsString("'email' => (string) \$user->email", $source);
-            self::assertStringContainsString('PermissionKey::AllianceView', $source);
+            self::assertStringContainsString('AlliancePermission::View', $source);
         }
 
         self::assertStringContainsString("Rule::in(['linked', 'unlinked'])", $roster);
         self::assertStringContainsString("Rule::in(['current', 'stale', 'missing'])", $roster);
-        self::assertStringContainsString('PermissionKey::KingdomManage', $roster);
+        self::assertStringContainsString('IntelligencePermission::KingdomManage', $roster);
         self::assertStringContainsString("Rule::in(['member', 'management'])", $csv);
         self::assertStringContainsString("'power' => ['required', 'string', 'regex:/^\\d{1,19}$/']", $snapshots);
     }

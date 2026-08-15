@@ -6,7 +6,7 @@ namespace App\Domain\Events\Queries;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Authorization\Enums\PermissionKey;
+use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Domain\Events\Enums\EventOccurrenceStatus;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\Event;
@@ -36,7 +36,7 @@ final class EventCalendarQuery
             $actor,
             EventScope::Alliance,
             $alliance,
-            PermissionKey::EventAllianceView,
+            OperationsPermission::EventAllianceView,
         );
 
         return EventOccurrence::query()
@@ -152,7 +152,7 @@ final class EventCalendarQuery
             $actor,
             $event->scope,
             $target,
-            PermissionKey::from($permissionKey),
+            OperationsPermission::from($permissionKey),
         );
     }
 }

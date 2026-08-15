@@ -115,7 +115,7 @@ final class ContributionAccessibilityGuardTest extends TestCase
 
         self::assertSame(2, substr_count($source, "'name' => (string) \$user->name"));
         self::assertSame(2, substr_count($source, "'email' => (string) \$user->email"));
-        self::assertStringContainsString('PermissionKey::ContributionManage', $source);
+        self::assertStringContainsString('IntelligencePermission::ContributionManage', $source);
         self::assertStringContainsString('memberDashboard($alliance, $membership)', $source);
         self::assertStringContainsString('managementDashboard($alliance)', $source);
     }
