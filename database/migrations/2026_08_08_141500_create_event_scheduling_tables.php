@@ -51,10 +51,12 @@ return new class extends Migration
             $table->ulid('event_type_scope_id');
             $table->ulid('event_type_id');
             $table->string('scope', 16);
-            $table->foreignUlid('alliance_id')->nullable()->constrained('alliances')->cascadeOnDelete();
-            $table->foreignUlid('kingdom_id')->nullable()->constrained('kingdoms')->cascadeOnDelete();
-            $table->foreignUlid('player_id')->nullable()->constrained('players')->cascadeOnDelete();
+            $table->foreignUlid('alliance_id')->nullable()->constrained('alliances')->restrictOnDelete();
+            $table->foreignUlid('kingdom_id')->nullable()->constrained('kingdoms')->restrictOnDelete();
+            $table->foreignUlid('player_id')->nullable()->constrained('players')->restrictOnDelete();
             $table->foreignUlid('template_id')->nullable()->constrained('event_templates')->nullOnDelete();
+            $table->string('target_display_name', 180);
+            $table->string('target_secondary_label', 180)->nullable();
             $table->string('title', 160)->nullable();
             $table->text('instructions')->nullable();
             $table->string('timezone', 64);
@@ -86,7 +88,7 @@ return new class extends Migration
 
         Schema::create('event_occurrences', function (Blueprint $table): void {
             $table->ulid('id')->primary();
-            $table->foreignUlid('event_id')->constrained('events')->cascadeOnDelete();
+            $table->foreignUlid('event_id')->constrained('events')->restrictOnDelete();
             $table->timestamp('starts_at')->index();
             $table->timestamp('ends_at');
             $table->string('status', 24)->default('scheduled')->index();
@@ -99,6 +101,7 @@ return new class extends Migration
 
         $this->createTargetGuards('event_templates');
         $this->createTargetGuards('events');
+        $this->createHistoricalTargetImmutabilityGuard();
     }
 
     private function createTargetGuards(string $table): void
@@ -118,10 +121,58 @@ return new class extends Migration
         }
     }
 
+    private function createHistoricalTargetImmutabilityGuard(): void
+    {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            DB::statement(<<<'SQL'
+CREATE FUNCTION events_historical_target_immutable_guard() RETURNS trigger AS $$
+BEGIN
+    IF NEW.scope IS DISTINCT FROM OLD.scope
+        OR NEW.alliance_id IS DISTINCT FROM OLD.alliance_id
+        OR NEW.kingdom_id IS DISTINCT FROM OLD.kingdom_id
+        OR NEW.player_id IS DISTINCT FROM OLD.player_id THEN
+        RAISE EXCEPTION 'event historical target is immutable';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql
+SQL);
+            DB::statement(<<<'SQL'
+CREATE TRIGGER events_historical_target_immutable
+BEFORE UPDATE OF scope, alliance_id, kingdom_id, player_id ON events
+FOR EACH ROW EXECUTE FUNCTION events_historical_target_immutable_guard()
+SQL);
+
+            return;
+        }
+
+        if ($driver === 'sqlite') {
+            DB::statement(<<<'SQL'
+CREATE TRIGGER events_historical_target_immutable
+BEFORE UPDATE OF scope, alliance_id, kingdom_id, player_id ON events
+WHEN NEW.scope IS NOT OLD.scope
+    OR NEW.alliance_id IS NOT OLD.alliance_id
+    OR NEW.kingdom_id IS NOT OLD.kingdom_id
+    OR NEW.player_id IS NOT OLD.player_id
+BEGIN
+    SELECT RAISE(ABORT, 'event historical target is immutable');
+END
+SQL);
+        }
+    }
+
     public function down(): void
     {
         Schema::dropIfExists('event_occurrences');
         Schema::dropIfExists('events');
+
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement('DROP FUNCTION IF EXISTS events_historical_target_immutable_guard()');
+        }
+
         Schema::dropIfExists('event_templates');
     }
 };
