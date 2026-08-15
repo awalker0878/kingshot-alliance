@@ -8,7 +8,17 @@ on:
       - 'app/Shared/**'
       - 'app/Workflows/**'
       - 'app/ReadModels/**'
+      - 'bootstrap/app.php'
+      - 'config/accounts.php'
+      - 'config/alliance.php'
+      - 'config/auth.php'
+      - 'config/game_world.php'
+      - 'database/factories/UserFactory.php'
+      - 'routes/account.php'
       - 'tests/Architecture/ArchitectureV2DependencyTest.php'
+      - 'tests/Feature/Accounts/**'
+      - 'tests/Feature/GameWorld/**'
+      - 'tests/Unit/Accounts/**'
       - 'docs/product/architecture-v2-*.md'
       - '.github/workflows/architecture-v2-verification.yml'
   workflow_dispatch:
@@ -22,8 +32,37 @@ concurrency:
 
 jobs:
   architecture-contract:
-    name: V2 architecture contract
+    name: V2 architecture and P2 foundation
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
 
     steps:
       - name: Check out repository
@@ -33,15 +72,50 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
           php-version: '8.5'
-          extensions: dom, mbstring
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
           coverage: none
           tools: composer:v2
 
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Check V2 PHP formatting
-        run: vendor/bin/pint --test tests/Architecture/ArchitectureV2DependencyTest.php app/Contexts app/Shared app/Workflows app/ReadModels
+      - name: Verify PostgreSQL schema
+        run: php artisan migrate --force
+
+      - name: Check V2 and P2 PHP formatting
+        run: >-
+          vendor/bin/pint --test
+          tests/Architecture/ArchitectureV2DependencyTest.php
+          tests/Feature/Accounts
+          tests/Feature/GameWorld
+          tests/Unit/Accounts
+          app/Contexts
+          app/Shared
+          app/Workflows
+          app/ReadModels
+          bootstrap/app.php
+          config/accounts.php
+          config/alliance.php
+          config/auth.php
+          config/game_world.php
+          database/factories/UserFactory.php
+          routes/account.php
 
       - name: Run V2 dependency architecture test
         run: php artisan test tests/Architecture/ArchitectureV2DependencyTest.php
+
+      - name: Larastan P2 foundation
+        run: >-
+          vendor/bin/phpstan analyse --memory-limit=1G
+          app/Contexts/Accounts
+          app/Contexts/GameWorld
+          app/Shared
+          bootstrap/app.php
+          database/factories/UserFactory.php
+
+      - name: Run Accounts and GameWorld foundation tests
+        run: >-
+          php artisan test
+          tests/Feature/Accounts
+          tests/Feature/GameWorld
+          tests/Unit/Accounts
