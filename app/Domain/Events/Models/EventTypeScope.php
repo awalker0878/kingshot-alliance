@@ -86,8 +86,36 @@ final class EventTypeScope extends Model
             ->orderBy('key');
     }
 
+    public function scopeEnum(): EventScope
+    {
+        $value = $this->getAttribute('scope');
+
+        return $value instanceof EventScope ? $value : EventScope::from((string) $value);
+    }
+
+    public function scheduleSourceEnum(): EventScheduleSource
+    {
+        $value = $this->getAttribute('schedule_source');
+
+        return $value instanceof EventScheduleSource ? $value : EventScheduleSource::from((string) $value);
+    }
+
+    public function recurrencePolicyEnum(): EventRecurrencePolicy
+    {
+        $value = $this->getAttribute('recurrence_policy');
+
+        return $value instanceof EventRecurrencePolicy ? $value : EventRecurrencePolicy::from((string) $value);
+    }
+
+    public function defaultRecurrenceFrequencyEnum(): RecurrenceFrequency
+    {
+        $value = $this->getAttribute('default_recurrence_frequency');
+
+        return $value instanceof RecurrenceFrequency ? $value : RecurrenceFrequency::from((string) $value);
+    }
+
     public function allowsRecurrence(): bool
     {
-        return $this->recurrence_policy->allowsRecurrence();
+        return $this->recurrencePolicyEnum()->allowsRecurrence();
     }
 }
