@@ -68,6 +68,41 @@ final class EventContributionHistoryArchitectureTest extends TestCase
         self::assertStringNotContainsString('user_id', $result);
     }
 
+    public function test_greenfield_event_schema_protects_historical_target_identity(): void
+    {
+        $migration = $this->read('database/migrations/2026_08_08_141500_create_event_scheduling_tables.php');
+
+        self::assertStringContainsString("$table->string('target_display_name', 180);", $migration);
+        self::assertStringContainsString("$table->string('target_secondary_label', 180)->nullable();", $migration);
+        self::assertStringContainsString("->constrained('alliances')->restrictOnDelete()", $migration);
+        self::assertStringContainsString("->constrained('kingdoms')->restrictOnDelete()", $migration);
+        self::assertStringContainsString("->constrained('players')->restrictOnDelete()", $migration);
+        self::assertStringContainsString('events_historical_target_immutable_guard', $migration);
+        self::assertStringContainsString('event historical target is immutable', $migration);
+    }
+
+    public function test_greenfield_result_schema_uses_normalized_metrics_and_historical_context(): void
+    {
+        $migration = $this->read('database/migrations/2026_08_13_070000_create_event_result_tables.php');
+
+        foreach ([
+            'event_metric_definitions',
+            'event_player_contexts',
+            'event_alliance_results',
+            'event_result_metrics',
+            'event_alliance_result_metrics',
+            'event_player_result_metrics',
+            'represented_alliance_id',
+            'kingdom_id_at_event',
+            'context_frozen_at',
+            "decimal('value', 30, 4)",
+        ] as $contract) {
+            self::assertStringContainsString($contract, $migration, $contract);
+        }
+
+        self::assertStringNotContainsString("$table->json('metrics')", $migration);
+    }
+
     private function read(string $path): string
     {
         $source = file_get_contents($this->root().'/'.$path);
