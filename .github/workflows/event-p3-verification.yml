@@ -95,5 +95,29 @@ jobs:
           app/Domain/Events/Services/EventPlayerContextFreezer.php
           app/Domain/Rallies/Actions/RecordRallyParticipation.php
           app/Domain/Rallies/Actions/RespondRallyAssignment.php
-      - name: P3 feature tests
+      - name: Metric upsert and phase dimension
+        continue-on-error: true
+        run: php artisan test tests/Feature/Events/EventMetricCaptureTest.php --filter=test_player_phase_metric_is_validated_and_idempotently_updated
+      - name: Reject invalid phase dimension
+        continue-on-error: true
+        run: php artisan test tests/Feature/Events/EventMetricCaptureTest.php --filter=test_metric_dimension_must_exist_on_the_exact_occurrence
+      - name: Objective occurrence isolation
+        continue-on-error: true
+        run: php artisan test tests/Feature/Events/EventMetricCaptureTest.php --filter=test_objective_metric_accepts_only_an_objective_from_the_same_occurrence
+      - name: Frozen context survives Kingdom move
+        continue-on-error: true
+        run: php artisan test tests/Feature/Events/EventMetricCaptureTest.php --filter=test_frozen_player_context_allows_later_result_correction_after_kingdom_move_without_rewriting_snapshot
+      - name: Alliance result metric and snapshot
+        continue-on-error: true
+        run: php artisan test tests/Feature/Events/EventMetricCaptureTest.php --filter=test_kingdom_event_alliance_result_captures_metrics_and_preserves_first_name_snapshot
+      - name: Reject wrong-Kingdom Alliance result
+        continue-on-error: true
+        run: php artisan test tests/Feature/Events/EventMetricCaptureTest.php --filter=test_kingdom_event_alliance_result_rejects_an_alliance_from_another_kingdom
+      - name: Attendance context freeze boundary
+        continue-on-error: true
+        run: php artisan test tests/Feature/Events/EventMetricCaptureTest.php --filter=test_explicit_attendance_freezes_context_but_unknown_attendance_does_not
+      - name: Reject fractional integer metric
+        continue-on-error: true
+        run: php artisan test tests/Feature/Events/EventMetricCaptureTest.php --filter=test_integer_metric_rejects_fractional_values
+      - name: P3 feature suite
         run: php artisan test tests/Feature/Events/EventMetricCaptureTest.php
