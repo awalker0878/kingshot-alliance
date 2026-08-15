@@ -1,0 +1,36 @@
+name: Event History Prettier Diagnostic
+
+on:
+  push:
+    branches:
+      - feature/event-contribution-history-p0
+
+permissions:
+  contents: write
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/event-contribution-history-p0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Apply Prettier
+        run: npx prettier --write resources/js/pages/Events/OrganizationHistory.vue resources/js/pages/Contributions/History.vue
+      - name: Commit exact formatter output
+        shell: bash
+        run: |
+          if git diff --quiet -- resources/js/pages/Events/OrganizationHistory.vue resources/js/pages/Contributions/History.vue; then
+            echo "History pages already match Prettier."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resources/js/pages/Events/OrganizationHistory.vue resources/js/pages/Contributions/History.vue
+          git commit -m "Format Event contribution history pages"
+          git push origin HEAD:feature/event-contribution-history-p0
