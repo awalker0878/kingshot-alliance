@@ -41,7 +41,7 @@ final class ArchitectureV2AllianceTest extends TestCase
         self::assertNotContains('user_id', $membership->getFillable());
         self::assertIsString($authorization);
         self::assertStringContainsString('activeMembership(Player $player, Alliance $alliance)', $authorization);
-        self::assertStringContainsString('allows(Player $player, Alliance $alliance, AlliancePermission $permission)', $authorization);
+        self::assertStringContainsString('allows(Player $player, Alliance $alliance, Permission $permission)', $authorization);
         self::assertStringNotContainsString('User $user', $authorization);
     }
 
