@@ -43,10 +43,9 @@ final readonly class RecordEventRosterParticipation
             ]);
         }
 
-        $member->loadMissing('roster.occurrence.event');
-        $roster = $member->roster;
-        $occurrence = $roster->occurrence;
-        $event = $occurrence->event;
+        $roster = $member->roster()->firstOrFail();
+        $occurrence = $roster->occurrence()->firstOrFail();
+        $event = $occurrence->event()->firstOrFail();
 
         return DB::transaction(function () use ($actor, $member, $status, $roster, $occurrence, $event): EventRosterMember {
             $context = $this->mutations->requireManager($actor, $event);
@@ -68,7 +67,7 @@ final readonly class RecordEventRosterParticipation
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (in_array($locked->status, [EventRosterMemberStatus::Declined, EventRosterMemberStatus::Removed], true)) {
+            if (in_array($locked->statusEnum(), [EventRosterMemberStatus::Declined, EventRosterMemberStatus::Removed], true)) {
                 throw ValidationException::withMessages([
                     'status' => 'Declined or removed roster assignments cannot receive participation.',
                 ]);
@@ -112,7 +111,7 @@ final readonly class RecordEventRosterParticipation
                 $alliance?->id,
                 $locked,
                 $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
+                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
             );
 
             return $locked->refresh()->load(['player', 'roster']);
