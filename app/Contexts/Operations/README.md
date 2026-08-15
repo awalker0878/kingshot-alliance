@@ -4,7 +4,7 @@ Operations owns execution-time game coordination around Events.
 
 ## Capability modules
 
-- `EventCore` owns Event identity, scope, schedule, recurrence, occurrences, phases, templates and capability selection.
+- `EventCore` owns Event identity, scope, schedule, recurrence, occurrences, phases, templates, capability selection and Event command endpoints.
 - `Participation` owns registration, responses, attendance and frozen Player context.
 - `Polls` owns Event polls and voting.
 - `Rosters` owns Event roster planning, assignments and participation state.
@@ -18,8 +18,10 @@ Operations owns execution-time game coordination around Events.
 
 Event history, trend, intelligence and evidence projections are not Operations state; they are owned by Intelligence or ReadModels.
 
+The Event management page is a cross-context projection and is owned by `ReadModels/EventManagement`. It may compose Operations facts with Intelligence. The Operations command controller does not import Intelligence, Communications, Platform or ReadModels.
+
 Reminder delivery state is not owned by Operations. Delivery records live under Communications, while cross-context reminder inbox composition lives under ReadModels. Operations does not navigate to delivery records through ORM relationships.
 
-Platform Event-type administration is Platform-owned orchestration over Operations configuration. Cross-context Event management page composition is also downstream of Operations so the Operations context never imports Intelligence, Communications, Platform, or ReadModels.
+Platform Event-type administration is Platform-owned orchestration over Operations configuration.
 
 All Alliance/Kingdom Event authority remains Player-scoped. User is account/platform identity only and never receives game-domain Event permissions directly.
