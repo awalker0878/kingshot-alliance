@@ -1,5 +1,5 @@
 name: Architecture V2 Verification
-# P4 final hard-cut verification: V1 Authorization must remain absent.
+# P5 verification: operational V1 roots must remain absent and Operations must stay downstream-clean.
 
 on:
   pull_request:
@@ -9,6 +9,9 @@ on:
       - 'app/Shared/**'
       - 'app/Workflows/**'
       - 'app/ReadModels/**'
+      - 'app/Domain/Notifications/**'
+      - 'app/Domain/Contributions/**'
+      - 'app/Domain/Integrations/**'
       - 'bootstrap/app.php'
       - 'bootstrap/providers.php'
       - 'config/accounts.php'
@@ -16,9 +19,12 @@ on:
       - 'config/auth.php'
       - 'config/game_world.php'
       - 'config/operations.php'
-      - 'database/factories/UserFactory.php'
+      - 'database/**'
       - 'routes/account.php'
       - 'routes/console.php'
+      - 'routes/event-history.php'
+      - 'routes/king-perks.php'
+      - 'routes/platform.php'
       - 'routes/web.php'
       - 'tests/Architecture/**'
       - 'tests/Feature/Accounts/**'
@@ -27,6 +33,10 @@ on:
       - 'tests/Feature/Memberships/**'
       - 'tests/Feature/Recruitment/**'
       - 'tests/Feature/Content/**'
+      - 'tests/Feature/Events/**'
+      - 'tests/Feature/KingPerks/**'
+      - 'tests/Feature/Integrations/**'
+      - 'tests/Feature/Contributions/**'
       - 'tests/TenantIsolation/Alliances/**'
       - 'tests/Unit/Accounts/**'
       - 'tests/Unit/Authorization/**'
@@ -43,9 +53,9 @@ concurrency:
 
 jobs:
   architecture-contract:
-    name: V2 architecture through P4 access cut
+    name: V2 architecture through P5 Operations cut
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     services:
       postgres:
@@ -79,11 +89,16 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
-      - name: Verify V1 Authorization domain is absent
+      - name: Verify V1 hard cuts are absent
         shell: bash
         run: |
+          set -euo pipefail
           test ! -d app/Domain/Authorization
-          matches=$(grep -R -n -F --include='*.php' 'App\Domain\Authorization' app routes bootstrap config database 2>/dev/null || true)
+          test ! -d app/Domain/Events
+          test ! -d app/Domain/Rallies
+          test ! -d app/Domain/KingPerks
+
+          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\(Authorization|Events|Rallies|KingPerks)\\' app routes bootstrap config database tests 2>/dev/null || true)
           if [ -n "$matches" ]; then
             echo "$matches"
             exit 1
@@ -103,7 +118,7 @@ jobs:
       - name: Verify PostgreSQL schema
         run: php artisan migrate --force
 
-      - name: Check V2 through P4 PHP formatting
+      - name: Check V2 through P5 PHP formatting
         shell: bash
         run: |
           set -o pipefail
@@ -116,6 +131,10 @@ jobs:
             tests/Feature/Memberships \
             tests/Feature/Recruitment \
             tests/Feature/Content \
+            tests/Feature/Events \
+            tests/Feature/KingPerks \
+            tests/Feature/Integrations \
+            tests/Feature/Contributions \
             tests/TenantIsolation/Alliances \
             tests/Unit/Accounts \
             tests/Unit/Authorization \
@@ -133,11 +152,14 @@ jobs:
             database/factories/UserFactory.php \
             routes/account.php \
             routes/console.php \
+            routes/event-history.php \
+            routes/king-perks.php \
+            routes/platform.php \
             routes/web.php 2>&1 | tee pint-tests.log
           status=${PIPESTATUS[0]}
           set -e
           if [ "$status" -ne 0 ]; then
-            details=$(tail -n 40 pint-tests.log)
+            details=$(tail -n 60 pint-tests.log)
             details=${details//'%'/'%25'}
             details=${details//$'\r'/'%0D'}
             details=${details//$'\n'/'%0A'}
@@ -153,13 +175,14 @@ jobs:
           php artisan test \
             tests/Architecture/ArchitectureV2DependencyTest.php \
             tests/Architecture/ArchitectureV2AllianceTest.php \
+            tests/Architecture/ArchitectureV2OperationsTest.php \
             tests/Architecture/AccountExperienceTest.php \
             tests/Architecture/UserExperienceLocalizationFoundationTest.php \
             2>&1 | tee architecture-tests.log
           status=${PIPESTATUS[0]}
           set -e
           if [ "$status" -ne 0 ]; then
-            details=$(tail -n 80 architecture-tests.log)
+            details=$(tail -n 100 architecture-tests.log)
             details=${details//'%'/'%25'}
             details=${details//$'\r'/'%0D'}
             details=${details//$'\n'/'%0A'}
@@ -167,21 +190,27 @@ jobs:
             exit "$status"
           fi
 
-      - name: Larastan P2 through P4 contexts
+      - name: Larastan P2 through P5 contexts
         run: >-
-          vendor/bin/phpstan analyse --memory-limit=1G
+          vendor/bin/phpstan analyse --memory-limit=1536M
           app/Contexts/Accounts
           app/Contexts/GameWorld
           app/Contexts/Alliance
-          app/Contexts/Operations/Access
-          app/Contexts/Intelligence/Access
+          app/Contexts/Operations
+          app/Contexts/Intelligence
+          app/Contexts/Communications
+          app/Contexts/Platform/Access
+          app/Contexts/Platform/EventAdministration
           app/Shared
           app/Workflows
-          app/ReadModels/AllianceDashboard
+          app/ReadModels
           bootstrap/app.php
           bootstrap/providers.php
           database/factories/UserFactory.php
           routes/console.php
+          routes/event-history.php
+          routes/king-perks.php
+          routes/platform.php
 
       - name: Run Accounts and GameWorld foundation tests
         run: >-
@@ -200,3 +229,15 @@ jobs:
           tests/Feature/Content
           tests/TenantIsolation/Alliances
           tests/Unit/Authorization/AllianceRankPermissionsTest.php
+
+      - name: Run Operations bounded-context tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t rally_tests < <(find tests -type f \( -name '*Rally*Test.php' -o -name '*Rallies*Test.php' \) -print | sort)
+          php artisan test \
+            tests/Feature/Events \
+            tests/Feature/KingPerks \
+            tests/Feature/Integrations \
+            tests/Feature/Contributions \
+            "${rally_tests[@]}"
