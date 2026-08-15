@@ -8,6 +8,7 @@ on:
       - 'app/Shared/**'
       - 'app/Workflows/**'
       - 'app/ReadModels/**'
+      - 'app/Domain/Authorization/**'
       - 'bootstrap/app.php'
       - 'bootstrap/providers.php'
       - 'config/accounts.php'
@@ -17,10 +18,17 @@ on:
       - 'config/operations.php'
       - 'database/factories/UserFactory.php'
       - 'routes/account.php'
+      - 'routes/web.php'
       - 'tests/Architecture/ArchitectureV2DependencyTest.php'
       - 'tests/Feature/Accounts/**'
       - 'tests/Feature/GameWorld/**'
+      - 'tests/Feature/Alliances/**'
+      - 'tests/Feature/Memberships/**'
+      - 'tests/Feature/Recruitment/**'
+      - 'tests/Feature/Content/**'
+      - 'tests/TenantIsolation/Alliances/**'
       - 'tests/Unit/Accounts/**'
+      - 'tests/Unit/Authorization/AllianceRankPermissionsTest.php'
       - 'docs/product/architecture-v2-*.md'
       - '.github/workflows/architecture-v2-verification.yml'
   workflow_dispatch:
@@ -34,9 +42,9 @@ concurrency:
 
 jobs:
   architecture-contract:
-    name: V2 architecture and P2 foundation
+    name: V2 architecture through P3 Alliance
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     services:
       postgres:
@@ -84,17 +92,24 @@ jobs:
       - name: Verify PostgreSQL schema
         run: php artisan migrate --force
 
-      - name: Check V2 and P2 PHP formatting
+      - name: Check V2 through P3 PHP formatting
         run: >-
           vendor/bin/pint --test
           tests/Architecture/ArchitectureV2DependencyTest.php
           tests/Feature/Accounts
           tests/Feature/GameWorld
+          tests/Feature/Alliances
+          tests/Feature/Memberships
+          tests/Feature/Recruitment
+          tests/Feature/Content
+          tests/TenantIsolation/Alliances
           tests/Unit/Accounts
+          tests/Unit/Authorization/AllianceRankPermissionsTest.php
           app/Contexts
           app/Shared
           app/Workflows
           app/ReadModels
+          app/Domain/Authorization
           bootstrap/app.php
           bootstrap/providers.php
           config/accounts.php
@@ -104,16 +119,20 @@ jobs:
           config/operations.php
           database/factories/UserFactory.php
           routes/account.php
+          routes/web.php
 
       - name: Run V2 dependency architecture test
         run: php artisan test tests/Architecture/ArchitectureV2DependencyTest.php
 
-      - name: Larastan P2 foundation
+      - name: Larastan P2 and P3 contexts
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1G
           app/Contexts/Accounts
           app/Contexts/GameWorld
+          app/Contexts/Alliance
           app/Shared
+          app/ReadModels/AllianceDashboard
+          app/Domain/Authorization
           bootstrap/app.php
           bootstrap/providers.php
           database/factories/UserFactory.php
@@ -124,3 +143,13 @@ jobs:
           tests/Feature/Accounts
           tests/Feature/GameWorld
           tests/Unit/Accounts
+
+      - name: Run Alliance bounded-context tests
+        run: >-
+          php artisan test
+          tests/Feature/Alliances
+          tests/Feature/Memberships
+          tests/Feature/Recruitment
+          tests/Feature/Content
+          tests/TenantIsolation/Alliances
+          tests/Unit/Authorization/AllianceRankPermissionsTest.php
