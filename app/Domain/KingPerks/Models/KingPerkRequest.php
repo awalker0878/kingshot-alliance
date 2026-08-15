@@ -11,7 +11,22 @@ use App\Domain\KingPerks\Enums\KingPerkRequestStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property KingPerkPushCategory $push_category
+ * @property KingAppointmentType|null $preferred_appointment_type
+ * @property Carbon $availability_starts_at
+ * @property Carbon $availability_ends_at
+ * @property int|null $planned_speedup_minutes
+ * @property int|null $planned_resource_amount
+ * @property KingPerkRequestStatus $status
+ * @property Carbon|null $reviewed_at
+ * @property-read KingPerkPlan|null $plan
+ * @property-read Player|null $player
+ * @property-read KingPerkAppointment|null $scheduledAppointment
+ * @property-read Player|null $reviewedByPlayer
+ */
 final class KingPerkRequest extends Model
 {
     use HasUlids;
@@ -50,21 +65,25 @@ final class KingPerkRequest extends Model
         ];
     }
 
+    /** @return BelongsTo<KingPerkPlan, $this> */
     public function plan(): BelongsTo
     {
         return $this->belongsTo(KingPerkPlan::class, 'plan_id');
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class);
     }
 
+    /** @return BelongsTo<KingPerkAppointment, $this> */
     public function scheduledAppointment(): BelongsTo
     {
         return $this->belongsTo(KingPerkAppointment::class, 'scheduled_appointment_id');
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function reviewedByPlayer(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'reviewed_by_player_id');
