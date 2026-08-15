@@ -123,7 +123,7 @@ final class EventPlayerHistoryQueryTest extends TestCase
         self::assertCount(2, $history);
         $allianceRow = collect($history)->firstWhere('scope', EventScope::Alliance->value);
         self::assertIsArray($allianceRow);
-        self::assertSame((string) $oldAlliance->id, $allianceRow['targetId']);
+        self::assertSame((string) $oldAlliance->id, $allianceRow['target']['allianceId']);
         self::assertSame((string) $oldAlliance->id, $allianceRow['playerContext']['representedAllianceId']);
         self::assertSame((string) $oldKingdom->id, $allianceRow['playerContext']['kingdomIdAtEvent']);
         self::assertSame(111, $allianceRow['result']['score']);
@@ -131,7 +131,7 @@ final class EventPlayerHistoryQueryTest extends TestCase
 
         $kingdomRow = collect($history)->firstWhere('scope', EventScope::Kingdom->value);
         self::assertIsArray($kingdomRow);
-        self::assertSame((string) $oldKingdom->id, $kingdomRow['targetId']);
+        self::assertSame((string) $oldKingdom->id, $kingdomRow['target']['kingdomId']);
         self::assertSame((string) $oldKingdom->id, $kingdomRow['playerContext']['kingdomIdAtEvent']);
         self::assertSame(222, $kingdomRow['result']['score']);
         self::assertSame((string) $newKingdom->id, (string) $movingPlayer->refresh()->current_kingdom_id);
