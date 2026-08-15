@@ -68,6 +68,8 @@ higher_is_better
 sort_order
 ```
 
+`is_primary` marks a particularly important component metric within its subject/profile. It never replaces or duplicates the first-class `score` field.
+
 Metric identity is:
 
 ```text
