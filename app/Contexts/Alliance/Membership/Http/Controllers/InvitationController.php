@@ -25,7 +25,9 @@ final class InvitationController extends Controller
             'email' => ['required', 'string', 'email', 'max:254'],
         ]);
 
-        $target = Player::query()->findOrFail($validated['player_id']);
+        $target = Player::query()
+            ->whereKey((string) $validated['player_id'])
+            ->firstOrFail();
         $issued = $createInvitation->handle(
             $context->alliance(),
             $context->player(),
