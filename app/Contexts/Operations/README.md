@@ -20,7 +20,9 @@ Event history, trend, intelligence and evidence projections are not Operations s
 
 The Event management page is a cross-context projection and is owned by `ReadModels/EventManagement`. It may compose Operations facts with Intelligence. The Operations command controller does not import Intelligence, Communications, Platform or ReadModels.
 
-Reminder delivery state is not owned by Operations. Delivery records live under Communications, while cross-context reminder inbox composition lives under ReadModels. Operations does not navigate to delivery records through ORM relationships.
+EventCore relationships that expose operational capability state reference the owning capability models directly (`Participation`, `Polls`, `Rosters`, `BattlePlans`, and `Results`); capability models are never pretended to live under EventCore merely for ORM convenience.
+
+Reminder delivery state is not owned by Operations. Delivery records live under Communications, while cross-context reminder inbox composition lives under ReadModels. Communications may reference the Operations reminder rule that caused a delivery, but Operations never navigates into delivery state.
 
 Platform Event-type administration is Platform-owned orchestration over Operations configuration.
 
