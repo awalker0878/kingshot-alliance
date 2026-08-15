@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Providers;
 
-use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Content\Services\BasicMediaScanner;
-use App\Domain\Content\Services\MediaScanner;
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Integrations\Actions\QueueWebhookDeliveries;
+use App\Contexts\Alliance\Content\Services\BasicMediaScanner;
+use App\Contexts\Alliance\Content\Services\MediaScanner;
+use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\Alliance\Recruitment\Actions\MarkRecruitmentCandidateJoined;
 use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Domain\Integrations\Actions\QueueWebhookDeliveries;
 use App\Domain\Notifications\Actions\MarkEventReminderSent;
 use App\Domain\Notifications\Actions\MarkKingPerkReminderSent;
-use App\Shared\Messaging\Events\OutboxPublished;
 use App\Domain\Platform\Models\PlatformAdministrator;
-use App\Domain\Recruitment\Actions\MarkRecruitmentCandidateJoined;
+use App\Shared\Messaging\Events\OutboxPublished;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;

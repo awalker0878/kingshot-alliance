@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Http\Controllers;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\GameWorld\Services\PlayerContext;
-use App\Shared\Http\Controller;
 use App\Domain\Rallies\Actions\SaveRallyGuidanceRule;
 use App\Domain\Rallies\Models\RallyGuidanceRule;
 use App\Domain\Rallies\ValueObjects\FormationComposition;
+use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

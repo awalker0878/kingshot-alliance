@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Content;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Content\Actions\PublishContentItem;
-use App\Domain\Content\Actions\SaveContentItem;
-use App\Domain\Content\Enums\ContentType;
-use App\Domain\Content\Enums\ContentVisibility;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Content\Actions\PublishContentItem;
+use App\Contexts\Alliance\Content\Actions\SaveContentItem;
+use App\Contexts\Alliance\Content\Enums\ContentType;
+use App\Contexts\Alliance\Content\Enums\ContentVisibility;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Foundation\Testing\RefreshDatabase;

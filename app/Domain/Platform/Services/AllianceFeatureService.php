@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Services;
 
-use App\Domain\Alliances\Models\Alliance;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Domain\Platform\Models\AllianceFeatureFlag;
 use Illuminate\Support\Facades\DB;
 use LogicException;

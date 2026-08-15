@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Services;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Domain\Platform\Models\LegalHold;
+use App\Shared\Audit\Services\AuditRecorder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;

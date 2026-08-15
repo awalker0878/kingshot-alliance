@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Enums\KingdomAllianceStatus;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
 use Illuminate\Validation\ValidationException;

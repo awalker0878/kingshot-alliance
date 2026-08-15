@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Services;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventPlayerContext;
-use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;

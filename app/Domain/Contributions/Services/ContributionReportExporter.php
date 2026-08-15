@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Contributions\Services;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Contributions\Models\ContributionReportRun;
 use App\Domain\Contributions\Queries\AllianceContributionReportQuery;
-use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Audit\Services\AuditRecorder;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

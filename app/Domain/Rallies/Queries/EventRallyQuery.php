@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Queries;
 
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Queries\EventEligiblePlayerQuery;
-use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Rallies\Enums\RallyAssignmentStatus;
 use App\Domain\Rallies\Models\EventRecommendedFormation;
 use App\Domain\Rallies\Models\PlayerFormation;
@@ -104,7 +105,7 @@ final readonly class EventRallyQuery
             ])->all();
     }
 
-    /** @param Collection<int,\App\Domain\Alliances\Models\Alliance> $alliances @return list<array<string,mixed>> */
+    /** @param Collection<int,Alliance> $alliances @return list<array<string,mixed>> */
     private function guidance(EventOccurrence $occurrence, Collection $alliances): array
     {
         $date = $occurrence->starts_at->toDateString();

@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\TenantIsolation\Content;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Content\Actions\PublishContentItem;
-use App\Domain\Content\Actions\SaveContentCategory;
-use App\Domain\Content\Actions\SaveContentItem;
-use App\Domain\Content\Enums\ContentType;
-use App\Domain\Content\Enums\ContentVisibility;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Content\Actions\PublishContentItem;
+use App\Contexts\Alliance\Content\Actions\SaveContentCategory;
+use App\Contexts\Alliance\Content\Actions\SaveContentItem;
+use App\Contexts\Alliance\Content\Enums\ContentType;
+use App\Contexts\Alliance\Content\Enums\ContentVisibility;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Membership\Enums\AllianceRank;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Memberships\Enums\AllianceRank;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

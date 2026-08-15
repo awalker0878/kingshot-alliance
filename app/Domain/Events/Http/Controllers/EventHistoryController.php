@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Http\Controllers;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Events\Queries\EventAllianceHistoryQuery;
 use App\Domain\Events\Queries\EventContributionIntelligenceQuery;
 use App\Domain\Events\Queries\EventKingdomHistoryQuery;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;

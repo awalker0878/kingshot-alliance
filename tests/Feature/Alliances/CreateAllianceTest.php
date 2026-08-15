@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Alliances;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Shared\Audit\Models\AuditEvent;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Models\Permission;
-use App\Domain\Authorization\Models\Role;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Authorization\Services\AllianceRankPermissions;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Models\Role;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Access\Services\AllianceRankPermissions;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Membership\Enums\AllianceRank;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Memberships\Enums\AllianceRank;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Shared\Access\Models\Permission;
+use App\Shared\Audit\Models\AuditEvent;
 use App\Shared\Messaging\Models\OutboxMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -53,7 +53,13 @@ final class CreateAllianceTest extends TestCase
         self::assertSame(MembershipStatus::Active, $membership->status);
         self::assertNotNull($membership->joined_at);
         self::assertSame(3, Role::query()->where('alliance_id', $alliance->id)->count());
-        self::assertSame(count(PermissionKey::cases()), Permission::query()->count());
+        self::assertEqualsCanonicalizing([
+            PermissionKey::InvitationManage->value,
+            PermissionKey::RecruitmentManage->value,
+            PermissionKey::EventAllianceCreate->value,
+            PermissionKey::EventAllianceManage->value,
+            PermissionKey::ContentManage->value,
+        ], Permission::query()->pluck('key')->all());
         self::assertSame(AllianceRank::R5, $membership->rank);
         self::assertFalse($membership->roles()->exists());
         self::assertInstanceOf(Kingdom::class, $alliance->kingdom);
@@ -157,6 +163,7 @@ final class CreateAllianceTest extends TestCase
         self::assertSame(42, $first->kingdom?->number);
         self::assertSame(1, Kingdom::query()->where('number', 42)->count());
     }
+
     public function test_unclaimed_player_cannot_create_an_alliance(): void
     {
         $kingdom = Kingdom::query()->create(['number' => 2003, 'status' => 'active']);
@@ -169,5 +176,4 @@ final class CreateAllianceTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->app->make(CreateAlliance::class)->handle($player, 'Invalid Alliance', 'invalid-unclaimed-alliance');
     }
-
 }

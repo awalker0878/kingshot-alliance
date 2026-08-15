@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Integrations\Http\Controllers;
 
-use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Integrations\Actions\CreateApiCredential;
 use App\Domain\Integrations\Actions\CreateWebhookSubscription;
 use App\Domain\Integrations\Actions\RevokeApiCredential;
@@ -15,9 +15,9 @@ use App\Domain\Integrations\Actions\RevokeWebhookSubscription;
 use App\Domain\Integrations\Models\ApiCredential;
 use App\Domain\Integrations\Models\WebhookDelivery;
 use App\Domain\Integrations\Models\WebhookSubscription;
-use App\Shared\Http\Controller;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
 use App\Domain\Platform\Services\PlanEntitlementService;
+use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -177,5 +177,4 @@ final class IntegrationManagementController extends Controller
 
         return back()->with('status', 'webhook-revoked');
     }
-
 }

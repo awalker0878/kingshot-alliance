@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Shared\Access\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Model;
+
+final class Permission extends Model
+{
+    use HasUlids;
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'key',
+        'description',
+    ];
+}

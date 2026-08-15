@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
-use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
 use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy;
 use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyTransition;
+use App\Contexts\GameWorld\Models\Player;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
+use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;

@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Domain\Authorization\Http\Controllers;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Services\AllianceContext;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Authorization\Actions\AssignKingdomRole;
 use App\Domain\Authorization\Actions\RemoveKingdomRole;
 use App\Domain\Authorization\Enums\DefaultKingdomRole;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\KingdomRoleAssignment;
 use App\Domain\Authorization\Services\KingdomAuthorization;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
 use App\Shared\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;

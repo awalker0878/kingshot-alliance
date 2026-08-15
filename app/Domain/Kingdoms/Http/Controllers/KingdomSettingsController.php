@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Http\Controllers;
 
-use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Authorization\Services\KingdomAuthorization;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\KingdomAuthorization;
 use App\Shared\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -46,5 +46,4 @@ final class KingdomSettingsController extends Controller
                 && $kingdomAuthorization->allows($context->player(), $alliance->kingdom, PermissionKey::KingdomRoleManage),
         ]);
     }
-
 }

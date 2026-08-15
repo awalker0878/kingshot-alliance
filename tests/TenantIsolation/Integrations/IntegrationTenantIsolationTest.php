@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\TenantIsolation\Integrations;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Integrations\Actions\CreateApiCredential;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
+use App\Domain\Integrations\Actions\CreateApiCredential;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

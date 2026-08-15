@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Integrations;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventTypeRegistry;
-use App\Contexts\Accounts\Models\User;
 use App\Domain\Integrations\Actions\CreateApiCredential;
 use App\Domain\Integrations\Actions\CreateWebhookSubscription;
 use App\Domain\Integrations\Actions\DeliverWebhook;
 use App\Domain\Integrations\Actions\QueueWebhookDeliveries;
 use App\Domain\Integrations\Actions\RevokeApiCredential;
 use App\Domain\Integrations\Models\WebhookDelivery;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
 use App\Shared\Messaging\Events\OutboxPublished;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;

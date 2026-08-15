@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Queries;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Domain\Kingdoms\Enums\TransferGroupState;
 use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferPlan;

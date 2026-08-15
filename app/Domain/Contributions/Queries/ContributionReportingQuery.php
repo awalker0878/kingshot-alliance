@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Contributions\Queries;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
+use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Contributions\Enums\ContributionRecordStatus;
 use App\Domain\Contributions\Models\ContributionCategory;
 use App\Domain\Contributions\Models\ContributionDataQualityFlag;
@@ -12,11 +17,6 @@ use App\Domain\Contributions\Models\ContributionRecord;
 use App\Domain\Contributions\Models\ContributionReportRun;
 use App\Domain\Contributions\Models\ContributionReportSchedule;
 use App\Domain\Contributions\Services\ContributionPeriodResolver;
-use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
-use App\Domain\Recruitment\Enums\RecruitmentStage;
-use App\Domain\Recruitment\Models\RecruitmentCandidate;
 use Illuminate\Support\Collection;
 use LogicException;
 

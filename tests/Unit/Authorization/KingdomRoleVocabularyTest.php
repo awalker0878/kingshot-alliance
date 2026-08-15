@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Authorization;
 
+use App\Contexts\Alliance\Access\Services\AllianceRankPermissions;
+use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Domain\Authorization\Enums\DefaultKingdomRole;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceRankPermissions;
-use App\Domain\Memberships\Enums\AllianceRank;
 use PHPUnit\Framework\TestCase;
 
 final class KingdomRoleVocabularyTest extends TestCase

@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Kingdoms;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Alliances\Models\Alliance;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Models\PlayerSnapshot;
 use App\Domain\Kingdoms\Actions\CreateKingdomIngestionSubscription;
 use App\Domain\Kingdoms\Actions\PromoteKingdomIngestionPlayerSnapshot;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
@@ -15,13 +22,6 @@ use App\Domain\Kingdoms\Actions\StartKingdomIngestionBatch;
 use App\Domain\Kingdoms\Contracts\KingdomIngestionAdapter;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
-use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
-use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
-use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Models\PlayerSnapshot;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -120,7 +120,7 @@ final class KingdomIngestionPlayerPromotionTest extends TestCase
         self::assertNotSame($snapshot->id, $later->id);
         self::assertSame(2, PlayerSnapshot::query()->count());
 
-        $session = [(string) config('game_world.active_player_session_key') => (string) \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole()->id];
+        $session = [(string) config('game_world.active_player_session_key') => (string) Player::query()->where('user_id', $owner->id)->sole()->id];
         $this->actingAs($owner)->withSession($session)
             ->get("/alliance/roster/{$entry->id}/history")
             ->assertOk()
@@ -280,7 +280,6 @@ final class KingdomIngestionPlayerPromotionTest extends TestCase
             ],
         );
     }
-
 }
 
 final class PlayerPromotionFixtureAdapter implements KingdomIngestionAdapter

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventMetricSource;
 use App\Domain\Events\Enums\EventScope;
@@ -14,7 +14,7 @@ use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMetricCapture;
 use App\Domain\Events\Services\EventMutationAuthority;
-use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

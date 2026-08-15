@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\RecurrenceFrequency;
 use App\Domain\Events\Models\EventTemplate;
 use App\Domain\Events\Models\EventTypeScope;
@@ -13,8 +14,7 @@ use App\Domain\Events\Services\EventCreationMutationAuthority;
 use App\Domain\Events\Services\EventSchedulePolicyResolver;
 use App\Domain\Events\Services\EventTargetResolver;
 use App\Domain\Events\Services\EventTypeDefaultsResolver;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;

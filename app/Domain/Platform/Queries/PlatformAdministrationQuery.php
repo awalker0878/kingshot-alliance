@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Queries;
 
-use App\Domain\Alliances\Enums\AllianceStatus;
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Enums\AllianceStatus;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Domain\Integrations\Models\WebhookDelivery;
 use App\Domain\Platform\Models\LegalHold;
-use App\Shared\Messaging\Models\OutboxMessage;
 use App\Domain\Platform\Models\PlatformAdministrator;
+use App\Shared\Messaging\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 

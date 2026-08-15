@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Http\Controllers;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyContact;
+use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Kingdoms\Actions\DeactivateKingdomAllianceDiplomacyContact;
 use App\Domain\Kingdoms\Actions\SaveKingdomAllianceDiplomacyContact;
 use App\Domain\Kingdoms\Enums\KingdomAllianceContactChannel;
-use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyContact;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Queries\KingdomAllianceDiplomacyContactQuery;
 use App\Shared\Http\Controller;

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceMutationAuthority;
-use App\Domain\Kingdoms\Enums\RosterState;
-use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\RosterState;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Services;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
 use App\Domain\Kingdoms\Queries\KingdomAllianceIntelligenceQuery;
 use App\Domain\Kingdoms\Queries\KingdomAllianceObservationQuery;
 use Illuminate\Support\Carbon;

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Authorization\Enums;
 
-enum PermissionKey: string
+use App\Shared\Access\Contracts\Permission;
+
+enum PermissionKey: string implements Permission
 {
     case AllianceView = 'alliance.view';
     case AllianceManage = 'alliance.manage';
@@ -28,6 +30,11 @@ enum PermissionKey: string
     case RecruitmentManage = 'recruitment.manage';
     case ContributionManage = 'contributions.manage';
     case KingdomManage = 'kingdoms.manage';
+
+    public function key(): string
+    {
+        return $this->value;
+    }
 
     public function description(): string
     {

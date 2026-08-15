@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Queries;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
 use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use Illuminate\Database\Eloquent\Collection;
 
 final class KingdomIngestionQuery

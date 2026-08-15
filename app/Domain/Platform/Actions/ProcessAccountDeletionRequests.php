@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Actions\LeaveAlliance;
+use App\Contexts\Alliance\Membership\Enums\AllianceRank;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Memberships\Actions\LeaveAlliance;
-use App\Domain\Memberships\Enums\AllianceRank;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\AccountDeletionRequest;
-use App\Shared\Messaging\Models\OutboxMessage;
 use App\Domain\Platform\Models\PlatformAdministrator;
 use App\Domain\Platform\Services\LegalHoldService;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Messaging\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;

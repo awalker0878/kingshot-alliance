@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Events\Enums\EventOccurrenceStatus;
 use App\Domain\Events\Enums\EventScope;
@@ -13,7 +14,6 @@ use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventAuthorization;
 use App\Domain\Events\Services\EventTargetResolver;
 use App\Domain\Events\Services\EventVisibilityResolver;
-use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;

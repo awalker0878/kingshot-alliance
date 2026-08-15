@@ -4,9 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Kingdoms;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Alliances\Models\Alliance;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\AllianceRank;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Models\PlayerSnapshot;
 use App\Domain\Kingdoms\Actions\CompleteKingdomIngestionBatch;
 use App\Domain\Kingdoms\Actions\StageKingdomIngestionCandidate;
 use App\Domain\Kingdoms\Actions\StartKingdomIngestionBatch;
@@ -15,15 +24,6 @@ use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
-use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
-use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Models\PlayerSnapshot;
-use App\Domain\Memberships\Enums\AllianceRank;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
@@ -63,7 +63,7 @@ final class KingdomIngestionFoundationTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,
-            'actor_player_id' => \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole()->id,
+            'actor_player_id' => Player::query()->where('user_id', $owner->id)->sole()->id,
             'event' => 'kingdoms.ingestion_subscription_created',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
@@ -98,7 +98,7 @@ final class KingdomIngestionFoundationTest extends TestCase
 
         config()->set('kingdoms.ingestion_adapters', [FixtureKingdomIngestionAdapter::class]);
         $member = $this->member($alliance);
-        $memberSession = $this->confirmedSession(\App\Contexts\GameWorld\Models\Player::query()->where('user_id', $member->id)->sole());
+        $memberSession = $this->confirmedSession(Player::query()->where('user_id', $member->id)->sole());
 
         $this->actingAs($member)->withSession($memberSession)
             ->get('/alliance/kingdom-ingestion/manage')
@@ -111,7 +111,7 @@ final class KingdomIngestionFoundationTest extends TestCase
     public function test_subscription_mutations_require_recent_password_confirmation(): void
     {
         [$owner, $alliance] = $this->ownerAlliance('K4 Password', 'k4-password', 6403);
-        $player = \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole();
+        $player = Player::query()->where('user_id', $owner->id)->sole();
         $activeSession = [
             (string) config('game_world.active_player_session_key') => $player->id,
             'auth.password_confirmed_at' => 0,
@@ -292,7 +292,7 @@ final class KingdomIngestionFoundationTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $allianceB->id,
-            'actor_player_id' => \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $ownerB->id)->sole()->id,
+            'actor_player_id' => Player::query()->where('user_id', $ownerB->id)->sole()->id,
             'event' => 'kingdoms.ingestion_candidate_rejected',
         ]);
         $this->assertDatabaseHas('outbox_messages', [

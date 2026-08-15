@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Contributions\Http\Controllers;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Services\AllianceContext;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Domain\Contributions\Actions\ApproveContributionRecord;
 use App\Domain\Contributions\Actions\CorrectContributionRecord;
 use App\Domain\Contributions\Actions\CreateContributionCategory;
@@ -24,10 +28,6 @@ use App\Domain\Contributions\Models\ContributionDataQualityFlag;
 use App\Domain\Contributions\Models\ContributionRecord;
 use App\Domain\Contributions\Queries\ContributionReportingQuery;
 use App\Domain\Contributions\Services\ContributionReportExporter;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
 use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;

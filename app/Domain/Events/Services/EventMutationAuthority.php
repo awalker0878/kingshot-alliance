@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Services;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\RosterState;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Authorization\Services\KingdomMutationAuthority;
 use App\Domain\Authorization\Services\PlayerMutationAuthority;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventTypeScope;
 use App\Domain\Events\ValueObjects\EventMutationContext;
-use App\Domain\Kingdoms\Enums\RosterState;
-use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use LogicException;

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Contributions\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Contributions\Models\ContributionReportSchedule;
 use App\Domain\Contributions\Services\ContributionReportExporter;
-use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;

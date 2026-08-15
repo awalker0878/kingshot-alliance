@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Domain\Notifications\Services;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\RosterState;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Enums\EventReminderAudience;
 use App\Domain\Events\Enums\EventResponseChoice;
+use App\Domain\Events\Enums\EventRosterMemberStatus;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventResponse;
 use App\Domain\Events\Models\EventRosterMember;
-use App\Domain\Events\Enums\EventRosterMemberStatus;
 use App\Domain\Events\Services\EventParticipantAuthorization;
-use App\Domain\Kingdoms\Enums\RosterState;
-use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
@@ -99,6 +99,7 @@ final readonly class EventReminderAudienceResolver
     {
         try {
             $this->authorization->authorizeSelf($player, $event, $player);
+
             return true;
         } catch (AuthorizationException) {
             return false;

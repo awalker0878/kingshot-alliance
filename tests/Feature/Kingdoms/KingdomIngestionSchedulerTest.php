@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Kingdoms;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Alliances\Models\Alliance;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Models\PlayerSnapshot;
 use App\Domain\Kingdoms\Actions\CreateKingdomIngestionSubscription;
 use App\Domain\Kingdoms\Actions\PromoteKingdomIngestionPlayerSnapshot;
 use App\Domain\Kingdoms\Actions\QueueDueKingdomIngestionSubscriptions;
@@ -21,13 +28,6 @@ use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
 use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
 use App\Domain\Kingdoms\Jobs\RunKingdomIngestionSubscriptionJob;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
-use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
-use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
-use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Models\PlayerSnapshot;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -90,7 +90,7 @@ final class KingdomIngestionSchedulerTest extends TestCase
     public function test_scheduled_page_promotes_both_accepted_targets_and_exact_window_replay_is_idempotent(): void
     {
         [$owner, $alliance] = $this->alliance(6802, 'k4-p4-run');
-        $player = \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole();
+        $player = Player::query()->where('user_id', $owner->id)->sole();
         $entry = $this->app->make(SaveRosterEntry::class)->handle(
             $alliance,
             $player,
@@ -205,7 +205,7 @@ final class KingdomIngestionSchedulerTest extends TestCase
     public function test_manager_replay_requires_password_confirmation_and_re_drives_existing_promotion_action(): void
     {
         [$owner, $alliance] = $this->alliance(6805, 'k4-p4-replay');
-        $player = \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole();
+        $player = Player::query()->where('user_id', $owner->id)->sole();
         $subscription = $this->subscription($owner, $alliance);
         $batch = $this->app->make(StartKingdomIngestionBatch::class)
             ->handle((string) $subscription->id, 'replay-window-6805');
@@ -284,7 +284,7 @@ final class KingdomIngestionSchedulerTest extends TestCase
     private function subscription(User $owner, Alliance $alliance): KingdomIngestionSubscription
     {
         return $this->app->make(CreateKingdomIngestionSubscription::class)
-            ->handle($alliance, \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole(), 'fixture.scheduled-ingestion');
+            ->handle($alliance, Player::query()->where('user_id', $owner->id)->sole(), 'fixture.scheduled-ingestion');
     }
 
     /** @return array<string, mixed> */

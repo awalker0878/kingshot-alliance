@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Events;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Authorization\Actions\BootstrapKingdomAdministrator;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventTypeRegistry;
-use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Rallies\Actions\AssignRallyPlayer;
 use App\Domain\Rallies\Actions\RespondRallyAssignment;
 use App\Domain\Rallies\Actions\SavePlayerFormation;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Contributions\Queries;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 

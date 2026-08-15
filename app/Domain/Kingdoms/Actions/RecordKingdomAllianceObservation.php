@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceMutationAuthority;
-use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
+use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
 use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
 use App\Contexts\GameWorld\Models\Player;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -30,8 +30,8 @@ final readonly class RecordKingdomAllianceObservation
     ) {}
 
     /**
-     * @param array{observed_name:string,observed_tag?:string|null,power?:string|null,member_count?:int|string|null,captured_at:string,corrects_observation_id?:string|null,correction_reason?:string|null} $attributes
-     * @param array{subscription_id:string,batch_id:string,adapter_key:string,adapter_version:string,source_record_id?:string|null,identity_hash:string,payload_hash:string}|null $machineProvenance
+     * @param  array{observed_name:string,observed_tag?:string|null,power?:string|null,member_count?:int|string|null,captured_at:string,corrects_observation_id?:string|null,correction_reason?:string|null}  $attributes
+     * @param  array{subscription_id:string,batch_id:string,adapter_key:string,adapter_version:string,source_record_id?:string|null,identity_hash:string,payload_hash:string}|null  $machineProvenance
      */
     public function handle(
         Alliance $alliance,

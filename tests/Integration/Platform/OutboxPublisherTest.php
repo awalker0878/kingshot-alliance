@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Platform;
 
-use App\Domain\Alliances\Models\Alliance;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Shared\Messaging\Actions\PublishOutboxBatch;
 use App\Shared\Messaging\Events\OutboxPublished;
 use App\Shared\Messaging\Models\OutboxMessage;

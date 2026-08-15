@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Performance;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
 use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy;

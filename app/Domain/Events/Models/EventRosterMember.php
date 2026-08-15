@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Models;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Events\Enums\EventRosterMemberStatus;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
+use App\Domain\Events\Enums\EventRosterMemberStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

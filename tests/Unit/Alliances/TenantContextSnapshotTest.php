@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Alliances;
 
-use App\Domain\Alliances\ValueObjects\TenantContextSnapshot;
+use App\Contexts\Alliance\Core\ValueObjects\TenantContextSnapshot;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;

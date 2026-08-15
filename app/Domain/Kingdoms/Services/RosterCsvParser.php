@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Services;
 
-use App\Domain\Kingdoms\Enums\RosterState;
+use App\Contexts\Alliance\Membership\Enums\RosterState;
 use DateTimeImmutable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;

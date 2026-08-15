@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Services;
 
-use App\Domain\Alliances\Enums\AllianceStatus;
+use App\Contexts\Alliance\Core\Enums\AllianceStatus;
+use App\Contexts\Alliance\Membership\Enums\RosterState;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\Event;
-use App\Domain\Kingdoms\Enums\RosterState;
-use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Models\Player;
 
 final class EventRosterAllianceSnapshotResolver
 {

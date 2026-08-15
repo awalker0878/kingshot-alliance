@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Http\Controllers;
 
-use App\Domain\Alliances\Services\AllianceContext;
+use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Domain\Kingdoms\Actions\SaveTransferParticipant;
 use App\Domain\Kingdoms\Actions\WithdrawTransferParticipant;
 use App\Domain\Kingdoms\Enums\TransferDirection;
@@ -84,7 +84,7 @@ final class TransferParticipantController extends Controller
          *   roster_entry_id?: string|null,
          *   name?: string|null,
          *   game_player_id?: string|null,
-             *   source_kingdom?: int|null,
+         *   source_kingdom?: int|null,
          *   destination_kingdom?: int|null,
          *   manager_notes?: string|null
          * } $validated

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Http\Controllers;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Events\Actions\SaveEventAllianceResult;
 use App\Domain\Events\Actions\SaveEventPlayerResult;
 use App\Domain\Events\Actions\SaveEventResult;
 use App\Domain\Events\Queries\EventCalendarQuery;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

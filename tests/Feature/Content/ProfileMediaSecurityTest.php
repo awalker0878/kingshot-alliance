@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Content;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Content\Actions\ArchiveMediaAsset;
-use App\Domain\Content\Actions\UpdateAlliancePublicProfile;
-use App\Domain\Content\Actions\UploadMediaAsset;
-use App\Domain\Content\Services\MediaScanner;
-use App\Domain\Content\ValueObjects\MediaScanResult;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Content\Actions\ArchiveMediaAsset;
+use App\Contexts\Alliance\Content\Actions\UpdateAlliancePublicProfile;
+use App\Contexts\Alliance\Content\Actions\UploadMediaAsset;
+use App\Contexts\Alliance\Content\Services\MediaScanner;
+use App\Contexts\Alliance\Content\ValueObjects\MediaScanResult;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Foundation\Testing\RefreshDatabase;

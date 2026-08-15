@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Actions;
 
-use App\Domain\Alliances\Enums\AllianceStatus;
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Alliance\Core\Enums\AllianceStatus;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMutationAuthority;
-use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Messaging\Services\OutboxRecorder;
 use App\Domain\Rallies\Enums\RallyAssignmentRole;
 use App\Domain\Rallies\Models\EventRecommendedFormation;
 use App\Domain\Rallies\Models\RallyGuidanceRule;
 use App\Domain\Rallies\Services\RallyAllianceResolver;
 use App\Domain\Rallies\ValueObjects\FormationComposition;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

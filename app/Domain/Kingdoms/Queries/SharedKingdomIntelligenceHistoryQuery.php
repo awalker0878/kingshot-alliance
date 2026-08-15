@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Queries;
 
-use App\Domain\Alliances\Enums\AllianceStatus;
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Enums\AllianceStatus;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\GameWorld\Models\KingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareTargetState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
-use App\Contexts\GameWorld\Models\KingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Services\SharedKingdomIntelligenceHistoryCursor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;

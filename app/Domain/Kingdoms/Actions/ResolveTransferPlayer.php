@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Domain\Authorization\Models\KingdomRoleAssignment;
-use App\Domain\Kingdoms\Enums\RosterState;
-use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Enums\RosterState;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
+use App\Domain\Authorization\Models\KingdomRoleAssignment;
 use Illuminate\Validation\ValidationException;
 
 final class ResolveTransferPlayer

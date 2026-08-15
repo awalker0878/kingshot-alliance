@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\TransferBlockerState;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Enums\TransferReadinessState;
-use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Models\TransferBlocker;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Kingdoms\Models\TransferReadinessTransition;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Contributions;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Contributions\Actions\CreateContributionCategory;
 use App\Domain\Contributions\Actions\RecordContribution;
 use App\Domain\Contributions\Enums\ContributionDataClass;
 use App\Domain\Contributions\Enums\ContributionPeriod;
 use App\Domain\Contributions\Enums\ContributionRecordSource;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;

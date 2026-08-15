@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Authorization;
 
-use App\Domain\Authorization\Enums\DefaultAllianceRole;
+use App\Contexts\Alliance\Access\Enums\DefaultAllianceRole;
+use App\Contexts\Alliance\Access\Services\AllianceRankPermissions;
+use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceRankPermissions;
-use App\Domain\Memberships\Enums\AllianceRank;
 use PHPUnit\Framework\TestCase;
 
 final class AllianceRankPermissionsTest extends TestCase
@@ -53,7 +53,12 @@ final class AllianceRankPermissionsTest extends TestCase
             array_map(static fn (DefaultAllianceRole $role): string => $role->value, DefaultAllianceRole::cases()),
         );
 
-        self::assertContains(PermissionKey::EventAllianceManage, DefaultAllianceRole::EventCoordinator->permissions());
-        self::assertNotContains(PermissionKey::EventKingdomManage, DefaultAllianceRole::EventCoordinator->permissions());
+        $eventCoordinatorKeys = array_map(
+            static fn ($permission): string => $permission->key(),
+            DefaultAllianceRole::EventCoordinator->permissions(),
+        );
+
+        self::assertContains(PermissionKey::EventAllianceManage->value, $eventCoordinatorKeys);
+        self::assertNotContains(PermissionKey::EventKingdomManage->value, $eventCoordinatorKeys);
     }
 }

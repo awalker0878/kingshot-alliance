@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Http\Controllers;
 
-use App\Domain\Alliances\Services\AllianceContext;
+use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Domain\Kingdoms\Actions\ArchiveTransferGroup;
 use App\Domain\Kingdoms\Actions\AssignTransferParticipantGroup;
 use App\Domain\Kingdoms\Actions\SaveTransferGroup;

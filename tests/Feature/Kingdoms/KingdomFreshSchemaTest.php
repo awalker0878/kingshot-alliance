@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Kingdoms;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Migrations\Migration;
@@ -151,7 +152,7 @@ final class KingdomFreshSchemaTest extends TestCase
         }
     }
 
-    /** @return array{0: User, 1: Player, 2: \App\Domain\Alliances\Models\Alliance} */
+    /** @return array{0: User, 1: Player, 2: Alliance} */
     private function ownerAlliance(Kingdom $kingdom, string $name, string $slug): array
     {
         $owner = User::factory()->create();

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Domain\Integrations\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Integrations\Models\WebhookSubscription;
 use App\Domain\Integrations\Services\WebhookEndpointPolicy;
-use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
-use App\Shared\Messaging\Services\OutboxRecorder;
 use App\Domain\Platform\Services\PlanEntitlementService;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Alliances;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Alliances\ValueObjects\TenantContextSnapshot;
-use App\Shared\Audit\Models\AuditEvent;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Core\ValueObjects\TenantContextSnapshot;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
+use App\Shared\Audit\Models\AuditEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Enums\TransferReadinessState;
 use App\Domain\Kingdoms\Models\TransferParticipant;

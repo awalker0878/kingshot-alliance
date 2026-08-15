@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Queries;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Kingdoms\Models\AllianceRosterEntry;
-use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
 
 final class RosterQuery
 {

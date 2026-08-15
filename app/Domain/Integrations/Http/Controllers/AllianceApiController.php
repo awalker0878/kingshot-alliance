@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Integrations\Http\Controllers;
 
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Domain\Events\Enums\EventScope;
 use App\Shared\Http\Controller;
 use Illuminate\Http\JsonResponse;

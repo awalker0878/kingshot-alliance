@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Performance;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Queries\EventAttentionQuery;
 use App\Domain\Events\Services\EventTypeRegistry;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;

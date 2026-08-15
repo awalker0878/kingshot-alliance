@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Events;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Shared\Audit\Models\AuditEvent;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Actions\SaveEventPlayerResult;
 use App\Domain\Events\Enums\EventScope;
@@ -13,11 +15,9 @@ use App\Domain\Events\Models\EventPlayerContext;
 use App\Domain\Events\Models\EventPlayerResultMetric;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventTypeRegistry;
-use App\Contexts\Accounts\Models\User;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Platform\Models\PlatformAdministrator;
+use App\Shared\Audit\Models\AuditEvent;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

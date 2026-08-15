@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Services;
 
-use App\Domain\Alliances\Enums\AllianceStatus;
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Alliance\Core\Enums\AllianceStatus;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\ValueObjects\KingdomIngestionMutationContext;
 use Illuminate\Support\Facades\DB;

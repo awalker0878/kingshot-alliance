@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Authorization\Services;
 
+use App\Contexts\GameWorld\Models\Kingdom;
 use App\Domain\Authorization\Enums\DefaultKingdomRole;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\KingdomRole;
-use App\Domain\Authorization\Models\Permission;
-use App\Contexts\GameWorld\Models\Kingdom;
+use App\Shared\Access\Models\Permission;
 use Illuminate\Support\Str;
 use RuntimeException;
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventPollStatus;
 use App\Domain\Events\Enums\EventPollType;
@@ -14,7 +14,7 @@ use App\Domain\Events\Models\EventPoll;
 use App\Domain\Events\Models\EventPollOption;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMutationAuthority;
-use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -30,8 +30,8 @@ final readonly class SaveEventPoll
     ) {}
 
     /**
-     * @param list<array{label:string,value:string,metadata?:array<string,mixed>}>|null $options
-     * @param array<string, mixed>|null $settings
+     * @param  list<array{label:string,value:string,metadata?:array<string,mixed>}>|null  $options
+     * @param  array<string, mixed>|null  $settings
      */
     public function handle(
         Player $actor,
@@ -162,7 +162,7 @@ final readonly class SaveEventPoll
     }
 
     /**
-     * @param list<array{label:string,value:string,metadata?:array<string,mixed>}> $options
+     * @param  list<array{label:string,value:string,metadata?:array<string,mixed>}>  $options
      * @return list<array{label:string,value:string,metadata?:array<string,mixed>}>
      */
     private function normalizeOptions(EventPollType $type, array $options): array

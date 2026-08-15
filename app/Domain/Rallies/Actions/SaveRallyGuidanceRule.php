@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Rallies\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Rallies\Models\RallyGuidanceRule;
 use App\Domain\Rallies\ValueObjects\FormationComposition;
+use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Messaging\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Performance;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Alliances\Models\Alliance;
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Kingdoms\Actions\AcceptKingdomIntelligenceShareInvitation;
-use App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\KingdomIntelligenceShare;
 use App\Contexts\GameWorld\Models\Player;
+use App\Domain\Kingdoms\Actions\AcceptKingdomIntelligenceShareInvitation;
+use App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Queries\SharedKingdomIntelligenceCurrentQuery;
 use App\Domain\Kingdoms\Queries\SharedKingdomIntelligenceHistoryQuery;
 use Illuminate\Database\Events\QueryExecuted;
@@ -86,7 +86,7 @@ final class KingdomSharedIntelligenceCapacityTest extends TestCase
                 'kingdom_intelligence_share_id' => $share->id,
                 'tracked_kingdom_alliance_id' => $trackingId,
                 'state' => 'active',
-                'shared_by_player_id' => \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $sourceOwner->id)->sole()->id,
+                'shared_by_player_id' => Player::query()->where('user_id', $sourceOwner->id)->sole()->id,
                 'shared_at' => $now,
                 'removed_by_player_id' => null,
                 'removed_at' => null,
@@ -211,7 +211,7 @@ final class KingdomSharedIntelligenceCapacityTest extends TestCase
             'alliance_id' => $source->id,
             'tracked_kingdom_alliance_id' => $trackingId,
             'kingdom_alliance_id' => $referenceId,
-            'actor_player_id' => \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $sourceOwner->id)->sole()->id,
+            'actor_player_id' => Player::query()->where('user_id', $sourceOwner->id)->sole()->id,
             'observed_name' => $name,
             'observed_tag' => 'CAP',
             'power' => 123456789,
@@ -235,10 +235,10 @@ final class KingdomSharedIntelligenceCapacityTest extends TestCase
         Alliance $recipient,
     ): KingdomIntelligenceShare {
         $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)
-            ->handle($source, \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $sourceOwner->id)->sole());
+            ->handle($source, Player::query()->where('user_id', $sourceOwner->id)->sole());
 
         return $this->app->make(AcceptKingdomIntelligenceShareInvitation::class)
-            ->handle($recipient, \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $recipientOwner->id)->sole(), $issued->token);
+            ->handle($recipient, Player::query()->where('user_id', $recipientOwner->id)->sole(), $issued->token);
     }
 
     /** @return array{User, Alliance} */

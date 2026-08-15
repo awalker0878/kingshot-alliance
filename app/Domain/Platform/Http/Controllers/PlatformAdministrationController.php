@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Http\Controllers;
 
-use App\Domain\Alliances\Models\Alliance;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Domain\Platform\Actions\ConfigureAlliancePlatform;
 use App\Domain\Platform\Actions\ManageAllianceLifecycle;
 use App\Domain\Platform\Actions\ManagePlatformAdministrator;

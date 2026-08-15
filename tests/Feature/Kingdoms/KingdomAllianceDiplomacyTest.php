@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Kingdoms;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Alliances\Models\Alliance;
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\AllianceRank;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy;
 use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyTransition;
 use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
 use App\Contexts\GameWorld\Models\Player;
+use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
-use App\Domain\Memberships\Enums\AllianceRank;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -199,7 +199,7 @@ final class KingdomAllianceDiplomacyTest extends TestCase
         )->assertRedirect();
 
         $member = $this->member($alliance);
-        $memberSession = $this->activePlayerSession(\App\Contexts\GameWorld\Models\Player::query()->where('user_id', $member->id)->sole());
+        $memberSession = $this->activePlayerSession(Player::query()->where('user_id', $member->id)->sole());
         $this->actingAs($member)->withSession($memberSession)
             ->get('/alliance/kingdom-alliances')
             ->assertOk()
@@ -344,7 +344,7 @@ final class KingdomAllianceDiplomacyTest extends TestCase
     public function test_diplomacy_mutations_require_recent_password_confirmation(): void
     {
         [$owner, $alliance] = $this->ownerAlliance('Diplomacy Password', 'diplomacy-password', 6310);
-        $player = \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $owner->id)->sole();
+        $player = Player::query()->where('user_id', $owner->id)->sole();
         $session = $this->confirmedSession($player);
         $tracking = $this->track($owner, $alliance, $session, 'Password Target', 'password-target-6310');
 

@@ -224,6 +224,46 @@ final class ArchitectureV2DependencyTest extends TestCase
         );
     }
 
+    public function test_p3_legacy_alliance_domains_are_deleted(): void
+    {
+        foreach (['Alliances', 'Memberships', 'Recruitment', 'Content'] as $domain) {
+            self::assertDirectoryDoesNotExist($this->root().'/app/Domain/'.$domain);
+        }
+        foreach ([
+            '/app/Domain/Kingdoms/Models/AllianceRosterEntry.php',
+            '/app/Domain/Kingdoms/Enums/RosterState.php',
+            '/app/Domain/Authorization/Models/Role.php',
+            '/app/Domain/Authorization/Models/Permission.php',
+            '/app/Domain/Authorization/Actions/AssignMembershipRole.php',
+            '/app/Domain/Authorization/Actions/RemoveMembershipRole.php',
+            '/app/Domain/Authorization/Enums/DefaultAllianceRole.php',
+            '/app/Domain/Authorization/Services/AllianceAuthorization.php',
+            '/app/Domain/Authorization/Services/AllianceMutationAuthority.php',
+            '/app/Domain/Authorization/Services/AlliancePermissionEvaluator.php',
+            '/app/Domain/Authorization/Services/AllianceRankPermissions.php',
+            '/app/Domain/Authorization/Services/AllianceRoleProvisioner.php',
+            '/app/Domain/Authorization/ValueObjects/AllianceMutationContext.php',
+        ] as $path) {
+            self::assertFileDoesNotExist($this->root().$path);
+        }
+    }
+
+    public function test_p3_application_has_no_references_to_superseded_alliance_namespaces(): void
+    {
+        $forbidden = [
+            'App\\Domain\\Alliances\\', 'App\\Domain\\Memberships\\', 'App\\Domain\\Recruitment\\', 'App\\Domain\\Content\\',
+            'App\\Domain\\Kingdoms\\Models\\AllianceRosterEntry', 'App\\Domain\\Kingdoms\\Enums\\RosterState',
+            'App\\Domain\\Authorization\\Models\\Role', 'App\\Domain\\Authorization\\Services\\AllianceAuthorization',
+            'App\\Domain\\Authorization\\Services\\AllianceMutationAuthority',
+        ];
+        foreach ($this->phpFiles($this->root().'/app') as $file) {
+            $source = $this->source($file);
+            foreach ($forbidden as $namespace) {
+                self::assertStringNotContainsString($namespace, $source, $file.' still references a superseded P3 namespace.');
+            }
+        }
+    }
+
     public function test_operations_does_not_depend_on_downstream_intelligence_or_delivery_contexts(): void
     {
         $this->assertFilesDoNotImport(

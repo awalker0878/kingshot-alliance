@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Services;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Content\Models\MediaAsset;
+use App\Contexts\Alliance\Content\Models\MediaAsset;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\InvitationStatus;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Domain\Integrations\Models\ApiCredential;
 use App\Domain\Integrations\Models\WebhookSubscription;
-use App\Domain\Memberships\Enums\InvitationStatus;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
-use App\Domain\Memberships\Models\Invitation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

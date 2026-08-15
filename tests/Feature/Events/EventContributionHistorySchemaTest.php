@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Events;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Alliances\Models\Alliance;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Authorization\Enums\DefaultKingdomRole;
 use App\Domain\Authorization\Models\KingdomRoleAssignment;
 use App\Domain\Authorization\Services\KingdomRoleProvisioner;
@@ -16,9 +19,6 @@ use App\Domain\Events\Models\EventAllianceResult;
 use App\Domain\Events\Models\EventPlayerContext;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventTypeRegistry;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

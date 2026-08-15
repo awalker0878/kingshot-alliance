@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Http\Controllers;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
+use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
+use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
+use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Kingdoms\Actions\CreateKingdomIngestionSubscription;
 use App\Domain\Kingdoms\Actions\RejectKingdomIngestionCandidate;
 use App\Domain\Kingdoms\Actions\ReplayKingdomIngestionCandidate;
 use App\Domain\Kingdoms\Actions\TransitionKingdomIngestionSubscription;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
-use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
-use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
-use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\Queries\KingdomIngestionQuery;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
 use App\Shared\Http\Controller;

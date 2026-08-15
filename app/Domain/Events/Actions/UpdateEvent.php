@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Events\Enums\EventOccurrenceStatus;
 use App\Domain\Events\Enums\RecurrenceFrequency;
 use App\Domain\Events\Models\Event;
@@ -17,7 +17,7 @@ use App\Domain\Events\Services\EventPollTemplateMaterializer;
 use App\Domain\Events\Services\EventRosterService;
 use App\Domain\Events\Services\EventSchedulePolicyResolver;
 use App\Domain\Events\Services\RecurrenceCalculator;
-use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;

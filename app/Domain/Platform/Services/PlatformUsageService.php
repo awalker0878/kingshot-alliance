@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Services;
 
-use App\Domain\Alliances\Models\Alliance;
-use App\Domain\Content\Models\MediaAsset;
+use App\Contexts\Alliance\Content\Models\MediaAsset;
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Domain\Integrations\Models\ApiCredential;
 use App\Domain\Integrations\Models\WebhookSubscription;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
 use App\Domain\Platform\Models\AllianceUsageSnapshot;
 use App\Shared\Messaging\Models\OutboxMessage;
 

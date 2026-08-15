@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Memberships;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Domain\Alliances\Enums\AllianceStatus;
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Core\Enums\AllianceStatus;
+use App\Contexts\Alliance\Membership\Actions\AcceptInvitation;
+use App\Contexts\Alliance\Membership\Actions\CreateInvitation;
+use App\Contexts\Alliance\Membership\Actions\TransferAllianceLeadership;
+use App\Contexts\Alliance\Membership\Enums\AllianceRank;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Memberships\Actions\AcceptInvitation;
-use App\Domain\Memberships\Actions\CreateInvitation;
-use App\Domain\Memberships\Actions\TransferAllianceLeadership;
-use App\Domain\Memberships\Enums\AllianceRank;
-use App\Domain\Memberships\Models\AllianceMembership;
-use App\Domain\Memberships\Models\Invitation;
+use App\Domain\Kingdoms\Actions\SaveRosterEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;

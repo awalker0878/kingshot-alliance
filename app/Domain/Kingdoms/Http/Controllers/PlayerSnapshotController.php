@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Http\Controllers;
 
-use App\Domain\Alliances\Services\AllianceContext;
-use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Kingdoms\Actions\RecordPlayerSnapshot;
-use App\Domain\Kingdoms\Models\AllianceRosterEntry;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\PlayerSnapshot;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Kingdoms\Actions\RecordPlayerSnapshot;
 use App\Domain\Kingdoms\Queries\PlayerSnapshotQuery;
-use App\Domain\Memberships\Enums\MembershipStatus;
-use App\Domain\Memberships\Models\AllianceMembership;
 use App\Shared\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
