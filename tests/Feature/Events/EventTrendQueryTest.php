@@ -19,6 +19,7 @@ use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Queries\EventTrendQuery;
 use App\Domain\Events\Services\EventTypeRegistry;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Actions\SaveRosterEntry;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\Player;
 use Carbon\CarbonImmutable;
@@ -36,6 +37,12 @@ final class EventTrendQueryTest extends TestCase
         $player = $this->player($user, $kingdom, 'Trend Player', '9001-player');
         $sibling = $this->player($user, $kingdom, 'Sibling', '9001-sibling');
         $alliance = $this->app->make(CreateAlliance::class)->handle($player, 'Trend Reliability Alliance', 'trend-reliability');
+        $this->app->make(SaveRosterEntry::class)->handle(
+            $alliance,
+            $player,
+            ['name' => 'Trend Player', 'game_player_id' => $player->game_player_id],
+            expectedPlayerId: (string) $player->id,
+        );
         $first = $this->event($player, $alliance, 'bear-hunt', EventScope::Alliance, 1);
         $second = $this->event($player, $alliance, 'viking-vengeance', EventScope::Alliance, 2);
         $attendance = $this->app->make(RecordEventAttendance::class);
