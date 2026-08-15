@@ -30,10 +30,11 @@ return new class extends Migration
         DB::statement("CREATE UNIQUE INDEX alliance_memberships_one_active_r5 ON alliance_memberships (alliance_id) WHERE status = 'active' AND rank = 'r5'");
         DB::statement("CREATE UNIQUE INDEX alliance_memberships_one_active_alliance_per_player ON alliance_memberships (player_id) WHERE status = 'active'");
 
-
         $driver = DB::connection()->getDriverName();
 
         if ($driver === 'pgsql') {
+            DB::statement('DROP FUNCTION IF EXISTS alliance_memberships_validate_kingdom()');
+            DB::statement('DROP FUNCTION IF EXISTS players_prevent_active_alliance_kingdom_mismatch()');
             DB::statement("CREATE FUNCTION alliance_memberships_validate_kingdom() RETURNS trigger AS $$ BEGIN IF NEW.status = 'active' AND NOT EXISTS (SELECT 1 FROM players p JOIN alliances a ON a.id = NEW.alliance_id WHERE p.id = NEW.player_id AND p.current_kingdom_id = a.kingdom_id) THEN RAISE EXCEPTION 'active player kingdom must match alliance kingdom'; END IF; RETURN NEW; END; $$ LANGUAGE plpgsql");
             DB::statement("CREATE TRIGGER alliance_memberships_kingdom_insert BEFORE INSERT ON alliance_memberships FOR EACH ROW EXECUTE FUNCTION alliance_memberships_validate_kingdom()");
             DB::statement("CREATE TRIGGER alliance_memberships_kingdom_update BEFORE UPDATE OF alliance_id, player_id, status ON alliance_memberships FOR EACH ROW EXECUTE FUNCTION alliance_memberships_validate_kingdom()");
