@@ -8,9 +8,11 @@ use App\Domain\Kingdoms\Models\Player;
 use App\Domain\KingPerks\Enums\KingAppointmentType;
 use App\Domain\KingPerks\Enums\KingPerkAppointmentStatus;
 use Carbon\CarbonImmutable;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 final class KingPerkAppointment extends Model
 {
@@ -47,12 +49,34 @@ final class KingPerkAppointment extends Model
                 return;
             }
 
-            $type = $appointment->appointment_type;
-            $start = CarbonImmutable::instance($appointment->starts_at);
+            $type = $appointment->appointmentType();
+            $start = $appointment->startsAt();
             $end = $start->addMinutes($type->durationMinutes());
             $appointment->ends_at = $end;
             $appointment->player_cooldown_ends_at = $end->addMinutes($type->playerCooldownMinutes());
         });
+    }
+
+    public function appointmentType(): KingAppointmentType
+    {
+        $value = $this->getAttribute('appointment_type');
+
+        return $value instanceof KingAppointmentType ? $value : KingAppointmentType::from((string) $value);
+    }
+
+    public function startsAt(): CarbonImmutable
+    {
+        return $this->immutableDate('starts_at');
+    }
+
+    public function endsAt(): CarbonImmutable
+    {
+        return $this->immutableDate('ends_at');
+    }
+
+    public function playerCooldownEndsAt(): CarbonImmutable
+    {
+        return $this->immutableDate('player_cooldown_ends_at');
     }
 
     public function plan(): BelongsTo
@@ -68,5 +92,15 @@ final class KingPerkAppointment extends Model
     public function assignedByPlayer(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'assigned_by_player_id');
+    }
+
+    private function immutableDate(string $attribute): CarbonImmutable
+    {
+        $value = $this->getAttribute($attribute);
+        if (! $value instanceof DateTimeInterface) {
+            throw new LogicException(sprintf('King Perks appointment %s must be a date-time.', $attribute));
+        }
+
+        return CarbonImmutable::instance($value);
     }
 }
