@@ -93,10 +93,10 @@ final class EventOccurrence extends Model
         return $this->hasOne(EventResult::class, 'occurrence_id');
     }
 
-    /** @return HasMany<EventAllianceResult, $this> */
-    public function allianceResults(): HasMany
+    /** @return HasMany<EventKingdomAllianceResult, $this> */
+    public function kingdomAllianceResults(): HasMany
     {
-        return $this->hasMany(EventAllianceResult::class, 'occurrence_id');
+        return $this->hasMany(EventKingdomAllianceResult::class, 'occurrence_id');
     }
 
     /** @return HasMany<EventPlayerResult, $this> */
