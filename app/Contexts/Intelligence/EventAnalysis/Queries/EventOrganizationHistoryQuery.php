@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\EventAnalysis\Queries;
 
 use App\Contexts\Operations\EventCore\Enums\EventScope;
+use App\Contexts\Operations\Participation\Models\EventPlayerContext;
+use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use App\Contexts\Operations\Results\Models\EventAllianceResult;
 use App\Contexts\Operations\Results\Models\EventAllianceResultMetric;
 use App\Contexts\Operations\Results\Models\EventMetricDefinition;
-use App\Contexts\Operations\Participation\Models\EventPlayerContext;
 use App\Contexts\Operations\Results\Models\EventPlayerResult;
 use App\Contexts\Operations\Results\Models\EventPlayerResultMetric;
 use App\Contexts\Operations\Results\Models\EventResult;
 use App\Contexts\Operations\Results\Models\EventResultMetric;
-use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Database\Query\Builder;
