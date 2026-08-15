@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Events;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Authorization\Enums\DefaultKingdomRole;
 use App\Domain\Authorization\Models\KingdomRoleAssignment;
 use App\Domain\Authorization\Services\KingdomRoleProvisioner;
 use App\Domain\Events\Actions\CreateEvent;
+use App\Domain\Events\Actions\SaveEventAllianceResult;
 use App\Domain\Events\Actions\SaveEventPlayerResult;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\Event;
@@ -168,7 +170,7 @@ final class EventOrganizationHistoryQueryTest extends TestCase
             $participant,
             score: 777,
         );
-        $this->app->make(\App\Domain\Events\Actions\SaveEventAllianceResult::class)->handle(
+        $this->app->make(SaveEventAllianceResult::class)->handle(
             $admin,
             $event->occurrences->firstOrFail(),
             $alliance,
