@@ -264,6 +264,36 @@ final class ArchitectureV2DependencyTest extends TestCase
         }
     }
 
+    public function test_p4_legacy_authorization_domain_is_deleted(): void
+    {
+        self::assertDirectoryDoesNotExist($this->root().'/app/Domain/Authorization');
+    }
+
+    public function test_p4_runtime_has_no_v1_authorization_references(): void
+    {
+        foreach (['app', 'routes', 'bootstrap', 'config', 'database'] as $root) {
+            foreach ($this->phpFiles($this->root().'/'.$root) as $file) {
+                self::assertStringNotContainsString('App\\Domain\\Authorization', $this->source($file));
+            }
+        }
+    }
+
+    public function test_p4_game_authority_is_player_scoped_not_user_scoped(): void
+    {
+        $membership = $this->source($this->root().'/app/Contexts/Alliance/Membership/Models/AllianceMembership.php');
+        $assignment = $this->source($this->root().'/app/Contexts/GameWorld/Governance/Models/KingdomRoleAssignment.php');
+        $authorization = $this->source($this->root().'/app/Contexts/GameWorld/Governance/Services/KingdomAuthorization.php');
+
+        self::assertStringContainsString("'player_id'", $membership);
+        self::assertStringNotContainsString("'user_id'", $membership);
+        self::assertStringContainsString("'player_id'", $assignment);
+        self::assertStringNotContainsString("'user_id'", $assignment);
+        self::assertStringContainsString('allows(Player $player, Kingdom $kingdom, Permission $permission)', $authorization);
+        self::assertStringContainsString("->where('player_id',", $authorization);
+        self::assertStringContainsString('$player->id', $authorization);
+        self::assertStringNotContainsString('User $user', $authorization);
+    }
+
     public function test_operations_does_not_depend_on_downstream_intelligence_or_delivery_contexts(): void
     {
         $this->assertFilesDoNotImport(

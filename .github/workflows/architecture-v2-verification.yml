@@ -123,7 +123,6 @@ jobs:
             app/Shared \
             app/Workflows \
             app/ReadModels \
-            app/Domain/Authorization \
             bootstrap/app.php \
             bootstrap/providers.php \
             config/accounts.php \
@@ -176,7 +175,6 @@ jobs:
           app/Shared
           app/Workflows
           app/ReadModels/AllianceDashboard
-          app/Domain/Authorization
           bootstrap/app.php
           bootstrap/providers.php
           database/factories/UserFactory.php
