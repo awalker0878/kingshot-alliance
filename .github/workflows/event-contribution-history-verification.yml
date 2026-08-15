@@ -128,8 +128,7 @@ jobs:
         run: |
           mapfile -t files < <(git diff --name-only origin/main...HEAD -- '*.php')
           if ((${#files[@]})); then
-            vendor/bin/pint "${files[@]}"
-            git diff --exit-code -- "${files[@]}"
+            vendor/bin/pint --test "${files[@]}"
           fi
       - name: Larastan changed application PHP
         shell: bash
