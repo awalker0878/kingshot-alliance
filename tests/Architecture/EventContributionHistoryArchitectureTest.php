@@ -107,6 +107,45 @@ final class EventContributionHistoryArchitectureTest extends TestCase
         self::assertStringNotContainsString("\$table->json('metrics')", $migration);
     }
 
+    public function test_metric_catalogue_keeps_score_semantics_separate_from_component_metrics(): void
+    {
+        $catalogue = $this->read('app/Domain/Events/Catalog/KingShotEventMetricCatalog.php');
+        $typeMigration = $this->read('database/migrations/2026_08_07_020000_create_event_type_catalogue_tables.php');
+        $metricMigration = $this->read('database/migrations/2026_08_13_071000_seed_event_metric_catalogue.php');
+
+        self::assertStringContainsString("'score' => \$score", $catalogue);
+        self::assertStringContainsString("'metrics' => \$metrics", $catalogue);
+        self::assertStringContainsString("result_score_label_key", $typeMigration);
+        self::assertStringContainsString("result_score_unit", $typeMigration);
+        self::assertStringContainsString("result_score_higher_is_better", $typeMigration);
+        self::assertStringContainsString("dimension_kind", $metricMigration);
+        self::assertStringContainsString("KingShotEventMetricCatalog::profile", $metricMigration);
+    }
+
+    public function test_metric_subjects_use_canonical_alliance_identity_and_not_kingdom_alliance_identity(): void
+    {
+        $subject = $this->read('app/Domain/Events/Enums/EventMetricSubject.php');
+        $catalogue = $this->read('app/Domain/Events/Catalog/KingShotEventMetricCatalog.php');
+        $resultMigration = $this->read('database/migrations/2026_08_13_070000_create_event_result_tables.php');
+
+        self::assertStringContainsString("case Event = 'event';", $subject);
+        self::assertStringContainsString("case Alliance = 'alliance';", $subject);
+        self::assertStringContainsString("case Player = 'player';", $subject);
+        self::assertStringNotContainsString('KingdomAlliance', $subject);
+        self::assertStringNotContainsString('KingdomAlliance', $catalogue);
+        self::assertStringNotContainsString('kingdom_alliance', $resultMigration);
+    }
+
+    public function test_metric_catalogue_does_not_define_a_universal_cross_event_contribution_score(): void
+    {
+        $catalogue = strtolower($this->read('app/Domain/Events/Catalog/KingShotEventMetricCatalog.php'));
+        $contract = strtolower($this->read('docs/domains/events/event-contribution-history.md'));
+
+        self::assertStringNotContainsString('universal_contribution_score', $catalogue);
+        self::assertStringNotContainsString('total_contribution_score', $catalogue);
+        self::assertStringContainsString('does not create an unexplained universal total', $contract);
+    }
+
     private function read(string $path): string
     {
         $source = file_get_contents($this->root().'/'.$path);
