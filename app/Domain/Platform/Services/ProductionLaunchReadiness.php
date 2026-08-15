@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Domain\Integrations\Enums\WebhookDeliveryStatus;
 use App\Domain\Integrations\Models\WebhookDelivery;
 use App\Domain\Platform\Models\AlliancePlatformSetting;
-use App\Domain\Platform\Models\PlatformAdministrator;
+use App\Contexts\Platform\Access\Models\PlatformAdministrator;
 use App\Shared\Messaging\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 

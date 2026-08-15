@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Platform\Services;
+namespace App\Contexts\Platform\Access\Services;
 
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Platform\Models\PlatformAdministrator;
-use App\Domain\Platform\ValueObjects\PlatformMutationContext;
+use App\Contexts\Platform\Access\Models\PlatformAdministrator;
+use App\Contexts\Platform\Access\ValueObjects\PlatformMutationContext;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use LogicException;

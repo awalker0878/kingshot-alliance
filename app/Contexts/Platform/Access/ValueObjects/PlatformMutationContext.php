@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Platform\ValueObjects;
+namespace App\Contexts\Platform\Access\ValueObjects;
 
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Platform\Models\PlatformAdministrator;
+use App\Contexts\Platform\Access\Models\PlatformAdministrator;
 
 final readonly class PlatformMutationContext
 {

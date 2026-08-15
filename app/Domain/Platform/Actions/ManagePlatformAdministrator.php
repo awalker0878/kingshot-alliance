@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Platform\Actions;
 
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Platform\Models\PlatformAdministrator;
+use App\Contexts\Platform\Access\Models\PlatformAdministrator;
 use App\Domain\Platform\Services\PlatformAdministratorBootstrapCoordinator;
 use App\Shared\Audit\Services\AuditRecorder;
 use Illuminate\Auth\Access\AuthorizationException;

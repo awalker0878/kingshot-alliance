@@ -13,7 +13,7 @@ use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Domain\Integrations\Actions\QueueWebhookDeliveries;
 use App\Domain\Notifications\Actions\MarkEventReminderSent;
 use App\Domain\Notifications\Actions\MarkKingPerkReminderSent;
-use App\Domain\Platform\Models\PlatformAdministrator;
+use App\Contexts\Platform\Access\Models\PlatformAdministrator;
 use App\Shared\Messaging\Events\OutboxPublished;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;

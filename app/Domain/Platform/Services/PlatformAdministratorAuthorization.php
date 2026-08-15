@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Platform\Services;
 
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Platform\Models\PlatformAdministrator;
+use App\Contexts\Platform\Access\Models\PlatformAdministrator;
 use Illuminate\Auth\Access\AuthorizationException;
 
 final class PlatformAdministratorAuthorization

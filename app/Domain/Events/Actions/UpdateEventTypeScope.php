@@ -10,7 +10,7 @@ use App\Domain\Events\Enums\EventRecurrencePolicy;
 use App\Domain\Events\Enums\EventScheduleSource;
 use App\Domain\Events\Enums\RecurrenceFrequency;
 use App\Domain\Events\Models\EventTypeScope;
-use App\Domain\Platform\Services\PlatformMutationAuthority;
+use App\Contexts\Platform\Access\Services\PlatformMutationAuthority;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;

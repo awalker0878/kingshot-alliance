@@ -16,7 +16,7 @@ use App\Domain\Events\Models\EventPlayerResultMetric;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventTypeRegistry;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
-use App\Domain\Platform\Models\PlatformAdministrator;
+use App\Contexts\Platform\Access\Models\PlatformAdministrator;
 use App\Shared\Audit\Models\AuditEvent;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;

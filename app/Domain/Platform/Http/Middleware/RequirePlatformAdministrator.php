@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Platform\Http\Middleware;
 
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Platform\Models\PlatformAdministrator;
+use App\Contexts\Platform\Access\Models\PlatformAdministrator;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Platform\Models;
+namespace App\Contexts\Platform\Access\Models;
 
 use App\Contexts\Accounts\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

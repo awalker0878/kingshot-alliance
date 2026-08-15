@@ -10,7 +10,7 @@ use App\Domain\Platform\Actions\ConfigureAlliancePlatform;
 use App\Domain\Platform\Actions\ManageAllianceLifecycle;
 use App\Domain\Platform\Actions\ManagePlatformAdministrator;
 use App\Domain\Platform\Models\LegalHold;
-use App\Domain\Platform\Models\PlatformAdministrator;
+use App\Contexts\Platform\Access\Models\PlatformAdministrator;
 use App\Domain\Platform\Queries\PlatformAdministrationQuery;
 use App\Domain\Platform\Services\AllianceDataExportService;
 use App\Domain\Platform\Services\AllianceFeatureService;
