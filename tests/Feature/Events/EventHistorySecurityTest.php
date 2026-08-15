@@ -133,7 +133,7 @@ final class EventHistorySecurityTest extends TestCase
             ->sole();
 
         self::assertSame((string) $player->id, (string) $audit->actor_player_id);
-        self::assertSame((string) $user->id, (string) $audit->actor_user_id);
+        self::assertNull($audit->actor_user_id);
         self::assertSame((string) $player->id, (string) $audit->metadata['actor_player_id']);
     }
 
