@@ -7,7 +7,9 @@ namespace Tests\Feature\Events;
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Events\Actions\CreateEvent;
+use App\Domain\Events\Actions\RecordEventAttendance;
 use App\Domain\Events\Actions\SaveEventPlayerResult;
+use App\Domain\Events\Enums\EventAttendanceStatus;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Queries\EventContributionIntelligenceQuery;
@@ -99,13 +101,20 @@ final class EventContributionIntelligenceQueryTest extends TestCase
             firstLocalStart: CarbonImmutable::now('UTC')->subDay(),
             durationMinutes: 30,
         );
+        $occurrence = $event->occurrences->firstOrFail();
         $this->app->make(SaveEventPlayerResult::class)->handle(
             $leader,
-            $event->occurrences->firstOrFail(),
+            $occurrence,
             $leader,
             outcome: 'completed',
             score: 500,
             metrics: [['key' => 'rallies_joined', 'value' => 2]],
+        );
+        $this->app->make(RecordEventAttendance::class)->handle(
+            $leader,
+            $occurrence,
+            $leader,
+            EventAttendanceStatus::Present,
         );
 
         $intelligence = $this->app->make(EventContributionIntelligenceQuery::class)->forPlayer($leader);
