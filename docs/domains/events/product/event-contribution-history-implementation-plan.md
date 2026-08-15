@@ -3,7 +3,7 @@
 [← Events domain](../README.md)
 
 **Document type:** Implementation plan  
-**Status:** Final verification  
+**Status:** Complete  
 **Owning domains:** Events and Contributions  
 **Architecture authority:** [ADR 0011](../../../adr/0011-event-history-and-contribution-ownership.md)
 
@@ -55,7 +55,7 @@ Alliance names are presentation data and are not identity. The same name may exi
 | EC-P9 | Trend and comparative intelligence | **Complete** |
 | EC-P10 | Security, isolation and concurrency coverage | **Complete** |
 | EC-P11 | Query/index/performance review | **Complete** |
-| EC-P12 | Documentation, cleanup and final verification | **In progress** |
+| EC-P12 | Documentation, cleanup and final verification | **Complete** |
 
 ## EC-P0 — Ownership and authorization contract — COMPLETE
 
@@ -177,20 +177,21 @@ History queries avoid current-affiliation N+1 reconstruction by reading frozen o
 
 PostgreSQL feature coverage asserts the required history indexes exist.
 
-## EC-P12 — Final cleanup and verification — IN PROGRESS
+## EC-P12 — Final cleanup and verification — COMPLETE
 
-Final work is limited to cleanup and verification:
+Final cleanup leaves one consolidated Event Contribution History verification workflow and no temporary phase-specific formatter/static-analysis workflow. Stale Event-to-Contribution materialization, current-membership historical filtering, duplicate Alliance identity, and User/membership historical actor assumptions have been removed from the living contract.
 
-- remove temporary phase-specific formatter/diagnostic workflows;
-- retain one consolidated Event Contribution History verification workflow;
-- remove stale documentation or code assumptions that describe Event-to-Contribution materialization, current-membership historical filtering, duplicate Alliance identity, or User/membership historical actors;
-- ensure all changed PHP is Pint-clean and Larastan-clean;
-- migrate a fresh PostgreSQL database from zero;
-- run Event/Contribution history feature, security, architecture and performance suites;
-- run frontend checks for the new history surfaces; and
-- leave only the final accepted model in living documentation.
+The final feature verifier passed on implementation head `8702b892c63ca40e2f09b124c903d66e90a5f456` (Event Contribution History Verification run #273 / run `31866568608`):
 
-Verification checkpoint: the pre-cleanup consolidated run passed fresh PostgreSQL migration and changed-file Pint. Its sole Larastan failure was an unused private attendance-query helper in `EventPlayerOccurrenceEvidenceQuery`; that dead helper and its temporary cleanup workflow have now been removed. The consolidated workflow is being rerun on this normal branch-authored head as the final EC-P12 gate.
+- fresh PostgreSQL 18 migration from zero;
+- Pint across all changed PHP;
+- Larastan across all changed application PHP;
+- Event/Contribution history architecture, schema, catalogue, capture, history, intelligence, security and performance contract suites;
+- history-page ESLint and Prettier checks;
+- TypeScript checking of the two history surfaces and their dependency graph; and
+- a targeted Vite production build of the two history surfaces and their actual import graph.
+
+The targeted frontend gates are intentional: repository `main` already contains unrelated pre-existing Event/Platform frontend debt that prevents a full repository TypeScript/build gate. EVENT-CONTRIB-001 verifies its own new frontend surfaces and dependency graph without weakening or absorbing that unrelated baseline debt.
 
 ## Definition of done
 
