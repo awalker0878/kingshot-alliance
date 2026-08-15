@@ -25,7 +25,6 @@ final readonly class SaveEventResult
         private OutboxRecorder $outbox,
     ) {}
 
-    /** @param array<string,mixed> $metrics */
     public function handle(
         Player $actor,
         EventOccurrence $occurrence,
@@ -33,14 +32,13 @@ final readonly class SaveEventResult
         ?int $score = null,
         ?int $opponentScore = null,
         ?int $rank = null,
-        array $metrics = [],
         ?string $notes = null,
     ): EventResult {
         $occurrence->loadMissing('event');
         $event = $occurrence->event;
         $this->validate($outcome, $score, $opponentScore, $rank, $notes);
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $outcome, $score, $opponentScore, $rank, $metrics, $notes): EventResult {
+        return DB::transaction(function () use ($actor, $occurrence, $event, $outcome, $score, $opponentScore, $rank, $notes): EventResult {
             $context = $this->mutations->requireManager($actor, $event);
             $this->capabilities->require($context->event, EventCapability::Results);
 
@@ -61,7 +59,6 @@ final readonly class SaveEventResult
                 'score' => $score,
                 'opponent_score' => $opponentScore,
                 'rank' => $rank,
-                'metrics' => $metrics === [] ? null : $metrics,
                 'notes' => $notes === null || trim($notes) === '' ? null : trim($notes),
                 'recorded_by_player_id' => $context->actor->id,
                 'recorded_at' => now(),
