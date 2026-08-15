@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
  * @property int $effect_duration_minutes
  * @property Carbon|null $scheduled_in_game_at
  * @property Carbon|null $activated_at
- * @property-read KingPerkPlan|null $plan
+ * @property-read KingPerkPlan $plan
  * @property-read Player|null $plannedByPlayer
  */
 final class KingSkillPlan extends Model
