@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -140,10 +141,172 @@ return new class extends Migration
             $table->unique(['event_player_result_id', 'metric_definition_id', 'dimension_key']);
             $table->index(['metric_definition_id', 'recorded_at']);
         });
+
+        $this->createKingdomAllianceHistoryGuards();
+    }
+
+    private function createKingdomAllianceHistoryGuards(): void
+    {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            DB::statement(<<<'SQL'
+CREATE FUNCTION event_kingdom_alliance_results_validate_kingdom() RETURNS trigger AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM event_occurrences o
+        JOIN events e ON e.id = o.event_id
+        JOIN kingdom_alliances ka ON ka.id = NEW.kingdom_alliance_id
+        WHERE o.id = NEW.occurrence_id
+          AND e.scope = 'kingdom'
+          AND e.kingdom_id = ka.kingdom_id
+    ) THEN
+        RAISE EXCEPTION 'kingdom event alliance result must belong to the event kingdom';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql
+SQL);
+            DB::statement(<<<'SQL'
+CREATE TRIGGER event_kingdom_alliance_results_kingdom_insert
+BEFORE INSERT ON event_kingdom_alliance_results
+FOR EACH ROW EXECUTE FUNCTION event_kingdom_alliance_results_validate_kingdom()
+SQL);
+            DB::statement(<<<'SQL'
+CREATE TRIGGER event_kingdom_alliance_results_kingdom_update
+BEFORE UPDATE OF occurrence_id, kingdom_alliance_id ON event_kingdom_alliance_results
+FOR EACH ROW EXECUTE FUNCTION event_kingdom_alliance_results_validate_kingdom()
+SQL);
+
+            DB::statement(<<<'SQL'
+CREATE FUNCTION event_player_contexts_validate_alliance_kingdom() RETURNS trigger AS $$
+BEGIN
+    IF NEW.represented_alliance_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM alliances a
+        WHERE a.id = NEW.represented_alliance_id
+          AND a.kingdom_id = NEW.kingdom_id_at_event
+    ) THEN
+        RAISE EXCEPTION 'represented platform alliance must belong to kingdom at event';
+    END IF;
+
+    IF NEW.represented_kingdom_alliance_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM kingdom_alliances ka
+        WHERE ka.id = NEW.represented_kingdom_alliance_id
+          AND ka.kingdom_id = NEW.kingdom_id_at_event
+    ) THEN
+        RAISE EXCEPTION 'represented game alliance must belong to kingdom at event';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql
+SQL);
+            DB::statement(<<<'SQL'
+CREATE TRIGGER event_player_contexts_alliance_kingdom_insert
+BEFORE INSERT ON event_player_contexts
+FOR EACH ROW EXECUTE FUNCTION event_player_contexts_validate_alliance_kingdom()
+SQL);
+            DB::statement(<<<'SQL'
+CREATE TRIGGER event_player_contexts_alliance_kingdom_update
+BEFORE UPDATE OF represented_alliance_id, represented_kingdom_alliance_id, kingdom_id_at_event ON event_player_contexts
+FOR EACH ROW EXECUTE FUNCTION event_player_contexts_validate_alliance_kingdom()
+SQL);
+
+            return;
+        }
+
+        if ($driver === 'sqlite') {
+            DB::statement(<<<'SQL'
+CREATE TRIGGER event_kingdom_alliance_results_kingdom_insert
+BEFORE INSERT ON event_kingdom_alliance_results
+WHEN NOT EXISTS (
+    SELECT 1
+    FROM event_occurrences o
+    JOIN events e ON e.id = o.event_id
+    JOIN kingdom_alliances ka ON ka.id = NEW.kingdom_alliance_id
+    WHERE o.id = NEW.occurrence_id
+      AND e.scope = 'kingdom'
+      AND e.kingdom_id = ka.kingdom_id
+)
+BEGIN
+    SELECT RAISE(ABORT, 'kingdom event alliance result must belong to the event kingdom');
+END
+SQL);
+            DB::statement(<<<'SQL'
+CREATE TRIGGER event_kingdom_alliance_results_kingdom_update
+BEFORE UPDATE OF occurrence_id, kingdom_alliance_id ON event_kingdom_alliance_results
+WHEN NOT EXISTS (
+    SELECT 1
+    FROM event_occurrences o
+    JOIN events e ON e.id = o.event_id
+    JOIN kingdom_alliances ka ON ka.id = NEW.kingdom_alliance_id
+    WHERE o.id = NEW.occurrence_id
+      AND e.scope = 'kingdom'
+      AND e.kingdom_id = ka.kingdom_id
+)
+BEGIN
+    SELECT RAISE(ABORT, 'kingdom event alliance result must belong to the event kingdom');
+END
+SQL);
+            DB::statement(<<<'SQL'
+CREATE TRIGGER event_player_contexts_alliance_kingdom_insert
+BEFORE INSERT ON event_player_contexts
+WHEN (NEW.represented_alliance_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM alliances a
+        WHERE a.id = NEW.represented_alliance_id
+          AND a.kingdom_id = NEW.kingdom_id_at_event
+    ))
+    OR (NEW.represented_kingdom_alliance_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM kingdom_alliances ka
+        WHERE ka.id = NEW.represented_kingdom_alliance_id
+          AND ka.kingdom_id = NEW.kingdom_id_at_event
+    ))
+BEGIN
+    SELECT RAISE(ABORT, 'represented alliance must belong to kingdom at event');
+END
+SQL);
+            DB::statement(<<<'SQL'
+CREATE TRIGGER event_player_contexts_alliance_kingdom_update
+BEFORE UPDATE OF represented_alliance_id, represented_kingdom_alliance_id, kingdom_id_at_event ON event_player_contexts
+WHEN (NEW.represented_alliance_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM alliances a
+        WHERE a.id = NEW.represented_alliance_id
+          AND a.kingdom_id = NEW.kingdom_id_at_event
+    ))
+    OR (NEW.represented_kingdom_alliance_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM kingdom_alliances ka
+        WHERE ka.id = NEW.represented_kingdom_alliance_id
+          AND ka.kingdom_id = NEW.kingdom_id_at_event
+    ))
+BEGIN
+    SELECT RAISE(ABORT, 'represented alliance must belong to kingdom at event');
+END
+SQL);
+        }
     }
 
     public function down(): void
     {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            DB::statement('DROP TRIGGER IF EXISTS event_player_contexts_alliance_kingdom_update ON event_player_contexts');
+            DB::statement('DROP TRIGGER IF EXISTS event_player_contexts_alliance_kingdom_insert ON event_player_contexts');
+            DB::statement('DROP FUNCTION IF EXISTS event_player_contexts_validate_alliance_kingdom()');
+            DB::statement('DROP TRIGGER IF EXISTS event_kingdom_alliance_results_kingdom_update ON event_kingdom_alliance_results');
+            DB::statement('DROP TRIGGER IF EXISTS event_kingdom_alliance_results_kingdom_insert ON event_kingdom_alliance_results');
+            DB::statement('DROP FUNCTION IF EXISTS event_kingdom_alliance_results_validate_kingdom()');
+        }
+
+        if ($driver === 'sqlite') {
+            DB::statement('DROP TRIGGER IF EXISTS event_player_contexts_alliance_kingdom_update');
+            DB::statement('DROP TRIGGER IF EXISTS event_player_contexts_alliance_kingdom_insert');
+            DB::statement('DROP TRIGGER IF EXISTS event_kingdom_alliance_results_kingdom_update');
+            DB::statement('DROP TRIGGER IF EXISTS event_kingdom_alliance_results_kingdom_insert');
+        }
+
         Schema::dropIfExists('event_player_result_metrics');
         Schema::dropIfExists('event_kingdom_alliance_result_metrics');
         Schema::dropIfExists('event_result_metrics');
