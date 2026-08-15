@@ -9,7 +9,6 @@ use App\Domain\Events\Enums\EventMetricSubject;
 use App\Domain\Events\Enums\EventRecurrencePolicy;
 use App\Domain\Events\Enums\EventScheduleSource;
 use App\Domain\Events\Enums\EventScope;
-use App\Domain\Events\Models\EventMetricDefinition;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventCapabilityResolver;
 use App\Domain\Events\Services\EventTypeDefaultsResolver;
@@ -65,21 +64,21 @@ final class EventTypeCataloguePersistenceTest extends TestCase
             'unit' => 'damage',
             'higher_is_better' => true,
         ], $defaults['result_score']);
-        self::assertSame(
-            ['rallies_joined', 'rallies_led'],
-            array_column($defaults['metrics'], 'key'),
-        );
+
+        $metrics = $defaults['metrics'];
+        self::assertIsArray($metrics);
+        self::assertSame(['rallies_joined', 'rallies_led'], array_column($metrics, 'key'));
     }
 
     public function test_kingdom_event_metrics_persist_alliance_and_player_subjects(): void
     {
         $castle = EventType::query()->where('slug', 'castle-battle')->sole();
         $scope = $this->app->make(EventTypeRegistry::class)->scope($castle, EventScope::Kingdom);
+        $bySubject = [];
 
-        $bySubject = $scope->metricDefinitions
-            ->groupBy(static fn (EventMetricDefinition $definition): string => $definition->subject->value)
-            ->map(static fn ($definitions) => $definitions->pluck('key')->values()->all())
-            ->all();
+        foreach ($scope->metricDefinitions as $definition) {
+            $bySubject[$definition->subject->value][] = $definition->key;
+        }
 
         self::assertSame(['objective_occupation_seconds'], $bySubject[EventMetricSubject::Event->value]);
         self::assertSame(
@@ -115,6 +114,9 @@ final class EventTypeCataloguePersistenceTest extends TestCase
         self::assertFalse($defaults['recurrence_allowed']);
         self::assertSame('none', $defaults['default_recurrence_frequency']);
         self::assertSame(2880, $defaults['capabilities']['phases']['voting_minutes']);
-        self::assertSame('events.metrics.relic_points', $defaults['result_score']['label_key']);
+
+        $score = $defaults['result_score'];
+        self::assertIsArray($score);
+        self::assertSame('events.metrics.relic_points', $score['label_key']);
     }
 }
