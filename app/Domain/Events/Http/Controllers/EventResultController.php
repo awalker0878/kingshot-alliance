@@ -18,7 +18,9 @@ use Illuminate\Http\Request;
 
 final class EventResultController extends Controller
 {
-    public function __construct(private readonly PlayerContext $playerContext) {}
+    public function __construct(private readonly PlayerContext $playerContext)
+    {
+    }
 
     public function saveOccurrence(Request $request, string $occurrence, EventCalendarQuery $events, SaveEventResult $save): RedirectResponse
     {
@@ -113,13 +115,10 @@ final class EventResultController extends Controller
         return $request->validate($rules);
     }
 
-    /**
-     * @param mixed $value
-     * @return list<array{key:string,value:int|float|string,dimension_key?:string|null}>
-     */
+    /** @return list<array{key:string,value:int|float|string,dimension_key?:string|null}> */
     private function metrics(mixed $value): array
     {
-        if (! is_array($value)) {
+        if (!is_array($value)) {
             return [];
         }
 
