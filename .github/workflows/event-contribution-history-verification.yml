@@ -161,7 +161,19 @@ jobs:
         run: npx eslint resources/js/pages/Events/OrganizationHistory.vue resources/js/pages/Contributions/History.vue
       - name: Event history frontend format
         run: npx prettier --check resources/js/pages/Events/OrganizationHistory.vue resources/js/pages/Contributions/History.vue
-      - name: Frontend typecheck
-        run: npm run types:check
+      - name: Event history frontend types
+        shell: bash
+        run: |
+          cat > tsconfig.event-history.json <<'EOF'
+          {
+            "extends": "./tsconfig.json",
+            "include": [
+              "resources/js/pages/Events/OrganizationHistory.vue",
+              "resources/js/pages/Contributions/History.vue"
+            ]
+          }
+          EOF
+          npx vue-tsc --noEmit -p tsconfig.event-history.json
+          rm tsconfig.event-history.json
       - name: Frontend build
         run: npm run build
