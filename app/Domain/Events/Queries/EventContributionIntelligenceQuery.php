@@ -264,9 +264,22 @@ final readonly class EventContributionIntelligenceQuery
         $series = [];
         $leaderboards = [];
         foreach ($groups as $groupSamples) {
+            if ($groupSamples === []) {
+                continue;
+            }
+
+            $latestKey = array_key_last($groupSamples);
+            if ($latestKey === null) {
+                continue;
+            }
+
             $first = $groupSamples[0];
             $values = array_map(static fn (array $sample): float => (float) $sample['value'], $groupSamples);
-            $latest = $groupSamples[array_key_last($groupSamples)];
+            if ($values === []) {
+                continue;
+            }
+
+            $latest = $groupSamples[$latestKey];
             $higherIsBetter = $first['higherIsBetter'];
 
             $series[] = [
@@ -307,8 +320,21 @@ final readonly class EventContributionIntelligenceQuery
 
             $entries = [];
             foreach ($byPlayer as $playerSamples) {
+                if ($playerSamples === []) {
+                    continue;
+                }
+
+                $playerLatestKey = array_key_last($playerSamples);
+                if ($playerLatestKey === null) {
+                    continue;
+                }
+
                 $playerValues = array_map(static fn (array $sample): float => (float) $sample['value'], $playerSamples);
-                $playerLatest = $playerSamples[array_key_last($playerSamples)];
+                if ($playerValues === []) {
+                    continue;
+                }
+
+                $playerLatest = $playerSamples[$playerLatestKey];
                 $entries[] = [
                     'playerId' => $playerLatest['playerId'],
                     'playerName' => $playerLatest['playerName'],
