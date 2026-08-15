@@ -1,0 +1,76 @@
+name: King Perks Format Preview
+
+on:
+  pull_request:
+    paths:
+      - 'app/Domain/KingPerks/**'
+      - 'app/Domain/Notifications/Actions/*KingPerk*'
+      - 'app/Domain/Notifications/Models/KingPerkReminderDelivery.php'
+      - 'app/Domain/Notifications/Queries/EventReminderInboxQuery.php'
+      - 'app/Domain/Platform/Providers/AppServiceProvider.php'
+      - 'bootstrap/app.php'
+      - 'database/migrations/*king_perk*'
+      - 'resources/js/pages/KingPerks/**'
+      - 'routes/king-perks.php'
+      - 'tests/Feature/KingPerks/**'
+      - 'tests/Unit/KingPerks/**'
+      - '.github/workflows/king-perks-format-preview.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: npm ci --no-audit --no-fund
+      - name: Apply canonical formatters
+        run: |
+          vendor/bin/pint \
+            app/Domain/KingPerks \
+            app/Domain/Notifications/Actions/MarkKingPerkReminderSent.php \
+            app/Domain/Notifications/Actions/QueueDueKingPerkReminders.php \
+            app/Domain/Notifications/Models/KingPerkReminderDelivery.php \
+            app/Domain/Notifications/Queries/EventReminderInboxQuery.php \
+            app/Domain/Platform/Providers/AppServiceProvider.php \
+            bootstrap/app.php \
+            database/migrations/2026_08_15_083000_create_king_perk_tables.php \
+            routes/king-perks.php \
+            tests/Feature/KingPerks \
+            tests/Unit/KingPerks
+          npx prettier --write resources/js/pages/KingPerks
+      - name: Stage formatted files
+        run: |
+          mkdir -p /tmp/king-perks-formatted
+          cp --parents -r \
+            app/Domain/KingPerks \
+            app/Domain/Notifications/Actions/MarkKingPerkReminderSent.php \
+            app/Domain/Notifications/Actions/QueueDueKingPerkReminders.php \
+            app/Domain/Notifications/Models/KingPerkReminderDelivery.php \
+            app/Domain/Notifications/Queries/EventReminderInboxQuery.php \
+            app/Domain/Platform/Providers/AppServiceProvider.php \
+            bootstrap/app.php \
+            database/migrations/2026_08_15_083000_create_king_perk_tables.php \
+            resources/js/pages/KingPerks \
+            routes/king-perks.php \
+            tests/Feature/KingPerks \
+            tests/Unit/KingPerks \
+            /tmp/king-perks-formatted/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: king-perks-formatted
+          path: /tmp/king-perks-formatted
+          if-no-files-found: error
+          retention-days: 1
