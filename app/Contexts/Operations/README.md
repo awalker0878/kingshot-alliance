@@ -20,6 +20,6 @@ Event history, trend, intelligence and evidence projections are not Operations s
 
 Reminder delivery state is not owned by Operations. Delivery records live under Communications, while cross-context reminder inbox composition lives under ReadModels. Operations does not navigate to delivery records through ORM relationships.
 
-Platform Event-type administration is Platform-owned orchestration over Operations configuration. Operations does not depend on Platform administration authority.
+Platform Event-type administration is Platform-owned orchestration over Operations configuration. Cross-context Event management page composition is also downstream of Operations so the Operations context never imports Intelligence, Communications, Platform, or ReadModels.
 
 All Alliance/Kingdom Event authority remains Player-scoped. User is account/platform identity only and never receives game-domain Event permissions directly.
