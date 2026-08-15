@@ -17,21 +17,23 @@ use LogicException;
 
 final class EventPlayerContextFreezer
 {
+    public function existing(EventOccurrence $occurrence, Player $player): ?EventPlayerContext
+    {
+        $this->assertTransaction();
+
+        return EventPlayerContext::query()
+            ->where('occurrence_id', $occurrence->id)
+            ->where('player_id', $player->id)
+            ->lockForUpdate()
+            ->first();
+    }
+
     public function freeze(
         EventOccurrence $occurrence,
         Player $player,
         ?Alliance $representedAlliance = null,
     ): EventPlayerContext {
-        if (DB::transactionLevel() < 1) {
-            throw new LogicException('Event Player context must be frozen inside a database transaction.');
-        }
-
-        $existing = EventPlayerContext::query()
-            ->where('occurrence_id', $occurrence->id)
-            ->where('player_id', $player->id)
-            ->lockForUpdate()
-            ->first();
-
+        $existing = $this->existing($occurrence, $player);
         if ($existing instanceof EventPlayerContext) {
             return $existing;
         }
@@ -59,6 +61,13 @@ final class EventPlayerContextFreezer
             'kingdom_id_at_event' => $kingdomId,
             'context_frozen_at' => now(),
         ]);
+    }
+
+    private function assertTransaction(): void
+    {
+        if (DB::transactionLevel() < 1) {
+            throw new LogicException('Event Player context must be read or frozen inside a database transaction.');
+        }
     }
 
     private function allianceKingdom(?string $allianceId, Player $player, ?Alliance $representedAlliance): string
