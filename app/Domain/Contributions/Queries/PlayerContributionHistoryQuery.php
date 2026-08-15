@@ -50,7 +50,7 @@ final readonly class PlayerContributionHistoryQuery
         foreach ($this->events->forPlayer($player, $eventFilters) as $event) {
             $timeline[] = [
                 'kind' => 'event',
-                'occurredAt' => (string) $event['startsAt'],
+                'occurredAt' => CarbonImmutable::parse((string) $event['startsAt'])->toIso8601String(),
                 'event' => $event,
                 'contribution' => null,
             ];
