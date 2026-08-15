@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Contributions\Http\Controllers;
 
 use App\Domain\Contributions\Queries\PlayerContributionHistoryQuery;
+use App\Domain\Events\Queries\EventContributionIntelligenceQuery;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Services\PlayerContext;
 use App\Domain\Platform\Http\Controllers\Controller;
@@ -18,8 +19,11 @@ final class ContributionHistoryController extends Controller
 {
     public function __construct(private PlayerContext $playerContext) {}
 
-    public function index(Request $request, PlayerContributionHistoryQuery $history): Response
-    {
+    public function index(
+        Request $request,
+        PlayerContributionHistoryQuery $history,
+        EventContributionIntelligenceQuery $intelligence,
+    ): Response {
         $user = $request->user();
         if (! $user instanceof User) {
             throw new AuthorizationException;
@@ -44,6 +48,12 @@ final class ContributionHistoryController extends Controller
             'from' => isset($validated['from']) ? CarbonImmutable::parse((string) $validated['from']) : null,
             'until' => isset($validated['until']) ? CarbonImmutable::parse((string) $validated['until']) : null,
         ];
+        $intelligenceFilters = [
+            'from' => $filters['from'],
+            'until' => $filters['until'],
+            'event_type_slug' => $validated['event_type_slug'] ?? null,
+            'metric_key' => $validated['event_metric_key'] ?? null,
+        ];
 
         return Inertia::render('Contributions/History', [
             'user' => [
@@ -67,6 +77,7 @@ final class ContributionHistoryController extends Controller
                 'contributionCategorySlug' => $validated['contribution_category_slug'] ?? null,
                 'limit' => isset($validated['limit']) ? (int) $validated['limit'] : 100,
             ],
+            'intelligence' => $intelligence->forPlayer($player, $intelligenceFilters),
             'history' => $history->forPlayer($player, $filters),
         ]);
     }
