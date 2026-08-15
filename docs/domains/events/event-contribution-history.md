@@ -55,7 +55,9 @@ AND kingdom_id = requested kingdom
 
 They must not filter historical participation by each Player's current `current_kingdom_id`.
 
-Alliance-level results inside a Kingdom Event use Kingdoms-owned `KingdomAlliance` as the durable game-side Alliance identity. They do not require the represented KingShot Alliance to be a platform tenant `Alliance`. A platform `Alliance` link may be retained as optional historical context where one exists.
+Alliance-level results inside a Kingdom Event reference the canonical `Alliance` through `alliance_id`. The Alliance itself owns required `kingdom_id`, which identifies the Kingdom that Alliance belongs to. The database rejects a Kingdom Event Alliance result when `Alliance.kingdom_id` does not match the Event Kingdom.
+
+Alliance names are display data, not identity. The same name may exist in different Kingdoms.
 
 ## 3. Current authorization versus historical ownership
 
@@ -79,7 +81,7 @@ Events remains authoritative for:
 - registration/responses/attendance;
 - roster and Rally participation facts exposed through supported contracts;
 - Event-wide results;
-- `KingdomAlliance` results inside Kingdom Events where supported;
+- Alliance results inside Kingdom Events where supported;
 - Player results;
 - normalized Event metric definitions and values; and
 - occurrence-time historical Player context.
@@ -114,15 +116,16 @@ Where current relationships would rewrite the meaning of the past, Events persis
 occurrence_id
 player_id
 player_name_snapshot
-represented_alliance_id nullable                 # platform Alliance when applicable
-represented_kingdom_alliance_id nullable         # neutral game-side Alliance identity
+represented_alliance_id nullable
 represented_alliance_name_snapshot nullable
 represented_alliance_tag_snapshot nullable
 kingdom_id_at_event
 context_frozen_at
 ```
 
-The durable `player_id` remains the identity. `represented_kingdom_alliance_id` is a neutral reference used to group historical Kingdom Event participation even when the represented game Alliance is not a platform tenant. Snapshot fields are presentation/evidence only and never grant permission.
+The durable `player_id` remains the Player identity. `represented_alliance_id` references the canonical Alliance identity when the Player represented an Alliance for the occurrence. `kingdom_id_at_event` records the Kingdom context. If `represented_alliance_id` is present, that Alliance's `kingdom_id` must equal `kingdom_id_at_event`.
+
+Snapshot fields are presentation/evidence only and never grant permission.
 
 ## 7. Metric semantics
 
@@ -131,7 +134,7 @@ Event metrics are defined by Event Type scope and a stable metric key. A definit
 Metric subjects are deliberately structural:
 
 - `event` for occurrence-wide results;
-- `kingdom_alliance` for represented game-Alliance results inside Kingdom Events; and
+- `alliance` for Alliance results inside Kingdom Events; and
 - `player` for durable Player results.
 
 Examples:
@@ -165,7 +168,7 @@ Alliance Event History is authorized from the current active Player's current Al
 
 ### Kingdom
 
-Kingdom Event History is authorized from current exact-Kingdom role authority and reads all Events permanently targeted at that Kingdom. Kingdom reports may group historical Player results by the `KingdomAlliance` represented at the occurrence.
+Kingdom Event History is authorized from current exact-Kingdom role authority and reads all Events permanently targeted at that Kingdom. Kingdom reports may group historical Player results by the canonical `alliance_id` represented at the occurrence.
 
 ## 10. Mutation and concurrency principles
 
@@ -181,7 +184,7 @@ The implementation must cover:
 - former leader loses Alliance-wide historical access;
 - Player transfers Kingdom and retains personal Kingdom Event history;
 - current Kingdom leadership sees historical contribution from Players who later transferred;
-- Kingdom Event Alliance results can represent non-tenant `KingdomAlliance` records;
+- Kingdom Event Alliance results reject an Alliance whose `kingdom_id` belongs to another Kingdom;
 - sibling Players owned by one User remain isolated;
 - current membership/current Kingdom placement never filters historical participants;
 - Event target is immutable after creation;
