@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\BattlePlans\Queries;
 
 use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Operations\BattlePlans\Models\EventObjective;
+use App\Contexts\Operations\BattlePlans\Models\EventObjectiveAssignment;
 use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Models\EventObjective;
-use App\Contexts\Operations\EventCore\Models\EventObjectiveAssignment;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventRosterMember;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
+use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Carbon\CarbonImmutable;
 
 final readonly class EventObjectiveQuery
