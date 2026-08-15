@@ -118,7 +118,7 @@ Contributions does not edit/duplicate Events facts, derive historical ownership 
 EVENT-CONTRIB-001 security coverage is defined by the Events historical ownership contract and this profile.
 
 - [Contributions domain contract](../README.md)
-- [Event history composition](../event-reconciliation.md)
+- [Event history composition](../event-history-composition.md)
 - [Event contribution and historical intelligence](../../events/event-contribution-history.md)
 - [Events security profile](../../events/security/README.md)
 - [Notifications security profile](../../notifications/security/README.md)
