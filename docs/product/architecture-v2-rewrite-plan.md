@@ -199,7 +199,7 @@ Historical acceptance/security evidence may remain in an archive/evidence locati
 
 **Implementation status:** complete. The global `PermissionKey` and `app/Domain/Authorization` have been deleted. Architecture V2 verification is green for PostgreSQL, Pint, Player-scoped authority contracts, Larastan and Accounts/GameWorld/Alliance runtime behavior.
 
-- context-owned permission enums now define Alliance, Kingdom, Operations and Intelligence access vocabulary;
+- context-owned permission enums define Alliance, Kingdom, Operations and Intelligence access vocabulary;
 - Alliance and Kingdom authority remain Player-scoped and are never granted directly to User;
 - GameWorld owns Player/Kingdom governance state and locking without depending on Operations;
 - Operations owns `events.*` permissions and attaches them to Kingdom roles through an explicit cross-context bootstrap workflow;
@@ -207,9 +207,12 @@ Historical acceptance/security evidence may remain in an archive/evidence locati
 
 ### ARCH-V2-P5 — Operations rewrite
 
-**Implementation status:** in progress.
+**Implementation status:** in progress from the verified P4 boundary.
 
-- rebuild EventCore and move participation, polls, rosters, battle plans, Rallies, KingPerks, results and metrics under Operations;
+- rebuild EventCore around Event type, scope, occurrence, phase, schedule and capability registration;
+- move participation, polls, rosters, battle plans, results and operational metrics into Operations capability modules;
+- move Rallies and KingPerks into Operations without creating separate event/calendar frameworks;
+- preserve Player-scoped event authority and exact Alliance/Kingdom scope checks;
 - delete replaced Events/Rallies/KingPerks code rather than bridge it.
 
 ### ARCH-V2-P6 — Intelligence rewrite
