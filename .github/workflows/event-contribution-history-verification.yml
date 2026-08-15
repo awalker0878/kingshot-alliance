@@ -14,8 +14,10 @@ on:
       - 'resources/js/pages/Contributions/**'
       - 'routes/event-history.php'
       - 'routes/contributions.php'
+      - 'tests/Architecture/EventContributionHistoryArchitectureTest.php'
       - 'tests/Feature/Events/**'
       - 'tests/Feature/Contributions/**'
+      - 'tests/Unit/Events/**'
       - 'docs/domains/events/**'
       - 'docs/adr/0011-event-history-and-contribution-ownership.md'
   workflow_dispatch:
@@ -136,14 +138,20 @@ jobs:
           if ((${#files[@]})); then
             vendor/bin/phpstan analyse --no-progress "${files[@]}"
           fi
-      - name: Event contribution history feature suites
+      - name: Event contribution history contract suites
         run: >-
           php artisan test
+          tests/Architecture/EventContributionHistoryArchitectureTest.php
+          tests/Feature/Events/EventContributionHistorySchemaTest.php
+          tests/Feature/Events/EventTypeCataloguePersistenceTest.php
+          tests/Unit/Events/EventMetricCatalogTest.php
           tests/Feature/Events/EventMetricCaptureTest.php
           tests/Feature/Events/EventPlayerHistoryQueryTest.php
           tests/Feature/Events/EventOrganizationHistoryQueryTest.php
+          tests/Feature/Events/EventOrganizationEvidenceQueryTest.php
           tests/Feature/Events/EventTrendQueryTest.php
           tests/Feature/Events/EventLeaderboardQueryTest.php
+          tests/Feature/Events/EventContributionIntelligenceQueryTest.php
           tests/Feature/Events/EventHistorySecurityTest.php
           tests/Feature/Events/EventHistoryPerformanceContractTest.php
           tests/Feature/Contributions/PlayerContributionHistoryQueryTest.php
