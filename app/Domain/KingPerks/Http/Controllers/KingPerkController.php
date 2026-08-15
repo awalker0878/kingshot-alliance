@@ -110,7 +110,7 @@ final class KingPerkController extends Controller
             plan: $record,
             type: KingAppointmentType::from((string) $validated['appointment_type']),
             target: $target,
-            startsAt: CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['starts_at'], 'UTC'),
+            startsAt: CarbonImmutable::parse((string) $validated['starts_at'], 'UTC'),
             notes: $validated['notes'] ?? null,
             appointment: $appointment,
         );
@@ -186,14 +186,14 @@ final class KingPerkController extends Controller
             $replacement = $scheduler->assignAppointment(
                 actor: $actor,
                 plan: $plan,
-                type: $current->appointment_type,
+                type: $current->appointmentType(),
                 target: $target,
-                startsAt: CarbonImmutable::instance($current->starts_at),
+                startsAt: $current->startsAt(),
                 notes: 'Live replacement for no-show appointment '.(string) $current->id,
             );
 
             $now = CarbonImmutable::now('UTC');
-            if (! $now->lt($replacement->starts_at) && $now->lt($replacement->ends_at)) {
+            if (! $now->lt($replacement->startsAt()) && $now->lt($replacement->endsAt())) {
                 $scheduler->markAppointmentActive($actor, $replacement);
             }
         });
@@ -212,7 +212,7 @@ final class KingPerkController extends Controller
         ]);
         $record = KingPerkAppointment::query()->whereKey($appointment)->firstOrFail();
         $at = isset($validated['cancelled_at'])
-            ? CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['cancelled_at'], 'UTC')
+            ? CarbonImmutable::parse((string) $validated['cancelled_at'], 'UTC')
             : CarbonImmutable::now('UTC');
         $scheduler->recordCancelledPositionCooldown($this->player(), $record, $at);
 
@@ -243,8 +243,8 @@ final class KingPerkController extends Controller
             actor: $this->player(),
             plan: $record,
             category: KingPerkPushCategory::from((string) $validated['push_category']),
-            availableFrom: CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['availability_starts_at'], 'UTC'),
-            availableUntil: CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['availability_ends_at'], 'UTC'),
+            availableFrom: CarbonImmutable::parse((string) $validated['availability_starts_at'], 'UTC'),
+            availableUntil: CarbonImmutable::parse((string) $validated['availability_ends_at'], 'UTC'),
             preferredType: $preferred,
             plannedSpeedupMinutes: isset($validated['planned_speedup_minutes']) ? (int) $validated['planned_speedup_minutes'] : null,
             plannedResourceAmount: isset($validated['planned_resource_amount']) ? (int) $validated['planned_resource_amount'] : null,
@@ -295,8 +295,8 @@ final class KingPerkController extends Controller
             actor: $this->player(),
             plan: $record,
             category: KingPerkPushCategory::from((string) $validated['push_category']),
-            from: CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['from'], 'UTC'),
-            until: CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['until'], 'UTC'),
+            from: CarbonImmutable::parse((string) $validated['from'], 'UTC'),
+            until: CarbonImmutable::parse((string) $validated['until'], 'UTC'),
             limit: isset($validated['limit']) ? (int) $validated['limit'] : 200,
         );
 
@@ -317,7 +317,7 @@ final class KingPerkController extends Controller
             actor: $this->player(),
             plan: $record,
             skill: KingSkill::from((string) $validated['skill_key']),
-            activationAt: CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['planned_activation_at'], 'UTC'),
+            activationAt: CarbonImmutable::parse((string) $validated['planned_activation_at'], 'UTC'),
             effectDurationMinutes: (int) $validated['effect_duration_minutes'],
             notes: $validated['notes'] ?? null,
         );
