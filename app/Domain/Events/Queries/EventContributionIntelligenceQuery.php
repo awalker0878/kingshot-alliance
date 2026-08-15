@@ -13,6 +13,7 @@ use App\Domain\Kingdoms\Models\Player;
 use DateTimeInterface;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 
 /**
  * Cross-occurrence Event contribution intelligence.
@@ -348,6 +349,10 @@ final readonly class EventContributionIntelligenceQuery
     /** @param list<float> $values */
     private function aggregate(array $values, string $aggregation): float
     {
+        if ($values === []) {
+            throw new LogicException('Event contribution intelligence aggregation requires at least one sample.');
+        }
+
         return match ($aggregation) {
             'sum' => array_sum($values),
             'max' => max($values),
