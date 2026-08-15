@@ -34,7 +34,7 @@ final class ArchitectureV2AllianceTest extends TestCase
 
     public function test_alliance_authority_is_scoped_to_player_membership_not_user(): void
     {
-        $membership = new AllianceMembership();
+        $membership = new AllianceMembership;
         $authorization = file_get_contents(dirname(__DIR__, 2).'/app/Contexts/Alliance/Access/Services/AllianceAuthorization.php');
 
         self::assertContains('player_id', $membership->getFillable());
