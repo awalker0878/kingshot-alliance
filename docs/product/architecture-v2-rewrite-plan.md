@@ -118,11 +118,11 @@ Required directional rule: `GameWorld` must never depend on Alliance, Operations
 
 ## Authorization V2
 
-Delete the single global business-permission enum as the extension point. Permission definitions live with the owning context/capability and implement a small shared permission contract/registry.
+The single global business-permission enum has been deleted. Permission definitions live with their owning contexts/capabilities and implement the Shared `Permission` contract.
 
-One scope-aware access engine resolves current Player authority for a concrete resource scope. Capability-specific policy remains with the owning context.
+Alliance authority resolves from the active Player's membership/rank/specialist roles. Kingdom authority resolves from Player-scoped GameWorld governance assignments. Operations and Intelligence own their permission vocabulary rather than embedding it into GameWorld roles or a global catalogue.
 
-V2 replaces proliferating mutation-authority variants with shared transaction-time access primitives plus context-specific policy/locking, without weakening lock-before-authorize requirements.
+Transaction-time mutation authority continues to lock and reload the relevant Player/scope before authorization. User authentication never becomes a game-domain permission grant.
 
 ## ORM boundary rule
 
@@ -184,8 +184,8 @@ Historical acceptance/security evidence may remain in an archive/evidence locati
 - move User/account security to Accounts;
 - rebuild Player/Kingdom/game-Alliance identity in GameWorld;
 - remove cross-context ORM navigation from foundation models;
-- rebuild active Player context.
-- keep invitation onboarding out of Accounts; the Alliance onboarding workflow is rebuilt in P3.
+- rebuild active Player context;
+- keep invitation onboarding out of Accounts; the Alliance onboarding workflow is rebuilt in P3;
 - defer cross-context account deletion orchestration to Workflows in P8 rather than importing V1 dependencies.
 
 ### ARCH-V2-P3 — Alliance context
@@ -197,13 +197,17 @@ Historical acceptance/security evidence may remain in an archive/evidence locati
 
 ### ARCH-V2-P4 — Access rewrite
 
-**Implementation status:** in progress.
+**Implementation status:** complete. The global `PermissionKey` and `app/Domain/Authorization` have been deleted. Architecture V2 verification is green for PostgreSQL, Pint, Player-scoped authority contracts, Larastan and Accounts/GameWorld/Alliance runtime behavior.
 
-- replace global `PermissionKey` and specialized mutation-authority proliferation;
-- introduce context-owned permissions/policies plus scope-aware access engine;
-- preserve transaction/lock-time authority invariants.
+- context-owned permission enums now define Alliance, Kingdom, Operations and Intelligence access vocabulary;
+- Alliance and Kingdom authority remain Player-scoped and are never granted directly to User;
+- GameWorld owns Player/Kingdom governance state and locking without depending on Operations;
+- Operations owns `events.*` permissions and attaches them to Kingdom roles through an explicit cross-context bootstrap workflow;
+- no compatibility aliases or V1 Authorization bridge remain.
 
 ### ARCH-V2-P5 — Operations rewrite
+
+**Implementation status:** in progress.
 
 - rebuild EventCore and move participation, polls, rosters, battle plans, Rallies, KingPerks, results and metrics under Operations;
 - delete replaced Events/Rallies/KingPerks code rather than bridge it.
