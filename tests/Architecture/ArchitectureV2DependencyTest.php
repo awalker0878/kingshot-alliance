@@ -19,6 +19,25 @@ final class ArchitectureV2DependencyTest extends TestCase
         'Platform',
     ];
 
+    /** @var list<string> */
+    private const V1_DOMAIN_ROOTS = [
+        'Alliances',
+        'Audit',
+        'Authorization',
+        'Content',
+        'Contributions',
+        'Events',
+        'Identity',
+        'Integrations',
+        'KingPerks',
+        'Kingdoms',
+        'Memberships',
+        'Notifications',
+        'Platform',
+        'Rallies',
+        'Recruitment',
+    ];
+
     public function test_v2_application_roots_exist(): void
     {
         foreach (self::CONTEXTS as $context) {
@@ -28,6 +47,53 @@ final class ArchitectureV2DependencyTest extends TestCase
         self::assertDirectoryExists($this->root().'/app/Shared');
         self::assertDirectoryExists($this->root().'/app/Workflows');
         self::assertDirectoryExists($this->root().'/app/ReadModels');
+    }
+
+    public function test_no_new_v1_domain_roots_may_be_added_during_the_rewrite(): void
+    {
+        $domainRoot = $this->root().'/app/Domain';
+
+        if (! is_dir($domainRoot)) {
+            self::assertTrue(true);
+
+            return;
+        }
+
+        $actual = [];
+
+        foreach (new \DirectoryIterator($domainRoot) as $entry) {
+            if ($entry->isDir() && ! $entry->isDot()) {
+                $actual[] = $entry->getFilename();
+            }
+        }
+
+        foreach ($actual as $domain) {
+            self::assertContains(
+                $domain,
+                self::V1_DOMAIN_ROOTS,
+                $domain.' is a new V1 domain root. New behavior belongs under app/Contexts.',
+            );
+        }
+    }
+
+    public function test_v2_php_files_use_their_v2_namespace_root(): void
+    {
+        $roots = [
+            $this->root().'/app/Contexts' => 'App\\Contexts',
+            $this->root().'/app/Shared' => 'App\\Shared',
+            $this->root().'/app/Workflows' => 'App\\Workflows',
+            $this->root().'/app/ReadModels' => 'App\\ReadModels',
+        ];
+
+        foreach ($roots as $directory => $namespaceRoot) {
+            foreach ($this->phpFiles($directory) as $file) {
+                self::assertStringContainsString(
+                    'namespace '.$namespaceRoot,
+                    $this->source($file),
+                    $file.' must use its Architecture V2 namespace root.',
+                );
+            }
+        }
     }
 
     public function test_v2_code_never_imports_the_v1_domain_tree(): void
