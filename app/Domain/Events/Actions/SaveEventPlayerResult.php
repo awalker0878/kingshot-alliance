@@ -31,7 +31,8 @@ final readonly class SaveEventPlayerResult
         private EventMetricCapture $metrics,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {}
+    ) {
+    }
 
     /**
      * @param list<array{key:string,value:int|float|string,dimension_key?:string|null}> $metrics
@@ -78,7 +79,7 @@ final readonly class SaveEventPlayerResult
                 : Player::query()->whereKey($player->id)->firstOrFail();
             $frozenContext = $this->contexts->existing($lockedOccurrence, $currentPlayer);
 
-            if (! $frozenContext instanceof EventPlayerContext) {
+            if (!($frozenContext instanceof EventPlayerContext)) {
                 if ((string) $context->actor->id !== (string) $currentPlayer->id) {
                     $currentPlayer = Player::query()
                         ->whereKey($currentPlayer->id)
@@ -86,7 +87,7 @@ final readonly class SaveEventPlayerResult
                         ->firstOrFail();
                 }
 
-                if (! $this->participants->eligible($context->event, $currentPlayer)) {
+                if (!$this->participants->eligible($context->event, $currentPlayer)) {
                     throw ValidationException::withMessages([
                         'player' => 'This Player is not eligible for the Event target.',
                     ]);
@@ -104,7 +105,7 @@ final readonly class SaveEventPlayerResult
                     'occurrence_id' => $lockedOccurrence->id,
                     'player_id' => $currentPlayer->id,
                 ]);
-            $created = ! $record->exists;
+            $created = !$record->exists;
 
             $record->forceFill([
                 'outcome' => $outcome === null || trim($outcome) === '' ? null : trim($outcome),
