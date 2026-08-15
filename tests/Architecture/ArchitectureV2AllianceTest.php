@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace Tests\Architecture;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Models\Player;
 use App\Shared\Access\Contracts\Permission;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
+use ReflectionNamedType;
 
 final class ArchitectureV2AllianceTest extends TestCase
 {
@@ -29,6 +34,22 @@ final class ArchitectureV2AllianceTest extends TestCase
             static fn (AlliancePermission $permission): string => $permission->key(),
             AlliancePermission::cases(),
         ));
+    }
+
+    public function test_alliance_authority_is_scoped_to_player_membership_not_user(): void
+    {
+        $membership = new AllianceMembership();
+
+        self::assertContains('player_id', $membership->getFillable());
+        self::assertNotContains('user_id', $membership->getFillable());
+
+        foreach (['activeMembership', 'allows'] as $methodName) {
+            $method = new ReflectionMethod(AllianceAuthorization::class, $methodName);
+            $principalType = $method->getParameters()[0]->getType();
+
+            self::assertInstanceOf(ReflectionNamedType::class, $principalType);
+            self::assertSame(Player::class, $principalType->getName());
+        }
     }
 
     public function test_alliance_context_does_not_reference_the_global_v1_permission_catalogue(): void
