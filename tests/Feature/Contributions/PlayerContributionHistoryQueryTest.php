@@ -15,11 +15,13 @@ use App\Domain\Contributions\Queries\PlayerContributionHistoryQuery;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Actions\SaveEventPlayerResult;
 use App\Domain\Events\Enums\EventScope;
+use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventTypeRegistry;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Memberships\Actions\UpdateMembershipStatus;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -125,7 +127,7 @@ final class PlayerContributionHistoryQueryTest extends TestCase
         $owner = $this->player($kingdom, 'Old Alliance Owner', '8933-owner');
         $player = $this->player($kingdom, 'Moving Player', '8933-player');
         $oldAlliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Old Alliance', 'old-history-alliance');
-        AllianceMembership::query()->create([
+        $membership = AllianceMembership::query()->create([
             'alliance_id' => $oldAlliance->id,
             'player_id' => $player->id,
             'status' => MembershipStatus::Active,
@@ -148,10 +150,12 @@ final class PlayerContributionHistoryQueryTest extends TestCase
             50,
             ContributionRecordSource::Manual,
         );
-        AllianceMembership::query()
-            ->where('alliance_id', $oldAlliance->id)
-            ->where('player_id', $player->id)
-            ->update(['status' => MembershipStatus::Removed->value]);
+        $this->app->make(UpdateMembershipStatus::class)->handle(
+            $oldAlliance,
+            $owner,
+            (string) $membership->id,
+            MembershipStatus::Removed,
+        );
         $newAlliance = $this->app->make(CreateAlliance::class)->handle($player, 'New Alliance', 'new-history-alliance');
 
         $timeline = $this->app->make(PlayerContributionHistoryQuery::class)->forPlayer($player);
@@ -212,7 +216,7 @@ final class PlayerContributionHistoryQueryTest extends TestCase
         ]);
     }
 
-    private function playerEvent(Player $player, int $hoursFromNow): \App\Domain\Events\Models\Event
+    private function playerEvent(Player $player, int $hoursFromNow): Event
     {
         $type = EventType::query()->where('slug', 'custom')->sole();
         $configuration = $this->app->make(EventTypeRegistry::class)->scope($type, EventScope::Player);
