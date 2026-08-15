@@ -126,6 +126,7 @@ return new class extends Migration
         $driver = DB::connection()->getDriverName();
 
         if ($driver === 'pgsql') {
+            DB::statement('DROP FUNCTION IF EXISTS events_historical_target_immutable_guard()');
             DB::statement(<<<'SQL'
 CREATE FUNCTION events_historical_target_immutable_guard() RETURNS trigger AS $$
 BEGIN
