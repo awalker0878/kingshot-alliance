@@ -43,10 +43,10 @@ final class EventContributionHistoryArchitectureTest extends TestCase
     public function test_contributions_contract_does_not_make_event_facts_a_second_canonical_ledger(): void
     {
         $contributions = $this->read('docs/domains/contributions/README.md');
-        $composition = $this->read('docs/domains/contributions/event-reconciliation.md');
+        $composition = $this->read('docs/domains/contributions/event-history-composition.md');
 
         self::assertStringContainsString('does not create a second canonical Event ledger', $contributions);
-        self::assertStringContainsString('no Events-to-Contributions reconciliation/materialization workflow exists in the final model', $composition);
+        self::assertStringContainsString('No Events-to-Contributions reconciliation/materialization workflow exists', $composition);
         self::assertStringContainsString('Current membership is authority/eligibility context only', $composition);
     }
 
