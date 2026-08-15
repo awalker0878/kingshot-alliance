@@ -1,0 +1,85 @@
+name: Event History Final TypeScript Fix
+
+on:
+  push:
+    branches:
+      - feature/event-contribution-history-p0
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/event-contribution-history-p0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Fix Event form typing
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          manage = Path('resources/js/pages/Events/Manage.vue')
+          text = manage.read_text()
+          anchor = "type BattlePlanOccurrence = { occurrenceId: string; startsAt: string; endsAt: string; objectives: EventObjective[]; rosters: Array<{ id: string; name: string | null; nameKey: string | null; key: string; type: string }>; players: Array<{ id: string; name: string; claimed: boolean }> };\n"
+          types = """
+type FormSettingValue =
+  | string
+  | number
+  | boolean
+  | null
+  | FormSettingValue[]
+  | { [key: string]: FormSettingValue };
+type EventTemplateForm = {
+  scope: string;
+  target_id: string;
+  event_type_id: string;
+  name: string;
+  instructions: string;
+  duration_minutes: number;
+  capacity: number | null;
+  registration_opens_minutes_before: number | null;
+  registration_closes_minutes_before: number | null;
+  recurrence_frequency: 'none' | 'daily' | 'weekly';
+  recurrence_interval: number;
+  settings: { [key: string]: FormSettingValue };
+};
+"""
+          if 'type EventTemplateForm = {' not in text:
+              text = text.replace(anchor, anchor + types, 1)
+          text = text.replace('recurrenceUntilLocal: string | null; settings: Record<string, unknown>; capabilities:', "recurrenceUntilLocal: string | null; settings: { [key: string]: FormSettingValue }; capabilities:", 1)
+          text = text.replace('const templateForm = useForm({\n', 'const templateForm = useForm<EventTemplateForm>({\n', 1)
+          manage.write_text(text)
+
+          show = Path('resources/js/pages/Events/Show.vue')
+          text = show.read_text()
+          text = text.replace("import { reactive } from 'vue';", "import { computed, reactive } from 'vue';", 1)
+          text = text.replace(
+              'const registrationForm = useForm({});\n',
+              "const registrationForm = useForm({});\nconst registrationError = computed(\n  () => (registrationForm.errors as { registration?: string }).registration,\n);\n",
+              1,
+          )
+          text = text.replace('registrationForm.errors.registration', 'registrationError')
+          show.write_text(text)
+          PY
+          npx prettier --write resources/js/pages/Events/Manage.vue resources/js/pages/Events/Show.vue
+      - name: Commit and remove helper
+        shell: bash
+        run: |
+          git rm .github/workflows/event-history-final-ts-fix.yml
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add resources/js/pages/Events/Manage.vue resources/js/pages/Events/Show.vue .github/workflows/event-history-final-ts-fix.yml
+          git commit -m "Fix Event history frontend form typing"
+          git push origin HEAD:feature/event-contribution-history-p0
