@@ -1,0 +1,97 @@
+name: Event P3 Verification
+
+on:
+  push:
+    branches:
+      - feature/event-contribution-history-p0
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8.8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      APP_DEBUG: false
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: array
+      REDIS_HOST: 127.0.0.1
+      PULSE_ENABLED: false
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Fresh PostgreSQL schema
+        run: php artisan migrate --force
+      - name: P3 Pint
+        run: >-
+          vendor/bin/pint --test
+          app/Domain/Events/Actions/RecordEventAttendance.php
+          app/Domain/Events/Actions/RecordEventRosterParticipation.php
+          app/Domain/Events/Actions/RegisterForEvent.php
+          app/Domain/Events/Actions/RespondToEventRosterAssignment.php
+          app/Domain/Events/Actions/SaveEventAllianceResult.php
+          app/Domain/Events/Actions/SaveEventPlayerResult.php
+          app/Domain/Events/Actions/SaveEventResult.php
+          app/Domain/Events/Http/Controllers/EventResultController.php
+          app/Domain/Events/Http/Controllers/EventRosterController.php
+          app/Domain/Events/Services/EventMetricCapture.php
+          app/Domain/Events/Services/EventPlayerContextFreezer.php
+          app/Domain/Rallies/Actions/RecordRallyParticipation.php
+          app/Domain/Rallies/Actions/RespondRallyAssignment.php
+          bootstrap/app.php
+          routes/event-history.php
+          tests/Feature/Events/EventMetricCaptureTest.php
+      - name: P3 Larastan
+        run: >-
+          vendor/bin/phpstan analyse --no-progress
+          app/Domain/Events/Actions/RecordEventAttendance.php
+          app/Domain/Events/Actions/RecordEventRosterParticipation.php
+          app/Domain/Events/Actions/RegisterForEvent.php
+          app/Domain/Events/Actions/RespondToEventRosterAssignment.php
+          app/Domain/Events/Actions/SaveEventAllianceResult.php
+          app/Domain/Events/Actions/SaveEventPlayerResult.php
+          app/Domain/Events/Actions/SaveEventResult.php
+          app/Domain/Events/Http/Controllers/EventResultController.php
+          app/Domain/Events/Http/Controllers/EventRosterController.php
+          app/Domain/Events/Services/EventMetricCapture.php
+          app/Domain/Events/Services/EventPlayerContextFreezer.php
+          app/Domain/Rallies/Actions/RecordRallyParticipation.php
+          app/Domain/Rallies/Actions/RespondRallyAssignment.php
+      - name: P3 feature tests
+        run: php artisan test tests/Feature/Events/EventMetricCaptureTest.php
