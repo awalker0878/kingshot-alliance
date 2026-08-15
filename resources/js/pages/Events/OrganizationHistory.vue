@@ -60,6 +60,42 @@ type HistoryRow = {
   allianceResults: AllianceResult[];
 };
 
+type IntelligenceSeries = {
+  eventTypeScopeId: string;
+  eventTypeSlug: string;
+  eventScope: string;
+  metricKey: string;
+  dimensionKey: string | null;
+  labelKey: string;
+  unit: string | null;
+  aggregation: string;
+  higherIsBetter: boolean | null;
+  samples: number;
+  average: number;
+  minimum: number;
+  maximum: number;
+  best: number | null;
+  latest: { occurrenceId: string; startsAt: string; value: number };
+};
+
+type IntelligenceLeaderboard = {
+  eventTypeScopeId: string;
+  eventTypeSlug: string;
+  metricKey: string;
+  dimensionKey: string | null;
+  unit: string | null;
+  aggregation: string;
+  entries: Array<{
+    playerId: string;
+    playerName: string;
+    samples: number;
+    value: number;
+    average: number;
+    best: number;
+    latest: number;
+  }>;
+};
+
 const props = defineProps<{
   user: { name: string; email: string };
   organization: {
@@ -69,6 +105,7 @@ const props = defineProps<{
     secondaryLabel: string | null;
   };
   filters: { eventTypeSlug: string | null; from: string | null; until: string | null; limit: number };
+  intelligence: { series: IntelligenceSeries[]; leaderboards: IntelligenceLeaderboard[] };
   history: HistoryRow[];
 }>();
 
@@ -112,6 +149,11 @@ function humanize(value: string | null): string {
 
 function number(value: number | null): string {
   return value === null ? '—' : formatNumber(value);
+}
+
+function metricName(series: { eventTypeSlug: string; metricKey: string; dimensionKey: string | null }): string {
+  const dimension = series.dimensionKey ? ` · ${series.dimensionKey}` : '';
+  return `${series.eventTypeSlug} · ${series.metricKey}${dimension}`;
 }
 </script>
 
@@ -165,6 +207,45 @@ function number(value: number | null): string {
           <button type="button" class="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200" @click="clearFilters">Clear</button>
         </div>
       </form>
+
+      <section v-if="intelligence.series.length" class="space-y-3">
+        <div>
+          <h2 class="text-lg font-semibold text-white">Compatible metric trends</h2>
+          <p class="mt-1 text-xs text-slate-400">Metrics are compared only within the same Event Type/scope and dimension. There is no universal cross-Event score.</p>
+        </div>
+        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <article v-for="series in intelligence.series" :key="`${series.eventTypeScopeId}-${series.metricKey}-${series.dimensionKey ?? ''}`" class="rounded-xl border border-white/10 bg-slate-950/60 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-amber-300">{{ metricName(series) }}</p>
+            <div class="mt-3 grid grid-cols-3 gap-2 text-sm">
+              <div><span class="text-slate-500">Average</span><p class="font-semibold text-white">{{ formatNumber(series.average) }}<span v-if="series.unit"> {{ series.unit }}</span></p></div>
+              <div><span class="text-slate-500">Best</span><p class="font-semibold text-white">{{ number(series.best) }}<span v-if="series.best !== null && series.unit"> {{ series.unit }}</span></p></div>
+              <div><span class="text-slate-500">Samples</span><p class="font-semibold text-white">{{ formatNumber(series.samples) }}</p></div>
+            </div>
+            <p class="mt-3 text-xs text-slate-500">Latest {{ dateTime(series.latest.startsAt) }} · {{ formatNumber(series.latest.value) }}<span v-if="series.unit"> {{ series.unit }}</span></p>
+          </article>
+        </div>
+      </section>
+
+      <section v-if="intelligence.leaderboards.length" class="space-y-3">
+        <div>
+          <h2 class="text-lg font-semibold text-white">Event-specific leaderboards</h2>
+          <p class="mt-1 text-xs text-slate-400">Each board uses the metric's own aggregation and never mixes incompatible Event families.</p>
+        </div>
+        <div class="grid gap-3 xl:grid-cols-2">
+          <article v-for="board in intelligence.leaderboards" :key="`${board.eventTypeScopeId}-${board.metricKey}-${board.dimensionKey ?? ''}`" class="rounded-xl border border-white/10 bg-slate-950/60 p-4">
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="font-semibold text-white">{{ metricName(board) }}</h3>
+              <span class="text-xs uppercase tracking-wide text-slate-500">{{ board.aggregation }}</span>
+            </div>
+            <ol class="mt-3 space-y-2">
+              <li v-for="(entry, index) in board.entries.slice(0, 10)" :key="entry.playerId" class="flex items-center justify-between gap-3 rounded-lg bg-white/5 px-3 py-2 text-sm">
+                <span class="text-slate-200">{{ index + 1 }}. {{ entry.playerName }}</span>
+                <span class="font-semibold text-amber-200">{{ formatNumber(entry.value) }}<span v-if="board.unit"> {{ board.unit }}</span></span>
+              </li>
+            </ol>
+          </article>
+        </div>
+      </section>
 
       <div v-if="history.length === 0" class="rounded-2xl border border-dashed border-white/15 p-10 text-center text-sm text-slate-400">
         No historical Events match these filters.
