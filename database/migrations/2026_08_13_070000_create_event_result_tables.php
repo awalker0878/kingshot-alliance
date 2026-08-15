@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('unit', 32)->nullable();
             $table->string('value_type', 24);
             $table->string('aggregation', 24);
+            $table->string('dimension_kind', 32)->nullable();
             $table->boolean('is_primary')->default(false);
             $table->boolean('is_contribution_metric')->default(true);
             $table->boolean('higher_is_better')->nullable();
