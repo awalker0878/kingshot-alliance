@@ -81,17 +81,17 @@ final class EventTargetResolver
 
     public function forEvent(Event $event): Alliance|Kingdom|Player
     {
-        return $this->forRecord($event);
+        return $this->forRecord($event, $event->scopeEnum());
     }
 
     public function forTemplate(EventTemplate $template): Alliance|Kingdom|Player
     {
-        return $this->forRecord($template);
+        return $this->forRecord($template, $template->scopeEnum());
     }
 
-    private function forRecord(Event|EventTemplate $record): Alliance|Kingdom|Player
+    private function forRecord(Event|EventTemplate $record, EventScope $scope): Alliance|Kingdom|Player
     {
-        $target = match ($record->scope) {
+        $target = match ($scope) {
             EventScope::Alliance => $record->alliance()->first(),
             EventScope::Kingdom => $record->kingdom()->first(),
             EventScope::Player => $record->player()->first(),
