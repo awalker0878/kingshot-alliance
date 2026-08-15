@@ -54,7 +54,8 @@ final class EventPlayerHistoryQueryTest extends TestCase
         $player->forceFill(['current_name' => 'Current Renamed Player'])->save();
         $alliance->forceFill(['name' => 'Current Renamed Alliance'])->save();
 
-        $history = $this->app->make(EventPlayerHistoryQuery::class)->forPlayer($player->refresh());
+        $query = $this->app->make(EventPlayerHistoryQuery::class);
+        $history = $query->forPlayer($player->refresh());
 
         self::assertCount(3, $history);
         self::assertEqualsCanonicalizing(['player', 'alliance', 'kingdom'], array_column($history, 'scope'));
@@ -73,6 +74,10 @@ final class EventPlayerHistoryQueryTest extends TestCase
         $kingdomRow = collect($history)->firstWhere('scope', EventScope::Kingdom->value);
         self::assertIsArray($kingdomRow);
         self::assertSame('completed', $kingdomRow['participation']['outcome']);
+
+        $allianceOnly = $query->forPlayer($player->refresh(), ['scope' => EventScope::Alliance->value]);
+        self::assertCount(1, $allianceOnly);
+        self::assertSame(EventScope::Alliance->value, $allianceOnly[0]['scope']);
     }
 
     public function test_history_is_exact_player_only_even_when_sibling_players_share_a_user(): void
@@ -120,6 +125,7 @@ final class EventPlayerHistoryQueryTest extends TestCase
 
         $query = $this->app->make(EventPlayerHistoryQuery::class);
         $matching = $query->forPlayer($player, [
+            'scope' => EventScope::Alliance->value,
             'represented_alliance_id' => (string) $alliance->id,
             'kingdom_id_at_event' => (string) $kingdom->id,
             'event_type_slug' => 'custom',
@@ -132,8 +138,43 @@ final class EventPlayerHistoryQueryTest extends TestCase
             'represented_alliance_id' => '01AAAAAAAAAAAAAAAAAAAAAAAA',
         ]));
         self::assertSame([], $query->forPlayer($player, [
+            'scope' => EventScope::Kingdom->value,
+        ]));
+        self::assertSame([], $query->forPlayer($player, [
             'participation_outcome' => 'completed',
         ]));
+    }
+
+    public function test_participation_outcome_is_filtered_before_history_limit(): void
+    {
+        $kingdom = Kingdom::query()->create(['number' => 8894, 'status' => 'active']);
+        $player = $this->player($kingdom, 'Bounded History Player', '8894-player');
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, 'Bounded History Alliance', 'bounded-history-alliance');
+        $olderAbsent = $this->event($player, $alliance, 'custom', EventScope::Alliance, 1);
+        $newerCompleted = $this->event($player, $alliance, 'custom', EventScope::Alliance, 2);
+        $attendance = $this->app->make(RecordEventAttendance::class);
+
+        $attendance->handle(
+            $player,
+            $olderAbsent->occurrences->firstOrFail(),
+            $player,
+            EventAttendanceStatus::Absent,
+        );
+        $attendance->handle(
+            $player,
+            $newerCompleted->occurrences->firstOrFail(),
+            $player,
+            EventAttendanceStatus::Present,
+        );
+
+        $history = $this->app->make(EventPlayerHistoryQuery::class)->forPlayer($player, [
+            'participation_outcome' => 'absent',
+            'limit' => 1,
+        ]);
+
+        self::assertCount(1, $history);
+        self::assertSame((string) $olderAbsent->occurrences->firstOrFail()->id, $history[0]['occurrenceId']);
+        self::assertSame('absent', $history[0]['participation']['outcome']);
     }
 
     private function player(Kingdom $kingdom, string $name, string $gamePlayerId): Player
