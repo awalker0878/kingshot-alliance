@@ -6,8 +6,11 @@ namespace App\Domain\KingPerks\Services;
 
 use App\Domain\Events\Enums\EventPhaseType;
 use App\Domain\Events\Enums\EventScope;
+use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventOccurrence;
+use App\Domain\Events\Models\EventPhase;
 use Carbon\CarbonImmutable;
+use DateTimeInterface;
 use Illuminate\Validation\ValidationException;
 
 final class KingPerkWindowResolver
@@ -18,19 +21,23 @@ final class KingPerkWindowResolver
         $occurrence->loadMissing(['event.eventType', 'event.typeScope', 'phases']);
         $event = $occurrence->event;
 
-        if ($event->scope !== EventScope::Kingdom || $event->eventType?->slug !== 'kingdom-of-power') {
+        if (! $event instanceof Event
+            || $event->scope !== EventScope::Kingdom
+            || $event->eventType?->slug !== 'kingdom-of-power') {
             throw ValidationException::withMessages([
                 'event' => 'King Perks are only available for Kingdom-scoped Kingdom of Power Events.',
             ]);
         }
 
         $phase = $occurrence->phases->first(
-            static fn ($candidate): bool => $candidate->phase_type === EventPhaseType::Preparation
-                && $candidate->starts_at !== null
-                && $candidate->ends_at !== null,
+            static fn (EventPhase $candidate): bool => $candidate->phase_type === EventPhaseType::Preparation
+                && $candidate->starts_at instanceof DateTimeInterface
+                && $candidate->ends_at instanceof DateTimeInterface,
         );
 
-        if ($phase !== null) {
+        if ($phase instanceof EventPhase
+            && $phase->starts_at instanceof DateTimeInterface
+            && $phase->ends_at instanceof DateTimeInterface) {
             return [
                 'starts_at' => CarbonImmutable::instance($phase->starts_at)->utc(),
                 'ends_at' => CarbonImmutable::instance($phase->ends_at)->utc(),
