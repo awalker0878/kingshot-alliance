@@ -233,10 +233,7 @@ final class EventOrganizationHistoryQuery
         ];
     }
 
-    /**
-     * @param  EventResultMetric|EventPlayerResultMetric|EventAllianceResultMetric  $metric
-     * @return array<string,mixed>
-     */
+    /** @return array<string,mixed> */
     private function metricPayload(EventResultMetric|EventPlayerResultMetric|EventAllianceResultMetric $metric): array
     {
         $definition = $metric->definition;
