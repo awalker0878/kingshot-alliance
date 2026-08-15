@@ -11,6 +11,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property EventMetricSubject $subject
+ * @property EventMetricValueType $value_type
+ * @property EventMetricAggregation $aggregation
+ */
 final class EventMetricDefinition extends Model
 {
     use HasUlids;
