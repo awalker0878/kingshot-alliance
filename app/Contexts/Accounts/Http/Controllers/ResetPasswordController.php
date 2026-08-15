@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Http\Controllers;
 
-use App\Shared\Audit\Services\AuditRecorder;
 use App\Contexts\Accounts\Models\User;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Http\Controller;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;

@@ -46,6 +46,7 @@ final class Player extends Model implements AuditActor
     {
         return $this->belongsTo(Kingdom::class, 'current_kingdom_id');
     }
+
     public function auditUserId(): ?int
     {
         return null;
@@ -55,5 +56,4 @@ final class Player extends Model implements AuditActor
     {
         return (string) $this->id;
     }
-
 }

@@ -29,7 +29,7 @@ final class PlayerContextSecurityTest extends TestCase
         }
 
         self::assertSame(3, Player::query()->where('user_id', $user->id)->count());
-        self::assertSame(3, \App\Contexts\GameWorld\Models\Player::query()->where('user_id', $user->id)->count());
+        self::assertSame(3, Player::query()->where('user_id', $user->id)->count());
     }
 
     public function test_user_can_switch_between_only_players_owned_by_their_user_id(): void

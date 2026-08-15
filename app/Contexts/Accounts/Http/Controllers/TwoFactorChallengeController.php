@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Http\Controllers;
 
-use App\Shared\Audit\Services\AuditRecorder;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Accounts\Services\TwoFactorManager;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

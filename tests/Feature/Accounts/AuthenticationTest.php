@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Accounts;
 
-use App\Shared\Audit\Models\AuditEvent;
 use App\Contexts\Accounts\Models\User;
+use App\Shared\Audit\Models\AuditEvent;
 use App\Shared\Messaging\Models\OutboxMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;

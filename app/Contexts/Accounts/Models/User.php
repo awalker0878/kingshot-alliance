@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Models;
 
-use Database\Factories\UserFactory;
 use App\Shared\Audit\Contracts\AuditActor;
+use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -65,6 +65,7 @@ final class User extends Authenticatable implements AuditActor, MustVerifyEmailC
             'anonymized_at' => 'datetime',
         ];
     }
+
     public function auditUserId(): ?int
     {
         return (int) $this->id;
@@ -74,5 +75,4 @@ final class User extends Authenticatable implements AuditActor, MustVerifyEmailC
     {
         return null;
     }
-
 }

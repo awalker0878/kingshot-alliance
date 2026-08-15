@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Accounts;
 
-use App\Domain\Alliances\Actions\CreateAlliance;
-use App\Shared\Audit\Models\AuditEvent;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
+use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Memberships\Enums\AllianceRank;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
