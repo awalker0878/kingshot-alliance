@@ -8,7 +8,6 @@ on:
       - 'app/Shared/**'
       - 'app/Workflows/**'
       - 'app/ReadModels/**'
-      - 'app/Domain/Authorization/**'
       - 'bootstrap/app.php'
       - 'bootstrap/providers.php'
       - 'config/accounts.php'
@@ -18,6 +17,7 @@ on:
       - 'config/operations.php'
       - 'database/factories/UserFactory.php'
       - 'routes/account.php'
+      - 'routes/console.php'
       - 'routes/web.php'
       - 'tests/Architecture/**'
       - 'tests/Feature/Accounts/**'
@@ -28,7 +28,7 @@ on:
       - 'tests/Feature/Content/**'
       - 'tests/TenantIsolation/Alliances/**'
       - 'tests/Unit/Accounts/**'
-      - 'tests/Unit/Authorization/AllianceRankPermissionsTest.php'
+      - 'tests/Unit/Authorization/**'
       - 'docs/product/architecture-v2-*.md'
       - '.github/workflows/architecture-v2-verification.yml'
   workflow_dispatch:
@@ -42,7 +42,7 @@ concurrency:
 
 jobs:
   architecture-contract:
-    name: V2 architecture through P3 plus P4 access cut
+    name: V2 architecture through P4 access cut
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
@@ -78,15 +78,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
-      - name: Inventory remaining V1 Authorization references
+      - name: Verify V1 Authorization domain is absent
         shell: bash
         run: |
-          matches=$(grep -R -l -F --include='*.php' 'App\Domain\Authorization' app routes tests bootstrap config database 2>/dev/null || true)
+          test ! -d app/Domain/Authorization
+          matches=$(grep -R -n -F --include='*.php' 'App\Domain\Authorization' app routes bootstrap config database 2>/dev/null || true)
           if [ -n "$matches" ]; then
-            details=${matches//'%'/'%25'}
-            details=${details//$'\r'/'%0D'}
-            details=${details//$'\n'/'%0A'}
-            echo "::warning title=P4 remaining V1 Authorization references::$details"
+            echo "$matches"
+            exit 1
           fi
 
       - name: Configure PHP
@@ -118,7 +117,7 @@ jobs:
             tests/Feature/Content \
             tests/TenantIsolation/Alliances \
             tests/Unit/Accounts \
-            tests/Unit/Authorization/AllianceRankPermissionsTest.php \
+            tests/Unit/Authorization \
             app/Contexts \
             app/Shared \
             app/Workflows \
@@ -132,6 +131,7 @@ jobs:
             config/operations.php \
             database/factories/UserFactory.php \
             routes/account.php \
+            routes/console.php \
             routes/web.php 2>&1 | tee pint-tests.log
           status=${PIPESTATUS[0]}
           set -e
@@ -172,12 +172,15 @@ jobs:
           app/Contexts/Accounts
           app/Contexts/GameWorld
           app/Contexts/Alliance
+          app/Contexts/Operations/Access
+          app/Contexts/Intelligence/Access
           app/Shared
           app/Workflows
           app/ReadModels/AllianceDashboard
           bootstrap/app.php
           bootstrap/providers.php
           database/factories/UserFactory.php
+          routes/console.php
 
       - name: Run Accounts and GameWorld foundation tests
         run: >-
@@ -185,6 +188,7 @@ jobs:
           tests/Feature/Accounts
           tests/Feature/GameWorld
           tests/Unit/Accounts
+          tests/Unit/Authorization/KingdomRoleVocabularyTest.php
 
       - name: Run Alliance bounded-context tests
         run: >-
