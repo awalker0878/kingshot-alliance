@@ -1,0 +1,40 @@
+name: Event History One-Shot Unused Helper Cleanup
+
+on:
+  push:
+    branches:
+      - feature/event-contribution-history-p0
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          ref: feature/event-contribution-history-p0
+      - name: Remove exact unused helper
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('app/Domain/Events/Queries/EventPlayerOccurrenceEvidenceQuery.php')
+          text = path.read_text()
+          block = '''    private function orWhereAttendance(Builder $query, Player $player, string $occurrenceColumn, string $status): Builder\n    {\n        return $query->orWhereExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $status): void {\n            $subquery->selectRaw('1')\n                ->from('event_attendance as participation_attendance')\n                ->whereColumn('participation_attendance.occurrence_id', $occurrenceColumn)\n                ->where('participation_attendance.player_id', $player->id)\n                ->where('participation_attendance.status', $status);\n        });\n    }\n\n'''
+          if block not in text:
+              raise SystemExit('Expected unused helper not found; refusing broad edit.')
+          path.write_text(text.replace(block, '', 1))
+          PY
+      - name: Commit cleanup and remove helper workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/event-history-remove-unused-helper.yml
+          git add app/Domain/Events/Queries/EventPlayerOccurrenceEvidenceQuery.php
+          git commit -m 'Remove unused Event attendance query helper'
+          git pull --rebase origin feature/event-contribution-history-p0
+          git push origin HEAD:feature/event-contribution-history-p0
