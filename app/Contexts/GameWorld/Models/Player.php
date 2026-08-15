@@ -52,7 +52,7 @@ final class Player extends Model implements AuditActor
         return null;
     }
 
-    public function auditPlayerId(): ?string
+    public function auditPlayerId(): string
     {
         return (string) $this->id;
     }

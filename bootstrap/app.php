@@ -48,7 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $trustedProxies = array_values(array_filter(array_map(
             static fn (string $proxy): string => trim($proxy),
-            explode(',', (string) env('TRUSTED_PROXIES', '')),
+            explode(',', (string) config('operations.trusted_proxies', '')),
         )));
 
         if ($trustedProxies !== []) {

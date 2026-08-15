@@ -66,7 +66,7 @@ final class User extends Authenticatable implements AuditActor, MustVerifyEmailC
         ];
     }
 
-    public function auditUserId(): ?int
+    public function auditUserId(): int
     {
         return (int) $this->id;
     }
