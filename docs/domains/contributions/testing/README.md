@@ -81,13 +81,13 @@ Current PostgreSQL forward migration and backup/restore remain part of CI; domai
 
 ## 8. Performance, query and capacity evidence
 
-Performance evidence will cover bounded Player history, Alliance history, Kingdom history, and report/export queries at realistic Event/result volumes.
+Performance evidence covers bounded Player history, Alliance history, Kingdom history, and report/export queries at realistic Event/result volumes.
 
-History views must avoid N+1 lookups for historical/current affiliation and use bounded pagination. Compatible metric aggregation must use indexed Event Type/metric identity rather than loading arbitrary metric JSON into application memory.
+History views avoid N+1 reconstruction of historical affiliation by reading frozen occurrence-time context. Compatible metric aggregation uses indexed Event Type/metric identity rather than arbitrary metric JSON.
 
 ## 9. Accessibility and frontend evidence
 
-[Phase 5 accessibility review](../../../product/phase-5-accessibility.md) remains historical evidence for the earlier Vue surfaces. EVENT-CONTRIB-001 adds dedicated accessibility coverage for My Contributions/History and organization-history views when those phases are implemented.
+[Phase 5 accessibility review](../../../product/phase-5-accessibility.md) remains historical evidence for the earlier Vue surfaces. EVENT-CONTRIB-001 adds dedicated accessibility/frontend checks for My Contributions/History and organization-history views.
 
 `npm run check` protects frontend syntax/style/types/build but is not itself accessibility conformance.
 
@@ -95,7 +95,7 @@ History views must avoid N+1 lookups for historical/current affiliation and use 
 
 Historical Phase 5 evidence remains retained as historical evidence and is not rewritten to claim EVENT-CONTRIB-001 semantics.
 
-[Event history composition](../event-reconciliation.md), [Event contribution and historical intelligence](../../events/event-contribution-history.md), and current domain profiles are living contracts.
+[Event history composition](../event-history-composition.md), [Event contribution and historical intelligence](../../events/event-contribution-history.md), and current domain profiles are living contracts.
 
 ## 11. Evidence identity, retention and supersession
 
@@ -110,7 +110,7 @@ No public write API, anonymous export, manual mutation of Events-owned facts, me
 Related documentation:
 
 - [Contributions domain](../README.md)
-- [Event history composition](../event-reconciliation.md)
+- [Event history composition](../event-history-composition.md)
 - [Event contribution and historical intelligence](../../events/event-contribution-history.md)
 - [Contributions security](../security/README.md)
 - [Contributions operations](../operations/README.md)
