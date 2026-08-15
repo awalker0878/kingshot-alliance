@@ -151,7 +151,7 @@ final class EventTrendQueryTest extends TestCase
         Player|Alliance $target,
         string $slug,
         EventScope $scope,
-        int $hoursFromNow,
+        int $hoursAgo,
     ): Event {
         $type = EventType::query()->where('slug', $slug)->sole();
         $configuration = $this->app->make(EventTypeRegistry::class)->scope($type, $scope);
@@ -160,7 +160,7 @@ final class EventTrendQueryTest extends TestCase
             actor: $actor,
             configuration: $configuration,
             target: $target,
-            firstLocalStart: CarbonImmutable::now('UTC')->addHours($hoursFromNow),
+            firstLocalStart: CarbonImmutable::now('UTC')->subHours($hoursAgo),
             durationMinutes: 60,
         );
     }
