@@ -17,7 +17,7 @@ Runtime code in this module owns Event scope/capability vocabulary, the Event Ty
 - `EventCreationContextResolver` — Event targets where the actor may create.
 - `EventVisibilityResolver` / `ActivePlayerEventVisibilityResolver` — current active-Player eligible target sets.
 - Event Type catalogue — supported scopes, defaults, capabilities, localization keys, and presentation metadata.
-- KingShot Event metric catalogue — Event-Type/scope score semantics plus compatible Event/Alliance/Player component metric definitions.
+- KingShot Event metric catalogue — Event-Type/scope score semantics plus compatible Event/Alliance/Player component metric definitions; score values are not automatically comparable across different Event Type scopes.
 - Occurrence phases and polls — capability-driven timelines, options, active-Player voting, and vote read models.
 - Event rosters — occurrence-scoped hierarchy, durable Player assignments, availability warnings, and self confirmation.
 - Battle plans — occurrence-scoped objective hierarchy, priority/status, and exact Player-or-roster assignments.
