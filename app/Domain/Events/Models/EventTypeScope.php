@@ -38,6 +38,9 @@ final class EventTypeScope extends Model
         'default_registration_closes_minutes_before',
         'default_instructions_key',
         'default_settings',
+        'result_score_label_key',
+        'result_score_unit',
+        'result_score_higher_is_better',
         'is_active',
         'sort_order',
     ];
@@ -56,6 +59,7 @@ final class EventTypeScope extends Model
             'default_registration_opens_minutes_before' => 'integer',
             'default_registration_closes_minutes_before' => 'integer',
             'default_settings' => 'array',
+            'result_score_higher_is_better' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];
