@@ -1,4 +1,4 @@
-name: Event History Verification
+name: Event Contribution History Verification
 
 on:
   push:
@@ -58,11 +58,12 @@ jobs:
       - run: composer install --no-interaction --no-progress --prefer-dist
       - name: Fresh PostgreSQL schema
         run: php artisan migrate --force
-      - name: Format Event history files
+      - name: Format Event contribution history files
         run: >-
           vendor/bin/pint
           database/migrations/2026_08_08_141500_create_event_scheduling_tables.php
           database/migrations/2026_08_13_070000_create_event_result_tables.php
+          app/Domain/Contributions/Queries/PlayerContributionHistoryQuery.php
           app/Domain/Events/Actions/RecordEventAttendance.php
           app/Domain/Events/Actions/RecordEventRosterParticipation.php
           app/Domain/Events/Actions/RegisterForEvent.php
@@ -73,6 +74,7 @@ jobs:
           app/Domain/Events/Http/Controllers/EventResultController.php
           app/Domain/Events/Http/Controllers/EventRosterController.php
           app/Domain/Events/Models/EventAttendance.php
+          app/Domain/Events/Models/EventMetricDefinition.php
           app/Domain/Events/Queries/EventAllianceHistoryQuery.php
           app/Domain/Events/Queries/EventKingdomHistoryQuery.php
           app/Domain/Events/Queries/EventOrganizationHistoryQuery.php
@@ -84,6 +86,7 @@ jobs:
           app/Domain/Rallies/Actions/RespondRallyAssignment.php
           bootstrap/app.php
           routes/event-history.php
+          tests/Feature/Contributions/PlayerContributionHistoryQueryTest.php
           tests/Feature/Events/EventMetricCaptureTest.php
           tests/Feature/Events/EventOrganizationHistoryQueryTest.php
           tests/Feature/Events/EventPlayerHistoryQueryTest.php
@@ -92,6 +95,7 @@ jobs:
           git diff --exit-code --
           database/migrations/2026_08_08_141500_create_event_scheduling_tables.php
           database/migrations/2026_08_13_070000_create_event_result_tables.php
+          app/Domain/Contributions/Queries/PlayerContributionHistoryQuery.php
           app/Domain/Events/Actions/RecordEventAttendance.php
           app/Domain/Events/Actions/RecordEventRosterParticipation.php
           app/Domain/Events/Actions/RegisterForEvent.php
@@ -102,6 +106,7 @@ jobs:
           app/Domain/Events/Http/Controllers/EventResultController.php
           app/Domain/Events/Http/Controllers/EventRosterController.php
           app/Domain/Events/Models/EventAttendance.php
+          app/Domain/Events/Models/EventMetricDefinition.php
           app/Domain/Events/Queries/EventAllianceHistoryQuery.php
           app/Domain/Events/Queries/EventKingdomHistoryQuery.php
           app/Domain/Events/Queries/EventOrganizationHistoryQuery.php
@@ -113,13 +118,15 @@ jobs:
           app/Domain/Rallies/Actions/RespondRallyAssignment.php
           bootstrap/app.php
           routes/event-history.php
+          tests/Feature/Contributions/PlayerContributionHistoryQueryTest.php
           tests/Feature/Events/EventMetricCaptureTest.php
           tests/Feature/Events/EventOrganizationHistoryQueryTest.php
           tests/Feature/Events/EventPlayerHistoryQueryTest.php
-      - name: Event history Larastan
+      - name: Event contribution history Larastan
         if: always()
         run: >-
           vendor/bin/phpstan analyse --no-progress
+          app/Domain/Contributions/Queries/PlayerContributionHistoryQuery.php
           app/Domain/Events/Actions/RecordEventAttendance.php
           app/Domain/Events/Actions/RecordEventRosterParticipation.php
           app/Domain/Events/Actions/RegisterForEvent.php
@@ -130,6 +137,7 @@ jobs:
           app/Domain/Events/Http/Controllers/EventResultController.php
           app/Domain/Events/Http/Controllers/EventRosterController.php
           app/Domain/Events/Models/EventAttendance.php
+          app/Domain/Events/Models/EventMetricDefinition.php
           app/Domain/Events/Queries/EventAllianceHistoryQuery.php
           app/Domain/Events/Queries/EventKingdomHistoryQuery.php
           app/Domain/Events/Queries/EventOrganizationHistoryQuery.php
@@ -148,3 +156,6 @@ jobs:
       - name: EC-P5/P6 feature suite
         if: always()
         run: php artisan test tests/Feature/Events/EventOrganizationHistoryQueryTest.php
+      - name: EC-P7 feature suite
+        if: always()
+        run: php artisan test tests/Feature/Contributions/PlayerContributionHistoryQueryTest.php
