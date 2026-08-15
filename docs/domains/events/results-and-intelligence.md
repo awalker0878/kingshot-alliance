@@ -102,11 +102,13 @@ Comparable score summaries include result count, average score, best score, and 
 
 Reliability is deliberately narrow and evidence-based.
 
-- **completed** — attendance is present, or a roster/Rally assignment is recorded as participated;
-- **absent** — attendance, roster, or Rally outcome is recorded absent and is not excused;
-- **excused** — attendance is explicitly excused;
-- **commitments** — explicit registration or confirmed/participated/absent roster or Rally commitments;
-- **unresolved** — a commitment exists without a completed, absent, or excused outcome.
+- **completed** — attendance is present, a roster/Rally assignment is recorded as participated, or an `EventPlayerResult` explicitly records the normalized participation outcome `completed`;
+- **absent** — attendance, roster, Rally, or an explicit `EventPlayerResult` participation outcome is recorded absent and is not excused;
+- **excused** — attendance or an explicit `EventPlayerResult` participation outcome is recorded excused;
+- **commitments** — explicit registration, confirmed/participated/absent roster or Rally commitments, or an explicit normalized Player-result participation outcome;
+- **unresolved** — a commitment exists without a completed, absent, or excused outcome, including an explicit `EventPlayerResult` outcome of `unresolved`.
+
+A Player result row containing only score, rank, an Event-specific outcome such as win/loss, or metrics does **not** by itself count as participation evidence. Only the explicit normalized participation outcomes `completed`, `absent`, `excused`, and `unresolved` participate in reliability calculations. This allows Player-scoped Events that do not use attendance/roster/Rally workflows to record comparable participation evidence without making performance data equivalent to attendance.
 
 Reliability percentage is:
 
@@ -114,7 +116,7 @@ Reliability percentage is:
 completed / (completed + absent) × 100
 ```
 
-Excused and unresolved cases are excluded from that denominator. Mere eligibility, roster visibility, User ownership, or current Alliance membership does not count as an absence.
+Excused and unresolved cases are excluded from that denominator. Mere eligibility, roster visibility, User ownership, current Alliance membership, or the existence of a score/result row does not count as an absence or completion.
 
 ## 9. Events, integrations and background processing
 
