@@ -49,12 +49,18 @@ final class EventContributionHistorySchemaTest extends TestCase
             'target_display_name',
             'target_secondary_label',
         ]));
+        self::assertTrue(Schema::hasColumns('event_type_scopes', [
+            'result_score_label_key',
+            'result_score_unit',
+            'result_score_higher_is_better',
+        ]));
         self::assertTrue(Schema::hasColumns('event_metric_definitions', [
             'event_type_scope_id',
             'key',
             'subject',
             'value_type',
             'aggregation',
+            'dimension_kind',
             'is_contribution_metric',
         ]));
         self::assertTrue(Schema::hasColumns('event_player_contexts', [
