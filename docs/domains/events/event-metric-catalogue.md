@@ -29,10 +29,11 @@ Out of scope for EC-P2:
 - deriving metrics from participation/Rally/attendance state;
 - occurrence-time Player-context freezing;
 - custom manager-defined metric schemas;
+- user-facing metric history/result UI and its translated labels;
 - cross-Event normalization; and
 - any universal contribution score.
 
-Those capture/derivation concerns begin in EC-P3.
+Those capture/derivation concerns begin in EC-P3. User-facing metric localization is delivered with the UI that consumes the stable keys rather than adding unused translated strings to every locale during P2.
 
 ## 3. Model and state
 
@@ -189,7 +190,7 @@ events.metrics.rallies_joined
 events.metrics.phase_points
 ```
 
-Metric keys are domain identity; translated labels are presentation only.
+Metric keys are domain identity; translated labels are presentation only. The supported locale catalogues may use the existing English fallback until the result/history surfaces introduce the visible labels.
 
 ## 8. Events, integrations and background processing
 
