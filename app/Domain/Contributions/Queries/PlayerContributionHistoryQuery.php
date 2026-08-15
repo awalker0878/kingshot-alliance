@@ -11,6 +11,7 @@ use App\Domain\Events\Queries\EventPlayerHistorySummaryQuery;
 use App\Domain\Kingdoms\Models\Player;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
+use Illuminate\Support\Facades\DB;
 
 final readonly class PlayerContributionHistoryQuery
 {
@@ -76,6 +77,13 @@ final readonly class PlayerContributionHistoryQuery
                 ->when(
                     $allianceId !== '',
                     static fn ($query) => $query->where('alliance_id', $allianceId),
+                )
+                ->when(
+                    $kingdomId !== '',
+                    static fn ($query) => $query->whereIn(
+                        'alliance_id',
+                        DB::table('alliances')->where('kingdom_id', $kingdomId)->select('id'),
+                    ),
                 )
                 ->when(
                     $categorySlug !== '',
