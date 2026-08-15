@@ -141,6 +141,7 @@ final class CreateEvent
             );
 
             $targetColumns = $this->targets->columnsFor($currentTarget);
+            $targetSnapshot = $this->targets->historicalSnapshotFor($currentTarget);
             if ($currentTemplate !== null) {
                 $templateColumns = [
                     'alliance_id' => $currentTemplate->alliance_id === null ? null : (string) $currentTemplate->alliance_id,
@@ -163,6 +164,7 @@ final class CreateEvent
                 'event_type_id' => $currentConfiguration->event_type_id,
                 'scope' => $scope,
                 ...$targetColumns,
+                ...$targetSnapshot,
                 'template_id' => $currentTemplate?->id,
                 'title' => $title === null || trim($title) === '' ? null : trim($title),
                 'instructions' => $resolvedInstructions === null || trim($resolvedInstructions) === '' ? null : trim($resolvedInstructions),
