@@ -20,7 +20,7 @@ final class EventRoster extends Model
 
     protected $fillable = [
         'occurrence_id', 'parent_id', 'key', 'name_key', 'name', 'roster_type', 'assignment_group', 'capacity', 'sort_order', 'settings',
- 'created_by_player_id', 'updated_by_player_id',
+        'created_by_player_id', 'updated_by_player_id',
     ];
 
     protected function casts(): array
@@ -33,10 +33,39 @@ final class EventRoster extends Model
         ];
     }
 
-    public function occurrence(): BelongsTo { return $this->belongsTo(EventOccurrence::class, 'occurrence_id'); }
-    public function parent(): BelongsTo { return $this->belongsTo(self::class, 'parent_id'); }
-    public function children(): HasMany { return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order'); }
-    public function members(): HasMany { return $this->hasMany(EventRosterMember::class, 'roster_id')->orderBy('slot_number')->orderBy('assigned_at'); }
-    public function createdByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'created_by_player_id'); }
-    public function updatedByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'updated_by_player_id'); }
+    /** @return BelongsTo<EventOccurrence, $this> */
+    public function occurrence(): BelongsTo
+    {
+        return $this->belongsTo(EventOccurrence::class, 'occurrence_id');
+    }
+
+    /** @return BelongsTo<self, $this> */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    /** @return HasMany<self, $this> */
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order');
+    }
+
+    /** @return HasMany<EventRosterMember, $this> */
+    public function members(): HasMany
+    {
+        return $this->hasMany(EventRosterMember::class, 'roster_id')->orderBy('slot_number')->orderBy('assigned_at');
+    }
+
+    /** @return BelongsTo<Player, $this> */
+    public function createdByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'created_by_player_id');
+    }
+
+    /** @return BelongsTo<Player, $this> */
+    public function updatedByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'updated_by_player_id');
+    }
 }
