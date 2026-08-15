@@ -4,16 +4,22 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Domain\Events\Enums\EventMetricSource;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventAllianceResult;
+use App\Domain\Events\Models\EventAllianceResultMetric;
+use App\Domain\Events\Models\EventMetricDefinition;
 use App\Domain\Events\Models\EventPlayerContext;
 use App\Domain\Events\Models\EventPlayerResult;
+use App\Domain\Events\Models\EventPlayerResultMetric;
 use App\Domain\Events\Models\EventResult;
+use App\Domain\Events\Models\EventResultMetric;
+use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use LogicException;
 
 final class EventOrganizationHistoryQuery
 {
@@ -96,16 +102,48 @@ final class EventOrganizationHistoryQuery
                 ->with('metrics.definition')
                 ->get()
                 ->groupBy(static fn (EventAllianceResult $result): string => (string) $result->occurrence_id)
-            : collect();
+            : null;
 
-        return $rows->map(function (object $row) use ($scope, $targetId, $results, $contexts, $playerResults, $allianceResults): array {
+        $history = [];
+        foreach ($rows as $row) {
             $occurrenceId = (string) $row->occurrence_id;
-            $result = $results->get($occurrenceId);
-            $occurrenceContexts = $contexts->get($occurrenceId, collect());
-            $occurrencePlayerResults = $playerResults->get($occurrenceId, collect())
-                ->keyBy(static fn (EventPlayerResult $playerResult): string => (string) $playerResult->player_id);
+            $eventResult = $results->get($occurrenceId);
+            $resultByPlayerId = [];
+            foreach ($playerResults->get($occurrenceId, collect()) as $playerResult) {
+                if ($playerResult instanceof EventPlayerResult) {
+                    $resultByPlayerId[(string) $playerResult->player_id] = $playerResult;
+                }
+            }
 
-            return [
+            $participants = [];
+            foreach ($contexts->get($occurrenceId, collect()) as $context) {
+                if (! $context instanceof EventPlayerContext) {
+                    continue;
+                }
+
+                $playerResult = $resultByPlayerId[(string) $context->player_id] ?? null;
+                $participants[] = [
+                    'playerId' => (string) $context->player_id,
+                    'playerName' => (string) $context->player_name_snapshot,
+                    'kingdomIdAtEvent' => (string) $context->kingdom_id_at_event,
+                    'representedAllianceId' => $context->represented_alliance_id === null ? null : (string) $context->represented_alliance_id,
+                    'representedAllianceName' => $context->represented_alliance_name_snapshot,
+                    'representedAllianceTag' => $context->represented_alliance_tag_snapshot,
+                    'contextFrozenAt' => CarbonImmutable::parse((string) $context->context_frozen_at)->toIso8601String(),
+                    'result' => $playerResult instanceof EventPlayerResult ? $this->playerResultPayload($playerResult) : null,
+                ];
+            }
+
+            $organizationAllianceResults = [];
+            if ($scope === EventScope::Kingdom && $allianceResults !== null) {
+                foreach ($allianceResults->get($occurrenceId, collect()) as $allianceResult) {
+                    if ($allianceResult instanceof EventAllianceResult) {
+                        $organizationAllianceResults[] = $this->allianceResultPayload($allianceResult);
+                    }
+                }
+            }
+
+            $history[] = [
                 'occurrenceId' => $occurrenceId,
                 'eventId' => (string) $row->event_id,
                 'eventType' => [
@@ -125,78 +163,64 @@ final class EventOrganizationHistoryQuery
                     'unit' => $row->result_score_unit === null ? null : (string) $row->result_score_unit,
                     'higherIsBetter' => (bool) $row->result_score_higher_is_better,
                 ],
-                'result' => $result instanceof EventResult ? $this->eventResultPayload($result) : null,
-                'participants' => $occurrenceContexts
-                    ->map(function (EventPlayerContext $context) use ($occurrencePlayerResults): array {
-                        $playerResult = $occurrencePlayerResults->get((string) $context->player_id);
-
-                        return [
-                            'playerId' => (string) $context->player_id,
-                            'playerName' => (string) $context->player_name_snapshot,
-                            'kingdomIdAtEvent' => (string) $context->kingdom_id_at_event,
-                            'representedAllianceId' => $context->represented_alliance_id === null ? null : (string) $context->represented_alliance_id,
-                            'representedAllianceName' => $context->represented_alliance_name_snapshot,
-                            'representedAllianceTag' => $context->represented_alliance_tag_snapshot,
-                            'contextFrozenAt' => $context->context_frozen_at?->toIso8601String(),
-                            'result' => $playerResult instanceof EventPlayerResult
-                                ? $this->playerResultPayload($playerResult)
-                                : null,
-                        ];
-                    })
-                    ->values()
-                    ->all(),
-                'allianceResults' => $scope === EventScope::Kingdom
-                    ? $allianceResults->get($occurrenceId, collect())
-                        ->map(fn (EventAllianceResult $allianceResult): array => $this->allianceResultPayload($allianceResult))
-                        ->values()
-                        ->all()
-                    : [],
+                'result' => $eventResult instanceof EventResult ? $this->eventResultPayload($eventResult) : null,
+                'participants' => $participants,
+                'allianceResults' => $organizationAllianceResults,
             ];
-        })->values()->all();
+        }
+
+        return array_values($history);
     }
 
     /** @return array<string,mixed> */
     private function eventResultPayload(EventResult $result): array
     {
+        $metrics = [];
+        foreach ($result->metrics as $metric) {
+            if ($metric instanceof EventResultMetric) {
+                $metrics[] = $this->metricPayload($metric);
+            }
+        }
+
         return [
             'outcome' => $result->outcome,
             'score' => $result->score,
             'opponentScore' => $result->opponent_score,
             'rank' => $result->rank,
-            'recordedAt' => $result->recorded_at?->toIso8601String(),
-            'metrics' => $result->metrics->map(static fn ($metric): array => [
-                'key' => (string) $metric->definition->key,
-                'labelKey' => (string) $metric->definition->label_key,
-                'unit' => $metric->definition->unit,
-                'dimensionKey' => $metric->dimension_key === '' ? null : $metric->dimension_key,
-                'value' => $metric->value,
-                'source' => $metric->source->value,
-            ])->values()->all(),
+            'recordedAt' => CarbonImmutable::parse((string) $result->recorded_at)->toIso8601String(),
+            'metrics' => $metrics,
         ];
     }
 
     /** @return array<string,mixed> */
     private function playerResultPayload(EventPlayerResult $result): array
     {
+        $metrics = [];
+        foreach ($result->metrics as $metric) {
+            if ($metric instanceof EventPlayerResultMetric) {
+                $metrics[] = $this->metricPayload($metric);
+            }
+        }
+
         return [
             'outcome' => $result->outcome,
             'score' => $result->score,
             'rank' => $result->rank,
-            'recordedAt' => $result->recorded_at?->toIso8601String(),
-            'metrics' => $result->metrics->map(static fn ($metric): array => [
-                'key' => (string) $metric->definition->key,
-                'labelKey' => (string) $metric->definition->label_key,
-                'unit' => $metric->definition->unit,
-                'dimensionKey' => $metric->dimension_key === '' ? null : $metric->dimension_key,
-                'value' => $metric->value,
-                'source' => $metric->source->value,
-            ])->values()->all(),
+            'recordedAt' => CarbonImmutable::parse((string) $result->recorded_at)->toIso8601String(),
+            'metrics' => $metrics,
         ];
     }
 
     /** @return array<string,mixed> */
     private function allianceResultPayload(EventAllianceResult $result): array
     {
+        $metrics = [];
+        foreach ($result->metrics as $metric) {
+            if ($metric instanceof EventAllianceResultMetric) {
+                $metrics[] = $this->metricPayload($metric);
+            }
+        }
+
         return [
             'allianceId' => (string) $result->alliance_id,
             'allianceName' => (string) $result->alliance_name_snapshot,
@@ -204,15 +228,29 @@ final class EventOrganizationHistoryQuery
             'outcome' => $result->outcome,
             'score' => $result->score,
             'rank' => $result->rank,
-            'recordedAt' => $result->recorded_at?->toIso8601String(),
-            'metrics' => $result->metrics->map(static fn ($metric): array => [
-                'key' => (string) $metric->definition->key,
-                'labelKey' => (string) $metric->definition->label_key,
-                'unit' => $metric->definition->unit,
-                'dimensionKey' => $metric->dimension_key === '' ? null : $metric->dimension_key,
-                'value' => $metric->value,
-                'source' => $metric->source->value,
-            ])->values()->all(),
+            'recordedAt' => CarbonImmutable::parse((string) $result->recorded_at)->toIso8601String(),
+            'metrics' => $metrics,
+        ];
+    }
+
+    /**
+     * @param  EventResultMetric|EventPlayerResultMetric|EventAllianceResultMetric  $metric
+     * @return array<string,mixed>
+     */
+    private function metricPayload(EventResultMetric|EventPlayerResultMetric|EventAllianceResultMetric $metric): array
+    {
+        $definition = $metric->definition;
+        if (! $definition instanceof EventMetricDefinition) {
+            throw new LogicException('Event result metric must reference a metric definition.');
+        }
+
+        return [
+            'key' => (string) $definition->key,
+            'labelKey' => (string) $definition->label_key,
+            'unit' => $definition->unit,
+            'dimensionKey' => $metric->dimension_key === '' ? null : $metric->dimension_key,
+            'value' => $metric->value,
+            'source' => EventMetricSource::from((string) $metric->getRawOriginal('source'))->value,
         ];
     }
 }
