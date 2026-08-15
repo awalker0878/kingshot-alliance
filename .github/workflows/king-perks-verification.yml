@@ -16,6 +16,7 @@ on:
       - 'tests/Feature/KingPerks/**'
       - 'tests/Unit/KingPerks/**'
       - 'tsconfig.king-perks.json'
+      - 'vite.king-perks.config.ts'
       - '.github/workflows/king-perks-verification.yml'
   workflow_dispatch:
 
@@ -132,4 +133,4 @@ jobs:
         run: npx vue-tsc --noEmit -p tsconfig.king-perks.json
 
       - name: Targeted production build
-        run: npm run build
+        run: npx vite build --config vite.king-perks.config.ts
