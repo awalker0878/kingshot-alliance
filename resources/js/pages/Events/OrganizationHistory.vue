@@ -38,6 +38,18 @@ type AllianceResult = {
   metrics: Metric[];
 };
 
+type StatusEvidence = {
+  total: number;
+  byStatus: Record<string, number>;
+};
+
+type OperationalEvidence = {
+  attendance: StatusEvidence;
+  roster: StatusEvidence;
+  rallies: StatusEvidence;
+  objectives: StatusEvidence & { assignments: number };
+};
+
 type HistoryRow = {
   occurrenceId: string;
   eventType: { slug: string; nameKey: string };
@@ -56,6 +68,7 @@ type HistoryRow = {
     rank: number | null;
     metrics: Metric[];
   } | null;
+  evidence: OperationalEvidence;
   participants: Participant[];
   allianceResults: AllianceResult[];
 };
@@ -154,6 +167,14 @@ function number(value: number | null): string {
 function metricName(series: { eventTypeSlug: string; metricKey: string; dimensionKey: string | null }): string {
   const dimension = series.dimensionKey ? ` · ${series.dimensionKey}` : '';
   return `${series.eventTypeSlug} · ${series.metricKey}${dimension}`;
+}
+
+function evidenceDetail(evidence: StatusEvidence): string {
+  const details = Object.entries(evidence.byStatus)
+    .filter(([, count]) => count > 0)
+    .map(([status, count]) => `${humanize(status)} ${formatNumber(count)}`);
+
+  return details.length > 0 ? details.join(' · ') : 'No recorded evidence';
 }
 </script>
 
@@ -274,6 +295,30 @@ function metricName(series: { eventTypeSlug: string; metricKey: string; dimensio
             <span v-for="metric in event.result.metrics" :key="`${metric.key}-${metric.dimensionKey ?? ''}`" class="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-slate-200">
               {{ metric.key }}<template v-if="metric.dimensionKey"> · {{ metric.dimensionKey }}</template>: {{ metric.value }}<template v-if="metric.unit"> {{ metric.unit }}</template>
             </span>
+          </div>
+
+          <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Historical operational evidence">
+            <article class="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Attendance</p>
+              <p class="mt-1 text-xl font-semibold text-white">{{ formatNumber(event.evidence.attendance.total) }}</p>
+              <p class="mt-1 text-xs capitalize text-slate-400">{{ evidenceDetail(event.evidence.attendance) }}</p>
+            </article>
+            <article class="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Roster</p>
+              <p class="mt-1 text-xl font-semibold text-white">{{ formatNumber(event.evidence.roster.total) }}</p>
+              <p class="mt-1 text-xs capitalize text-slate-400">{{ evidenceDetail(event.evidence.roster) }}</p>
+            </article>
+            <article class="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Rally assignments</p>
+              <p class="mt-1 text-xl font-semibold text-white">{{ formatNumber(event.evidence.rallies.total) }}</p>
+              <p class="mt-1 text-xs capitalize text-slate-400">{{ evidenceDetail(event.evidence.rallies) }}</p>
+            </article>
+            <article class="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Objectives</p>
+              <p class="mt-1 text-xl font-semibold text-white">{{ formatNumber(event.evidence.objectives.total) }}</p>
+              <p class="mt-1 text-xs text-slate-400">{{ formatNumber(event.evidence.objectives.assignments) }} assignments</p>
+              <p class="mt-1 text-xs capitalize text-slate-500">{{ evidenceDetail(event.evidence.objectives) }}</p>
+            </article>
           </div>
 
           <div v-if="organization.scope === 'kingdom' && event.allianceResults.length" class="mt-6">
