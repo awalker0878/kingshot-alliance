@@ -58,7 +58,6 @@ final class EventTypeScope extends Model
             'minimum_repeat_interval_minutes' => 'integer',
             'default_registration_opens_minutes_before' => 'integer',
             'default_registration_closes_minutes_before' => 'integer',
-            'default_instructions_key' => 'string',
             'default_settings' => 'array',
             'result_score_higher_is_better' => 'boolean',
             'is_active' => 'boolean',
