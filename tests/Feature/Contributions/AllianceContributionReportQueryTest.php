@@ -1,0 +1,128 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Contributions;
+
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Contributions\Actions\CreateContributionCategory;
+use App\Domain\Contributions\Actions\RecordContribution;
+use App\Domain\Contributions\Enums\ContributionDataClass;
+use App\Domain\Contributions\Enums\ContributionPeriod;
+use App\Domain\Contributions\Enums\ContributionRecordSource;
+use App\Domain\Contributions\Queries\AllianceContributionReportQuery;
+use App\Domain\Contributions\Services\ContributionReportExporter;
+use App\Domain\Events\Actions\CreateEvent;
+use App\Domain\Events\Actions\SaveEventPlayerResult;
+use App\Domain\Events\Enums\EventScope;
+use App\Domain\Events\Models\EventType;
+use App\Domain\Events\Services\EventTypeRegistry;
+use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
+use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+final class AllianceContributionReportQueryTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_report_rows_compose_contribution_and_event_result_metric_facts(): void
+    {
+        [$player, $alliance] = $this->context();
+        $category = $this->app->make(CreateContributionCategory::class)->handle(
+            $player,
+            $alliance,
+            'Alliance Support',
+            'points',
+            ContributionPeriod::Weekly,
+            ContributionDataClass::RecordedFact,
+            allowSelfReport: true,
+        );
+        $this->app->make(RecordContribution::class)->handle(
+            $player,
+            $alliance,
+            $player,
+            $category,
+            25,
+            ContributionRecordSource::SelfReported,
+        );
+
+        $eventType = EventType::query()->where('slug', 'bear-hunt')->sole();
+        $configuration = $this->app->make(EventTypeRegistry::class)->scope($eventType, EventScope::Alliance);
+        $event = $this->app->make(CreateEvent::class)->handle(
+            actor: $player,
+            configuration: $configuration,
+            target: $alliance,
+            firstLocalStart: CarbonImmutable::now('UTC')->addHour(),
+            durationMinutes: 60,
+        );
+        $this->app->make(SaveEventPlayerResult::class)->handle(
+            $player,
+            $event->occurrences->firstOrFail(),
+            $player,
+            outcome: 'completed',
+            score: 900,
+            rank: 1,
+            metrics: [['key' => 'rallies_joined', 'value' => 3]],
+        );
+
+        $rows = $this->app->make(AllianceContributionReportQuery::class)->rows($alliance);
+        $kinds = array_column($rows, 'record_kind');
+
+        self::assertContains('contribution', $kinds);
+        self::assertContains('event_player_result', $kinds);
+        self::assertContains('event_player_metric', $kinds);
+
+        $metric = collect($rows)->firstWhere('record_kind', 'event_player_metric');
+        self::assertIsArray($metric);
+        self::assertSame('alliance', $metric['event_scope']);
+        self::assertSame('bear-hunt', $metric['event_type']);
+        self::assertSame((string) $alliance->id, $metric['historical_alliance_id']);
+        self::assertSame((string) $player->id, $metric['player_id']);
+        self::assertSame('rallies_joined', $metric['metric_key']);
+        self::assertSame('count', $metric['metric_unit']);
+        self::assertSame(3.0, $metric['metric_value']);
+        self::assertSame(900, $metric['event_score']);
+        self::assertSame(1, $metric['event_rank']);
+    }
+
+    public function test_export_schema_is_versioned_and_contains_event_history_columns(): void
+    {
+        [$player, $alliance] = $this->context();
+
+        $export = $this->app->make(ContributionReportExporter::class)->export($alliance, $player, 'csv');
+
+        self::assertSame(ContributionReportExporter::REPORT_VERSION, $export['run']->report_version);
+        self::assertStringContainsString('record_kind', $export['content']);
+        self::assertStringContainsString('event_scope', $export['content']);
+        self::assertStringContainsString('event_type', $export['content']);
+        self::assertStringContainsString('historical_alliance_id', $export['content']);
+        self::assertStringContainsString('historical_kingdom_id', $export['content']);
+        self::assertStringContainsString('metric_key', $export['content']);
+        self::assertStringContainsString('metric_value', $export['content']);
+    }
+
+    /** @return array{Player, \App\Domain\Alliances\Models\Alliance} */
+    private function context(): array
+    {
+        $kingdom = Kingdom::query()->create(['number' => random_int(8950, 8999), 'status' => 'active']);
+        $player = Player::query()->create([
+            'user_id' => User::factory()->create()->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'report-'.random_int(100000, 999999),
+            'current_name' => 'Report Player',
+        ]);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, 'Report Alliance', 'report-'.random_int(100000, 999999));
+        $this->app->make(SaveRosterEntry::class)->handle(
+            $alliance,
+            $player,
+            ['name' => 'Report Player', 'game_player_id' => $player->game_player_id],
+            expectedPlayerId: (string) $player->id,
+        );
+
+        return [$player, $alliance];
+    }
+}
