@@ -81,27 +81,29 @@ final class EventContributionHistoryArchitectureTest extends TestCase
         self::assertStringContainsString('event historical target is immutable', $migration);
     }
 
-    public function test_greenfield_result_schema_uses_normalized_metrics_and_historical_context(): void
+    public function test_greenfield_result_schema_uses_alliance_identity_normalized_metrics_and_historical_context(): void
     {
         $migration = $this->read('database/migrations/2026_08_13_070000_create_event_result_tables.php');
 
         foreach ([
             'event_metric_definitions',
             'event_player_contexts',
-            'event_kingdom_alliance_results',
+            'event_alliance_results',
             'event_result_metrics',
-            'event_kingdom_alliance_result_metrics',
+            'event_alliance_result_metrics',
             'event_player_result_metrics',
             'represented_alliance_id',
-            'represented_kingdom_alliance_id',
             'kingdom_id_at_event',
             'context_frozen_at',
+            "foreignUlid('alliance_id')->constrained('alliances')->restrictOnDelete()",
+            'event_alliance_results_validate_kingdom',
             "decimal('value', 30, 4)",
         ] as $contract) {
             self::assertStringContainsString($contract, $migration, $contract);
         }
 
-        self::assertStringContainsString("constrained('kingdom_alliances')->restrictOnDelete()", $migration);
+        self::assertStringNotContainsString('event_kingdom_alliance_results', $migration);
+        self::assertStringNotContainsString('represented_kingdom_alliance_id', $migration);
         self::assertStringNotContainsString("\$table->json('metrics')", $migration);
     }
 
