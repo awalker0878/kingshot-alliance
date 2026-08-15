@@ -18,6 +18,7 @@ final class EventOccurrence extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -44,30 +45,36 @@ final class EventOccurrence extends Model
         return $this->belongsTo(Event::class);
     }
 
+    /** @return HasMany<EventResponse, $this> */
     public function responses(): HasMany
     {
         return $this->hasMany(EventResponse::class, 'occurrence_id');
     }
 
+    /** @return HasMany<EventRegistration, $this> */
     public function registrations(): HasMany
     {
         return $this->hasMany(EventRegistration::class, 'occurrence_id');
     }
 
+    /** @return HasMany<EventAttendance, $this> */
     public function attendance(): HasMany
     {
         return $this->hasMany(EventAttendance::class, 'occurrence_id');
     }
 
+    /** @return HasMany<EventPhase, $this> */
     public function phases(): HasMany
     {
         return $this->hasMany(EventPhase::class, 'occurrence_id')->orderBy('sort_order');
     }
 
+    /** @return HasMany<EventPoll, $this> */
     public function polls(): HasMany
     {
         return $this->hasMany(EventPoll::class, 'occurrence_id')->orderBy('created_at');
     }
+
     /** @return HasMany<EventRoster, $this> */
     public function rosters(): HasMany
     {
@@ -86,10 +93,21 @@ final class EventOccurrence extends Model
         return $this->hasOne(EventResult::class, 'occurrence_id');
     }
 
+    /** @return HasMany<EventAllianceResult, $this> */
+    public function allianceResults(): HasMany
+    {
+        return $this->hasMany(EventAllianceResult::class, 'occurrence_id');
+    }
+
     /** @return HasMany<EventPlayerResult, $this> */
     public function playerResults(): HasMany
     {
         return $this->hasMany(EventPlayerResult::class, 'occurrence_id');
     }
 
+    /** @return HasMany<EventPlayerContext, $this> */
+    public function playerContexts(): HasMany
+    {
+        return $this->hasMany(EventPlayerContext::class, 'occurrence_id');
+    }
 }
