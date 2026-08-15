@@ -76,7 +76,7 @@ final readonly class SaveEventAllianceResult
                 ->where('alliance_id', $lockedAlliance->id)
                 ->lockForUpdate()
                 ->first();
-            $created = !($record instanceof EventAllianceResult);
+            $created = ! ($record instanceof EventAllianceResult);
 
             $record ??= new EventAllianceResult([
                 'occurrence_id' => $lockedOccurrence->id,
