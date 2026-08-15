@@ -1,0 +1,80 @@
+name: Architecture V2 P4 CLI Fix
+
+on:
+  push:
+    branches: [architecture-v2]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v2
+          fetch-depth: 0
+
+      - name: Tighten CLI argument types
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('routes/console.php')
+          text = path.read_text()
+          old = """Artisan::command('kingdoms:bootstrap-admin {kingdom} {player}', function (BootstrapKingdomAdministrator $bootstrap): int {
+    $kingdomArgument = trim((string) $this->argument('kingdom'));
+    if ($kingdomArgument === '' || ! ctype_digit($kingdomArgument)) {
+"""
+          new = """Artisan::command('kingdoms:bootstrap-admin {kingdom} {player}', function (BootstrapKingdomAdministrator $bootstrap): int {
+    $kingdomInput = $this->argument('kingdom');
+    if (! is_string($kingdomInput)) {
+        $this->error('Kingdom must be an existing positive numeric Kingdom number.');
+
+        return 1;
+    }
+
+    $kingdomArgument = trim($kingdomInput);
+    if ($kingdomArgument === '' || ! ctype_digit($kingdomArgument)) {
+"""
+          if old not in text:
+              raise SystemExit('Kingdom argument pattern not found')
+          text = text.replace(old, new, 1)
+          old = """    $player = Player::query()->find(trim((string) $this->argument('player')));
+    if (! $player instanceof Player) {
+"""
+          new = """    $playerInput = $this->argument('player');
+    if (! is_string($playerInput)) {
+        $this->error('No Player exists with that ID.');
+
+        return 1;
+    }
+
+    $player = Player::query()->find(trim($playerInput));
+    if (! $player instanceof Player) {
+"""
+          if old not in text:
+              raise SystemExit('Player argument pattern not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+          coverage: none
+
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: vendor/bin/pint routes/console.php
+      - run: vendor/bin/phpstan analyse --memory-limit=1G routes/console.php
+
+      - name: Commit CLI type fix
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add routes/console.php
+          git commit -m 'fix: type kingdom bootstrap CLI arguments'
+          git push origin HEAD:architecture-v2
