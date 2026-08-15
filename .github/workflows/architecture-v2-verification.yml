@@ -93,33 +93,46 @@ jobs:
         run: php artisan migrate --force
 
       - name: Check V2 through P3 PHP formatting
-        run: >-
-          vendor/bin/pint --test
-          tests/Architecture
-          tests/Feature/Accounts
-          tests/Feature/GameWorld
-          tests/Feature/Alliances
-          tests/Feature/Memberships
-          tests/Feature/Recruitment
-          tests/Feature/Content
-          tests/TenantIsolation/Alliances
-          tests/Unit/Accounts
-          tests/Unit/Authorization/AllianceRankPermissionsTest.php
-          app/Contexts
-          app/Shared
-          app/Workflows
-          app/ReadModels
-          app/Domain/Authorization
-          bootstrap/app.php
-          bootstrap/providers.php
-          config/accounts.php
-          config/alliance.php
-          config/auth.php
-          config/game_world.php
-          config/operations.php
-          database/factories/UserFactory.php
-          routes/account.php
-          routes/web.php
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          vendor/bin/pint --test \
+            tests/Architecture \
+            tests/Feature/Accounts \
+            tests/Feature/GameWorld \
+            tests/Feature/Alliances \
+            tests/Feature/Memberships \
+            tests/Feature/Recruitment \
+            tests/Feature/Content \
+            tests/TenantIsolation/Alliances \
+            tests/Unit/Accounts \
+            tests/Unit/Authorization/AllianceRankPermissionsTest.php \
+            app/Contexts \
+            app/Shared \
+            app/Workflows \
+            app/ReadModels \
+            app/Domain/Authorization \
+            bootstrap/app.php \
+            bootstrap/providers.php \
+            config/accounts.php \
+            config/alliance.php \
+            config/auth.php \
+            config/game_world.php \
+            config/operations.php \
+            database/factories/UserFactory.php \
+            routes/account.php \
+            routes/web.php 2>&1 | tee pint-tests.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 0 ]; then
+            details=$(tail -n 40 pint-tests.log)
+            details=${details//'%'/'%25'}
+            details=${details//$'\r'/'%0D'}
+            details=${details//$'\n'/'%0A'}
+            echo "::error title=Architecture V2 formatting failed::$details"
+            exit "$status"
+          fi
 
       - name: Run V2 architecture tests
         shell: bash
