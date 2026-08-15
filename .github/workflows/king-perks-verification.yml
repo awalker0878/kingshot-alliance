@@ -4,7 +4,10 @@ on:
   pull_request:
     paths:
       - 'app/Domain/KingPerks/**'
+      - 'app/Domain/Events/Models/Event.php'
+      - 'app/Domain/Events/Models/EventOccurrence.php'
       - 'app/Domain/Notifications/Actions/*KingPerk*'
+      - 'app/Domain/Notifications/Models/EventReminderDelivery.php'
       - 'app/Domain/Notifications/Models/KingPerkReminderDelivery.php'
       - 'app/Domain/Notifications/Queries/EventReminderInboxQuery.php'
       - 'app/Domain/Platform/Providers/AppServiceProvider.php'
@@ -81,8 +84,11 @@ jobs:
         run: >-
           vendor/bin/pint --test
           app/Domain/KingPerks
+          app/Domain/Events/Models/Event.php
+          app/Domain/Events/Models/EventOccurrence.php
           app/Domain/Notifications/Actions/MarkKingPerkReminderSent.php
           app/Domain/Notifications/Actions/QueueDueKingPerkReminders.php
+          app/Domain/Notifications/Models/EventReminderDelivery.php
           app/Domain/Notifications/Models/KingPerkReminderDelivery.php
           app/Domain/Notifications/Queries/EventReminderInboxQuery.php
           app/Domain/Platform/Providers/AppServiceProvider.php
@@ -96,8 +102,11 @@ jobs:
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1G
           app/Domain/KingPerks
+          app/Domain/Events/Models/Event.php
+          app/Domain/Events/Models/EventOccurrence.php
           app/Domain/Notifications/Actions/MarkKingPerkReminderSent.php
           app/Domain/Notifications/Actions/QueueDueKingPerkReminders.php
+          app/Domain/Notifications/Models/EventReminderDelivery.php
           app/Domain/Notifications/Models/KingPerkReminderDelivery.php
           app/Domain/Notifications/Queries/EventReminderInboxQuery.php
           app/Domain/Platform/Providers/AppServiceProvider.php
