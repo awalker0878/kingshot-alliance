@@ -145,12 +145,17 @@ final readonly class EventResultQuery
     private function metrics(EloquentCollection $metrics): array
     {
         return $metrics->map(static fn (EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric $metric): array => [
+            'subject' => $metric->definition?->subject->value,
             'key' => $metric->definition?->key,
             'labelKey' => $metric->definition?->label_key,
             'unit' => $metric->definition?->unit,
             'valueType' => $metric->definition?->value_type->value,
             'aggregation' => $metric->definition?->aggregation->value,
+            'dimensionKind' => $metric->definition?->dimension_kind,
             'dimensionKey' => $metric->dimension_key === '' ? null : $metric->dimension_key,
+            'isPrimary' => $metric->definition?->is_primary,
+            'isContributionMetric' => $metric->definition?->is_contribution_metric,
+            'higherIsBetter' => $metric->definition?->higher_is_better,
             'value' => $metric->value,
             'source' => $metric->source->value,
             'recordedAt' => $metric->recorded_at?->toIso8601String(),
