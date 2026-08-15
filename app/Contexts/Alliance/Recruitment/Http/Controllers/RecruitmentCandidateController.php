@@ -419,11 +419,18 @@ final class RecruitmentCandidateController extends Controller
         ConvertAcceptedRecruitmentCandidate $convert,
         string $candidate,
     ): RedirectResponse {
+        $validated = $request->validate([
+            'player_id' => ['required', 'string', 'ulid'],
+        ]);
         $alliance = $context->alliance();
+        $target = Player::query()
+            ->whereKey((string) $validated['player_id'])
+            ->firstOrFail();
         $converted = $convert->handle(
             $context->player(),
             $alliance,
             $this->candidate($alliance, $candidate),
+            $target,
         );
 
         if ($converted->token !== null) {
