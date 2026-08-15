@@ -130,8 +130,8 @@ final readonly class AllianceContributionReportQuery
             ]);
 
         return [
-            ...$summary->map(fn (object $row): array => $this->eventRow($alliance, $row, 'event_player_result'))->all(),
-            ...$metrics->map(fn (object $row): array => $this->eventRow($alliance, $row, 'event_player_metric'))->all(),
+            ...$summary->map(fn (object $row): array => $this->eventRow($alliance, (array) $row, 'event_player_result'))->all(),
+            ...$metrics->map(fn (object $row): array => $this->eventRow($alliance, (array) $row, 'event_player_metric'))->all(),
         ];
     }
 
@@ -189,8 +189,8 @@ final readonly class AllianceContributionReportQuery
             ]);
 
         return [
-            ...$summary->map(fn (object $row): array => $this->eventRow($alliance, $row, 'event_alliance_result'))->all(),
-            ...$metrics->map(fn (object $row): array => $this->eventRow($alliance, $row, 'event_alliance_metric'))->all(),
+            ...$summary->map(fn (object $row): array => $this->eventRow($alliance, (array) $row, 'event_alliance_result'))->all(),
+            ...$metrics->map(fn (object $row): array => $this->eventRow($alliance, (array) $row, 'event_alliance_metric'))->all(),
         ];
     }
 
@@ -248,39 +248,42 @@ final readonly class AllianceContributionReportQuery
             ]);
 
         return [
-            ...$summary->map(fn (object $row): array => $this->eventRow($alliance, $row, 'event_result'))->all(),
-            ...$metrics->map(fn (object $row): array => $this->eventRow($alliance, $row, 'event_metric'))->all(),
+            ...$summary->map(fn (object $row): array => $this->eventRow($alliance, (array) $row, 'event_result'))->all(),
+            ...$metrics->map(fn (object $row): array => $this->eventRow($alliance, (array) $row, 'event_metric'))->all(),
         ];
     }
 
-    /** @return array<string,scalar|null> */
-    private function eventRow(Alliance $alliance, object $row, string $kind): array
+    /**
+     * @param  array<string,mixed>  $row
+     * @return array<string,scalar|null>
+     */
+    private function eventRow(Alliance $alliance, array $row, string $kind): array
     {
         return $this->mergeRow($alliance, [
             'record_kind' => $kind,
-            'record_id' => (string) $row->record_id,
-            'player_id' => isset($row->player_id) ? (string) $row->player_id : null,
-            'player' => isset($row->player) ? (string) $row->player : null,
-            'event_id' => (string) $row->event_id,
-            'occurrence_id' => (string) $row->occurrence_id,
-            'event_scope' => (string) $row->event_scope,
-            'event_type' => (string) $row->event_type,
-            'event_started_at' => (string) $row->event_started_at,
-            'historical_alliance_id' => isset($row->historical_alliance_id) ? (string) $row->historical_alliance_id : (string) $alliance->id,
-            'historical_alliance_name' => isset($row->historical_alliance_name) ? (string) $row->historical_alliance_name : (string) $alliance->name,
-            'historical_kingdom_id' => isset($row->historical_kingdom_id) && $row->historical_kingdom_id !== null
-                ? (string) $row->historical_kingdom_id
+            'record_id' => (string) $row['record_id'],
+            'player_id' => isset($row['player_id']) ? (string) $row['player_id'] : null,
+            'player' => isset($row['player']) ? (string) $row['player'] : null,
+            'event_id' => (string) $row['event_id'],
+            'occurrence_id' => (string) $row['occurrence_id'],
+            'event_scope' => (string) $row['event_scope'],
+            'event_type' => (string) $row['event_type'],
+            'event_started_at' => (string) $row['event_started_at'],
+            'historical_alliance_id' => isset($row['historical_alliance_id']) ? (string) $row['historical_alliance_id'] : (string) $alliance->id,
+            'historical_alliance_name' => isset($row['historical_alliance_name']) ? (string) $row['historical_alliance_name'] : (string) $alliance->name,
+            'historical_kingdom_id' => isset($row['historical_kingdom_id'])
+                ? (string) $row['historical_kingdom_id']
                 : (string) $alliance->kingdom_id,
-            'event_outcome' => isset($row->outcome) && $row->outcome !== null ? (string) $row->outcome : null,
-            'event_rank' => isset($row->rank) && $row->rank !== null ? (int) $row->rank : null,
-            'event_score' => isset($row->score) && $row->score !== null ? (int) $row->score : null,
-            'metric_key' => isset($row->metric_key) ? (string) $row->metric_key : null,
-            'metric_label' => isset($row->metric_label) ? (string) $row->metric_label : null,
-            'metric_dimension' => isset($row->dimension_key) && (string) $row->dimension_key !== '' ? (string) $row->dimension_key : null,
-            'metric_unit' => isset($row->metric_unit) && $row->metric_unit !== null ? (string) $row->metric_unit : null,
-            'metric_value' => isset($row->metric_value) ? (float) $row->metric_value : null,
-            'source' => isset($row->source) ? (string) $row->source : 'event_result',
-            'recorded_at' => (string) $row->recorded_at,
+            'event_outcome' => isset($row['outcome']) ? (string) $row['outcome'] : null,
+            'event_rank' => isset($row['rank']) ? (int) $row['rank'] : null,
+            'event_score' => isset($row['score']) ? (int) $row['score'] : null,
+            'metric_key' => isset($row['metric_key']) ? (string) $row['metric_key'] : null,
+            'metric_label' => isset($row['metric_label']) ? (string) $row['metric_label'] : null,
+            'metric_dimension' => isset($row['dimension_key']) && (string) $row['dimension_key'] !== '' ? (string) $row['dimension_key'] : null,
+            'metric_unit' => isset($row['metric_unit']) ? (string) $row['metric_unit'] : null,
+            'metric_value' => isset($row['metric_value']) ? (float) $row['metric_value'] : null,
+            'source' => isset($row['source']) ? (string) $row['source'] : 'event_result',
+            'recorded_at' => (string) $row['recorded_at'],
         ]);
     }
 
