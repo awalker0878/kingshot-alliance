@@ -13,10 +13,30 @@ use App\Domain\Events\Models\EventRosterMember;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Rallies\Enums\RallyAssignmentStatus;
 use App\Domain\Rallies\Models\RallyAssignment;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 
 final class EventPlayerOccurrenceEvidenceQuery
 {
+    /**
+     * Apply the same participation-outcome semantics used by forPlayer() directly
+     * to a history query so pagination/limits happen after evidence filtering.
+     */
+    public function applyOutcomeFilter(
+        Builder $query,
+        Player $player,
+        string $outcome,
+        string $occurrenceColumn = 'context.occurrence_id',
+    ): void {
+        match ($outcome) {
+            'completed' => $this->whereCompleted($query, $player, $occurrenceColumn),
+            'excused' => $this->whereExcused($query, $player, $occurrenceColumn),
+            'absent' => $this->whereAbsent($query, $player, $occurrenceColumn),
+            'unresolved' => $this->whereUnresolved($query, $player, $occurrenceColumn),
+            default => null,
+        };
+    }
+
     /**
      * @param  Collection<int,string>  $occurrenceIds
      * @return array<string,array{committed:bool,completed:bool,absent:bool,excused:bool,unresolved:bool,outcome:string|null}>
@@ -93,5 +113,168 @@ final class EventPlayerOccurrenceEvidenceQuery
         }
 
         return $result;
+    }
+
+    private function whereCompleted(Builder $query, Player $player, string $occurrenceColumn): void
+    {
+        $query->where(function (Builder $evidence) use ($player, $occurrenceColumn): void {
+            $this->orWhereAttendance($evidence, $player, $occurrenceColumn, EventAttendanceStatus::Present->value)
+                ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
+                    $this->whereRoster($nested, $player, $occurrenceColumn, [EventRosterMemberStatus::Participated->value]);
+                })
+                ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
+                    $this->whereRally($nested, $player, $occurrenceColumn, [RallyAssignmentStatus::Participated->value]);
+                });
+        });
+    }
+
+    private function whereExcused(Builder $query, Player $player, string $occurrenceColumn): void
+    {
+        $this->whereNotCompleted($query, $player, $occurrenceColumn);
+        $this->whereAttendance($query, $player, $occurrenceColumn, EventAttendanceStatus::Excused->value);
+    }
+
+    private function whereAbsent(Builder $query, Player $player, string $occurrenceColumn): void
+    {
+        $this->whereNotCompleted($query, $player, $occurrenceColumn);
+        $this->whereNotAttendance($query, $player, $occurrenceColumn, EventAttendanceStatus::Excused->value);
+        $query->where(function (Builder $evidence) use ($player, $occurrenceColumn): void {
+            $this->orWhereAttendance($evidence, $player, $occurrenceColumn, EventAttendanceStatus::Absent->value)
+                ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
+                    $this->whereRoster($nested, $player, $occurrenceColumn, [EventRosterMemberStatus::Absent->value]);
+                })
+                ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
+                    $this->whereRally($nested, $player, $occurrenceColumn, [RallyAssignmentStatus::Absent->value]);
+                });
+        });
+    }
+
+    private function whereUnresolved(Builder $query, Player $player, string $occurrenceColumn): void
+    {
+        $query->where(function (Builder $evidence) use ($player, $occurrenceColumn): void {
+            $this->orWhereRegistration($evidence, $player, $occurrenceColumn)
+                ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
+                    $this->whereRoster($nested, $player, $occurrenceColumn, [
+                        EventRosterMemberStatus::Confirmed->value,
+                        EventRosterMemberStatus::Participated->value,
+                        EventRosterMemberStatus::Absent->value,
+                    ]);
+                })
+                ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
+                    $this->whereRally($nested, $player, $occurrenceColumn, [
+                        RallyAssignmentStatus::Confirmed->value,
+                        RallyAssignmentStatus::Participated->value,
+                        RallyAssignmentStatus::Absent->value,
+                    ]);
+                });
+        });
+        $this->whereNotCompleted($query, $player, $occurrenceColumn);
+        $this->whereNotAttendance($query, $player, $occurrenceColumn, EventAttendanceStatus::Excused->value);
+        $this->whereNotAttendance($query, $player, $occurrenceColumn, EventAttendanceStatus::Absent->value);
+        $this->whereNotRoster($query, $player, $occurrenceColumn, [EventRosterMemberStatus::Absent->value]);
+        $this->whereNotRally($query, $player, $occurrenceColumn, [RallyAssignmentStatus::Absent->value]);
+    }
+
+    private function whereNotCompleted(Builder $query, Player $player, string $occurrenceColumn): void
+    {
+        $this->whereNotAttendance($query, $player, $occurrenceColumn, EventAttendanceStatus::Present->value);
+        $this->whereNotRoster($query, $player, $occurrenceColumn, [EventRosterMemberStatus::Participated->value]);
+        $this->whereNotRally($query, $player, $occurrenceColumn, [RallyAssignmentStatus::Participated->value]);
+    }
+
+    private function whereAttendance(Builder $query, Player $player, string $occurrenceColumn, string $status): Builder
+    {
+        return $query->whereExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $status): void {
+            $subquery->selectRaw('1')
+                ->from('event_attendance as participation_attendance')
+                ->whereColumn('participation_attendance.occurrence_id', $occurrenceColumn)
+                ->where('participation_attendance.player_id', $player->id)
+                ->where('participation_attendance.status', $status);
+        });
+    }
+
+    private function orWhereAttendance(Builder $query, Player $player, string $occurrenceColumn, string $status): Builder
+    {
+        return $query->orWhereExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $status): void {
+            $subquery->selectRaw('1')
+                ->from('event_attendance as participation_attendance')
+                ->whereColumn('participation_attendance.occurrence_id', $occurrenceColumn)
+                ->where('participation_attendance.player_id', $player->id)
+                ->where('participation_attendance.status', $status);
+        });
+    }
+
+    private function whereNotAttendance(Builder $query, Player $player, string $occurrenceColumn, string $status): Builder
+    {
+        return $query->whereNotExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $status): void {
+            $subquery->selectRaw('1')
+                ->from('event_attendance as participation_attendance')
+                ->whereColumn('participation_attendance.occurrence_id', $occurrenceColumn)
+                ->where('participation_attendance.player_id', $player->id)
+                ->where('participation_attendance.status', $status);
+        });
+    }
+
+    private function orWhereRegistration(Builder $query, Player $player, string $occurrenceColumn): Builder
+    {
+        return $query->orWhereExists(static function (Builder $subquery) use ($player, $occurrenceColumn): void {
+            $subquery->selectRaw('1')
+                ->from('event_registrations as participation_registration')
+                ->whereColumn('participation_registration.occurrence_id', $occurrenceColumn)
+                ->where('participation_registration.player_id', $player->id)
+                ->where('participation_registration.status', EventRegistrationStatus::Registered->value);
+        });
+    }
+
+    /** @param list<string> $statuses */
+    private function whereRoster(Builder $query, Player $player, string $occurrenceColumn, array $statuses): Builder
+    {
+        return $query->whereExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $statuses): void {
+            $subquery->selectRaw('1')
+                ->from('event_roster_members as participation_roster_member')
+                ->join('event_rosters as participation_roster', 'participation_roster.id', '=', 'participation_roster_member.roster_id')
+                ->whereColumn('participation_roster.occurrence_id', $occurrenceColumn)
+                ->where('participation_roster_member.player_id', $player->id)
+                ->whereIn('participation_roster_member.status', $statuses);
+        });
+    }
+
+    /** @param list<string> $statuses */
+    private function whereNotRoster(Builder $query, Player $player, string $occurrenceColumn, array $statuses): Builder
+    {
+        return $query->whereNotExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $statuses): void {
+            $subquery->selectRaw('1')
+                ->from('event_roster_members as participation_roster_member')
+                ->join('event_rosters as participation_roster', 'participation_roster.id', '=', 'participation_roster_member.roster_id')
+                ->whereColumn('participation_roster.occurrence_id', $occurrenceColumn)
+                ->where('participation_roster_member.player_id', $player->id)
+                ->whereIn('participation_roster_member.status', $statuses);
+        });
+    }
+
+    /** @param list<string> $statuses */
+    private function whereRally(Builder $query, Player $player, string $occurrenceColumn, array $statuses): Builder
+    {
+        return $query->whereExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $statuses): void {
+            $subquery->selectRaw('1')
+                ->from('rally_assignments as participation_rally_assignment')
+                ->join('rally_groups as participation_rally_group', 'participation_rally_group.id', '=', 'participation_rally_assignment.rally_group_id')
+                ->whereColumn('participation_rally_group.occurrence_id', $occurrenceColumn)
+                ->where('participation_rally_assignment.player_id', $player->id)
+                ->whereIn('participation_rally_assignment.status', $statuses);
+        });
+    }
+
+    /** @param list<string> $statuses */
+    private function whereNotRally(Builder $query, Player $player, string $occurrenceColumn, array $statuses): Builder
+    {
+        return $query->whereNotExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $statuses): void {
+            $subquery->selectRaw('1')
+                ->from('rally_assignments as participation_rally_assignment')
+                ->join('rally_groups as participation_rally_group', 'participation_rally_group.id', '=', 'participation_rally_assignment.rally_group_id')
+                ->whereColumn('participation_rally_group.occurrence_id', $occurrenceColumn)
+                ->where('participation_rally_assignment.player_id', $player->id)
+                ->whereIn('participation_rally_assignment.status', $statuses);
+        });
     }
 }
