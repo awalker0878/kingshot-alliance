@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Contributions\Queries;
 
 use App\Domain\Alliances\Models\Alliance;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 
 final readonly class AllianceContributionReportQuery
@@ -18,7 +18,7 @@ final readonly class AllianceContributionReportQuery
         $rows = [];
 
         foreach ($this->contributions->reportRows($alliance) as $record) {
-            $rows[] = $this->baseRow($alliance) + [
+            $rows[] = $this->mergeRow($alliance, [
                 'record_kind' => 'contribution',
                 'record_id' => (string) $record['record_id'],
                 'player_id' => (string) $record['player_id'],
@@ -42,7 +42,7 @@ final readonly class AllianceContributionReportQuery
                 'reversed_at' => $record['reversed_at'],
                 'reversal_reason' => $record['reversal_reason'],
                 'correction_reason' => $record['correction_reason'],
-            ];
+            ]);
         }
 
         array_push(
@@ -68,7 +68,7 @@ final readonly class AllianceContributionReportQuery
     private function eventPlayerRows(Alliance $alliance): array
     {
         $summary = DB::table('event_player_results as result')
-            ->join('event_player_contexts as context', function ($join): void {
+            ->join('event_player_contexts as context', function (JoinClause $join): void {
                 $join->on('context.occurrence_id', '=', 'result.occurrence_id')
                     ->on('context.player_id', '=', 'result.player_id');
             })
@@ -97,7 +97,7 @@ final readonly class AllianceContributionReportQuery
         $metrics = DB::table('event_player_result_metrics as metric')
             ->join('event_player_results as result', 'result.id', '=', 'metric.event_player_result_id')
             ->join('event_metric_definitions as definition', 'definition.id', '=', 'metric.metric_definition_id')
-            ->join('event_player_contexts as context', function ($join): void {
+            ->join('event_player_contexts as context', function (JoinClause $join): void {
                 $join->on('context.occurrence_id', '=', 'result.occurrence_id')
                     ->on('context.player_id', '=', 'result.player_id');
             })
@@ -256,7 +256,7 @@ final readonly class AllianceContributionReportQuery
     /** @return array<string,scalar|null> */
     private function eventRow(Alliance $alliance, object $row, string $kind): array
     {
-        return $this->baseRow($alliance) + [
+        return $this->mergeRow($alliance, [
             'record_kind' => $kind,
             'record_id' => (string) $row->record_id,
             'player_id' => isset($row->player_id) ? (string) $row->player_id : null,
@@ -281,7 +281,16 @@ final readonly class AllianceContributionReportQuery
             'metric_value' => isset($row->metric_value) ? (float) $row->metric_value : null,
             'source' => isset($row->source) ? (string) $row->source : 'event_result',
             'recorded_at' => (string) $row->recorded_at,
-        ];
+        ]);
+    }
+
+    /**
+     * @param  array<string,scalar|null>  $values
+     * @return array<string,scalar|null>
+     */
+    private function mergeRow(Alliance $alliance, array $values): array
+    {
+        return array_replace($this->baseRow($alliance), $values);
     }
 
     /** @return array<string,scalar|null> */
