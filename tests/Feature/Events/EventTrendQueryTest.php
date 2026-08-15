@@ -7,10 +7,8 @@ namespace Tests\Feature\Events;
 use App\Domain\Alliances\Actions\CreateAlliance;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Events\Actions\CreateEvent;
-use App\Domain\Events\Actions\RecordEventAttendance;
 use App\Domain\Events\Actions\SaveEventPlayerResult;
 use App\Domain\Events\Actions\SaveEventResult;
-use App\Domain\Events\Enums\EventAttendanceStatus;
 use App\Domain\Events\Enums\EventObjectiveStatus;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\Event;
@@ -37,9 +35,9 @@ final class EventTrendQueryTest extends TestCase
         $sibling = $this->player($user, $kingdom, 'Sibling', '9001-sibling');
         $first = $this->event($player, $player, 'custom', EventScope::Player, 1);
         $second = $this->event($player, $player, 'eternitys-reach', EventScope::Player, 2);
-        $attendance = $this->app->make(RecordEventAttendance::class);
-        $attendance->handle($player, $first->occurrences->firstOrFail(), $player, EventAttendanceStatus::Present);
-        $attendance->handle($player, $second->occurrences->firstOrFail(), $player, EventAttendanceStatus::Absent);
+        $save = $this->app->make(SaveEventPlayerResult::class);
+        $save->handle($player, $first->occurrences->firstOrFail(), $player, outcome: 'completed');
+        $save->handle($player, $second->occurrences->firstOrFail(), $player, outcome: 'absent');
 
         $query = $this->app->make(EventTrendQuery::class);
         self::assertSame([
