@@ -38,8 +38,7 @@ final readonly class RecordEventAttendance
         EventAttendanceStatus $status,
         ?string $notes = null,
     ): EventAttendance {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
+        $event = $occurrence->event()->firstOrFail();
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $player, $status, $notes): EventAttendance {
             $context = $this->mutations->requireManager($actor, $event);
@@ -99,7 +98,7 @@ final readonly class RecordEventAttendance
                 $alliance?->id,
                 $record,
                 $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
+                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
             );
 
             return $record->refresh();
