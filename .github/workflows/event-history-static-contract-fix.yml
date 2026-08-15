@@ -1,0 +1,101 @@
+name: Event History Static Contract Fix
+
+on:
+  push:
+    branches:
+      - feature/event-contribution-history-p0
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: "!contains(github.event.head_commit.message, '[static-contract-fix]')"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/event-contribution-history-p0
+      - name: Apply narrow static-contract fixes
+        shell: python
+        run: |
+          from pathlib import Path
+
+          trend = Path('app/Domain/Events/Queries/EventTrendQuery.php')
+          text = trend.read_text()
+
+          # Query-builder Collections return array<int,T>; make the promised list contract explicit.
+          methods = [
+              'playerScoreSeries',
+              'playerMetricSeries',
+              'organizationScoreSeries',
+              'organizationMetricSeries',
+              'organizationPlayerScoreLeaderboard',
+              'kingdomAllianceScoreLeaderboard',
+          ]
+          for index, name in enumerate(methods):
+              start = text.index(f'public function {name}')
+              next_positions = [text.find(f'public function {other}', start + 1) for other in methods[index + 1:]]
+              next_positions += [text.find('private function window', start + 1)]
+              end_candidates = [p for p in next_positions if p != -1]
+              end = min(end_candidates) if end_candidates else len(text)
+              segment = text[start:end]
+              if 'return array_values($rows);' in segment:
+                  continue
+              if 'return DB::table' in segment:
+                  segment = segment.replace('return DB::table', '$rows = DB::table', 1)
+              elif 'return $query' in segment:
+                  segment = segment.replace('return $query', '$rows = $query', 1)
+              else:
+                  raise RuntimeError(f'Expected query return not found in {name}')
+              marker = '            ->all();'
+              pos = segment.rfind(marker)
+              if pos == -1:
+                  raise RuntimeError(f'Expected ->all() not found in {name}')
+              segment = segment[:pos] + marker + '\n\n        return array_values($rows);' + segment[pos + len(marker):]
+              text = text[:start] + segment + text[end:]
+          trend.write_text(text)
+
+          intelligence = Path('app/Domain/Events/Queries/EventContributionIntelligenceQuery.php')
+          text = intelligence.read_text()
+          old = """        return match ($aggregation) {
+            'sum' => array_sum($values),
+            'max' => max($values),
+            'min' => min($values),
+            'latest' => $values[array_key_last($values)],
+            default => round(array_sum($values) / count($values), 4),
+        };"""
+          new = """        $first = $values[0];
+        $latest = $values[count($values) - 1];
+        $maximum = $first;
+        $minimum = $first;
+        foreach ($values as $value) {
+            $maximum = max($maximum, $value);
+            $minimum = min($minimum, $value);
+        }
+
+        return match ($aggregation) {
+            'sum' => array_sum($values),
+            'max' => $maximum,
+            'min' => $minimum,
+            'latest' => $latest,
+            default => round(array_sum($values) / count($values), 4),
+        };"""
+          if old in text:
+              text = text.replace(old, new, 1)
+          elif '$maximum = $first;' not in text:
+              raise RuntimeError('Expected aggregate block not found')
+          intelligence.write_text(text)
+      - name: Format changed PHP
+        run: vendor/bin/pint app/Domain/Events/Queries/EventTrendQuery.php app/Domain/Events/Queries/EventContributionIntelligenceQuery.php
+      - name: Commit exact fixes
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "awalker0878"
+          git config user.email "52688461+awalker0878@users.noreply.github.com"
+          git add app/Domain/Events/Queries/EventTrendQuery.php app/Domain/Events/Queries/EventContributionIntelligenceQuery.php
+          git commit -m "Normalize Event intelligence static contracts [static-contract-fix]"
+          git push origin HEAD:feature/event-contribution-history-p0
