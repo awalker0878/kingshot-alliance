@@ -3,7 +3,7 @@
 [← Domain documentation](../README.md)
 
 **Document type:** Living domain contract  
-**Status:** KING-PERKS-001 implementation in progress; verification pending  
+**Status:** KING-PERKS-001 functional implementation complete; verification and hardening in progress  
 **Code owner:** `app/Domain/KingPerks`  
 **Primary authorization boundary:** current active Player + exact Kingdom Event authority
 
@@ -165,3 +165,5 @@ All interactive actor attribution uses Player identity. Kingdom outbox partition
 ## Verification gate
 
 KING-PERKS-001 is not considered complete until the branch is green for the repository's PostgreSQL/schema suite, Pint, Larastan, targeted backend contracts, frontend lint/format/type checks and targeted production build. CI results, rather than implementation presence alone, determine the final phase status.
+
+Verification workflows are read-only: they may report formatting or static-analysis failures, but they must never rewrite or push application source from a pull-request run.
