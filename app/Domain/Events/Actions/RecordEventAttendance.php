@@ -10,6 +10,7 @@ use App\Domain\Events\Enums\EventAttendanceStatus;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\EventAttendance;
 use App\Domain\Events\Models\EventOccurrence;
+use App\Domain\Events\Models\EventPlayerContext;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Events\Services\EventParticipantAuthorization;
@@ -50,17 +51,26 @@ final readonly class RecordEventAttendance
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $currentPlayer = Player::query()
-                ->whereKey($player->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $currentPlayer = (string) $context->actor->id === (string) $player->id
+                ? $context->actor
+                : Player::query()->whereKey($player->id)->firstOrFail();
+            $frozenContext = $this->contexts->existing($lockedOccurrence, $currentPlayer);
 
-            if (! $this->participants->eligible($context->event, $currentPlayer)) {
-                throw new AuthorizationException;
-            }
+            if (! $frozenContext instanceof EventPlayerContext) {
+                if ((string) $context->actor->id !== (string) $currentPlayer->id) {
+                    $currentPlayer = Player::query()
+                        ->whereKey($currentPlayer->id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
+                }
 
-            if ($status !== EventAttendanceStatus::Unknown) {
-                $this->contexts->freeze($lockedOccurrence, $currentPlayer);
+                if (! $this->participants->eligible($context->event, $currentPlayer)) {
+                    throw new AuthorizationException;
+                }
+
+                if ($status !== EventAttendanceStatus::Unknown) {
+                    $this->contexts->freeze($lockedOccurrence, $currentPlayer);
+                }
             }
 
             $record = EventAttendance::query()->updateOrCreate(
