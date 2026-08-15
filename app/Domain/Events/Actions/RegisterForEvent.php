@@ -34,8 +34,7 @@ final readonly class RegisterForEvent
 
     public function handle(Player $actor, EventOccurrence $occurrence, Player $player): EventRegistration
     {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
+        $event = $occurrence->event()->firstOrFail();
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $player): EventRegistration {
             $context = $this->mutations->requireSelf($actor, $event, $player);
@@ -61,8 +60,8 @@ final readonly class RegisterForEvent
                 ->lockForUpdate()
                 ->first();
 
-            if ($existing instanceof EventRegistration && $existing->status !== EventRegistrationStatus::Cancelled) {
-                if ($existing->status === EventRegistrationStatus::Registered) {
+            if ($existing instanceof EventRegistration && $existing->statusEnum() !== EventRegistrationStatus::Cancelled) {
+                if ($existing->statusEnum() === EventRegistrationStatus::Registered) {
                     $this->contexts->freeze($lockedOccurrence, $currentPlayer);
                 }
 
@@ -127,7 +126,7 @@ final readonly class RegisterForEvent
                 $alliance?->id,
                 $registration,
                 $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
+                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
             );
 
             return $registration->refresh();
