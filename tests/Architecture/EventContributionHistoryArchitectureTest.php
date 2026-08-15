@@ -72,8 +72,8 @@ final class EventContributionHistoryArchitectureTest extends TestCase
     {
         $migration = $this->read('database/migrations/2026_08_08_141500_create_event_scheduling_tables.php');
 
-        self::assertStringContainsString("$table->string('target_display_name', 180);", $migration);
-        self::assertStringContainsString("$table->string('target_secondary_label', 180)->nullable();", $migration);
+        self::assertStringContainsString("\$table->string('target_display_name', 180);", $migration);
+        self::assertStringContainsString("\$table->string('target_secondary_label', 180)->nullable();", $migration);
         self::assertStringContainsString("->constrained('alliances')->restrictOnDelete()", $migration);
         self::assertStringContainsString("->constrained('kingdoms')->restrictOnDelete()", $migration);
         self::assertStringContainsString("->constrained('players')->restrictOnDelete()", $migration);
@@ -88,11 +88,12 @@ final class EventContributionHistoryArchitectureTest extends TestCase
         foreach ([
             'event_metric_definitions',
             'event_player_contexts',
-            'event_alliance_results',
+            'event_kingdom_alliance_results',
             'event_result_metrics',
-            'event_alliance_result_metrics',
+            'event_kingdom_alliance_result_metrics',
             'event_player_result_metrics',
             'represented_alliance_id',
+            'represented_kingdom_alliance_id',
             'kingdom_id_at_event',
             'context_frozen_at',
             "decimal('value', 30, 4)",
@@ -100,7 +101,8 @@ final class EventContributionHistoryArchitectureTest extends TestCase
             self::assertStringContainsString($contract, $migration, $contract);
         }
 
-        self::assertStringNotContainsString("$table->json('metrics')", $migration);
+        self::assertStringContainsString("constrained('kingdom_alliances')->restrictOnDelete()", $migration);
+        self::assertStringNotContainsString("\$table->json('metrics')", $migration);
     }
 
     private function read(string $path): string
