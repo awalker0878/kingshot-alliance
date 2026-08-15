@@ -7,6 +7,6 @@ namespace App\Domain\Events\Enums;
 enum EventMetricSubject: string
 {
     case Event = 'event';
-    case Alliance = 'alliance';
+    case KingdomAlliance = 'kingdom_alliance';
     case Player = 'player';
 }
