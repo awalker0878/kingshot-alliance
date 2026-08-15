@@ -9,6 +9,7 @@ use App\Domain\Events\Enums\EventMetricSubject;
 use App\Domain\Events\Enums\EventRecurrencePolicy;
 use App\Domain\Events\Enums\EventScheduleSource;
 use App\Domain\Events\Enums\EventScope;
+use App\Domain\Events\Models\EventMetricDefinition;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventCapabilityResolver;
 use App\Domain\Events\Services\EventTypeDefaultsResolver;
@@ -25,6 +26,7 @@ final class EventTypeCataloguePersistenceTest extends TestCase
         self::assertTrue(EventType::query()->where('slug', 'bear-hunt')->exists());
         self::assertTrue(EventType::query()->where('slug', 'kingdom-of-power')->exists());
         self::assertTrue(EventType::query()->where('slug', 'custom')->exists());
+        self::assertGreaterThan(0, EventMetricDefinition::query()->count());
     }
 
     public function test_registry_resolves_scope_and_capabilities(): void
