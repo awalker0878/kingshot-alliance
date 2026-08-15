@@ -70,8 +70,7 @@ final readonly class EventTrendQuery
         ?CarbonImmutable $until = null,
     ): array {
         [$from, $until] = $this->window($from, $until);
-
-        return DB::table('event_player_results as result')
+        $rows = DB::table('event_player_results as result')
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'result.occurrence_id')
             ->join('events as event', 'event.id', '=', 'occurrence.event_id')
             ->join('event_types as event_type', 'event_type.id', '=', 'event.event_type_id')
@@ -90,6 +89,8 @@ final readonly class EventTrendQuery
                 'outcome' => $row->outcome === null ? null : (string) $row->outcome,
             ])
             ->all();
+
+        return array_values($rows);
     }
 
     /**
@@ -106,8 +107,7 @@ final readonly class EventTrendQuery
         ?CarbonImmutable $until = null,
     ): array {
         [$from, $until] = $this->window($from, $until);
-
-        return DB::table('event_player_result_metrics as metric')
+        $rows = DB::table('event_player_result_metrics as metric')
             ->join('event_player_results as result', 'result.id', '=', 'metric.event_player_result_id')
             ->join('event_metric_definitions as definition', 'definition.id', '=', 'metric.metric_definition_id')
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'result.occurrence_id')
@@ -136,6 +136,8 @@ final readonly class EventTrendQuery
                 'unit' => $row->unit === null ? null : (string) $row->unit,
             ])
             ->all();
+
+        return array_values($rows);
     }
 
     /**
@@ -152,8 +154,7 @@ final readonly class EventTrendQuery
     ): array {
         $targetColumn = $this->organizationTargetColumn($scope);
         [$from, $until] = $this->window($from, $until);
-
-        return DB::table('event_results as result')
+        $rows = DB::table('event_results as result')
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'result.occurrence_id')
             ->join('events as event', 'event.id', '=', 'occurrence.event_id')
             ->join('event_types as event_type', 'event_type.id', '=', 'event.event_type_id')
@@ -180,6 +181,8 @@ final readonly class EventTrendQuery
                 'outcome' => $row->outcome === null ? null : (string) $row->outcome,
             ])
             ->all();
+
+        return array_values($rows);
     }
 
     /**
@@ -197,8 +200,7 @@ final readonly class EventTrendQuery
     ): array {
         $targetColumn = $this->organizationTargetColumn($scope);
         [$from, $until] = $this->window($from, $until);
-
-        return DB::table('event_result_metrics as metric')
+        $rows = DB::table('event_result_metrics as metric')
             ->join('event_results as result', 'result.id', '=', 'metric.event_result_id')
             ->join('event_metric_definitions as definition', 'definition.id', '=', 'metric.metric_definition_id')
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'result.occurrence_id')
@@ -227,6 +229,8 @@ final readonly class EventTrendQuery
                 'unit' => $row->unit === null ? null : (string) $row->unit,
             ])
             ->all();
+
+        return array_values($rows);
     }
 
     /**
@@ -276,7 +280,7 @@ final readonly class EventTrendQuery
             $query->orderByRaw('AVG(result.score) ASC');
         }
 
-        return $query
+        $rows = $query
             ->orderBy('result.player_id')
             ->limit($limit)
             ->get()
@@ -289,6 +293,8 @@ final readonly class EventTrendQuery
                 'best_score' => $higherIsBetter ? (int) $row->max_score : (int) $row->min_score,
             ])
             ->all();
+
+        return array_values($rows);
     }
 
     /**
@@ -333,7 +339,7 @@ final readonly class EventTrendQuery
             $query->orderByRaw('AVG(result.score) ASC');
         }
 
-        return $query
+        $rows = $query
             ->orderBy('result.alliance_id')
             ->limit($limit)
             ->get()
@@ -346,6 +352,8 @@ final readonly class EventTrendQuery
                 'best_score' => $higherIsBetter ? (int) $row->max_score : (int) $row->min_score,
             ])
             ->all();
+
+        return array_values($rows);
     }
 
     /** @return array{CarbonImmutable,CarbonImmutable} */
