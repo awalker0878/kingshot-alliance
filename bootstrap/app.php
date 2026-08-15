@@ -46,19 +46,6 @@ return Application::configure(basePath: dirname(__DIR__))
             ->withoutOverlapping(10);
     })
     ->withMiddleware(function (Middleware $middleware): void {
-        $trustedProxies = array_values(array_filter(array_map(
-            static fn (string $proxy): string => trim($proxy),
-            explode(',', (string) config('operations.trusted_proxies', '')),
-        )));
-
-        if ($trustedProxies !== []) {
-            $middleware->trustProxies(
-                at: $trustedProxies === ['*'] ? '*' : $trustedProxies,
-                headers: Request::HEADER_X_FORWARDED_FOR
-                    | Request::HEADER_X_FORWARDED_PROTO,
-            );
-        }
-
         $middleware->alias([
             'alliance.context' => ResolveAllianceContext::class,
             'platform.admin' => RequirePlatformAdministrator::class,

@@ -9,10 +9,12 @@ on:
       - 'app/Workflows/**'
       - 'app/ReadModels/**'
       - 'bootstrap/app.php'
+      - 'bootstrap/providers.php'
       - 'config/accounts.php'
       - 'config/alliance.php'
       - 'config/auth.php'
       - 'config/game_world.php'
+      - 'config/operations.php'
       - 'database/factories/UserFactory.php'
       - 'routes/account.php'
       - 'tests/Architecture/ArchitectureV2DependencyTest.php'
@@ -94,10 +96,12 @@ jobs:
           app/Workflows
           app/ReadModels
           bootstrap/app.php
+          bootstrap/providers.php
           config/accounts.php
           config/alliance.php
           config/auth.php
           config/game_world.php
+          config/operations.php
           database/factories/UserFactory.php
           routes/account.php
 
@@ -111,6 +115,7 @@ jobs:
           app/Contexts/GameWorld
           app/Shared
           bootstrap/app.php
+          bootstrap/providers.php
           database/factories/UserFactory.php
 
       - name: Run Accounts and GameWorld foundation tests
