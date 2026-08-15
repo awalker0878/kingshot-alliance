@@ -7,13 +7,16 @@ namespace App\Domain\Rallies\Actions;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\EventOccurrence;
+use App\Domain\Events\Models\EventPlayerContext;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMutationAuthority;
+use App\Domain\Events\Services\EventPlayerContextFreezer;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Rallies\Enums\RallyAssignmentStatus;
 use App\Domain\Rallies\Models\RallyAssignment;
 use App\Domain\Rallies\Models\RallyGroup;
+use App\Domain\Rallies\Services\RallyPlayerEligibility;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -22,6 +25,8 @@ final readonly class RecordRallyParticipation
     public function __construct(
         private EventMutationAuthority $eventAuthority,
         private EventCapabilityGuard $capabilities,
+        private RallyPlayerEligibility $eligibility,
+        private EventPlayerContextFreezer $contexts,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -40,12 +45,10 @@ final readonly class RecordRallyParticipation
             $context = $this->eventAuthority->requireManager($actor, $event);
             $this->capabilities->require($context->event, EventCapability::RallyGuidance);
 
-            // Participation only changes one assignment. Share-lock occurrence/group
-            // lifecycle; keep the assignment itself exclusive.
             $occurrence = EventOccurrence::query()
                 ->whereKey($group->occurrence_id)
                 ->where('event_id', $context->event->id)
-                ->sharedLock()
+                ->lockForUpdate()
                 ->firstOrFail();
 
             $lockedGroup = RallyGroup::query()
@@ -63,6 +66,24 @@ final readonly class RecordRallyParticipation
 
             if (in_array($locked->status, [RallyAssignmentStatus::Declined, RallyAssignmentStatus::Removed], true)) {
                 throw ValidationException::withMessages(['status' => 'Declined or removed assignments cannot receive participation.']);
+            }
+
+            $player = (string) $context->actor->id === (string) $locked->player_id
+                ? $context->actor
+                : Player::query()->whereKey($locked->player_id)->firstOrFail();
+            $frozenContext = $this->contexts->existing($occurrence, $player);
+
+            if (! $frozenContext instanceof EventPlayerContext) {
+                if ((string) $context->actor->id !== (string) $player->id) {
+                    $player = Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
+                }
+                if (! $this->eligibility->eligible($context->event, $lockedGroup->alliance, $player)) {
+                    throw ValidationException::withMessages([
+                        'player' => 'This Player is not eligible for this Rally Alliance.',
+                    ]);
+                }
+
+                $this->contexts->freeze($occurrence, $player, $lockedGroup->alliance);
             }
 
             $locked->forceFill([
