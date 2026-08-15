@@ -183,11 +183,14 @@ sort_order
 ### Persistence/runtime integration
 
 - canonical Event Type-scope seeding persists score semantics from the same catalogue used by runtime code;
-- a greenfield metric-catalogue migration persists normalized definitions for all supported system Event Type scopes;
+- the canonical result schema contains metric dimension semantics directly, while a seed-only greenfield migration persists normalized definitions for all supported system Event Type scopes;
 - `EventTypeRegistry` loads metric definitions with scope configuration;
 - `EventTypeDefaultsResolver` exposes score semantics and normalized definitions to downstream Event workflows/UI;
+- Event result reads expose subject and definition/dimension metadata with captured values;
 - `EventMetricDefinition` exposes dimension semantics; and
 - Event metric subjects remain `event | alliance | player`, using canonical `alliance_id` rather than a parallel Alliance identity.
+
+Stable localization keys are part of the P2 definition contract. User-facing translated metric labels are delivered with the result/history UI that consumes them, using the existing English-fallback localization model until those surfaces exist.
 
 ### Compatibility rule
 
