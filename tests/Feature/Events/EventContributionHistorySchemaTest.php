@@ -31,10 +31,10 @@ final class EventContributionHistorySchemaTest extends TestCase
             'event_metric_definitions',
             'event_player_contexts',
             'event_results',
-            'event_alliance_results',
+            'event_kingdom_alliance_results',
             'event_player_results',
             'event_result_metrics',
-            'event_alliance_result_metrics',
+            'event_kingdom_alliance_result_metrics',
             'event_player_result_metrics',
         ] as $table) {
             self::assertTrue(Schema::hasTable($table), $table);
@@ -57,8 +57,17 @@ final class EventContributionHistorySchemaTest extends TestCase
             'player_id',
             'player_name_snapshot',
             'represented_alliance_id',
+            'represented_kingdom_alliance_id',
             'kingdom_id_at_event',
             'context_frozen_at',
+        ]));
+        self::assertTrue(Schema::hasColumns('event_kingdom_alliance_results', [
+            'occurrence_id',
+            'kingdom_alliance_id',
+            'alliance_name_snapshot',
+            'alliance_tag_snapshot',
+            'score',
+            'rank',
         ]));
         self::assertFalse(Schema::hasColumn('event_results', 'metrics'));
         self::assertFalse(Schema::hasColumn('event_player_results', 'metrics'));
