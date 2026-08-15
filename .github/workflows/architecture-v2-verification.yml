@@ -1,5 +1,5 @@
 name: Architecture V2 Verification
-# P5 verification: operational V1 roots stay absent; Operations stays downstream-clean; cross-context Event UI composition is verified downstream.
+# P5 verification: operational V1 roots stay absent; Operations stays downstream-clean; cross-context Event UI composition lives in ReadModels.
 
 on:
   pull_request:
@@ -201,7 +201,6 @@ jobs:
           app/Contexts/Communications
           app/Contexts/Platform/Access
           app/Contexts/Platform/EventAdministration
-          app/Contexts/Platform/EventOperations
           app/Shared
           app/Workflows
           app/ReadModels
