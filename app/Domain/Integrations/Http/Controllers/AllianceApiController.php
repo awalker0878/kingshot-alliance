@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Integrations\Http\Controllers;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Domain\Events\Enums\EventScope;
+use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Shared\Http\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

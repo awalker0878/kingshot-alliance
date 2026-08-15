@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Notifications\Actions;
 
-use App\Domain\Events\Enums\EventReminderDeliveryStatus;
-use App\Domain\Notifications\Models\KingPerkReminderDelivery;
+use App\Contexts\Communications\Reminders\Enums\EventReminderDeliveryStatus;
+use App\Contexts\Communications\Reminders\Models\KingPerkReminderDelivery;
 use App\Shared\Messaging\Events\OutboxPublished;
 
 final class MarkKingPerkReminderSent

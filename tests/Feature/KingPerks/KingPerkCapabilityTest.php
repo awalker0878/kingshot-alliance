@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\KingPerks;
 
-use App\Domain\Events\Enums\EventCapability;
-use App\Domain\Events\Enums\EventScope;
-use App\Domain\Events\Models\EventType;
-use App\Domain\Events\Services\EventCapabilityResolver;
-use App\Domain\Events\Services\EventTypeRegistry;
-use App\Domain\KingPerks\Catalog\KingPerkEventCapabilityCatalog;
+use App\Contexts\Operations\EventCore\Enums\EventCapability;
+use App\Contexts\Operations\EventCore\Enums\EventScope;
+use App\Contexts\Operations\EventCore\Models\EventType;
+use App\Contexts\Operations\EventCore\Services\EventCapabilityResolver;
+use App\Contexts\Operations\EventCore\Services\EventTypeRegistry;
+use App\Contexts\Operations\KingPerks\Catalog\KingPerkEventCapabilityCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\KingPerks;
 
-use App\Domain\KingPerks\Enums\KingAppointmentType;
-use App\Domain\KingPerks\Enums\KingPerkPushCategory;
-use App\Domain\KingPerks\Enums\KingSkill;
-use App\Domain\KingPerks\Services\KingPerkPreparationPresetCatalog;
+use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
+use App\Contexts\Operations\KingPerks\Enums\KingPerkPushCategory;
+use App\Contexts\Operations\KingPerks\Enums\KingSkill;
+use App\Contexts\Operations\KingPerks\Services\KingPerkPreparationPresetCatalog;
 use Carbon\CarbonImmutable;
 use PHPUnit\Framework\TestCase;
 

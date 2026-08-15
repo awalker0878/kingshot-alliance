@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Domain\KingPerks\Http\Controllers\KingPerkController;
+use App\Contexts\Operations\KingPerks\Http\Controllers\KingPerkController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void {

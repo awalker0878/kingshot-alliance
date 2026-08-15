@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Tests\Unit\Events;
 
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
-use App\Domain\Events\Catalog\KingShotEventTypeCatalog;
-use App\Domain\Events\Enums\EventCapability;
-use App\Domain\Events\Enums\EventRecurrencePolicy;
-use App\Domain\Events\Enums\EventScheduleSource;
-use App\Domain\Events\Enums\EventScope;
-use App\Domain\Events\Enums\RecurrenceFrequency;
+use App\Contexts\Operations\EventCore\Catalog\KingShotEventTypeCatalog;
+use App\Contexts\Operations\EventCore\Enums\EventCapability;
+use App\Contexts\Operations\EventCore\Enums\EventRecurrencePolicy;
+use App\Contexts\Operations\EventCore\Enums\EventScheduleSource;
+use App\Contexts\Operations\EventCore\Enums\EventScope;
+use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
 use PHPUnit\Framework\TestCase;
 
 final class EventTypeCatalogTest extends TestCase

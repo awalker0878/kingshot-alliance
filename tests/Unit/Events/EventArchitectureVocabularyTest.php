@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Events;
 
-use App\Domain\Events\Enums\EventCapability;
-use App\Domain\Events\Enums\EventScope;
+use App\Contexts\Operations\EventCore\Enums\EventCapability;
+use App\Contexts\Operations\EventCore\Enums\EventScope;
 use PHPUnit\Framework\TestCase;
 
 final class EventArchitectureVocabularyTest extends TestCase

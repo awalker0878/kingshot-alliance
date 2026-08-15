@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Domain\Events\Http\Controllers\EventHistoryController;
-use App\Domain\Events\Http\Controllers\EventResultController;
-use App\Domain\Events\Http\Controllers\EventRosterController;
+use App\ReadModels\EventHistory\Http\Controllers\EventHistoryController;
+use App\Contexts\Operations\Results\Http\Controllers\EventResultController;
+use App\Contexts\Operations\Rosters\Http\Controllers\EventRosterController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void {

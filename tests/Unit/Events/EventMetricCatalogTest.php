@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Events;
 
-use App\Domain\Events\Catalog\KingShotEventMetricCatalog;
-use App\Domain\Events\Catalog\KingShotEventTypeCatalog;
-use App\Domain\Events\Enums\EventMetricSubject;
-use App\Domain\Events\Enums\EventScope;
+use App\Contexts\Operations\Results\Catalog\KingShotEventMetricCatalog;
+use App\Contexts\Operations\EventCore\Catalog\KingShotEventTypeCatalog;
+use App\Contexts\Operations\Results\Enums\EventMetricSubject;
+use App\Contexts\Operations\EventCore\Enums\EventScope;
 use PHPUnit\Framework\TestCase;
 
 final class EventMetricCatalogTest extends TestCase

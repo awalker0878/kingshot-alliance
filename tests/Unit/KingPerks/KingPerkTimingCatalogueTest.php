@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\KingPerks;
 
-use App\Domain\KingPerks\Enums\KingAppointmentType;
-use App\Domain\KingPerks\Enums\KingSkill;
+use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
+use App\Contexts\Operations\KingPerks\Enums\KingSkill;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
