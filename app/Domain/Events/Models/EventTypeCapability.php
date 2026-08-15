@@ -14,7 +14,9 @@ final class EventTypeCapability extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     public $timestamps = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
