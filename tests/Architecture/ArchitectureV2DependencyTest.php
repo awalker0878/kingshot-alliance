@@ -113,12 +113,10 @@ final class ArchitectureV2DependencyTest extends TestCase
     {
         $this->assertFilesDoNotImport(
             $this->phpFiles($this->root().'/app/Shared'),
-            [
-                'App\\Contexts\\',
-                'App\\Workflows\\',
-                'App\\ReadModels\\',
-                'App\\Domain\\',
-            ],
+            'App\\Contexts\\',
+            'App\\Workflows\\',
+            'App\\ReadModels\\',
+            'App\\Domain\\',
         );
     }
 
@@ -126,14 +124,12 @@ final class ArchitectureV2DependencyTest extends TestCase
     {
         $this->assertFilesDoNotImport(
             $this->phpFiles($this->root().'/app/Contexts/Accounts'),
-            [
-                'App\\Contexts\\GameWorld\\',
-                'App\\Contexts\\Alliance\\',
-                'App\\Contexts\\Operations\\',
-                'App\\Contexts\\Intelligence\\',
-                'App\\Contexts\\Communications\\',
-                'App\\Contexts\\Platform\\',
-            ],
+            'App\\Contexts\\GameWorld\\',
+            'App\\Contexts\\Alliance\\',
+            'App\\Contexts\\Operations\\',
+            'App\\Contexts\\Intelligence\\',
+            'App\\Contexts\\Communications\\',
+            'App\\Contexts\\Platform\\',
         );
     }
 
@@ -141,13 +137,11 @@ final class ArchitectureV2DependencyTest extends TestCase
     {
         $this->assertFilesDoNotImport(
             $this->phpFiles($this->root().'/app/Contexts/GameWorld'),
-            [
-                'App\\Contexts\\Alliance\\',
-                'App\\Contexts\\Operations\\',
-                'App\\Contexts\\Intelligence\\',
-                'App\\Contexts\\Communications\\',
-                'App\\Contexts\\Platform\\',
-            ],
+            'App\\Contexts\\Alliance\\',
+            'App\\Contexts\\Operations\\',
+            'App\\Contexts\\Intelligence\\',
+            'App\\Contexts\\Communications\\',
+            'App\\Contexts\\Platform\\',
         );
     }
 
@@ -155,12 +149,10 @@ final class ArchitectureV2DependencyTest extends TestCase
     {
         $this->assertFilesDoNotImport(
             $this->phpFiles($this->root().'/app/Contexts/Alliance'),
-            [
-                'App\\Contexts\\Operations\\',
-                'App\\Contexts\\Intelligence\\',
-                'App\\Contexts\\Communications\\',
-                'App\\Contexts\\Platform\\',
-            ],
+            'App\\Contexts\\Operations\\',
+            'App\\Contexts\\Intelligence\\',
+            'App\\Contexts\\Communications\\',
+            'App\\Contexts\\Platform\\',
         );
     }
 
@@ -168,11 +160,9 @@ final class ArchitectureV2DependencyTest extends TestCase
     {
         $this->assertFilesDoNotImport(
             $this->phpFiles($this->root().'/app/Contexts/Operations'),
-            [
-                'App\\Contexts\\Intelligence\\',
-                'App\\Contexts\\Communications\\',
-                'App\\Contexts\\Platform\\',
-            ],
+            'App\\Contexts\\Intelligence\\',
+            'App\\Contexts\\Communications\\',
+            'App\\Contexts\\Platform\\',
         );
     }
 
@@ -180,10 +170,8 @@ final class ArchitectureV2DependencyTest extends TestCase
     {
         $this->assertFilesDoNotImport(
             $this->phpFiles($this->root().'/app/Contexts/Intelligence'),
-            [
-                'App\\Contexts\\Communications\\',
-                'App\\Contexts\\Platform\\',
-            ],
+            'App\\Contexts\\Communications\\',
+            'App\\Contexts\\Platform\\',
         );
     }
 
@@ -191,7 +179,7 @@ final class ArchitectureV2DependencyTest extends TestCase
     {
         $this->assertFilesDoNotImport(
             $this->phpFiles($this->root().'/app/Contexts/Communications'),
-            ['App\\Contexts\\Platform\\'],
+            'App\\Contexts\\Platform\\',
         );
     }
 
@@ -200,7 +188,7 @@ final class ArchitectureV2DependencyTest extends TestCase
         foreach (['Workflows', 'ReadModels'] as $root) {
             $this->assertFilesDoNotImport(
                 $this->phpFiles($this->root().'/app/'.$root),
-                ['App\\Domain\\'],
+                'App\\Domain\\',
             );
         }
     }
@@ -224,11 +212,8 @@ final class ArchitectureV2DependencyTest extends TestCase
         }
     }
 
-    /**
-     * @param list<string> $files
-     * @param list<string> $forbiddenImports
-     */
-    private function assertFilesDoNotImport(array $files, array $forbiddenImports): void
+    /** @param list<string> $files */
+    private function assertFilesDoNotImport(array $files, string ...$forbiddenImports): void
     {
         foreach ($files as $file) {
             $source = $this->source($file);
