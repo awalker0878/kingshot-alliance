@@ -107,7 +107,9 @@ final class UserExperienceLocalizationFoundationTest extends TestCase
         }
 
         self::assertStringContainsString('allianceScoped: true', $layout);
-        self::assertStringContainsString('!props.hasActiveAlliance', $layout);
+        self::assertStringContainsString('!props.hasPlayerAlliance', $layout);
+        self::assertStringContainsString('router.post(`/players/${playerId}/activate`', $layout);
+        self::assertStringContainsString('sharedPlayerContext.value.activePlayerId', $layout);
         self::assertStringContainsString('start-0', $layout);
         self::assertStringContainsString('border-e', $layout);
 
@@ -121,16 +123,18 @@ final class UserExperienceLocalizationFoundationTest extends TestCase
         }
     }
 
-    public function test_dashboard_uses_shared_authenticated_shell_without_changing_domain_actions(): void
+    public function test_dashboard_uses_active_player_alliance_without_independent_alliance_selection(): void
     {
         $dashboard = $this->read('resources/js/pages/Dashboard.vue');
 
         self::assertStringContainsString("import AppLayout from '../layouts/AppLayout.vue';", $dashboard);
         self::assertStringContainsString("allianceForm.post('/alliances'", $dashboard);
-        self::assertStringContainsString('router.put(`/alliances/${allianceId}/active`)', $dashboard);
+        self::assertStringContainsString(':has-player-alliance="membership !== null"', $dashboard);
+        self::assertStringContainsString(':player-alliance-name="membership?.alliance.name ?? null"', $dashboard);
         self::assertStringContainsString('href="/alliance/roster"', $dashboard);
         self::assertStringContainsString('href="/alliance/kingdom-alliances"', $dashboard);
         self::assertStringContainsString('href="/alliance/transfers"', $dashboard);
+        self::assertStringNotContainsString('/alliances/${allianceId}/active', $dashboard);
     }
 
     public function test_homepage_is_a_product_entry_point_without_fake_public_metrics(): void
