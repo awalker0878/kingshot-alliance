@@ -8,6 +8,7 @@ use App\Domain\Events\Enums\EventAttendanceStatus;
 use App\Domain\Events\Enums\EventRegistrationStatus;
 use App\Domain\Events\Enums\EventRosterMemberStatus;
 use App\Domain\Events\Models\EventAttendance;
+use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventRosterMember;
 use App\Domain\Kingdoms\Models\Player;
@@ -55,6 +56,11 @@ final class EventPlayerOccurrenceEvidenceQuery
             ->pluck('occurrence_id')
             ->map(static fn ($id): string => (string) $id);
 
+        $playerResults = EventPlayerResult::query()
+            ->where('player_id', $player->id)
+            ->whereIn('occurrence_id', $ids)
+            ->get(['occurrence_id', 'outcome']);
+
         $attendance = EventAttendance::query()
             ->where('player_id', $player->id)
             ->whereIn('occurrence_id', $ids)
@@ -85,22 +91,36 @@ final class EventPlayerOccurrenceEvidenceQuery
         $result = [];
         foreach ($ids as $occurrenceId) {
             $registrationCommitted = $registered->contains($occurrenceId);
+            $resultOutcomes = $playerResults
+                ->where('occurrence_id', $occurrenceId)
+                ->pluck('outcome')
+                ->filter(static fn ($value): bool => $value !== null && trim((string) $value) !== '')
+                ->map(static fn ($value): string => mb_strtolower(trim((string) $value)));
             $attendanceRows = $attendance->where('occurrence_id', $occurrenceId);
             $rosterRows = $rosters->where('occurrence_id', $occurrenceId);
             $rallyRows = $rallies->where('occurrence_id', $occurrenceId);
 
-            $completed = $attendanceRows->contains('status', EventAttendanceStatus::Present->value)
+            $completed = $resultOutcomes->contains('completed')
+                || $attendanceRows->contains('status', EventAttendanceStatus::Present->value)
                 || $rosterRows->contains('status', EventRosterMemberStatus::Participated->value)
                 || $rallyRows->contains('status', RallyAssignmentStatus::Participated->value);
             $excused = ! $completed
-                && $attendanceRows->contains('status', EventAttendanceStatus::Excused->value);
+                && ($resultOutcomes->contains('excused')
+                    || $attendanceRows->contains('status', EventAttendanceStatus::Excused->value));
             $absent = ! $completed
                 && ! $excused
-                && ($attendanceRows->contains('status', EventAttendanceStatus::Absent->value)
+                && ($resultOutcomes->contains('absent')
+                    || $attendanceRows->contains('status', EventAttendanceStatus::Absent->value)
                     || $rosterRows->contains('status', EventRosterMemberStatus::Absent->value)
                     || $rallyRows->contains('status', RallyAssignmentStatus::Absent->value));
-            $committed = $registrationCommitted || $rosterRows->isNotEmpty() || $rallyRows->isNotEmpty();
-            $unresolved = $committed && ! $completed && ! $excused && ! $absent;
+            $resultCommitted = $resultOutcomes->contains(
+                static fn (string $outcome): bool => in_array($outcome, ['completed', 'excused', 'absent', 'unresolved'], true),
+            );
+            $committed = $resultCommitted || $registrationCommitted || $rosterRows->isNotEmpty() || $rallyRows->isNotEmpty();
+            $unresolved = ! $completed
+                && ! $excused
+                && ! $absent
+                && ($resultOutcomes->contains('unresolved') || $committed);
 
             $result[$occurrenceId] = [
                 'committed' => $committed,
@@ -118,7 +138,10 @@ final class EventPlayerOccurrenceEvidenceQuery
     private function whereCompleted(Builder $query, Player $player, string $occurrenceColumn): void
     {
         $query->where(function (Builder $evidence) use ($player, $occurrenceColumn): void {
-            $this->orWhereAttendance($evidence, $player, $occurrenceColumn, EventAttendanceStatus::Present->value)
+            $this->orWhereResultOutcome($evidence, $player, $occurrenceColumn, 'completed')
+                ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
+                    $this->whereAttendance($nested, $player, $occurrenceColumn, EventAttendanceStatus::Present->value);
+                })
                 ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
                     $this->whereRoster($nested, $player, $occurrenceColumn, [EventRosterMemberStatus::Participated->value]);
                 })
@@ -131,15 +154,24 @@ final class EventPlayerOccurrenceEvidenceQuery
     private function whereExcused(Builder $query, Player $player, string $occurrenceColumn): void
     {
         $this->whereNotCompleted($query, $player, $occurrenceColumn);
-        $this->whereAttendance($query, $player, $occurrenceColumn, EventAttendanceStatus::Excused->value);
+        $query->where(function (Builder $evidence) use ($player, $occurrenceColumn): void {
+            $this->orWhereResultOutcome($evidence, $player, $occurrenceColumn, 'excused')
+                ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
+                    $this->whereAttendance($nested, $player, $occurrenceColumn, EventAttendanceStatus::Excused->value);
+                });
+        });
     }
 
     private function whereAbsent(Builder $query, Player $player, string $occurrenceColumn): void
     {
         $this->whereNotCompleted($query, $player, $occurrenceColumn);
+        $this->whereNotResultOutcome($query, $player, $occurrenceColumn, 'excused');
         $this->whereNotAttendance($query, $player, $occurrenceColumn, EventAttendanceStatus::Excused->value);
         $query->where(function (Builder $evidence) use ($player, $occurrenceColumn): void {
-            $this->orWhereAttendance($evidence, $player, $occurrenceColumn, EventAttendanceStatus::Absent->value)
+            $this->orWhereResultOutcome($evidence, $player, $occurrenceColumn, 'absent')
+                ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
+                    $this->whereAttendance($nested, $player, $occurrenceColumn, EventAttendanceStatus::Absent->value);
+                })
                 ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
                     $this->whereRoster($nested, $player, $occurrenceColumn, [EventRosterMemberStatus::Absent->value]);
                 })
@@ -153,6 +185,7 @@ final class EventPlayerOccurrenceEvidenceQuery
     {
         $query->where(function (Builder $evidence) use ($player, $occurrenceColumn): void {
             $this->orWhereRegistration($evidence, $player, $occurrenceColumn)
+                ->orWhereResultOutcome($player, $occurrenceColumn, 'unresolved')
                 ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
                     $this->whereRoster($nested, $player, $occurrenceColumn, [
                         EventRosterMemberStatus::Confirmed->value,
@@ -169,6 +202,8 @@ final class EventPlayerOccurrenceEvidenceQuery
                 });
         });
         $this->whereNotCompleted($query, $player, $occurrenceColumn);
+        $this->whereNotResultOutcome($query, $player, $occurrenceColumn, 'excused');
+        $this->whereNotResultOutcome($query, $player, $occurrenceColumn, 'absent');
         $this->whereNotAttendance($query, $player, $occurrenceColumn, EventAttendanceStatus::Excused->value);
         $this->whereNotAttendance($query, $player, $occurrenceColumn, EventAttendanceStatus::Absent->value);
         $this->whereNotRoster($query, $player, $occurrenceColumn, [EventRosterMemberStatus::Absent->value]);
@@ -177,9 +212,32 @@ final class EventPlayerOccurrenceEvidenceQuery
 
     private function whereNotCompleted(Builder $query, Player $player, string $occurrenceColumn): void
     {
+        $this->whereNotResultOutcome($query, $player, $occurrenceColumn, 'completed');
         $this->whereNotAttendance($query, $player, $occurrenceColumn, EventAttendanceStatus::Present->value);
         $this->whereNotRoster($query, $player, $occurrenceColumn, [EventRosterMemberStatus::Participated->value]);
         $this->whereNotRally($query, $player, $occurrenceColumn, [RallyAssignmentStatus::Participated->value]);
+    }
+
+    private function orWhereResultOutcome(Builder $query, Player $player, string $occurrenceColumn, string $outcome): Builder
+    {
+        return $query->orWhereExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $outcome): void {
+            $subquery->selectRaw('1')
+                ->from('event_player_results as participation_player_result')
+                ->whereColumn('participation_player_result.occurrence_id', $occurrenceColumn)
+                ->where('participation_player_result.player_id', $player->id)
+                ->whereRaw("LOWER(TRIM(COALESCE(participation_player_result.outcome, ''))) = ?", [$outcome]);
+        });
+    }
+
+    private function whereNotResultOutcome(Builder $query, Player $player, string $occurrenceColumn, string $outcome): Builder
+    {
+        return $query->whereNotExists(static function (Builder $subquery) use ($player, $occurrenceColumn, $outcome): void {
+            $subquery->selectRaw('1')
+                ->from('event_player_results as participation_player_result')
+                ->whereColumn('participation_player_result.occurrence_id', $occurrenceColumn)
+                ->where('participation_player_result.player_id', $player->id)
+                ->whereRaw("LOWER(TRIM(COALESCE(participation_player_result.outcome, ''))) = ?", [$outcome]);
+        });
     }
 
     private function whereAttendance(Builder $query, Player $player, string $occurrenceColumn, string $status): Builder
