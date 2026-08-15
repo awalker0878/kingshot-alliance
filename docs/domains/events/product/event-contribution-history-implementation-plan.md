@@ -18,6 +18,27 @@ Deliver one durable historical model across Player-, Alliance-, and Kingdom-scop
 
 The database is greenfield for this program. Canonical migrations/schema are changed directly to the final model; no compatibility columns, dual-write shims, backfills, or legacy User/membership authority paths are introduced.
 
+## Canonical identity hierarchy
+
+```text
+Kingdom
+└── id
+
+Alliance
+├── id            canonical Alliance identity
+├── kingdom_id    → Kingdom.id
+├── name
+└── lifecycle/settings
+
+Player
+├── id            durable Player identity
+└── current_kingdom_id → Kingdom.id
+```
+
+Every Event, result, membership, roster and historical context row uses `alliance_id` to reference `alliances.id`. `kingdom_id` belongs on Alliance and identifies the Kingdom that Alliance belongs to. Event history does not introduce a second GameAlliance/KingdomAlliance identity.
+
+Alliance names are presentation data and are not identity. The same name may exist in different Kingdoms.
+
 ## Phase status
 
 | Phase | Scope | Status |
@@ -66,26 +87,29 @@ Canonical migrations were changed directly because the database is empty.
 
 ### Delivered schema
 
+- `Alliance` remains the single canonical Alliance identity. `alliances.kingdom_id` is required and identifies the Kingdom the Alliance belongs to.
 - `events.scope` plus the exact `player_id | alliance_id | kingdom_id` target are immutable after creation at the database boundary.
 - Event target foreign keys use restrictive retention semantics rather than cascading away historical ownership.
 - `events.target_display_name` and `events.target_secondary_label` preserve creation-time display evidence independently of current names.
 - `event_occurrences.event_id` uses restrictive deletion semantics so result-bearing historical occurrences cannot be silently erased with their Event.
 - `event_metric_definitions` defines stable metrics by Event Type scope and structural subject.
-- Metric subjects are `event`, `kingdom_alliance`, and `player`.
-- `event_result_metrics`, `event_kingdom_alliance_result_metrics`, and `event_player_result_metrics` store typed numeric values with definition, optional dimension, provenance source, recorder and timestamp.
+- Metric subjects are `event`, `alliance`, and `player`.
+- `event_result_metrics`, `event_alliance_result_metrics`, and `event_player_result_metrics` store typed numeric values with definition, optional dimension, provenance source, recorder and timestamp.
 - Legacy result-level JSON `metrics` columns and write parameters are removed rather than retained as compatibility fields.
-- `event_kingdom_alliance_results` records represented game-Alliance results inside Kingdom Events by neutral Kingdoms-owned `KingdomAlliance` identity, including frozen name/tag evidence.
-- `event_player_contexts` stores durable Player identity plus occurrence-time name, Kingdom, optional platform Alliance link, optional neutral `KingdomAlliance` link, and frozen represented-Alliance name/tag evidence.
-- Natural uniqueness is enforced for occurrence result, occurrence + Player, occurrence + `KingdomAlliance`, occurrence + Player context, and metric definition/dimension per result.
-- History-oriented indexes cover Player history, represented Alliance/`KingdomAlliance`, Kingdom-at-event, metric definition and occurrence-result access.
+- `event_alliance_results` records Alliance contribution inside Kingdom Events by canonical `alliance_id`, including frozen name/tag evidence.
+- The database rejects an `event_alliance_results.alliance_id` whose `alliances.kingdom_id` does not match the Kingdom Event's `kingdom_id`.
+- `event_player_contexts` stores durable Player identity plus occurrence-time name, `kingdom_id_at_event`, optional represented `alliance_id`, and frozen represented-Alliance display evidence.
+- The database rejects represented Alliance context when that Alliance's `kingdom_id` differs from `kingdom_id_at_event`.
+- Natural uniqueness is enforced for occurrence result, occurrence + Player, occurrence + Alliance, occurrence + Player context, and metric definition/dimension per result.
+- History-oriented indexes cover Player history, represented Alliance, Kingdom-at-event, metric definition and occurrence-result access.
 
 ### Runtime/model alignment
 
 - Event creation snapshots target display metadata from the current authoritative target inside the creation transaction.
 - `EventResult` and `EventPlayerResult` expose normalized metric relations instead of JSON metrics.
-- `EventOccurrence` exposes Event-wide, `KingdomAlliance`, Player-result and Player-context relationships.
+- `EventOccurrence` exposes Event-wide, Alliance, Player-result and Player-context relationships.
 - `EventTypeScope` exposes metric definitions.
-- Event result reads return normalized metric payloads and Kingdom Event `KingdomAlliance` result rows.
+- Event result reads return normalized metric payloads and Alliance result rows.
 
 ### Deliberately deferred to EC-P3
 
@@ -96,7 +120,9 @@ Canonical migrations were changed directly because the database is empty.
 - fresh-schema feature coverage asserts all normalized tables/columns and absence of legacy JSON metric columns;
 - database-level test rejects Event retargeting after creation;
 - target display snapshot test proves later Alliance rename does not rewrite Event evidence;
-- architecture tests protect restrictive target retention, immutability trigger, normalized metrics, neutral `KingdomAlliance` identity and occurrence-time Player context.
+- Kingdom Event result tests prove `alliance_id` is accepted only when `Alliance.kingdom_id` matches the Event Kingdom;
+- historical Player-context tests prove represented `alliance_id` cannot disagree with `kingdom_id_at_event`; and
+- architecture tests protect restrictive target retention, immutability, normalized metrics and the canonical Alliance identity.
 
 ## EC-P2 — KingShot Event metric catalogue
 
@@ -134,9 +160,9 @@ Current affiliation may be displayed for context but never filters the historica
 
 ## EC-P7 — Kingdom historical Event intelligence
 
-Current exact-Kingdom leadership can browse every historical Event targeted at the Kingdom, including `KingdomAlliance`-level and Player-level contribution breakdowns using occurrence-time representation context.
+Current exact-Kingdom leadership can browse every historical Event targeted at the Kingdom, including Alliance-level and Player-level contribution breakdowns using occurrence-time representation context.
 
-Transferred Players remain part of the old Kingdom Event record. Represented game Alliances do not need to be platform tenant Alliances to remain visible historically.
+Transferred Players remain part of the old Kingdom Event record. Alliance grouping is by the canonical historical `alliance_id`; current membership does not rewrite it.
 
 ## EC-P8 — Reporting and exports
 
@@ -144,7 +170,7 @@ Extend Contributions reports/exports with Event source, scope, Event Type, occur
 
 ## EC-P9 — Trends and comparative intelligence
 
-Add Event Type-compatible trends, participation/reliability trends, best/latest/average metrics where meaningful, Alliance historical top contributors, and Kingdom contribution by represented `KingdomAlliance`.
+Add Event Type-compatible trends, participation/reliability trends, best/latest/average metrics where meaningful, Alliance historical top contributors, and Kingdom contribution by represented Alliance.
 
 Do not create a universal score unless a separately governed normalization model is explicitly approved.
 
@@ -158,7 +184,7 @@ Required coverage includes:
 - former leaders losing organization-wide access;
 - old Alliance history retaining former-member results;
 - old Kingdom history retaining transferred-Player results;
-- Kingdom Event results retaining non-tenant `KingdomAlliance` identity;
+- Kingdom Event Alliance results rejecting Alliances from another Kingdom;
 - sibling Player isolation;
 - Platform Admin game-domain bypass rejection;
 - historical snapshots never granting authority;
