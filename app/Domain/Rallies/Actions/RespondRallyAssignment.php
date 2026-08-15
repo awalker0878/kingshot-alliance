@@ -9,6 +9,7 @@ use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMutationAuthority;
+use App\Domain\Events\Services\EventPlayerContextFreezer;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use App\Domain\Rallies\Enums\RallyAssignmentRole;
@@ -26,6 +27,7 @@ final readonly class RespondRallyAssignment
         private EventMutationAuthority $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private RallyPlayerEligibility $eligibility,
+        private EventPlayerContextFreezer $contexts,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -44,9 +46,6 @@ final readonly class RespondRallyAssignment
             $context = $this->eventAuthority->requireSelf($actor, $event, $player);
             $this->capabilities->require($context->event, EventCapability::RallyGuidance);
 
-            // A Declined -> Confirmed response can re-enter occupancy and must
-            // revalidate cross-group uniqueness/capacity. The occurrence is therefore
-            // the legitimate occurrence-wide exclusive coordination row.
             $occurrence = EventOccurrence::query()
                 ->whereKey($group->occurrence_id)
                 ->where('event_id', $context->event->id)
@@ -120,6 +119,10 @@ final readonly class RespondRallyAssignment
                     ->exists()) {
                     throw ValidationException::withMessages(['status' => 'This Player has another active Rally assignment for the same Alliance.']);
                 }
+            }
+
+            if ($status === RallyAssignmentStatus::Confirmed) {
+                $this->contexts->freeze($occurrence, $context->actor, $alliance);
             }
 
             $locked->forceFill([
