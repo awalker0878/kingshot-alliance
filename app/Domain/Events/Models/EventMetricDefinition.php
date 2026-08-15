@@ -27,6 +27,7 @@ final class EventMetricDefinition extends Model
         'unit',
         'value_type',
         'aggregation',
+        'dimension_kind',
         'is_primary',
         'is_contribution_metric',
         'higher_is_better',
