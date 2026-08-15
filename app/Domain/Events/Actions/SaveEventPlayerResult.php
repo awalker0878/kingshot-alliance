@@ -27,7 +27,6 @@ final readonly class SaveEventPlayerResult
         private OutboxRecorder $outbox,
     ) {}
 
-    /** @param array<string,mixed> $metrics */
     public function handle(
         Player $actor,
         EventOccurrence $occurrence,
@@ -35,7 +34,6 @@ final readonly class SaveEventPlayerResult
         ?string $outcome = null,
         ?int $score = null,
         ?int $rank = null,
-        array $metrics = [],
         ?string $notes = null,
     ): EventPlayerResult {
         $occurrence->loadMissing('event');
@@ -54,7 +52,7 @@ final readonly class SaveEventPlayerResult
             throw ValidationException::withMessages(['notes' => 'Result notes must be 10000 characters or fewer.']);
         }
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $player, $outcome, $score, $rank, $metrics, $notes): EventPlayerResult {
+        return DB::transaction(function () use ($actor, $occurrence, $event, $player, $outcome, $score, $rank, $notes): EventPlayerResult {
             $context = $this->mutations->requireManager($actor, $event);
             $this->capabilities->require($context->event, EventCapability::Results);
 
@@ -89,7 +87,6 @@ final readonly class SaveEventPlayerResult
                 'outcome' => $outcome === null || trim($outcome) === '' ? null : trim($outcome),
                 'score' => $score,
                 'rank' => $rank,
-                'metrics' => $metrics === [] ? null : $metrics,
                 'notes' => $notes === null || trim($notes) === '' ? null : trim($notes),
                 'recorded_by_player_id' => $context->actor->id,
                 'recorded_at' => now(),
