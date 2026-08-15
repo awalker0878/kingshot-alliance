@@ -43,9 +43,7 @@ final class EventTemplate extends Model
         'recurrence_interval',
         'settings',
         'is_active',
-
         'created_by_player_id',
-
         'updated_by_player_id',
     ];
 
@@ -96,6 +94,7 @@ final class EventTemplate extends Model
     {
         return $this->belongsTo(Player::class);
     }
+
     /** @return BelongsTo<Player, $this> */
     public function createdByPlayer(): BelongsTo
     {
@@ -108,4 +107,31 @@ final class EventTemplate extends Model
         return $this->belongsTo(Player::class, 'updated_by_player_id');
     }
 
+    public function scopeEnum(): EventScope
+    {
+        $value = $this->getAttribute('scope');
+
+        return $value instanceof EventScope ? $value : EventScope::from((string) $value);
+    }
+
+    public function scheduleSourceEnum(): EventScheduleSource
+    {
+        $value = $this->getAttribute('schedule_source');
+
+        return $value instanceof EventScheduleSource ? $value : EventScheduleSource::from((string) $value);
+    }
+
+    public function recurrencePolicyEnum(): EventRecurrencePolicy
+    {
+        $value = $this->getAttribute('recurrence_policy');
+
+        return $value instanceof EventRecurrencePolicy ? $value : EventRecurrencePolicy::from((string) $value);
+    }
+
+    public function recurrenceFrequencyEnum(): RecurrenceFrequency
+    {
+        $value = $this->getAttribute('recurrence_frequency');
+
+        return $value instanceof RecurrenceFrequency ? $value : RecurrenceFrequency::from((string) $value);
+    }
 }
