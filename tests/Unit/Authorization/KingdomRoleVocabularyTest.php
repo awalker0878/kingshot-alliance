@@ -13,17 +13,22 @@ use PHPUnit\Framework\TestCase;
 
 final class KingdomRoleVocabularyTest extends TestCase
 {
-    public function test_default_kingdom_roles_have_explicit_least_privilege_bundles(): void
+    public function test_default_kingdom_roles_and_permissions_have_context_owned_vocabulary(): void
     {
         self::assertSame(
             ['kingdom_admin', 'kingdom_event_coordinator', 'kingdom_viewer'],
             array_map(static fn (DefaultKingdomRole $role): string => $role->value, DefaultKingdomRole::cases()),
         );
 
-        self::assertContains(KingdomPermission::RoleManage, DefaultKingdomRole::Administrator->permissions());
-        self::assertContains(OperationsPermission::EventKingdomManage, DefaultKingdomRole::Administrator->permissions());
-        self::assertNotContains(KingdomPermission::RoleManage, DefaultKingdomRole::EventCoordinator->permissions());
-        self::assertSame([OperationsPermission::EventKingdomView], DefaultKingdomRole::Viewer->permissions());
+        self::assertSame('kingdom.roles.manage', KingdomPermission::RoleManage->key());
+        self::assertSame('events.kingdom.view', OperationsPermission::EventKingdomView->key());
+        self::assertSame('events.kingdom.create', OperationsPermission::EventKingdomCreate->key());
+        self::assertSame('events.kingdom.manage', OperationsPermission::EventKingdomManage->key());
+
+        self::assertFalse(
+            method_exists(DefaultKingdomRole::class, 'permissions'),
+            'GameWorld role vocabulary must not embed Operations permission bundles.',
+        );
     }
 
     public function test_alliance_ranks_never_grant_kingdom_role_management(): void
