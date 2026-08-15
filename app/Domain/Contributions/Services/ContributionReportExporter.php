@@ -11,10 +11,12 @@ use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Contributions\Models\ContributionReportRun;
 use App\Domain\Contributions\Queries\AllianceContributionReportQuery;
 use App\Domain\Kingdoms\Models\Player;
+use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
+use Throwable;
 
 final class ContributionReportExporter
 {
@@ -33,46 +35,70 @@ final class ContributionReportExporter
             throw new InvalidArgumentException('Unsupported contribution report format.');
         }
 
-        return DB::transaction(function () use ($alliance, $actor, $format): array {
-            if (DB::connection()->getDriverName() === 'pgsql') {
-                DB::statement('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
-            }
+        $connection = DB::connection();
+        if ($connection->transactionLevel() > 0) {
+            return $this->exportWithinTransaction($alliance, $actor, $format);
+        }
 
-            $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
-            $rows = $this->reports->rows($context->alliance);
-            $content = $format === 'csv'
-                ? $this->csv($context->alliance, $rows)
-                : $this->spreadsheet($context->alliance, $rows);
-            $checksum = hash('sha256', $content);
-            $idempotencyKey = hash('sha256', $context->alliance->id.'|'.$context->actor->id.'|'.$format.'|'.Str::ulid());
+        $connection->beginTransaction();
 
-            $run = ContributionReportRun::query()->create([
-                'alliance_id' => $context->alliance->id,
-                'requested_by_player_id' => $context->actor->id,
-                'format' => $format,
-                'status' => 'completed',
-                'report_version' => self::REPORT_VERSION,
-                'filters' => [],
-                'row_count' => count($rows),
-                'checksum' => $checksum,
-                'idempotency_key' => $idempotencyKey,
-                'completed_at' => now(),
-            ]);
+        try {
+            $this->setRepeatableReadBeforeFirstQuery($connection);
+            $export = $this->exportWithinTransaction($alliance, $actor, $format);
+            $connection->commit();
 
-            $this->audit->record('contribution.report.exported', $context->actor, $run, $context->alliance, [
-                'format' => $format,
-                'report_version' => self::REPORT_VERSION,
-                'row_count' => count($rows),
-                'checksum' => $checksum,
-            ]);
+            return $export;
+        } catch (Throwable $exception) {
+            $connection->rollBack();
 
-            return [
-                'content' => $content,
-                'mime' => $format === 'csv' ? 'text/csv; charset=UTF-8' : 'application/vnd.ms-excel; charset=UTF-8',
-                'filename' => sprintf('%s-contributions.%s', $context->alliance->slug, $format === 'csv' ? 'csv' : 'xls'),
-                'run' => $run,
-            ];
-        });
+            throw $exception;
+        }
+    }
+
+    /** @return array{content: string, mime: string, filename: string, run: ContributionReportRun} */
+    private function exportWithinTransaction(Alliance $alliance, Player $actor, string $format): array
+    {
+        $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+        $rows = $this->reports->rows($context->alliance);
+        $content = $format === 'csv'
+            ? $this->csv($context->alliance, $rows)
+            : $this->spreadsheet($context->alliance, $rows);
+        $checksum = hash('sha256', $content);
+        $idempotencyKey = hash('sha256', $context->alliance->id.'|'.$context->actor->id.'|'.$format.'|'.Str::ulid());
+
+        $run = ContributionReportRun::query()->create([
+            'alliance_id' => $context->alliance->id,
+            'requested_by_player_id' => $context->actor->id,
+            'format' => $format,
+            'status' => 'completed',
+            'report_version' => self::REPORT_VERSION,
+            'filters' => [],
+            'row_count' => count($rows),
+            'checksum' => $checksum,
+            'idempotency_key' => $idempotencyKey,
+            'completed_at' => now(),
+        ]);
+
+        $this->audit->record('contribution.report.exported', $context->actor, $run, $context->alliance, [
+            'format' => $format,
+            'report_version' => self::REPORT_VERSION,
+            'row_count' => count($rows),
+            'checksum' => $checksum,
+        ]);
+
+        return [
+            'content' => $content,
+            'mime' => $format === 'csv' ? 'text/csv; charset=UTF-8' : 'application/vnd.ms-excel; charset=UTF-8',
+            'filename' => sprintf('%s-contributions.%s', $context->alliance->slug, $format === 'csv' ? 'csv' : 'xls'),
+            'run' => $run,
+        ];
+    }
+
+    private function setRepeatableReadBeforeFirstQuery(Connection $connection): void
+    {
+        if ($connection->getDriverName() === 'pgsql') {
+            $connection->statement('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
+        }
     }
 
     /** @param list<array<string, scalar|null>> $rows */
