@@ -1,0 +1,177 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Events;
+
+use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Authorization\Enums\DefaultKingdomRole;
+use App\Domain\Authorization\Models\KingdomRoleAssignment;
+use App\Domain\Authorization\Services\KingdomRoleProvisioner;
+use App\Domain\Events\Actions\CreateEvent;
+use App\Domain\Events\Actions\RecordEventAttendance;
+use App\Domain\Events\Actions\SaveEventPlayerResult;
+use App\Domain\Events\Enums\EventAttendanceStatus;
+use App\Domain\Events\Enums\EventScope;
+use App\Domain\Events\Models\Event;
+use App\Domain\Events\Models\EventType;
+use App\Domain\Events\Queries\EventPlayerHistoryQuery;
+use App\Domain\Events\Services\EventTypeRegistry;
+use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\Player;
+use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+final class EventPlayerHistoryQueryTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_exact_player_history_unifies_player_alliance_and_kingdom_scopes_from_frozen_context(): void
+    {
+        $kingdom = Kingdom::query()->create(['number' => 8891, 'status' => 'active']);
+        $player = $this->player($kingdom, 'History Player', '8891-player');
+        $this->grantKingdomAdministrator($player, $kingdom);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, 'History Alliance', 'history-alliance');
+
+        $playerEvent = $this->event($player, $player, 'custom', EventScope::Player, 1);
+        $allianceEvent = $this->event($player, $alliance, 'custom', EventScope::Alliance, 2);
+        $kingdomEvent = $this->event($player, $kingdom, 'custom', EventScope::Kingdom, 3);
+        $save = $this->app->make(SaveEventPlayerResult::class);
+
+        $save->handle($player, $playerEvent->occurrences->firstOrFail(), $player, score: 101);
+        $save->handle($player, $allianceEvent->occurrences->firstOrFail(), $player, score: 202);
+        $save->handle($player, $kingdomEvent->occurrences->firstOrFail(), $player, score: 303);
+        $this->app->make(RecordEventAttendance::class)->handle(
+            $player,
+            $kingdomEvent->occurrences->firstOrFail(),
+            $player,
+            EventAttendanceStatus::Present,
+        );
+
+        $player->forceFill(['current_name' => 'Current Renamed Player'])->save();
+        $alliance->forceFill(['name' => 'Current Renamed Alliance'])->save();
+
+        $history = $this->app->make(EventPlayerHistoryQuery::class)->forPlayer($player->refresh());
+
+        self::assertCount(3, $history);
+        self::assertEqualsCanonicalizing(['player', 'alliance', 'kingdom'], array_column($history, 'scope'));
+        self::assertEqualsCanonicalizing([101, 202, 303], array_map(static fn (array $row): ?int => $row['result']['score'] ?? null, $history));
+        foreach ($history as $row) {
+            self::assertSame((string) $player->id, $row['playerContext']['playerId']);
+            self::assertSame('History Player', $row['playerContext']['playerName']);
+            self::assertSame((string) $kingdom->id, $row['playerContext']['kingdomIdAtEvent']);
+        }
+
+        $allianceRow = collect($history)->firstWhere('scope', EventScope::Alliance->value);
+        self::assertIsArray($allianceRow);
+        self::assertSame((string) $alliance->id, $allianceRow['playerContext']['representedAllianceId']);
+        self::assertSame('History Alliance', $allianceRow['playerContext']['representedAllianceName']);
+
+        $kingdomRow = collect($history)->firstWhere('scope', EventScope::Kingdom->value);
+        self::assertIsArray($kingdomRow);
+        self::assertSame('completed', $kingdomRow['participation']['outcome']);
+    }
+
+    public function test_history_is_exact_player_only_even_when_sibling_players_share_a_user(): void
+    {
+        $kingdom = Kingdom::query()->create(['number' => 8892, 'status' => 'active']);
+        $user = User::factory()->create();
+        $first = Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => '8892-first',
+            'current_name' => 'First Player',
+        ]);
+        $second = Player::query()->create([
+            'user_id' => $user->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => '8892-second',
+            'current_name' => 'Second Player',
+        ]);
+        $event = $this->event($first, $first, 'custom', EventScope::Player, 1);
+        $this->app->make(SaveEventPlayerResult::class)->handle(
+            $first,
+            $event->occurrences->firstOrFail(),
+            $first,
+            score: 77,
+        );
+
+        $query = $this->app->make(EventPlayerHistoryQuery::class);
+        self::assertCount(1, $query->forPlayer($first));
+        self::assertSame([], $query->forPlayer($second));
+    }
+
+    public function test_history_filters_use_historical_context_and_participation_evidence(): void
+    {
+        $kingdom = Kingdom::query()->create(['number' => 8893, 'status' => 'active']);
+        $player = $this->player($kingdom, 'Filter Player', '8893-player');
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, 'Filter Alliance', 'filter-alliance');
+        $event = $this->event($player, $alliance, 'custom', EventScope::Alliance, 1);
+        $occurrence = $event->occurrences->firstOrFail();
+        $this->app->make(RecordEventAttendance::class)->handle(
+            $player,
+            $occurrence,
+            $player,
+            EventAttendanceStatus::Absent,
+        );
+
+        $query = $this->app->make(EventPlayerHistoryQuery::class);
+        $matching = $query->forPlayer($player, [
+            'represented_alliance_id' => (string) $alliance->id,
+            'kingdom_id_at_event' => (string) $kingdom->id,
+            'event_type_slug' => 'custom',
+            'participation_outcome' => 'absent',
+        ]);
+        self::assertCount(1, $matching);
+        self::assertSame('absent', $matching[0]['participation']['outcome']);
+
+        self::assertSame([], $query->forPlayer($player, [
+            'represented_alliance_id' => '01AAAAAAAAAAAAAAAAAAAAAAAA',
+        ]));
+        self::assertSame([], $query->forPlayer($player, [
+            'participation_outcome' => 'completed',
+        ]));
+    }
+
+    private function player(Kingdom $kingdom, string $name, string $gamePlayerId): Player
+    {
+        return Player::query()->create([
+            'user_id' => User::factory()->create()->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => $gamePlayerId,
+            'current_name' => $name,
+        ]);
+    }
+
+    private function grantKingdomAdministrator(Player $player, Kingdom $kingdom): void
+    {
+        $roles = $this->app->make(KingdomRoleProvisioner::class)->provision($kingdom);
+        KingdomRoleAssignment::query()->create([
+            'kingdom_id' => $kingdom->id,
+            'player_id' => $player->id,
+            'kingdom_role_id' => $roles[DefaultKingdomRole::Administrator->value]->id,
+        ]);
+    }
+
+    private function event(
+        Player $actor,
+        Alliance|Kingdom|Player $target,
+        string $slug,
+        EventScope $scope,
+        int $hoursFromNow,
+    ): Event {
+        $type = EventType::query()->where('slug', $slug)->sole();
+        $configuration = $this->app->make(EventTypeRegistry::class)->scope($type, $scope);
+
+        return $this->app->make(CreateEvent::class)->handle(
+            actor: $actor,
+            configuration: $configuration,
+            target: $target,
+            firstLocalStart: CarbonImmutable::now('UTC')->addHours($hoursFromNow),
+            durationMinutes: 60,
+        );
+    }
+}
