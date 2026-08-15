@@ -34,6 +34,33 @@ final class EventTargetResolver
         ];
     }
 
+    /** @return array{target_display_name:string,target_secondary_label:?string} */
+    public function historicalSnapshotFor(Alliance|Kingdom|Player $target): array
+    {
+        if ($target instanceof Alliance) {
+            $target->loadMissing('kingdom');
+
+            return [
+                'target_display_name' => (string) $target->name,
+                'target_secondary_label' => 'Kingdom #'.(int) $target->kingdom->number,
+            ];
+        }
+
+        if ($target instanceof Kingdom) {
+            return [
+                'target_display_name' => 'Kingdom #'.(int) $target->number,
+                'target_secondary_label' => null,
+            ];
+        }
+
+        $target->loadMissing('currentKingdom');
+
+        return [
+            'target_display_name' => (string) $target->current_name,
+            'target_secondary_label' => 'Kingdom #'.(int) $target->currentKingdom->number,
+        ];
+    }
+
     public function defaultTimezone(Player $actor, Alliance|Kingdom|Player $target): string
     {
         return match (true) {
