@@ -9,7 +9,7 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Contributions\Models\ContributionReportRun;
-use App\Domain\Contributions\Queries\ContributionReportingQuery;
+use App\Domain\Contributions\Queries\AllianceContributionReportQuery;
 use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -18,11 +18,11 @@ use RuntimeException;
 
 final class ContributionReportExporter
 {
-    public const REPORT_VERSION = 'phase5.v1';
+    public const REPORT_VERSION = 'event-history.v2';
 
     public function __construct(
         private readonly AllianceMutationAuthority $authority,
-        private readonly ContributionReportingQuery $reports,
+        private readonly AllianceContributionReportQuery $reports,
         private readonly AuditRecorder $audit,
     ) {}
 
@@ -39,7 +39,7 @@ final class ContributionReportExporter
             }
 
             $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
-            $rows = $this->reports->reportRows($context->alliance);
+            $rows = $this->reports->rows($context->alliance);
             $content = $format === 'csv'
                 ? $this->csv($context->alliance, $rows)
                 : $this->spreadsheet($context->alliance, $rows);
@@ -138,9 +138,26 @@ final class ContributionReportExporter
         return [
             'report_version',
             'alliance_id',
+            'record_kind',
             'record_id',
+            'event_id',
+            'occurrence_id',
+            'event_scope',
+            'event_type',
+            'event_started_at',
+            'historical_alliance_id',
+            'historical_alliance_name',
+            'historical_kingdom_id',
             'player_id',
             'player',
+            'event_outcome',
+            'event_rank',
+            'event_score',
+            'metric_key',
+            'metric_label',
+            'metric_dimension',
+            'metric_unit',
+            'metric_value',
             'category',
             'unit',
             'value',
