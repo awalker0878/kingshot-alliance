@@ -148,6 +148,8 @@ Runtime Event Type resolution loads the persisted definitions and score semantic
 
 The catalogue is intentionally conservative. If the application only has a trustworthy score/rank/outcome result for an Event, those first-class fields are sufficient.
 
+The P2 catalogue describes the application's intended measurement contract for the supported Event definitions. It is not a claim that every metric is currently auto-imported from KingShot; capture provenance and derivation are explicitly owned by P3.
+
 ## 6. Authorization, tenancy and privacy
 
 Metric definitions do not grant authority.
