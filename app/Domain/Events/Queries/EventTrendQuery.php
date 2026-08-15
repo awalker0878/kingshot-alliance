@@ -7,7 +7,6 @@ namespace App\Domain\Events\Queries;
 use App\Domain\Events\Enums\EventScope;
 use App\Domain\Kingdoms\Models\Player;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -177,6 +176,53 @@ final readonly class EventTrendQuery
                 'opponent_score' => $row->opponent_score === null ? null : (int) $row->opponent_score,
                 'rank' => $row->rank === null ? null : (int) $row->rank,
                 'outcome' => $row->outcome === null ? null : (string) $row->outcome,
+            ])
+            ->all();
+    }
+
+    /**
+     * Organization metric trends require one exact Event Type + scope + metric key.
+     *
+     * @return list<array{occurrence_id:string,starts_at:string,dimension_key:?string,value:float,unit:?string}>
+     */
+    public function organizationMetricSeries(
+        EventScope $scope,
+        string $targetId,
+        string $eventTypeSlug,
+        string $metricKey,
+        ?CarbonImmutable $from = null,
+        ?CarbonImmutable $until = null,
+    ): array {
+        $targetColumn = $this->organizationTargetColumn($scope);
+        [$from, $until] = $this->window($from, $until);
+
+        return DB::table('event_result_metrics as metric')
+            ->join('event_results as result', 'result.id', '=', 'metric.event_result_id')
+            ->join('event_metric_definitions as definition', 'definition.id', '=', 'metric.metric_definition_id')
+            ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'result.occurrence_id')
+            ->join('events as event', 'event.id', '=', 'occurrence.event_id')
+            ->join('event_types as event_type', 'event_type.id', '=', 'event.event_type_id')
+            ->where('event.scope', $scope->value)
+            ->where($targetColumn, $targetId)
+            ->where('event_type.slug', $eventTypeSlug)
+            ->where('definition.key', $metricKey)
+            ->whereBetween('occurrence.starts_at', [$from, $until])
+            ->orderBy('occurrence.starts_at')
+            ->orderBy('metric.dimension_key')
+            ->limit(self::MAX_OCCURRENCES)
+            ->get([
+                'occurrence.id as occurrence_id',
+                'occurrence.starts_at',
+                'metric.dimension_key',
+                'metric.value',
+                'definition.unit',
+            ])
+            ->map(static fn (object $row): array => [
+                'occurrence_id' => (string) $row->occurrence_id,
+                'starts_at' => (string) $row->starts_at,
+                'dimension_key' => (string) $row->dimension_key === '' ? null : (string) $row->dimension_key,
+                'value' => (float) $row->value,
+                'unit' => $row->unit === null ? null : (string) $row->unit,
             ])
             ->all();
     }
