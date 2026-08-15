@@ -5,19 +5,13 @@ declare(strict_types=1);
 use App\Domain\Events\Catalog\KingShotEventMetricCatalog;
 use App\Domain\Events\Catalog\KingShotEventTypeCatalog;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('event_metric_definitions', function (Blueprint $table): void {
-            $table->string('dimension_kind', 32)->nullable()->after('aggregation');
-        });
-
         $now = now();
 
         foreach (KingShotEventTypeCatalog::definitions() as $definition) {
@@ -80,9 +74,5 @@ return new class extends Migration
         DB::table('event_metric_definitions')
             ->whereIn('event_type_scope_id', $systemScopeIds)
             ->delete();
-
-        Schema::table('event_metric_definitions', function (Blueprint $table): void {
-            $table->dropColumn('dimension_kind');
-        });
     }
 };
