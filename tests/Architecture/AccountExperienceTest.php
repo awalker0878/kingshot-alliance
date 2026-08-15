@@ -49,10 +49,10 @@ final class AccountExperienceTest extends TestCase
         self::assertStringNotContainsString('v-html', $page);
     }
 
-    public function test_account_deletion_uses_existing_request_contract_and_localized_dates(): void
+    public function test_account_deletion_experience_is_preserved_while_cross_context_orchestration_is_deferred(): void
     {
         $page = $this->read('resources/js/pages/AccountDeletion.vue');
-        $controller = $this->read('app/Domain/Identity/Http/Controllers/AccountDeletionController.php');
+        $routes = $this->read('routes/account.php');
 
         self::assertStringContainsString("import AppLayout from '../layouts/AppLayout.vue';", $page);
         self::assertStringContainsString('formatDate(props.request.eligibleAt)', $page);
@@ -63,33 +63,8 @@ final class AccountExperienceTest extends TestCase
         self::assertStringNotContainsString('<main', $page);
         self::assertStringNotContainsString('v-html', $page);
 
-        self::assertStringContainsString("'name' => \$user->name", $controller);
-        self::assertStringContainsString("'email' => \$user->email", $controller);
-        self::assertStringContainsString("with('status', 'account-deletion-requested')", $controller);
-    }
-
-    /** @return list<string> */
-    private function locales(): array
-    {
-        return [
-            'en',
-            'ar',
-            'de',
-            'es',
-            'fr',
-            'id',
-            'it',
-            'ja',
-            'ko',
-            'pl',
-            'pt-BR',
-            'ru',
-            'th',
-            'tr',
-            'vi',
-            'zh-CN',
-            'zh-TW',
-        ];
+        self::assertStringContainsString('Cross-context account deletion is rebuilt under Workflows in ARCH-V2-P8.', $routes);
+        self::assertStringNotContainsString('App\\Domain\\Identity', $routes);
     }
 
     private function read(string $path): string
