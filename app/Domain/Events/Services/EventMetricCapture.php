@@ -137,7 +137,7 @@ final class EventMetricCapture
         if (DB::transactionLevel() < 1) {
             throw new LogicException('Event metrics must be captured inside a database transaction.');
         }
-        if ($source === EventMetricSource::Manual && !($recorder instanceof Player)) {
+        if ($source === EventMetricSource::Manual && ! ($recorder instanceof Player)) {
             throw ValidationException::withMessages([
                 'metrics' => 'Manual Event metrics require a recording Player.',
             ]);
@@ -161,7 +161,7 @@ final class EventMetricCapture
         foreach ($metrics as $index => $metric) {
             $key = trim((string) ($metric['key'] ?? ''));
             $definition = $definitions->get($key);
-            if (!($definition instanceof EventMetricDefinition)) {
+            if (! ($definition instanceof EventMetricDefinition)) {
                 throw ValidationException::withMessages([
                     "metrics.$index.key" => 'This metric is not defined for the Event Type, scope, and subject.',
                 ]);
@@ -222,7 +222,7 @@ final class EventMetricCapture
             default => throw new LogicException('Unsupported Event metric dimension kind: '.$definition->dimension_kind),
         };
 
-        if (!$exists) {
+        if (! $exists) {
             throw ValidationException::withMessages([
                 "metrics.$index.dimension_key" => 'Metric dimension does not exist on this Event occurrence.',
             ]);
@@ -233,7 +233,7 @@ final class EventMetricCapture
 
     private function value(EventMetricDefinition $definition, mixed $value, int $index): string
     {
-        if (!is_int($value) && !is_float($value) && !is_string($value)) {
+        if (! is_int($value) && ! is_float($value) && ! is_string($value)) {
             throw ValidationException::withMessages([
                 "metrics.$index.value" => 'Metric value must be numeric.',
             ]);
