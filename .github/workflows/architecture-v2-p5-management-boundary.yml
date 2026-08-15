@@ -26,6 +26,7 @@ jobs:
           git mv \
             app/Contexts/Platform/EventOperations/Http/Controllers/EventManagementController.php \
             app/Contexts/Operations/EventCore/Http/Controllers/EventManagementController.php
+          rm -rf app/Contexts/Platform/EventOperations
 
           python3 - <<'PY'
           from pathlib import Path
