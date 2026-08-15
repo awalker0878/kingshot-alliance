@@ -9,6 +9,7 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Enums\EventMetricSource;
 use App\Domain\Events\Models\EventOccurrence;
+use App\Domain\Events\Models\EventPlayerContext;
 use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMetricCapture;
@@ -71,18 +72,28 @@ final readonly class SaveEventPlayerResult
                 ->where('event_id', $context->event->id)
                 ->lockForUpdate()
                 ->firstOrFail();
-            $currentPlayer = Player::query()
-                ->whereKey($player->id)
-                ->lockForUpdate()
-                ->firstOrFail();
 
-            if (! $this->participants->eligible($context->event, $currentPlayer)) {
-                throw ValidationException::withMessages([
-                    'player' => 'This Player is not eligible for the Event target.',
-                ]);
+            $currentPlayer = (string) $context->actor->id === (string) $player->id
+                ? $context->actor
+                : Player::query()->whereKey($player->id)->firstOrFail();
+            $frozenContext = $this->contexts->existing($lockedOccurrence, $currentPlayer);
+
+            if (! $frozenContext instanceof EventPlayerContext) {
+                if ((string) $context->actor->id !== (string) $currentPlayer->id) {
+                    $currentPlayer = Player::query()
+                        ->whereKey($currentPlayer->id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
+                }
+
+                if (! $this->participants->eligible($context->event, $currentPlayer)) {
+                    throw ValidationException::withMessages([
+                        'player' => 'This Player is not eligible for the Event target.',
+                    ]);
+                }
+
+                $this->contexts->freeze($lockedOccurrence, $currentPlayer);
             }
-
-            $this->contexts->freeze($lockedOccurrence, $currentPlayer);
 
             $record = EventPlayerResult::query()
                 ->where('occurrence_id', $lockedOccurrence->id)
