@@ -45,6 +45,11 @@ final class EventContributionHistorySchemaTest extends TestCase
             self::assertTrue(Schema::hasTable($table), $table);
         }
 
+        self::assertTrue(Schema::hasColumns('alliances', [
+            'id',
+            'kingdom_id',
+            'name',
+        ]));
         self::assertTrue(Schema::hasColumns('events', [
             'target_display_name',
             'target_secondary_label',
