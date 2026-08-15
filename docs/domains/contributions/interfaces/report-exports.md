@@ -10,7 +10,9 @@
 
 ## 1. Contract scope and owner
 
-Contributions owns the first-party manager export contract for Alliance contribution reporting. The implemented contract provides CSV and SpreadsheetML XML outputs from the same approved reporting rows while recording an immutable report-run evidence record for every explicit export request.
+Contributions owns the first-party manager export contract for Alliance contribution reporting. The export composes Contributions-owned non-Event records with Events-owned historical result/metric facts for Events permanently targeted at the Alliance. Events remains authoritative for Event facts; export generation does not materialize a second Event ledger.
+
+The implementation provides CSV and SpreadsheetML XML from one canonical report row projection while recording an immutable report-run evidence record for every explicit export request.
 
 This contract is distinct from Integrations' `/api/v1/contributions` JSON projection and from Notifications scheduled-delivery coordination.
 
@@ -25,15 +27,11 @@ Both routes are declared in `routes/contributions.php` and handled by `Contribut
 
 ## 3. Authorization, tenancy and rate limits
 
-Both export routes require:
+Both export routes require authenticated/verified first-party Identity, the exact active Player, the active Alliance context, recent password confirmation through the privileged Contributions route group, and current `contributions.manage` authority for that Alliance.
 
-- authenticated session;
-- verified Identity;
-- active `alliance.context`;
-- recent password confirmation through the privileged Contributions route group; and
-- `contributions.manage` authorization.
+Platform Administrator status is not a game-domain bypass. Historical Event rows may include Players who have since left because row ownership follows immutable Event `alliance_id`, while export authorization is evaluated from current Player authority.
 
-Each route is throttled at 10 requests/minute. The tenant is the active Alliance; the request does not accept a caller-selected Alliance identifier.
+Each route is throttled at 10 requests/minute. The request does not accept a caller-selected Alliance identifier.
 
 ## 4. Request and input format
 
@@ -41,14 +39,14 @@ The current export routes take no report-format body and no filter/query schema.
 
 `ContributionReportExporter` accepts only the internal format values `csv` and `spreadsheet`; unsupported formats fail rather than falling back silently.
 
-The exported row set comes from the canonical Contributions reporting query. Caller-supplied evidence, record corrections, calculation provenance, and current status are represented only according to that query's accepted rows.
+The exported row set comes from `AllianceContributionReportQuery`, which composes current canonical Contributions records and Events-owned historical rows. Caller input cannot redefine historical Alliance ownership or Event metric compatibility.
 
 ## 5. Response and output format
 
 The current report version is exactly:
 
 ```text
-phase5.v1
+event-history.v2
 ```
 
 Every row uses this ordered column contract:
@@ -56,8 +54,26 @@ Every row uses this ordered column contract:
 ```text
 report_version
 alliance_id
+record_kind
 record_id
-member
+event_id
+occurrence_id
+event_scope
+event_type
+event_started_at
+historical_alliance_id
+historical_alliance_name
+historical_kingdom_id
+player_id
+player
+event_outcome
+event_rank
+event_score
+metric_key
+metric_label
+metric_dimension
+metric_unit
+metric_value
 category
 unit
 value
@@ -77,12 +93,14 @@ reversal_reason
 correction_reason
 ```
 
+`record_kind` distinguishes Events-owned rows from Contributions-owned rows. Event columns are populated only where meaningful; Contributions category/value/lifecycle fields remain available for non-Event records. Historical Alliance/Kingdom values describe the record at the time of the Event and are not authorization state.
+
 ### CSV
 
 - MIME: `text/csv; charset=UTF-8`
 - filename: `<alliance-slug>-contributions.csv`
 - first row is the exact ordered header set above;
-- values are emitted using standard CSV quoting/escaping.
+- values use standard CSV quoting/escaping.
 
 ### Spreadsheet export
 
@@ -92,68 +110,70 @@ correction_reason
 - worksheet name: `Contributions`;
 - cells are serialized as string-valued SpreadsheetML cells.
 
-Both responses include:
-
-- `X-Report-Version: <report_version>`; and
-- `X-Report-Checksum: <sha256 of exact response content>`.
+The controller response exposes the report version/checksum from the completed report run according to the first-party download contract.
 
 ## 6. State changes, events and asynchronous behavior
 
-An export is a synchronous read/generation operation **plus** evidence persistence. Every successful explicit export creates a `ContributionReportRun` containing:
+Export generation executes in a repeatable-read database transaction on PostgreSQL. Current Alliance mutation authority is re-established inside that transaction and the report projection is generated from one stable snapshot.
 
-- Alliance and requesting User identity;
+Every successful explicit export creates a `ContributionReportRun` containing:
+
+- Alliance identity;
+- requesting `player_id`;
 - format;
 - `status = completed`;
-- `report_version = phase5.v1`;
+- `report_version = event-history.v2`;
 - current filters (`[]` in this contract);
 - row count;
 - SHA-256 content checksum;
-- a unique export-run idempotency/evidence key; and
+- a unique export-run evidence/idempotency key; and
 - completion timestamp.
 
-The export is audited as `contribution.report.exported` with format, version, row count, and checksum. The HTTP response is not queued and does not rely on Notifications/outbox delivery.
+The export is audited as `contribution.report.exported` with Player actor, format, version, row count, and checksum. HTTP file generation is synchronous; Notifications is not used for the explicit download itself.
 
 ## 7. Failure, idempotency and retry
 
-Authentication, tenant, password-confirmation, permission, and rate-limit failures fail before privileged disclosure. Content-generation allocation/read failures are server failures rather than partially successful downloads.
+Authentication, Player-context, password-confirmation, permission, and rate-limit failures occur before privileged disclosure. Unsupported formats fail closed. A generation/read failure does not produce a partially successful report run.
 
-An explicit HTTP export request is not defined as an idempotent business command: each successful request creates a new report-run evidence record. Two runs over unchanged data may produce identical content and therefore the same SHA-256 checksum while retaining distinct run identities.
+An explicit HTTP export request is not one idempotent business command: each successful request creates a new report-run evidence record. Two runs over unchanged data may produce identical bytes/checksum while retaining distinct run identities.
 
-Retrying after an unknown client/network outcome may therefore create another valid run; consumers should use the response checksum/version and retained report-run evidence rather than assume one run per human intent.
+Historical Event composition is read-only with respect to Events, so retries cannot duplicate Event result/metric facts.
 
 ## 8. Versioning and compatibility
 
-`ContributionReportExporter::REPORT_VERSION` is the explicit schema-semantics version and is currently `phase5.v1`.
+`ContributionReportExporter::REPORT_VERSION` is the explicit schema-semantics version and is currently `event-history.v2`.
 
-Within `phase5.v1`, consumers may rely on the documented ordered columns, format distinction, version/checksum response headers, and SpreadsheetML-not-OOXML representation. A change that removes/renames/reorders columns, changes semantic interpretation, changes the spreadsheet byte format, or alters checksum/version behavior requires version/compatibility review plus documentation/tests.
+Within `event-history.v2`, consumers may rely on the documented ordered columns, format distinction, Event/non-Event row composition, version/checksum behavior, and SpreadsheetML-not-OOXML representation. Removing/renaming/reordering columns, changing historical identity semantics, changing spreadsheet bytes, or changing version/checksum behavior requires an explicit version/compatibility review.
 
-The external Integrations API is independently versioned under `/api/v1`; it is not a compatibility alias for `phase5.v1` exports.
+The external Integrations API is independently versioned under `/api/v1`; it is not a compatibility alias for this export format.
 
 ## 9. Security, privacy and operational constraints
 
-Exports are privileged tenant-private disclosure surfaces. The `evidence`, member, calculation, correction, and reversal fields may contain operationally sensitive Alliance information and must not be exposed anonymously or through a lower-privilege member path.
+Exports are privileged Alliance-private disclosure surfaces and may include historical results for former members. Current authorization must therefore be established before the report is generated, but current membership must not filter historical Event rows after authorization succeeds.
 
-Responses should be handled as private downloads. Export evidence retains checksum/provenance rather than copying the entire file into audit metadata.
+Evidence, Player identity, historical affiliation, calculations, corrections, reversals, and Event metrics may contain operationally sensitive information. Responses are private downloads; audit/report-run evidence retains checksum/provenance rather than copying the full file payload.
 
-Operational diagnosis/recovery of reporting persistence is covered by [Contributions operations](../operations/README.md). API disclosure security is separately owned by Integrations.
+Operational diagnosis/recovery is covered by [Contributions operations](../operations/README.md). API disclosure security remains separately owned by Integrations.
 
 ## 10. Tests, non-capabilities and related documentation
 
-Tests should protect manager authorization/tenant isolation, exact format/version/headers, row provenance, report-run persistence/checksum, and the distinction between CSV, SpreadsheetML, and external API JSON.
+Tests protect current Player authorization, former-member historical inclusion, exact format/version/header ordering, Event/non-Event row provenance, report-run persistence/checksum, and the distinction between CSV, SpreadsheetML, and external API JSON.
 
 This contract does **not** provide:
 
 - anonymous/public report export;
 - `.xlsx` OOXML output;
+- an Event-to-Contributions materialization/reconciliation ledger;
 - a contribution import format;
 - a stable external machine API schema; or
-- asynchronous scheduled email delivery semantics.
+- asynchronous scheduled email delivery semantics for an explicit download.
 
 Related documentation:
 
 - [Contributions interface profile](README.md)
 - [Contributions domain](../README.md)
-- [Event reconciliation](../event-reconciliation.md)
+- [Event history composition](../event-history-composition.md)
+- [Event contribution and historical intelligence](../../events/event-contribution-history.md)
 - [Contributions operations](../operations/README.md)
 - [Integrations API](../../integrations/api.md)
 - [Interface documentation standard](../../../product/interface-documentation-standard.md)
