@@ -13,6 +13,7 @@ use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Events\Services\EventParticipantAuthorization;
+use App\Domain\Events\Services\EventPlayerContextFreezer;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -24,6 +25,7 @@ final readonly class RecordEventAttendance
         private EventMutationAuthority $mutations,
         private EventParticipantAuthorization $participants,
         private EventCapabilityGuard $capabilities,
+        private EventPlayerContextFreezer $contexts,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -45,11 +47,9 @@ final readonly class RecordEventAttendance
             $lockedOccurrence = EventOccurrence::query()
                 ->whereKey($occurrence->id)
                 ->where('event_id', $context->event->id)
-                ->sharedLock()
+                ->lockForUpdate()
                 ->firstOrFail();
 
-            // Player identity is the eligibility anchor. Kingdom transfer and roster
-            // lifecycle workflows acquire this Player before changing scope-bound state.
             $currentPlayer = Player::query()
                 ->whereKey($player->id)
                 ->lockForUpdate()
@@ -57,6 +57,10 @@ final readonly class RecordEventAttendance
 
             if (! $this->participants->eligible($context->event, $currentPlayer)) {
                 throw new AuthorizationException;
+            }
+
+            if ($status !== EventAttendanceStatus::Unknown) {
+                $this->contexts->freeze($lockedOccurrence, $currentPlayer);
             }
 
             $record = EventAttendance::query()->updateOrCreate(
