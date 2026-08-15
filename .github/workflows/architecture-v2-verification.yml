@@ -1,4 +1,5 @@
 name: Architecture V2 Verification
+# P4 final hard-cut verification: V1 Authorization must remain absent.
 
 on:
   pull_request:
