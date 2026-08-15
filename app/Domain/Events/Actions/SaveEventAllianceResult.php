@@ -27,7 +27,8 @@ final readonly class SaveEventAllianceResult
         private EventMetricCapture $metrics,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {}
+    ) {
+    }
 
     /**
      * @param list<array{key:string,value:int|float|string,dimension_key?:string|null}> $metrics
@@ -75,7 +76,7 @@ final readonly class SaveEventAllianceResult
                 ->where('alliance_id', $lockedAlliance->id)
                 ->lockForUpdate()
                 ->first();
-            $created = ! $record instanceof EventAllianceResult;
+            $created = !($record instanceof EventAllianceResult);
 
             $record ??= new EventAllianceResult([
                 'occurrence_id' => $lockedOccurrence->id,
