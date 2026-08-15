@@ -43,9 +43,11 @@ final class EventMetricCatalogTest extends TestCase
     public function test_bear_hunt_uses_damage_as_score_and_tracks_rally_contribution(): void
     {
         $profile = $this->profile('bear-hunt', EventScope::Alliance);
+        $score = $profile['score'];
+        self::assertNotNull($score);
 
-        self::assertSame('events.metrics.damage', $profile['score']['label_key']);
-        self::assertSame('damage', $profile['score']['unit']);
+        self::assertSame('events.metrics.damage', $score['label_key']);
+        self::assertSame('damage', $score['unit']);
         self::assertSame(
             ['rallies_joined', 'rallies_led'],
             array_column($profile['metrics'], 'key'),
@@ -55,8 +57,10 @@ final class EventMetricCatalogTest extends TestCase
     public function test_viking_vengeance_tracks_wave_execution_without_duplicate_score_metric(): void
     {
         $profile = $this->profile('viking-vengeance', EventScope::Alliance);
+        $score = $profile['score'];
+        self::assertNotNull($score);
 
-        self::assertSame('points', $profile['score']['unit']);
+        self::assertSame('points', $score['unit']);
         self::assertSame(
             ['waves_defended', 'defense_failures'],
             array_column($profile['metrics'], 'key'),
@@ -101,8 +105,10 @@ final class EventMetricCatalogTest extends TestCase
     public function test_kingdom_of_power_phase_points_are_dimensioned_for_event_alliance_and_player(): void
     {
         $profile = $this->profile('kingdom-of-power', EventScope::Kingdom);
+        $score = $profile['score'];
+        self::assertNotNull($score);
 
-        self::assertSame('events.metrics.total_points', $profile['score']['label_key']);
+        self::assertSame('events.metrics.total_points', $score['label_key']);
         self::assertCount(3, $profile['metrics']);
         self::assertSame(
             ['event', 'alliance', 'player'],
