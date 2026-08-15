@@ -1,51 +1,33 @@
-# Architecture V2 big-bang rewrite
+# Architecture V2 — Big-Bang Rewrite Plan
 
-**Status:** Active rewrite plan  
-**Branch:** `architecture-v2`  
-**Baseline:** `d78a3371a2267982e9cdc278cb592228cfbb6a6a`  
-**Rewrite mode:** clean replacement, not compatibility migration
+## Purpose
 
-## Objective
+Replace the current noun-per-domain architecture with a smaller set of cohesive bounded contexts that own related capabilities and business invariants.
 
-Replace the current noun-per-domain modular-monolith structure with a smaller set of meaningful bounded contexts, capability modules inside those contexts, explicit cross-context workflows, and an explicit compositional read side.
+This is a **big-bang replacement**, not an incremental compatibility migration. V2 code replaces V1 code directly. There are no dual APIs, compatibility facades, aliases, shadow writes, legacy fallbacks, or deprecation periods inside the rewrite branch.
 
-The rewrite preserves validated business/security invariants, especially Player-scoped game authority and transaction-time authorization, but does **not** preserve the current application architecture merely for compatibility.
+## Security model
 
-## Non-negotiable rewrite rules
+The application has two deliberately separate authority layers:
 
-This repository is treated as a new application. There is no legacy consumer or production-data compatibility requirement for Architecture V2.
+- `User` is the account/platform identity. It owns authentication, account security, email delivery identity and true platform-administrator authority only.
+- `Player` is the game-domain principal. Alliance membership, R1-R5 rank, specialist Alliance roles, Kingdom roles, visibility and all game-domain permissions are Player-scoped.
 
-The rewrite therefore MUST NOT introduce:
+A User may own many Players. Game authority is never aggregated across those Players. The selected active Player determines the effective game-domain identity and therefore the Alliance and Kingdom authority visible to the request. Platform Administrator is not a game-domain authorization bypass.
 
-- namespace aliases or `class_alias` bridges from `App\\Domain\\*` to V2 classes;
-- `Legacy`, `Compatibility`, `Compat`, or transitional proxy layers used to preserve old application APIs;
-- dual reads, dual writes, shadow tables, compatibility columns, transitional foreign keys, or backfill-only schema paths;
-- old permission keys retained as aliases for new permissions;
-- old routes retained only as redirects/aliases to preserve the previous internal route structure;
-- old models wrapping new models or new models wrapping old persistence;
-- test-only production helpers that preserve superseded APIs;
-- deprecated services kept alive solely to make old call sites continue working; or
-- documentation that describes both architectures as concurrently supported.
+## Architectural goals
 
-When a V2 capability replaces an old capability, all call sites and tests are rewritten to the V2 contract and the superseded implementation is deleted.
+- model cohesive business capabilities rather than creating a domain for every noun;
+- make ownership and transaction boundaries obvious;
+- preserve Player-scoped game authority and exact tenant/Kingdom isolation;
+- remove cross-context ORM navigation from foundation models;
+- allow read composition without giving read models mutation authority;
+- remove the global business permission catalogue as an extension point;
+- make dependencies flow in one intentional direction;
+- keep Shared limited to technical contracts/infrastructure;
+- eliminate all superseded V1 runtime, tests and living documentation by the end of the rewrite.
 
-Because the application uses a fresh database model, V2 may replace/squash/reorder application migrations into a clean schema. Historical migration compatibility is not a product requirement.
-
-## Security invariants that survive the rewrite
-
-Architecture simplification must not weaken authority semantics:
-
-- `User` is account/platform identity only.
-- A User may own many Players.
-- The active `Player` is the game-domain principal.
-- Alliance/Kingdom/game-operation authority is Player-scoped.
-- Platform Administrator is not a game-domain bypass.
-- mutations authorize inside the transaction against the current locked authority state;
-- aggregate/state locks remain domain-appropriate rather than globally standardized;
-- historical facts remain keyed to durable Player/Alliance/Kingdom identity and are not rewritten when current placement changes; and
-- cross-context orchestration does not create duplicate writable truth.
-
-## Target application structure
+## Target application roots
 
 ```text
 app/
@@ -62,48 +44,31 @@ app/
 └── ReadModels/
 ```
 
+## Context responsibilities
+
 ### Accounts
 
-Own global account identity/security only: User, authentication, verified email, profile, sessions, password, MFA and recovery.
+Own account authentication/security/profile behavior and the User aggregate. Account identity does not grant game-domain authority.
 
 ### GameWorld
 
-Own small neutral KingShot identity/governance foundations: Player, Kingdom, game-Alliance reference, active Player context, current game placement, Kingdom governance and Player transfer primitives.
+Own neutral KingShot identity and placement facts: Player, Kingdom, game Alliance identity/observation primitives and Kingdom governance state that is not specific to a downstream feature.
 
-Foundation models expose identity/reference state only. They do not expose ORM navigation into higher-level contexts.
+Neutral GameWorld identity is not observation/intelligence state.
 
 ### Alliance
 
-Own platform Alliance lifecycle and cohesive Alliance operations: Alliance core/settings, membership, R1-R5 leadership, specialist roles, invitations, recruitment and Alliance content.
+Own the cohesive platform-Alliance capability: Alliance tenant lifecycle, membership, R1-R5 leadership, specialist roles, invitations, recruitment and Alliance content.
+
+Alliance authority is resolved from the active Player's current Alliance membership, rank and specialist roles. A User never directly holds Alliance membership, role or permission grants.
 
 ### Operations
 
-Own operational event execution as capability modules rather than peer top-level domains:
-
-- EventCore
-- Participation
-- Polls
-- Rosters
-- BattlePlans
-- Rallies
-- KingPerks
-- Results
-- Metrics
-
-`EventCore` owns identity/scope/schedule/occurrence/phase/capability selection; capability modules own their own state and behavior.
+Own planned and live Alliance/Kingdom operations: Event core/scheduling, participation, polls, rosters, battle plans, Rallies, King Perks, results and operational metrics.
 
 ### Intelligence
 
-Own observation, ingestion, analytical and reporting concerns:
-
-- player/Alliance/roster observations and snapshots;
-- ingestion/reconciliation/quarantine/CSV intake;
-- contribution ledger/corrections;
-- reporting/exports/leaderboards/trends;
-- intelligence sharing/grants/consent/history; and
-- diplomacy/intelligence analysis.
-
-Neutral GameWorld identity is not observation/intelligence state.
+Own observed/imported game state and analysis: roster observations, Kingdom observations, ingestion, sharing policy, diplomacy, Contributions and intelligence/reporting projections.
 
 ### Communications
 
@@ -196,12 +161,16 @@ Historical acceptance/security evidence may remain in an archive/evidence locati
 
 ### ARCH-V2-P0 — Freeze and inventory
 
+**Implementation status:** complete.
+
 - pin the V1 baseline;
 - inventory current domains, schema families, routes, jobs, UI/test surfaces and architectural constraints;
 - record old→new ownership mapping;
 - freeze the no-compatibility contract.
 
 ### ARCH-V2-P1 — New skeleton and architecture enforcement
+
+**Implementation status:** complete.
 
 - create `Contexts`, `Shared`, `Workflows`, and `ReadModels` roots;
 - create dependency/layer architecture tests;
@@ -210,7 +179,7 @@ Historical acceptance/security evidence may remain in an archive/evidence locati
 
 ### ARCH-V2-P2 — Accounts and GameWorld foundation
 
-**Implementation status:** hard cut landed; static-analysis contract fixes applied; targeted verification in progress.
+**Implementation status:** complete.
 
 - move User/account security to Accounts;
 - rebuild Player/Kingdom/game-Alliance identity in GameWorld;
@@ -221,10 +190,14 @@ Historical acceptance/security evidence may remain in an archive/evidence locati
 
 ### ARCH-V2-P3 — Alliance context
 
+**Implementation status:** complete. Architecture V2 verification is green for schema, Pint, architecture contracts, Larastan, Accounts/GameWorld behavior and Alliance bounded-context behavior.
+
 - merge Alliance core, membership, leadership/R1-R5, specialist roles, invitations, recruitment and content into cohesive Alliance capability modules;
 - rewrite all tests/call sites directly to V2 contracts.
 
 ### ARCH-V2-P4 — Access rewrite
+
+**Implementation status:** in progress.
 
 - replace global `PermissionKey` and specialized mutation-authority proliferation;
 - introduce context-owned permissions/policies plus scope-aware access engine;
