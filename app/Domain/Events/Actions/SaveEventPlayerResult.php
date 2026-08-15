@@ -31,11 +31,10 @@ final readonly class SaveEventPlayerResult
         private EventMetricCapture $metrics,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param list<array{key:string,value:int|float|string,dimension_key?:string|null}> $metrics
+     * @param  list<array{key:string,value:int|float|string,dimension_key?:string|null}>  $metrics
      */
     public function handle(
         Player $actor,
@@ -48,8 +47,7 @@ final readonly class SaveEventPlayerResult
         array $metrics = [],
         EventMetricSource $metricSource = EventMetricSource::Manual,
     ): EventPlayerResult {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
+        $event = $occurrence->event()->firstOrFail();
 
         if ($outcome !== null && mb_strlen(trim($outcome)) > 80) {
             throw ValidationException::withMessages(['outcome' => 'Outcome must be 80 characters or fewer.']);
@@ -137,7 +135,7 @@ final readonly class SaveEventPlayerResult
                 $alliance?->id,
                 $record,
                 $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
+                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
             );
 
             return $record->refresh()->load(['player', 'metrics.definition']);
