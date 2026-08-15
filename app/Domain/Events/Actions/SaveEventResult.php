@@ -61,7 +61,7 @@ final readonly class SaveEventResult
                 ->lockForUpdate()
                 ->first()
                 ?? new EventResult(['occurrence_id' => $lockedOccurrence->id]);
-            $created = !$record->exists;
+            $created = ! $record->exists;
 
             $record->forceFill([
                 'outcome' => $outcome === null || trim($outcome) === '' ? null : trim($outcome),
