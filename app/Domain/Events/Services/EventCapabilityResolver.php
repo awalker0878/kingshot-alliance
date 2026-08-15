@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Events\Services;
 
 use App\Domain\Events\Enums\EventCapability;
+use App\Domain\Events\Models\EventTypeCapability;
 use App\Domain\Events\Models\EventTypeScope;
 
 final class EventCapabilityResolver
@@ -13,7 +14,7 @@ final class EventCapabilityResolver
     {
         if ($configuration->relationLoaded('capabilities')) {
             return $configuration->capabilities->contains(
-                static fn ($row): bool => $row->capability === $capability,
+                static fn (EventTypeCapability $row): bool => $row->capabilityEnum() === $capability,
             );
         }
 
@@ -22,12 +23,13 @@ final class EventCapabilityResolver
             ->exists();
     }
 
-
     /** @return array<string, mixed> */
     public function configuration(EventTypeScope $configuration, EventCapability $capability): array
     {
         $row = $configuration->relationLoaded('capabilities')
-            ? $configuration->capabilities->first(static fn ($item): bool => $item->capability === $capability)
+            ? $configuration->capabilities->first(
+                static fn (EventTypeCapability $item): bool => $item->capabilityEnum() === $capability,
+            )
             : $configuration->capabilities()->where('capability', $capability->value)->first();
 
         return is_array($row?->configuration) ? $row->configuration : [];
