@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Services;
 
+use App\Domain\Events\Models\EventMetricDefinition;
 use App\Domain\Events\Models\EventTypeScope;
 
 final class EventTypeDefaultsResolver
@@ -13,13 +14,31 @@ final class EventTypeDefaultsResolver
     {
         $stored = EventTypeScope::query()
             ->whereKey($configuration->id)
-            ->with(['eventType', 'capabilities'])
+            ->with(['eventType', 'capabilities', 'metricDefinitions'])
             ->firstOrFail();
 
         $capabilities = [];
         foreach ($stored->capabilities as $capability) {
             $capabilities[$capability->capability->value] = $capability->configuration ?? [];
         }
+
+        $metrics = $stored->metricDefinitions
+            ->map(static fn (EventMetricDefinition $definition): array => [
+                'id' => (string) $definition->id,
+                'subject' => $definition->subject->value,
+                'key' => (string) $definition->key,
+                'label_key' => (string) $definition->label_key,
+                'unit' => $definition->unit,
+                'value_type' => $definition->value_type->value,
+                'aggregation' => $definition->aggregation->value,
+                'dimension_kind' => $definition->dimension_kind,
+                'is_primary' => $definition->is_primary,
+                'is_contribution_metric' => $definition->is_contribution_metric,
+                'higher_is_better' => $definition->higher_is_better,
+                'sort_order' => $definition->sort_order,
+            ])
+            ->values()
+            ->all();
 
         return [
             'event_type_scope_id' => (string) $stored->id,
@@ -38,6 +57,12 @@ final class EventTypeDefaultsResolver
             'default_registration_closes_minutes_before' => $stored->default_registration_closes_minutes_before,
             'default_instructions_key' => $stored->default_instructions_key,
             'default_settings' => $stored->default_settings ?? [],
+            'result_score' => $stored->result_score_label_key === null ? null : [
+                'label_key' => $stored->result_score_label_key,
+                'unit' => $stored->result_score_unit,
+                'higher_is_better' => $stored->result_score_higher_is_better,
+            ],
+            'metrics' => $metrics,
             'capabilities' => $capabilities,
         ];
     }
