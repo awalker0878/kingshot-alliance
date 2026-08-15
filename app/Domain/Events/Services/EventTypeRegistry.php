@@ -23,7 +23,7 @@ final class EventTypeRegistry
             ->with(['scopes' => static fn ($query) => $query
                 ->where('scope', $scope->value)
                 ->where('is_active', true)
-                ->with('capabilities')])
+                ->with(['capabilities', 'metricDefinitions'])])
             ->orderBy('sort_order')
             ->orderBy('slug')
             ->get();
@@ -34,7 +34,7 @@ final class EventTypeRegistry
         $configuration = $type->scopes()
             ->where('scope', $scope->value)
             ->where('is_active', true)
-            ->with('capabilities')
+            ->with(['capabilities', 'metricDefinitions'])
             ->first();
 
         if (! $configuration instanceof EventTypeScope || ! $type->is_active) {
