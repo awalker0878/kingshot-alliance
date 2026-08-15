@@ -90,8 +90,22 @@ final class ArchitectureV2OperationsTest extends TestCase
 
         self::assertStringNotContainsString('EventPlayerIntelligenceQuery', $commandSource);
         self::assertStringNotContainsString('function manage(', $commandSource);
+        self::assertStringContainsString('public function store(', $commandSource);
+        self::assertStringContainsString('public function update(', $commandSource);
+        self::assertStringContainsString('public function cancel(', $commandSource);
         self::assertStringContainsString('EventPlayerIntelligenceQuery', $projectionSource);
-        self::assertStringContainsString('EventManagementPageController::class', $routesSource);
+        self::assertStringContainsString(
+            "Route::get('/events/{event}/manage', EventManagementPageController::class)",
+            $routesSource,
+        );
+        self::assertStringContainsString(
+            "Route::post('/events', [EventManagementController::class, 'store'])",
+            $routesSource,
+        );
+        self::assertStringContainsString(
+            "Route::patch('/events/{event}', [EventManagementController::class, 'update'])",
+            $routesSource,
+        );
         self::assertDirectoryDoesNotExist($this->root().'/app/Contexts/Platform/EventOperations');
     }
 
