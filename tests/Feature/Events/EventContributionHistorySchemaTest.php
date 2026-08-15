@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature\Events;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Enums\EventScope;
+use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventTypeRegistry;
 use App\Domain\Identity\Models\User;
@@ -119,7 +121,7 @@ final class EventContributionHistorySchemaTest extends TestCase
         return [$player, $kingdom];
     }
 
-    private function createAllianceEvent(Player $player, object $alliance): \App\Domain\Events\Models\Event
+    private function createAllianceEvent(Player $player, Alliance $alliance): Event
     {
         $type = EventType::query()->where('slug', 'custom')->sole();
         $configuration = $this->app->make(EventTypeRegistry::class)->scope($type, EventScope::Alliance);
