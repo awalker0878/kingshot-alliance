@@ -1,0 +1,57 @@
+name: Architecture V2 P5 Event Admin Boundary
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths:
+      - '.github/workflows/architecture-v2-p5-admin-boundary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cut:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Move Event administration to Platform
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p app/Contexts/Platform/EventAdministration/Http/Controllers
+          git mv app/Contexts/Operations/EventCore/Http/Controllers/EventTypeAdministrationController.php app/Contexts/Platform/EventAdministration/Http/Controllers/EventTypeAdministrationController.php
+          rm app/Contexts/Operations/EventCore/Actions/UpdateEventTypeScope.php
+          python3 - <<'PY'
+          from pathlib import Path
+          replacements = {
+              'namespace App\\Contexts\\Operations\\EventCore\\Http\\Controllers;': 'namespace App\\Contexts\\Platform\\EventAdministration\\Http\\Controllers;',
+              'App\\Contexts\\Operations\\EventCore\\Actions\\UpdateEventTypeScope': 'App\\Contexts\\Platform\\EventAdministration\\Actions\\UpdateEventTypeScope',
+              'App\\Contexts\\Operations\\EventCore\\Http\\Controllers\\EventTypeAdministrationController': 'App\\Contexts\\Platform\\EventAdministration\\Http\\Controllers\\EventTypeAdministrationController',
+          }
+          for base_name in ('app','routes','tests','bootstrap','config','database'):
+              base = Path(base_name)
+              if not base.exists():
+                  continue
+              for path in base.rglob('*.php'):
+                  source = path.read_text()
+                  updated = source
+                  for old,new in replacements.items():
+                      updated = updated.replace(old,new)
+                  if updated != source:
+                      path.write_text(updated)
+          PY
+          if grep -RInE 'App\\Contexts\\Operations\\EventCore\\(Actions\\UpdateEventTypeScope|Http\\Controllers\\EventTypeAdministrationController)' app routes tests bootstrap config database --include='*.php'; then
+            exit 1
+          fi
+          php -l app/Contexts/Platform/EventAdministration/Actions/UpdateEventTypeScope.php
+          php -l app/Contexts/Platform/EventAdministration/Http/Controllers/EventTypeAdministrationController.php
+      - name: Commit boundary correction
+        run: |
+          git config user.name 'architecture-v2-bot'
+          git config user.email 'architecture-v2-bot@users.noreply.github.com'
+          git add app routes tests bootstrap config database
+          git commit -m 'refactor(arch-v2): keep event administration in Platform'
+          git push origin HEAD:architecture-v2
