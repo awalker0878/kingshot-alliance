@@ -163,6 +163,7 @@ jobs:
           app/Contexts/GameWorld
           app/Contexts/Alliance
           app/Shared
+          app/Workflows
           app/ReadModels/AllianceDashboard
           app/Domain/Authorization
           bootstrap/app.php
