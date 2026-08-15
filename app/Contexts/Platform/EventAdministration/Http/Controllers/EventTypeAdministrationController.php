@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Operations\EventCore\Http\Controllers;
+namespace App\Contexts\Platform\EventAdministration\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
-use App\Contexts\Operations\EventCore\Actions\UpdateEventTypeScope;
+use App\Contexts\Platform\EventAdministration\Actions\UpdateEventTypeScope;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Enums\EventRecurrencePolicy;
 use App\Contexts\Operations\EventCore\Enums\EventScheduleSource;

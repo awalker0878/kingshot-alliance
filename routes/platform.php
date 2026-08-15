@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Contexts\Operations\EventCore\Http\Controllers\EventTypeAdministrationController;
+use App\Contexts\Platform\EventAdministration\Http\Controllers\EventTypeAdministrationController;
 use App\Domain\Platform\Http\Controllers\PlatformAdministrationController;
 use Illuminate\Support\Facades\Route;
 
