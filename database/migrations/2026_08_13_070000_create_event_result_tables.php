@@ -149,6 +149,7 @@ return new class extends Migration
         $driver = DB::connection()->getDriverName();
 
         if ($driver === 'pgsql') {
+            DB::statement('DROP FUNCTION IF EXISTS event_alliance_results_validate_kingdom()');
             DB::statement(<<<'SQL'
 CREATE FUNCTION event_alliance_results_validate_kingdom() RETURNS trigger AS $$
 BEGIN
@@ -178,6 +179,7 @@ CREATE TRIGGER event_alliance_results_kingdom_update
 BEFORE UPDATE OF occurrence_id, alliance_id ON event_alliance_results
 FOR EACH ROW EXECUTE FUNCTION event_alliance_results_validate_kingdom()
 SQL);
+            DB::statement('DROP FUNCTION IF EXISTS event_player_contexts_validate_alliance_kingdom()');
             DB::statement(<<<'SQL'
 CREATE FUNCTION event_player_contexts_validate_alliance_kingdom() RETURNS trigger AS $$
 BEGIN
