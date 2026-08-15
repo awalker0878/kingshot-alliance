@@ -8,6 +8,8 @@
 **Content candidate SHA:** `3ebd2ec3a25432baa636840911995be1a451f9c2`  
 **Validated candidate/evidence SHA:** `66b2ca498ac89e550d3e718b174e07172e7409bd`
 
+> Historical evidence note: this report preserves the interface/export state validated at the recorded DCP-P4 SHA. EVENT-CONTRIB-001 later superseded the living Contributions Event contract with [Event history composition](../domains/contributions/event-history-composition.md) and the current `event-history.v2` export schema. Historical run IDs/counts below are intentionally unchanged.
+
 ## 1. Outcome
 
 The DCP-P4 interface/event/integration inventory is fully implemented and the exact candidate/evidence head passed all protected candidate gates.
@@ -48,17 +50,9 @@ Accepted content coverage:
 
 ### Contributions report exports
 
-`docs/domains/contributions/interfaces/report-exports.md` records:
+At the recorded DCP-P4 evidence SHA, `docs/domains/contributions/interfaces/report-exports.md` documented the then-current `phase5.v1` export contract. EVENT-CONTRIB-001 later superseded that living contract with `event-history.v2`; see the current [Contributions report exports](../domains/contributions/interfaces/report-exports.md).
 
-- authenticated/verified active-Alliance manager access plus password confirmation;
-- 10/minute export throttling;
-- explicit report version `phase5.v1`;
-- exact ordered report columns;
-- CSV MIME/filename semantics;
-- SpreadsheetML XML served as `.xls`, explicitly **not** OOXML `.xlsx`;
-- `X-Report-Version` and `X-Report-Checksum` response headers;
-- `ContributionReportRun` evidence/checksum/run identity/audit behavior; and
-- separation from Integrations `/api/v1/contributions` JSON.
+The P4-validated contract included authenticated/verified manager access, throttling, CSV/SpreadsheetML formats, report-run checksum/evidence, and separation from Integrations `/api/v1/contributions` JSON.
 
 ### Events calendar exports
 
@@ -74,10 +68,10 @@ Accepted content coverage:
 
 ## 5. Accepted focused contracts reused by P4
 
-P4 retains and indexes accepted contracts rather than rewriting them:
+The current living paths for the accepted/reused capabilities are:
 
 - Content — `media.md`;
-- Contributions — `event-reconciliation.md`;
+- Contributions — `event-history-composition.md` (superseding the former reconciliation contract);
 - Events — `registration-and-attendance.md`;
 - Identity — `mfa-and-recovery.md`;
 - Integrations — `api.md`, `webhooks.md`;
@@ -88,17 +82,7 @@ P4 retains and indexes accepted contracts rather than rewriting them:
 
 ## 6. HTTP/UI/API ownership result
 
-P4 reconciled:
-
-- `routes/web.php`;
-- `routes/api.php`;
-- `routes/account.php`;
-- `routes/contributions.php`;
-- `routes/integrations.php`;
-- `routes/kingdoms.php`;
-- `routes/platform.php`;
-- `routes/console.php`; and
-- routing/middleware/readiness declarations in `bootstrap/app.php`.
+P4 reconciled the executable route/bootstrap inventory existing at its evidence SHA. The current interface coverage matrix remains the authoritative live route inventory as later route files are added.
 
 Profiles document route families/ownership rather than generated endpoint lists. Runtime route files/tests remain exhaustive truth.
 
@@ -129,21 +113,15 @@ All `kingdoms.*` events remain externally ineligible even for wildcard subscript
 
 ## 9. Commands, jobs and scheduled work
 
-The P4 matrix now makes all custom `routes/console.php` commands discoverable, covering Platform runtime/lifecycle/outbox controls, Content publication, Notifications Event/Contribution delivery coordination, Integrations webhook queueing, and Recruitment retention/anonymization.
+The P4 matrix makes custom `routes/console.php` commands discoverable, covering Platform runtime/lifecycle/outbox controls, Content publication, Notifications Event/Contribution delivery coordination, Integrations webhook queueing, and Recruitment retention/anonymization.
 
-P3 operations documentation remains authoritative for recovery/reconciliation behavior.
+Current living operations documentation is authoritative for recovery behavior; no EVENT-CONTRIB-001 Event-to-Contributions reconciliation worker exists.
 
 ## 10. File/import/export boundaries
 
-P4 documents:
+P4 documented Content private media, Contributions report exports, Events CSV/iCalendar, Kingdoms CSV, and Platform privileged Alliance JSON export. The recorded P4 export version was `phase5.v1`; the current Contributions export version is `event-history.v2` and is defined by the living export contract.
 
-- Content private media screening/storage/public-branding use;
-- Contributions CSV and SpreadsheetML report exports;
-- Events CSV/iCalendar outputs;
-- Kingdoms `kingdoms-roster.v1` CSV preview/commit/export; and
-- Platform privileged Alliance JSON export.
-
-Compatibility-sensitive details include Kingdoms exact headers/UTF-8/no-NUL/1-MiB/500-row constraints, Contributions `phase5.v1`, Membership/Recruitment 64-hex tokens, and Events UID/PRODID/UTC semantics.
+Other historical compatibility details recorded at the P4 evidence SHA remain evidence of that candidate and are not rewritten here.
 
 ## 11. Explicit non-capabilities preserved
 
@@ -173,18 +151,9 @@ docs/domains/<domain>/interfaces/README.md
 
 ## 13. CI enforcement
 
-`tests/Architecture/InterfaceDocumentationTest.php` verifies:
+`tests/Architecture/InterfaceDocumentationTest.php` verifies code-domain/interface-profile parity, profile structure, focused contracts, reused-contract links, current route inventory, bootstrap/readiness coverage, and domain-index navigation.
 
-- 14/14 code-domain/interface-profile parity;
-- profile metadata and 12-section ordering;
-- exact two-new-focused-contract inventory;
-- new focused metadata and 10-section ordering;
-- required reused-contract links/existence;
-- code-backed coverage for every current `routes/*.php` source;
-- `bootstrap/app.php` and `/health/ready`; and
-- domain-index navigation.
-
-Existing architecture tests continue to enforce repository-wide Markdown links, naming/ownership, domain roots and P1–P3 documentation gates.
+Existing architecture tests continue to enforce repository-wide Markdown links, naming/ownership, domain roots and documentation gates.
 
 ## 14. Protected candidate validation
 
@@ -205,10 +174,8 @@ Exact candidate/evidence head `66b2ca498ac89e550d3e718b174e07172e7409bd` passed:
   - backup/restore — success; and
   - image scan — success.
 
-The candidate gate is therefore accepted with no P4 defect exposed.
+The candidate gate is accepted with no P4 defect exposed at that recorded evidence SHA.
 
 ## 15. Final transition gate
 
-The remaining P4 requirement is purely the hard evidence-head rule: after this report, the coverage matrix, and the DCP ledger record P4 completion/P5 selection, that exact resulting branch head must independently pass protected Dependency Review, CodeQL, and complete CI.
-
-Until that final-head result is green, **do not begin DCP-P5 implementation**.
+The historical P4 evidence remains preserved above. Later accepted architecture changes are governed by their own current contracts and verification evidence rather than by rewriting the recorded P4 run identity.
