@@ -15,6 +15,7 @@ on:
       - 'routes/king-perks.php'
       - 'tests/Feature/KingPerks/**'
       - 'tests/Unit/KingPerks/**'
+      - 'tsconfig.king-perks.json'
       - '.github/workflows/king-perks-verification.yml'
   workflow_dispatch:
 
@@ -127,8 +128,8 @@ jobs:
       - name: Prettier King Perks pages
         run: npx prettier --check resources/js/pages/KingPerks
 
-      - name: Vue TypeScript contract
-        run: npm run types:check
+      - name: King Perks Vue TypeScript contract
+        run: npx vue-tsc --noEmit -p tsconfig.king-perks.json
 
       - name: Targeted production build
         run: npm run build
