@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Operations\EventCore\Http\Controllers;
+namespace App\Contexts\Platform\EventOperations\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Models\Player;
