@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Core\Services;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Models\Player;
 use LogicException;
 
 final class AllianceContext
 {
     private ?Alliance $alliance = null;
+
     private ?AllianceMembership $membership = null;
+
     private ?Player $player = null;
 
     public function activate(Player $player, AllianceMembership $membership, Alliance $alliance): void

@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Content\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Shared\Audit\Services\AuditRecorder;
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
 use App\Contexts\Alliance\Content\Models\ContentItem;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 

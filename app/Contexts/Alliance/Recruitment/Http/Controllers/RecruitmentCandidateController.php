@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Http\Controllers;
 
+use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Membership\Enums\RosterState;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Shared\Http\Controller;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Alliance\Recruitment\Actions\AddRecruitmentNote;
 use App\Contexts\Alliance\Recruitment\Actions\AssignRecruitmentReviewer;
 use App\Contexts\Alliance\Recruitment\Actions\ChangeRecruitmentStage;
@@ -34,6 +31,8 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentDecisionTemplate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentTag;
 use App\Contexts\Alliance\Recruitment\Queries\RecruitmentDuplicateFinder;
+use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;

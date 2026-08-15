@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Http\Controllers;
 
-use App\Contexts\Alliance\Core\Enums\AllianceStatus;
-use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Content\Queries\ContentQuery;
 use App\Contexts\Alliance\Content\Services\ContentPresenter;
+use App\Contexts\Alliance\Core\Enums\AllianceStatus;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Shared\Http\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

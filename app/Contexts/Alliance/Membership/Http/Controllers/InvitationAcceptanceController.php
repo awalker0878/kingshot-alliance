@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Membership\Http\Controllers;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Actions\AcceptInvitation;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
 use App\Shared\Http\Controller;

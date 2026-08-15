@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Models;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
 use App\Contexts\Alliance\Content\Enums\ContentType;
 use App\Contexts\Alliance\Content\Enums\ContentVisibility;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

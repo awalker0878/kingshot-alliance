@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Authorization\Actions;
 
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Authorization\Enums\DefaultKingdomRole;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Models\KingdomRole;
 use App\Domain\Authorization\Models\KingdomRoleAssignment;
 use App\Domain\Authorization\Services\KingdomMutationAuthority;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
+use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Authorization\Services;
 
-use App\Domain\Authorization\ValueObjects\PlayerMutationContext;
 use App\Contexts\GameWorld\Models\Player;
+use App\Domain\Authorization\ValueObjects\PlayerMutationContext;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 

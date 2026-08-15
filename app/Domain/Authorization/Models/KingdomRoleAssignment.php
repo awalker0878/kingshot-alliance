@@ -9,12 +9,13 @@ use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $kingdom_id
  * @property string $player_id
  * @property string $kingdom_role_id
- * @property \Illuminate\Support\Carbon|null $created_at
+ * @property Carbon|null $created_at
  * @property-read Kingdom $kingdom
  * @property-read Player $player
  * @property-read KingdomRole $role

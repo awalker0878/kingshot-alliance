@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Membership\Http\Controllers;
 
-use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Alliance\Access\Actions\AssignMembershipRole;
 use App\Contexts\Alliance\Access\Actions\RemoveMembershipRole;
+use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Actions\LeaveAlliance;
 use App\Contexts\Alliance\Membership\Actions\TransferAllianceLeadership;
 use App\Contexts\Alliance\Membership\Actions\UpdateAllianceRank;
@@ -49,7 +49,6 @@ final class MembershipController extends Controller
 
         return redirect()->route('alliance.overview');
     }
-
 
     public function transferLeadership(
         Request $request,

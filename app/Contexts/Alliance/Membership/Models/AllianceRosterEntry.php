@@ -67,5 +67,4 @@ final class AllianceRosterEntry extends Model
     {
         return $this->belongsTo(Player::class, 'player_id');
     }
-
 }

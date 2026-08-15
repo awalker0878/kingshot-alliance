@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Core\Http\Controllers;
 
-use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Shared\Http\Controller;

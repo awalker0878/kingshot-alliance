@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Core\Http\Middleware;
 
+use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Alliance\Core\ValueObjects\TenantContextSnapshot;
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Services\PlayerContext;
 use Closure;
 use Illuminate\Http\Request;
 use LogicException;
