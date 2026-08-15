@@ -113,6 +113,8 @@ final class EventContributionHistoryArchitectureTest extends TestCase
         $catalogue = $this->read('app/Domain/Events/Catalog/KingShotEventMetricCatalog.php');
         $typeMigration = $this->read('database/migrations/2026_08_07_020000_create_event_type_catalogue_tables.php');
         $seedMigration = $this->read('database/migrations/2026_08_13_071000_seed_event_metric_catalogue.php');
+        $capability = $this->read('docs/domains/events/event-metric-catalogue.md');
+        $domainIndex = $this->read('docs/domains/events/README.md');
 
         self::assertStringContainsString("'score' => \$score", $catalogue);
         self::assertStringContainsString("'metrics' => \$metrics", $catalogue);
@@ -121,6 +123,8 @@ final class EventContributionHistoryArchitectureTest extends TestCase
         self::assertStringContainsString('result_score_higher_is_better', $typeMigration);
         self::assertStringContainsString('KingShotEventMetricCatalog::profile', $seedMigration);
         self::assertStringNotContainsString('Schema::table', $seedMigration);
+        self::assertStringContainsString('## 12. Related documentation', $capability);
+        self::assertStringContainsString('event-metric-catalogue.md', $domainIndex);
     }
 
     public function test_metric_subjects_use_canonical_alliance_identity_and_not_kingdom_alliance_identity(): void
