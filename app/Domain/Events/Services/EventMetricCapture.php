@@ -25,7 +25,7 @@ use LogicException;
 final class EventMetricCapture
 {
     /**
-     * @param list<array{key:string,value:int|float|string,dimension_key?:string|null}> $metrics
+     * @param  list<array{key:string,value:int|float|string,dimension_key?:string|null}>  $metrics
      */
     public function forEventResult(
         EventResult $result,
@@ -58,7 +58,7 @@ final class EventMetricCapture
     }
 
     /**
-     * @param list<array{key:string,value:int|float|string,dimension_key?:string|null}> $metrics
+     * @param  list<array{key:string,value:int|float|string,dimension_key?:string|null}>  $metrics
      */
     public function forAllianceResult(
         EventAllianceResult $result,
@@ -91,7 +91,7 @@ final class EventMetricCapture
     }
 
     /**
-     * @param list<array{key:string,value:int|float|string,dimension_key?:string|null}> $metrics
+     * @param  list<array{key:string,value:int|float|string,dimension_key?:string|null}>  $metrics
      */
     public function forPlayerResult(
         EventPlayerResult $result,
@@ -124,7 +124,7 @@ final class EventMetricCapture
     }
 
     /**
-     * @param list<array{key:string,value:int|float|string,dimension_key?:string|null}> $metrics
+     * @param  list<array{key:string,value:int|float|string,dimension_key?:string|null}>  $metrics
      * @return list<array{definition:EventMetricDefinition,dimension_key:string,value:string}>
      */
     private function validatedValues(
@@ -143,13 +143,14 @@ final class EventMetricCapture
             ]);
         }
 
-        $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->with('event')->firstOrFail();
+        $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->firstOrFail();
+        $event = $occurrence->event()->firstOrFail();
         $keys = array_values(array_unique(array_map(
             static fn (array $metric): string => trim((string) ($metric['key'] ?? '')),
             $metrics,
         )));
         $definitions = EventMetricDefinition::query()
-            ->where('event_type_scope_id', $occurrence->event->event_type_scope_id)
+            ->where('event_type_scope_id', $event->event_type_scope_id)
             ->where('subject', $subject->value)
             ->whereIn('key', $keys)
             ->get()
