@@ -4,7 +4,17 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\EventCore\Models;
 
+use App\Contexts\Operations\BattlePlans\Models\EventObjective;
 use App\Contexts\Operations\EventCore\Enums\EventOccurrenceStatus;
+use App\Contexts\Operations\Participation\Models\EventAttendance;
+use App\Contexts\Operations\Participation\Models\EventPlayerContext;
+use App\Contexts\Operations\Participation\Models\EventRegistration;
+use App\Contexts\Operations\Participation\Models\EventResponse;
+use App\Contexts\Operations\Polls\Models\EventPoll;
+use App\Contexts\Operations\Results\Models\EventAllianceResult;
+use App\Contexts\Operations\Results\Models\EventPlayerResult;
+use App\Contexts\Operations\Results\Models\EventResult;
+use App\Contexts\Operations\Rosters\Models\EventRoster;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
