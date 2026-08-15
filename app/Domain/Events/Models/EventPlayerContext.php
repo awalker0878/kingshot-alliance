@@ -6,6 +6,7 @@ namespace App\Domain\Events\Models;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Models\Kingdom;
+use App\Domain\Kingdoms\Models\KingdomAlliance;
 use App\Domain\Kingdoms\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +25,7 @@ final class EventPlayerContext extends Model
         'player_id',
         'player_name_snapshot',
         'represented_alliance_id',
+        'represented_kingdom_alliance_id',
         'represented_alliance_name_snapshot',
         'represented_alliance_tag_snapshot',
         'kingdom_id_at_event',
@@ -53,6 +55,12 @@ final class EventPlayerContext extends Model
     public function representedAlliance(): BelongsTo
     {
         return $this->belongsTo(Alliance::class, 'represented_alliance_id');
+    }
+
+    /** @return BelongsTo<KingdomAlliance, $this> */
+    public function representedKingdomAlliance(): BelongsTo
+    {
+        return $this->belongsTo(KingdomAlliance::class, 'represented_kingdom_alliance_id');
     }
 
     /** @return BelongsTo<Kingdom, $this> */
