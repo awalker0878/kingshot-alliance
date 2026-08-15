@@ -95,6 +95,7 @@ final class EventContributionHistoryArchitectureTest extends TestCase
             'represented_alliance_id',
             'kingdom_id_at_event',
             'context_frozen_at',
+            "string('dimension_kind', 32)->nullable()",
             "foreignUlid('alliance_id')->constrained('alliances')->restrictOnDelete()",
             'event_alliance_results_validate_kingdom',
             "decimal('value', 30, 4)",
@@ -111,15 +112,15 @@ final class EventContributionHistoryArchitectureTest extends TestCase
     {
         $catalogue = $this->read('app/Domain/Events/Catalog/KingShotEventMetricCatalog.php');
         $typeMigration = $this->read('database/migrations/2026_08_07_020000_create_event_type_catalogue_tables.php');
-        $metricMigration = $this->read('database/migrations/2026_08_13_071000_seed_event_metric_catalogue.php');
+        $seedMigration = $this->read('database/migrations/2026_08_13_071000_seed_event_metric_catalogue.php');
 
         self::assertStringContainsString("'score' => \$score", $catalogue);
         self::assertStringContainsString("'metrics' => \$metrics", $catalogue);
-        self::assertStringContainsString("result_score_label_key", $typeMigration);
-        self::assertStringContainsString("result_score_unit", $typeMigration);
-        self::assertStringContainsString("result_score_higher_is_better", $typeMigration);
-        self::assertStringContainsString("dimension_kind", $metricMigration);
-        self::assertStringContainsString("KingShotEventMetricCatalog::profile", $metricMigration);
+        self::assertStringContainsString('result_score_label_key', $typeMigration);
+        self::assertStringContainsString('result_score_unit', $typeMigration);
+        self::assertStringContainsString('result_score_higher_is_better', $typeMigration);
+        self::assertStringContainsString('KingShotEventMetricCatalog::profile', $seedMigration);
+        self::assertStringNotContainsString('Schema::table', $seedMigration);
     }
 
     public function test_metric_subjects_use_canonical_alliance_identity_and_not_kingdom_alliance_identity(): void
