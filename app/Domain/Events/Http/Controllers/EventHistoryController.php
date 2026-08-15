@@ -28,7 +28,7 @@ final readonly class EventHistoryController extends Controller
     ): Response {
         $user = $this->user($request);
         $actor = $this->playerContext->player();
-        $filters = $this->filters($request);
+        $validated = $this->validatedFilters($request);
 
         return Inertia::render('Events/OrganizationHistory', [
             'user' => $this->identity($user),
@@ -38,8 +38,8 @@ final readonly class EventHistoryController extends Controller
                 'name' => (string) $alliance->name,
                 'secondaryLabel' => $alliance->tag === null ? null : (string) $alliance->tag,
             ],
-            'filters' => $this->filterPayload($request),
-            'history' => $history->forAlliance($actor, $alliance, $filters),
+            'filters' => $this->filterPayload($validated),
+            'history' => $history->forAlliance($actor, $alliance, $this->filters($validated)),
         ]);
     }
 
@@ -50,7 +50,7 @@ final readonly class EventHistoryController extends Controller
     ): Response {
         $user = $this->user($request);
         $actor = $this->playerContext->player();
-        $filters = $this->filters($request);
+        $validated = $this->validatedFilters($request);
 
         return Inertia::render('Events/OrganizationHistory', [
             'user' => $this->identity($user),
@@ -60,29 +60,31 @@ final readonly class EventHistoryController extends Controller
                 'name' => 'Kingdom '.(string) $kingdom->number,
                 'secondaryLabel' => null,
             ],
-            'filters' => $this->filterPayload($request),
-            'history' => $history->forKingdom($actor, $kingdom, $filters),
+            'filters' => $this->filterPayload($validated),
+            'history' => $history->forKingdom($actor, $kingdom, $this->filters($validated)),
         ]);
     }
 
-    /** @return array{event_type_slug?:string|null,from?:CarbonImmutable|null,until?:CarbonImmutable|null,limit?:int|null} */
-    private function filters(Request $request): array
+    /**
+     * @param  array<string,mixed>  $validated
+     * @return array{event_type_slug:?string,from:?CarbonImmutable,until:?CarbonImmutable,limit:int}
+     */
+    private function filters(array $validated): array
     {
-        $validated = $this->validatedFilters($request);
-
         return [
-            'event_type_slug' => $validated['event_type_slug'] ?? null,
+            'event_type_slug' => isset($validated['event_type_slug']) ? (string) $validated['event_type_slug'] : null,
             'from' => isset($validated['from']) ? CarbonImmutable::parse((string) $validated['from']) : null,
             'until' => isset($validated['until']) ? CarbonImmutable::parse((string) $validated['until']) : null,
             'limit' => isset($validated['limit']) ? (int) $validated['limit'] : 100,
         ];
     }
 
-    /** @return array{eventTypeSlug:?string,from:?string,until:?string,limit:int} */
-    private function filterPayload(Request $request): array
+    /**
+     * @param  array<string,mixed>  $validated
+     * @return array{eventTypeSlug:?string,from:?string,until:?string,limit:int}
+     */
+    private function filterPayload(array $validated): array
     {
-        $validated = $this->validatedFilters($request);
-
         return [
             'eventTypeSlug' => isset($validated['event_type_slug']) ? (string) $validated['event_type_slug'] : null,
             'from' => isset($validated['from']) ? (string) $validated['from'] : null,
