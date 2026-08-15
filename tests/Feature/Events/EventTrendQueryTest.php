@@ -35,8 +35,9 @@ final class EventTrendQueryTest extends TestCase
         $user = User::factory()->create();
         $player = $this->player($user, $kingdom, 'Trend Player', '9001-player');
         $sibling = $this->player($user, $kingdom, 'Sibling', '9001-sibling');
-        $first = $this->event($player, $player, 'custom', EventScope::Player, 1);
-        $second = $this->event($player, $player, 'hero-roulette', EventScope::Player, 2);
+        $alliance = $this->app->make(CreateAlliance::class)->handle($player, 'Trend Reliability Alliance', 'trend-reliability');
+        $first = $this->event($player, $alliance, 'bear-hunt', EventScope::Alliance, 1);
+        $second = $this->event($player, $alliance, 'viking-vengeance', EventScope::Alliance, 2);
         $attendance = $this->app->make(RecordEventAttendance::class);
         $attendance->handle($player, $first->occurrences->firstOrFail(), $player, EventAttendanceStatus::Present);
         $attendance->handle($player, $second->occurrences->firstOrFail(), $player, EventAttendanceStatus::Absent);
