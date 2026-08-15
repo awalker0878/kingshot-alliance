@@ -13,6 +13,7 @@ use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventCapabilityResolver;
 use App\Domain\Events\Services\EventMutationAuthority;
+use App\Domain\Events\Services\EventPlayerContextFreezer;
 use App\Domain\Events\Services\EventRegistrationWindow;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
@@ -26,14 +27,14 @@ final readonly class RegisterForEvent
         private EventCapabilityGuard $capabilities,
         private EventCapabilityResolver $capabilityResolver,
         private EventRegistrationWindow $window,
+        private EventPlayerContextFreezer $contexts,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(Player $actor, EventOccurrence $occurrence, Player $player): EventRegistration
     {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
+        $event = $occurrence->event()->firstOrFail();
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $player): EventRegistration {
             $context = $this->mutations->requireSelf($actor, $event, $player);
@@ -59,7 +60,11 @@ final readonly class RegisterForEvent
                 ->lockForUpdate()
                 ->first();
 
-            if ($existing instanceof EventRegistration && $existing->status !== EventRegistrationStatus::Cancelled) {
+            if ($existing instanceof EventRegistration && $existing->statusEnum() !== EventRegistrationStatus::Cancelled) {
+                if ($existing->statusEnum() === EventRegistrationStatus::Registered) {
+                    $this->contexts->freeze($lockedOccurrence, $currentPlayer);
+                }
+
                 return $existing;
             }
 
@@ -104,6 +109,10 @@ final readonly class RegisterForEvent
                 ]);
             }
 
+            if ($status === EventRegistrationStatus::Registered) {
+                $this->contexts->freeze($lockedOccurrence, $currentPlayer);
+            }
+
             $alliance = $context->target instanceof Alliance ? $context->target : null;
             $metadata = [
                 'occurrence_id' => (string) $lockedOccurrence->id,
@@ -117,7 +126,7 @@ final readonly class RegisterForEvent
                 $alliance?->id,
                 $registration,
                 $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
+                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
             );
 
             return $registration->refresh();

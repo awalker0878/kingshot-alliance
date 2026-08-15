@@ -92,8 +92,8 @@ final class CreateEvent
                 : EventTemplate::query()->whereKey($template->id)->sharedLock()->firstOrFail();
 
             $scheduleDefaults = $currentTemplate === null ? $storedDefaults : [
-                'recurrence_policy' => $currentTemplate->recurrence_policy->value,
-                'default_recurrence_frequency' => $currentTemplate->recurrence_frequency->value,
+                'recurrence_policy' => $currentTemplate->recurrencePolicyEnum()->value,
+                'default_recurrence_frequency' => $currentTemplate->recurrenceFrequencyEnum()->value,
                 'default_recurrence_interval' => $currentTemplate->recurrence_interval,
                 'minimum_repeat_interval_minutes' => $currentTemplate->minimum_repeat_interval_minutes,
             ];
@@ -123,8 +123,8 @@ final class CreateEvent
                 throw new InvalidArgumentException('Registration must open before it closes.');
             }
 
-            $resolvedFrequency = $frequency ?? ($currentTemplate?->recurrence_frequency);
-            $resolvedInterval = $recurrenceInterval ?? ($currentTemplate?->recurrence_interval);
+            $resolvedFrequency = $frequency ?? $currentTemplate?->recurrenceFrequencyEnum();
+            $resolvedInterval = $recurrenceInterval ?? $currentTemplate?->recurrence_interval;
             $resolvedSchedule = $this->schedulePolicy->resolve($scheduleDefaults, $resolvedFrequency, $resolvedInterval);
             if ($resolvedSchedule['frequency'] === RecurrenceFrequency::None && $recurrenceUntilLocal !== null) {
                 throw new InvalidArgumentException('A non-recurring event cannot have a recurrence end date.');
@@ -141,6 +141,7 @@ final class CreateEvent
             );
 
             $targetColumns = $this->targets->columnsFor($currentTarget);
+            $targetSnapshot = $this->targets->historicalSnapshotFor($currentTarget);
             if ($currentTemplate !== null) {
                 $templateColumns = [
                     'alliance_id' => $currentTemplate->alliance_id === null ? null : (string) $currentTemplate->alliance_id,
@@ -148,13 +149,15 @@ final class CreateEvent
                     'player_id' => $currentTemplate->player_id === null ? null : (string) $currentTemplate->player_id,
                 ];
                 if ((string) $currentTemplate->event_type_scope_id !== (string) $currentConfiguration->id
-                    || $currentTemplate->scope !== $scope
+                    || $currentTemplate->scopeEnum() !== $scope
                     || $templateColumns !== $targetColumns) {
                     throw new InvalidArgumentException('Event template does not match the selected event type scope and target.');
                 }
             }
 
-            $baseSettings = $currentTemplate?->settings ?? $storedDefaults['default_settings'];
+            $baseSettings = $currentTemplate instanceof EventTemplate
+                ? ($currentTemplate->settings ?? [])
+                : $storedDefaults['default_settings'];
             $resolvedSettings = array_replace_recursive($baseSettings, $settings);
             $resolvedInstructions = $instructions ?? $currentTemplate?->instructions;
 
@@ -163,11 +166,14 @@ final class CreateEvent
                 'event_type_id' => $currentConfiguration->event_type_id,
                 'scope' => $scope,
                 ...$targetColumns,
+                ...$targetSnapshot,
                 'template_id' => $currentTemplate?->id,
                 'title' => $title === null || trim($title) === '' ? null : trim($title),
                 'instructions' => $resolvedInstructions === null || trim($resolvedInstructions) === '' ? null : trim($resolvedInstructions),
                 'timezone' => $timezone,
-                'schedule_source' => $currentTemplate?->schedule_source ?? $storedDefaults['schedule_source'],
+                'schedule_source' => $currentTemplate instanceof EventTemplate
+                    ? $currentTemplate->scheduleSourceEnum()
+                    : $storedDefaults['schedule_source'],
                 'recurrence_policy' => $scheduleDefaults['recurrence_policy'],
                 'minimum_repeat_interval_minutes' => $scheduleDefaults['minimum_repeat_interval_minutes'],
                 'starts_at' => $localStart->utc(),

@@ -14,7 +14,9 @@ final class EventTypeCapability extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     public $timestamps = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -29,6 +31,15 @@ final class EventTypeCapability extends Model
             'capability' => EventCapability::class,
             'configuration' => 'array',
         ];
+    }
+
+    public function capabilityEnum(): EventCapability
+    {
+        $value = $this->getAttribute('capability');
+
+        return $value instanceof EventCapability
+            ? $value
+            : EventCapability::from((string) $value);
     }
 
     /** @return BelongsTo<EventTypeScope, $this> */

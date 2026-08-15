@@ -14,7 +14,10 @@ final class EventAttendance extends Model
 {
     use HasUlids;
 
+    protected $table = 'event_attendance';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -30,7 +33,21 @@ final class EventAttendance extends Model
         ];
     }
 
-    public function occurrence(): BelongsTo { return $this->belongsTo(EventOccurrence::class); }
-    public function player(): BelongsTo { return $this->belongsTo(Player::class); }
-    public function recordedByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'recorded_by_player_id'); }
+    /** @return BelongsTo<EventOccurrence, $this> */
+    public function occurrence(): BelongsTo
+    {
+        return $this->belongsTo(EventOccurrence::class);
+    }
+
+    /** @return BelongsTo<Player, $this> */
+    public function player(): BelongsTo
+    {
+        return $this->belongsTo(Player::class);
+    }
+
+    /** @return BelongsTo<Player, $this> */
+    public function recordedByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'recorded_by_player_id');
+    }
 }

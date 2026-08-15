@@ -20,7 +20,8 @@ The executable route sources represented by the living interface profiles are:
 - `routes/web.php` — public, Identity, Alliance/member/manager, Content, Events/Rallies, Memberships, Recruitment surfaces;
 - `routes/api.php` — Integrations-owned `/api/v1` external machine reads;
 - `routes/account.php` — Identity account-deletion surfaces;
-- `routes/contributions.php` — Contributions member/manager/report/export surfaces;
+- `routes/contributions.php` — Contributions member/manager/report/export and active-Player lifetime-history surfaces;
+- `routes/event-history.php` — Event result, roster-participation, Alliance history, and Kingdom history surfaces;
 - `routes/integrations.php` — Integrations first-party credential/webhook administration;
 - `routes/kingdoms.php` — Kingdoms roster/import/transfer/game-Alliance/diplomacy surfaces;
 - `routes/platform.php` — Platform-administrator cross-tenant surfaces;
@@ -82,8 +83,8 @@ Internal publication, internal consumption, and external webhook delivery remain
 | Audit | internal `AuditRecorder`; no direct HTTP/API | Profile only | Complete |
 | Authorization | permission/rank/evaluation/role assignment; Memberships route adapters | Profile only | Complete |
 | Content | public/member/manage content, branding/media, scheduled publication | Reuse `media.md` | Complete |
-| Contributions | records/reporting, Events reconciliation, API projection, privileged exports | `interfaces/report-exports.md`; reuse `event-reconciliation.md` | Complete |
-| Events | calendar/detail/registration, Rally adapters, API projection, authenticated CSV/ICS | `interfaces/calendar-exports.md`; reuse `registration-and-attendance.md` | Complete |
+| Contributions | records/reporting, Event-history composition, API projection, privileged exports | `interfaces/report-exports.md`; reuse `event-history-composition.md` | Complete |
+| Events | calendar/detail/registration, historical results/intelligence, Rally adapters, API projection, authenticated CSV/ICS | `interfaces/calendar-exports.md`; reuse `registration-and-attendance.md` | Complete |
 | Identity | auth/reset/verification/profile/session/password-confirm/MFA/account deletion | Reuse `mfa-and-recovery.md` | Complete |
 | Integrations | credential/webhook admin, `/api/v1`, bearer scopes, outbound webhooks | Reuse `api.md`, `webhooks.md` | Complete |
 | Kingdoms | roster/history/intelligence/import/export/transfer/diplomacy; internal-only events | Reuse `csv-migration.md` plus accepted Kingdoms set | Complete |
@@ -97,13 +98,13 @@ Internal publication, internal consumption, and external webhook delivery remain
 
 Exactly two new focused contracts are required and complete:
 
-1. [Contributions report exports](../domains/contributions/interfaces/report-exports.md) — `phase5.v1`, CSV/SpreadsheetML, exact fields/headers/evidence semantics.
+1. [Contributions report exports](../domains/contributions/interfaces/report-exports.md) — versioned CSV/SpreadsheetML, exact fields/headers/evidence semantics.
 2. [Events calendar exports](../domains/events/interfaces/calendar-exports.md) — authenticated CSV/iCalendar, UTC/UID/calendar metadata, no public bearer feed.
 
 ## 8. Accepted capability contracts reused by P4
 
 - Content — `docs/domains/content/media.md`;
-- Contributions — `docs/domains/contributions/event-reconciliation.md`;
+- Contributions — `docs/domains/contributions/event-history-composition.md`;
 - Events — `docs/domains/events/registration-and-attendance.md`;
 - Identity — `docs/domains/identity/mfa-and-recovery.md`;
 - Integrations — `docs/domains/integrations/api.md`, `docs/domains/integrations/webhooks.md`;
@@ -133,15 +134,15 @@ There is no accepted public Recruitment candidate export or public Kingdoms data
 - API credentials: `ks_live_<12 hex>.<64 hex>`, fixed read scopes, hashed verifier.
 - Webhook signatures: HMAC-SHA256 over `<unix timestamp>.<exact JSON body>` with `X-Kingshot-*` headers.
 - Kingdoms CSV: `kingdoms-roster.v1`, exact header order, UTF-8/no-NUL, 1 MiB, 500 rows.
-- Contributions report version: `phase5.v1`.
+- Contributions report version: `event-history.v2`.
 - Events ICS: stable `PRODID`, occurrence-based UID, UTC DTSTART/DTEND.
 
 ## 11. Caller boundary summary
 
 - **Anonymous/public:** approved public Content/branding, Recruitment intake, invitation landing, guest Identity entry points.
-- **First-party member:** active-Alliance member-safe feature surfaces.
-- **First-party manager:** owning-domain privileged mutations plus password confirmation where required.
-- **Platform administrator:** distinct verified/MFA-backed Platform grant; not Alliance-role derived.
+- **First-party Player:** exact active-Player personal history and permitted game-domain feature surfaces.
+- **First-party manager/leader:** owning-domain privileged mutations and scope-authorized organization history, plus password confirmation where required.
+- **Platform administrator:** distinct verified/MFA-backed Platform grant; never a game-domain Event-history bypass.
 - **External machine:** Integrations bearer API only.
 - **Outbound external:** Integrations webhooks only.
 - **Internal:** supported actions/queries/services/outbox events between domains.

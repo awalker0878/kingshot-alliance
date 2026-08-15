@@ -8,6 +8,8 @@
 **Content candidate SHA:** `d94e1fd5740d0ddfd90bab9cc99c3670d7c03bfb`  
 **Validated candidate SHA:** `be4a87734b44fa09643b6e8e5066283b5ed4fece`
 
+> Historical evidence note: this report preserves the DCP-P1 validation identity. The Contributions capability created during P1 was later superseded by the greenfield EVENT-CONTRIB-001 [Event history composition](../domains/contributions/event-history-composition.md) contract; no reconciliation/materialization ledger remains in the current model.
+
 ## 1. Outcome
 
 DCP-P1 is complete. The frozen domain/code-ownership documentation inventory reached 100% required coverage and passed the repository's protected validation on the recorded candidate head.
@@ -41,11 +43,11 @@ The 19 capability contracts comprise 13 P1-created contracts plus the 6 existing
 
 ## 4. New material capability contracts
 
-P1 added:
+P1 added the material capability split that is retained today, with later architecture decisions allowed to supersede living filenames/semantics while preserving this historical evidence:
 
 - Alliances — `tenant-context.md`;
 - Content — `media.md`;
-- Contributions — `event-reconciliation.md`;
+- Contributions — current contract `event-history-composition.md` (superseding the former reconciliation contract);
 - Events — `registration-and-attendance.md`;
 - Identity — `mfa-and-recovery.md`;
 - Integrations — `api.md`, `webhooks.md`;
@@ -76,7 +78,7 @@ It no longer implies that domain-specific evidence remains in the top-level shar
 
 ## 7. CI enforcement
 
-`tests/Architecture/RepositoryStructureTest.php` now verifies:
+`tests/Architecture/RepositoryStructureTest.php` verifies:
 
 - every code domain has a code-local README with the standard heading order;
 - every code-local README links its matching canonical domain root;

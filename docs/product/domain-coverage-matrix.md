@@ -11,7 +11,7 @@
 
 This is the authoritative completed `DCP-P1` inventory. It records every canonical code domain, the code areas reviewed at module/category level, the material capability-document decision, and the final phase coverage state.
 
-A domain is not complete merely because its root README exists. Required capability documents identified here are part of the P1 gate.
+A domain is not complete merely because its root README exists. Required capability documents identified here are part of the P1 gate. Living capability names and semantics may be superseded by later accepted architecture decisions while historical validation evidence below remains unchanged.
 
 ## 2. Capability decision key
 
@@ -27,7 +27,7 @@ A domain is not complete merely because its root README exists. Required capabil
 | Audit | Audit event model, recorder service, attributable tenant/actor evidence | Root | None | Complete |
 | Authorization | permission vocabulary, built-in roles/ranks, role assignment/removal, permission evaluation | Root | None | Complete |
 | Content | content/category/revision state, publication/scheduling, private media lifecycle, public/member presentation | Split | `media.md` | Complete |
-| Contributions | categories/records/calculation provenance, correction/reversal, Events reconciliation, quality/reporting/export/schedules | Split | `event-reconciliation.md` | Complete |
+| Contributions | categories/records/calculation provenance, correction/reversal, Event-history composition, quality/reporting/export/schedules | Split | `event-history-composition.md` | Complete |
 | Events | Event/template/occurrence scheduling, recurrence, registration/capacity/waitlist, attendance, calendar/export boundary | Split | `registration-and-attendance.md` | Complete |
 | Identity | global User/authentication, verification/password/session assurance, TOTP MFA and recovery codes | Split | `mfa-and-recovery.md` | Complete |
 | Integrations | Alliance-bound API credentials/read API, webhook subscriptions/signing/delivery/retries | Split | `api.md`, `webhooks.md` | Complete |
@@ -48,9 +48,9 @@ A domain is not complete merely because its root README exists. Required capabil
 
 Private storage, upload validation/screening, usable/archived media state, and branding attachment safety have a distinct security/storage lifecycle from authored content publication.
 
-### Contributions — Event reconciliation
+### Contributions — Event history composition
 
-`event_attendance` reconciliation consumes Events-owned facts and has independent deterministic identity, reverse/restore behavior, correction semantics, and retry requirements.
+Contributions composes Events-owned participation, result, metric and frozen historical-context facts with Contributions-owned non-Event records for Player, Alliance and Kingdom history/reporting. Events remains the canonical owner of Event facts; there is no Event-to-Contributions reconciliation/materialization ledger.
 
 ### Events — registration and attendance
 

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Http\Controllers;
 
+use App\Domain\Alliances\Models\Alliance;
+use App\Domain\Events\Actions\SaveEventAllianceResult;
 use App\Domain\Events\Actions\SaveEventPlayerResult;
 use App\Domain\Events\Actions\SaveEventResult;
 use App\Domain\Events\Queries\EventCalendarQuery;
-use App\Domain\Events\Services\EventParticipantAuthorization;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Services\PlayerContext;
@@ -24,13 +25,7 @@ final class EventResultController extends Controller
         $this->user($request);
         $actor = $this->player();
         $record = $events->occurrence($actor, $occurrence);
-        $validated = $request->validate([
-            'outcome' => ['nullable', 'string', 'max:80'],
-            'score' => ['nullable', 'integer', 'min:0'],
-            'opponent_score' => ['nullable', 'integer', 'min:0'],
-            'rank' => ['nullable', 'integer', 'min:1'],
-            'notes' => ['nullable', 'string', 'max:10000'],
-        ]);
+        $validated = $this->validateResult($request, opponentScore: true);
         $save->handle(
             $actor,
             $record,
@@ -39,9 +34,36 @@ final class EventResultController extends Controller
             opponentScore: isset($validated['opponent_score']) ? (int) $validated['opponent_score'] : null,
             rank: isset($validated['rank']) ? (int) $validated['rank'] : null,
             notes: $validated['notes'] ?? null,
+            metrics: $this->metrics($validated['metrics'] ?? []),
         );
 
         return back()->with('status', 'event-result-saved');
+    }
+
+    public function saveAlliance(
+        Request $request,
+        string $occurrence,
+        string $alliance,
+        EventCalendarQuery $events,
+        SaveEventAllianceResult $save,
+    ): RedirectResponse {
+        $this->user($request);
+        $actor = $this->player();
+        $record = $events->occurrence($actor, $occurrence);
+        $allianceRecord = Alliance::query()->whereKey($alliance)->firstOrFail();
+        $validated = $this->validateResult($request);
+        $save->handle(
+            $actor,
+            $record,
+            $allianceRecord,
+            outcome: $validated['outcome'] ?? null,
+            score: isset($validated['score']) ? (int) $validated['score'] : null,
+            rank: isset($validated['rank']) ? (int) $validated['rank'] : null,
+            notes: $validated['notes'] ?? null,
+            metrics: $this->metrics($validated['metrics'] ?? []),
+        );
+
+        return back()->with('status', 'event-alliance-result-saved');
     }
 
     public function savePlayer(
@@ -49,20 +71,13 @@ final class EventResultController extends Controller
         string $occurrence,
         string $player,
         EventCalendarQuery $events,
-        EventParticipantAuthorization $authorization,
         SaveEventPlayerResult $save,
     ): RedirectResponse {
         $this->user($request);
         $actor = $this->player();
         $record = $events->occurrence($actor, $occurrence);
-        $authorization->authorizeManager($actor, $record->event);
         $playerRecord = Player::query()->whereKey($player)->firstOrFail();
-        $validated = $request->validate([
-            'outcome' => ['nullable', 'string', 'max:80'],
-            'score' => ['nullable', 'integer', 'min:0'],
-            'rank' => ['nullable', 'integer', 'min:1'],
-            'notes' => ['nullable', 'string', 'max:10000'],
-        ]);
+        $validated = $this->validateResult($request);
         $save->handle(
             $actor,
             $record,
@@ -71,9 +86,54 @@ final class EventResultController extends Controller
             score: isset($validated['score']) ? (int) $validated['score'] : null,
             rank: isset($validated['rank']) ? (int) $validated['rank'] : null,
             notes: $validated['notes'] ?? null,
+            metrics: $this->metrics($validated['metrics'] ?? []),
         );
 
         return back()->with('status', 'event-player-result-saved');
+    }
+
+    /** @return array<string,mixed> */
+    private function validateResult(Request $request, bool $opponentScore = false): array
+    {
+        $rules = [
+            'outcome' => ['nullable', 'string', 'max:80'],
+            'score' => ['nullable', 'integer', 'min:0'],
+            'rank' => ['nullable', 'integer', 'min:1'],
+            'notes' => ['nullable', 'string', 'max:10000'],
+            'metrics' => ['sometimes', 'array', 'max:100'],
+            'metrics.*.key' => ['required_with:metrics', 'string', 'max:96'],
+            'metrics.*.dimension_key' => ['nullable', 'string', 'max:96'],
+            'metrics.*.value' => ['required_with:metrics', 'numeric'],
+        ];
+
+        if ($opponentScore) {
+            $rules['opponent_score'] = ['nullable', 'integer', 'min:0'];
+        }
+
+        return $request->validate($rules);
+    }
+
+    /** @return list<array{key:string,value:int|float|string,dimension_key?:string|null}> */
+    private function metrics(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_map(static function (array $metric): array {
+            $normalized = [
+                'key' => (string) $metric['key'],
+                'value' => $metric['value'],
+            ];
+
+            if (array_key_exists('dimension_key', $metric)) {
+                $normalized['dimension_key'] = $metric['dimension_key'] === null
+                    ? null
+                    : (string) $metric['dimension_key'];
+            }
+
+            return $normalized;
+        }, $value));
     }
 
     private function player(): Player

@@ -34,6 +34,33 @@ final class EventTargetResolver
         ];
     }
 
+    /** @return array{target_display_name:string,target_secondary_label:?string} */
+    public function historicalSnapshotFor(Alliance|Kingdom|Player $target): array
+    {
+        if ($target instanceof Alliance) {
+            $target->loadMissing('kingdom');
+
+            return [
+                'target_display_name' => (string) $target->name,
+                'target_secondary_label' => 'Kingdom #'.(int) $target->kingdom->number,
+            ];
+        }
+
+        if ($target instanceof Kingdom) {
+            return [
+                'target_display_name' => 'Kingdom #'.(int) $target->number,
+                'target_secondary_label' => null,
+            ];
+        }
+
+        $target->loadMissing('currentKingdom');
+
+        return [
+            'target_display_name' => (string) $target->current_name,
+            'target_secondary_label' => 'Kingdom #'.(int) $target->currentKingdom->number,
+        ];
+    }
+
     public function defaultTimezone(Player $actor, Alliance|Kingdom|Player $target): string
     {
         return match (true) {
@@ -54,17 +81,17 @@ final class EventTargetResolver
 
     public function forEvent(Event $event): Alliance|Kingdom|Player
     {
-        return $this->forRecord($event);
+        return $this->forRecord($event, $event->scopeEnum());
     }
 
     public function forTemplate(EventTemplate $template): Alliance|Kingdom|Player
     {
-        return $this->forRecord($template);
+        return $this->forRecord($template, $template->scopeEnum());
     }
 
-    private function forRecord(Event|EventTemplate $record): Alliance|Kingdom|Player
+    private function forRecord(Event|EventTemplate $record, EventScope $scope): Alliance|Kingdom|Player
     {
-        $target = match ($record->scope) {
+        $target = match ($scope) {
             EventScope::Alliance => $record->alliance()->first(),
             EventScope::Kingdom => $record->kingdom()->first(),
             EventScope::Player => $record->player()->first(),

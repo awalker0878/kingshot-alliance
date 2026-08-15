@@ -77,17 +77,19 @@ Key ownership boundaries:
 - Authorization owns Alliance and Kingdom roles/permissions/effective authority contracts.
 - Audit owns attributable evidence, not authorization.
 - Content owns authored/public/member content and media.
-- Events owns Event schedules/occurrences/registration/Event attendance.
+- Events owns Event schedules/occurrences/participation/results and durable historical Event facts across Player, Alliance, and Kingdom targets.
 - Rallies owns Rally guidance/formations/groups/assignments/Rally participation.
 - Notifications owns durable reminder and scheduled-report due-time coordination.
 - Recruitment owns candidate/application/onboarding/retention workflow.
-- Contributions owns contribution/calculation/reporting/export state.
+- Contributions owns contribution/calculation/reporting/export state and composes Events facts into unified contribution history without taking ownership of Event facts.
 - Integrations owns API credentials/read contracts and webhook subscription/signing/delivery/retry state.
 - Platform owns true cross-tenant administration/lifecycle/entitlements/retention and transactional-outbox infrastructure.
 
 Cross-domain collaboration uses intentional supported contracts rather than accidental persistence reach-through. Bidirectional workflow collaboration is allowed when ownership remains explicit.
 
 Every domain owns its own mutation orchestration and persistence semantics. Repository-wide transactional/concurrency principles are shared through [ADR 0010](0010-transactional-mutation-authority.md); the ADR standardizes how current authority/state is re-established, how locks are chosen and ordered, and when constraints/CAS are preferred without forcing unrelated domains into one mutation framework.
+
+Historical Event and contribution ownership follows [ADR 0011](0011-event-history-and-contribution-ownership.md): Player history follows durable `player_id`; Alliance/Kingdom organizational history follows the immutable Event target; current authority controls access but current membership never rewrites historical ownership.
 
 ## Tenancy and Kingdoms reference boundaries
 
@@ -150,6 +152,7 @@ Use [the ADR template](adr-template.md) for new material decisions. Architecture
 | [0008](0008-domain-first-source-layout.md) | Domain-first source layout | Accepted |
 | [0009](0009-azure-container-apps-runtime-topology.md) | Azure Container Apps runtime topology | Accepted |
 | [0010](0010-transactional-mutation-authority.md) | Transactional mutation and concurrency principles | Accepted |
+| [0011](0011-event-history-and-contribution-ownership.md) | Historical Event and contribution ownership | Accepted |
 
 There are currently no Superseded or Rejected numbered ADRs.
 

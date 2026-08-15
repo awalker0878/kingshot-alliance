@@ -18,6 +18,7 @@ final class EventTypeScope extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -37,6 +38,9 @@ final class EventTypeScope extends Model
         'default_registration_closes_minutes_before',
         'default_instructions_key',
         'default_settings',
+        'result_score_label_key',
+        'result_score_unit',
+        'result_score_higher_is_better',
         'is_active',
         'sort_order',
     ];
@@ -55,6 +59,7 @@ final class EventTypeScope extends Model
             'default_registration_opens_minutes_before' => 'integer',
             'default_registration_closes_minutes_before' => 'integer',
             'default_settings' => 'array',
+            'result_score_higher_is_better' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];
@@ -72,8 +77,45 @@ final class EventTypeScope extends Model
         return $this->hasMany(EventTypeCapability::class);
     }
 
+    /** @return HasMany<EventMetricDefinition, $this> */
+    public function metricDefinitions(): HasMany
+    {
+        return $this->hasMany(EventMetricDefinition::class)
+            ->orderBy('subject')
+            ->orderBy('sort_order')
+            ->orderBy('key');
+    }
+
+    public function scopeEnum(): EventScope
+    {
+        $value = $this->getAttribute('scope');
+
+        return $value instanceof EventScope ? $value : EventScope::from((string) $value);
+    }
+
+    public function scheduleSourceEnum(): EventScheduleSource
+    {
+        $value = $this->getAttribute('schedule_source');
+
+        return $value instanceof EventScheduleSource ? $value : EventScheduleSource::from((string) $value);
+    }
+
+    public function recurrencePolicyEnum(): EventRecurrencePolicy
+    {
+        $value = $this->getAttribute('recurrence_policy');
+
+        return $value instanceof EventRecurrencePolicy ? $value : EventRecurrencePolicy::from((string) $value);
+    }
+
+    public function defaultRecurrenceFrequencyEnum(): RecurrenceFrequency
+    {
+        $value = $this->getAttribute('default_recurrence_frequency');
+
+        return $value instanceof RecurrenceFrequency ? $value : RecurrenceFrequency::from((string) $value);
+    }
+
     public function allowsRecurrence(): bool
     {
-        return $this->recurrence_policy->allowsRecurrence();
+        return $this->recurrencePolicyEnum()->allowsRecurrence();
     }
 }

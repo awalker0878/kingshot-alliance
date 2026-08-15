@@ -9,6 +9,7 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
 use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Contributions\Models\ContributionReportSchedule;
+use App\Domain\Contributions\Services\ContributionReportExporter;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\AllianceMembership;
@@ -67,7 +68,7 @@ final class CreateContributionReportSchedule
                 'cadence' => $cadence,
                 'timezone' => $timezone,
                 'next_due_at' => $nextDueAt->utc(),
-                'report_version' => 'phase5.v1',
+                'report_version' => ContributionReportExporter::REPORT_VERSION,
                 'is_enabled' => true,
                 'created_by_player_id' => $context->actor->id,
             ]);
@@ -75,10 +76,12 @@ final class CreateContributionReportSchedule
             $this->audit->record('contribution.report-schedule.created', $context->actor, $schedule, $context->alliance, [
                 'cadence' => $cadence,
                 'recipient_player_id' => $currentRecipient->id,
+                'report_version' => ContributionReportExporter::REPORT_VERSION,
             ]);
             $this->outbox->record('contribution.report-schedule.created', $context->alliance->id, $schedule, [
                 'schedule_id' => $schedule->id,
                 'recipient_player_id' => $currentRecipient->id,
+                'report_version' => ContributionReportExporter::REPORT_VERSION,
             ]);
 
             return $schedule;

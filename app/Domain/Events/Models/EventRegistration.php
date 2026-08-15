@@ -15,6 +15,7 @@ final class EventRegistration extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -33,8 +34,32 @@ final class EventRegistration extends Model
         ];
     }
 
-    public function occurrence(): BelongsTo { return $this->belongsTo(EventOccurrence::class); }
-    public function player(): BelongsTo { return $this->belongsTo(Player::class); }
-    public function registeredByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'registered_by_player_id'); }
-    public function cancelledByPlayer(): BelongsTo { return $this->belongsTo(Player::class, 'cancelled_by_player_id'); }
+    public function statusEnum(): EventRegistrationStatus
+    {
+        return EventRegistrationStatus::from((string) $this->getRawOriginal('status'));
+    }
+
+    /** @return BelongsTo<EventOccurrence, $this> */
+    public function occurrence(): BelongsTo
+    {
+        return $this->belongsTo(EventOccurrence::class);
+    }
+
+    /** @return BelongsTo<Player, $this> */
+    public function player(): BelongsTo
+    {
+        return $this->belongsTo(Player::class);
+    }
+
+    /** @return BelongsTo<Player, $this> */
+    public function registeredByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'registered_by_player_id');
+    }
+
+    /** @return BelongsTo<Player, $this> */
+    public function cancelledByPlayer(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'cancelled_by_player_id');
+    }
 }

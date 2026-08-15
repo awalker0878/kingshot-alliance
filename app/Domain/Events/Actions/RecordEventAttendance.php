@@ -10,9 +10,11 @@ use App\Domain\Events\Enums\EventAttendanceStatus;
 use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\EventAttendance;
 use App\Domain\Events\Models\EventOccurrence;
+use App\Domain\Events\Models\EventPlayerContext;
 use App\Domain\Events\Services\EventCapabilityGuard;
 use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Events\Services\EventParticipantAuthorization;
+use App\Domain\Events\Services\EventPlayerContextFreezer;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -24,6 +26,7 @@ final readonly class RecordEventAttendance
         private EventMutationAuthority $mutations,
         private EventParticipantAuthorization $participants,
         private EventCapabilityGuard $capabilities,
+        private EventPlayerContextFreezer $contexts,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -35,8 +38,7 @@ final readonly class RecordEventAttendance
         EventAttendanceStatus $status,
         ?string $notes = null,
     ): EventAttendance {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
+        $event = $occurrence->event()->firstOrFail();
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $player, $status, $notes): EventAttendance {
             $context = $this->mutations->requireManager($actor, $event);
@@ -45,18 +47,29 @@ final readonly class RecordEventAttendance
             $lockedOccurrence = EventOccurrence::query()
                 ->whereKey($occurrence->id)
                 ->where('event_id', $context->event->id)
-                ->sharedLock()
-                ->firstOrFail();
-
-            // Player identity is the eligibility anchor. Kingdom transfer and roster
-            // lifecycle workflows acquire this Player before changing scope-bound state.
-            $currentPlayer = Player::query()
-                ->whereKey($player->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (! $this->participants->eligible($context->event, $currentPlayer)) {
-                throw new AuthorizationException;
+            $currentPlayer = (string) $context->actor->id === (string) $player->id
+                ? $context->actor
+                : Player::query()->whereKey($player->id)->firstOrFail();
+            $frozenContext = $this->contexts->existing($lockedOccurrence, $currentPlayer);
+
+            if (! $frozenContext instanceof EventPlayerContext) {
+                if ((string) $context->actor->id !== (string) $currentPlayer->id) {
+                    $currentPlayer = Player::query()
+                        ->whereKey($currentPlayer->id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
+                }
+
+                if (! $this->participants->eligible($context->event, $currentPlayer)) {
+                    throw new AuthorizationException;
+                }
+
+                if ($status !== EventAttendanceStatus::Unknown) {
+                    $this->contexts->freeze($lockedOccurrence, $currentPlayer);
+                }
             }
 
             $record = EventAttendance::query()->updateOrCreate(
@@ -85,7 +98,7 @@ final readonly class RecordEventAttendance
                 $alliance?->id,
                 $record,
                 $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
+                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
             );
 
             return $record->refresh();

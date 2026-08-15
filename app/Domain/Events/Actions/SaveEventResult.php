@@ -7,9 +7,11 @@ namespace App\Domain\Events\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
+use App\Domain\Events\Enums\EventMetricSource;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventResult;
 use App\Domain\Events\Services\EventCapabilityGuard;
+use App\Domain\Events\Services\EventMetricCapture;
 use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
@@ -21,11 +23,14 @@ final readonly class SaveEventResult
     public function __construct(
         private EventMutationAuthority $mutations,
         private EventCapabilityGuard $capabilities,
+        private EventMetricCapture $metrics,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
-    /** @param array<string,mixed> $metrics */
+    /**
+     * @param  list<array{key:string,value:int|float|string,dimension_key?:string|null}>  $metrics
+     */
     public function handle(
         Player $actor,
         EventOccurrence $occurrence,
@@ -33,14 +38,14 @@ final readonly class SaveEventResult
         ?int $score = null,
         ?int $opponentScore = null,
         ?int $rank = null,
-        array $metrics = [],
         ?string $notes = null,
+        array $metrics = [],
+        EventMetricSource $metricSource = EventMetricSource::Manual,
     ): EventResult {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
+        $event = $occurrence->event()->firstOrFail();
         $this->validate($outcome, $score, $opponentScore, $rank, $notes);
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $outcome, $score, $opponentScore, $rank, $metrics, $notes): EventResult {
+        return DB::transaction(function () use ($actor, $occurrence, $event, $outcome, $score, $opponentScore, $rank, $notes, $metrics, $metricSource): EventResult {
             $context = $this->mutations->requireManager($actor, $event);
             $this->capabilities->require($context->event, EventCapability::Results);
 
@@ -61,11 +66,12 @@ final readonly class SaveEventResult
                 'score' => $score,
                 'opponent_score' => $opponentScore,
                 'rank' => $rank,
-                'metrics' => $metrics === [] ? null : $metrics,
                 'notes' => $notes === null || trim($notes) === '' ? null : trim($notes),
                 'recorded_by_player_id' => $context->actor->id,
                 'recorded_at' => now(),
             ])->save();
+
+            $this->metrics->forEventResult($record, $metrics, $metricSource, $context->actor);
 
             $alliance = $context->target instanceof Alliance ? $context->target : null;
             $eventName = $created ? 'event.result.recorded' : 'event.result.updated';
@@ -76,6 +82,8 @@ final readonly class SaveEventResult
                 'score' => $score,
                 'opponent_score' => $opponentScore,
                 'rank' => $rank,
+                'metric_count' => count($metrics),
+                'metric_source' => $metricSource->value,
                 'actor_player_id' => (string) $context->actor->id,
             ];
             $this->audit->record($eventName, $context->actor, $record, $alliance, $metadata);
@@ -84,10 +92,10 @@ final readonly class SaveEventResult
                 $alliance?->id,
                 $record,
                 $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
+                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
             );
 
-            return $record->refresh();
+            return $record->refresh()->load('metrics.definition');
         });
     }
 

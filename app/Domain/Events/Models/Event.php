@@ -25,6 +25,7 @@ final class Event extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -35,6 +36,8 @@ final class Event extends Model
         'kingdom_id',
         'player_id',
         'template_id',
+        'target_display_name',
+        'target_secondary_label',
         'title',
         'instructions',
         'timezone',
@@ -51,9 +54,7 @@ final class Event extends Model
         'recurrence_until',
         'settings',
         'status',
-
         'created_by_player_id',
-
         'updated_by_player_id',
     ];
 
@@ -75,6 +76,11 @@ final class Event extends Model
             'recurrence_until' => 'datetime',
             'settings' => 'array',
         ];
+    }
+
+    public function scopeEnum(): EventScope
+    {
+        return EventScope::from((string) $this->getRawOriginal('scope'));
     }
 
     /** @return BelongsTo<EventType, $this> */

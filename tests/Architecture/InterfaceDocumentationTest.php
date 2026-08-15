@@ -184,7 +184,7 @@ final class InterfaceDocumentationTest extends TestCase
     {
         return [
             'content' => ['media.md'],
-            'contributions' => ['event-reconciliation.md'],
+            'contributions' => ['event-history-composition.md'],
             'events' => ['registration-and-attendance.md'],
             'identity' => ['mfa-and-recovery.md'],
             'integrations' => ['api.md', 'webhooks.md'],
