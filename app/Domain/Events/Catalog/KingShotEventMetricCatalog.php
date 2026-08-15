@@ -10,26 +10,27 @@ use App\Domain\Events\Enums\EventMetricSubject;
 use App\Domain\Events\Enums\EventMetricValueType;
 use App\Domain\Events\Enums\EventScope;
 
+/**
+ * @phpstan-type ScoreProfile array{label_key:string,unit:string|null,higher_is_better:bool|null}
+ * @phpstan-type MetricProfile array{
+ *   subject:EventMetricSubject,
+ *   key:string,
+ *   label_key:string,
+ *   unit:string|null,
+ *   value_type:EventMetricValueType,
+ *   aggregation:EventMetricAggregation,
+ *   dimension_kind:string|null,
+ *   is_primary:bool,
+ *   is_contribution_metric:bool,
+ *   higher_is_better:bool|null,
+ *   sort_order:int
+ * }
+ */
 final class KingShotEventMetricCatalog
 {
     /**
      * @param  list<EventCapability>  $capabilities
-     * @return array{
-     *   score: array{label_key:string,unit:string|null,higher_is_better:bool|null}|null,
-     *   metrics: list<array{
-     *     subject:EventMetricSubject,
-     *     key:string,
-     *     label_key:string,
-     *     unit:string|null,
-     *     value_type:EventMetricValueType,
-     *     aggregation:EventMetricAggregation,
-     *     dimension_kind:string|null,
-     *     is_primary:bool,
-     *     is_contribution_metric:bool,
-     *     higher_is_better:bool|null,
-     *     sort_order:int
-     *   }>
-     * }
+     * @return array{score:ScoreProfile|null,metrics:list<MetricProfile>}
      */
     public static function profile(string $eventSlug, EventScope $scope, array $capabilities): array
     {
@@ -138,15 +139,16 @@ final class KingShotEventMetricCatalog
     }
 
     /**
-     * @param  list<array<string, mixed>>  $metrics
-     * @return array{score:array{label_key:string,unit:string|null,higher_is_better:bool|null}|null,metrics:list<array<string,mixed>>}
+     * @param  ScoreProfile|null  $score
+     * @param  list<MetricProfile>  $metrics
+     * @return array{score:ScoreProfile|null,metrics:list<MetricProfile>}
      */
     private static function result(?array $score, array $metrics = []): array
     {
         return ['score' => $score, 'metrics' => $metrics];
     }
 
-    /** @return array{label_key:string,unit:string|null,higher_is_better:bool|null} */
+    /** @return ScoreProfile */
     private static function score(string $labelKey, ?string $unit, ?bool $higherIsBetter): array
     {
         return [
@@ -156,7 +158,7 @@ final class KingShotEventMetricCatalog
         ];
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @return list<MetricProfile> */
     private static function battlefieldPlayerMetrics(): array
     {
         return [
@@ -166,7 +168,7 @@ final class KingShotEventMetricCatalog
         ];
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @return list<MetricProfile> */
     private static function castlePointComponents(EventMetricSubject $subject, int $sortOrder): array
     {
         return [
@@ -176,7 +178,7 @@ final class KingShotEventMetricCatalog
         ];
     }
 
-    /** @return array<string, mixed> */
+    /** @return MetricProfile */
     private static function phasePoints(EventMetricSubject $subject, int $sortOrder): array
     {
         return self::metric(
@@ -191,7 +193,7 @@ final class KingShotEventMetricCatalog
         );
     }
 
-    /** @return array<string, mixed> */
+    /** @return MetricProfile */
     private static function objectiveOccupation(EventMetricSubject $subject, int $sortOrder): array
     {
         return self::metric(
@@ -206,21 +208,7 @@ final class KingShotEventMetricCatalog
         );
     }
 
-    /**
-     * @return array{
-     *   subject:EventMetricSubject,
-     *   key:string,
-     *   label_key:string,
-     *   unit:string|null,
-     *   value_type:EventMetricValueType,
-     *   aggregation:EventMetricAggregation,
-     *   dimension_kind:string|null,
-     *   is_primary:bool,
-     *   is_contribution_metric:bool,
-     *   higher_is_better:bool|null,
-     *   sort_order:int
-     * }
-     */
+    /** @return MetricProfile */
     private static function metric(
         EventMetricSubject $subject,
         string $key,
