@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-final readonly class EventHistoryController extends Controller
+final class EventHistoryController extends Controller
 {
     public function __construct(private PlayerContext $playerContext) {}
 
@@ -36,7 +36,7 @@ final readonly class EventHistoryController extends Controller
                 'id' => (string) $alliance->id,
                 'scope' => 'alliance',
                 'name' => (string) $alliance->name,
-                'secondaryLabel' => $alliance->tag === null ? null : (string) $alliance->tag,
+                'secondaryLabel' => null,
             ],
             'filters' => $this->filterPayload($validated),
             'history' => $history->forAlliance($actor, $alliance, $this->filters($validated)),
