@@ -115,7 +115,12 @@ final class EventTypeCataloguePersistenceTest extends TestCase
         self::assertSame(EventRecurrencePolicy::Disabled->value, $defaults['recurrence_policy']);
         self::assertFalse($defaults['recurrence_allowed']);
         self::assertSame('none', $defaults['default_recurrence_frequency']);
-        self::assertSame(2880, $defaults['capabilities']['phases']['voting_minutes']);
+
+        $phases = $defaults['capabilities']['phases']['default_phases'];
+        self::assertIsArray($phases);
+        $voting = collect($phases)->firstWhere('key', 'voting');
+        self::assertIsArray($voting);
+        self::assertSame(2880, $voting['duration_minutes']);
 
         $score = $defaults['result_score'];
         self::assertIsArray($score);
