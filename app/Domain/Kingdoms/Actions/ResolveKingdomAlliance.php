@@ -15,7 +15,7 @@ final class ResolveKingdomAlliance
         Alliance $alliance,
         string $currentName,
         ?string $currentTag,
-        ?string $gameAllianceId,
+        string $gameAllianceId,
     ): KingdomAlliance {
         if ($alliance->kingdom_id === null) {
             throw ValidationException::withMessages([
@@ -30,26 +30,39 @@ final class ResolveKingdomAlliance
             ]);
         }
 
-        $tag = $this->nullableLine($currentTag);
-        $stableId = $this->nullableLine($gameAllianceId);
+        $stableId = trim($gameAllianceId);
+        if ($stableId === '') {
+            throw ValidationException::withMessages([
+                'game_alliance_id' => 'Game alliance ID is required.',
+            ]);
+        }
 
-        if ($stableId !== null) {
-            return KingdomAlliance::query()->firstOrCreate(
-                [
-                    'kingdom_id' => $alliance->kingdom_id,
-                    'game_alliance_id' => $stableId,
-                ],
-                [
+        $tag = $this->nullableLine($currentTag);
+        $reference = KingdomAlliance::query()
+            ->where('game_alliance_id', $stableId)
+            ->lockForUpdate()
+            ->first();
+
+        if ($reference instanceof KingdomAlliance) {
+            if ((string) $reference->kingdom_id !== (string) $alliance->kingdom_id) {
+                throw ValidationException::withMessages([
+                    'game_alliance_id' => 'That game alliance ID already belongs to a different Kingdom.',
+                ]);
+            }
+
+            if ($reference->current_name !== $name || $reference->current_tag !== $tag) {
+                $reference->forceFill([
                     'current_name' => $name,
                     'current_tag' => $tag,
-                    'status' => KingdomAllianceStatus::Active,
-                ],
-            );
+                ])->save();
+            }
+
+            return $reference;
         }
 
         return KingdomAlliance::query()->create([
             'kingdom_id' => $alliance->kingdom_id,
-            'game_alliance_id' => null,
+            'game_alliance_id' => $stableId,
             'current_name' => $name,
             'current_tag' => $tag,
             'status' => KingdomAllianceStatus::Active,
