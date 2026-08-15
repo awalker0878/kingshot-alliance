@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\EventCore\Services;
 
-use App\Contexts\Operations\EventCore\Models\EventMetricDefinition;
 use App\Contexts\Operations\EventCore\Models\EventTypeScope;
+use App\Contexts\Operations\Results\Models\EventMetricDefinition;
 
 final class EventTypeDefaultsResolver
 {
