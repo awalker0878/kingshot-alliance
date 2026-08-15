@@ -27,7 +27,7 @@ use App\Contexts\Alliance\Recruitment\Http\Controllers\PublicRecruitmentControll
 use App\Contexts\Alliance\Recruitment\Http\Controllers\RecruitmentCandidateController;
 use App\Contexts\Alliance\Recruitment\Http\Controllers\RecruitmentManagementController;
 use App\Contexts\Operations\BattlePlans\Http\Controllers\EventBattlePlanController;
-use App\Contexts\Platform\EventOperations\Http\Controllers\EventManagementController;
+use App\Contexts\Operations\EventCore\Http\Controllers\EventManagementController;
 use App\Contexts\Operations\EventCore\Http\Controllers\EventOperationsController;
 use App\Contexts\Operations\Participation\Http\Controllers\EventParticipationController;
 use App\Contexts\Operations\Rallies\Http\Controllers\EventRallyController;
@@ -38,6 +38,7 @@ use App\Contexts\Operations\Results\Http\Controllers\EventResultController;
 use App\Contexts\Operations\Rosters\Http\Controllers\EventRosterController;
 use App\Domain\Kingdoms\Http\Controllers\ActivatePlayerController;
 use App\ReadModels\EventCalendar\Http\Controllers\EventCalendarController;
+use App\ReadModels\EventManagement\Http\Controllers\EventManagementPageController;
 use App\Workflows\Registration\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -153,7 +154,7 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
         Route::get('/events/{occurrence}', [EventCalendarController::class, 'show'])
             ->whereUlid('occurrence')
             ->name('events.show');
-        Route::get('/events/{event}/manage', [EventManagementController::class, 'manage'])
+        Route::get('/events/{event}/manage', EventManagementPageController::class)
             ->whereUlid('event')
             ->name('events.management');
 
