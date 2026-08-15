@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $starts_at
  * @property Carbon $ends_at
  * @property EventOccurrenceStatus $status
- * @property-read Event|null $event
+ * @property-read Event $event
  */
 final class EventOccurrence extends Model
 {
