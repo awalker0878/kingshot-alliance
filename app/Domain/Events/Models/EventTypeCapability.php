@@ -31,6 +31,15 @@ final class EventTypeCapability extends Model
         ];
     }
 
+    public function capabilityEnum(): EventCapability
+    {
+        $value = $this->getAttribute('capability');
+
+        return $value instanceof EventCapability
+            ? $value
+            : EventCapability::from((string) $value);
+    }
+
     /** @return BelongsTo<EventTypeScope, $this> */
     public function eventTypeScope(): BelongsTo
     {
