@@ -20,7 +20,7 @@ final class EventTypeDefaultsResolver
 
         $capabilities = [];
         foreach ($stored->capabilities as $capability) {
-            $capabilities[$capability->capability->value] = $capability->configuration ?? [];
+            $capabilities[$capability->capabilityEnum()->value] = $capability->configuration ?? [];
         }
 
         $metrics = $stored->metricDefinitions
