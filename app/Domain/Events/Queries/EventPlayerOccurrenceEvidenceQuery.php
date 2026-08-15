@@ -187,12 +187,12 @@ final class EventPlayerOccurrenceEvidenceQuery
             $this->orWhereRegistration($evidence, $player, $occurrenceColumn);
             $this->orWhereResultOutcome($evidence, $player, $occurrenceColumn, 'unresolved');
             $evidence->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
-                    $this->whereRoster($nested, $player, $occurrenceColumn, [
-                        EventRosterMemberStatus::Confirmed->value,
-                        EventRosterMemberStatus::Participated->value,
-                        EventRosterMemberStatus::Absent->value,
-                    ]);
-                })
+                $this->whereRoster($nested, $player, $occurrenceColumn, [
+                    EventRosterMemberStatus::Confirmed->value,
+                    EventRosterMemberStatus::Participated->value,
+                    EventRosterMemberStatus::Absent->value,
+                ]);
+            })
                 ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
                     $this->whereRally($nested, $player, $occurrenceColumn, [
                         RallyAssignmentStatus::Confirmed->value,
