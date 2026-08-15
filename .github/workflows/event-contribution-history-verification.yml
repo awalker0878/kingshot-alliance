@@ -175,5 +175,33 @@ jobs:
           EOF
           npx vue-tsc --noEmit -p tsconfig.event-history.json
           rm tsconfig.event-history.json
-      - name: Frontend build
-        run: npm run build
+      - name: Event history frontend production build
+        shell: bash
+        run: |
+          cat > vite.event-history.config.mjs <<'EOF'
+          import { defineConfig } from 'vite';
+          import vue from '@vitejs/plugin-vue';
+          import { resolve } from 'node:path';
+
+          export default defineConfig({
+            plugins: [vue()],
+            resolve: {
+              alias: {
+                '@': resolve(process.cwd(), 'resources/js'),
+              },
+            },
+            build: {
+              outDir: 'public/build-event-history-verification',
+              emptyOutDir: true,
+              rollupOptions: {
+                input: [
+                  resolve(process.cwd(), 'resources/js/pages/Events/OrganizationHistory.vue'),
+                  resolve(process.cwd(), 'resources/js/pages/Contributions/History.vue'),
+                ],
+              },
+            },
+          });
+          EOF
+          npx vite build --config vite.event-history.config.mjs
+          rm vite.event-history.config.mjs
+          rm -rf public/build-event-history-verification
