@@ -27,11 +27,10 @@ final readonly class SaveEventAllianceResult
         private EventMetricCapture $metrics,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param list<array{key:string,value:int|float|string,dimension_key?:string|null}> $metrics
+     * @param  list<array{key:string,value:int|float|string,dimension_key?:string|null}>  $metrics
      */
     public function handle(
         Player $actor,
@@ -44,15 +43,14 @@ final readonly class SaveEventAllianceResult
         array $metrics = [],
         EventMetricSource $metricSource = EventMetricSource::Manual,
     ): EventAllianceResult {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
+        $event = $occurrence->event()->firstOrFail();
         $this->validate($outcome, $score, $rank, $notes);
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $alliance, $outcome, $score, $rank, $notes, $metrics, $metricSource): EventAllianceResult {
             $context = $this->mutations->requireManager($actor, $event);
             $this->capabilities->require($context->event, EventCapability::Results);
 
-            if ($context->event->scope !== EventScope::Kingdom || $context->event->kingdom_id === null) {
+            if ($context->event->scopeEnum() !== EventScope::Kingdom || $context->event->kingdom_id === null) {
                 throw ValidationException::withMessages([
                     'alliance' => 'Alliance result rows are supported only inside Kingdom Events.',
                 ]);
