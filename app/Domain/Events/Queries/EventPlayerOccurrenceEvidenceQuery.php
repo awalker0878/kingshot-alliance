@@ -184,9 +184,9 @@ final class EventPlayerOccurrenceEvidenceQuery
     private function whereUnresolved(Builder $query, Player $player, string $occurrenceColumn): void
     {
         $query->where(function (Builder $evidence) use ($player, $occurrenceColumn): void {
-            $this->orWhereRegistration($evidence, $player, $occurrenceColumn)
-                ->orWhereResultOutcome($player, $occurrenceColumn, 'unresolved')
-                ->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
+            $this->orWhereRegistration($evidence, $player, $occurrenceColumn);
+            $this->orWhereResultOutcome($evidence, $player, $occurrenceColumn, 'unresolved');
+            $evidence->orWhere(function (Builder $nested) use ($player, $occurrenceColumn): void {
                     $this->whereRoster($nested, $player, $occurrenceColumn, [
                         EventRosterMemberStatus::Confirmed->value,
                         EventRosterMemberStatus::Participated->value,
