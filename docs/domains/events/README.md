@@ -162,7 +162,7 @@ First-party Event surfaces include:
 - Event Type administration; and
 - authenticated exports.
 
-The management workspace renders modules from the Event Type capabilities rather than a universal fixed form. Result/history UI uses persisted Event Type-scope score semantics and compatible component metric definitions.
+The management workspace renders modules from the Event Type capabilities rather than a universal fixed form. Result/history UI uses persisted Event Type-scope score semantics and compatible component metric definitions. Metric localization keys are defined in P2; user-facing translations are added with the result/history UI that consumes them rather than changing every locale before a metric surface exists.
 
 ## 11. Background processing
 
