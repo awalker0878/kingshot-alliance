@@ -38,10 +38,10 @@ final class EventCapabilityResolver
     /** @return list<string> */
     public function keys(EventTypeScope $configuration): array
     {
-        return $configuration->capabilities()
+        return array_values($configuration->capabilities()
             ->orderBy('capability')
             ->pluck('capability')
             ->map(static fn ($value): string => (string) $value)
-            ->all();
+            ->all());
     }
 }
