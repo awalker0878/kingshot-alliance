@@ -169,7 +169,7 @@ final class EventOrganizationHistoryQuery
             ];
         }
 
-        return array_values($history);
+        return $history;
     }
 
     /** @return array<string,mixed> */
