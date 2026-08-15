@@ -323,6 +323,8 @@ final class ArchitectureV2DependencyTest extends TestCase
     /** @param list<string> $files */
     private function assertFilesDoNotImport(array $files, string ...$forbiddenImports): void
     {
+        self::assertNotEmpty($forbiddenImports, 'Dependency checks must define at least one forbidden import.');
+
         foreach ($files as $file) {
             $source = $this->source($file);
 
