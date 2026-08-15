@@ -122,7 +122,19 @@ jobs:
           routes/web.php
 
       - name: Run V2 architecture tests
-        run: php artisan test tests/Architecture
+        shell: bash
+        run: |
+          set -o pipefail
+          php artisan test tests/Architecture 2>&1 | tee architecture-tests.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            details=$(tail -n 40 architecture-tests.log)
+            details=${details//'%'/'%25'}
+            details=${details//$'\r'/'%0D'}
+            details=${details//$'\n'/'%0A'}
+            echo "::error title=Architecture V2 tests failed::$details"
+            exit "$status"
+          fi
 
       - name: Larastan P2 and P3 contexts
         run: >-
