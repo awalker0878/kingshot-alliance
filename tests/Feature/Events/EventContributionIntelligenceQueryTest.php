@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Events;
 
 use App\Domain\Alliances\Actions\CreateAlliance;
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Actions\SaveEventPlayerResult;
 use App\Domain\Events\Enums\EventScope;
@@ -117,7 +118,7 @@ final class EventContributionIntelligenceQueryTest extends TestCase
         self::assertSame(['rallies_joined', 'score'], collect($intelligence['series'])->pluck('metricKey')->sort()->values()->all());
     }
 
-    /** @return array{Player, Player, \App\Domain\Alliances\Models\Alliance} */
+    /** @return array{Player, Player, Alliance} */
     private function context(): array
     {
         $kingdom = Kingdom::query()->create(['number' => random_int(9000, 9099), 'status' => 'active']);
