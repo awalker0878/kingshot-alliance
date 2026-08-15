@@ -172,7 +172,8 @@ Contributions does not edit or duplicate Events facts, use current membership as
 
 ## 17. Capability documents
 
-- [Event contribution and historical intelligence](../events/event-contribution-history.md) — durable Player/Alliance/Kingdom historical ownership and unified reporting contract.
+- [Event history composition](event-history-composition.md) — Contributions-side composition of Events-owned history with non-Event contribution records.
+- [Event contribution and historical intelligence](../events/event-contribution-history.md) — durable Player/Alliance/Kingdom historical ownership and Event-side reporting contract.
 
 ## 18. Related documentation
 
