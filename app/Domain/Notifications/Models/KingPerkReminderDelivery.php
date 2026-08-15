@@ -22,11 +22,11 @@ use Illuminate\Support\Carbon;
  * @property Carbon $due_at
  * @property Carbon|null $queued_at
  * @property Carbon|null $sent_at
- * @property-read KingPerkPlan|null $plan
+ * @property-read KingPerkPlan $plan
  * @property-read KingPerkAppointment|null $appointment
  * @property-read KingSkillPlan|null $skillPlan
- * @property-read Player|null $player
- * @property-read User|null $recipientUser
+ * @property-read Player $player
+ * @property-read User $recipientUser
  */
 final class KingPerkReminderDelivery extends Model
 {
