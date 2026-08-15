@@ -42,7 +42,7 @@ concurrency:
 
 jobs:
   architecture-contract:
-    name: V2 architecture through P3 Alliance
+    name: V2 architecture through P3 Alliance hard cut
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
