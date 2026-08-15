@@ -39,23 +39,33 @@ final class KingPerkTemporalGuardTest extends TestCase
         $this->appointment($plan, $other, $actor, KingAppointmentType::NobleAdvisor, '2026-09-01 00:15');
     }
 
-    public function test_database_allows_adjacent_duration_aware_position_windows(): void
+    public function test_database_allows_adjacent_position_windows_for_different_players(): void
     {
         [$plan, $actor, $other] = $this->fixture();
         $first = $this->appointment($plan, $actor, $actor, KingAppointmentType::NobleAdvisor, '2026-09-01 00:00');
         $second = $this->appointment($plan, $other, $actor, KingAppointmentType::NobleAdvisor, '2026-09-01 00:30');
 
         self::assertSame('2026-09-01T00:30:00+00:00', $first->ends_at->toIso8601String());
+        self::assertSame('2026-09-01T01:30:00+00:00', $first->player_cooldown_ends_at->toIso8601String());
         self::assertSame('2026-09-01T01:00:00+00:00', $second->ends_at->toIso8601String());
     }
 
-    public function test_database_rejects_direct_player_overlap_across_positions(): void
+    public function test_database_rejects_player_reappointment_during_persisted_cooldown_across_positions(): void
     {
         [$plan, $actor] = $this->fixture();
         $this->appointment($plan, $actor, $actor, KingAppointmentType::NobleAdvisor, '2026-09-01 00:00');
 
         $this->expectException(QueryException::class);
-        $this->appointment($plan, $actor, $actor, KingAppointmentType::ChiefMinister, '2026-09-01 00:15');
+        $this->appointment($plan, $actor, $actor, KingAppointmentType::ChiefMinister, '2026-09-01 00:45');
+    }
+
+    public function test_database_allows_player_reappointment_when_persisted_cooldown_has_elapsed(): void
+    {
+        [$plan, $actor] = $this->fixture();
+        $this->appointment($plan, $actor, $actor, KingAppointmentType::NobleAdvisor, '2026-09-01 00:00');
+        $next = $this->appointment($plan, $actor, $actor, KingAppointmentType::ChiefMinister, '2026-09-01 01:30');
+
+        self::assertSame('2026-09-01T02:00:00+00:00', $next->ends_at->toIso8601String());
     }
 
     public function test_database_rejects_invalid_request_availability_window(): void
@@ -145,7 +155,8 @@ final class KingPerkTemporalGuardTest extends TestCase
             'appointment_type' => $type,
             'assigned_player_id' => $target->id,
             'starts_at' => $start,
-            'ends_at' => $start->addMinutes($type->durationMinutes()),
+            'ends_at' => $start,
+            'player_cooldown_ends_at' => $start,
             'status' => KingPerkAppointmentStatus::Scheduled,
             'assigned_by_player_id' => $actor->id,
         ]);

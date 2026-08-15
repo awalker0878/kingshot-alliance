@@ -37,6 +37,7 @@ return new class extends Migration
             $table->foreignUlid('assigned_player_id')->constrained('players')->restrictOnDelete();
             $table->timestampTz('starts_at');
             $table->timestampTz('ends_at');
+            $table->timestampTz('player_cooldown_ends_at');
             $table->string('status', 24)->default('scheduled')->index();
             $table->foreignUlid('assigned_by_player_id')->constrained('players')->restrictOnDelete();
             $table->timestampTz('confirmed_at')->nullable();
@@ -48,6 +49,7 @@ return new class extends Migration
 
             $table->index(['plan_id', 'appointment_type', 'starts_at']);
             $table->index(['plan_id', 'assigned_player_id', 'starts_at']);
+            $table->index(['plan_id', 'assigned_player_id', 'player_cooldown_ends_at'], 'king_perk_player_cooldown_idx');
         });
 
         Schema::create('king_perk_position_blocks', function (Blueprint $table): void {
@@ -135,23 +137,23 @@ return new class extends Migration
 
         if ($driver === 'pgsql') {
             DB::statement('CREATE EXTENSION IF NOT EXISTS btree_gist');
-            DB::statement('ALTER TABLE king_perk_appointments ADD CONSTRAINT king_perk_appointments_time_check CHECK (ends_at > starts_at)');
+            DB::statement('ALTER TABLE king_perk_appointments ADD CONSTRAINT king_perk_appointments_time_check CHECK (ends_at > starts_at AND player_cooldown_ends_at >= ends_at)');
             DB::statement('ALTER TABLE king_perk_requests ADD CONSTRAINT king_perk_requests_time_check CHECK (availability_ends_at > availability_starts_at)');
             DB::statement("ALTER TABLE king_perk_appointments ADD CONSTRAINT king_perk_position_no_overlap EXCLUDE USING gist (plan_id WITH =, appointment_type WITH =, tstzrange(starts_at, ends_at, '[)') WITH &&) WHERE (status IN {$active})");
-            DB::statement("ALTER TABLE king_perk_appointments ADD CONSTRAINT king_perk_player_no_overlap EXCLUDE USING gist (plan_id WITH =, assigned_player_id WITH =, tstzrange(starts_at, ends_at, '[)') WITH &&) WHERE (status IN {$active})");
+            DB::statement("ALTER TABLE king_perk_appointments ADD CONSTRAINT king_perk_player_no_overlap EXCLUDE USING gist (plan_id WITH =, assigned_player_id WITH =, tstzrange(starts_at, player_cooldown_ends_at, '[)') WITH &&) WHERE (status IN {$active})");
 
             return;
         }
 
         if ($driver === 'sqlite') {
-            DB::statement("CREATE TRIGGER king_perk_appointments_time_insert BEFORE INSERT ON king_perk_appointments WHEN NEW.ends_at <= NEW.starts_at BEGIN SELECT RAISE(ABORT, 'invalid king perk appointment window'); END");
-            DB::statement("CREATE TRIGGER king_perk_appointments_time_update BEFORE UPDATE OF starts_at, ends_at ON king_perk_appointments WHEN NEW.ends_at <= NEW.starts_at BEGIN SELECT RAISE(ABORT, 'invalid king perk appointment window'); END");
+            DB::statement("CREATE TRIGGER king_perk_appointments_time_insert BEFORE INSERT ON king_perk_appointments WHEN NEW.ends_at <= NEW.starts_at OR NEW.player_cooldown_ends_at IS NULL OR NEW.player_cooldown_ends_at < NEW.ends_at BEGIN SELECT RAISE(ABORT, 'invalid king perk appointment window'); END");
+            DB::statement("CREATE TRIGGER king_perk_appointments_time_update BEFORE UPDATE OF starts_at, ends_at, player_cooldown_ends_at ON king_perk_appointments WHEN NEW.ends_at <= NEW.starts_at OR NEW.player_cooldown_ends_at IS NULL OR NEW.player_cooldown_ends_at < NEW.ends_at BEGIN SELECT RAISE(ABORT, 'invalid king perk appointment window'); END");
             DB::statement("CREATE TRIGGER king_perk_requests_time_insert BEFORE INSERT ON king_perk_requests WHEN NEW.availability_ends_at <= NEW.availability_starts_at BEGIN SELECT RAISE(ABORT, 'invalid king perk availability window'); END");
             DB::statement("CREATE TRIGGER king_perk_requests_time_update BEFORE UPDATE OF availability_starts_at, availability_ends_at ON king_perk_requests WHEN NEW.availability_ends_at <= NEW.availability_starts_at BEGIN SELECT RAISE(ABORT, 'invalid king perk availability window'); END");
             DB::statement("CREATE TRIGGER king_perk_position_overlap_insert BEFORE INSERT ON king_perk_appointments WHEN NEW.status IN {$active} AND EXISTS (SELECT 1 FROM king_perk_appointments a WHERE a.plan_id = NEW.plan_id AND a.appointment_type = NEW.appointment_type AND a.status IN {$active} AND a.starts_at < NEW.ends_at AND a.ends_at > NEW.starts_at) BEGIN SELECT RAISE(ABORT, 'overlapping king perk position'); END");
             DB::statement("CREATE TRIGGER king_perk_position_overlap_update BEFORE UPDATE OF plan_id, appointment_type, starts_at, ends_at, status ON king_perk_appointments WHEN NEW.status IN {$active} AND EXISTS (SELECT 1 FROM king_perk_appointments a WHERE a.id <> NEW.id AND a.plan_id = NEW.plan_id AND a.appointment_type = NEW.appointment_type AND a.status IN {$active} AND a.starts_at < NEW.ends_at AND a.ends_at > NEW.starts_at) BEGIN SELECT RAISE(ABORT, 'overlapping king perk position'); END");
-            DB::statement("CREATE TRIGGER king_perk_player_overlap_insert BEFORE INSERT ON king_perk_appointments WHEN NEW.status IN {$active} AND EXISTS (SELECT 1 FROM king_perk_appointments a WHERE a.plan_id = NEW.plan_id AND a.assigned_player_id = NEW.assigned_player_id AND a.status IN {$active} AND a.starts_at < NEW.ends_at AND a.ends_at > NEW.starts_at) BEGIN SELECT RAISE(ABORT, 'overlapping king perk player'); END");
-            DB::statement("CREATE TRIGGER king_perk_player_overlap_update BEFORE UPDATE OF plan_id, assigned_player_id, starts_at, ends_at, status ON king_perk_appointments WHEN NEW.status IN {$active} AND EXISTS (SELECT 1 FROM king_perk_appointments a WHERE a.id <> NEW.id AND a.plan_id = NEW.plan_id AND a.assigned_player_id = NEW.assigned_player_id AND a.status IN {$active} AND a.starts_at < NEW.ends_at AND a.ends_at > NEW.starts_at) BEGIN SELECT RAISE(ABORT, 'overlapping king perk player'); END");
+            DB::statement("CREATE TRIGGER king_perk_player_overlap_insert BEFORE INSERT ON king_perk_appointments WHEN NEW.status IN {$active} AND EXISTS (SELECT 1 FROM king_perk_appointments a WHERE a.plan_id = NEW.plan_id AND a.assigned_player_id = NEW.assigned_player_id AND a.status IN {$active} AND a.starts_at < NEW.player_cooldown_ends_at AND a.player_cooldown_ends_at > NEW.starts_at) BEGIN SELECT RAISE(ABORT, 'overlapping king perk player cooldown'); END");
+            DB::statement("CREATE TRIGGER king_perk_player_overlap_update BEFORE UPDATE OF plan_id, assigned_player_id, starts_at, ends_at, player_cooldown_ends_at, status ON king_perk_appointments WHEN NEW.status IN {$active} AND EXISTS (SELECT 1 FROM king_perk_appointments a WHERE a.id <> NEW.id AND a.plan_id = NEW.plan_id AND a.assigned_player_id = NEW.assigned_player_id AND a.status IN {$active} AND a.starts_at < NEW.player_cooldown_ends_at AND a.player_cooldown_ends_at > NEW.starts_at) BEGIN SELECT RAISE(ABORT, 'overlapping king perk player cooldown'); END");
         }
     }
 
