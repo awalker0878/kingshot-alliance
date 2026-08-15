@@ -1,0 +1,47 @@
+name: Architecture V2 Verification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/Contexts/**'
+      - 'app/Shared/**'
+      - 'app/Workflows/**'
+      - 'app/ReadModels/**'
+      - 'tests/Architecture/ArchitectureV2DependencyTest.php'
+      - 'docs/product/architecture-v2-*.md'
+      - '.github/workflows/architecture-v2-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: architecture-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  architecture-contract:
+    name: V2 architecture contract
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Check V2 PHP formatting
+        run: vendor/bin/pint --test tests/Architecture/ArchitectureV2DependencyTest.php app/Contexts app/Shared app/Workflows app/ReadModels
+
+      - name: Run V2 dependency architecture test
+        run: php artisan test tests/Architecture/ArchitectureV2DependencyTest.php
