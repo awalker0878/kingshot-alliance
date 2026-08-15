@@ -165,38 +165,52 @@ function reliabilityLabel(): string {
   <AppLayout :user="user">
     <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <header class="space-y-2">
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">My contributions</p>
+        <p class="text-xs font-semibold tracking-[0.2em] text-amber-300 uppercase">
+          My contributions
+        </p>
         <h1 class="text-3xl font-semibold text-white">{{ player.name }}</h1>
         <p class="max-w-3xl text-sm text-slate-300">
-          Lifetime history for this exact Player across personal, Alliance and Kingdom Events plus genuine contribution records.
-          Historical Alliance and Kingdom context stays attached to the occurrence where it was recorded.
+          Lifetime history for this exact Player across personal, Alliance and Kingdom Events plus
+          genuine contribution records. Historical Alliance and Kingdom context stays attached to
+          the occurrence where it was recorded.
         </p>
       </header>
 
-      <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-6" aria-label="Lifetime contribution summary">
+      <section
+        class="grid gap-3 sm:grid-cols-2 lg:grid-cols-6"
+        aria-label="Lifetime contribution summary"
+      >
         <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-          <p class="text-xs uppercase tracking-wide text-slate-500">Events</p>
+          <p class="text-xs tracking-wide text-slate-500 uppercase">Events</p>
           <p class="mt-2 text-2xl font-semibold text-white">{{ formatNumber(summary.events) }}</p>
         </div>
         <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-          <p class="text-xs uppercase tracking-wide text-slate-500">Reliability</p>
+          <p class="text-xs tracking-wide text-slate-500 uppercase">Reliability</p>
           <p class="mt-2 text-2xl font-semibold text-white">{{ reliabilityLabel() }}</p>
         </div>
         <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-          <p class="text-xs uppercase tracking-wide text-slate-500">Player</p>
-          <p class="mt-2 text-2xl font-semibold text-white">{{ formatNumber(summary.player_events) }}</p>
+          <p class="text-xs tracking-wide text-slate-500 uppercase">Player</p>
+          <p class="mt-2 text-2xl font-semibold text-white">
+            {{ formatNumber(summary.player_events) }}
+          </p>
         </div>
         <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-          <p class="text-xs uppercase tracking-wide text-slate-500">Alliance</p>
-          <p class="mt-2 text-2xl font-semibold text-white">{{ formatNumber(summary.alliance_events) }}</p>
+          <p class="text-xs tracking-wide text-slate-500 uppercase">Alliance</p>
+          <p class="mt-2 text-2xl font-semibold text-white">
+            {{ formatNumber(summary.alliance_events) }}
+          </p>
         </div>
         <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-          <p class="text-xs uppercase tracking-wide text-slate-500">Kingdom</p>
-          <p class="mt-2 text-2xl font-semibold text-white">{{ formatNumber(summary.kingdom_events) }}</p>
+          <p class="text-xs tracking-wide text-slate-500 uppercase">Kingdom</p>
+          <p class="mt-2 text-2xl font-semibold text-white">
+            {{ formatNumber(summary.kingdom_events) }}
+          </p>
         </div>
         <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-          <p class="text-xs uppercase tracking-wide text-slate-500">Other records</p>
-          <p class="mt-2 text-2xl font-semibold text-white">{{ formatNumber(summary.contribution_records) }}</p>
+          <p class="text-xs tracking-wide text-slate-500 uppercase">Other records</p>
+          <p class="mt-2 text-2xl font-semibold text-white">
+            {{ formatNumber(summary.contribution_records) }}
+          </p>
         </div>
       </section>
 
@@ -206,9 +220,11 @@ function reliabilityLabel(): string {
           :key="tab.value || 'all'"
           type="button"
           class="rounded-full border px-4 py-2 text-sm font-semibold transition"
-          :class="filter.event_scope === tab.value
-            ? 'border-amber-300 bg-amber-300 text-slate-950'
-            : 'border-white/10 bg-slate-950/60 text-slate-300 hover:border-white/25'"
+          :class="
+            filter.event_scope === tab.value
+              ? 'border-amber-300 bg-amber-300 text-slate-950'
+              : 'border-white/10 bg-slate-950/60 text-slate-300 hover:border-white/25'
+          "
           :aria-selected="filter.event_scope === tab.value"
           role="tab"
           @click="selectScope(tab.value)"
@@ -217,18 +233,32 @@ function reliabilityLabel(): string {
         </button>
       </div>
 
-      <form class="grid gap-3 rounded-2xl border border-white/10 bg-slate-950/50 p-4 md:grid-cols-4" @submit.prevent="applyFilters">
+      <form
+        class="grid gap-3 rounded-2xl border border-white/10 bg-slate-950/50 p-4 md:grid-cols-4"
+        @submit.prevent="applyFilters"
+      >
         <label class="space-y-1 text-xs text-slate-300">
           <span>From</span>
-          <input v-model="filter.from" type="date" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+          <input
+            v-model="filter.from"
+            type="date"
+            class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+          />
         </label>
         <label class="space-y-1 text-xs text-slate-300">
           <span>Until</span>
-          <input v-model="filter.until" type="date" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+          <input
+            v-model="filter.until"
+            type="date"
+            class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+          />
         </label>
         <label class="space-y-1 text-xs text-slate-300">
           <span>Participation</span>
-          <select v-model="filter.participation_outcome" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">
+          <select
+            v-model="filter.participation_outcome"
+            class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+          >
             <option value="">Any outcome</option>
             <option value="completed">Completed</option>
             <option value="absent">Absent</option>
@@ -238,7 +268,10 @@ function reliabilityLabel(): string {
         </label>
         <label class="space-y-1 text-xs text-slate-300">
           <span>Rows</span>
-          <select v-model="filter.limit" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">
+          <select
+            v-model="filter.limit"
+            class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+          >
             <option value="25">25</option>
             <option value="50">50</option>
             <option value="100">100</option>
@@ -247,39 +280,84 @@ function reliabilityLabel(): string {
         </label>
         <label class="space-y-1 text-xs text-slate-300">
           <span>Historical Alliance ID</span>
-          <input v-model="filter.alliance_id" type="text" placeholder="Optional ULID" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+          <input
+            v-model="filter.alliance_id"
+            type="text"
+            placeholder="Optional ULID"
+            class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+          />
         </label>
         <label class="space-y-1 text-xs text-slate-300">
           <span>Historical Kingdom ID</span>
-          <input v-model="filter.kingdom_id_at_event" type="text" placeholder="Optional ULID" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+          <input
+            v-model="filter.kingdom_id_at_event"
+            type="text"
+            placeholder="Optional ULID"
+            class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+          />
         </label>
         <label class="space-y-1 text-xs text-slate-300">
           <span>Event type</span>
-          <input v-model="filter.event_type_slug" type="text" placeholder="e.g. bear-hunt" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+          <input
+            v-model="filter.event_type_slug"
+            type="text"
+            placeholder="e.g. bear-hunt"
+            class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+          />
         </label>
         <label class="space-y-1 text-xs text-slate-300">
           <span>Event metric</span>
-          <input v-model="filter.event_metric_key" type="text" placeholder="Metric key" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+          <input
+            v-model="filter.event_metric_key"
+            type="text"
+            placeholder="Metric key"
+            class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+          />
         </label>
         <label class="space-y-1 text-xs text-slate-300">
           <span>Contribution category</span>
-          <input v-model="filter.contribution_category_slug" type="text" placeholder="Category slug" class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white" />
+          <input
+            v-model="filter.contribution_category_slug"
+            type="text"
+            placeholder="Category slug"
+            class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+          />
         </label>
         <div class="flex items-end gap-2 md:col-span-3">
-          <button type="submit" class="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-950">Apply filters</button>
-          <button type="button" class="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200" @click="clearFilters">Clear</button>
+          <button
+            type="submit"
+            class="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-950"
+          >
+            Apply filters
+          </button>
+          <button
+            type="button"
+            class="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200"
+            @click="clearFilters"
+          >
+            Clear
+          </button>
         </div>
       </form>
 
-      <div v-if="history.length === 0" class="rounded-2xl border border-dashed border-white/15 p-10 text-center text-sm text-slate-400">
+      <div
+        v-if="history.length === 0"
+        class="rounded-2xl border border-dashed border-white/15 p-10 text-center text-sm text-slate-400"
+      >
         No historical records match these filters.
       </div>
 
       <ol v-else class="space-y-4">
-        <li v-for="row in history" :key="`${row.kind}-${row.event?.occurrenceId ?? row.contribution?.recordId}`" class="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
+        <li
+          v-for="row in history"
+          :key="`${row.kind}-${row.event?.occurrenceId ?? row.contribution?.recordId}`"
+          class="rounded-2xl border border-white/10 bg-slate-950/60 p-5"
+        >
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <span class="inline-flex rounded-full border border-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+              <span
+                class="inline-flex rounded-full border border-white/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-slate-300 uppercase"
+              >
                 {{ row.kind }}
               </span>
               <h2 v-if="row.event" class="mt-3 text-lg font-semibold text-white">
@@ -293,11 +371,28 @@ function reliabilityLabel(): string {
           </div>
 
           <div v-if="row.event" class="mt-4 grid gap-3 text-sm md:grid-cols-4">
-            <div><span class="text-slate-500">Scope</span><p class="capitalize text-slate-200">{{ row.event.scope }}</p></div>
-            <div><span class="text-slate-500">Target</span><p class="text-slate-200">{{ row.event.target.displayName }}</p></div>
-            <div><span class="text-slate-500">Participation</span><p class="capitalize text-slate-200">{{ humanize(row.event.participation.outcome) }}</p></div>
-            <div><span class="text-slate-500">Score</span><p class="text-slate-200">{{ scoreLabel(row.event) ?? '—' }}</p></div>
-            <div><span class="text-slate-500">Kingdom at Event</span><p class="text-slate-200">{{ row.event.playerContext.kingdomIdAtEvent }}</p></div>
+            <div>
+              <span class="text-slate-500">Scope</span>
+              <p class="text-slate-200 capitalize">{{ row.event.scope }}</p>
+            </div>
+            <div>
+              <span class="text-slate-500">Target</span>
+              <p class="text-slate-200">{{ row.event.target.displayName }}</p>
+            </div>
+            <div>
+              <span class="text-slate-500">Participation</span>
+              <p class="text-slate-200 capitalize">
+                {{ humanize(row.event.participation.outcome) }}
+              </p>
+            </div>
+            <div>
+              <span class="text-slate-500">Score</span>
+              <p class="text-slate-200">{{ scoreLabel(row.event) ?? '—' }}</p>
+            </div>
+            <div>
+              <span class="text-slate-500">Kingdom at Event</span>
+              <p class="text-slate-200">{{ row.event.playerContext.kingdomIdAtEvent }}</p>
+            </div>
             <div v-if="row.event.playerContext.representedAllianceName" class="md:col-span-2">
               <span class="text-slate-500">Represented Alliance</span>
               <p class="text-slate-200">{{ row.event.playerContext.representedAllianceName }}</p>
@@ -305,18 +400,38 @@ function reliabilityLabel(): string {
             <div v-if="row.event.result?.metrics.length" class="md:col-span-4">
               <span class="text-slate-500">Metrics</span>
               <div class="mt-2 flex flex-wrap gap-2">
-                <span v-for="metric in row.event.result.metrics" :key="`${metric.key}-${metric.dimensionKey ?? ''}`" class="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-slate-200">
-                  {{ metric.key }}<template v-if="metric.dimensionKey"> · {{ metric.dimensionKey }}</template>: {{ metric.value }}<template v-if="metric.unit"> {{ metric.unit }}</template>
+                <span
+                  v-for="metric in row.event.result.metrics"
+                  :key="`${metric.key}-${metric.dimensionKey ?? ''}`"
+                  class="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-slate-200"
+                >
+                  {{ metric.key
+                  }}<template v-if="metric.dimensionKey"> · {{ metric.dimensionKey }}</template
+                  >: {{ metric.value }}<template v-if="metric.unit"> {{ metric.unit }}</template>
                 </span>
               </div>
             </div>
           </div>
 
           <div v-else-if="row.contribution" class="mt-4 grid gap-3 text-sm md:grid-cols-4">
-            <div><span class="text-slate-500">Value</span><p class="text-slate-200">{{ row.contribution.value }} {{ row.contribution.unit }}</p></div>
-            <div><span class="text-slate-500">Status</span><p class="capitalize text-slate-200">{{ humanize(row.contribution.status) }}</p></div>
-            <div><span class="text-slate-500">Source</span><p class="capitalize text-slate-200">{{ humanize(row.contribution.source) }}</p></div>
-            <div><span class="text-slate-500">Period</span><p class="text-slate-200">{{ row.contribution.periodStart }} – {{ row.contribution.periodEnd }}</p></div>
+            <div>
+              <span class="text-slate-500">Value</span>
+              <p class="text-slate-200">{{ row.contribution.value }} {{ row.contribution.unit }}</p>
+            </div>
+            <div>
+              <span class="text-slate-500">Status</span>
+              <p class="text-slate-200 capitalize">{{ humanize(row.contribution.status) }}</p>
+            </div>
+            <div>
+              <span class="text-slate-500">Source</span>
+              <p class="text-slate-200 capitalize">{{ humanize(row.contribution.source) }}</p>
+            </div>
+            <div>
+              <span class="text-slate-500">Period</span>
+              <p class="text-slate-200">
+                {{ row.contribution.periodStart }} – {{ row.contribution.periodEnd }}
+              </p>
+            </div>
           </div>
         </li>
       </ol>
