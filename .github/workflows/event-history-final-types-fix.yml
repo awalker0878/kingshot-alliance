@@ -1,0 +1,68 @@
+name: Event History Final Type Fix
+
+on:
+  push:
+    branches:
+      - feature/event-contribution-history-p0
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.event.head_commit.message != 'Fix Event frontend form types'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/event-contribution-history-p0
+          fetch-depth: 0
+      - name: Tighten Event form types
+        shell: python
+        run: |
+          from pathlib import Path
+
+          manage = Path('resources/js/pages/Events/Manage.vue')
+          text = manage.read_text()
+          marker = "import { useLocale } from '../../localization';\n"
+          alias = """
+
+type FormSettingValue =
+  | string
+  | number
+  | boolean
+  | null
+  | FormSettingValue[]
+  | { [key: string]: FormSettingValue };
+"""
+          if 'type FormSettingValue =' not in text:
+              if marker not in text:
+                  raise SystemExit('Manage.vue localization import marker not found')
+              text = text.replace(marker, marker + alias, 1)
+          old = "recurrenceUntilLocal: string | null; settings: Record<string, unknown>; capabilities: string[];"
+          new = "recurrenceUntilLocal: string | null; settings: Record<string, FormSettingValue>; capabilities: string[];"
+          if old not in text and new not in text:
+              raise SystemExit('Manage.vue Event settings type marker not found')
+          text = text.replace(old, new, 1)
+          manage.write_text(text)
+
+          show = Path('resources/js/pages/Events/Show.vue')
+          text = show.read_text()
+          old = 'const registrationForm = useForm({});'
+          new = 'const registrationForm = useForm<{ registration?: string }>({});'
+          if old not in text and new not in text:
+              raise SystemExit('Show.vue registration form marker not found')
+          text = text.replace(old, new, 1)
+          show.write_text(text)
+      - name: Commit frontend type fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resources/js/pages/Events/Manage.vue resources/js/pages/Events/Show.vue
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No type fix required"
+            exit 0
+          fi
+          git commit -m "Fix Event frontend form types"
+          git push origin HEAD:feature/event-contribution-history-p0
