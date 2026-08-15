@@ -20,7 +20,7 @@ final class KingPerkAppointment extends Model
 
     protected $fillable = [
         'plan_id', 'appointment_type', 'assigned_player_id', 'starts_at', 'ends_at', 'status',
-        'assigned_by_player_id', 'confirmed_at', 'completed_at', 'notes',
+        'assigned_by_player_id', 'confirmed_at', 'actual_started_at', 'actual_ended_at', 'completed_at', 'notes',
     ];
 
     protected function casts(): array
@@ -31,6 +31,8 @@ final class KingPerkAppointment extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'confirmed_at' => 'datetime',
+            'actual_started_at' => 'datetime',
+            'actual_ended_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
     }

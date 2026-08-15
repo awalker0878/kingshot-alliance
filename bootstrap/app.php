@@ -5,12 +5,14 @@ declare(strict_types=1);
 use App\Domain\Alliances\Http\Middleware\ResolveAllianceContext;
 use App\Domain\Integrations\Http\Middleware\AuthenticateApiCredential;
 use App\Domain\Kingdoms\Http\Middleware\ResolvePlayerContext;
+use App\Domain\Notifications\Actions\QueueDueKingPerkReminders;
 use App\Domain\Platform\Http\Controllers\ReadinessController;
 use App\Domain\Platform\Http\Middleware\AssignRequestContext;
 use App\Domain\Platform\Http\Middleware\HandleInertiaRequests;
 use App\Domain\Platform\Http\Middleware\RecordRequestMetrics;
 use App\Domain\Platform\Http\Middleware\RequirePlatformAdministrator;
 use App\Domain\Platform\Http\Middleware\SecurityHeaders;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -36,6 +38,13 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('web')->group(base_path('routes/platform.php'));
         },
     )
+    ->withSchedule(static function (Schedule $schedule): void {
+        $schedule->call(static fn (): int => app(QueueDueKingPerkReminders::class)->handle(100))
+            ->name('king-perks:queue-reminders')
+            ->everyMinute()
+            ->onOneServer()
+            ->withoutOverlapping(10);
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         $trustedProxies = array_values(array_filter(array_map(
             static fn (string $proxy): string => trim($proxy),

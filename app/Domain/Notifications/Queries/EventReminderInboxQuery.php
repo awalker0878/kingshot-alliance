@@ -11,7 +11,10 @@ use App\Domain\Events\Services\ActivePlayerEventVisibilityResolver;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Services\PlayerContext;
+use App\Domain\KingPerks\Enums\KingPerkReminderKind;
 use App\Domain\Notifications\Models\EventReminderDelivery;
+use App\Domain\Notifications\Models\KingPerkReminderDelivery;
+use Illuminate\Support\Collection;
 
 final readonly class EventReminderInboxQuery
 {
@@ -30,7 +33,23 @@ final readonly class EventReminderInboxQuery
 
         $targets = $this->visibility->targetIds($player);
         $limit = max(1, min(100, $limit));
+        $events = $this->eventReminders($user, $player, $targets, $limit);
+        $kingPerks = $this->kingPerkReminders($user, $player, $targets, $limit);
 
+        return $events
+            ->concat($kingPerks)
+            ->sortByDesc(static fn (array $item): string => (string) ($item['sentAt'] ?? ''))
+            ->take($limit)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param array{alliance:list<string>,player:list<string>,kingdom:list<string>} $targets
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function eventReminders(User $user, Player $player, array $targets, int $limit): Collection
+    {
         return EventReminderDelivery::query()
             ->where('recipient_user_id', $user->id)
             ->where('player_id', $player->id)
@@ -45,7 +64,6 @@ final readonly class EventReminderInboxQuery
 
                 return $event instanceof Event && $this->visibleEventTarget($event, $targets);
             })
-            ->take($limit)
             ->map(static function (EventReminderDelivery $delivery): array {
                 $occurrence = $delivery->occurrence;
                 $event = $occurrence->event;
@@ -61,8 +79,60 @@ final readonly class EventReminderInboxQuery
                     'playerId' => (string) $delivery->player_id,
                 ];
             })
-            ->values()
-            ->all();
+            ->values();
+    }
+
+    /**
+     * @param array{alliance:list<string>,player:list<string>,kingdom:list<string>} $targets
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function kingPerkReminders(User $user, Player $player, array $targets, int $limit): Collection
+    {
+        return KingPerkReminderDelivery::query()
+            ->where('recipient_user_id', $user->id)
+            ->where('player_id', $player->id)
+            ->where('status', EventReminderDeliveryStatus::Sent->value)
+            ->where('sent_at', '>=', now()->subDays(7))
+            ->with([
+                'plan.occurrence.event.eventType',
+                'appointment',
+                'skillPlan',
+            ])
+            ->orderByDesc('sent_at')
+            ->limit($limit * 3)
+            ->get()
+            ->filter(function (KingPerkReminderDelivery $delivery) use ($targets): bool {
+                $event = $delivery->plan->occurrence->event;
+
+                return $event instanceof Event && $this->visibleEventTarget($event, $targets);
+            })
+            ->map(static function (KingPerkReminderDelivery $delivery): array {
+                $occurrence = $delivery->plan->occurrence;
+                $event = $occurrence->event;
+                $appointment = $delivery->appointment;
+                $skill = $delivery->skillPlan;
+                $startsAt = $appointment?->starts_at ?? $skill?->planned_activation_at ?? $occurrence->starts_at;
+                $title = match ($delivery->kind) {
+                    KingPerkReminderKind::AppointmentUnconfirmed10Minutes => ($appointment?->appointment_type->label() ?? 'King appointment').' · confirmation needed',
+                    KingPerkReminderKind::Appointment24Hours,
+                    KingPerkReminderKind::Appointment1Hour,
+                    KingPerkReminderKind::Appointment10Minutes => ($appointment?->appointment_type->label() ?? 'King appointment').' · appointment reminder',
+                    KingPerkReminderKind::SkillSchedulingAvailable => ($skill?->skill_key->label() ?? 'King Skill').' · ready to schedule in game',
+                    KingPerkReminderKind::Skill1Hour => ($skill?->skill_key->label() ?? 'King Skill').' · activation reminder',
+                };
+
+                return [
+                    'id' => 'king-perk:'.$delivery->id,
+                    'occurrenceId' => (string) $occurrence->id,
+                    'eventTypeSlug' => (string) $event->eventType->slug,
+                    'nameKey' => (string) $event->eventType->name_key,
+                    'title' => $title,
+                    'startsAt' => $startsAt->toIso8601String(),
+                    'sentAt' => $delivery->sent_at?->toIso8601String(),
+                    'playerId' => (string) $delivery->player_id,
+                ];
+            })
+            ->values();
     }
 
     /**

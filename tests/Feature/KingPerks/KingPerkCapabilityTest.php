@@ -9,6 +9,7 @@ use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Services\EventCapabilityResolver;
 use App\Domain\Events\Services\EventTypeRegistry;
+use App\Domain\KingPerks\Catalog\KingPerkEventCapabilityCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,11 +19,14 @@ final class KingPerkCapabilityTest extends TestCase
 
     public function test_kingdom_of_power_kingdom_scope_exposes_king_perks_capability(): void
     {
-        $type = EventType::query()->where('slug', 'kingdom-of-power')->sole();
+        $type = EventType::query()->where('slug', KingPerkEventCapabilityCatalog::eventTypeSlug())->sole();
         $scope = $this->app->make(EventTypeRegistry::class)->scope($type, EventScope::Kingdom);
+        $resolver = $this->app->make(EventCapabilityResolver::class);
 
-        self::assertTrue(
-            $this->app->make(EventCapabilityResolver::class)->supports($scope, EventCapability::KingPerks),
+        self::assertTrue($resolver->supports($scope, EventCapability::KingPerks));
+        self::assertSame(
+            KingPerkEventCapabilityCatalog::configuration(),
+            $resolver->configuration($scope, EventCapability::KingPerks),
         );
     }
 }

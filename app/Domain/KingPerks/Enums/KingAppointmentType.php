@@ -23,19 +23,29 @@ enum KingAppointmentType: string
         };
     }
 
-    /** Current KingShot appointment occupancy window. */
+    /** Current observed appointment occupancy. Kept in the catalogue so game changes remain data-rule changes. */
     public function durationMinutes(): int
     {
         return 30;
     }
 
-    /** Current KingShot per-Player cooldown after an appointment. */
+    /** Current documented per-Player appointment cooldown. */
     public function playerCooldownMinutes(): int
     {
         return 60;
     }
 
-    /** Current KingShot position lockout after a live appointment is cancelled. */
+    /**
+     * The public help text confirms the cooldown duration but is not explicit about its anchor.
+     * We use the conservative appointment-end anchor and expose it to the UI/documentation so it
+     * can be changed in one catalogue location after in-game verification.
+     */
+    public function playerCooldownAnchor(): string
+    {
+        return 'appointment_end';
+    }
+
+    /** Current documented position lockout after a live appointment is cancelled. */
     public function cancelledPositionCooldownMinutes(): int
     {
         return 30;

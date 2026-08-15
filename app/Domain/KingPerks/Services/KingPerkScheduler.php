@@ -24,6 +24,7 @@ use App\Domain\KingPerks\Models\KingSkillPlan;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -74,7 +75,6 @@ final readonly class KingPerkScheduler
 
             $this->record('king_perks.plan_created', $context->actor, $plan, $context->event, [
                 'occurrence_id' => (string) $lockedOccurrence->id,
-                'kingdom_id' => (string) $kingdom->id,
                 'window_starts_at' => $window['starts_at']->toIso8601String(),
                 'window_ends_at' => $window['ends_at']->toIso8601String(),
             ]);
@@ -133,6 +133,9 @@ final readonly class KingPerkScheduler
                     ->where('plan_id', $lockedPlan->id)
                     ->lockForUpdate()
                     ->firstOrFail();
+                if (! in_array($record->status, [KingPerkAppointmentStatus::Scheduled, KingPerkAppointmentStatus::Confirmed], true)) {
+                    throw ValidationException::withMessages(['appointment_id' => 'Only a future scheduled or confirmed appointment can be edited in place.']);
+                }
             }
 
             $ignoreId = $record?->id;
@@ -149,6 +152,8 @@ final readonly class KingPerkScheduler
                 'status' => KingPerkAppointmentStatus::Scheduled,
                 'assigned_by_player_id' => $currentActor->id,
                 'confirmed_at' => null,
+                'actual_started_at' => null,
+                'actual_ended_at' => null,
                 'completed_at' => null,
                 'notes' => $notes === null || trim($notes) === '' ? null : trim($notes),
             ])->save();
@@ -163,6 +168,7 @@ final readonly class KingPerkScheduler
                     'target_player_id' => (string) $currentTarget->id,
                     'starts_at' => $start->toIso8601String(),
                     'ends_at' => $end->toIso8601String(),
+                    'duration_minutes' => $type->durationMinutes(),
                 ],
             );
 
@@ -173,17 +179,13 @@ final readonly class KingPerkScheduler
     public function confirmAppointment(Player $actor, KingPerkAppointment $appointment): KingPerkAppointment
     {
         return DB::transaction(function () use ($actor, $appointment): KingPerkAppointment {
-            $record = KingPerkAppointment::query()->whereKey($appointment->id)->lockForUpdate()->firstOrFail();
-            $plan = KingPerkPlan::query()->whereKey($record->plan_id)->sharedLock()->firstOrFail();
-            $event = Event::query()->whereKey($plan->event_id)->firstOrFail();
-            $context = $this->mutations->requireSelf($actor, $event, $actor);
-            $this->capabilities->require($context->event, EventCapability::KingPerks);
+            [$record, $plan, $event, $currentActor] = $this->selfAppointment($actor, $appointment);
 
-            if ((string) $record->assigned_player_id !== (string) $context->actor->id) {
-                throw new AuthorizationException;
+            if ($record->status === KingPerkAppointmentStatus::Confirmed) {
+                return $record->refresh();
             }
             if ($record->status !== KingPerkAppointmentStatus::Scheduled) {
-                return $record->refresh();
+                throw ValidationException::withMessages(['appointment' => 'Only a scheduled appointment can be confirmed.']);
             }
 
             $record->forceFill([
@@ -191,7 +193,48 @@ final readonly class KingPerkScheduler
                 'confirmed_at' => now(),
             ])->save();
 
-            $this->record('king_perks.appointment_confirmed', $context->actor, $record, $context->event);
+            $this->record('king_perks.appointment_confirmed', $currentActor, $record, $event, [
+                'plan_id' => (string) $plan->id,
+            ]);
+
+            return $record->refresh();
+        });
+    }
+
+    public function declineAppointment(Player $actor, KingPerkAppointment $appointment): KingPerkAppointment
+    {
+        return DB::transaction(function () use ($actor, $appointment): KingPerkAppointment {
+            [$record, $plan, $event, $currentActor] = $this->selfAppointment($actor, $appointment);
+
+            if (! in_array($record->status, [KingPerkAppointmentStatus::Scheduled, KingPerkAppointmentStatus::Confirmed], true)) {
+                throw ValidationException::withMessages(['appointment' => 'Only a future scheduled or confirmed appointment can be declined.']);
+            }
+
+            $record->forceFill(['status' => KingPerkAppointmentStatus::Cancelled])->save();
+            $this->record('king_perks.appointment_declined', $currentActor, $record, $event, [
+                'plan_id' => (string) $plan->id,
+            ]);
+
+            return $record->refresh();
+        });
+    }
+
+    public function markAppointmentActive(Player $actor, KingPerkAppointment $appointment): KingPerkAppointment
+    {
+        return DB::transaction(function () use ($actor, $appointment): KingPerkAppointment {
+            [$record, $plan, $event, $currentActor] = $this->managerAppointment($actor, $appointment);
+
+            if (! in_array($record->status, [KingPerkAppointmentStatus::Scheduled, KingPerkAppointmentStatus::Confirmed], true)) {
+                throw ValidationException::withMessages(['appointment' => 'Only a scheduled or confirmed appointment can be marked active.']);
+            }
+
+            $record->forceFill([
+                'status' => KingPerkAppointmentStatus::Active,
+                'actual_started_at' => now(),
+            ])->save();
+            $this->record('king_perks.appointment_activated', $currentActor, $record, $event, [
+                'plan_id' => (string) $plan->id,
+            ]);
 
             return $record->refresh();
         });
@@ -207,12 +250,15 @@ final readonly class KingPerkScheduler
         }
 
         return DB::transaction(function () use ($actor, $appointment, $status): KingPerkAppointment {
-            $record = KingPerkAppointment::query()->whereKey($appointment->id)->lockForUpdate()->firstOrFail();
-            $plan = KingPerkPlan::query()->whereKey($record->plan_id)->firstOrFail();
-            [, $event, $currentActor] = $this->manager($actor, $plan);
+            [$record, , $event, $currentActor] = $this->managerAppointment($actor, $appointment);
+
+            if (in_array($record->status, [KingPerkAppointmentStatus::Cancelled, KingPerkAppointmentStatus::Completed], true)) {
+                throw ValidationException::withMessages(['appointment' => 'This appointment is already final.']);
+            }
 
             $record->forceFill([
                 'status' => $status,
+                'actual_ended_at' => $status === KingPerkAppointmentStatus::Completed ? now() : $record->actual_ended_at,
                 'completed_at' => $status === KingPerkAppointmentStatus::Completed ? now() : null,
             ])->save();
 
@@ -235,9 +281,12 @@ final readonly class KingPerkScheduler
         CarbonImmutable $cancelledAt,
     ): KingPerkPositionBlock {
         return DB::transaction(function () use ($actor, $appointment, $cancelledAt): KingPerkPositionBlock {
-            $record = KingPerkAppointment::query()->whereKey($appointment->id)->lockForUpdate()->firstOrFail();
-            $plan = KingPerkPlan::query()->whereKey($record->plan_id)->firstOrFail();
-            [, $event, $currentActor] = $this->manager($actor, $plan);
+            [$record, $plan, $event, $currentActor] = $this->managerAppointment($actor, $appointment);
+
+            if ($record->status === KingPerkAppointmentStatus::Completed) {
+                throw ValidationException::withMessages(['appointment' => 'A completed appointment cannot be cancelled.']);
+            }
+
             $type = $record->appointment_type;
             $start = $cancelledAt->utc();
             $end = $start->addMinutes($type->cancelledPositionCooldownMinutes());
@@ -252,7 +301,10 @@ final readonly class KingPerkScheduler
                 'recorded_by_player_id' => $currentActor->id,
             ]);
 
-            $record->forceFill(['status' => KingPerkAppointmentStatus::Cancelled])->save();
+            $record->forceFill([
+                'status' => KingPerkAppointmentStatus::Cancelled,
+                'actual_ended_at' => $record->actual_started_at === null ? null : now(),
+            ])->save();
             $this->record('king_perks.appointment_cancelled', $currentActor, $record, $event, [
                 'position_block_ends_at' => $end->toIso8601String(),
             ]);
@@ -313,17 +365,70 @@ final readonly class KingPerkScheduler
         return $this->transitionSkill($actor, $skill, KingSkillStatus::Activated, 'king_perks.skill_activated');
     }
 
+    /** @return array{KingPerkAppointment,KingPerkPlan,Event,Player} */
+    private function selfAppointment(Player $actor, KingPerkAppointment $appointment): array
+    {
+        $route = KingPerkAppointment::query()->select(['id', 'plan_id', 'assigned_player_id'])->whereKey($appointment->id)->firstOrFail();
+        $planRoute = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($route->plan_id)->firstOrFail();
+        $event = Event::query()->whereKey($planRoute->event_id)->firstOrFail();
+        $context = $this->mutations->requireSelf($actor, $event, $actor);
+        $this->capabilities->require($context->event, EventCapability::KingPerks);
+
+        if ((string) $route->assigned_player_id !== (string) $context->actor->id
+            || (string) $context->actor->current_kingdom_id !== (string) $planRoute->kingdom_id) {
+            throw new AuthorizationException;
+        }
+
+        $plan = KingPerkPlan::query()
+            ->whereKey($planRoute->id)
+            ->where('event_id', $context->event->id)
+            ->where('kingdom_id', $planRoute->kingdom_id)
+            ->sharedLock()
+            ->firstOrFail();
+        $record = KingPerkAppointment::query()
+            ->whereKey($route->id)
+            ->where('plan_id', $plan->id)
+            ->where('assigned_player_id', $context->actor->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        return [$record, $plan, $context->event, $context->actor];
+    }
+
+    /** @return array{KingPerkAppointment,KingPerkPlan,Event,Player} */
+    private function managerAppointment(Player $actor, KingPerkAppointment $appointment): array
+    {
+        $route = KingPerkAppointment::query()->select(['id', 'plan_id'])->whereKey($appointment->id)->firstOrFail();
+        $planRoute = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($route->plan_id)->firstOrFail();
+        [$plan, $event, $currentActor] = $this->manager($actor, $planRoute);
+        $record = KingPerkAppointment::query()
+            ->whereKey($route->id)
+            ->where('plan_id', $plan->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        return [$record, $plan, $event, $currentActor];
+    }
+
     /** @return array{KingPerkPlan, Event, Player} */
     private function manager(Player $actor, KingPerkPlan $plan): array
     {
-        $locked = KingPerkPlan::query()->whereKey($plan->id)->lockForUpdate()->firstOrFail();
-        $event = Event::query()->whereKey($locked->event_id)->firstOrFail();
+        $route = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($plan->id)->firstOrFail();
+        $event = Event::query()->whereKey($route->event_id)->firstOrFail();
         $context = $this->mutations->requireManager($actor, $event);
         $this->capabilities->require($context->event, EventCapability::KingPerks);
         $kingdom = $this->requireKingdom($context->target);
-        if ((string) $locked->kingdom_id !== (string) $kingdom->id) {
+
+        if ((string) $route->kingdom_id !== (string) $kingdom->id) {
             throw new AuthorizationException;
         }
+
+        $locked = KingPerkPlan::query()
+            ->whereKey($route->id)
+            ->where('event_id', $context->event->id)
+            ->where('kingdom_id', $kingdom->id)
+            ->lockForUpdate()
+            ->firstOrFail();
 
         return [$locked, $context->event, $context->actor];
     }
@@ -386,7 +491,7 @@ final readonly class KingPerkScheduler
     private function assertPlayerAvailable(
         KingPerkPlan $plan,
         Player $player,
-        KingAppointmentType $type,
+        KingAppointmentType $newType,
         CarbonImmutable $start,
         CarbonImmutable $end,
         ?string $ignoreId,
@@ -397,12 +502,13 @@ final readonly class KingPerkScheduler
             ->whereNotIn('status', [KingPerkAppointmentStatus::Cancelled->value, KingPerkAppointmentStatus::NoShow->value])
             ->when($ignoreId !== null, static fn ($query) => $query->whereKeyNot($ignoreId))
             ->lockForUpdate()
-            ->get(['id', 'starts_at', 'ends_at']);
+            ->get(['id', 'appointment_type', 'starts_at', 'ends_at']);
 
-        $newBlockedUntil = $end->addMinutes($type->playerCooldownMinutes());
+        $newBlockedUntil = $end->addMinutes($newType->playerCooldownMinutes());
         foreach ($appointments as $existing) {
+            $existingType = $existing->appointment_type;
             $existingEnd = CarbonImmutable::instance($existing->ends_at);
-            $existingBlockedUntil = $existingEnd->addMinutes($type->playerCooldownMinutes());
+            $existingBlockedUntil = $existingEnd->addMinutes($existingType->playerCooldownMinutes());
             $existingStart = CarbonImmutable::instance($existing->starts_at);
 
             if ($start->lt($existingBlockedUntil) && $existingStart->lt($newBlockedUntil)) {
@@ -420,9 +526,21 @@ final readonly class KingPerkScheduler
         string $eventName,
     ): KingSkillPlan {
         return DB::transaction(function () use ($actor, $skill, $status, $eventName): KingSkillPlan {
-            $record = KingSkillPlan::query()->whereKey($skill->id)->lockForUpdate()->firstOrFail();
-            $plan = KingPerkPlan::query()->whereKey($record->plan_id)->firstOrFail();
-            [, $event, $currentActor] = $this->manager($actor, $plan);
+            $route = KingSkillPlan::query()->select(['id', 'plan_id'])->whereKey($skill->id)->firstOrFail();
+            $planRoute = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($route->plan_id)->firstOrFail();
+            [$plan, $event, $currentActor] = $this->manager($actor, $planRoute);
+            $record = KingSkillPlan::query()
+                ->whereKey($route->id)
+                ->where('plan_id', $plan->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($status === KingSkillStatus::ScheduledInGame && $record->status !== KingSkillStatus::Planned) {
+                throw ValidationException::withMessages(['skill' => 'Only a planned King Skill can be marked scheduled in game.']);
+            }
+            if ($status === KingSkillStatus::Activated && ! in_array($record->status, [KingSkillStatus::Planned, KingSkillStatus::ScheduledInGame], true)) {
+                throw ValidationException::withMessages(['skill' => 'Only a planned or scheduled King Skill can be marked activated.']);
+            }
 
             $attributes = ['status' => $status];
             if ($status === KingSkillStatus::ScheduledInGame) {
@@ -444,7 +562,7 @@ final readonly class KingPerkScheduler
     private function record(
         string $name,
         Player $actor,
-        object $subject,
+        Model $subject,
         Event $event,
         array $metadata = [],
     ): void {

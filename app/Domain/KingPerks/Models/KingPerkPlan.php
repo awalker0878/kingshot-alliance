@@ -43,4 +43,5 @@ final class KingPerkPlan extends Model
     public function appointments(): HasMany { return $this->hasMany(KingPerkAppointment::class, 'plan_id')->orderBy('starts_at'); }
     public function positionBlocks(): HasMany { return $this->hasMany(KingPerkPositionBlock::class, 'plan_id')->orderBy('starts_at'); }
     public function skills(): HasMany { return $this->hasMany(KingSkillPlan::class, 'plan_id')->orderBy('planned_activation_at'); }
+    public function requests(): HasMany { return $this->hasMany(KingPerkRequest::class, 'plan_id')->orderByDesc('planned_speedup_minutes')->orderBy('availability_starts_at'); }
 }
