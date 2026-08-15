@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property string $kingdom_id
- * @property string|null $game_alliance_id
+ * @property string $game_alliance_id
  * @property string $current_name
  * @property string|null $current_tag
  * @property KingdomAllianceStatus $status
