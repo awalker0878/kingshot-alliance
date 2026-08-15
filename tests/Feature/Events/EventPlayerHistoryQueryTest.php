@@ -19,6 +19,7 @@ use App\Domain\Events\Models\EventType;
 use App\Domain\Events\Queries\EventPlayerHistoryQuery;
 use App\Domain\Events\Services\EventTypeRegistry;
 use App\Domain\Identity\Models\User;
+use App\Domain\Kingdoms\Actions\MarkRosterEntryLeft;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
 use App\Domain\Kingdoms\Models\Kingdom;
 use App\Domain\Kingdoms\Models\Player;
@@ -85,6 +86,55 @@ final class EventPlayerHistoryQueryTest extends TestCase
         $allianceOnly = $query->forPlayer($player->refresh(), ['scope' => EventScope::Alliance->value]);
         self::assertCount(1, $allianceOnly);
         self::assertSame(EventScope::Alliance->value, $allianceOnly[0]['scope']);
+    }
+
+    public function test_personal_history_survives_alliance_and_kingdom_moves_without_rewriting_frozen_context(): void
+    {
+        $oldKingdom = Kingdom::query()->create(['number' => 8895, 'status' => 'active']);
+        $newKingdom = Kingdom::query()->create(['number' => 8896, 'status' => 'active']);
+        $owner = $this->player($oldKingdom, 'Old Alliance Owner', '8895-owner');
+        $kingdomAdmin = $this->player($oldKingdom, 'Old Kingdom Admin', '8895-admin');
+        $movingPlayer = $this->player($oldKingdom, 'Moving Player', '8895-moving');
+        $this->grantKingdomAdministrator($kingdomAdmin, $oldKingdom);
+        $oldAlliance = $this->app->make(CreateAlliance::class)->handle($owner, 'Old Alliance', 'old-history-alliance');
+        $oldRoster = $this->app->make(SaveRosterEntry::class)->handle(
+            $oldAlliance,
+            $owner,
+            ['name' => 'Moving Player', 'game_player_id' => '8895-moving'],
+            expectedPlayerId: (string) $movingPlayer->id,
+        );
+
+        $allianceEvent = $this->event($owner, $oldAlliance, 'custom', EventScope::Alliance, 1);
+        $kingdomEvent = $this->event($kingdomAdmin, $oldKingdom, 'custom', EventScope::Kingdom, 2);
+        $save = $this->app->make(SaveEventPlayerResult::class);
+        $save->handle($owner, $allianceEvent->occurrences->firstOrFail(), $movingPlayer, score: 111);
+        $save->handle($kingdomAdmin, $kingdomEvent->occurrences->firstOrFail(), $movingPlayer, score: 222);
+
+        $this->app->make(MarkRosterEntryLeft::class)->handle($oldAlliance, $owner, (string) $oldRoster->id);
+        $movingPlayer->forceFill(['current_kingdom_id' => $newKingdom->id])->save();
+        $newAlliance = $this->app->make(CreateAlliance::class)->handle(
+            $movingPlayer->refresh(),
+            'New Alliance',
+            'new-history-alliance',
+        );
+
+        $history = $this->app->make(EventPlayerHistoryQuery::class)->forPlayer($movingPlayer->refresh());
+
+        self::assertCount(2, $history);
+        $allianceRow = collect($history)->firstWhere('scope', EventScope::Alliance->value);
+        self::assertIsArray($allianceRow);
+        self::assertSame((string) $oldAlliance->id, $allianceRow['targetId']);
+        self::assertSame((string) $oldAlliance->id, $allianceRow['playerContext']['representedAllianceId']);
+        self::assertSame((string) $oldKingdom->id, $allianceRow['playerContext']['kingdomIdAtEvent']);
+        self::assertSame(111, $allianceRow['result']['score']);
+        self::assertNotSame((string) $newAlliance->id, $allianceRow['playerContext']['representedAllianceId']);
+
+        $kingdomRow = collect($history)->firstWhere('scope', EventScope::Kingdom->value);
+        self::assertIsArray($kingdomRow);
+        self::assertSame((string) $oldKingdom->id, $kingdomRow['targetId']);
+        self::assertSame((string) $oldKingdom->id, $kingdomRow['playerContext']['kingdomIdAtEvent']);
+        self::assertSame(222, $kingdomRow['result']['score']);
+        self::assertSame((string) $newKingdom->id, (string) $movingPlayer->refresh()->current_kingdom_id);
     }
 
     public function test_history_is_exact_player_only_even_when_sibling_players_share_a_user(): void
