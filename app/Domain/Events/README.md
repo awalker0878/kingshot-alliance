@@ -6,7 +6,7 @@ Owns KingShot Event types, scoped scheduling, participation, coordination, battl
 
 ## Owned code
 
-Runtime code in this module owns Event scope/capability vocabulary, the Event Type catalogue, Event authorization composition, creation-context discovery, scheduling, participation, occurrence phases, polls, Player voting, hierarchical rosters, Player assignment/confirmation, hierarchical battle objectives and assignments, occurrence/Alliance/Player results, Event metrics, occurrence-time historical Player context, Event intelligence, Event queries, active-Player Event visibility, bounded attention/calendar/history read models, localization keys, and first-party Event surfaces.
+Runtime code in this module owns Event scope/capability vocabulary, the Event Type catalogue, the KingShot Event metric catalogue, Event authorization composition, creation-context discovery, scheduling, participation, occurrence phases, polls, Player voting, hierarchical rosters, Player assignment/confirmation, hierarchical battle objectives and assignments, occurrence/Alliance/Player results, Event metrics, occurrence-time historical Player context, Event intelligence, Event queries, active-Player Event visibility, bounded attention/calendar/history read models, localization keys, and first-party Event surfaces.
 
 ## Public contracts
 
@@ -17,6 +17,7 @@ Runtime code in this module owns Event scope/capability vocabulary, the Event Ty
 - `EventCreationContextResolver` — Event targets where the actor may create.
 - `EventVisibilityResolver` / `ActivePlayerEventVisibilityResolver` — current active-Player eligible target sets.
 - Event Type catalogue — supported scopes, defaults, capabilities, localization keys, and presentation metadata.
+- KingShot Event metric catalogue — Event-Type/scope score semantics plus compatible Event/Alliance/Player component metric definitions.
 - Occurrence phases and polls — capability-driven timelines, options, active-Player voting, and vote read models.
 - Event rosters — occurrence-scoped hierarchy, durable Player assignments, availability warnings, and self confirmation.
 - Battle plans — occurrence-scoped objective hierarchy, priority/status, and exact Player-or-roster assignments.
@@ -35,5 +36,6 @@ Runtime code in this module owns Event scope/capability vocabulary, the Event Ty
 
 - [`docs/domains/events/`](../../../docs/domains/events/README.md)
 - [Event contribution and historical intelligence](../../../docs/domains/events/event-contribution-history.md)
+- [KingShot Event metric catalogue](../../../docs/domains/events/event-metric-catalogue.md)
 - [EVENT-CONTRIB-001 implementation plan](../../../docs/domains/events/product/event-contribution-history-implementation-plan.md)
 - [EVENTS-002 implementation plan](../../../docs/domains/events/product/events-002-scoped-event-operations-implementation-plan.md)
