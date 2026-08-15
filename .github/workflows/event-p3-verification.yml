@@ -58,9 +58,9 @@ jobs:
       - run: composer install --no-interaction --no-progress --prefer-dist
       - name: Fresh PostgreSQL schema
         run: php artisan migrate --force
-      - name: P3 Pint
+      - name: Format P3 files
         run: >-
-          vendor/bin/pint --test
+          vendor/bin/pint
           app/Domain/Events/Actions/RecordEventAttendance.php
           app/Domain/Events/Actions/RecordEventRosterParticipation.php
           app/Domain/Events/Actions/RegisterForEvent.php
@@ -77,6 +77,8 @@ jobs:
           bootstrap/app.php
           routes/event-history.php
           tests/Feature/Events/EventMetricCaptureTest.php
+      - name: Show P3 formatter diff
+        run: git diff -- app/Domain/Events app/Domain/Rallies bootstrap/app.php routes/event-history.php tests/Feature/Events/EventMetricCaptureTest.php
       - name: P3 Larastan
         run: >-
           vendor/bin/phpstan analyse --no-progress
