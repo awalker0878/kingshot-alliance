@@ -23,6 +23,8 @@ use LogicException;
 
 final class EventOrganizationHistoryQuery
 {
+    public function __construct(private readonly EventOrganizationEvidenceQuery $evidence) {}
+
     /**
      * @param  array{event_type_slug?:string|null,from?:DateTimeInterface|null,until?:DateTimeInterface|null,limit?:int|null}  $filters
      * @return list<array<string,mixed>>
@@ -77,6 +79,8 @@ final class EventOrganizationHistoryQuery
         if ($occurrenceIds->isEmpty()) {
             return [];
         }
+
+        $operationalEvidence = $this->evidence->forOccurrences($occurrenceIds);
 
         $results = EventResult::query()
             ->whereIn('occurrence_id', $occurrenceIds)
@@ -164,6 +168,12 @@ final class EventOrganizationHistoryQuery
                     'higherIsBetter' => (bool) $row->result_score_higher_is_better,
                 ],
                 'result' => $eventResult instanceof EventResult ? $this->eventResultPayload($eventResult) : null,
+                'evidence' => $operationalEvidence[$occurrenceId] ?? [
+                    'attendance' => ['total' => 0, 'byStatus' => []],
+                    'roster' => ['total' => 0, 'byStatus' => []],
+                    'rallies' => ['total' => 0, 'byStatus' => []],
+                    'objectives' => ['total' => 0, 'assignments' => 0, 'byStatus' => []],
+                ],
                 'participants' => $participants,
                 'allianceResults' => $organizationAllianceResults,
             ];
