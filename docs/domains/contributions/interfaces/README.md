@@ -71,11 +71,11 @@ Scheduled report delivery requests are handed to Notifications/shared outbox wit
 
 `contributions:queue-reports {--limit=50}` is a Notifications-owned coordination command that consumes Contributions report-schedule state; the scheduler executes with one-server/overlap protection.
 
-Large history exports may be queued when introduced, but no Event-to-Contributions materialization/reconciliation job is part of the final EVENT-CONTRIB-001 architecture.
+Large history exports may be queued if a future volume threshold requires asynchronous delivery, but no Event-to-Contributions materialization/reconciliation job is part of the final EVENT-CONTRIB-001 architecture.
 
 ## 9. Files, imports, exports and external dependencies
 
-The material file contract is [Report exports](report-exports.md): versioned CSV plus SpreadsheetML XML served as `.xls`. EVENT-CONTRIB-001 will version/extend report rows before Event metrics/history are exposed in exports.
+The material file contract is [Report exports](report-exports.md): versioned CSV plus SpreadsheetML XML served as `.xls`. `ContributionReportExporter::REPORT_VERSION` is `event-history.v2`, and current report rows include Event scope/type/occurrence, historical Alliance/Kingdom context, Player result score/rank/outcome, normalized metric identity/dimension/value/unit, and provenance alongside Contributions-owned records.
 
 There is no accepted Contributions bulk import format. Externally represented data is served via Integrations API JSON, not by reusing export bytes/schema.
 
