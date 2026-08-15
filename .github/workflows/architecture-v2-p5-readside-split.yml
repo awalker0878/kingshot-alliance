@@ -1,0 +1,65 @@
+name: Architecture V2 P5 Read-side Split
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths:
+      - '.github/workflows/architecture-v2-p5-readside-split.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Remove downstream composition from Operations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          controller = Path('app/Contexts/Operations/EventCore/Http/Controllers/EventManagementController.php')
+          source = controller.read_text()
+          source = source.replace('use App\\Contexts\\Intelligence\\EventAnalysis\\Queries\\EventPlayerIntelligenceQuery;\n', '')
+
+          manage_start = source.index('    public function manage(\n')
+          update_start = source.index('    public function update(\n', manage_start)
+          source = source[:manage_start] + source[update_start:]
+
+          payload_start = source.index('    /** @return array<string, mixed> */\n    private function managementPayload(')
+          identity_start = source.index('    /** @return array{name:string,email:string} */\n    private function identity(', payload_start)
+          source = source[:payload_start] + source[identity_start:]
+          controller.write_text(source)
+
+          routes = Path('routes/web.php')
+          source = routes.read_text()
+          import_line = 'use App\\ReadModels\\EventManagement\\Http\\Controllers\\EventManagementPageController;\n'
+          anchor = 'use App\\ReadModels\\EventCalendar\\Http\\Controllers\\EventCalendarController;\n'
+          if import_line not in source:
+              source = source.replace(anchor, anchor + import_line)
+          source = source.replace(
+              "Route::get('/events/{event}/manage', [EventManagementController::class, 'manage'])",
+              "Route::get('/events/{event}/manage', EventManagementPageController::class)",
+          )
+          routes.write_text(source)
+          PY
+
+          grep -RIn --include='*.php' 'App\\Contexts\\Intelligence\\' app/Contexts/Operations && exit 1 || true
+          php -l app/Contexts/Operations/EventCore/Http/Controllers/EventManagementController.php
+          php -l app/ReadModels/EventManagement/Http/Controllers/EventManagementPageController.php
+          php -l routes/web.php
+      - name: Commit read-side split
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'architecture-v2-bot'
+          git config user.email 'architecture-v2-bot@users.noreply.github.com'
+          git add app routes
+          git commit -m 'refactor(arch-v2): move Event management projection to read side'
+          git push origin HEAD:architecture-v2
