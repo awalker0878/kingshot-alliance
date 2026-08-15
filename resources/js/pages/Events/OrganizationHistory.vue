@@ -170,74 +170,76 @@ function number(value: number | null): string {
         No historical Events match these filters.
       </div>
 
-      <section v-for="event in history" v-else :key="event.occurrenceId" class="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div class="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-              <span>{{ event.eventType.slug }}</span>
-              <span>·</span>
-              <span>{{ humanize(event.occurrenceStatus) }}</span>
-            </div>
-            <h2 class="mt-2 text-xl font-semibold text-white">{{ event.title || event.targetDisplayName }}</h2>
-            <p class="mt-1 text-sm text-slate-400">{{ dateTime(event.startsAt) }} – {{ dateTime(event.endsAt) }}</p>
-          </div>
-          <div v-if="event.result" class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-right">
-            <p class="text-xs uppercase tracking-wide text-slate-500">Result</p>
-            <p class="mt-1 text-lg font-semibold text-white">{{ number(event.result.score) }}</p>
-            <p class="text-xs capitalize text-slate-400">{{ humanize(event.result.outcome) }}</p>
-          </div>
-        </div>
-
-        <div v-if="event.result?.metrics.length" class="mt-4 flex flex-wrap gap-2">
-          <span v-for="metric in event.result.metrics" :key="`${metric.key}-${metric.dimensionKey ?? ''}`" class="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-slate-200">
-            {{ metric.key }}<template v-if="metric.dimensionKey"> · {{ metric.dimensionKey }}</template>: {{ metric.value }}<template v-if="metric.unit"> {{ metric.unit }}</template>
-          </span>
-        </div>
-
-        <div v-if="organization.scope === 'kingdom' && event.allianceResults.length" class="mt-6">
-          <h3 class="text-sm font-semibold text-white">Alliance results</h3>
-          <div class="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <article v-for="result in event.allianceResults" :key="result.allianceId" class="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div class="flex items-center justify-between gap-3">
-                <div>
-                  <p class="font-medium text-white">{{ result.allianceName }}</p>
-                  <p v-if="result.allianceTag" class="text-xs text-slate-500">{{ result.allianceTag }}</p>
-                </div>
-                <p class="font-semibold text-amber-200">{{ number(result.score) }}</p>
+      <template v-else>
+        <section v-for="event in history" :key="event.occurrenceId" class="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div class="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                <span>{{ event.eventType.slug }}</span>
+                <span>·</span>
+                <span>{{ humanize(event.occurrenceStatus) }}</span>
               </div>
-              <p class="mt-2 text-xs capitalize text-slate-400">{{ humanize(result.outcome) }}</p>
-            </article>
+              <h2 class="mt-2 text-xl font-semibold text-white">{{ event.title || event.targetDisplayName }}</h2>
+              <p class="mt-1 text-sm text-slate-400">{{ dateTime(event.startsAt) }} – {{ dateTime(event.endsAt) }}</p>
+            </div>
+            <div v-if="event.result" class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-right">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Result</p>
+              <p class="mt-1 text-lg font-semibold text-white">{{ number(event.result.score) }}</p>
+              <p class="text-xs capitalize text-slate-400">{{ humanize(event.result.outcome) }}</p>
+            </div>
           </div>
-        </div>
 
-        <div class="mt-6">
-          <div class="flex items-center justify-between gap-3">
-            <h3 class="text-sm font-semibold text-white">Historical participants</h3>
-            <span class="text-xs text-slate-500">{{ event.participants.length }} Players</span>
+          <div v-if="event.result?.metrics.length" class="mt-4 flex flex-wrap gap-2">
+            <span v-for="metric in event.result.metrics" :key="`${metric.key}-${metric.dimensionKey ?? ''}`" class="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-slate-200">
+              {{ metric.key }}<template v-if="metric.dimensionKey"> · {{ metric.dimensionKey }}</template>: {{ metric.value }}<template v-if="metric.unit"> {{ metric.unit }}</template>
+            </span>
           </div>
-          <div v-if="event.participants.length" class="mt-3 overflow-x-auto rounded-xl border border-white/10">
-            <table class="min-w-full divide-y divide-white/10 text-sm">
-              <thead class="bg-white/5 text-left text-xs uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th class="px-4 py-3">Player</th>
-                  <th class="px-4 py-3">Represented Alliance</th>
-                  <th class="px-4 py-3">Score</th>
-                  <th class="px-4 py-3">Outcome</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/5">
-                <tr v-for="participant in event.participants" :key="participant.playerId">
-                  <td class="px-4 py-3 text-white">{{ participant.playerName }}</td>
-                  <td class="px-4 py-3 text-slate-300">{{ participant.representedAllianceName ?? '—' }}</td>
-                  <td class="px-4 py-3 text-slate-300">{{ number(participant.result?.score ?? null) }}</td>
-                  <td class="px-4 py-3 capitalize text-slate-300">{{ humanize(participant.result?.outcome ?? null) }}</td>
-                </tr>
-              </tbody>
-            </table>
+
+          <div v-if="organization.scope === 'kingdom' && event.allianceResults.length" class="mt-6">
+            <h3 class="text-sm font-semibold text-white">Alliance results</h3>
+            <div class="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <article v-for="result in event.allianceResults" :key="result.allianceId" class="rounded-xl border border-white/10 bg-white/5 p-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="font-medium text-white">{{ result.allianceName }}</p>
+                    <p v-if="result.allianceTag" class="text-xs text-slate-500">{{ result.allianceTag }}</p>
+                  </div>
+                  <p class="font-semibold text-amber-200">{{ number(result.score) }}</p>
+                </div>
+                <p class="mt-2 text-xs capitalize text-slate-400">{{ humanize(result.outcome) }}</p>
+              </article>
+            </div>
           </div>
-          <p v-else class="mt-3 text-sm text-slate-500">No Player context was captured for this occurrence.</p>
-        </div>
-      </section>
+
+          <div class="mt-6">
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="text-sm font-semibold text-white">Historical participants</h3>
+              <span class="text-xs text-slate-500">{{ event.participants.length }} Players</span>
+            </div>
+            <div v-if="event.participants.length" class="mt-3 overflow-x-auto rounded-xl border border-white/10">
+              <table class="min-w-full divide-y divide-white/10 text-sm">
+                <thead class="bg-white/5 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th class="px-4 py-3">Player</th>
+                    <th class="px-4 py-3">Represented Alliance</th>
+                    <th class="px-4 py-3">Score</th>
+                    <th class="px-4 py-3">Outcome</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  <tr v-for="participant in event.participants" :key="participant.playerId">
+                    <td class="px-4 py-3 text-white">{{ participant.playerName }}</td>
+                    <td class="px-4 py-3 text-slate-300">{{ participant.representedAllianceName ?? '—' }}</td>
+                    <td class="px-4 py-3 text-slate-300">{{ number(participant.result?.score ?? null) }}</td>
+                    <td class="px-4 py-3 capitalize text-slate-300">{{ humanize(participant.result?.outcome ?? null) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p v-else class="mt-3 text-sm text-slate-500">No Player context was captured for this occurrence.</p>
+          </div>
+        </section>
+      </template>
     </div>
   </AppLayout>
 </template>
