@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Events\Queries;
 
+use App\Domain\Events\Enums\EventScope;
 use App\Domain\Events\Models\EventPlayerResult;
 use App\Domain\Kingdoms\Models\Player;
 use DateTimeInterface;
@@ -18,6 +19,7 @@ final readonly class EventPlayerHistoryQuery
 
     /**
      * @param array{
+     *   scope?:string|null,
      *   event_type_slug?:string|null,
      *   from?:DateTimeInterface|null,
      *   until?:DateTimeInterface|null,
@@ -31,6 +33,14 @@ final readonly class EventPlayerHistoryQuery
      */
     public function forPlayer(Player $player, array $filters = []): array
     {
+        $scope = isset($filters['scope']) ? trim((string) $filters['scope']) : null;
+        $validScopes = array_map(static fn (EventScope $case): string => $case->value, EventScope::cases());
+        if ($scope !== null && $scope !== '' && ! in_array($scope, $validScopes, true)) {
+            throw ValidationException::withMessages([
+                'scope' => 'Event scope must be player, alliance, or kingdom.',
+            ]);
+        }
+
         $outcome = isset($filters['participation_outcome'])
             ? trim((string) $filters['participation_outcome'])
             : null;
@@ -47,6 +57,10 @@ final readonly class EventPlayerHistoryQuery
             ->join('event_types as event_type', 'event_type.id', '=', 'event.event_type_id')
             ->join('event_type_scopes as type_scope', 'type_scope.id', '=', 'event.event_type_scope_id')
             ->where('context.player_id', $player->id)
+            ->when(
+                $scope !== null && $scope !== '',
+                static fn (Builder $q) => $q->where('event.scope', $scope),
+            )
             ->when(
                 isset($filters['event_type_slug']) && trim((string) $filters['event_type_slug']) !== '',
                 static fn (Builder $q) => $q->where('event_type.slug', trim((string) $filters['event_type_slug'])),
@@ -67,6 +81,10 @@ final readonly class EventPlayerHistoryQuery
                 isset($filters['kingdom_id_at_event']) && trim((string) $filters['kingdom_id_at_event']) !== '',
                 static fn (Builder $q) => $q->where('context.kingdom_id_at_event', trim((string) $filters['kingdom_id_at_event'])),
             );
+
+        if ($outcome !== null && $outcome !== '') {
+            $this->evidence->applyOutcomeFilter($query, $player, $outcome);
+        }
 
         $metricKey = isset($filters['metric_key']) ? trim((string) $filters['metric_key']) : '';
         if ($metricKey !== '') {
@@ -167,10 +185,6 @@ final readonly class EventPlayerHistoryQuery
                     'result' => $result instanceof EventPlayerResult ? $this->resultPayload($result) : null,
                 ];
             })
-            ->when(
-                $outcome !== null && $outcome !== '',
-                static fn (Collection $items) => $items->filter(static fn (array $row): bool => $row['participation']['outcome'] === $outcome),
-            )
             ->values()
             ->all();
     }
