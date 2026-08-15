@@ -146,7 +146,7 @@ final readonly class EventResultQuery
     }
 
     /**
-     * @param iterable<EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric> $metrics
+     * @param  iterable<EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric>  $metrics
      * @return list<array<string,mixed>>
      */
     private function metrics(iterable $metrics): array
@@ -155,7 +155,7 @@ final readonly class EventResultQuery
 
         foreach ($metrics as $metric) {
             $definition = $metric->getRelation('definition');
-            if (! $definition instanceof EventMetricDefinition) {
+            if (!$definition instanceof EventMetricDefinition) {
                 throw new LogicException('Event metric values require a loaded metric definition.');
             }
 
