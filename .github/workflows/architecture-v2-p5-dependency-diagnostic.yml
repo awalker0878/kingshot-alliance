@@ -1,0 +1,29 @@
+name: Architecture V2 P5 Dependency Diagnostic
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths:
+      - '.github/workflows/architecture-v2-p5-dependency-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report forbidden Operations imports
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== Intelligence imports ==='
+          grep -RIn --include='*.php' 'App\\Contexts\\Intelligence\\' app/Contexts/Operations || true
+          echo '=== Communications imports ==='
+          grep -RIn --include='*.php' 'App\\Contexts\\Communications\\' app/Contexts/Operations || true
+          echo '=== Platform imports ==='
+          grep -RIn --include='*.php' 'App\\Contexts\\Platform\\' app/Contexts/Operations || true
+          echo '=== ReadModels imports ==='
+          grep -RIn --include='*.php' 'App\\ReadModels\\' app/Contexts/Operations || true
