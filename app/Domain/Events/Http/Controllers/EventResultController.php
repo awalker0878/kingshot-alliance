@@ -18,9 +18,7 @@ use Illuminate\Http\Request;
 
 final class EventResultController extends Controller
 {
-    public function __construct(private readonly PlayerContext $playerContext)
-    {
-    }
+    public function __construct(private readonly PlayerContext $playerContext) {}
 
     public function saveOccurrence(Request $request, string $occurrence, EventCalendarQuery $events, SaveEventResult $save): RedirectResponse
     {
