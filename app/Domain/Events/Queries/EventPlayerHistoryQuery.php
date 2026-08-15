@@ -191,7 +191,7 @@ final readonly class EventPlayerHistoryQuery
             ];
         }
 
-        return array_values($history);
+        return $history;
     }
 
     /**
