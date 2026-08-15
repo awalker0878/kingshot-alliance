@@ -73,7 +73,7 @@ final readonly class EventResultQuery
             'name' => (string) $player->current_name,
         ])->values()->all();
 
-        return $occurrences->map(function (EventOccurrence $occurrence) use ($summaries, $allianceResults, $playerResults, $playerOptions): array {
+        $rows = $occurrences->map(function (EventOccurrence $occurrence) use ($summaries, $allianceResults, $playerResults, $playerOptions): array {
             $occurrenceId = (string) $occurrence->id;
             $summary = $summaries->get($occurrenceId);
             $allianceRows = $allianceResults->get($occurrenceId, collect());
@@ -93,7 +93,9 @@ final readonly class EventResultQuery
                     ->all(),
                 'players' => $playerOptions,
             ];
-        })->values()->all();
+        })->all();
+
+        return array_values($rows);
     }
 
     /** @return array<string,mixed> */
