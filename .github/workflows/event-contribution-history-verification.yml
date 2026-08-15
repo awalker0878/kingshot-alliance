@@ -1,0 +1,110 @@
+name: Event Contribution History Verification
+
+on:
+  push:
+    branches:
+      - feature/event-contribution-history-p0
+  pull_request:
+    paths:
+      - 'app/Domain/Events/**'
+      - 'app/Domain/Contributions/**'
+      - 'app/Domain/Rallies/**'
+      - 'database/migrations/**event**'
+      - 'resources/js/pages/Events/**'
+      - 'resources/js/pages/Contributions/**'
+      - 'routes/event-history.php'
+      - 'routes/contributions.php'
+      - 'tests/Feature/Events/**'
+      - 'tests/Feature/Contributions/**'
+      - 'docs/domains/events/**'
+      - 'docs/adr/0011-event-history-and-contribution-ownership.md'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8.8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      APP_DEBUG: false
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: array
+      REDIS_HOST: 127.0.0.1
+      PULSE_ENABLED: false
+
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: npm ci --no-audit --no-fund
+      - name: Fresh PostgreSQL schema
+        run: php artisan migrate:fresh --force
+      - name: Pint changed PHP
+        shell: bash
+        run: |
+          mapfile -t files < <(git diff --name-only origin/main...HEAD -- '*.php')
+          if ((${#files[@]})); then
+            vendor/bin/pint --test "${files[@]}"
+          fi
+      - name: Larastan changed application PHP
+        shell: bash
+        run: |
+          mapfile -t files < <(git diff --name-only origin/main...HEAD -- 'app/**/*.php')
+          if ((${#files[@]})); then
+            vendor/bin/phpstan analyse --no-progress "${files[@]}"
+          fi
+      - name: Event contribution history feature suites
+        run: >-
+          php artisan test
+          tests/Feature/Events/EventMetricCaptureTest.php
+          tests/Feature/Events/EventPlayerHistoryQueryTest.php
+          tests/Feature/Events/EventOrganizationHistoryQueryTest.php
+          tests/Feature/Events/EventTrendQueryTest.php
+          tests/Feature/Events/EventHistorySecurityTest.php
+          tests/Feature/Events/EventHistoryPerformanceContractTest.php
+          tests/Feature/Contributions/PlayerContributionHistoryQueryTest.php
+          tests/Feature/Contributions/ContributionHistoryHttpTest.php
+          tests/Feature/Contributions/AllianceContributionReportQueryTest.php
+      - name: Frontend checks
+        run: npm run check
