@@ -26,11 +26,10 @@ final readonly class SaveEventResult
         private EventMetricCapture $metrics,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param list<array{key:string,value:int|float|string,dimension_key?:string|null}> $metrics
+     * @param  list<array{key:string,value:int|float|string,dimension_key?:string|null}>  $metrics
      */
     public function handle(
         Player $actor,
@@ -43,8 +42,7 @@ final readonly class SaveEventResult
         array $metrics = [],
         EventMetricSource $metricSource = EventMetricSource::Manual,
     ): EventResult {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
+        $event = $occurrence->event()->firstOrFail();
         $this->validate($outcome, $score, $opponentScore, $rank, $notes);
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $outcome, $score, $opponentScore, $rank, $notes, $metrics, $metricSource): EventResult {
@@ -94,7 +92,7 @@ final readonly class SaveEventResult
                 $alliance?->id,
                 $record,
                 $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
+                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
             );
 
             return $record->refresh()->load('metrics.definition');
