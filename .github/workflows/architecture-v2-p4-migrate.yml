@@ -73,16 +73,20 @@ jobs:
 
           owner_imports = {
               'AlliancePermission::': r'use App\Contexts\Alliance\Access\Enums\AlliancePermission;',
-              'OperationsPermission::': r'use App\Contexts\Operations\Access\Enums\OperationsPermission;',
+              'OperationsPermission': r'use App\Contexts\Operations\Access\Enums\OperationsPermission;',
               'KingdomPermission::': r'use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;',
               'IntelligencePermission::': r'use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;',
           }
 
           changed = []
           unresolved = []
+          negative_contracts = {
+              'tests/Architecture/ArchitectureV2AllianceTest.php',
+          }
 
           for path in files:
-              if str(path).startswith('app/Domain/Authorization/'):
+              path_name = str(path)
+              if path_name.startswith('app/Domain/Authorization/'):
                   continue
 
               text = path.read_text()
@@ -93,6 +97,9 @@ jobs:
 
               for old, new in permission_replacements.items():
                   text = text.replace(old, new)
+
+              if path_name.startswith('app/Domain/Events/'):
+                  text = text.replace('PermissionKey $', 'OperationsPermission $')
 
               text = text.replace(r'use App\Domain\Authorization\Enums\PermissionKey;' + '\n', '')
               text = text.replace(r'\App\Domain\Authorization\Enums\PermissionKey', r'\App\Contexts\Operations\Access\Enums\OperationsPermission')
@@ -110,7 +117,11 @@ jobs:
                           lines.insert(insert_at, import_line)
                       text = '\n'.join(lines) + ('\n' if original.endswith('\n') else '')
 
-              if 'PermissionKey' in text:
+              if path_name not in negative_contracts and (
+                  'PermissionKey::' in text
+                  or 'PermissionKey $' in text
+                  or r'use App\Domain\Authorization\Enums\PermissionKey;' in text
+              ):
                   unresolved.append(f'{path}: unresolved PermissionKey')
 
               if text != original:
@@ -119,7 +130,8 @@ jobs:
 
           external_v1 = []
           for path in files:
-              if str(path).startswith('app/Domain/Authorization/'):
+              path_name = str(path)
+              if path_name.startswith('app/Domain/Authorization/') or path_name in negative_contracts:
                   continue
               text = path.read_text()
               if r'App\Domain\Authorization' in text:
