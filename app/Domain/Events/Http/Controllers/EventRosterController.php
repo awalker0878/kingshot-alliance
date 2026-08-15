@@ -32,7 +32,7 @@ final class EventRosterController extends Controller
         $actor = $this->player();
         $record = $events->occurrence($actor, $occurrence);
         $validated = $this->validateRoster($request);
-        $parent = isset($validated['parent_id']) && $validated['parent_id'] !== null
+        $parent = isset($validated['parent_id'])
             ? EventRoster::query()->whereKey((string) $validated['parent_id'])->where('occurrence_id', $record->id)->firstOrFail()
             : null;
         $save->handle(
@@ -57,7 +57,7 @@ final class EventRosterController extends Controller
         $record = $events->occurrence($actor, $occurrence);
         $rosterRecord = EventRoster::query()->whereKey($roster)->where('occurrence_id', $record->id)->firstOrFail();
         $validated = $this->validateRoster($request);
-        $parent = isset($validated['parent_id']) && $validated['parent_id'] !== null
+        $parent = isset($validated['parent_id'])
             ? EventRoster::query()->whereKey((string) $validated['parent_id'])->where('occurrence_id', $record->id)->firstOrFail()
             : null;
         $save->handle(
