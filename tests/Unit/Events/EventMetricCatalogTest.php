@@ -26,6 +26,7 @@ final class EventMetricCatalogTest extends TestCase
                 foreach ($profile['metrics'] as $metric) {
                     $identity = $metric['subject']->value.':'.$metric['key'];
                     self::assertNotContains($identity, $keys, $definition['slug'].':'.$scope['scope']->value.':'.$identity);
+                    self::assertNotSame('score', $metric['key'], 'Primary score must remain a first-class result field.');
                     $keys[] = $identity;
 
                     self::assertStringStartsWith('events.metrics.', $metric['label_key']);
