@@ -18,6 +18,7 @@ final class EventTypeScope extends Model
     use HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -70,6 +71,15 @@ final class EventTypeScope extends Model
     public function capabilities(): HasMany
     {
         return $this->hasMany(EventTypeCapability::class);
+    }
+
+    /** @return HasMany<EventMetricDefinition, $this> */
+    public function metricDefinitions(): HasMany
+    {
+        return $this->hasMany(EventMetricDefinition::class, 'event_type_scope_id')
+            ->orderBy('subject')
+            ->orderBy('sort_order')
+            ->orderBy('key');
     }
 
     public function allowsRecurrence(): bool
