@@ -9,7 +9,9 @@ use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\Alliance\Membership\Actions\AcceptInvitation;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Alliance\Recruitment\Actions\AddRecruitmentNote;
 use App\Contexts\Alliance\Recruitment\Actions\AssignRecruitmentReviewer;
 use App\Contexts\Alliance\Recruitment\Actions\ChangeRecruitmentStage;
@@ -100,7 +102,7 @@ final class RecruitmentCoordinationTest extends TestCase
         self::assertSame($target->id, $mergedTarget->id);
         self::assertSame($target->id, $source->refresh()->merged_into_id);
         self::assertCount(1, $target->refresh()->reviewers);
-        self::assertSame($reviewerPlayer->id, $target->reviewers->sole()->reviewer_player_id);
+        self::assertSame($reviewerPlayer->id, $target->reviewers->sole()->id);
         self::assertCount(1, $target->refresh()->tags);
         self::assertSame('high priority', $target->tags->sole()->name);
         self::assertTrue($target->notes()->where('body', 'Merge reason: Verified same player')->exists());
@@ -125,6 +127,15 @@ final class RecruitmentCoordinationTest extends TestCase
             'current_name' => 'Accepted Candidate',
         ]);
         $alliance = $this->app->make(CreateAlliance::class)->handle($ownerPlayer, 'Join Pipeline', 'join-pipeline');
+        AllianceRosterEntry::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $candidatePlayer->id,
+            'observed_name' => $candidatePlayer->current_name,
+            'state' => RosterState::Active,
+            'joined_at' => now(),
+            'last_observed_at' => now(),
+            'source' => 'test',
+        ]);
         $this->app->make(ConfigureRecruitmentSettings::class)->handle(
             $ownerPlayer,
             $alliance,
