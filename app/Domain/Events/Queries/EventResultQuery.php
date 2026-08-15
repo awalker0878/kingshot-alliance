@@ -20,9 +20,7 @@ use LogicException;
 
 final readonly class EventResultQuery
 {
-    public function __construct(private EventEligiblePlayerQuery $eligiblePlayers)
-    {
-    }
+    public function __construct(private EventEligiblePlayerQuery $eligiblePlayers) {}
 
     /** @return array{summary:?array<string,mixed>,player:?array<string,mixed>} */
     public function forOccurrence(EventOccurrence $occurrence, ?Player $player): array
