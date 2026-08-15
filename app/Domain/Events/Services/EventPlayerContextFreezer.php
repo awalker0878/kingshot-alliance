@@ -38,15 +38,15 @@ final class EventPlayerContextFreezer
             return $existing;
         }
 
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
-        $kingdomId = match ($event->scope) {
+        $event = $occurrence->event()->firstOrFail();
+        $scope = $event->scopeEnum();
+        $kingdomId = match ($scope) {
             EventScope::Player => (string) $player->current_kingdom_id,
             EventScope::Alliance => $this->allianceKingdom($event->alliance_id, $player, $representedAlliance),
             EventScope::Kingdom => $this->kingdomEventKingdom($event->kingdom_id, $player),
         };
 
-        $alliance = match ($event->scope) {
+        $alliance = match ($scope) {
             EventScope::Alliance => $this->allianceForAllianceEvent($event->alliance_id, $representedAlliance),
             EventScope::Kingdom, EventScope::Player => $this->representedAlliance($player, $kingdomId, $representedAlliance),
         };
