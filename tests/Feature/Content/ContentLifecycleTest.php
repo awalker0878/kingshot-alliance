@@ -42,7 +42,7 @@ final class ContentLifecycleTest extends TestCase
 
         $updated = $save->handle(
             $alliance,
-            $owner,
+            $ownerPlayer,
             $this->attributes('<b>Revised</b>', 'revision-item', '<script>alert(1)</script>Safe body'),
             $item->id,
         );
