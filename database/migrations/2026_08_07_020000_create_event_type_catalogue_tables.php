@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Events\Catalog\KingShotEventMetricCatalog;
 use App\Domain\Events\Catalog\KingShotEventTypeCatalog;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -44,6 +45,9 @@ return new class extends Migration
             $table->unsignedInteger('default_registration_closes_minutes_before')->nullable();
             $table->string('default_instructions_key', 180)->nullable();
             $table->json('default_settings')->nullable();
+            $table->string('result_score_label_key', 180)->nullable();
+            $table->string('result_score_unit', 32)->nullable();
+            $table->boolean('result_score_higher_is_better')->nullable();
             $table->boolean('is_active')->default(true)->index();
             $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
@@ -81,6 +85,13 @@ return new class extends Migration
 
             foreach ($definition['scopes'] as $index => $scope) {
                 $scopeId = (string) Str::ulid();
+                $measurement = KingShotEventMetricCatalog::profile(
+                    $definition['slug'],
+                    $scope['scope'],
+                    $scope['capabilities'],
+                );
+                $score = $measurement['score'];
+
                 DB::table('event_type_scopes')->insert([
                     'id' => $scopeId,
                     'event_type_id' => $typeId,
@@ -99,6 +110,9 @@ return new class extends Migration
                     'default_registration_closes_minutes_before' => $scope['default_registration_closes_minutes_before'],
                     'default_instructions_key' => $scope['default_instructions_key'],
                     'default_settings' => empty($scope['default_settings']) ? null : json_encode($scope['default_settings'], JSON_THROW_ON_ERROR),
+                    'result_score_label_key' => $score['label_key'] ?? null,
+                    'result_score_unit' => $score['unit'] ?? null,
+                    'result_score_higher_is_better' => $score['higher_is_better'] ?? null,
                     'is_active' => true,
                     'sort_order' => $index,
                     'created_at' => $now,
