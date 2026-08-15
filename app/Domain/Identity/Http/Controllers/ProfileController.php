@@ -8,6 +8,7 @@ use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Identity\Models\User;
 use App\Domain\Platform\Http\Controllers\Controller;
 use App\Domain\Platform\Models\OutboxMessage;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -63,48 +65,65 @@ final class ProfileController extends Controller
             'timezone' => ['required', 'string', 'timezone'],
         ]);
 
-        $emailChanged = ! hash_equals(Str::lower((string) $user->email), $validated['email']);
-        $changedFields = [];
+        try {
+            $emailChanged = DB::transaction(function () use ($user, $validated, $audit): bool {
+                $currentUser = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+                $emailChanged = ! hash_equals(Str::lower((string) $currentUser->email), $validated['email']);
+                $changedFields = [];
+                foreach (['name', 'email', 'timezone'] as $field) {
+                    if ((string) $currentUser->getAttribute($field) !== (string) $validated[$field]) {
+                        $changedFields[] = $field;
+                    }
+                }
 
-        foreach (['name', 'email', 'timezone'] as $field) {
-            if ((string) $user->getAttribute($field) !== (string) $validated[$field]) {
-                $changedFields[] = $field;
+                if ($changedFields === []) {
+                    return false;
+                }
+
+                $currentUser->forceFill([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'timezone' => $validated['timezone'],
+                    'email_verified_at' => $emailChanged ? null : $currentUser->email_verified_at,
+                ])->save();
+
+                $audit->record(
+                    event: 'profile.updated',
+                    actor: $currentUser,
+                    subject: $currentUser,
+                    metadata: ['changed_fields' => $changedFields],
+                );
+
+                OutboxMessage::query()->create([
+                    'alliance_id' => null,
+                    'event_type' => 'profile.updated',
+                    'aggregate_type' => User::class,
+                    'aggregate_id' => (string) $currentUser->id,
+                    'idempotency_key' => 'profile.updated:'.$currentUser->id.':'.now()->format('Uu'),
+                    'payload' => [
+                        'user_id' => $currentUser->id,
+                        'changed_fields' => $changedFields,
+                    ],
+                    'occurred_at' => now(),
+                    'available_at' => now(),
+                    'attempts' => 0,
+                ]);
+
+                return $emailChanged;
+            });
+        } catch (QueryException $exception) {
+            if (User::query()
+                ->where('email', $validated['email'])
+                ->where('id', '<>', $user->id)
+                ->exists()) {
+                throw ValidationException::withMessages(['email' => 'The email has already been taken.']);
             }
+            throw $exception;
         }
 
-        DB::transaction(function () use ($user, $validated, $emailChanged, $changedFields, $audit): void {
-            $user->forceFill([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'timezone' => $validated['timezone'],
-                'email_verified_at' => $emailChanged ? null : $user->email_verified_at,
-            ])->save();
-
-            $audit->record(
-                event: 'profile.updated',
-                actor: $user,
-                subject: $user,
-                metadata: ['changed_fields' => $changedFields],
-            );
-
-            OutboxMessage::query()->create([
-                'alliance_id' => null,
-                'event_type' => 'profile.updated',
-                'aggregate_type' => User::class,
-                'aggregate_id' => (string) $user->id,
-                'idempotency_key' => 'profile.updated:'.$user->id.':'.now()->format('Uu'),
-                'payload' => [
-                    'user_id' => $user->id,
-                    'changed_fields' => $changedFields,
-                ],
-                'occurred_at' => now(),
-                'available_at' => now(),
-                'attempts' => 0,
-            ]);
-        });
-
         if ($emailChanged) {
-            $user->sendEmailVerificationNotification();
+            $currentUser = User::query()->findOrFail($user->id);
+            $currentUser->sendEmailVerificationNotification();
 
             return redirect()->route('verification.notice');
         }
@@ -118,7 +137,7 @@ final class ProfileController extends Controller
         abort_unless($user instanceof User, 401);
 
         $validated = $request->validate([
-            'current_password' => ['required', 'current_password:web'],
+            'current_password' => ['required', 'string'],
             'password' => [
                 'required',
                 'confirmed',
@@ -126,34 +145,43 @@ final class ProfileController extends Controller
             ],
         ]);
 
+        $currentPassword = (string) $validated['current_password'];
         $newPassword = (string) $validated['password'];
 
-        DB::transaction(function () use ($user, $newPassword, $audit): void {
-            $user->forceFill([
+        $currentUser = DB::transaction(function () use ($user, $currentPassword, $newPassword, $audit): User {
+            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            if (! Hash::check($currentPassword, (string) $locked->password)) {
+                throw ValidationException::withMessages(['current_password' => 'The password is incorrect.']);
+            }
+
+            $locked->forceFill([
                 'password' => Hash::make($newPassword),
                 'remember_token' => Str::random(60),
             ])->save();
-            $user->tokens()->delete();
+            $locked->tokens()->delete();
 
             $audit->record(
                 event: 'profile.password.updated',
-                actor: $user,
-                subject: $user,
+                actor: $locked,
+                subject: $locked,
             );
 
             OutboxMessage::query()->create([
                 'alliance_id' => null,
                 'event_type' => 'profile.password.updated',
                 'aggregate_type' => User::class,
-                'aggregate_id' => (string) $user->id,
-                'idempotency_key' => 'profile.password.updated:'.$user->id.':'.now()->format('Uu'),
-                'payload' => ['user_id' => $user->id],
+                'aggregate_id' => (string) $locked->id,
+                'idempotency_key' => 'profile.password.updated:'.$locked->id.':'.now()->format('Uu'),
+                'payload' => ['user_id' => $locked->id],
                 'occurred_at' => now(),
                 'available_at' => now(),
                 'attempts' => 0,
             ]);
+
+            return $locked->refresh();
         });
 
+        Auth::setUser($currentUser);
         Auth::logoutOtherDevices($newPassword);
 
         return redirect()->route('profile.show')->with('status', 'password-updated');
@@ -165,16 +193,29 @@ final class ProfileController extends Controller
         abort_unless($user instanceof User, 401);
 
         $validated = $request->validate([
-            'password' => ['required', 'current_password:web'],
+            'password' => ['required', 'string'],
         ]);
+        $password = (string) $validated['password'];
 
-        Auth::logoutOtherDevices((string) $validated['password']);
+        $currentUser = DB::transaction(function () use ($user, $password, $audit): User {
+            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            if (! Hash::check($password, (string) $locked->password)) {
+                throw ValidationException::withMessages(['password' => 'The password is incorrect.']);
+            }
 
-        $audit->record(
-            event: 'auth.other_sessions.revoked',
-            actor: $user,
-            subject: $user,
-        );
+            $audit->record(
+                event: 'auth.other_sessions.revoked',
+                actor: $locked,
+                subject: $locked,
+            );
+
+            return $locked;
+        });
+
+        // Framework session invalidation may update auth/session storage and is kept
+        // outside our User-row lock; the password was revalidated under the lock above.
+        Auth::setUser($currentUser);
+        Auth::logoutOtherDevices($password);
 
         return redirect()->route('profile.show')->with('status', 'other-sessions-revoked');
     }

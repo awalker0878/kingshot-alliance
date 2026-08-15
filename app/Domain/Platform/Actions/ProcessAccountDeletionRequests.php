@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Actions;
 
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kingdoms\Models\Player;
@@ -18,6 +19,7 @@ use App\Domain\Platform\Services\LegalHoldService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 final readonly class ProcessAccountDeletionRequests
 {
@@ -34,6 +36,7 @@ final readonly class ProcessAccountDeletionRequests
             ->whereIn('status', ['pending', 'blocked'])
             ->where('eligible_at', '<=', now())
             ->orderBy('eligible_at')
+            ->orderBy('id')
             ->limit(max(1, min(500, $limit)))
             ->get();
 
@@ -60,6 +63,8 @@ final readonly class ProcessAccountDeletionRequests
                 return false;
             }
 
+            // User is the account-deletion and legal-hold subject anchor. Legal hold
+            // placement locks this same row before creating an active hold.
             $user = User::query()
                 ->whereKey($lockedRequest->user_id)
                 ->lockForUpdate()
@@ -75,8 +80,6 @@ final readonly class ProcessAccountDeletionRequests
                 return true;
             }
 
-            // These safety decisions are authoritative only while the account row is
-            // locked. Never proceed from a pre-transaction snapshot of User authority.
             $blockedReason = $this->blockReason($user);
             if ($blockedReason !== null) {
                 $lockedRequest->forceFill([
@@ -87,24 +90,76 @@ final readonly class ProcessAccountDeletionRequests
                 return false;
             }
 
-            $players = Player::query()
+            // Route without locks, then acquire the cross-domain order used by
+            // Memberships: Alliance(s) -> Player(s) -> membership rows.
+            $playerIds = Player::query()
                 ->where('user_id', $user->id)
-                ->lockForUpdate()
-                ->get();
-            $playerIds = $players->pluck('id');
+                ->orderBy('id')
+                ->pluck('id')
+                ->map(static fn ($id): string => (string) $id)
+                ->all();
 
-            $activeMemberships = AllianceMembership::query()
+            $routedAllianceIds = AllianceMembership::query()
                 ->whereIn('player_id', $playerIds)
                 ->where('status', MembershipStatus::Active->value)
-                ->with(['alliance', 'player'])
+                ->orderBy('alliance_id')
+                ->pluck('alliance_id')
+                ->map(static fn ($id): string => (string) $id)
+                ->unique()
+                ->values()
+                ->all();
+
+            $alliances = Alliance::query()
+                ->whereIn('id', $routedAllianceIds)
+                ->orderBy('id')
+                ->sharedLock()
+                ->get()
+                ->keyBy(fn (Alliance $alliance): string => (string) $alliance->id);
+
+            $players = Player::query()
+                ->whereIn('id', $playerIds)
+                ->where('user_id', $user->id)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy(fn (Player $player): string => (string) $player->id);
+
+            $activeMemberships = AllianceMembership::query()
+                ->whereIn('player_id', $players->keys())
+                ->where('status', MembershipStatus::Active->value)
+                ->orderBy('alliance_id')
+                ->orderBy('id')
                 ->lockForUpdate()
                 ->get();
 
+            // A membership may have been activated after routing but before the Player
+            // locks. Do not acquire a new Alliance after Player; abort and retry instead.
             foreach ($activeMemberships as $membership) {
-                $this->leaveAlliance->handle($membership->alliance, $membership->player);
+                if (! $alliances->has((string) $membership->alliance_id)) {
+                    throw new RuntimeException('Account deletion membership set changed during processing; retry the request.');
+                }
+                if ($membership->rank === AllianceRank::R5) {
+                    $lockedRequest->forceFill([
+                        'status' => 'blocked',
+                        'blocked_reason' => 'R5 leadership must be transferred before deleting the account.',
+                    ])->save();
+
+                    return false;
+                }
             }
 
-            Player::query()->whereIn('id', $playerIds)->update(['user_id' => null, 'updated_at' => now()]);
+            foreach ($activeMemberships as $membership) {
+                /** @var Alliance $alliance */
+                $alliance = $alliances->get((string) $membership->alliance_id);
+                /** @var Player $player */
+                $player = $players->get((string) $membership->player_id);
+                $this->leaveAlliance->handle($alliance, $player);
+            }
+
+            Player::query()
+                ->whereIn('id', $players->keys())
+                ->where('user_id', $user->id)
+                ->update(['user_id' => null, 'updated_at' => now()]);
 
             $user->tokens()->delete();
             $user->forceFill([
@@ -127,7 +182,9 @@ final readonly class ProcessAccountDeletionRequests
                 'blocked_reason' => null,
             ])->save();
 
-            $this->audit->record('identity.account-deletion.processed', $user, $user, null, [
+            // This is a system retention/privacy workflow. The deleted User is the
+            // subject, not the actor who performed the anonymization.
+            $this->audit->record('identity.account-deletion.processed', null, $user, null, [
                 'request_id' => $lockedRequest->id,
             ]);
             OutboxMessage::query()->create([
@@ -136,7 +193,11 @@ final readonly class ProcessAccountDeletionRequests
                 'aggregate_type' => User::class,
                 'aggregate_id' => (string) $user->id,
                 'idempotency_key' => 'identity.account-deletion.processed:'.$lockedRequest->id,
-                'payload' => ['user_id' => $user->id, 'request_id' => $lockedRequest->id],
+                'payload' => [
+                    'user_id' => $user->id,
+                    'request_id' => $lockedRequest->id,
+                    'origin' => 'system',
+                ],
                 'occurred_at' => now(),
                 'available_at' => now(),
                 'attempts' => 0,

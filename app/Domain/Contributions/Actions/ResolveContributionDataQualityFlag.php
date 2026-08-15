@@ -6,37 +6,48 @@ namespace App\Domain\Contributions\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Contributions\Models\ContributionDataQualityFlag;
 use App\Domain\Kingdoms\Models\Player;
-use InvalidArgumentException;
+use Illuminate\Support\Facades\DB;
 
 final class ResolveContributionDataQualityFlag
 {
-    public function __construct(private readonly AuditRecorder $audit) {}
+    public function __construct(
+        private readonly AllianceMutationAuthority $authority,
+        private readonly AuditRecorder $audit,
+    ) {}
 
     public function handle(
         Player $actor,
         Alliance $alliance,
         ContributionDataQualityFlag $flag,
     ): ContributionDataQualityFlag {
-        if ($flag->alliance_id !== $alliance->id) {
-            throw new InvalidArgumentException('Data-quality flag does not belong to the active alliance.');
-        }
+        return DB::transaction(function () use ($actor, $alliance, $flag): ContributionDataQualityFlag {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+            $locked = ContributionDataQualityFlag::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($flag->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($flag->status === 'resolved') {
-            return $flag;
-        }
+            if ($locked->status === 'resolved') {
+                return $locked;
+            }
 
-        $flag->forceFill([
-            'status' => 'resolved',
-            'resolved_at' => now(),
-            'resolved_by_player_id' => $actor->id,
-        ])->save();
+            $locked->forceFill([
+                'status' => 'resolved',
+                'resolved_at' => now(),
+                'resolved_by_player_id' => $context->actor->id,
+            ])->save();
 
-        $this->audit->record('contribution.data-quality.resolved', $actor, $flag, $alliance, [
-            'code' => $flag->code,
-        ]);
+            $this->audit->record('contribution.data-quality.resolved', $context->actor, $locked, $context->alliance, [
+                'code' => $locked->code,
+                'player_id' => $locked->player_id,
+            ]);
 
-        return $flag->refresh();
+            return $locked->refresh();
+        });
     }
 }

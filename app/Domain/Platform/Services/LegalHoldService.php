@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\Domain\Platform\Services;
 
+use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Identity\Models\User;
 use App\Domain\Platform\Models\LegalHold;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 final readonly class LegalHoldService
 {
     public function __construct(
         private AuditRecorder $audit,
-        private PlatformAdministratorAuthorization $authorization,
+        private PlatformMutationAuthority $mutations,
     ) {}
 
     public function active(string $subjectType, string $subjectId): bool
@@ -27,51 +30,80 @@ final readonly class LegalHoldService
 
     public function place(User $actor, string $subjectType, string $subjectId, string $reason): LegalHold
     {
-        $this->authorization->authorize($actor);
-
-        if (! in_array($subjectType, ['user', 'alliance'], true)) {
-            throw new InvalidArgumentException('Legal holds may target only users or alliances.');
-        }
-
-        if (trim($reason) === '') {
+        $this->assertSubjectType($subjectType);
+        $reason = trim($reason);
+        if ($reason === '') {
             throw new InvalidArgumentException('A legal hold reason is required.');
         }
 
-        $hold = LegalHold::query()->create([
-            'subject_type' => $subjectType,
-            'subject_id' => $subjectId,
-            'reason' => trim($reason),
-            'placed_by_user_id' => $actor->id,
-            'placed_at' => now(),
-        ]);
+        return DB::transaction(function () use ($actor, $subjectType, $subjectId, $reason): LegalHold {
+            $context = $this->mutations->require($actor);
+            $this->lockSubject($subjectType, $subjectId);
 
-        $this->audit->record('platform.legal-hold.placed', $actor, $hold, null, [
-            'subject_type' => $subjectType,
-            'subject_id' => $subjectId,
-            'reason' => trim($reason),
-        ]);
+            $hold = LegalHold::query()->create([
+                'subject_type' => $subjectType,
+                'subject_id' => $subjectId,
+                'reason' => $reason,
+                'placed_by_user_id' => $context->actor->id,
+                'placed_at' => now(),
+            ]);
 
-        return $hold;
+            $this->audit->record('platform.legal-hold.placed', $context->actor, $hold, null, [
+                'subject_type' => $subjectType,
+                'subject_id' => $subjectId,
+                'reason' => $reason,
+            ]);
+
+            return $hold;
+        });
     }
 
     public function release(User $actor, LegalHold $hold): LegalHold
     {
-        $this->authorization->authorize($actor);
+        return DB::transaction(function () use ($actor, $hold): LegalHold {
+            $context = $this->mutations->require($actor);
 
-        if ($hold->released_at !== null) {
-            return $hold;
+            // Route from an unlocked snapshot, then lock the subject before the hold.
+            // Deletion workflows use the same subject row as their legal-hold boundary.
+            $route = LegalHold::query()
+                ->select(['id', 'subject_type', 'subject_id'])
+                ->whereKey($hold->id)
+                ->firstOrFail();
+            $this->assertSubjectType((string) $route->subject_type);
+            $this->lockSubject((string) $route->subject_type, (string) $route->subject_id);
+
+            $locked = LegalHold::query()->whereKey($route->id)->lockForUpdate()->firstOrFail();
+            if ($locked->released_at !== null) {
+                return $locked;
+            }
+
+            $locked->forceFill([
+                'released_by_user_id' => $context->actor->id,
+                'released_at' => now(),
+            ])->save();
+
+            $this->audit->record('platform.legal-hold.released', $context->actor, $locked, null, [
+                'subject_type' => $locked->subject_type,
+                'subject_id' => $locked->subject_id,
+            ]);
+
+            return $locked->refresh();
+        });
+    }
+
+    private function assertSubjectType(string $subjectType): void
+    {
+        if (! in_array($subjectType, ['user', 'alliance'], true)) {
+            throw new InvalidArgumentException('Legal holds may target only users or alliances.');
         }
+    }
 
-        $hold->forceFill([
-            'released_by_user_id' => $actor->id,
-            'released_at' => now(),
-        ])->save();
-
-        $this->audit->record('platform.legal-hold.released', $actor, $hold, null, [
-            'subject_type' => $hold->subject_type,
-            'subject_id' => $hold->subject_id,
-        ]);
-
-        return $hold->refresh();
+    private function lockSubject(string $subjectType, string $subjectId): Model
+    {
+        return match ($subjectType) {
+            'alliance' => Alliance::query()->whereKey($subjectId)->lockForUpdate()->firstOrFail(),
+            'user' => User::query()->whereKey($subjectId)->lockForUpdate()->firstOrFail(),
+            default => throw new InvalidArgumentException('Unsupported legal hold subject type.'),
+        };
     }
 }

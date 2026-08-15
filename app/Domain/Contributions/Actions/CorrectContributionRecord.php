@@ -6,7 +6,8 @@ namespace App\Domain\Contributions\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
-use App\Domain\Contributions\Enums\ContributionRecordSource;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Contributions\Enums\ContributionRecordStatus;
 use App\Domain\Contributions\Models\ContributionRecord;
 use App\Domain\Kingdoms\Models\Player;
@@ -17,6 +18,7 @@ use InvalidArgumentException;
 final class CorrectContributionRecord
 {
     public function __construct(
+        private readonly AllianceMutationAuthority $authority,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
     ) {}
@@ -29,64 +31,62 @@ final class CorrectContributionRecord
         string $reason,
         ?string $replacementEvidence = null,
     ): ContributionRecord {
-        if ($record->alliance_id !== $alliance->id) {
-            throw new InvalidArgumentException('Contribution record does not belong to the active alliance.');
-        }
-
-        if ($record->status === ContributionRecordStatus::Reversed) {
-            throw new InvalidArgumentException('A reversed contribution record cannot be corrected again.');
-        }
-
-        if (trim($reason) === '') {
+        $reason = trim($reason);
+        if ($reason === '') {
             throw new InvalidArgumentException('A correction reason is required.');
         }
 
-        return DB::transaction(function () use (
-            $actor,
-            $alliance,
-            $record,
-            $replacementValue,
-            $replacementEvidence,
-            $reason,
-        ): ContributionRecord {
-            $replacementStatus = $record->status;
+        return DB::transaction(function () use ($actor, $alliance, $record, $replacementValue, $replacementEvidence, $reason): ContributionRecord {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+            $original = ContributionRecord::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($record->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-            $record->forceFill([
+            if ($original->status === ContributionRecordStatus::Reversed) {
+                throw new InvalidArgumentException('A reversed contribution record cannot be corrected again.');
+            }
+
+            $replacementStatus = $original->status;
+            $original->forceFill([
                 'status' => ContributionRecordStatus::Reversed,
                 'reversed_at' => now(),
-                'reversed_by_player_id' => $actor->id,
+                'reversed_by_player_id' => $context->actor->id,
                 'reversal_reason' => 'Corrected: '.$reason,
             ])->save();
 
             $replacement = ContributionRecord::query()->create([
-                'alliance_id' => $alliance->id,
-                'category_id' => $record->category_id,
-                'player_id' => $record->player_id,
-                'source' => $record->source,
-                'data_class' => $record->data_class,
+                'alliance_id' => $context->alliance->id,
+                'category_id' => $original->category_id,
+                'player_id' => $original->player_id,
+                'source' => $original->source,
+                'data_class' => $original->data_class,
                 'value' => $replacementValue,
-                'period_start' => $record->period_start->toDateString(),
-                'period_end' => $record->period_end->toDateString(),
+                'period_start' => $original->period_start->toDateString(),
+                'period_end' => $original->period_end->toDateString(),
                 'status' => $replacementStatus,
-                'evidence' => $replacementEvidence ?? $record->evidence,
-                'correction_of_record_id' => $record->id,
-                'calculation_key' => $record->calculation_key,
-                'calculation_version' => $record->calculation_version,
-                'calculation_inputs' => $record->calculation_inputs,
+                'evidence' => $replacementEvidence ?? $original->evidence,
+                'correction_of_record_id' => $original->id,
+                'calculation_key' => $original->calculation_key,
+                'calculation_version' => $original->calculation_version,
+                'calculation_inputs' => $original->calculation_inputs,
                 'recorded_at' => now(),
-                'recorded_by_player_id' => $actor->id,
+                'recorded_by_player_id' => $context->actor->id,
                 'approved_at' => $replacementStatus === ContributionRecordStatus::Approved ? now() : null,
-                'approved_by_player_id' => $replacementStatus === ContributionRecordStatus::Approved ? $actor->id : null,
+                'approved_by_player_id' => $replacementStatus === ContributionRecordStatus::Approved ? $context->actor->id : null,
                 'correction_reason' => $reason,
             ]);
 
-            $this->audit->record('contribution.record.corrected', $actor, $replacement, $alliance, [
-                'original_record_id' => $record->id,
+            $this->audit->record('contribution.record.corrected', $context->actor, $replacement, $context->alliance, [
+                'original_record_id' => $original->id,
+                'player_id' => $original->player_id,
                 'reason' => $reason,
             ]);
-            $this->outbox->record('contribution.record.corrected', $alliance->id, $replacement, [
+            $this->outbox->record('contribution.record.corrected', $context->alliance->id, $replacement, [
                 'record_id' => $replacement->id,
-                'original_record_id' => $record->id,
+                'original_record_id' => $original->id,
+                'player_id' => $original->player_id,
             ]);
 
             return $replacement;

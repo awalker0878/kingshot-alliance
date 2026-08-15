@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Kingdoms\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Domain\Kingdoms\Data\KingdomIngestionAcquisitionPage;
 use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
@@ -14,6 +13,7 @@ use App\Domain\Kingdoms\Enums\KingdomIngestionTargetKind;
 use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
+use App\Domain\Kingdoms\Services\KingdomIngestionMutationState;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -22,6 +22,7 @@ use Throwable;
 final readonly class RunKingdomIngestionSubscription
 {
     public function __construct(
+        private KingdomIngestionMutationState $mutations,
         private KingdomIngestionAdapterRegistry $adapters,
         private StartKingdomIngestionBatch $startBatch,
         private StageKingdomIngestionCandidate $stageCandidate,
@@ -40,6 +41,7 @@ final readonly class RunKingdomIngestionSubscription
         $adapter = $this->adapters->requireAcquisition($subscription->adapter_key);
 
         try {
+            // Source/network acquisition deliberately stays outside database lock scope.
             $page = $adapter->acquire($subscription->source_cursor, KingdomIngestionAcquisitionPage::MAX_RECORDS);
             $batch = $this->startBatch->handle($subscriptionId, $page->sourceWindowId);
 
@@ -49,7 +51,6 @@ final readonly class RunKingdomIngestionSubscription
                         'batch' => 'That source window already has a terminal ingestion outcome and cannot be rewritten.',
                     ]);
                 }
-
                 if ($batch->next_source_cursor !== $page->nextCursor) {
                     throw ValidationException::withMessages([
                         'batch' => 'The source returned a different next cursor for an already completed source window.',
@@ -57,11 +58,23 @@ final readonly class RunKingdomIngestionSubscription
                 }
 
                 $this->advanceCursor($subscriptionId, $batch, $adapter);
-
                 return $batch->refresh();
             }
 
-            $batch->forceFill(['next_source_cursor' => $page->nextCursor])->save();
+            DB::transaction(function () use ($subscriptionId, $batch, $page): void {
+                $context = $this->mutations->lockSubscription($subscriptionId);
+                $lockedBatch = KingdomIngestionBatch::query()
+                    ->where('subscription_id', $context->subscription->id)
+                    ->whereKey($batch->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                if ($lockedBatch->state !== KingdomIngestionBatchState::Pending) {
+                    throw ValidationException::withMessages([
+                        'batch' => 'Only a pending ingestion batch can capture its next source cursor.',
+                    ]);
+                }
+                $lockedBatch->forceFill(['next_source_cursor' => $page->nextCursor])->save();
+            });
 
             foreach ($page->records as $record) {
                 $candidate = $this->stageCandidate->handle($subscriptionId, (string) $batch->id, $record);
@@ -70,14 +83,8 @@ final readonly class RunKingdomIngestionSubscription
                 }
 
                 match ($candidate->target_kind) {
-                    KingdomIngestionTargetKind::PlayerSnapshot => $this->promotePlayer->handle(
-                        $subscriptionId,
-                        (string) $candidate->id,
-                    ),
-                    KingdomIngestionTargetKind::AllianceObservation => $this->promoteAlliance->handle(
-                        $subscriptionId,
-                        (string) $candidate->id,
-                    ),
+                    KingdomIngestionTargetKind::PlayerSnapshot => $this->promotePlayer->handle($subscriptionId, (string) $candidate->id),
+                    KingdomIngestionTargetKind::AllianceObservation => $this->promoteAlliance->handle($subscriptionId, (string) $candidate->id),
                 };
             }
 
@@ -91,7 +98,6 @@ final readonly class RunKingdomIngestionSubscription
             return $batch->refresh();
         } catch (Throwable $exception) {
             $this->recordFailure($subscriptionId, $this->failureCode($exception));
-
             throw $exception;
         }
     }
@@ -99,26 +105,23 @@ final readonly class RunKingdomIngestionSubscription
     private function runnableSubscription(string $subscriptionId): ?KingdomIngestionSubscription
     {
         return DB::transaction(function () use ($subscriptionId): ?KingdomIngestionSubscription {
-            $subscription = KingdomIngestionSubscription::query()->lockForUpdate()->findOrFail($subscriptionId);
+            $context = $this->mutations->lockSubscription($subscriptionId);
+            $subscription = $context->subscription;
             if ($subscription->state !== KingdomIngestionSubscriptionState::Active) {
                 return null;
             }
-
             if ($subscription->circuit_open_until !== null && $subscription->circuit_open_until->isFuture()) {
                 return null;
             }
-
-            $alliance = Alliance::query()->lockForUpdate()->findOrFail($subscription->alliance_id);
-            if ($alliance->kingdom_id === null || $alliance->kingdom_id !== $subscription->kingdom_id) {
+            if ($context->alliance->kingdom_id === null
+                || (string) $context->alliance->kingdom_id !== (string) $subscription->kingdom_id) {
                 $this->block($subscription, 'kingdom_context_changed');
-
                 return null;
             }
 
             $adapter = $this->adapters->acquisition($subscription->adapter_key);
             if ($adapter === null || $adapter->version() !== $subscription->adapter_version) {
                 $this->block($subscription, 'source_unapproved');
-
                 return null;
             }
 
@@ -132,22 +135,21 @@ final readonly class RunKingdomIngestionSubscription
         KingdomIngestionAcquisitionAdapter $adapter,
     ): void {
         DB::transaction(function () use ($subscriptionId, $batch, $adapter): void {
-            $subscription = KingdomIngestionSubscription::query()->lockForUpdate()->findOrFail($subscriptionId);
+            $context = $this->mutations->lockSubscription($subscriptionId);
+            $subscription = $context->subscription;
             $lockedBatch = KingdomIngestionBatch::query()
                 ->where('subscription_id', $subscription->id)
+                ->whereKey($batch->id)
                 ->lockForUpdate()
-                ->findOrFail($batch->id);
+                ->firstOrFail();
 
             if (! in_array($lockedBatch->state, [KingdomIngestionBatchState::Completed, KingdomIngestionBatchState::Partial], true)) {
                 throw ValidationException::withMessages([
                     'batch' => 'The ingestion cursor can advance only after a successful or partial batch outcome.',
                 ]);
             }
-
-            if (
-                $subscription->source_cursor !== $lockedBatch->source_cursor
-                && $subscription->source_cursor !== $lockedBatch->next_source_cursor
-            ) {
+            if ($subscription->source_cursor !== $lockedBatch->source_cursor
+                && $subscription->source_cursor !== $lockedBatch->next_source_cursor) {
                 throw ValidationException::withMessages([
                     'subscription' => 'The ingestion cursor changed concurrently; automatic rewind is blocked.',
                 ]);
@@ -169,10 +171,11 @@ final readonly class RunKingdomIngestionSubscription
     private function recordFailure(string $subscriptionId, string $failureCode): void
     {
         DB::transaction(function () use ($subscriptionId, $failureCode): void {
-            $subscription = KingdomIngestionSubscription::query()->lockForUpdate()->find($subscriptionId);
-            if (! $subscription instanceof KingdomIngestionSubscription) {
+            $context = $this->mutations->lockSubscriptionOrNull($subscriptionId);
+            if ($context === null) {
                 return;
             }
+            $subscription = $context->subscription;
 
             $failures = min(65535, $subscription->consecutive_failures + 1);
             $backoffSeconds = (int) min(3600, 60 * (2 ** min(5, max(0, $failures - 1))));
@@ -198,8 +201,8 @@ final readonly class RunKingdomIngestionSubscription
         $pending = KingdomIngestionBatch::query()
             ->where('subscription_id', $subscription->id)
             ->where('state', KingdomIngestionBatchState::Pending->value)
+            ->orderByDesc('started_at')
             ->lockForUpdate()
-            ->latest('started_at')
             ->first();
         if ($pending instanceof KingdomIngestionBatch) {
             $this->completeBatch->handle(

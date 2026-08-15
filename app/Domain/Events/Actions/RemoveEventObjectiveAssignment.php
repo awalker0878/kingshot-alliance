@@ -7,10 +7,11 @@ namespace App\Domain\Events\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Events\Enums\EventCapability;
+use App\Domain\Events\Models\EventObjective;
 use App\Domain\Events\Models\EventObjectiveAssignment;
+use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
-use App\Domain\Events\Services\EventParticipantAuthorization;
-use App\Domain\Events\Services\EventTargetResolver;
+use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -18,35 +19,57 @@ use Illuminate\Support\Facades\DB;
 final readonly class RemoveEventObjectiveAssignment
 {
     public function __construct(
-        private EventParticipantAuthorization $authorization,
+        private EventMutationAuthority $mutations,
         private EventCapabilityGuard $capabilities,
-        private EventTargetResolver $targets,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(Player $actor, EventObjectiveAssignment $assignment): void
     {
-        $assignment->loadMissing('objective.occurrence.event.typeScope');
-        $event = $assignment->objective->occurrence->event;
-        $this->capabilities->require($event, EventCapability::Objectives);
-        $this->authorization->authorizeManager($actor, $event);
-        $target = $this->targets->forEvent($event);
+        $assignment->loadMissing('objective.occurrence.event');
+        $objective = $assignment->objective;
+        $occurrence = $objective->occurrence;
+        $event = $occurrence->event;
 
-        DB::transaction(function () use ($actor, $assignment, $event, $target): void {
-            $locked = EventObjectiveAssignment::query()->whereKey($assignment->id)->lockForUpdate()->firstOrFail();
+        DB::transaction(function () use ($actor, $assignment, $objective, $occurrence, $event): void {
+            $context = $this->mutations->requireManager($actor, $event);
+            $this->capabilities->require($context->event, EventCapability::Objectives);
+
+            $lockedOccurrence = EventOccurrence::query()
+                ->whereKey($occurrence->id)
+                ->where('event_id', $context->event->id)
+                ->sharedLock()
+                ->firstOrFail();
+            $lockedObjective = EventObjective::query()
+                ->whereKey($objective->id)
+                ->where('occurrence_id', $lockedOccurrence->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $locked = EventObjectiveAssignment::query()
+                ->whereKey($assignment->id)
+                ->where('objective_id', $lockedObjective->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
             $metadata = [
-                'event_id' => (string) $event->id,
-                'occurrence_id' => (string) $locked->occurrence_id,
-                'objective_id' => (string) $locked->objective_id,
+                'event_id' => (string) $context->event->id,
+                'occurrence_id' => (string) $lockedOccurrence->id,
+                'objective_id' => (string) $lockedObjective->id,
                 'assignment_id' => (string) $locked->id,
                 'roster_id' => $locked->roster_id === null ? null : (string) $locked->roster_id,
                 'player_id' => $locked->player_id === null ? null : (string) $locked->player_id,
-                'actor_player_id' => $actor->id,
+                'actor_player_id' => (string) $context->actor->id,
             ];
-            $alliance = $target instanceof Alliance ? $target : null;
-            $this->audit->record('event.objective.assignment_removed', $actor, $locked, $alliance, $metadata);
-            $this->outbox->record('event.objective.assignment_removed', $alliance?->id, $locked, $metadata, partitionKey: $event->scope->value.':'.$target->id);
+            $alliance = $context->target instanceof Alliance ? $context->target : null;
+            $this->audit->record('event.objective.assignment_removed', $context->actor, $locked, $alliance, $metadata);
+            $this->outbox->record(
+                'event.objective.assignment_removed',
+                $alliance?->id,
+                $locked,
+                $metadata,
+                partitionKey: $context->event->scope->value.':'.$context->target->id,
+            );
             $locked->delete();
         });
     }

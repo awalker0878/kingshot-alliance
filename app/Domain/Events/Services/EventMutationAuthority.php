@@ -61,29 +61,25 @@ final readonly class EventMutationAuthority
         [$currentActor, $target] = $this->authorizeScope($actor, $route, $permission);
         $currentEvent = $this->lockAndRevalidateEvent($route, false);
 
-        // Player identity is a mutation anchor. Acquire it exclusively from the start
-        // rather than taking a shared lock that callers later upgrade.
         if ($currentEvent->scope === EventScope::Alliance) {
             if (! $target instanceof Alliance) {
                 throw new LogicException('Alliance Event mutation context must resolve an Alliance target.');
             }
 
-            $currentParticipant = Player::query()
-                ->whereKey($participant->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            if ((string) $currentParticipant->current_kingdom_id !== (string) $target->kingdom_id
+            // AllianceMutationAuthority already locks the active membership that makes
+            // this Player authoritative. Do not then lock Player: Kingdom transfer and
+            // account deletion use Player -> membership and would deadlock on an upgrade.
+            if ((string) $currentActor->current_kingdom_id !== (string) $target->kingdom_id
                 || ! AllianceRosterEntry::query()
                     ->where('alliance_id', $target->id)
-                    ->where('player_id', $currentParticipant->id)
+                    ->where('player_id', $currentActor->id)
                     ->where('state', RosterState::Active->value)
                     ->sharedLock()
                     ->exists()) {
                 throw new AuthorizationException;
             }
 
-            return new EventMutationContext($currentEvent, $typeScope, $currentParticipant, $target);
+            return new EventMutationContext($currentEvent, $typeScope, $currentActor, $target);
         }
 
         if ($currentEvent->scope === EventScope::Kingdom) {
@@ -91,16 +87,12 @@ final readonly class EventMutationAuthority
                 throw new LogicException('Kingdom Event mutation context must resolve a Kingdom target.');
             }
 
-            $currentParticipant = Player::query()
-                ->whereKey($participant->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            if ((string) $currentParticipant->current_kingdom_id !== (string) $target->id) {
+            // KingdomMutationAuthority already holds the actor Player exclusively.
+            if ((string) $currentActor->current_kingdom_id !== (string) $target->id) {
                 throw new AuthorizationException;
             }
 
-            return new EventMutationContext($currentEvent, $typeScope, $currentParticipant, $target);
+            return new EventMutationContext($currentEvent, $typeScope, $currentActor, $target);
         }
 
         return new EventMutationContext($currentEvent, $typeScope, $currentActor, $target);
@@ -201,10 +193,6 @@ final readonly class EventMutationAuthority
             throw new AuthorizationException;
         }
 
-        // Route through active roster Alliances deterministically. The selected
-        // Alliance mutation authority serializes the manager's rank/role state;
-        // target Player is then locked exclusively so its Kingdom/roster identity
-        // cannot move during the Player-scoped Event mutation.
         $candidateAllianceIds = AllianceRosterEntry::query()
             ->where('player_id', $target->id)
             ->where('state', RosterState::Active->value)
@@ -225,6 +213,8 @@ final readonly class EventMutationAuthority
                 continue;
             }
 
+            // Target Player is a distinct principal here, so Player -> roster is the
+            // correct target-identity order and does not upgrade the manager's membership.
             $currentTarget = Player::query()
                 ->whereKey($target->id)
                 ->lockForUpdate()

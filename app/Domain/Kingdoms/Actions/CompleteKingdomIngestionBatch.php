@@ -6,14 +6,17 @@ namespace App\Domain\Kingdoms\Actions;
 
 use App\Domain\Kingdoms\Enums\KingdomIngestionBatchState;
 use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Services\KingdomIngestionMutationState;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class CompleteKingdomIngestionBatch
 {
-    public function __construct(private OutboxRecorder $outbox) {}
+    public function __construct(
+        private KingdomIngestionMutationState $mutations,
+        private OutboxRecorder $outbox,
+    ) {}
 
     public function handle(
         string $subscriptionId,
@@ -26,21 +29,21 @@ final readonly class CompleteKingdomIngestionBatch
         }
 
         $failureCode = $this->failureCode($failureCode);
-        if (
-            ! in_array($state, [KingdomIngestionBatchState::Failed, KingdomIngestionBatchState::Blocked], true)
-            && $failureCode !== null
-        ) {
+        if (! in_array($state, [KingdomIngestionBatchState::Failed, KingdomIngestionBatchState::Blocked], true)
+            && $failureCode !== null) {
             throw ValidationException::withMessages([
                 'failure_code' => 'A failure code is only valid for failed or blocked batches.',
             ]);
         }
 
         return DB::transaction(function () use ($subscriptionId, $batchId, $state, $failureCode): KingdomIngestionBatch {
-            $subscription = KingdomIngestionSubscription::query()->lockForUpdate()->findOrFail($subscriptionId);
+            $context = $this->mutations->lockSubscription($subscriptionId);
+            $subscription = $context->subscription;
             $batch = KingdomIngestionBatch::query()
                 ->where('subscription_id', $subscription->id)
+                ->whereKey($batchId)
                 ->lockForUpdate()
-                ->findOrFail($batchId);
+                ->firstOrFail();
 
             if ($batch->state !== KingdomIngestionBatchState::Pending) {
                 if ($batch->state === $state && $batch->failure_code === $failureCode) {
@@ -52,22 +55,23 @@ final readonly class CompleteKingdomIngestionBatch
                 ]);
             }
 
+            $completedAt = now();
             $batch->forceFill([
                 'state' => $state,
-                'completed_at' => now(),
+                'completed_at' => $completedAt,
                 'failure_code' => $failureCode,
             ])->save();
 
-            $subscriptionUpdates = $state === KingdomIngestionBatchState::Completed
-                || $state === KingdomIngestionBatchState::Partial
-                ? ['last_succeeded_at' => now()]
-                : ['last_failed_at' => now()];
-            $subscription->forceFill($subscriptionUpdates)->save();
+            $subscription->forceFill(
+                $state === KingdomIngestionBatchState::Completed || $state === KingdomIngestionBatchState::Partial
+                    ? ['last_succeeded_at' => $completedAt]
+                    : ['last_failed_at' => $completedAt],
+            )->save();
 
             $event = 'kingdoms.ingestion_batch_completed';
             $this->outbox->record(
                 $event,
-                (string) $batch->alliance_id,
+                (string) $context->alliance->id,
                 $batch,
                 [
                     'subscription_id' => (string) $subscription->id,
@@ -78,6 +82,7 @@ final readonly class CompleteKingdomIngestionBatch
                     'records_staged' => $batch->records_staged,
                     'records_quarantined' => $batch->records_quarantined,
                     'records_rejected' => $batch->records_rejected,
+                    'origin' => 'system',
                 ],
                 $event.':'.$batch->id,
             );

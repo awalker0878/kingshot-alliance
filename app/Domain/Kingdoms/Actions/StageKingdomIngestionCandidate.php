@@ -14,6 +14,7 @@ use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
+use App\Domain\Kingdoms\Services\KingdomIngestionMutationState;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ final readonly class StageKingdomIngestionCandidate
     private const MAX_POWER = '9223372036854775807';
 
     public function __construct(
+        private KingdomIngestionMutationState $mutations,
         private KingdomIngestionAdapterRegistry $adapters,
         private OutboxRecorder $outbox,
     ) {}
@@ -33,14 +35,15 @@ final readonly class StageKingdomIngestionCandidate
     public function handle(string $subscriptionId, string $batchId, array $record): KingdomIngestionCandidate
     {
         return DB::transaction(function () use ($subscriptionId, $batchId, $record): KingdomIngestionCandidate {
-            $subscription = KingdomIngestionSubscription::query()->lockForUpdate()->findOrFail($subscriptionId);
+            $context = $this->mutations->lockSubscription($subscriptionId);
+            $subscription = $context->subscription;
             $batch = KingdomIngestionBatch::query()
                 ->where('subscription_id', $subscription->id)
+                ->whereKey($batchId)
                 ->lockForUpdate()
-                ->findOrFail($batchId);
-            $alliance = Alliance::query()->lockForUpdate()->findOrFail($subscription->alliance_id);
+                ->firstOrFail();
 
-            $this->assertRunnable($subscription, $batch, $alliance);
+            $this->assertRunnable($subscription, $batch, $context->alliance);
             $adapter = $this->approvedAdapter($subscription);
             $normalized = $adapter->normalize($record);
             $targetKind = $this->targetKind($normalized['target_kind'] ?? null, $adapter);
@@ -49,7 +52,7 @@ final readonly class StageKingdomIngestionCandidate
             $capturedAt = $this->capturedAt($normalized['captured_at'] ?? null);
             $payload = $normalized['payload'] ?? null;
 
-            if (is_array($payload) === false) {
+            if (! is_array($payload)) {
                 throw ValidationException::withMessages([
                     'payload' => 'The source adapter must return a normalized payload object.',
                 ]);
@@ -112,6 +115,7 @@ final readonly class StageKingdomIngestionCandidate
                     'adapter_key' => $subscription->adapter_key,
                     'adapter_version' => $subscription->adapter_version,
                     'payload_hash' => $payloadHash,
+                    'origin' => 'system',
                 ];
 
                 $event = $state === KingdomIngestionCandidateState::Quarantined
@@ -119,7 +123,7 @@ final readonly class StageKingdomIngestionCandidate
                     : 'kingdoms.ingestion_candidate_staged';
                 $this->outbox->record(
                     $event,
-                    (string) $subscription->alliance_id,
+                    (string) $context->alliance->id,
                     $candidate,
                     $metadata,
                     $event.':'.$candidate->id,
@@ -143,18 +147,16 @@ final readonly class StageKingdomIngestionCandidate
             throw ValidationException::withMessages(['batch' => 'Candidates can only be staged into a pending ingestion batch.']);
         }
 
-        if ($alliance->kingdom_id === null || $alliance->kingdom_id !== $subscription->kingdom_id) {
+        if ($alliance->kingdom_id === null || (string) $alliance->kingdom_id !== (string) $subscription->kingdom_id) {
             throw ValidationException::withMessages([
                 'subscription' => 'Ingestion is blocked because the alliance Kingdom no longer matches the subscription context.',
             ]);
         }
 
-        if (
-            $batch->alliance_id !== $subscription->alliance_id
-            || $batch->kingdom_id !== $subscription->kingdom_id
+        if ((string) $batch->alliance_id !== (string) $subscription->alliance_id
+            || (string) $batch->kingdom_id !== (string) $subscription->kingdom_id
             || $batch->adapter_key !== $subscription->adapter_key
-            || $batch->adapter_version !== $subscription->adapter_version
-        ) {
+            || $batch->adapter_version !== $subscription->adapter_version) {
             throw ValidationException::withMessages(['batch' => 'The ingestion batch context does not match its subscription.']);
         }
     }
@@ -177,7 +179,7 @@ final readonly class StageKingdomIngestionCandidate
             ? $value
             : (is_string($value) ? KingdomIngestionTargetKind::tryFrom($value) : null);
 
-        if ($kind === null || in_array($kind, $adapter->supportedTargetKinds(), true) === false) {
+        if ($kind === null || ! in_array($kind, $adapter->supportedTargetKinds(), true)) {
             throw ValidationException::withMessages([
                 'target_kind' => 'The source adapter returned an unsupported ingestion target kind.',
             ]);
@@ -188,7 +190,7 @@ final readonly class StageKingdomIngestionCandidate
 
     private function capturedAt(mixed $value): Carbon
     {
-        if (is_string($value) === false || trim($value) === '') {
+        if (! is_string($value) || trim($value) === '') {
             throw ValidationException::withMessages(['captured_at' => 'A source capture time is required.']);
         }
 
@@ -207,10 +209,7 @@ final readonly class StageKingdomIngestionCandidate
         return $capturedAt;
     }
 
-    /**
-     * @param  array<string|int, mixed>  $payload
-     * @return array<string, mixed>
-     */
+    /** @param array<string|int, mixed> $payload @return array<string, mixed> */
     private function canonicalPayload(KingdomIngestionTargetKind $kind, array $payload): array
     {
         return match ($kind) {
@@ -219,10 +218,7 @@ final readonly class StageKingdomIngestionCandidate
         };
     }
 
-    /**
-     * @param  array<string|int, mixed>  $payload
-     * @return array<string, mixed>
-     */
+    /** @param array<string|int, mixed> $payload @return array<string, mixed> */
     private function playerPayload(array $payload): array
     {
         $this->assertOnlyKeys($payload, ['observed_name', 'power', 'progression_level', 'observed_alliance_tag']);
@@ -235,10 +231,7 @@ final readonly class StageKingdomIngestionCandidate
         ];
     }
 
-    /**
-     * @param  array<string|int, mixed>  $payload
-     * @return array<string, mixed>
-     */
+    /** @param array<string|int, mixed> $payload @return array<string, mixed> */
     private function alliancePayload(array $payload): array
     {
         $this->assertOnlyKeys($payload, ['observed_name', 'observed_tag', 'power', 'member_count']);
@@ -251,14 +244,11 @@ final readonly class StageKingdomIngestionCandidate
         ];
     }
 
-    /**
-     * @param  array<string|int, mixed>  $payload
-     * @param  list<string>  $allowed
-     */
+    /** @param array<string|int, mixed> $payload @param list<string> $allowed */
     private function assertOnlyKeys(array $payload, array $allowed): void
     {
         foreach (array_keys($payload) as $key) {
-            if (is_string($key) === false || in_array($key, $allowed, true) === false) {
+            if (! is_string($key) || ! in_array($key, $allowed, true)) {
                 throw ValidationException::withMessages([
                     'payload' => 'The source payload contains a field that is not approved for this target kind.',
                 ]);
@@ -268,7 +258,7 @@ final readonly class StageKingdomIngestionCandidate
 
     private function requiredText(mixed $value, int $max, string $field): string
     {
-        if (is_string($value) === false) {
+        if (! is_string($value)) {
             throw ValidationException::withMessages([$field => 'The normalized source field must be text.']);
         }
 
@@ -286,7 +276,7 @@ final readonly class StageKingdomIngestionCandidate
             return null;
         }
 
-        if (is_string($value) === false) {
+        if (! is_string($value)) {
             throw ValidationException::withMessages([$field => 'The normalized source field must be text.']);
         }
 
@@ -308,7 +298,7 @@ final readonly class StageKingdomIngestionCandidate
             return null;
         }
 
-        if (is_string($value) === false && is_int($value) === false) {
+        if (! is_string($value) && ! is_int($value)) {
             throw ValidationException::withMessages(['power' => 'Normalized power must be an unsigned integer value.']);
         }
 
@@ -319,10 +309,8 @@ final readonly class StageKingdomIngestionCandidate
 
         $canonical = ltrim($value, '0');
         $canonical = $canonical === '' ? '0' : $canonical;
-        if (
-            strlen($canonical) > strlen(self::MAX_POWER)
-            || (strlen($canonical) === strlen(self::MAX_POWER) && strcmp($canonical, self::MAX_POWER) > 0)
-        ) {
+        if (strlen($canonical) > strlen(self::MAX_POWER)
+            || (strlen($canonical) === strlen(self::MAX_POWER) && strcmp($canonical, self::MAX_POWER) > 0)) {
             throw ValidationException::withMessages(['power' => 'Normalized power exceeds the supported signed 64-bit range.']);
         }
 
@@ -339,7 +327,7 @@ final readonly class StageKingdomIngestionCandidate
             $value = (int) $value;
         }
 
-        if (is_int($value) === false || $value < 0 || $value > 1000000) {
+        if (! is_int($value) || $value < 0 || $value > 1000000) {
             throw ValidationException::withMessages([
                 'member_count' => 'Normalized member count must be between 0 and 1,000,000.',
             ]);

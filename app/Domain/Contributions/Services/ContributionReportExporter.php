@@ -6,9 +6,12 @@ namespace App\Domain\Contributions\Services;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Contributions\Models\ContributionReportRun;
 use App\Domain\Contributions\Queries\ContributionReportingQuery;
 use App\Domain\Kingdoms\Models\Player;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
@@ -18,6 +21,7 @@ final class ContributionReportExporter
     public const REPORT_VERSION = 'phase5.v1';
 
     public function __construct(
+        private readonly AllianceMutationAuthority $authority,
         private readonly ContributionReportingQuery $reports,
         private readonly AuditRecorder $audit,
     ) {}
@@ -29,39 +33,46 @@ final class ContributionReportExporter
             throw new InvalidArgumentException('Unsupported contribution report format.');
         }
 
-        $rows = $this->reports->reportRows($alliance);
-        $content = $format === 'csv'
-            ? $this->csv($alliance, $rows)
-            : $this->spreadsheet($alliance, $rows);
-        $checksum = hash('sha256', $content);
-        $idempotencyKey = hash('sha256', $alliance->id.'|'.$actor->id.'|'.$format.'|'.Str::ulid());
+        return DB::transaction(function () use ($alliance, $actor, $format): array {
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
+            }
 
-        $run = ContributionReportRun::query()->create([
-            'alliance_id' => $alliance->id,
-            'requested_by_player_id' => $actor->id,
-            'format' => $format,
-            'status' => 'completed',
-            'report_version' => self::REPORT_VERSION,
-            'filters' => [],
-            'row_count' => count($rows),
-            'checksum' => $checksum,
-            'idempotency_key' => $idempotencyKey,
-            'completed_at' => now(),
-        ]);
+            $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+            $rows = $this->reports->reportRows($context->alliance);
+            $content = $format === 'csv'
+                ? $this->csv($context->alliance, $rows)
+                : $this->spreadsheet($context->alliance, $rows);
+            $checksum = hash('sha256', $content);
+            $idempotencyKey = hash('sha256', $context->alliance->id.'|'.$context->actor->id.'|'.$format.'|'.Str::ulid());
 
-        $this->audit->record('contribution.report.exported', $actor, $run, $alliance, [
-            'format' => $format,
-            'report_version' => self::REPORT_VERSION,
-            'row_count' => count($rows),
-            'checksum' => $checksum,
-        ]);
+            $run = ContributionReportRun::query()->create([
+                'alliance_id' => $context->alliance->id,
+                'requested_by_player_id' => $context->actor->id,
+                'format' => $format,
+                'status' => 'completed',
+                'report_version' => self::REPORT_VERSION,
+                'filters' => [],
+                'row_count' => count($rows),
+                'checksum' => $checksum,
+                'idempotency_key' => $idempotencyKey,
+                'completed_at' => now(),
+            ]);
 
-        return [
-            'content' => $content,
-            'mime' => $format === 'csv' ? 'text/csv; charset=UTF-8' : 'application/vnd.ms-excel; charset=UTF-8',
-            'filename' => sprintf('%s-contributions.%s', $alliance->slug, $format === 'csv' ? 'csv' : 'xls'),
-            'run' => $run,
-        ];
+            $this->audit->record('contribution.report.exported', $context->actor, $run, $context->alliance, [
+                'format' => $format,
+                'report_version' => self::REPORT_VERSION,
+                'row_count' => count($rows),
+                'checksum' => $checksum,
+            ]);
+
+            return [
+                'content' => $content,
+                'mime' => $format === 'csv' ? 'text/csv; charset=UTF-8' : 'application/vnd.ms-excel; charset=UTF-8',
+                'filename' => sprintf('%s-contributions.%s', $context->alliance->slug, $format === 'csv' ? 'csv' : 'xls'),
+                'run' => $run,
+            ];
+        });
     }
 
     /** @param list<array<string, scalar|null>> $rows */
@@ -74,7 +85,6 @@ final class ContributionReportExporter
 
         $headers = $this->headers();
         fputcsv($handle, $headers);
-
         foreach ($rows as $row) {
             $normalized = ['report_version' => self::REPORT_VERSION, 'alliance_id' => $alliance->id] + $row;
             fputcsv($handle, array_map(static fn (string $key): string => (string) ($normalized[$key] ?? ''), $headers));
@@ -83,7 +93,6 @@ final class ContributionReportExporter
         rewind($handle);
         $content = stream_get_contents($handle);
         fclose($handle);
-
         if ($content === false) {
             throw new RuntimeException('Unable to read CSV export buffer.');
         }

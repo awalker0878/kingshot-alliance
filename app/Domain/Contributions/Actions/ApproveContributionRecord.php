@@ -6,6 +6,8 @@ namespace App\Domain\Contributions\Actions;
 
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
+use App\Domain\Authorization\Enums\PermissionKey;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Contributions\Enums\ContributionRecordStatus;
 use App\Domain\Contributions\Models\ContributionRecord;
 use App\Domain\Kingdoms\Models\Player;
@@ -16,37 +18,40 @@ use InvalidArgumentException;
 final class ApproveContributionRecord
 {
     public function __construct(
+        private readonly AllianceMutationAuthority $authority,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
     ) {}
 
     public function handle(Player $actor, Alliance $alliance, ContributionRecord $record): ContributionRecord
     {
-        if ($record->alliance_id !== $alliance->id) {
-            throw new InvalidArgumentException('Contribution record does not belong to the active alliance.');
-        }
-
-        if ($record->status === ContributionRecordStatus::Approved) {
-            return $record;
-        }
-
-        if ($record->status !== ContributionRecordStatus::Pending) {
-            throw new InvalidArgumentException('Only pending contribution records can be approved.');
-        }
-
         return DB::transaction(function () use ($actor, $alliance, $record): ContributionRecord {
-            $record->forceFill([
+            $context = $this->authority->require($actor, $alliance, PermissionKey::ContributionManage);
+            $locked = ContributionRecord::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($record->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($locked->status === ContributionRecordStatus::Approved) {
+                return $locked;
+            }
+            if ($locked->status !== ContributionRecordStatus::Pending) {
+                throw new InvalidArgumentException('Only pending contribution records can be approved.');
+            }
+
+            $locked->forceFill([
                 'status' => ContributionRecordStatus::Approved,
                 'approved_at' => now(),
-                'approved_by_player_id' => $actor->id,
+                'approved_by_player_id' => $context->actor->id,
             ])->save();
 
-            $this->audit->record('contribution.record.approved', $actor, $record, $alliance);
-            $this->outbox->record('contribution.record.approved', $alliance->id, $record, [
-                'record_id' => $record->id,
+            $this->audit->record('contribution.record.approved', $context->actor, $locked, $context->alliance);
+            $this->outbox->record('contribution.record.approved', $context->alliance->id, $locked, [
+                'record_id' => $locked->id,
             ]);
 
-            return $record->refresh();
+            return $locked->refresh();
         });
     }
 }

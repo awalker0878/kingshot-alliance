@@ -7,21 +7,21 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class CreateKingdomIngestionSubscription
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private KingdomIngestionAdapterRegistry $adapters,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -29,25 +29,20 @@ final readonly class CreateKingdomIngestionSubscription
 
     public function handle(Alliance $alliance, Player $actor, string $adapterKey): KingdomIngestionSubscription
     {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
-            throw new AuthorizationException;
-        }
-
         $adapter = $this->adapters->require(trim($adapterKey));
 
         return DB::transaction(function () use ($alliance, $actor, $adapter): KingdomIngestionSubscription {
-            $lockedAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
-            if ($lockedAlliance->kingdom_id === null) {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+            if ($context->alliance->kingdom_id === null) {
                 throw ValidationException::withMessages([
                     'adapter_key' => 'The alliance must have a current Kingdom before automated ingestion can be configured.',
                 ]);
             }
 
             $existing = KingdomIngestionSubscription::query()
-                ->where('alliance_id', $lockedAlliance->id)
-                ->where('kingdom_id', $lockedAlliance->kingdom_id)
+                ->where('alliance_id', $context->alliance->id)
+                ->where('kingdom_id', $context->alliance->kingdom_id)
                 ->where('adapter_key', $adapter->key())
-                ->lockForUpdate()
                 ->first();
 
             if ($existing instanceof KingdomIngestionSubscription) {
@@ -56,14 +51,30 @@ final readonly class CreateKingdomIngestionSubscription
                 ]);
             }
 
-            $subscription = KingdomIngestionSubscription::query()->create([
-                'alliance_id' => $lockedAlliance->id,
-                'kingdom_id' => $lockedAlliance->kingdom_id,
-                'adapter_key' => $adapter->key(),
-                'adapter_version' => $adapter->version(),
-                'state' => KingdomIngestionSubscriptionState::Active,
-                'next_run_at' => $adapter instanceof KingdomIngestionAcquisitionAdapter ? now() : null,
-            ]);
+            try {
+                $subscription = KingdomIngestionSubscription::query()->create([
+                    'alliance_id' => $context->alliance->id,
+                    'kingdom_id' => $context->alliance->kingdom_id,
+                    'adapter_key' => $adapter->key(),
+                    'adapter_version' => $adapter->version(),
+                    'state' => KingdomIngestionSubscriptionState::Active,
+                    'next_run_at' => $adapter instanceof KingdomIngestionAcquisitionAdapter ? now() : null,
+                ]);
+            } catch (QueryException $exception) {
+                // The unique (alliance, kingdom, adapter) constraint is the hard race
+                // guard when two managers configure the same source concurrently.
+                if (KingdomIngestionSubscription::query()
+                    ->where('alliance_id', $context->alliance->id)
+                    ->where('kingdom_id', $context->alliance->kingdom_id)
+                    ->where('adapter_key', $adapter->key())
+                    ->exists()) {
+                    throw ValidationException::withMessages([
+                        'adapter_key' => 'That source adapter is already configured for the current Kingdom.',
+                    ]);
+                }
+
+                throw $exception;
+            }
 
             $metadata = [
                 'subscription_id' => (string) $subscription->id,
@@ -75,8 +86,8 @@ final readonly class CreateKingdomIngestionSubscription
             ];
 
             $event = 'kingdoms.ingestion_subscription_created';
-            $this->audit->record($event, $actor, $subscription, $lockedAlliance, $metadata);
-            $this->outbox->record($event, (string) $lockedAlliance->id, $subscription, $metadata);
+            $this->audit->record($event, $context->actor, $subscription, $context->alliance, $metadata);
+            $this->outbox->record($event, (string) $context->alliance->id, $subscription, $metadata);
 
             return $subscription->refresh()->load('kingdom');
         });

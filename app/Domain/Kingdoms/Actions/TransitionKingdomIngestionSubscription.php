@@ -7,21 +7,20 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Domain\Kingdoms\Enums\KingdomIngestionSubscriptionState;
 use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Services\KingdomIngestionAdapterRegistry;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class TransitionKingdomIngestionSubscription
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private KingdomIngestionAdapterRegistry $adapters,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -33,15 +32,13 @@ final readonly class TransitionKingdomIngestionSubscription
         string $subscriptionId,
         KingdomIngestionSubscriptionState $target,
     ): KingdomIngestionSubscription {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $subscriptionId, $target): KingdomIngestionSubscription {
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
             $subscription = KingdomIngestionSubscription::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($subscriptionId)
                 ->lockForUpdate()
-                ->findOrFail($subscriptionId);
+                ->firstOrFail();
 
             if ($subscription->state === $target) {
                 return $subscription->load('kingdom');
@@ -49,8 +46,8 @@ final readonly class TransitionKingdomIngestionSubscription
 
             $nextRunAt = $subscription->next_run_at;
             if ($target === KingdomIngestionSubscriptionState::Active) {
-                $lockedAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
-                if ($lockedAlliance->kingdom_id === null || $lockedAlliance->kingdom_id !== $subscription->kingdom_id) {
+                if ($context->alliance->kingdom_id === null
+                    || (string) $context->alliance->kingdom_id !== (string) $subscription->kingdom_id) {
                     throw ValidationException::withMessages([
                         'state' => 'A subscription can only be activated for the alliance current Kingdom.',
                     ]);
@@ -87,8 +84,8 @@ final readonly class TransitionKingdomIngestionSubscription
             ];
 
             $event = 'kingdoms.ingestion_subscription_state_changed';
-            $this->audit->record($event, $actor, $subscription, $alliance, $metadata);
-            $this->outbox->record($event, (string) $alliance->id, $subscription, $metadata);
+            $this->audit->record($event, $context->actor, $subscription, $context->alliance, $metadata);
+            $this->outbox->record($event, (string) $context->alliance->id, $subscription, $metadata);
 
             return $subscription->refresh()->load('kingdom');
         });

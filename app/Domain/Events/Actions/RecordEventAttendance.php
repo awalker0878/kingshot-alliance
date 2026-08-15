@@ -11,8 +11,8 @@ use App\Domain\Events\Enums\EventCapability;
 use App\Domain\Events\Models\EventAttendance;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Services\EventCapabilityGuard;
+use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Events\Services\EventParticipantAuthorization;
-use App\Domain\Events\Services\EventTargetResolver;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -21,9 +21,9 @@ use Illuminate\Support\Facades\DB;
 final readonly class RecordEventAttendance
 {
     public function __construct(
-        private EventParticipantAuthorization $authorization,
+        private EventMutationAuthority $mutations,
+        private EventParticipantAuthorization $participants,
         private EventCapabilityGuard $capabilities,
-        private EventTargetResolver $targets,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -35,36 +35,58 @@ final readonly class RecordEventAttendance
         EventAttendanceStatus $status,
         ?string $notes = null,
     ): EventAttendance {
-        $occurrence->loadMissing('event.typeScope');
+        $occurrence->loadMissing('event');
         $event = $occurrence->event;
-        $this->capabilities->require($event, EventCapability::Attendance);
-        $this->authorization->authorizeManager($actor, $event);
-        if (! $this->authorization->eligible($event, $player)) {
-            throw new AuthorizationException;
-        }
 
-        $target = $this->targets->forEvent($event);
+        return DB::transaction(function () use ($actor, $occurrence, $event, $player, $status, $notes): EventAttendance {
+            $context = $this->mutations->requireManager($actor, $event);
+            $this->capabilities->require($context->event, EventCapability::Attendance);
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $player, $status, $notes, $target): EventAttendance {
+            $lockedOccurrence = EventOccurrence::query()
+                ->whereKey($occurrence->id)
+                ->where('event_id', $context->event->id)
+                ->sharedLock()
+                ->firstOrFail();
+
+            // Player identity is the eligibility anchor. Kingdom transfer and roster
+            // lifecycle workflows acquire this Player before changing scope-bound state.
+            $currentPlayer = Player::query()
+                ->whereKey($player->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (! $this->participants->eligible($context->event, $currentPlayer)) {
+                throw new AuthorizationException;
+            }
+
             $record = EventAttendance::query()->updateOrCreate(
-                ['occurrence_id' => $occurrence->id, 'player_id' => $player->id],
+                [
+                    'occurrence_id' => $lockedOccurrence->id,
+                    'player_id' => $currentPlayer->id,
+                ],
                 [
                     'status' => $status,
                     'notes' => $notes === null || trim($notes) === '' ? null : trim($notes),
-                    'recorded_by_player_id' => $actor->id,
+                    'recorded_by_player_id' => $context->actor->id,
                     'recorded_at' => now(),
                 ],
             );
 
-            $alliance = $target instanceof Alliance ? $target : null;
+            $alliance = $context->target instanceof Alliance ? $context->target : null;
             $metadata = [
-                'occurrence_id' => (string) $occurrence->id,
-                'player_id' => (string) $player->id,
+                'occurrence_id' => (string) $lockedOccurrence->id,
+                'player_id' => (string) $currentPlayer->id,
                 'status' => $status->value,
-                'actor_player_id' => $actor->id,
+                'actor_player_id' => (string) $context->actor->id,
             ];
-            $this->audit->record('event.attendance.recorded', $actor, $record, $alliance, $metadata);
-            $this->outbox->record('event.attendance.recorded', $alliance?->id, $record, $metadata, partitionKey: $event->scope->value.':'.$target->id);
+            $this->audit->record('event.attendance.recorded', $context->actor, $record, $alliance, $metadata);
+            $this->outbox->record(
+                'event.attendance.recorded',
+                $alliance?->id,
+                $record,
+                $metadata,
+                partitionKey: $context->event->scope->value.':'.$context->target->id,
+            );
 
             return $record->refresh();
         });

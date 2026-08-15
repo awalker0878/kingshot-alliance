@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Actions;
 
 use App\Domain\Kingdoms\Enums\KingdomIngestionCandidateState;
+use App\Domain\Kingdoms\Models\KingdomIngestionBatch;
 use App\Domain\Kingdoms\Models\KingdomIngestionCandidate;
-use App\Domain\Kingdoms\Models\KingdomIngestionSubscription;
+use App\Domain\Kingdoms\Services\KingdomIngestionMutationState;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class QuarantineKingdomIngestionCandidate
 {
-    public function __construct(private OutboxRecorder $outbox) {}
+    public function __construct(
+        private KingdomIngestionMutationState $mutations,
+        private OutboxRecorder $outbox,
+    ) {}
 
     public function handle(string $subscriptionId, string $candidateId, string $reasonCode): KingdomIngestionCandidate
     {
@@ -25,11 +29,23 @@ final readonly class QuarantineKingdomIngestionCandidate
         }
 
         return DB::transaction(function () use ($subscriptionId, $candidateId, $reasonCode): KingdomIngestionCandidate {
-            $subscription = KingdomIngestionSubscription::query()->lockForUpdate()->findOrFail($subscriptionId);
-            $candidate = KingdomIngestionCandidate::query()
-                ->where('subscription_id', $subscription->id)
+            $context = $this->mutations->lockSubscription($subscriptionId);
+            $route = KingdomIngestionCandidate::query()
+                ->select(['id', 'batch_id'])
+                ->where('subscription_id', $context->subscription->id)
+                ->whereKey($candidateId)
+                ->firstOrFail();
+            $batch = KingdomIngestionBatch::query()
+                ->where('subscription_id', $context->subscription->id)
+                ->whereKey($route->batch_id)
                 ->lockForUpdate()
-                ->findOrFail($candidateId);
+                ->firstOrFail();
+            $candidate = KingdomIngestionCandidate::query()
+                ->where('subscription_id', $context->subscription->id)
+                ->where('batch_id', $batch->id)
+                ->whereKey($route->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if ($candidate->state === KingdomIngestionCandidateState::Quarantined) {
                 if ($candidate->quarantine_code !== $reasonCode) {
@@ -37,10 +53,8 @@ final readonly class QuarantineKingdomIngestionCandidate
                         'reason' => 'An already-quarantined candidate cannot be relabelled in place.',
                     ]);
                 }
-
                 return $candidate;
             }
-
             if ($candidate->state !== KingdomIngestionCandidateState::Pending) {
                 throw ValidationException::withMessages([
                     'candidate' => 'Only pending ingestion candidates can be quarantined.',
@@ -51,19 +65,20 @@ final readonly class QuarantineKingdomIngestionCandidate
                 'state' => KingdomIngestionCandidateState::Quarantined,
                 'quarantine_code' => $reasonCode,
             ])->save();
-            $candidate->batch()->increment('records_quarantined');
+            $batch->increment('records_quarantined');
 
             $event = 'kingdoms.ingestion_candidate_quarantined';
             $this->outbox->record(
                 $event,
-                (string) $candidate->alliance_id,
+                (string) $context->alliance->id,
                 $candidate,
                 [
-                    'subscription_id' => (string) $subscription->id,
-                    'batch_id' => (string) $candidate->batch_id,
+                    'subscription_id' => (string) $context->subscription->id,
+                    'batch_id' => (string) $batch->id,
                     'candidate_id' => (string) $candidate->id,
                     'target_kind' => $candidate->target_kind->value,
                     'quarantine_code' => $reasonCode,
+                    'origin' => 'system',
                 ],
                 $event.':'.$candidate->id.':'.$reasonCode,
             );

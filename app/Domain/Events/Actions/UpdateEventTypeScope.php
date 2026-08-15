@@ -11,15 +11,15 @@ use App\Domain\Events\Enums\EventScheduleSource;
 use App\Domain\Events\Enums\RecurrenceFrequency;
 use App\Domain\Events\Models\EventTypeScope;
 use App\Domain\Identity\Models\User;
-use App\Domain\Platform\Services\PlatformAdministratorAuthorization;
 use App\Domain\Platform\Services\OutboxRecorder;
+use App\Domain\Platform\Services\PlatformMutationAuthority;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 final class UpdateEventTypeScope
 {
     public function __construct(
-        private PlatformAdministratorAuthorization $platformAuthorization,
+        private PlatformMutationAuthority $platformMutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -45,8 +45,6 @@ final class UpdateEventTypeScope
         array $defaultSettings,
         array $capabilities,
     ): EventTypeScope {
-        $this->platformAuthorization->authorize($actor);
-
         if ($recurrencePolicy === EventRecurrencePolicy::Disabled) {
             $defaultRecurrenceFrequency = RecurrenceFrequency::None;
             $defaultRecurrenceInterval = 1;
@@ -82,6 +80,10 @@ final class UpdateEventTypeScope
             $defaultSettings,
             $capabilities,
         ): EventTypeScope {
+            $context = $this->platformMutations->require($actor);
+
+            // EventTypeScope is the global configuration aggregate. Event creation and
+            // Event/Rally child writes shared-lock this same row before using its policy.
             $locked = EventTypeScope::query()
                 ->whereKey($configuration->id)
                 ->lockForUpdate()
@@ -130,7 +132,7 @@ final class UpdateEventTypeScope
 
             $this->audit->record(
                 event: 'event-type.scope.updated',
-                actor: $actor,
+                actor: $context->actor,
                 subject: $locked,
                 metadata: $metadata,
             );

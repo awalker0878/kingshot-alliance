@@ -7,21 +7,20 @@ namespace App\Domain\Kingdoms\Actions;
 use App\Domain\Alliances\Models\Alliance;
 use App\Domain\Audit\Services\AuditRecorder;
 use App\Domain\Authorization\Enums\PermissionKey;
-use App\Domain\Authorization\Services\AllianceAuthorization;
-use App\Domain\Kingdoms\Models\Player;
+use App\Domain\Authorization\Services\AllianceMutationAuthority;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Models\KingdomAlliance;
 use App\Domain\Kingdoms\Models\KingdomAllianceObservation;
+use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use App\Domain\Platform\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class InvalidateKingdomAllianceObservation
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -33,34 +32,40 @@ final readonly class InvalidateKingdomAllianceObservation
         string $observationId,
         ?string $reason,
     ): KingdomAllianceObservation {
-        if (! $this->authorization->allows($actor, $alliance, PermissionKey::KingdomManage)) {
-            throw new AuthorizationException;
-        }
-
         return DB::transaction(function () use ($alliance, $actor, $trackingId, $observationId, $reason): KingdomAllianceObservation {
-            $lockedAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $context = $this->authority->require($actor, $alliance, PermissionKey::KingdomManage);
+
             $tracking = TrackedKingdomAlliance::query()
-                ->where('alliance_id', $lockedAlliance->id)
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($trackingId)
                 ->lockForUpdate()
-                ->findOrFail($trackingId);
+                ->firstOrFail();
 
             if ($tracking->state !== TrackedKingdomAllianceState::Active) {
                 throw ValidationException::withMessages([
                     'observation' => 'Only observations for actively tracked game-side alliances can be invalidated.',
                 ]);
             }
-
-            if ($lockedAlliance->kingdom_id === null || $tracking->kingdom_id !== $lockedAlliance->kingdom_id) {
+            if ($context->alliance->kingdom_id === null
+                || (string) $tracking->kingdom_id !== (string) $context->alliance->kingdom_id) {
                 throw ValidationException::withMessages([
                     'observation' => 'Historical Kingdom context is read-only. Archive the tracking relationship instead.',
                 ]);
             }
 
-            $observation = KingdomAllianceObservation::query()
-                ->where('alliance_id', $lockedAlliance->id)
-                ->where('tracked_kingdom_alliance_id', $tracking->id)
+            // Match RecordKingdomAllianceObservation exactly: tracking -> reference -> history.
+            $reference = KingdomAlliance::query()
+                ->whereKey($tracking->kingdom_alliance_id)
                 ->lockForUpdate()
-                ->findOrFail($observationId);
+                ->firstOrFail();
+
+            $observation = KingdomAllianceObservation::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->where('tracked_kingdom_alliance_id', $tracking->id)
+                ->where('kingdom_alliance_id', $reference->id)
+                ->whereKey($observationId)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if ($observation->invalidated_at !== null) {
                 return $observation->load(['actor:id,current_name', 'invalidatedBy:id,current_name']);
@@ -68,11 +73,10 @@ final readonly class InvalidateKingdomAllianceObservation
 
             $observation->forceFill([
                 'invalidated_at' => now(),
-                'invalidated_by_player_id' => $actor->id,
+                'invalidated_by_player_id' => $context->actor->id,
                 'invalidation_reason' => $this->nullableText($reason),
             ])->save();
 
-            $reference = KingdomAlliance::query()->lockForUpdate()->findOrFail($tracking->kingdom_alliance_id);
             $latest = KingdomAllianceObservation::query()
                 ->where('kingdom_alliance_id', $reference->id)
                 ->whereNull('invalidated_at')
@@ -89,11 +93,18 @@ final readonly class InvalidateKingdomAllianceObservation
             $metadata = [
                 'observation_id' => (string) $observation->id,
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
-                'kingdom_alliance_id' => (string) $observation->kingdom_alliance_id,
+                'kingdom_alliance_id' => (string) $reference->id,
+                'origin' => 'player',
             ];
             $event = 'kingdoms.alliance_intelligence_observation_invalidated';
-            $this->audit->record($event, $actor, $observation, $lockedAlliance, $metadata);
-            $this->outbox->record($event, (string) $lockedAlliance->id, $observation, $metadata, $event.':'.$observation->id);
+            $this->audit->record($event, $context->actor, $observation, $context->alliance, $metadata);
+            $this->outbox->record(
+                $event,
+                (string) $context->alliance->id,
+                $observation,
+                $metadata,
+                $event.':'.$observation->id,
+            );
 
             return $observation->load(['actor:id,current_name', 'invalidatedBy:id,current_name']);
         });

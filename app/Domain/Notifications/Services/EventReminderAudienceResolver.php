@@ -65,15 +65,58 @@ final readonly class EventReminderAudienceResolver
             ->values();
     }
 
+    public function includes(EventOccurrence $occurrence, EventReminderAudience $audience, Player $player): bool
+    {
+        $occurrence->loadMissing('event');
+        $event = $occurrence->event;
+        if ($player->user_id === null || ! $this->canReceive($event, $player)) {
+            return false;
+        }
+
+        return match ($audience) {
+            EventReminderAudience::Target => $event->scope === EventScope::Player
+                && (string) $event->player_id === (string) $player->id,
+            EventReminderAudience::Responded => EventResponse::query()
+                ->where('occurrence_id', $occurrence->id)
+                ->where('player_id', $player->id)
+                ->whereIn('response', [EventResponseChoice::Going->value, EventResponseChoice::Maybe->value])
+                ->exists(),
+            EventReminderAudience::Registered => EventRegistration::query()
+                ->where('occurrence_id', $occurrence->id)
+                ->where('player_id', $player->id)
+                ->where('status', EventRegistrationStatus::Registered->value)
+                ->exists(),
+            EventReminderAudience::Rostered => EventRosterMember::query()
+                ->where('player_id', $player->id)
+                ->whereIn('status', [EventRosterMemberStatus::Assigned->value, EventRosterMemberStatus::Confirmed->value])
+                ->whereHas('roster', static fn ($query) => $query->where('occurrence_id', $occurrence->id))
+                ->exists(),
+            EventReminderAudience::AllScopePlayers => $this->inScope($event, $player),
+        };
+    }
+
     private function canReceive(Event $event, Player $player): bool
     {
         try {
             $this->authorization->authorizeSelf($player, $event, $player);
-
             return true;
         } catch (AuthorizationException) {
             return false;
         }
+    }
+
+    private function inScope(Event $event, Player $player): bool
+    {
+        return match ($event->scope) {
+            EventScope::Player => (string) $event->player_id === (string) $player->id,
+            EventScope::Kingdom => (string) $event->kingdom_id === (string) $player->current_kingdom_id,
+            EventScope::Alliance => $event->alliance_id !== null
+                && AllianceRosterEntry::query()
+                    ->where('alliance_id', $event->alliance_id)
+                    ->where('player_id', $player->id)
+                    ->where('state', RosterState::Active->value)
+                    ->exists(),
+        };
     }
 
     /** @return list<string> */

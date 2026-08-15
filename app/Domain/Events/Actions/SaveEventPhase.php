@@ -12,8 +12,7 @@ use App\Domain\Events\Enums\EventPhaseType;
 use App\Domain\Events\Models\EventOccurrence;
 use App\Domain\Events\Models\EventPhase;
 use App\Domain\Events\Services\EventCapabilityGuard;
-use App\Domain\Events\Services\EventParticipantAuthorization;
-use App\Domain\Events\Services\EventTargetResolver;
+use App\Domain\Events\Services\EventMutationAuthority;
 use App\Domain\Kingdoms\Models\Player;
 use App\Domain\Platform\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
@@ -23,9 +22,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveEventPhase
 {
     public function __construct(
-        private EventParticipantAuthorization $authorization,
+        private EventMutationAuthority $mutations,
         private EventCapabilityGuard $capabilities,
-        private EventTargetResolver $targets,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -45,10 +43,8 @@ final readonly class SaveEventPhase
         array $settings = [],
         ?EventPhase $phase = null,
     ): EventPhase {
-        $occurrence->loadMissing('event.typeScope');
+        $occurrence->loadMissing('event');
         $event = $occurrence->event;
-        $this->capabilities->require($event, EventCapability::Phases);
-        $this->authorization->authorizeManager($actor, $event);
 
         if ($phase instanceof EventPhase && (string) $phase->occurrence_id !== (string) $occurrence->id) {
             abort(404);
@@ -66,15 +62,27 @@ final readonly class SaveEventPhase
             throw ValidationException::withMessages(['ends_at' => 'Phase end must be after phase start.']);
         }
 
-        $target = $this->targets->forEvent($event);
+        return DB::transaction(function () use ($actor, $occurrence, $event, $phase, $key, $type, $name, $nameKey, $startsAt, $endsAt, $status, $sortOrder, $settings): EventPhase {
+            $context = $this->mutations->requireManager($actor, $event);
+            $this->capabilities->require($context->event, EventCapability::Phases);
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $phase, $key, $type, $name, $nameKey, $startsAt, $endsAt, $status, $sortOrder, $settings, $target): EventPhase {
+            $lockedOccurrence = EventOccurrence::query()
+                ->whereKey($occurrence->id)
+                ->where('event_id', $context->event->id)
+                ->sharedLock()
+                ->firstOrFail();
+
             $record = $phase instanceof EventPhase
-                ? EventPhase::query()->whereKey($phase->id)->where('occurrence_id', $occurrence->id)->lockForUpdate()->firstOrFail()
-                : new EventPhase(['occurrence_id' => $occurrence->id]);
+                ? EventPhase::query()
+                    ->whereKey($phase->id)
+                    ->where('occurrence_id', $lockedOccurrence->id)
+                    ->lockForUpdate()
+                    ->firstOrFail()
+                : new EventPhase(['occurrence_id' => $lockedOccurrence->id]);
+
             $created = ! $record->exists;
             if ($created) {
-                $record->created_by_player_id = $actor->id;
+                $record->created_by_player_id = $context->actor->id;
             }
 
             $record->forceFill([
@@ -87,21 +95,27 @@ final readonly class SaveEventPhase
                 'status' => $status,
                 'sort_order' => max(0, $sortOrder),
                 'settings' => ['source' => 'manual'] + $settings,
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $context->actor->id,
             ])->save();
 
-            $alliance = $target instanceof Alliance ? $target : null;
+            $alliance = $context->target instanceof Alliance ? $context->target : null;
             $metadata = [
-                'event_id' => (string) $event->id,
-                'occurrence_id' => (string) $occurrence->id,
+                'event_id' => (string) $context->event->id,
+                'occurrence_id' => (string) $lockedOccurrence->id,
                 'phase_key' => $key,
                 'phase_type' => $type->value,
                 'status' => $status->value,
-                'actor_player_id' => $actor->id,
+                'actor_player_id' => (string) $context->actor->id,
             ];
             $eventName = $created ? 'event.phase.created' : 'event.phase.updated';
-            $this->audit->record($eventName, $actor, $record, $alliance, $metadata);
-            $this->outbox->record($eventName, $alliance?->id, $record, $metadata, partitionKey: $event->scope->value.':'.$target->id);
+            $this->audit->record($eventName, $context->actor, $record, $alliance, $metadata);
+            $this->outbox->record(
+                $eventName,
+                $alliance?->id,
+                $record,
+                $metadata,
+                partitionKey: $context->event->scope->value.':'.$context->target->id,
+            );
 
             return $record->refresh();
         });
