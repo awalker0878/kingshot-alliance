@@ -190,7 +190,7 @@ final readonly class EventPlayerHistoryQuery
     }
 
     /**
-     * @param Collection<int,string> $occurrenceIds
+     * @param  Collection<int,string>  $occurrenceIds
      * @return Collection<string,EventPlayerResult>
      */
     private function results(Player $player, Collection $occurrenceIds): Collection
