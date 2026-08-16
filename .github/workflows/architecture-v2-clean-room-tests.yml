@@ -107,6 +107,7 @@ jobs:
       - name: Run warning-free clean-room V2 PHPUnit suite
         shell: bash
         run: |
+          set +e
           set -uo pipefail
           php artisan test tests/v2 \
             --display-warnings \
@@ -116,6 +117,7 @@ jobs:
             --fail-on-risky \
             2>&1 | tee "${RUNNER_TEMP}/clean-room-phpunit.log"
           status=${PIPESTATUS[0]}
+          set -e
           if [ "$status" -ne 0 ]; then
             python3 - <<'PY'
           import os
