@@ -10,7 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
-/** @property Carbon|null $effective_from @property Carbon|null $effective_until */
+/**
+ * @property Carbon|null $effective_from
+ * @property Carbon|null $effective_until
+ * @property-read Alliance $alliance
+ */
 final class RallyGuidanceRule extends Model
 {
     use HasUlids;
