@@ -9,7 +9,6 @@ use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventTypeScope;
 use App\Contexts\Operations\EventCore\Services\ActivePlayerEventVisibilityResolver;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityResolver;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
@@ -20,6 +19,7 @@ use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Models\EventPoll;
 use App\Contexts\Operations\Polls\Models\EventPollVote;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
+use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -66,9 +66,6 @@ final readonly class EventAttentionQuery
         foreach ($occurrences as $occurrence) {
             $event = $occurrence->event;
             $configuration = $event->typeScope;
-            if (! $configuration instanceof EventTypeScope) {
-                continue;
-            }
             $occurrenceId = (string) $occurrence->id;
 
             if ($this->capabilities->supports($configuration, EventCapability::Responses)
@@ -143,10 +140,10 @@ final readonly class EventAttentionQuery
     /**
      * @param  list<string>  $occurrenceIds
      * @return array{
-     *   responses:array<string,true>,
-     *   registrations:array<string,true>,
+     *   responses:array<string,bool>,
+     *   registrations:array<string,bool>,
      *   polls:array<string,list<string>>,
-     *   votes:array<string,true>,
+     *   votes:array<string,bool>,
      *   roster_assignments:array<string,string>
      * }
      */
@@ -194,19 +191,25 @@ final readonly class EventAttentionQuery
                 ->mapWithKeys(static fn ($id): array => [(string) $id => true])
                 ->all();
 
-        $rosterAssignments = EventRosterMember::query()
+        /** @var array<string,string> $rosterAssignments */
+        $rosterAssignments = [];
+        $members = EventRosterMember::query()
             ->where('player_id', $player->id)
             ->where('status', EventRosterMemberStatus::Assigned->value)
             ->whereHas('roster', static fn (Builder $query) => $query->whereIn('occurrence_id', $occurrenceIds))
             ->with('roster:id,occurrence_id')
             ->orderBy('assigned_at')
-            ->get(['id', 'roster_id', 'assigned_at'])
-            ->reduce(static function (array $carry, EventRosterMember $member): array {
-                $occurrenceId = (string) $member->roster->occurrence_id;
-                $carry[$occurrenceId] ??= (string) $member->id;
+            ->get(['id', 'roster_id', 'assigned_at']);
 
-                return $carry;
-            }, []);
+        foreach ($members as $member) {
+            $roster = $member->roster;
+            if (! $roster instanceof EventRoster) {
+                continue;
+            }
+
+            $occurrenceId = (string) $roster->occurrence_id;
+            $rosterAssignments[$occurrenceId] ??= (string) $member->id;
+        }
 
         return [
             'responses' => $responses,
