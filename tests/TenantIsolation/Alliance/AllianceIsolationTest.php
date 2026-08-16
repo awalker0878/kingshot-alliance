@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\TenantIsolation\Alliances;
+namespace Tests\TenantIsolation\Alliance;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;

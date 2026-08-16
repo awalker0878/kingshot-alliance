@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class TransitionTransferPlan
 {
     public function __construct(
-        private AllianceMutationAuthority $mutations,
+        private AllianceIntelligenceMutationAuthority $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}

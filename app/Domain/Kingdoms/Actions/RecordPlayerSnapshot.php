@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
@@ -23,7 +23,7 @@ final readonly class RecordPlayerSnapshot
     private const MAX_POWER = '9223372036854775807';
 
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceIntelligenceMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}

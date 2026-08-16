@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Content;
+namespace Tests\Feature\Alliance\Content;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Content\Actions\PublishContentItem;

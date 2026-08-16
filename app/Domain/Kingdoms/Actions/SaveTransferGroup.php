@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
@@ -25,7 +25,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveTransferGroup
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceIntelligenceMutationAuthority $authority,
         private ResolveKingdom $kingdoms,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Alliances;
+namespace Tests\Feature\Alliance\Core;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;

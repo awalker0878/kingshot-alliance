@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Actions\LeaveAlliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
@@ -30,7 +30,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CompleteTransferParticipant
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceIntelligenceMutationAuthority $authority,
         private SaveRosterEntry $saveRoster,
         private MarkRosterEntryLeft $markRosterLeft,
         private LeaveAlliance $leaveAlliance,

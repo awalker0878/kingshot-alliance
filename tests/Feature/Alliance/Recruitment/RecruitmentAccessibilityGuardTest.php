@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Recruitment;
+namespace Tests\Feature\Alliance\Recruitment;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;

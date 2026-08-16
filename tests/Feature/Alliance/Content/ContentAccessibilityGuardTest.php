@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Content;
+namespace Tests\Feature\Alliance\Content;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
