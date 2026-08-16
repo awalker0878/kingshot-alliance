@@ -54,15 +54,27 @@ final class ArchitectureBoundariesV2Test extends TestCase
         }
     }
 
-    public function test_communications_owns_generic_delivery_state_not_domain_delivery_models(): void
+    public function test_communications_owns_generic_delivery_state_not_business_reminder_policy(): void
     {
         self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Models/NotificationDelivery.php'));
         self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Models/NotificationPreference.php'));
         self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Services/NotificationDeliveryService.php'));
+        self::assertFileExists(base_path('app/Contexts/Operations/Reminders/Actions/QueueDueEventReminders.php'));
+        self::assertFileExists(base_path('app/Contexts/Operations/KingPerks/Actions/QueueDueKingPerkReminders.php'));
 
         foreach ($this->phpFiles(['app/Contexts/Communications']) as $file) {
             $normalized = str_replace('\\', '/', $file);
+            $source = (string) file_get_contents($file);
             self::assertDoesNotMatchRegularExpression('#/(?:Event|KingPerk|AllianceChampion)\w*ReminderDelivery\.php$#', $normalized, $normalized);
+            self::assertStringNotContainsString('App\\Contexts\\Operations\\', $source, $normalized);
+            self::assertStringNotContainsString('App\\Contexts\\Alliance\\', $source, $normalized);
+            self::assertStringNotContainsString('App\\Contexts\\GameWorld\\', $source, $normalized);
+        }
+
+        foreach ($this->phpFiles(['database/migrations']) as $file) {
+            $source = (string) file_get_contents($file);
+            self::assertStringNotContainsString("Schema::create('event_reminder_deliveries'", $source, $file);
+            self::assertStringNotContainsString("Schema::create('king_perk_reminder_deliveries'", $source, $file);
         }
     }
 
