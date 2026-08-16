@@ -6,20 +6,13 @@ namespace App\Contexts\Alliance\Access\Services;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
-use App\Shared\Access\Contracts\Permission;
-use App\Shared\Access\ValueObjects\NamedPermission;
 
 final class AllianceRankPermissions
 {
-    /** @return list<Permission> */
+    /** @return list<AlliancePermission> */
     public function for(AllianceRank $rank): array
     {
-        $member = [
-            AlliancePermission::View,
-            NamedPermission::from('events.player.view'),
-            NamedPermission::from('events.player.create'),
-            NamedPermission::from('events.alliance.view'),
-        ];
+        $member = [AlliancePermission::View];
 
         return match ($rank) {
             AllianceRank::R1,
@@ -29,10 +22,6 @@ final class AllianceRankPermissions
                 ...$member,
                 AlliancePermission::MembershipManage,
                 AlliancePermission::InvitationManage,
-                NamedPermission::from('events.player.manage'),
-                NamedPermission::from('events.alliance.create'),
-                NamedPermission::from('events.alliance.manage'),
-                NamedPermission::from('kingdoms.manage'),
             ],
             AllianceRank::R5 => [
                 ...$member,
@@ -41,24 +30,13 @@ final class AllianceRankPermissions
                 AlliancePermission::RoleManage,
                 AlliancePermission::InvitationManage,
                 AlliancePermission::ContentManage,
-                NamedPermission::from('events.player.manage'),
-                NamedPermission::from('events.alliance.create'),
-                NamedPermission::from('events.alliance.manage'),
                 AlliancePermission::RecruitmentManage,
-                NamedPermission::from('contributions.manage'),
-                NamedPermission::from('kingdoms.manage'),
             ],
         };
     }
 
-    public function allows(AllianceRank $rank, Permission $permission): bool
+    public function allows(AllianceRank $rank, AlliancePermission $permission): bool
     {
-        foreach ($this->for($rank) as $granted) {
-            if ($granted->key() === $permission->key()) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($permission, $this->for($rank), true);
     }
 }
