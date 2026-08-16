@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Communications\Delivery\Models;
 
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,6 +14,25 @@ use Illuminate\Database\Eloquent\Model;
  *
  * Business subjects and recipients are represented by scalar boundary identifiers;
  * this aggregate deliberately exposes no Eloquent relationships into source contexts.
+ *
+ * @property string $id
+ * @property string $notification_type
+ * @property int $recipient_user_id
+ * @property string|null $player_id
+ * @property string $channel
+ * @property string $subject_type
+ * @property string $subject_id
+ * @property CarbonImmutable|null $due_at
+ * @property DeliveryStatus $status
+ * @property int $attempt_count
+ * @property int $max_attempts
+ * @property string $idempotency_key
+ * @property CarbonImmutable|null $queued_at
+ * @property CarbonImmutable|null $sent_at
+ * @property CarbonImmutable|null $failed_at
+ * @property CarbonImmutable|null $next_attempt_at
+ * @property string|null $last_error
+ * @property array<string, mixed>|null $metadata
  */
 final class NotificationDelivery extends Model
 {
