@@ -67,7 +67,7 @@ jobs:
 
           For writes whose authorization depends on mutable membership, role, scope, lifecycle, or ownership state, the owning action or service opens the transaction, locks the relevant current state in deterministic order, and then performs the final authorization check against that locked state.
 
-          Authorization services express policy and evaluate the current locked principal/scope. They do not act as cross-context mutation-authority facades. Capability-specific write-state helpers may only acquire or revalidate state; they must not interpret another context's permission vocabulary.
+          Authorization services express policy and evaluate the current locked principal/scope. They do not act as cross-context authority facades. Capability-specific write-state helpers may only acquire or revalidate state; they must not interpret another context's permission vocabulary.
 
           ## Rationale
 
@@ -78,7 +78,7 @@ jobs:
           Controllers remain thin. Owning actions/services define transaction boundaries, lock their aggregates and mutable scope records, enforce invariants, and invoke authorization against the current state. Cross-context Workflows coordinate owner APIs rather than owning persistence or bypassing a context's write contract.
           EOF
           sed -i 's/^          //' docs/architecture/decisions/0004-transactional-write-authorization.md
-          git rm docs/architecture/decisions/0004-transactional-mutation-authority.md
+          git rm -f docs/architecture/decisions/0004-transactional-mutation-authority.md
 
           touch .arch-v2-p5p9-cleaned
           git add -A
