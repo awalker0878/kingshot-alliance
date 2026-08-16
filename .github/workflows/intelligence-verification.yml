@@ -4,15 +4,18 @@ on:
   pull_request:
     paths:
       - 'app/Contexts/Intelligence/**'
-      - 'app/ReadModels/**'
+      - 'app/ReadModels/EventHistory/**'
+      - 'app/ReadModels/KingdomIntelligence/**'
+      - 'app/ReadModels/SharedKingdomIntelligence/**'
       - 'database/migrations/**event**'
       - 'resources/js/pages/Events/**'
       - 'resources/js/pages/Contributions/**'
       - 'routes/event-history.php'
       - 'routes/contributions.php'
-      - 'tests/Architecture/ArchitectureV2IntelligenceTest.php'
-      - 'tests/Feature/Intelligence/**'
-      - 'tests/Unit/Intelligence/**'
+      - 'tests/v2/Contexts/Intelligence/**'
+      - 'tests/v2/ReadModels/EventHistory/**'
+      - 'tests/v2/ReadModels/KingdomIntelligence/**'
+      - 'tests/v2/ReadModels/SharedKingdomIntelligence/**'
       - '.github/workflows/intelligence-verification.yml'
   workflow_dispatch:
 
@@ -76,7 +79,7 @@ jobs:
         run: |
           set -euo pipefail
           test ! -d app/Domain/Contributions
-          matches=$(grep -R -n --include='*.php' 'App\\Domain\\Contributions' app routes bootstrap config database 2>/dev/null || true)
+          matches=$(grep -R -n --include='*.php' 'App\\Domain\\Contributions' app routes bootstrap config database tests/v2/Contexts/Intelligence 2>/dev/null || true)
           if [ -n "$matches" ]; then
             echo "$matches"
             exit 1
@@ -86,21 +89,33 @@ jobs:
         run: >-
           vendor/bin/pint --test
           app/Contexts/Intelligence
-          tests/Architecture/ArchitectureV2IntelligenceTest.php
-          tests/Feature/Intelligence
+          app/ReadModels/EventHistory
+          app/ReadModels/KingdomIntelligence
+          app/ReadModels/SharedKingdomIntelligence
+          routes/event-history.php
+          routes/contributions.php
+          tests/v2/Contexts/Intelligence
+          tests/v2/ReadModels/EventHistory
+          tests/v2/ReadModels/KingdomIntelligence
+          tests/v2/ReadModels/SharedKingdomIntelligence
 
       - name: Larastan Intelligence V2
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1G
           app/Contexts/Intelligence
-          app/ReadModels
+          app/ReadModels/EventHistory
+          app/ReadModels/KingdomIntelligence
+          app/ReadModels/SharedKingdomIntelligence
           routes/event-history.php
+          routes/contributions.php
 
       - name: Intelligence V2 behavior contracts
         run: >-
           php artisan test
-          tests/Architecture/ArchitectureV2IntelligenceTest.php
-          tests/Feature/Intelligence
+          tests/v2/Contexts/Intelligence
+          tests/v2/ReadModels/EventHistory
+          tests/v2/ReadModels/KingdomIntelligence
+          tests/v2/ReadModels/SharedKingdomIntelligence
 
   frontend:
     name: Intelligence history frontend contracts
