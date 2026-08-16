@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Access\Services;
 
 use App\Contexts\Alliance\Access\Enums\DefaultAllianceRole;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Access\ValueObjects\AllianceMutationContext;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
@@ -12,9 +14,12 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use Illuminate\Auth\Access\AuthorizationException;
 
 final class AllianceOperationsAuthorization
 {
+    public function __construct(private AllianceAuthorization $allianceAuthorization) {}
+
     public function allows(Player $actor, Alliance $alliance, OperationsPermission $permission): bool
     {
         if ($alliance->status !== AllianceStatus::Active
@@ -32,11 +37,18 @@ final class AllianceOperationsAuthorization
             && $this->allowsMembership($membership, $alliance, $permission);
     }
 
-    public function allowsMembership(
-        AllianceMembership $membership,
-        Alliance $alliance,
-        OperationsPermission $permission,
-    ): bool {
+    public function require(Player $actor, Alliance $alliance, OperationsPermission $permission): AllianceMutationContext
+    {
+        $context = $this->allianceAuthorization->acquireActiveScope($actor, $alliance);
+        if (! $this->allowsMembership($context->membership, $context->alliance, $permission)) {
+            throw new AuthorizationException;
+        }
+
+        return $context;
+    }
+
+    public function allowsMembership(AllianceMembership $membership, Alliance $alliance, OperationsPermission $permission): bool
+    {
         if ($membership->status !== MembershipStatus::Active
             || (string) $membership->alliance_id !== (string) $alliance->id) {
             return false;
