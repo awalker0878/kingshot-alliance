@@ -67,7 +67,6 @@ final class EventSchedulePolicyResolver
         $actualMinutes = match ($frequency) {
             RecurrenceFrequency::Daily => $interval * 1440,
             RecurrenceFrequency::Weekly => $interval * 10080,
-            RecurrenceFrequency::None => 0,
         };
 
         if ($actualMinutes < (int) $minimumRepeatIntervalMinutes) {
