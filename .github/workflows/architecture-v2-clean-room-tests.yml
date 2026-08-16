@@ -5,6 +5,7 @@ on:
     branches: [architecture-v2]
     paths:
       - '.github/scripts/arch_v2_clean_room_tests.py'
+      - '.github/scripts/arch_v2_clean_room_test_fixups.py'
       - '.github/workflows/architecture-v2-clean-room-tests.yml'
   workflow_dispatch:
 
@@ -69,6 +70,9 @@ jobs:
 
       - name: Generate clean-room V2 tests from docs and final owners
         run: python3 .github/scripts/arch_v2_clean_room_tests.py
+
+      - name: Apply clean-room harness corrections
+        run: python3 .github/scripts/arch_v2_clean_room_test_fixups.py
 
       - name: Refresh Composer test autoload
         run: composer dump-autoload --no-interaction
@@ -147,6 +151,7 @@ jobs:
           fi
 
           rm .github/scripts/arch_v2_clean_room_tests.py
+          rm .github/scripts/arch_v2_clean_room_test_fixups.py
           rm .github/workflows/architecture-v2-clean-room-tests.yml
 
           git config user.name "github-actions[bot]"
