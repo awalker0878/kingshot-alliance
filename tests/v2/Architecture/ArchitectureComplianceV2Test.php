@@ -77,9 +77,25 @@ final class ArchitectureComplianceV2Test extends TestCase
             self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Models/'.$model));
         }
         self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Services/NotificationDeliveryService.php'));
-        $migration = implode("\n", array_map(static fn (string $file): string => (string) file_get_contents($file), $this->phpFiles(['app/Contexts/Communications/Delivery/Migrations'])));
-        foreach (['notification_deliveries', 'notification_preferences', 'idempotency_key', 'attempt_count', 'channel'] as $needle) {
+        self::assertFileExists(base_path('app/Contexts/Operations/Reminders/Actions/QueueDueEventReminders.php'));
+        self::assertFileExists(base_path('app/Contexts/Operations/KingPerks/Actions/QueueDueKingPerkReminders.php'));
+
+        $migration = (string) file_get_contents(base_path('database/migrations/2026_08_16_000000_create_notification_delivery_tables.php'));
+        foreach (['notification_deliveries', 'notification_preferences', 'idempotency_key', 'attempt_count', 'channel', 'next_attempt_at'] as $needle) {
             self::assertStringContainsString($needle, $migration);
+        }
+
+        foreach ($this->phpFiles(['app/Contexts/Communications']) as $file) {
+            $source = (string) file_get_contents($file);
+            self::assertStringNotContainsString('App\\Contexts\\Operations\\', $source, $file);
+            self::assertStringNotContainsString('App\\Contexts\\Alliance\\', $source, $file);
+            self::assertStringNotContainsString('App\\Contexts\\GameWorld\\', $source, $file);
+        }
+
+        foreach ($this->phpFiles(['database/migrations']) as $file) {
+            $source = (string) file_get_contents($file);
+            self::assertStringNotContainsString("Schema::create('event_reminder_deliveries'", $source, $file);
+            self::assertStringNotContainsString("Schema::create('king_perk_reminder_deliveries'", $source, $file);
         }
     }
 
