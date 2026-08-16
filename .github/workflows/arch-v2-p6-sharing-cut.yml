@@ -19,87 +19,59 @@ jobs:
           ref: architecture-v2
           fetch-depth: 0
 
-      - name: Move Sharing into Intelligence
+      - name: Move Sharing domain capability into Intelligence
         shell: bash
         run: |
           set -euo pipefail
           python3 <<'PY'
           from pathlib import Path
 
-          moves = {
-              'app/Domain/Kingdoms/Models/KingdomIntelligenceShare.php': 'app/Contexts/Intelligence/Sharing/Models/KingdomIntelligenceShare.php',
-              'app/Domain/Kingdoms/Models/KingdomIntelligenceShareTarget.php': 'app/Contexts/Intelligence/Sharing/Models/KingdomIntelligenceShareTarget.php',
-              'app/Domain/Kingdoms/Enums/KingdomIntelligenceShareState.php': 'app/Contexts/Intelligence/Sharing/Enums/KingdomIntelligenceShareState.php',
-              'app/Domain/Kingdoms/Enums/KingdomIntelligenceShareTargetState.php': 'app/Contexts/Intelligence/Sharing/Enums/KingdomIntelligenceShareTargetState.php',
-              'app/Domain/Kingdoms/Services/KingdomIntelligenceShareTokenService.php': 'app/Contexts/Intelligence/Sharing/Services/KingdomIntelligenceShareTokenService.php',
-              'app/Domain/Kingdoms/ValueObjects/IssuedKingdomIntelligenceShareInvitation.php': 'app/Contexts/Intelligence/Sharing/ValueObjects/IssuedKingdomIntelligenceShareInvitation.php',
-              'app/Domain/Kingdoms/Actions/AcceptKingdomIntelligenceShareInvitation.php': 'app/Contexts/Intelligence/Sharing/Actions/AcceptKingdomIntelligenceShareInvitation.php',
-              'app/Domain/Kingdoms/Actions/AddKingdomIntelligenceShareTarget.php': 'app/Contexts/Intelligence/Sharing/Actions/AddKingdomIntelligenceShareTarget.php',
-              'app/Domain/Kingdoms/Actions/CreateKingdomIntelligenceShareInvitation.php': 'app/Contexts/Intelligence/Sharing/Actions/CreateKingdomIntelligenceShareInvitation.php',
-              'app/Domain/Kingdoms/Actions/DeclineKingdomIntelligenceShareInvitation.php': 'app/Contexts/Intelligence/Sharing/Actions/DeclineKingdomIntelligenceShareInvitation.php',
-              'app/Domain/Kingdoms/Actions/EnforceKingdomIntelligenceSharingRetention.php': 'app/Contexts/Intelligence/Sharing/Actions/EnforceKingdomIntelligenceSharingRetention.php',
-              'app/Domain/Kingdoms/Actions/LeaveKingdomIntelligenceShare.php': 'app/Contexts/Intelligence/Sharing/Actions/LeaveKingdomIntelligenceShare.php',
-              'app/Domain/Kingdoms/Actions/RemoveKingdomIntelligenceShareTarget.php': 'app/Contexts/Intelligence/Sharing/Actions/RemoveKingdomIntelligenceShareTarget.php',
-              'app/Domain/Kingdoms/Actions/RevokeKingdomIntelligenceShare.php': 'app/Contexts/Intelligence/Sharing/Actions/RevokeKingdomIntelligenceShare.php',
-              'app/Domain/Kingdoms/Queries/KingdomIntelligenceSharingManageQuery.php': 'app/Contexts/Intelligence/Sharing/Queries/KingdomIntelligenceSharingManageQuery.php',
-              'app/Domain/Kingdoms/Http/Controllers/KingdomIntelligenceSharingController.php': 'app/Contexts/Intelligence/Sharing/Http/Controllers/KingdomIntelligenceSharingController.php',
+          groups = {
+              'Models': ['KingdomIntelligenceShare', 'KingdomIntelligenceShareTarget'],
+              'Enums': ['KingdomIntelligenceShareState', 'KingdomIntelligenceShareTargetState'],
+              'Services': ['KingdomIntelligenceShareTokenService'],
+              'ValueObjects': ['IssuedKingdomIntelligenceShareInvitation'],
+              'Actions': [
+                  'AcceptKingdomIntelligenceShareInvitation',
+                  'AddKingdomIntelligenceShareTarget',
+                  'CreateKingdomIntelligenceShareInvitation',
+                  'DeclineKingdomIntelligenceShareInvitation',
+                  'EnforceKingdomIntelligenceSharingRetention',
+                  'LeaveKingdomIntelligenceShare',
+                  'RemoveKingdomIntelligenceShareTarget',
+                  'RevokeKingdomIntelligenceShare',
+              ],
+              'Queries': ['KingdomIntelligenceSharingManageQuery'],
           }
 
-          classes = {
-              r'App\Domain\Kingdoms\Models\KingdomIntelligenceShare': r'App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShare',
-              r'App\Domain\Kingdoms\Models\KingdomIntelligenceShareTarget': r'App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShareTarget',
-              r'App\Contexts\GameWorld\Models\KingdomIntelligenceShare': r'App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShare',
-              r'App\Contexts\GameWorld\Models\KingdomIntelligenceShareTarget': r'App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShareTarget',
-              r'App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState': r'App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareState',
-              r'App\Domain\Kingdoms\Enums\KingdomIntelligenceShareTargetState': r'App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareTargetState',
-              r'App\Domain\Kingdoms\Services\KingdomIntelligenceShareTokenService': r'App\Contexts\Intelligence\Sharing\Services\KingdomIntelligenceShareTokenService',
-              r'App\Domain\Kingdoms\ValueObjects\IssuedKingdomIntelligenceShareInvitation': r'App\Contexts\Intelligence\Sharing\ValueObjects\IssuedKingdomIntelligenceShareInvitation',
-              r'App\Domain\Kingdoms\Actions\AcceptKingdomIntelligenceShareInvitation': r'App\Contexts\Intelligence\Sharing\Actions\AcceptKingdomIntelligenceShareInvitation',
-              r'App\Domain\Kingdoms\Actions\AddKingdomIntelligenceShareTarget': r'App\Contexts\Intelligence\Sharing\Actions\AddKingdomIntelligenceShareTarget',
-              r'App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation': r'App\Contexts\Intelligence\Sharing\Actions\CreateKingdomIntelligenceShareInvitation',
-              r'App\Domain\Kingdoms\Actions\DeclineKingdomIntelligenceShareInvitation': r'App\Contexts\Intelligence\Sharing\Actions\DeclineKingdomIntelligenceShareInvitation',
-              r'App\Domain\Kingdoms\Actions\EnforceKingdomIntelligenceSharingRetention': r'App\Contexts\Intelligence\Sharing\Actions\EnforceKingdomIntelligenceSharingRetention',
-              r'App\Domain\Kingdoms\Actions\LeaveKingdomIntelligenceShare': r'App\Contexts\Intelligence\Sharing\Actions\LeaveKingdomIntelligenceShare',
-              r'App\Domain\Kingdoms\Actions\RemoveKingdomIntelligenceShareTarget': r'App\Contexts\Intelligence\Sharing\Actions\RemoveKingdomIntelligenceShareTarget',
-              r'App\Domain\Kingdoms\Actions\RevokeKingdomIntelligenceShare': r'App\Contexts\Intelligence\Sharing\Actions\RevokeKingdomIntelligenceShare',
-              r'App\Domain\Kingdoms\Queries\KingdomIntelligenceSharingManageQuery': r'App\Contexts\Intelligence\Sharing\Queries\KingdomIntelligenceSharingManageQuery',
-              r'App\Domain\Kingdoms\Http\Controllers\KingdomIntelligenceSharingController': r'App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController',
-          }
+          replacements = {}
+          for group, names in groups.items():
+              for name in names:
+                  old = f'App\\Domain\\Kingdoms\\{group}\\{name}'
+                  new = f'App\\Contexts\\Intelligence\\Sharing\\{group}\\{name}'
+                  replacements[old] = new
 
-          ns = {
-              '/Models/': r'App\Contexts\Intelligence\Sharing\Models',
-              '/Enums/': r'App\Contexts\Intelligence\Sharing\Enums',
-              '/Services/': r'App\Contexts\Intelligence\Sharing\Services',
-              '/ValueObjects/': r'App\Contexts\Intelligence\Sharing\ValueObjects',
-              '/Actions/': r'App\Contexts\Intelligence\Sharing\Actions',
-              '/Queries/': r'App\Contexts\Intelligence\Sharing\Queries',
-              '/Http/Controllers/': r'App\Contexts\Intelligence\Sharing\Http\Controllers',
-          }
-          old_ns = {
-              '/Models/': r'App\Domain\Kingdoms\Models',
-              '/Enums/': r'App\Domain\Kingdoms\Enums',
-              '/Services/': r'App\Domain\Kingdoms\Services',
-              '/ValueObjects/': r'App\Domain\Kingdoms\ValueObjects',
-              '/Actions/': r'App\Domain\Kingdoms\Actions',
-              '/Queries/': r'App\Domain\Kingdoms\Queries',
-              '/Http/Controllers/': r'App\Domain\Kingdoms\Http\Controllers',
-          }
+          # Several V1 files already referenced sharing models as if GameWorld owned them.
+          replacements[r'App\Contexts\GameWorld\Models\KingdomIntelligenceShare'] = r'App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShare'
+          replacements[r'App\Contexts\GameWorld\Models\KingdomIntelligenceShareTarget'] = r'App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShareTarget'
 
-          for src_name, dst_name in moves.items():
-              src = Path(src_name)
-              dst = Path(dst_name)
-              if not src.is_file():
-                  raise SystemExit(f'Missing source for P6 Sharing cut: {src}')
-              dst.parent.mkdir(parents=True, exist_ok=True)
-              text = src.read_text(encoding='utf-8')
-              key = next(k for k in ns if k in src_name)
-              text = text.replace(f'namespace {old_ns[key]};', f'namespace {ns[key]};')
-              for old, new in classes.items():
-                  text = text.replace(old, new)
-              dst.write_text(text, encoding='utf-8')
-              src.unlink()
+          for group, names in groups.items():
+              for name in names:
+                  src = Path(f'app/Domain/Kingdoms/{group}/{name}.php')
+                  dst = Path(f'app/Contexts/Intelligence/Sharing/{group}/{name}.php')
+                  if not src.is_file():
+                      raise SystemExit(f'Missing source for P6 Sharing cut: {src}')
+                  dst.parent.mkdir(parents=True, exist_ok=True)
+                  text = src.read_text(encoding='utf-8')
+                  text = text.replace(
+                      f'namespace App\\Domain\\Kingdoms\\{group};',
+                      f'namespace App\\Contexts\\Intelligence\\Sharing\\{group};',
+                  )
+                  for old, new in replacements.items():
+                      text = text.replace(old, new)
+                  dst.write_text(text, encoding='utf-8')
+                  src.unlink()
 
-          # Relations hidden by the old same-namespace layout become explicit V2 imports.
           share = Path('app/Contexts/Intelligence/Sharing/Models/KingdomIntelligenceShare.php')
           text = share.read_text(encoding='utf-8')
           anchor = 'use App\\Contexts\\GameWorld\\Models\\Player;\n'
@@ -113,10 +85,16 @@ jobs:
           anchor = 'use App\\Contexts\\GameWorld\\Models\\Player;\n'
           if anchor not in text:
               raise SystemExit('KingdomIntelligenceShareTarget Player import anchor missing')
-          text = text.replace(anchor, anchor+'use App\\Contexts\\Intelligence\\Observations\\Models\\TrackedKingdomAlliance;\n', 1)
+          text = text.replace(
+              anchor,
+              anchor+'use App\\Contexts\\Intelligence\\Observations\\Models\\TrackedKingdomAlliance;\n',
+              1,
+          )
           target.write_text(text, encoding='utf-8')
 
-          # Rewrite production callers, including old Kingdom read-model code that still consumes Sharing.
+          # Rewrite all production consumers. The legacy UI controller remains in place until
+          # its current/history read side is rebuilt under ReadModels, but it consumes these
+          # new Sharing actions/query immediately.
           for root_name in ('app', 'routes', 'bootstrap', 'config', 'database'):
               root = Path(root_name)
               if not root.exists():
@@ -124,7 +102,7 @@ jobs:
               for path in root.rglob('*.php'):
                   text = path.read_text(encoding='utf-8')
                   rewritten = text
-                  for old, new in classes.items():
+                  for old, new in replacements.items():
                       rewritten = rewritten.replace(old, new)
                   if rewritten != text:
                       path.write_text(rewritten, encoding='utf-8')
@@ -137,6 +115,7 @@ jobs:
           test -d app/Contexts/Intelligence/Sharing
           test ! -e app/Domain/Kingdoms/Models/KingdomIntelligenceShare.php
           test ! -e app/Domain/Kingdoms/Models/KingdomIntelligenceShareTarget.php
+          test -e app/Domain/Kingdoms/Http/Controllers/KingdomIntelligenceSharingController.php
           matches=$(grep -R -n --include='*.php' 'App\\Domain\\' app/Contexts/Intelligence/Sharing 2>/dev/null || true)
           if [ -n "$matches" ]; then
             echo "$matches"
