@@ -91,7 +91,19 @@ jobs:
         run: php artisan migrate:fresh --force
 
       - name: Run promoted EventAnalysis tests
-        run: php artisan test tests/Feature/Intelligence/EventAnalysis
+        shell: bash
+        run: |
+          set +e
+          output="$(php artisan test tests/Feature/Intelligence/EventAnalysis 2>&1)"
+          status=$?
+          printf '%s\n' "$output"
+          if [ "$status" -ne 0 ]; then
+            escaped="${output//'%'/'%25'}"
+            escaped="${escaped//$'\r'/'%0D'}"
+            escaped="${escaped//$'\n'/'%0A'}"
+            echo "::error title=Promoted EventAnalysis tests failed::${escaped:0:6000}"
+            exit "$status"
+          fi
 
       - name: Run repository and Intelligence architecture contracts
         run: php artisan test tests/Architecture/RepositoryStructureTest.php tests/Architecture/ArchitectureV2IntelligenceTest.php
