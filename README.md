@@ -1,24 +1,16 @@
 # Kingshot Alliance
 
-Enterprise-ready, multi-alliance coordination platform for the Kingshot community.
-
-## Current status
-
-**Phases 0–6 complete · repository production hardening accepted · production cutover pending**
-
-The implementation plan is complete through Phase 6. The repository includes identity and multi-tenancy, public/content management, events and rallies, recruitment, contributions/reporting, platform administration and integrations, plus repository-controlled production hardening.
-
-A real production cutover is **not yet approved**. Infrastructure and operational evidence must still satisfy the production launch approval record before deployment is treated as approved.
+Enterprise-ready coordination platform for the KingShot community, organized around the Architecture V2 bounded-context model.
 
 ## Technology baseline
 
 - PHP 8.5 and Laravel 13
-- Inertia 3, Vue 3, TypeScript, Tailwind CSS 4, and Vite 8
+- Inertia 3, Vue 3, TypeScript, Tailwind CSS 4 and Vite 8
 - PostgreSQL 18
 - Redis 8 with Laravel Horizon
-- Laravel Pulse, Pennant, and Sanctum foundations
+- Laravel Pulse, Pennant and Sanctum foundations
 - Docker Compose for local development
-- GitHub Actions for quality, security, test, image, staging, and recovery validation
+- GitHub Actions for quality, security and Architecture V2 verification
 
 ## Local setup
 
@@ -39,23 +31,46 @@ make backup
 CONFIRM_RESTORE=YES make restore FILE=backups/database-....sql.gz
 ```
 
+## Architecture V2
+
+Business behavior is organized into bounded contexts under `app/Contexts`:
+
+- Accounts
+- GameWorld
+- Alliance
+- Operations
+- Intelligence
+- Communications
+- Platform
+
+Capabilities live inside those contexts. Cross-context commands are coordinated by `app/Workflows`, cross-context reads by `app/ReadModels`, and business-neutral infrastructure by `app/Shared`.
+
+A User is the account principal; the active Player is the game-domain principal. Platform Administrator is User-scoped platform authority and is not a game-domain bypass.
+
+See the [architecture overview](docs/architecture/README.md), [Architecture V2 compliance](docs/governance/architecture-compliance.md) and [codebase module map](docs/codebase/module-map.md).
+
 ## Health endpoints
 
 - `GET /up` — process liveness
-- `GET /health/ready` — database and cache readiness
+- `GET /health/ready` — dependency readiness
 
-Every response receives a request ID and W3C `traceparent` correlation header.
+Requests receive request/correlation identifiers suitable for structured diagnostics.
 
 ## Documentation
 
 - [Documentation home](docs/README.md)
-- [Program implementation plan](docs/product/implementation-plan.md)
-- [Local development](docs/operations/runbooks/local-development.md)
-- [Architecture decisions](docs/adr/README.md)
-- [Definition of done](docs/product/definition-of-done.md)
-- [Security baseline](docs/security/security-baseline.md)
-- [Release checklist](docs/operations/release-checklist.md)
-- [Production launch approval](docs/product/production-launch-approval.md)
-- [Phase 0 exit report](docs/product/phase-0-exit-report.md)
+- [Architecture](docs/architecture/README.md)
+- [Codebase](docs/codebase/README.md)
+- [System operations](docs/operations/README.md)
+- [Product](docs/product/README.md)
+- [Governance](docs/governance/README.md)
+- [Reference](docs/reference/README.md)
+- [Definition of Done](docs/governance/definition-of-done.md)
+- [Security requirements](docs/governance/security-requirements.md)
+- [Production approval](docs/governance/production-approval.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security reporting](SECURITY.md)
+
+## Production status
+
+Repository/application hardening does not by itself approve a real production cutover. The authoritative go/no-go record is [Production approval](docs/governance/production-approval.md); it remains **not yet approved** until the required real-environment evidence is recorded.

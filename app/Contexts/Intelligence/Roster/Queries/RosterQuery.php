@@ -1,0 +1,106 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Contexts\Intelligence\Roster\Queries;
+
+use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+
+final class RosterQuery
+{
+    /**
+     * @param array{
+     *   q?: string|null,
+     *   state?: string|null,
+     *   linkage?: string|null,
+     *   role?: string|null,
+     *   observation?: string|null
+     * } $filters
+     * @return Collection<int, AllianceRosterEntry>
+     */
+    public function forAlliance(Alliance $alliance, array $filters = []): Collection
+    {
+        $query = AllianceRosterEntry::query()
+            ->where('alliance_id', $alliance->id)
+            ->with('player:id,user_id,current_kingdom_id,game_player_id,current_name');
+
+        $search = trim((string) ($filters['q'] ?? ''));
+        if ($search !== '') {
+            $query->where(function (Builder $builder) use ($search): void {
+                $builder
+                    ->where('observed_name', 'ilike', "%{$search}%")
+                    ->orWhereHas('player', static function (Builder $player) use ($search): void {
+                        $player->where('game_player_id', 'ilike', "%{$search}%");
+                    });
+            });
+        }
+
+        $state = $filters['state'] ?? null;
+        if (is_string($state) && $state !== '') {
+            $query->where('state', $state);
+        }
+
+        $linkage = $filters['linkage'] ?? null;
+        if ($linkage === 'linked' || $linkage === 'unlinked') {
+            $method = $linkage === 'linked' ? 'whereExists' : 'whereNotExists';
+            $query->{$method}(function ($membership) use ($alliance): void {
+                $membership->selectRaw('1')
+                    ->from('alliance_memberships')
+                    ->whereColumn('alliance_memberships.player_id', 'alliance_roster_entries.player_id')
+                    ->where('alliance_memberships.alliance_id', $alliance->id)
+                    ->where('alliance_memberships.status', MembershipStatus::Active->value);
+            });
+        }
+
+        $role = trim((string) ($filters['role'] ?? ''));
+        if ($role !== '') {
+            $query->where('game_role', $role);
+        }
+
+        $observation = $filters['observation'] ?? null;
+        $freshCutoff = now()->subDays(PlayerSnapshotQuery::STALE_AFTER_DAYS);
+
+        $snapshotExists = static function ($snapshot): void {
+            $snapshot->selectRaw('1')
+                ->from('player_snapshots')
+                ->whereColumn('player_snapshots.roster_entry_id', 'alliance_roster_entries.id');
+        };
+        $freshSnapshotExists = static function ($snapshot) use ($freshCutoff): void {
+            $snapshot->selectRaw('1')
+                ->from('player_snapshots')
+                ->whereColumn('player_snapshots.roster_entry_id', 'alliance_roster_entries.id')
+                ->where('player_snapshots.captured_at', '>=', $freshCutoff);
+        };
+
+        if ($observation === 'missing') {
+            $query->whereNotExists($snapshotExists);
+        } elseif ($observation === 'stale') {
+            $query->whereExists($snapshotExists)->whereNotExists($freshSnapshotExists);
+        } elseif ($observation === 'current') {
+            $query->whereExists($freshSnapshotExists);
+        }
+
+        return $query
+            ->orderByRaw("case state when 'active' then 0 when 'tracked' then 1 else 2 end")
+            ->orderBy('observed_name')
+            ->get();
+    }
+
+    /** @return list<string> */
+    public function rolesForAlliance(Alliance $alliance): array
+    {
+        return array_values(AllianceRosterEntry::query()
+            ->where('alliance_id', $alliance->id)
+            ->whereNotNull('game_role')
+            ->where('game_role', '<>', '')
+            ->distinct()
+            ->orderBy('game_role')
+            ->pluck('game_role')
+            ->filter(static fn ($role): bool => is_string($role) && $role !== '')
+            ->all());
+    }
+}

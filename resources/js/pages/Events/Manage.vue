@@ -5,8 +5,9 @@ import { ref } from 'vue';
 import AppLayout from '../../layouts/AppLayout.vue';
 import { useLocale } from '../../localization';
 
-type EventSettingValue =
-  string | number | boolean | null | EventSettingValue[] | { [key: string]: EventSettingValue };
+type EventSettingScalar = string | number | boolean | null;
+type EventSettingLeaf = EventSettingScalar | EventSettingScalar[];
+type EventSettingValue = EventSettingLeaf | Record<string, EventSettingLeaf>;
 
 type EventTemplateForm = {
   scope: string;
@@ -861,8 +862,8 @@ function editPoll(occurrenceId: string, poll: Poll): void {
     .map((option) => `${option.label}|${option.value}`)
     .join('\n');
 }
-function parsedPollOptions(): Array<{ label: string; value: string }> {
-  return pollForm.options_text
+function parsedPollOptions(optionsText: string): Array<{ label: string; value: string }> {
+  return optionsText
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
@@ -874,8 +875,10 @@ function parsedPollOptions(): Array<{ label: string; value: string }> {
 }
 function savePoll(): void {
   pollForm.transform((data) => {
-    const { options_text: _optionsText, ...rest } = data;
-    return editingPollOptionsLocked.value ? rest : { ...rest, options: parsedPollOptions() };
+    const { options_text: optionsText, ...rest } = data;
+    return editingPollOptionsLocked.value
+      ? rest
+      : { ...rest, options: parsedPollOptions(optionsText) };
   });
   const options = { preserveScroll: true, onSuccess: resetPoll };
   if (editingPollId.value) {

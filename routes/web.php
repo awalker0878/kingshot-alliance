@@ -2,43 +2,44 @@
 
 declare(strict_types=1);
 
-use App\Domain\Alliances\Http\Controllers\AllianceOverviewController;
-use App\Domain\Alliances\Http\Controllers\CreateAllianceController;
-use App\Domain\Alliances\Http\Controllers\DashboardController;
-use App\Domain\Content\Http\Controllers\ContentManagementController;
-use App\Domain\Content\Http\Controllers\MemberContentController;
-use App\Domain\Content\Http\Controllers\PublicAllianceController;
-use App\Domain\Content\Http\Controllers\PublicBrandingMediaController;
-use App\Domain\Content\Http\Controllers\PublicContentController;
-use App\Domain\Events\Http\Controllers\EventBattlePlanController;
-use App\Domain\Events\Http\Controllers\EventCalendarController;
-use App\Domain\Events\Http\Controllers\EventManagementController;
-use App\Domain\Events\Http\Controllers\EventOperationsController;
-use App\Domain\Events\Http\Controllers\EventParticipationController;
-use App\Domain\Events\Http\Controllers\EventReminderController;
-use App\Domain\Events\Http\Controllers\EventResultController;
-use App\Domain\Events\Http\Controllers\EventRosterController;
-use App\Domain\Identity\Http\Controllers\AuthenticatedSessionController;
-use App\Domain\Identity\Http\Controllers\ConfirmPasswordController;
-use App\Domain\Identity\Http\Controllers\EmailVerificationNotificationController;
-use App\Domain\Identity\Http\Controllers\EmailVerificationPromptController;
-use App\Domain\Identity\Http\Controllers\ForgotPasswordController;
-use App\Domain\Identity\Http\Controllers\ProfileController;
-use App\Domain\Identity\Http\Controllers\RegistrationController;
-use App\Domain\Identity\Http\Controllers\ResetPasswordController;
-use App\Domain\Identity\Http\Controllers\TwoFactorChallengeController;
-use App\Domain\Identity\Http\Controllers\TwoFactorController;
-use App\Domain\Identity\Http\Controllers\VerifyEmailController;
-use App\Domain\Memberships\Http\Controllers\InvitationAcceptanceController;
-use App\Domain\Kingdoms\Http\Controllers\ActivatePlayerController;
-use App\Domain\Memberships\Http\Controllers\InvitationController;
-use App\Domain\Memberships\Http\Controllers\MembershipController;
-use App\Domain\Recruitment\Http\Controllers\PublicRecruitmentController;
-use App\Domain\Recruitment\Http\Controllers\RecruitmentCandidateController;
-use App\Domain\Recruitment\Http\Controllers\RecruitmentManagementController;
-use App\Domain\Rallies\Http\Controllers\EventRallyController;
-use App\Domain\Rallies\Http\Controllers\PlayerFormationController;
-use App\Domain\Rallies\Http\Controllers\RallyGuidanceController;
+use App\Contexts\Accounts\Http\Controllers\AuthenticatedSessionController;
+use App\Contexts\Accounts\Http\Controllers\ConfirmPasswordController;
+use App\Contexts\Accounts\Http\Controllers\EmailVerificationNotificationController;
+use App\Contexts\Accounts\Http\Controllers\EmailVerificationPromptController;
+use App\Contexts\Accounts\Http\Controllers\ForgotPasswordController;
+use App\Contexts\Accounts\Http\Controllers\ProfileController;
+use App\Contexts\Accounts\Http\Controllers\ResetPasswordController;
+use App\Contexts\Accounts\Http\Controllers\TwoFactorChallengeController;
+use App\Contexts\Accounts\Http\Controllers\TwoFactorController;
+use App\Contexts\Accounts\Http\Controllers\VerifyEmailController;
+use App\Contexts\Alliance\Content\Http\Controllers\ContentManagementController;
+use App\Contexts\Alliance\Content\Http\Controllers\MemberContentController;
+use App\Contexts\Alliance\Content\Http\Controllers\PublicAllianceController;
+use App\Contexts\Alliance\Content\Http\Controllers\PublicBrandingMediaController;
+use App\Contexts\Alliance\Content\Http\Controllers\PublicContentController;
+use App\Contexts\Alliance\Core\Http\Controllers\AllianceOverviewController;
+use App\Contexts\Alliance\Core\Http\Controllers\CreateAllianceController;
+use App\Contexts\Alliance\Core\Http\Controllers\DashboardController;
+use App\Contexts\Alliance\Membership\Http\Controllers\InvitationAcceptanceController;
+use App\Contexts\Alliance\Membership\Http\Controllers\InvitationController;
+use App\Contexts\Alliance\Membership\Http\Controllers\MembershipController;
+use App\Contexts\Alliance\Recruitment\Http\Controllers\PublicRecruitmentController;
+use App\Contexts\Alliance\Recruitment\Http\Controllers\RecruitmentCandidateController;
+use App\Contexts\Alliance\Recruitment\Http\Controllers\RecruitmentManagementController;
+use App\Contexts\Operations\BattlePlans\Http\Controllers\EventBattlePlanController;
+use App\Contexts\Operations\EventCore\Http\Controllers\EventManagementController;
+use App\Contexts\Operations\EventCore\Http\Controllers\EventOperationsController;
+use App\Contexts\Operations\Participation\Http\Controllers\EventParticipationController;
+use App\Contexts\Operations\Rallies\Http\Controllers\EventRallyController;
+use App\Contexts\Operations\Rallies\Http\Controllers\PlayerFormationController;
+use App\Contexts\Operations\Rallies\Http\Controllers\RallyGuidanceController;
+use App\Contexts\Operations\Reminders\Http\Controllers\EventReminderController;
+use App\Contexts\Operations\Results\Http\Controllers\EventResultController;
+use App\Contexts\Operations\Rosters\Http\Controllers\EventRosterController;
+use App\ReadModels\EventCalendar\Http\Controllers\EventCalendarController;
+use App\ReadModels\EventManagement\Http\Controllers\EventManagementPageController;
+use App\Workflows\PlayerContext\Http\Controllers\ActivatePlayerController;
+use App\Workflows\Registration\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -153,7 +154,7 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
         Route::get('/events/{occurrence}', [EventCalendarController::class, 'show'])
             ->whereUlid('occurrence')
             ->name('events.show');
-        Route::get('/events/{event}/manage', [EventManagementController::class, 'manage'])
+        Route::get('/events/{event}/manage', EventManagementPageController::class)
             ->whereUlid('event')
             ->name('events.management');
 

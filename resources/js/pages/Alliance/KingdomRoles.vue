@@ -143,7 +143,12 @@ function removeRole(assignment: Assignment): void {
           >
             <div>
               <p class="font-semibold">{{ assignment.player.name }}</p>
-              <p v-if="assignment.player.gamePlayerId" class="mt-1 text-sm text-[var(--ks-text-muted)]">{{ assignment.player.gamePlayerId }}</p>
+              <p
+                v-if="assignment.player.gamePlayerId"
+                class="mt-1 text-sm text-[var(--ks-text-muted)]"
+              >
+                {{ assignment.player.gamePlayerId }}
+              </p>
               <p class="mt-2 text-sm text-[var(--ks-gold)]">{{ assignment.role.name }}</p>
               <p v-if="assignment.assignedAt" class="mt-1 text-xs text-[var(--ks-text-muted)]">
                 {{ t('kingdomP7A.rolesAssignedAt', { date: formatDate(assignment.assignedAt) }) }}

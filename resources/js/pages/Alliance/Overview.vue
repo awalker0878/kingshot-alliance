@@ -73,7 +73,10 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate } = useLocale();
-const inviteForm = useForm({ player_id: props.invitationManagement.candidates[0]?.id ?? '', email: '' });
+const inviteForm = useForm({
+  player_id: props.invitationManagement.candidates[0]?.id ?? '',
+  email: '',
+});
 const statusSelections = reactive<Record<string, string>>(
   Object.fromEntries(
     props.membershipManagement.members.map((member) => [member.id, member.status]),
@@ -138,7 +141,12 @@ function removeRole(membershipId: string, roleId: string): void {
 }
 
 function transferLeadership(playerId: string, playerName: string): void {
-  if (!window.confirm(t('allianceOperations.overview.transferLeadershipConfirm', { player: playerName }))) return;
+  if (
+    !window.confirm(
+      t('allianceOperations.overview.transferLeadershipConfirm', { player: playerName }),
+    )
+  )
+    return;
 
   router.post('/alliance/leadership/transfer', { player_id: playerId }, { preserveScroll: true });
 }
@@ -236,7 +244,9 @@ function formatInZone(value: string, timeZone: string): string {
           </dt>
           <dd class="mt-2 font-semibold">
             {{
-              [membership.rank.toUpperCase(), ...membership.roles.map((role) => role.name)].join(' · ')
+              [membership.rank.toUpperCase(), ...membership.roles.map((role) => role.name)].join(
+                ' · ',
+              )
             }}
           </dd>
         </div>
@@ -268,11 +278,7 @@ function formatInZone(value: string, timeZone: string): string {
         <Link v-if="contentHub.canManage" class="ks-command-link" href="/alliance/content/manage">
           {{ t('navigation.content') }}
         </Link>
-        <Link
-          v-if="contentHub.canManageEvents"
-          class="ks-command-link"
-          href="/events/create"
-        >
+        <Link v-if="contentHub.canManageEvents" class="ks-command-link" href="/events/create">
           {{ t('allianceOperations.events.coordinate') }}
         </Link>
       </nav>
@@ -341,10 +347,7 @@ function formatInZone(value: string, timeZone: string): string {
             class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-bg)]/35 p-4"
           >
             <h3 class="font-semibold">
-              <Link
-                class="hover:text-[var(--ks-blue-strong)]"
-                :href="`/events/${activity.id}`"
-              >
+              <Link class="hover:text-[var(--ks-blue-strong)]" :href="`/events/${activity.id}`">
                 {{ activity.title }}
               </Link>
             </h3>
@@ -387,9 +390,15 @@ function formatInZone(value: string, timeZone: string): string {
 
       <form class="mt-6 flex flex-col gap-3 sm:flex-row" @submit.prevent="sendInvitation">
         <div class="flex-1">
-          <label class="sr-only" for="invite-player">{{ t('allianceOperations.overview.player') }}</label>
+          <label class="sr-only" for="invite-player">{{
+            t('allianceOperations.overview.player')
+          }}</label>
           <select id="invite-player" v-model="inviteForm.player_id" class="ks-input" required>
-            <option v-for="candidate in invitationManagement.candidates" :key="candidate.id" :value="candidate.id">
+            <option
+              v-for="candidate in invitationManagement.candidates"
+              :key="candidate.id"
+              :value="candidate.id"
+            >
               {{ candidate.name }}{{ candidate.gamePlayerId ? ` · ${candidate.gamePlayerId}` : '' }}
             </option>
           </select>
@@ -424,7 +433,9 @@ function formatInZone(value: string, timeZone: string): string {
         <table class="min-w-full text-start text-sm">
           <thead class="border-b border-[var(--ks-border)] text-[var(--ks-text-muted)]">
             <tr>
-              <th class="px-3 py-3 text-start font-medium">{{ t('allianceOperations.overview.player') }}</th>
+              <th class="px-3 py-3 text-start font-medium">
+                {{ t('allianceOperations.overview.player') }}
+              </th>
               <th class="px-3 py-3 text-start font-medium">{{ t('auth.login.email') }}</th>
               <th class="px-3 py-3 text-start font-medium">
                 {{ t('allianceOperations.overview.status') }}
@@ -441,7 +452,11 @@ function formatInZone(value: string, timeZone: string): string {
             <tr v-for="invitation in invitationManagement.invitations" :key="invitation.id">
               <td class="px-3 py-4">
                 <span class="font-semibold">{{ invitation.player.name }}</span>
-                <span v-if="invitation.player.gamePlayerId" class="mt-1 block text-xs text-[var(--ks-text-muted)]">{{ invitation.player.gamePlayerId }}</span>
+                <span
+                  v-if="invitation.player.gamePlayerId"
+                  class="mt-1 block text-xs text-[var(--ks-text-muted)]"
+                  >{{ invitation.player.gamePlayerId }}</span
+                >
               </td>
               <td class="px-3 py-4">{{ invitation.email }}</td>
               <td class="px-3 py-4 text-[var(--ks-text-secondary)]">
@@ -575,7 +590,11 @@ function formatInZone(value: string, timeZone: string): string {
           </div>
 
           <div
-            v-if="membershipManagement.leadershipTransferAllowed && member.player.id !== membershipManagement.currentPlayerId && member.status === 'active'"
+            v-if="
+              membershipManagement.leadershipTransferAllowed &&
+              member.player.id !== membershipManagement.currentPlayerId &&
+              member.status === 'active'
+            "
             class="mt-4"
           >
             <button

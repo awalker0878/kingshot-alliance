@@ -1,133 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  "events": {
-    "scope": {
-      "player": "Oyuncu",
-      "alliance": "İttifak",
-      "kingdom": "Krallık"
+  events: {
+    scope: {
+      player: 'Oyuncu',
+      alliance: 'İttifak',
+      kingdom: 'Krallık',
     },
-    "actions": {
-      "save": "Kaydet",
-      "cancel": "İptal"
+    actions: {
+      save: 'Kaydet',
+      cancel: 'İptal',
     },
-    "calendar": {
-      "title": "Etkinlikler",
-      "create": "Etkinlik oluştur",
-      "agenda": "Ajanda",
-      "month": "Takvim",
-      "all": "Tüm kapsamlar",
-      "manageable": "Yönet",
-      "empty": "Bu görünüme uyan etkinlik yok.",
-      "previousMonth": "Önceki ay",
-      "nextMonth": "Sonraki ay",
-      "scopeFilters": "Etkinlikleri kapsama göre filtrele",
-      "viewOptions": "Etkinlik görünümünü seç"
+    calendar: {
+      title: 'Etkinlikler',
+      create: 'Etkinlik oluştur',
+      agenda: 'Ajanda',
+      month: 'Takvim',
+      all: 'Tüm kapsamlar',
+      manageable: 'Yönet',
+      empty: 'Bu görünüme uyan etkinlik yok.',
+      previousMonth: 'Önceki ay',
+      nextMonth: 'Sonraki ay',
+      scopeFilters: 'Etkinlikleri kapsama göre filtrele',
+      viewOptions: 'Etkinlik görünümünü seç',
     },
-    "create": {
-      "title": "Etkinlik oluştur",
-      "back": "Etkinliklere dön",
-      "noContexts": "Şu anda etkinlik oluşturma izniniz yok.",
-      "context": "Etkinlik bağlamı",
-      "eventType": "Etkinlik türü",
-      "start": "Başlangıç zamanı",
-      "duration": "Süre (dakika)",
-      "capacity": "Kapasite",
-      "instructions": "Talimatlar",
-      "submit": "Etkinlik oluştur"
+    create: {
+      title: 'Etkinlik oluştur',
+      back: 'Etkinliklere dön',
+      noContexts: 'Şu anda etkinlik oluşturma izniniz yok.',
+      context: 'Etkinlik bağlamı',
+      eventType: 'Etkinlik türü',
+      start: 'Başlangıç zamanı',
+      duration: 'Süre (dakika)',
+      capacity: 'Kapasite',
+      instructions: 'Talimatlar',
+      submit: 'Etkinlik oluştur',
     },
-    "show": {
-      "back": "Etkinliklere dön",
-      "manage": "Etkinliği yönet",
-      "details": "Etkinlik ayrıntıları",
-      "status": "Durum",
-      "capacity": "Kapasite",
-      "recurrence": "Tekrarlama",
-      "modules": "Operasyon modülleri"
+    show: {
+      back: 'Etkinliklere dön',
+      manage: 'Etkinliği yönet',
+      details: 'Etkinlik ayrıntıları',
+      status: 'Durum',
+      capacity: 'Kapasite',
+      recurrence: 'Tekrarlama',
+      modules: 'Operasyon modülleri',
     },
-    "manage": {
-      "title": "Etkinliği yönet",
-      "back": "Etkinliklere dön",
-      "save": "Etkinliği kaydet",
-      "cancel": "Etkinliği iptal et"
+    manage: {
+      title: 'Etkinliği yönet',
+      back: 'Etkinliklere dön',
+      save: 'Etkinliği kaydet',
+      cancel: 'Etkinliği iptal et',
     },
-    "attention": {
-      "title": "Etkinlik işlemleri",
-      "response": "Yanıt gerekli",
-      "registration": "Kayıt açık",
-      "vote": "Oy gerekli",
-      "roster_confirmation": "Kadro onayı gerekli"
+    attention: {
+      title: 'Etkinlik işlemleri',
+      response: 'Yanıt gerekli',
+      registration: 'Kayıt açık',
+      vote: 'Oy gerekli',
+      roster_confirmation: 'Kadro onayı gerekli',
     },
-    "reminders": {
-      "title": "Son hatırlatmalar"
+    reminders: {
+      title: 'Son hatırlatmalar',
     },
-    "participation": {
-      "register": "Kaydol",
-      "cancelRegistration": "Kaydı iptal et"
+    participation: {
+      register: 'Kaydol',
+      cancelRegistration: 'Kaydı iptal et',
     },
-    "responses": {
-      "going": "Geliyorum",
-      "maybe": "Belki",
-      "unavailable": "Uygun değil"
+    responses: {
+      going: 'Geliyorum',
+      maybe: 'Belki',
+      unavailable: 'Uygun değil',
     },
-    "registration": {
-      "registered": "Kayıtlı",
-      "waitlisted": "Bekleme listesi",
-      "cancelled": "İptal edildi"
+    registration: {
+      registered: 'Kayıtlı',
+      waitlisted: 'Bekleme listesi',
+      cancelled: 'İptal edildi',
     },
-    "scheduleSources": {
-      "alliance_controlled": "İttifak kontrollü",
-      "game_calendar": "Oyun takvimi",
-      "matchmaking": "Eşleştirme",
-      "manual": "Manuel"
+    scheduleSources: {
+      alliance_controlled: 'İttifak kontrollü',
+      game_calendar: 'Oyun takvimi',
+      matchmaking: 'Eşleştirme',
+      manual: 'Manuel',
     },
-    "recurrencePolicies": {
-      "disabled": "Tekrarlama yok",
-      "fixed_interval": "Sabit aralık",
-      "configurable": "Yapılandırılabilir"
+    recurrencePolicies: {
+      disabled: 'Tekrarlama yok',
+      fixed_interval: 'Sabit aralık',
+      configurable: 'Yapılandırılabilir',
     },
-    "recurrenceFrequencies": {
-      "none": "Tekrarlama yok",
-      "daily": "Günlük",
-      "weekly": "Haftalık"
+    recurrenceFrequencies: {
+      none: 'Tekrarlama yok',
+      daily: 'Günlük',
+      weekly: 'Haftalık',
     },
-    "attendanceStatuses": {
-      "present": "Katıldı",
-      "absent": "Katılmadı",
-      "excused": "Mazeretli",
-      "unknown": "Bilinmiyor"
+    attendanceStatuses: {
+      present: 'Katıldı',
+      absent: 'Katılmadı',
+      excused: 'Mazeretli',
+      unknown: 'Bilinmiyor',
     },
-    "eventStatuses": {
-      "draft": "Taslak",
-      "published": "Yayınlandı",
-      "cancelled": "İptal edildi",
-      "completed": "Tamamlandı"
+    eventStatuses: {
+      draft: 'Taslak',
+      published: 'Yayınlandı',
+      cancelled: 'İptal edildi',
+      completed: 'Tamamlandı',
     },
-    "capabilities": {
-      "responses": "Yanıtlar",
-      "registration": "Kayıt",
-      "waitlist": "Bekleme listesi",
-      "attendance": "Katılım",
-      "phases": "Aşamalar",
-      "polls": "Anketler",
-      "rosters": "Kadrolar",
-      "substitutes": "Yedekler",
-      "teams": "Takımlar",
-      "legions": "Lejyonlar",
-      "rally_guidance": "Ralli rehberi",
-      "formations": "Dizilimler",
-      "objectives": "Hedefler",
-      "scoring": "Puanlama",
-      "results": "Sonuçlar"
+    capabilities: {
+      responses: 'Yanıtlar',
+      registration: 'Kayıt',
+      waitlist: 'Bekleme listesi',
+      attendance: 'Katılım',
+      phases: 'Aşamalar',
+      polls: 'Anketler',
+      rosters: 'Kadrolar',
+      substitutes: 'Yedekler',
+      teams: 'Takımlar',
+      legions: 'Lejyonlar',
+      rally_guidance: 'Ralli rehberi',
+      formations: 'Dizilimler',
+      objectives: 'Hedefler',
+      scoring: 'Puanlama',
+      results: 'Sonuçlar',
     },
-    "reminderAudiences": {
-      "target": "Etkinlik hedefi",
-      "responded": "Yanıt veren oyuncular",
-      "registered": "Kayıtlı oyuncular",
-      "rostered": "Kadroya alınan oyuncular",
-      "all_scope_players": "Tüm uygun oyuncular"
-    }
-  }
+    reminderAudiences: {
+      target: 'Etkinlik hedefi',
+      responded: 'Yanıt veren oyuncular',
+      registered: 'Kayıtlı oyuncular',
+      rostered: 'Kadroya alınan oyuncular',
+      all_scope_players: 'Tüm uygun oyuncular',
+    },
+  },
 } satisfies MessageCatalogue;
 
 export default messages;

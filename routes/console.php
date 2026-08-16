@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-use App\Domain\Content\Actions\PublishScheduledContent;
-use App\Domain\Authorization\Actions\BootstrapKingdomAdministrator;
-use App\Domain\Identity\Models\User;
-use App\Domain\Integrations\Actions\QueueDueWebhookDeliveries;
-use App\Domain\Kingdoms\Actions\EnforceKingdomIngestionRetention;
-use App\Domain\Kingdoms\Actions\EnforceKingdomIntelligenceSharingRetention;
-use App\Domain\Kingdoms\Actions\QueueDueKingdomIngestionSubscriptions;
-use App\Domain\Kingdoms\Actions\ReconcileKingdomIngestionSources;
-use App\Domain\Kingdoms\Models\Kingdom;
-use App\Domain\Kingdoms\Models\Player;
-use App\Domain\Kingdoms\Services\KingdomIngestionOperationalHealth;
-use App\Domain\Notifications\Actions\QueueDueContributionReports;
-use App\Domain\Notifications\Actions\QueueDueEventReminders;
-use App\Domain\Platform\Actions\EnforcePlatformRetention;
-use App\Domain\Platform\Actions\ManagePlatformAdministrator;
-use App\Domain\Platform\Actions\ProcessAccountDeletionRequests;
-use App\Domain\Platform\Actions\PublishOutboxBatch;
-use App\Domain\Platform\Services\PlatformUsageService;
-use App\Domain\Platform\Services\ProductionLaunchReadiness;
-use App\Domain\Platform\Services\RuntimeConfigurationValidator;
-use App\Domain\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
+use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Content\Actions\PublishScheduledContent;
+use App\Contexts\Alliance\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
+use App\Contexts\Communications\Reminders\Actions\QueueDueEventReminders;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Intelligence\Contributions\Actions\QueueDueContributionReports;
+use App\Contexts\Intelligence\Ingestion\Actions\EnforceKingdomIngestionRetention;
+use App\Contexts\Intelligence\Ingestion\Actions\QueueDueKingdomIngestionSubscriptions;
+use App\Contexts\Intelligence\Ingestion\Actions\ReconcileKingdomIngestionSources;
+use App\Contexts\Intelligence\Ingestion\Services\KingdomIngestionOperationalHealth;
+use App\Contexts\Intelligence\Sharing\Actions\EnforceKingdomIntelligenceSharingRetention;
+use App\Contexts\Platform\Actions\EnforcePlatformRetention;
+use App\Contexts\Platform\Actions\ManagePlatformAdministrator;
+use App\Contexts\Platform\Actions\ProcessAccountDeletionRequests;
+use App\Contexts\Platform\Integrations\Actions\QueueDueWebhookDeliveries;
+use App\Contexts\Platform\Services\PlatformUsageService;
+use App\Contexts\Platform\Services\ProductionLaunchReadiness;
+use App\Contexts\Platform\Services\RuntimeConfigurationValidator;
+use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
+use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Str;
@@ -51,7 +51,7 @@ Artisan::command('app:launch-check {--json}', function (ProductionLaunchReadines
 
     if ((bool) $this->option('json')) {
         $this->line(json_encode([
-            'passed' => ! collect($checks)->contains(static fn (array $check): bool => ! $check['passed']),
+            'passed' => collect($checks)->every(static fn (array $check): bool => $check['passed']),
             'checks' => $checks,
         ], JSON_THROW_ON_ERROR));
     } else {
@@ -115,7 +115,14 @@ Artisan::command('integrations:queue-webhooks {--limit=100}', function (QueueDue
 })->purpose('Recover and queue due webhook deliveries');
 
 Artisan::command('kingdoms:bootstrap-admin {kingdom} {player}', function (BootstrapKingdomAdministrator $bootstrap): int {
-    $kingdomArgument = trim((string) $this->argument('kingdom'));
+    $kingdomInput = $this->argument('kingdom');
+    if (! is_string($kingdomInput)) {
+        $this->error('Kingdom must be an existing positive numeric Kingdom number.');
+
+        return 1;
+    }
+
+    $kingdomArgument = trim($kingdomInput);
     if ($kingdomArgument === '' || ! ctype_digit($kingdomArgument)) {
         $this->error('Kingdom must be an existing positive numeric Kingdom number.');
 
@@ -129,7 +136,14 @@ Artisan::command('kingdoms:bootstrap-admin {kingdom} {player}', function (Bootst
         return 1;
     }
 
-    $player = Player::query()->find(trim((string) $this->argument('player')));
+    $playerInput = $this->argument('player');
+    if (! is_string($playerInput)) {
+        $this->error('No Player exists with that ID.');
+
+        return 1;
+    }
+
+    $player = Player::query()->find(trim($playerInput));
     if (! $player instanceof Player) {
         $this->error('No Player exists with that ID.');
 

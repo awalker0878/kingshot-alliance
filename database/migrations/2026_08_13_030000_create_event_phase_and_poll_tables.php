@@ -90,20 +90,19 @@ return new class extends Migration
 
         $driver = DB::connection()->getDriverName();
         if (in_array($driver, ['pgsql', 'sqlite'], true)) {
-            DB::statement("CREATE UNIQUE INDEX event_reminder_rules_event_definition_unique ON event_reminder_rules (event_id, trigger_type, minutes_before, audience, channel) WHERE poll_id IS NULL");
-            DB::statement("CREATE UNIQUE INDEX event_reminder_rules_poll_definition_unique ON event_reminder_rules (poll_id, trigger_type, minutes_before, audience, channel) WHERE poll_id IS NOT NULL");
+            DB::statement('CREATE UNIQUE INDEX event_reminder_rules_event_definition_unique ON event_reminder_rules (event_id, trigger_type, minutes_before, audience, channel) WHERE poll_id IS NULL');
+            DB::statement('CREATE UNIQUE INDEX event_reminder_rules_poll_definition_unique ON event_reminder_rules (poll_id, trigger_type, minutes_before, audience, channel) WHERE poll_id IS NOT NULL');
         }
 
         $this->createContentGuards();
         $this->createReminderTriggerGuard();
     }
 
-
     private function createContentGuards(): void
     {
         $driver = DB::connection()->getDriverName();
-        $phaseExpression = "((name_key IS NOT NULL AND length(trim(name_key)) > 0) OR (name IS NOT NULL AND length(trim(name)) > 0))";
-        $pollExpression = "((question_key IS NOT NULL AND length(trim(question_key)) > 0) OR (question IS NOT NULL AND length(trim(question)) > 0))";
+        $phaseExpression = '((name_key IS NOT NULL AND length(trim(name_key)) > 0) OR (name IS NOT NULL AND length(trim(name)) > 0))';
+        $pollExpression = '((question_key IS NOT NULL AND length(trim(question_key)) > 0) OR (question IS NOT NULL AND length(trim(question)) > 0))';
 
         if ($driver === 'pgsql') {
             DB::statement("ALTER TABLE event_phases ADD CONSTRAINT event_phases_name_check CHECK ({$phaseExpression})");

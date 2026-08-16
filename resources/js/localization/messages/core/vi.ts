@@ -13,8 +13,9 @@ const messages = {
     loading: 'Đang tải',
     openNavigation: 'Mở điều hướng',
     closeNavigation: 'Đóng điều hướng',
-    playerAlliance: "Liên minh của người chơi đang hoạt động",
-    noPlayerAlliance: "Người chơi đang hoạt động không có tư cách thành viên liên minh đang hiệu lực.",
+    playerAlliance: 'Liên minh của người chơi đang hoạt động',
+    noPlayerAlliance:
+      'Người chơi đang hoạt động không có tư cách thành viên liên minh đang hiệu lực.',
     skipToContent: 'Chuyển đến nội dung',
   },
   navigation: {
@@ -41,16 +42,20 @@ const messages = {
       eyebrow: 'Bộ chỉ huy liên minh',
       welcome: 'Chào mừng, {name}',
       verificationPending: 'Đang chờ xác minh email',
-      playerContextTitle: "Người chơi đang hoạt động",
-      playerContextIntro: "Đổi người chơi sẽ đổi danh tính trong game dùng cho quyền hạn liên minh và vương quốc.",
-      playerKingdom: "Vương quốc #{kingdom}",
-      playerAuthorityIntro: "Tư cách thành viên, cấp bậc, vai trò, quyền vương quốc và hành động trong game chỉ được xác định từ người chơi này.",
-      selectPlayer: "Chọn một người chơi để dùng công cụ trong game.",
-      playerAllianceTitle: "Liên minh của người chơi đang hoạt động",
-      playerAllianceIntro: "Công cụ liên minh chỉ dùng tư cách thành viên, cấp bậc và vai trò của người chơi đang hoạt động.",
-      noPlayerAllianceTitle: "Người chơi này không ở trong liên minh",
-      noPlayerAllianceIntro: "Hãy đổi người chơi hoặc tạo/tham gia liên minh bằng người chơi đang hoạt động trước khi mở công cụ liên minh.",
-      openPlayerAlliance: "Mở liên minh của người chơi",
+      playerContextTitle: 'Người chơi đang hoạt động',
+      playerContextIntro:
+        'Đổi người chơi sẽ đổi danh tính trong game dùng cho quyền hạn liên minh và vương quốc.',
+      playerKingdom: 'Vương quốc #{kingdom}',
+      playerAuthorityIntro:
+        'Tư cách thành viên, cấp bậc, vai trò, quyền vương quốc và hành động trong game chỉ được xác định từ người chơi này.',
+      selectPlayer: 'Chọn một người chơi để dùng công cụ trong game.',
+      playerAllianceTitle: 'Liên minh của người chơi đang hoạt động',
+      playerAllianceIntro:
+        'Công cụ liên minh chỉ dùng tư cách thành viên, cấp bậc và vai trò của người chơi đang hoạt động.',
+      noPlayerAllianceTitle: 'Người chơi này không ở trong liên minh',
+      noPlayerAllianceIntro:
+        'Hãy đổi người chơi hoặc tạo/tham gia liên minh bằng người chơi đang hoạt động trước khi mở công cụ liên minh.',
+      openPlayerAlliance: 'Mở liên minh của người chơi',
       active: 'Hoạt động',
       roles: 'Vai trò',
       roster: 'Danh sách',
@@ -58,7 +63,8 @@ const messages = {
       transfers: 'Chuyển giao',
       kingdomSettings: 'Cài đặt vương quốc',
       createTitle: 'Tạo liên minh',
-      createIntro: "Tạo liên minh cho người chơi đang hoạt động. Vương quốc của liên minh được xác định từ người chơi đó, người này trở thành R5 đầu tiên.",
+      createIntro:
+        'Tạo liên minh cho người chơi đang hoạt động. Vương quốc của liên minh được xác định từ người chơi đó, người này trở thành R5 đầu tiên.',
       allianceName: 'Tên liên minh',
       timezone: 'Múi giờ',
       create: 'Tạo liên minh',

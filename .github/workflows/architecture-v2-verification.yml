@@ -1,0 +1,220 @@
+name: Architecture V2 Verification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'bootstrap/**'
+      - 'config/**'
+      - 'database/**'
+      - 'docs/**'
+      - 'routes/**'
+      - 'resources/js/**'
+      - 'scripts/**'
+      - 'tests/v2/**'
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - 'phpunit.xml'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'composer.json'
+      - 'composer.lock'
+      - '.github/workflows/architecture-v2-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: architecture-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  architecture-contract:
+    name: Final V2 application contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Verify final V2 hard cut
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -d app/Domain
+          test ! -d app/Shared/Audit
+          test ! -d app/Shared/Messaging
+          test ! -d tests/Feature
+          test ! -d tests/Architecture
+          test ! -d tests/Integration
+          test ! -d tests/Performance
+          test ! -d tests/TenantIsolation
+          test ! -d tests/Unit
+          test ! -d tests/RewriteInput
+          test -d tests/v2/Architecture
+          test -d tests/v2/Contexts
+          test -d tests/v2/ReadModels
+          test -d tests/v2/Shared
+          test -d tests/v2/Support
+          test -d tests/v2/Visual
+          test -d tests/v2/Workflows
+          test -d app/Contexts/Alliance/Policies
+          test -d app/Contexts/Operations/Access
+          test -d app/Contexts/Intelligence/Access
+          test -d app/Contexts/Communications/Reminders
+          test -d app/Contexts/Platform/Integrations
+          test -d app/Shared/Infrastructure/AuditTrail
+          test -d app/Shared/Infrastructure/Messaging/Outbox
+          test -d app/Workflows/KingdomTransfer
+          test -d app/Workflows/PlayerContext
+          test -d app/ReadModels/KingdomSettings
+          test ! -e .github/scripts/arch_v2_clean_room_tests.py
+          test ! -e .github/scripts/arch_v2_clean_room_test_fixups.py
+          test ! -e .github/workflows/architecture-v2-clean-room-tests.yml
+
+          runtime_matches=$(grep -R -n --include='*.php' 'App\\Domain\\' app routes bootstrap config database tests/v2 2>/dev/null || true)
+          test -z "$runtime_matches" || { echo "$runtime_matches"; exit 1; }
+
+          old_shared_matches=$(grep -R -n -E --include='*.php' 'App\\Shared\\(Audit|Messaging)\\' app routes bootstrap config database tests/v2 2>/dev/null || true)
+          test -z "$old_shared_matches" || { echo "$old_shared_matches"; exit 1; }
+
+          compatibility_paths=$(find app -type d \( -iname 'legacy' -o -iname 'compat' -o -iname 'compatibility' -o -iname 'shim' -o -iname 'legacy*' -o -iname 'compat*' -o -iname 'shim*' \) -print)
+          test -z "$compatibility_paths" || { echo "$compatibility_paths"; exit 1; }
+
+          alias_matches=$(grep -R -n --include='*.php' 'class_alias(' app routes bootstrap config database 2>/dev/null || true)
+          test -z "$alias_matches" || { echo "$alias_matches"; exit 1; }
+
+          bad=$(find tests/v2 -type f -name '*Test.php' ! -name '*V2Test.php' ! -path 'tests/v2/TestCase.php' ! -path 'tests/v2/Support/*' -print)
+          test -z "$bad" || { echo "$bad"; exit 1; }
+
+          grep -q '<directory>tests/v2</directory>' phpunit.xml
+          ! grep -q 'tests/Feature' phpunit.xml
+          grep -q "testDir: './tests/v2/Visual'" playwright.config.ts
+
+      - name: Verify Player persistence ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -R -n --include='*.php' 'PersistPlayerIdentity' app/Contexts/Intelligence/Roster app/Workflows/KingdomTransfer >/dev/null
+          grep -R -n --include='*.php' 'ClaimPlayerAccount' app/Contexts/Alliance/Membership >/dev/null
+          if grep -R -n --include='*.php' 'Player::query()->create(' app/Contexts/Intelligence app/Workflows/KingdomTransfer; then
+            exit 1
+          fi
+
+      - name: Verify Kingdom Transfer authorization ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f app/Workflows/KingdomTransfer/Access/Enums/TransferPermission.php
+          test -f app/Workflows/KingdomTransfer/Access/Services/TransferAuthorization.php
+          test -f app/Workflows/KingdomTransfer/Access/Services/TransferMutationAuthority.php
+          grep -R -n --include='*.php' 'TransferPermission::Manage' app/Workflows/KingdomTransfer >/dev/null
+          if grep -R -n --include='*.php' 'App\\Contexts\\Intelligence\\Access\\' app/Workflows/KingdomTransfer; then
+            exit 1
+          fi
+          if grep -R -n --include='*.php' 'IntelligencePermission::KingdomManage' app/Workflows/KingdomTransfer; then
+            exit 1
+          fi
+
+      - name: Verify downstream contexts own Alliance authorization interpretation
+        shell: bash
+        run: |
+          set -euo pipefail
+          matches=$(grep -R -n --include='*.php' -E 'App\\Contexts\\Alliance\\Access\\Services\\Alliance(Authorization|MutationAuthority)' app/Contexts/Operations app/Contexts/Intelligence 2>/dev/null | grep -v '/Access/Services/' || true)
+          test -z "$matches" || { echo "$matches"; exit 1; }
+
+      - name: Create test environment file
+        run: touch .env
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Verify PostgreSQL 18 fresh schema
+        run: php artisan migrate:fresh --force
+
+      - name: Verify PHP formatting
+        run: >-
+          vendor/bin/pint --test
+          tests/v2
+          app/Contexts
+          app/Shared
+          app/Workflows
+          app/ReadModels
+          bootstrap/app.php
+          bootstrap/providers.php
+          routes
+
+      - name: Run strict clean-room V2 PHPUnit suite
+        run: >-
+          php artisan test tests/v2
+          --display-warnings
+          --display-deprecations
+          --display-phpunit-deprecations
+          --fail-on-warning
+          --fail-on-risky
+
+      - name: Larastan all final V2 owners
+        run: >-
+          vendor/bin/phpstan analyse --memory-limit=1536M
+          app/Contexts
+          app/Shared
+          app/Workflows
+          app/ReadModels
+          bootstrap/app.php
+          bootstrap/providers.php
+          routes
+
+      - name: Configure Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify frontend source
+        run: npm run check
+
+      - name: Verify V2 visual test discovery
+        run: npx playwright test --list

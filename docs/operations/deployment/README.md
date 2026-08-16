@@ -1,41 +1,24 @@
-# Provider deployment documentation
+# Deployment
 
-[← Shared operations](../README.md)
+Status: Current
 
-**Document type:** Current provider deployment index  
-**Status:** Current
+Deploy immutable images built from the exact release commit. The repository `Dockerfile`, `bin/deploy`, hosted configuration validator and launch-check logic are the executable sources of truth.
 
-This section owns provider-specific infrastructure blueprints for hosting Kingshot Alliance. It complements the generic release, rollback, backup/restore, incident-response, configuration, observability, and background-processing guidance already owned by `docs/operations/`.
+## Deployment sequence
 
-## Providers
+1. select the exact release commit;
+2. complete protected quality/security checks;
+3. build the immutable production image with version/revision metadata;
+4. record the image digest;
+5. validate hosted configuration without exposing secrets;
+6. back up a populated database before schema-changing release work;
+7. run migrations through the controlled release path;
+8. deploy web/worker runtime using the immutable image;
+9. run readiness and smoke checks;
+10. verify background processing/outbox health;
+11. capture release evidence;
+12. apply [Production approval](../../governance/production-approval.md) before declaring a real production cutover approved.
 
-- [Azure](azure/README.md) — complete Azure Container Apps deployment using one immutable application image, multi-container web replicas, private PostgreSQL, private Azure Managed Redis, Key Vault, managed identities, Azure Container Registry, Log Analytics/Application Insights, and GitHub Actions OIDC.
+For the hosted target, see [Azure/container deployment](azure.md).
 
-## Ownership boundary
-
-Provider deployment documentation owns:
-
-- provider resource provisioning and naming;
-- provider networking, DNS, private endpoints, ingress, TLS termination, and managed identities;
-- provider database/cache/registry/secret-manager creation;
-- provider-specific application and job deployment definitions;
-- CI/CD federation into the provider; and
-- provider-specific validation and recovery exercises.
-
-The existing shared operations documents remain authoritative for provider-neutral operational behavior:
-
-- [Runtime configuration](../configuration-reference.md)
-- [Background processing](../background-processing.md)
-- [Observability](../observability.md)
-- [Deployment runbook](../runbooks/deployment.md)
-- [Rollback runbook](../runbooks/rollback.md)
-- [Backup and restore](../runbooks/backup-restore.md)
-- [Incident response](../runbooks/incident-response.md)
-
-## Secret-handling rule
-
-Repository deployment documentation must contain placeholders only. Never commit real subscription/tenant/client IDs, credentials, Laravel `APP_KEY` values, database or Redis passwords, Key Vault secret values, private endpoint addresses, certificates, or sensitive production identifiers. Commands that create or retrieve secrets must keep the value in process memory only long enough to place it in the approved secret manager.
-
-## Related architecture
-
-Provider deployment must remain consistent with accepted architecture decisions. Azure deployments are governed by [ADR 0009 — Azure Container Apps runtime topology](../../adr/0009-azure-container-apps-runtime-topology.md).
+Rollback and restore are different operations. Roll back application release when the prior code/schema remains compatible; use database restore only when the recovery decision explicitly requires destructive data restoration.

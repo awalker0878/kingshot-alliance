@@ -3,21 +3,16 @@ name: King Perks Verification
 on:
   pull_request:
     paths:
-      - 'app/Domain/KingPerks/**'
-      - 'app/Domain/Events/Models/Event.php'
-      - 'app/Domain/Events/Models/EventOccurrence.php'
-      - 'app/Domain/Notifications/Actions/*KingPerk*'
-      - 'app/Domain/Notifications/Models/EventReminderDelivery.php'
-      - 'app/Domain/Notifications/Models/KingPerkReminderDelivery.php'
-      - 'app/Domain/Notifications/Queries/EventReminderInboxQuery.php'
-      - 'app/Domain/Platform/Providers/AppServiceProvider.php'
+      - 'app/Contexts/Operations/KingPerks/**'
+      - 'app/Contexts/Operations/EventCore/**'
+      - 'app/Contexts/Operations/Reminders/**'
       - 'bootstrap/app.php'
+      - 'config/operations.php'
       - 'database/migrations/*king_perk*'
-      - 'docs/domains/king-perks/**'
       - 'resources/js/pages/KingPerks/**'
       - 'routes/king-perks.php'
-      - 'tests/Feature/KingPerks/**'
-      - 'tests/Unit/KingPerks/**'
+      - 'tests/Feature/Operations/KingPerks/**'
+      - 'tests/Unit/Operations/KingPerks/**'
       - 'tsconfig.king-perks.json'
       - 'vite.king-perks.config.ts'
       - '.github/workflows/king-perks-verification.yml'
@@ -64,10 +59,22 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Verify King Perks V1 hard cut
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -d app/Domain/KingPerks
+          test ! -d tests/Feature/KingPerks
+          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\KingPerks\\' app routes bootstrap config database tests/Feature/Operations/KingPerks 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "$matches"
+            exit 1
+          fi
 
       - name: Configure PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
           php-version: '8.5'
           extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
@@ -80,39 +87,34 @@ jobs:
       - name: PostgreSQL schema and migration
         run: php artisan migrate --force
 
-      - name: Pint King Perks files
+      - name: Pint King Perks V2 contracts
         run: >-
           vendor/bin/pint --test
-          app/Domain/KingPerks
-          app/Domain/Events/Models/Event.php
-          app/Domain/Events/Models/EventOccurrence.php
-          app/Domain/Notifications/Actions/MarkKingPerkReminderSent.php
-          app/Domain/Notifications/Actions/QueueDueKingPerkReminders.php
-          app/Domain/Notifications/Models/EventReminderDelivery.php
-          app/Domain/Notifications/Models/KingPerkReminderDelivery.php
-          app/Domain/Notifications/Queries/EventReminderInboxQuery.php
-          app/Domain/Platform/Providers/AppServiceProvider.php
+          app/Contexts/Operations/KingPerks
+          app/Contexts/Operations/EventCore
+          app/Contexts/Operations/Reminders
           bootstrap/app.php
+          config/operations.php
           database/migrations/2026_08_15_083000_create_king_perk_tables.php
           routes/king-perks.php
-          tests/Feature/KingPerks
-          tests/Unit/KingPerks
+          tests/Feature/Operations/KingPerks
+          tests/Unit/Operations/KingPerks
 
-      - name: Larastan King Perks domain
+      - name: Larastan King Perks capability
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1G
-          app/Domain/KingPerks
-          app/Domain/Events/Models/Event.php
-          app/Domain/Events/Models/EventOccurrence.php
-          app/Domain/Notifications/Actions/MarkKingPerkReminderSent.php
-          app/Domain/Notifications/Actions/QueueDueKingPerkReminders.php
-          app/Domain/Notifications/Models/EventReminderDelivery.php
-          app/Domain/Notifications/Models/KingPerkReminderDelivery.php
-          app/Domain/Notifications/Queries/EventReminderInboxQuery.php
-          app/Domain/Platform/Providers/AppServiceProvider.php
+          app/Contexts/Operations/KingPerks
+          app/Contexts/Operations/EventCore
+          app/Contexts/Operations/Reminders
+          bootstrap/app.php
+          config/operations.php
+          routes/king-perks.php
 
-      - name: King Perks backend tests
-        run: php artisan test tests/Feature/KingPerks tests/Unit/KingPerks
+      - name: King Perks V2 backend tests
+        run: >-
+          php artisan test
+          tests/Feature/Operations/KingPerks
+          tests/Unit/Operations/KingPerks
 
   frontend:
     name: King Perks frontend contracts
@@ -121,10 +123,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Configure Node.js
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'
           cache: npm

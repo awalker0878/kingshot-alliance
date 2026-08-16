@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Domain\Contributions\Http\Controllers\ContributionController;
-use App\Domain\Contributions\Http\Controllers\ContributionHistoryController;
+use App\Contexts\Intelligence\Contributions\Http\Controllers\ContributionController;
+use App\Contexts\Intelligence\Contributions\Http\Controllers\ContributionHistoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void {

@@ -775,8 +775,7 @@ const labelClass =
                 type="text"
               />
             </div>
-            </template
-          >
+          </template>
           <div class="md:col-span-2">
             <label :class="labelClass" for="participant-notes">{{
               t('kingdomP7D.participantNotes')
@@ -910,7 +909,11 @@ const labelClass =
                     {{ participant.player.name }}
                   </p>
                   <p class="mt-1 text-xs text-[var(--ks-text-muted)]">
-                    {{ participant.rosterEntryId ? t('kingdomP7D.rosterEntry') : t('kingdomP7D.player') }}
+                    {{
+                      participant.rosterEntryId
+                        ? t('kingdomP7D.rosterEntry')
+                        : t('kingdomP7D.player')
+                    }}
                   </p>
                 </td>
                 <td class="px-3 py-4">

@@ -22,7 +22,7 @@ type MembershipSummary = {
   canManageAlliance: boolean;
 };
 
-const props = defineProps<{
+defineProps<{
   user: {
     id: number;
     name: string;
@@ -30,7 +30,12 @@ const props = defineProps<{
     emailVerified: boolean;
     timezone: string;
   };
-  activePlayer: { id: string; name: string; gamePlayerId: string | null; kingdomNumber: number | null } | null;
+  activePlayer: {
+    id: string;
+    name: string;
+    gamePlayerId: string | null;
+    kingdomNumber: number | null;
+  } | null;
   membership: MembershipSummary | null;
   canCreateAlliance: boolean;
 }>();
@@ -216,7 +221,11 @@ function rolesFor(membership: MembershipSummary): string {
         </p>
       </section>
 
-      <section v-if="canCreateAlliance" class="ks-surface-gold p-6 sm:p-7" aria-labelledby="create-alliance-heading">
+      <section
+        v-if="canCreateAlliance"
+        class="ks-surface-gold p-6 sm:p-7"
+        aria-labelledby="create-alliance-heading"
+      >
         <h2 id="create-alliance-heading" class="ks-display text-2xl font-semibold">
           {{ t('application.dashboard.createTitle') }}
         </h2>

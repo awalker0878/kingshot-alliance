@@ -1,133 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  "events": {
-    "scope": {
-      "player": "玩家",
-      "alliance": "聯盟",
-      "kingdom": "王國"
+  events: {
+    scope: {
+      player: '玩家',
+      alliance: '聯盟',
+      kingdom: '王國',
     },
-    "actions": {
-      "save": "儲存",
-      "cancel": "取消"
+    actions: {
+      save: '儲存',
+      cancel: '取消',
     },
-    "calendar": {
-      "title": "活動",
-      "create": "建立活動",
-      "agenda": "議程",
-      "month": "日曆",
-      "all": "全部範圍",
-      "manageable": "管理",
-      "empty": "沒有符合目前檢視的活動。",
-      "previousMonth": "上個月",
-      "nextMonth": "下個月",
-      "scopeFilters": "依範圍篩選活動",
-      "viewOptions": "選擇活動檢視"
+    calendar: {
+      title: '活動',
+      create: '建立活動',
+      agenda: '議程',
+      month: '日曆',
+      all: '全部範圍',
+      manageable: '管理',
+      empty: '沒有符合目前檢視的活動。',
+      previousMonth: '上個月',
+      nextMonth: '下個月',
+      scopeFilters: '依範圍篩選活動',
+      viewOptions: '選擇活動檢視',
     },
-    "create": {
-      "title": "建立活動",
-      "back": "返回活動",
-      "noContexts": "你目前沒有建立活動的權限。",
-      "context": "活動範圍",
-      "eventType": "活動類型",
-      "start": "開始時間",
-      "duration": "時長（分鐘）",
-      "capacity": "容量",
-      "instructions": "說明",
-      "submit": "建立活動"
+    create: {
+      title: '建立活動',
+      back: '返回活動',
+      noContexts: '你目前沒有建立活動的權限。',
+      context: '活動範圍',
+      eventType: '活動類型',
+      start: '開始時間',
+      duration: '時長（分鐘）',
+      capacity: '容量',
+      instructions: '說明',
+      submit: '建立活動',
     },
-    "show": {
-      "back": "返回活動",
-      "manage": "管理活動",
-      "details": "活動詳情",
-      "status": "狀態",
-      "capacity": "容量",
-      "recurrence": "重複",
-      "modules": "營運模組"
+    show: {
+      back: '返回活動',
+      manage: '管理活動',
+      details: '活動詳情',
+      status: '狀態',
+      capacity: '容量',
+      recurrence: '重複',
+      modules: '營運模組',
     },
-    "manage": {
-      "title": "管理活動",
-      "back": "返回活動",
-      "save": "儲存活動",
-      "cancel": "取消活動"
+    manage: {
+      title: '管理活動',
+      back: '返回活動',
+      save: '儲存活動',
+      cancel: '取消活動',
     },
-    "attention": {
-      "title": "活動操作",
-      "response": "需要回應",
-      "registration": "可報名",
-      "vote": "需要投票",
-      "roster_confirmation": "需要確認名單"
+    attention: {
+      title: '活動操作',
+      response: '需要回應',
+      registration: '可報名',
+      vote: '需要投票',
+      roster_confirmation: '需要確認名單',
     },
-    "reminders": {
-      "title": "最近提醒"
+    reminders: {
+      title: '最近提醒',
     },
-    "participation": {
-      "register": "報名",
-      "cancelRegistration": "取消報名"
+    participation: {
+      register: '報名',
+      cancelRegistration: '取消報名',
     },
-    "responses": {
-      "going": "參加",
-      "maybe": "可能",
-      "unavailable": "無法參加"
+    responses: {
+      going: '參加',
+      maybe: '可能',
+      unavailable: '無法參加',
     },
-    "registration": {
-      "registered": "已報名",
-      "waitlisted": "候補名單",
-      "cancelled": "已取消"
+    registration: {
+      registered: '已報名',
+      waitlisted: '候補名單',
+      cancelled: '已取消',
     },
-    "scheduleSources": {
-      "alliance_controlled": "聯盟控制",
-      "game_calendar": "遊戲日曆",
-      "matchmaking": "配對",
-      "manual": "手動"
+    scheduleSources: {
+      alliance_controlled: '聯盟控制',
+      game_calendar: '遊戲日曆',
+      matchmaking: '配對',
+      manual: '手動',
     },
-    "recurrencePolicies": {
-      "disabled": "不重複",
-      "fixed_interval": "固定間隔",
-      "configurable": "可設定"
+    recurrencePolicies: {
+      disabled: '不重複',
+      fixed_interval: '固定間隔',
+      configurable: '可設定',
     },
-    "recurrenceFrequencies": {
-      "none": "不重複",
-      "daily": "每天",
-      "weekly": "每週"
+    recurrenceFrequencies: {
+      none: '不重複',
+      daily: '每天',
+      weekly: '每週',
     },
-    "attendanceStatuses": {
-      "present": "出席",
-      "absent": "缺席",
-      "excused": "請假",
-      "unknown": "未知"
+    attendanceStatuses: {
+      present: '出席',
+      absent: '缺席',
+      excused: '請假',
+      unknown: '未知',
     },
-    "eventStatuses": {
-      "draft": "草稿",
-      "published": "已發布",
-      "cancelled": "已取消",
-      "completed": "已完成"
+    eventStatuses: {
+      draft: '草稿',
+      published: '已發布',
+      cancelled: '已取消',
+      completed: '已完成',
     },
-    "capabilities": {
-      "responses": "回應",
-      "registration": "報名",
-      "waitlist": "候補名單",
-      "attendance": "出勤",
-      "phases": "階段",
-      "polls": "投票",
-      "rosters": "名單",
-      "substitutes": "替補",
-      "teams": "隊伍",
-      "legions": "軍團",
-      "rally_guidance": "集結指導",
-      "formations": "編隊",
-      "objectives": "目標",
-      "scoring": "計分",
-      "results": "結果"
+    capabilities: {
+      responses: '回應',
+      registration: '報名',
+      waitlist: '候補名單',
+      attendance: '出勤',
+      phases: '階段',
+      polls: '投票',
+      rosters: '名單',
+      substitutes: '替補',
+      teams: '隊伍',
+      legions: '軍團',
+      rally_guidance: '集結指導',
+      formations: '編隊',
+      objectives: '目標',
+      scoring: '計分',
+      results: '結果',
     },
-    "reminderAudiences": {
-      "target": "活動目標",
-      "responded": "已回應玩家",
-      "registered": "已報名玩家",
-      "rostered": "已入選名單玩家",
-      "all_scope_players": "所有符合條件的玩家"
-    }
-  }
+    reminderAudiences: {
+      target: '活動目標',
+      responded: '已回應玩家',
+      registered: '已報名玩家',
+      rostered: '已入選名單玩家',
+      all_scope_players: '所有符合條件的玩家',
+    },
+  },
 } satisfies MessageCatalogue;
 
 export default messages;

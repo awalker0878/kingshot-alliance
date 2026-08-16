@@ -32,8 +32,8 @@ return new class extends Migration
         });
 
         DB::statement(
-            'CREATE UNIQUE INDEX transfer_participants_one_active_player ' .
-            'ON transfer_participants (transfer_plan_id, player_id) ' .
+            'CREATE UNIQUE INDEX transfer_participants_one_active_player '.
+            'ON transfer_participants (transfer_plan_id, player_id) '.
             'WHERE withdrawn_at IS NULL'
         );
     }

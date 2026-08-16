@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use App\Domain\Alliances\Http\Middleware\ResolveAllianceContext;
-use App\Domain\Integrations\Http\Middleware\AuthenticateApiCredential;
-use App\Domain\Kingdoms\Http\Middleware\ResolvePlayerContext;
-use App\Domain\Notifications\Actions\QueueDueKingPerkReminders;
-use App\Domain\Platform\Http\Controllers\ReadinessController;
-use App\Domain\Platform\Http\Middleware\AssignRequestContext;
-use App\Domain\Platform\Http\Middleware\HandleInertiaRequests;
-use App\Domain\Platform\Http\Middleware\RecordRequestMetrics;
-use App\Domain\Platform\Http\Middleware\RequirePlatformAdministrator;
-use App\Domain\Platform\Http\Middleware\SecurityHeaders;
+use App\Contexts\Alliance\Core\Http\Middleware\ResolveAllianceContext;
+use App\Contexts\Communications\Reminders\Actions\QueueDueKingPerkReminders;
+use App\Contexts\GameWorld\Http\Middleware\ResolvePlayerContext;
+use App\Contexts\Platform\Http\Controllers\ReadinessController;
+use App\Contexts\Platform\Http\Middleware\AssignRequestContext;
+use App\Contexts\Platform\Http\Middleware\HandleInertiaRequests;
+use App\Contexts\Platform\Http\Middleware\RecordRequestMetrics;
+use App\Contexts\Platform\Http\Middleware\RequirePlatformAdministrator;
+use App\Contexts\Platform\Http\Middleware\SecurityHeaders;
+use App\Contexts\Platform\Integrations\Http\Middleware\AuthenticateApiCredential;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -46,19 +46,6 @@ return Application::configure(basePath: dirname(__DIR__))
             ->withoutOverlapping(10);
     })
     ->withMiddleware(function (Middleware $middleware): void {
-        $trustedProxies = array_values(array_filter(array_map(
-            static fn (string $proxy): string => trim($proxy),
-            explode(',', (string) env('TRUSTED_PROXIES', '')),
-        )));
-
-        if ($trustedProxies !== []) {
-            $middleware->trustProxies(
-                at: $trustedProxies === ['*'] ? '*' : $trustedProxies,
-                headers: Request::HEADER_X_FORWARDED_FOR
-                    | Request::HEADER_X_FORWARDED_PROTO,
-            );
-        }
-
         $middleware->alias([
             'alliance.context' => ResolveAllianceContext::class,
             'platform.admin' => RequirePlatformAdministrator::class,

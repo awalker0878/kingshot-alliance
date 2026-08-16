@@ -1,0 +1,64 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Contexts\Alliance\Recruitment\Models;
+
+use App\Contexts\Alliance\Recruitment\Enums\RecruitmentCommunicationStatus;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+
+/** @property Carbon|null $sent_at */
+final class RecruitmentCommunication extends Model
+{
+    use HasUlids;
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'alliance_id',
+        'candidate_id',
+        'template_id',
+        'channel',
+        'subject',
+        'body',
+        'status',
+        'idempotency_key',
+        'created_by_player_id',
+        'sent_at',
+        'last_error',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => RecruitmentCommunicationStatus::class,
+            'sent_at' => 'datetime',
+        ];
+    }
+
+    public function communicationStatus(): RecruitmentCommunicationStatus
+    {
+        $value = $this->getAttribute('status');
+
+        return $value instanceof RecruitmentCommunicationStatus
+            ? $value
+            : RecruitmentCommunicationStatus::from((string) $value);
+    }
+
+    /** @return BelongsTo<RecruitmentCandidate, $this> */
+    public function candidate(): BelongsTo
+    {
+        return $this->belongsTo(RecruitmentCandidate::class, 'candidate_id');
+    }
+
+    /** @return BelongsTo<RecruitmentDecisionTemplate, $this> */
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(RecruitmentDecisionTemplate::class, 'template_id');
+    }
+}

@@ -60,7 +60,8 @@ const messages = {
     rolesRole: 'Kingdom role',
     rolesAssignAction: 'Assign role',
     rolesAssignments: 'Current assignments',
-    rolesAssignmentsHelp: 'Kingdom roles are independent from R1-R5 Alliance rank and specialist Alliance roles.',
+    rolesAssignmentsHelp:
+      'Kingdom roles are independent from R1-R5 Alliance rank and specialist Alliance roles.',
     rolesAssignedAt: 'Assigned {date}',
     rolesRemove: 'Remove',
     rolesRemoveConfirm: 'Remove the Kingdom role assignment for {name}?',

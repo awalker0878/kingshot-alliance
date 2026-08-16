@@ -1,133 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  "events": {
-    "scope": {
-      "player": "Jogador",
-      "alliance": "Aliança",
-      "kingdom": "Reino"
+  events: {
+    scope: {
+      player: 'Jogador',
+      alliance: 'Aliança',
+      kingdom: 'Reino',
     },
-    "actions": {
-      "save": "Salvar",
-      "cancel": "Cancelar"
+    actions: {
+      save: 'Salvar',
+      cancel: 'Cancelar',
     },
-    "calendar": {
-      "title": "Eventos",
-      "create": "Criar evento",
-      "agenda": "Agenda",
-      "month": "Calendário",
-      "all": "Todos os escopos",
-      "manageable": "Gerenciar",
-      "empty": "Nenhum evento corresponde a esta visualização.",
-      "previousMonth": "Mês anterior",
-      "nextMonth": "Próximo mês",
-      "scopeFilters": "Filtrar eventos por escopo",
-      "viewOptions": "Escolher visualização de eventos"
+    calendar: {
+      title: 'Eventos',
+      create: 'Criar evento',
+      agenda: 'Agenda',
+      month: 'Calendário',
+      all: 'Todos os escopos',
+      manageable: 'Gerenciar',
+      empty: 'Nenhum evento corresponde a esta visualização.',
+      previousMonth: 'Mês anterior',
+      nextMonth: 'Próximo mês',
+      scopeFilters: 'Filtrar eventos por escopo',
+      viewOptions: 'Escolher visualização de eventos',
     },
-    "create": {
-      "title": "Criar evento",
-      "back": "Voltar aos eventos",
-      "noContexts": "No momento, você não tem permissão para criar um evento.",
-      "context": "Contexto do evento",
-      "eventType": "Tipo de evento",
-      "start": "Horário de início",
-      "duration": "Duração (minutos)",
-      "capacity": "Capacidade",
-      "instructions": "Instruções",
-      "submit": "Criar evento"
+    create: {
+      title: 'Criar evento',
+      back: 'Voltar aos eventos',
+      noContexts: 'No momento, você não tem permissão para criar um evento.',
+      context: 'Contexto do evento',
+      eventType: 'Tipo de evento',
+      start: 'Horário de início',
+      duration: 'Duração (minutos)',
+      capacity: 'Capacidade',
+      instructions: 'Instruções',
+      submit: 'Criar evento',
     },
-    "show": {
-      "back": "Voltar aos eventos",
-      "manage": "Gerenciar evento",
-      "details": "Detalhes do evento",
-      "status": "Status",
-      "capacity": "Capacidade",
-      "recurrence": "Recorrência",
-      "modules": "Módulos operacionais"
+    show: {
+      back: 'Voltar aos eventos',
+      manage: 'Gerenciar evento',
+      details: 'Detalhes do evento',
+      status: 'Status',
+      capacity: 'Capacidade',
+      recurrence: 'Recorrência',
+      modules: 'Módulos operacionais',
     },
-    "manage": {
-      "title": "Gerenciar evento",
-      "back": "Voltar aos eventos",
-      "save": "Salvar evento",
-      "cancel": "Cancelar evento"
+    manage: {
+      title: 'Gerenciar evento',
+      back: 'Voltar aos eventos',
+      save: 'Salvar evento',
+      cancel: 'Cancelar evento',
     },
-    "attention": {
-      "title": "Ações do evento",
-      "response": "Resposta necessária",
-      "registration": "Inscrição disponível",
-      "vote": "Voto necessário",
-      "roster_confirmation": "Confirmação de escalação necessária"
+    attention: {
+      title: 'Ações do evento',
+      response: 'Resposta necessária',
+      registration: 'Inscrição disponível',
+      vote: 'Voto necessário',
+      roster_confirmation: 'Confirmação de escalação necessária',
     },
-    "reminders": {
-      "title": "Lembretes recentes"
+    reminders: {
+      title: 'Lembretes recentes',
     },
-    "participation": {
-      "register": "Inscrever-se",
-      "cancelRegistration": "Cancelar inscrição"
+    participation: {
+      register: 'Inscrever-se',
+      cancelRegistration: 'Cancelar inscrição',
     },
-    "responses": {
-      "going": "Vou",
-      "maybe": "Talvez",
-      "unavailable": "Indisponível"
+    responses: {
+      going: 'Vou',
+      maybe: 'Talvez',
+      unavailable: 'Indisponível',
     },
-    "registration": {
-      "registered": "Inscrito",
-      "waitlisted": "Lista de espera",
-      "cancelled": "Cancelado"
+    registration: {
+      registered: 'Inscrito',
+      waitlisted: 'Lista de espera',
+      cancelled: 'Cancelado',
     },
-    "scheduleSources": {
-      "alliance_controlled": "Controlado pela aliança",
-      "game_calendar": "Calendário do jogo",
-      "matchmaking": "Pareamento",
-      "manual": "Manual"
+    scheduleSources: {
+      alliance_controlled: 'Controlado pela aliança',
+      game_calendar: 'Calendário do jogo',
+      matchmaking: 'Pareamento',
+      manual: 'Manual',
     },
-    "recurrencePolicies": {
-      "disabled": "Sem recorrência",
-      "fixed_interval": "Intervalo fixo",
-      "configurable": "Configurável"
+    recurrencePolicies: {
+      disabled: 'Sem recorrência',
+      fixed_interval: 'Intervalo fixo',
+      configurable: 'Configurável',
     },
-    "recurrenceFrequencies": {
-      "none": "Sem recorrência",
-      "daily": "Diário",
-      "weekly": "Semanal"
+    recurrenceFrequencies: {
+      none: 'Sem recorrência',
+      daily: 'Diário',
+      weekly: 'Semanal',
     },
-    "attendanceStatuses": {
-      "present": "Presente",
-      "absent": "Ausente",
-      "excused": "Justificado",
-      "unknown": "Desconhecido"
+    attendanceStatuses: {
+      present: 'Presente',
+      absent: 'Ausente',
+      excused: 'Justificado',
+      unknown: 'Desconhecido',
     },
-    "eventStatuses": {
-      "draft": "Rascunho",
-      "published": "Publicado",
-      "cancelled": "Cancelado",
-      "completed": "Concluído"
+    eventStatuses: {
+      draft: 'Rascunho',
+      published: 'Publicado',
+      cancelled: 'Cancelado',
+      completed: 'Concluído',
     },
-    "capabilities": {
-      "responses": "Respostas",
-      "registration": "Inscrição",
-      "waitlist": "Lista de espera",
-      "attendance": "Presença",
-      "phases": "Fases",
-      "polls": "Enquetes",
-      "rosters": "Escalações",
-      "substitutes": "Substitutos",
-      "teams": "Equipes",
-      "legions": "Legiões",
-      "rally_guidance": "Orientação de rally",
-      "formations": "Formações",
-      "objectives": "Objetivos",
-      "scoring": "Pontuação",
-      "results": "Resultados"
+    capabilities: {
+      responses: 'Respostas',
+      registration: 'Inscrição',
+      waitlist: 'Lista de espera',
+      attendance: 'Presença',
+      phases: 'Fases',
+      polls: 'Enquetes',
+      rosters: 'Escalações',
+      substitutes: 'Substitutos',
+      teams: 'Equipes',
+      legions: 'Legiões',
+      rally_guidance: 'Orientação de rally',
+      formations: 'Formações',
+      objectives: 'Objetivos',
+      scoring: 'Pontuação',
+      results: 'Resultados',
     },
-    "reminderAudiences": {
-      "target": "Alvo do evento",
-      "responded": "Jogadores que responderam",
-      "registered": "Jogadores inscritos",
-      "rostered": "Jogadores escalados",
-      "all_scope_players": "Todos os jogadores elegíveis"
-    }
-  }
+    reminderAudiences: {
+      target: 'Alvo do evento',
+      responded: 'Jogadores que responderam',
+      registered: 'Jogadores inscritos',
+      rostered: 'Jogadores escalados',
+      all_scope_players: 'Todos os jogadores elegíveis',
+    },
+  },
 } satisfies MessageCatalogue;
 
 export default messages;

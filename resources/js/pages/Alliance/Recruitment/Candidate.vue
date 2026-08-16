@@ -130,7 +130,9 @@ function markCommunicationSent(id: string): void {
 
 function convertCandidate(): void {
   if (!conversionForm.player_id) return;
-  conversionForm.post(`/alliance/recruitment/${props.candidate.id}/convert`, { preserveScroll: true });
+  conversionForm.post(`/alliance/recruitment/${props.candidate.id}/convert`, {
+    preserveScroll: true,
+  });
 }
 
 function updateOnboarding(id: string, status: string): void {

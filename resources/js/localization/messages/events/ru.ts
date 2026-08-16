@@ -1,133 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  "events": {
-    "scope": {
-      "player": "Игрок",
-      "alliance": "Альянс",
-      "kingdom": "Королевство"
+  events: {
+    scope: {
+      player: 'Игрок',
+      alliance: 'Альянс',
+      kingdom: 'Королевство',
     },
-    "actions": {
-      "save": "Сохранить",
-      "cancel": "Отмена"
+    actions: {
+      save: 'Сохранить',
+      cancel: 'Отмена',
     },
-    "calendar": {
-      "title": "События",
-      "create": "Создать событие",
-      "agenda": "Повестка",
-      "month": "Календарь",
-      "all": "Все уровни",
-      "manageable": "Управление",
-      "empty": "Нет событий для этого представления.",
-      "previousMonth": "Предыдущий месяц",
-      "nextMonth": "Следующий месяц",
-      "scopeFilters": "Фильтр событий по уровню",
-      "viewOptions": "Выбрать вид событий"
+    calendar: {
+      title: 'События',
+      create: 'Создать событие',
+      agenda: 'Повестка',
+      month: 'Календарь',
+      all: 'Все уровни',
+      manageable: 'Управление',
+      empty: 'Нет событий для этого представления.',
+      previousMonth: 'Предыдущий месяц',
+      nextMonth: 'Следующий месяц',
+      scopeFilters: 'Фильтр событий по уровню',
+      viewOptions: 'Выбрать вид событий',
     },
-    "create": {
-      "title": "Создать событие",
-      "back": "Назад к событиям",
-      "noContexts": "Сейчас у вас нет разрешения создавать событие.",
-      "context": "Контекст события",
-      "eventType": "Тип события",
-      "start": "Время начала",
-      "duration": "Длительность (минуты)",
-      "capacity": "Вместимость",
-      "instructions": "Инструкции",
-      "submit": "Создать событие"
+    create: {
+      title: 'Создать событие',
+      back: 'Назад к событиям',
+      noContexts: 'Сейчас у вас нет разрешения создавать событие.',
+      context: 'Контекст события',
+      eventType: 'Тип события',
+      start: 'Время начала',
+      duration: 'Длительность (минуты)',
+      capacity: 'Вместимость',
+      instructions: 'Инструкции',
+      submit: 'Создать событие',
     },
-    "show": {
-      "back": "Назад к событиям",
-      "manage": "Управление событием",
-      "details": "Сведения о событии",
-      "status": "Статус",
-      "capacity": "Вместимость",
-      "recurrence": "Повторение",
-      "modules": "Операционные модули"
+    show: {
+      back: 'Назад к событиям',
+      manage: 'Управление событием',
+      details: 'Сведения о событии',
+      status: 'Статус',
+      capacity: 'Вместимость',
+      recurrence: 'Повторение',
+      modules: 'Операционные модули',
     },
-    "manage": {
-      "title": "Управление событием",
-      "back": "Назад к событиям",
-      "save": "Сохранить событие",
-      "cancel": "Отменить событие"
+    manage: {
+      title: 'Управление событием',
+      back: 'Назад к событиям',
+      save: 'Сохранить событие',
+      cancel: 'Отменить событие',
     },
-    "attention": {
-      "title": "Действия события",
-      "response": "Нужен ответ",
-      "registration": "Регистрация доступна",
-      "vote": "Нужно проголосовать",
-      "roster_confirmation": "Нужно подтвердить состав"
+    attention: {
+      title: 'Действия события',
+      response: 'Нужен ответ',
+      registration: 'Регистрация доступна',
+      vote: 'Нужно проголосовать',
+      roster_confirmation: 'Нужно подтвердить состав',
     },
-    "reminders": {
-      "title": "Недавние напоминания"
+    reminders: {
+      title: 'Недавние напоминания',
     },
-    "participation": {
-      "register": "Зарегистрироваться",
-      "cancelRegistration": "Отменить регистрацию"
+    participation: {
+      register: 'Зарегистрироваться',
+      cancelRegistration: 'Отменить регистрацию',
     },
-    "responses": {
-      "going": "Иду",
-      "maybe": "Возможно",
-      "unavailable": "Недоступен"
+    responses: {
+      going: 'Иду',
+      maybe: 'Возможно',
+      unavailable: 'Недоступен',
     },
-    "registration": {
-      "registered": "Зарегистрирован",
-      "waitlisted": "Лист ожидания",
-      "cancelled": "Отменено"
+    registration: {
+      registered: 'Зарегистрирован',
+      waitlisted: 'Лист ожидания',
+      cancelled: 'Отменено',
     },
-    "scheduleSources": {
-      "alliance_controlled": "Управляется альянсом",
-      "game_calendar": "Игровой календарь",
-      "matchmaking": "Подбор",
-      "manual": "Вручную"
+    scheduleSources: {
+      alliance_controlled: 'Управляется альянсом',
+      game_calendar: 'Игровой календарь',
+      matchmaking: 'Подбор',
+      manual: 'Вручную',
     },
-    "recurrencePolicies": {
-      "disabled": "Без повторения",
-      "fixed_interval": "Фиксированный интервал",
-      "configurable": "Настраиваемое"
+    recurrencePolicies: {
+      disabled: 'Без повторения',
+      fixed_interval: 'Фиксированный интервал',
+      configurable: 'Настраиваемое',
     },
-    "recurrenceFrequencies": {
-      "none": "Без повторения",
-      "daily": "Ежедневно",
-      "weekly": "Еженедельно"
+    recurrenceFrequencies: {
+      none: 'Без повторения',
+      daily: 'Ежедневно',
+      weekly: 'Еженедельно',
     },
-    "attendanceStatuses": {
-      "present": "Присутствовал",
-      "absent": "Отсутствовал",
-      "excused": "Уважительная причина",
-      "unknown": "Неизвестно"
+    attendanceStatuses: {
+      present: 'Присутствовал',
+      absent: 'Отсутствовал',
+      excused: 'Уважительная причина',
+      unknown: 'Неизвестно',
     },
-    "eventStatuses": {
-      "draft": "Черновик",
-      "published": "Опубликовано",
-      "cancelled": "Отменено",
-      "completed": "Завершено"
+    eventStatuses: {
+      draft: 'Черновик',
+      published: 'Опубликовано',
+      cancelled: 'Отменено',
+      completed: 'Завершено',
     },
-    "capabilities": {
-      "responses": "Ответы",
-      "registration": "Регистрация",
-      "waitlist": "Лист ожидания",
-      "attendance": "Посещаемость",
-      "phases": "Фазы",
-      "polls": "Опросы",
-      "rosters": "Составы",
-      "substitutes": "Запасные",
-      "teams": "Команды",
-      "legions": "Легионы",
-      "rally_guidance": "Рекомендации по ралли",
-      "formations": "Формации",
-      "objectives": "Цели",
-      "scoring": "Очки",
-      "results": "Результаты"
+    capabilities: {
+      responses: 'Ответы',
+      registration: 'Регистрация',
+      waitlist: 'Лист ожидания',
+      attendance: 'Посещаемость',
+      phases: 'Фазы',
+      polls: 'Опросы',
+      rosters: 'Составы',
+      substitutes: 'Запасные',
+      teams: 'Команды',
+      legions: 'Легионы',
+      rally_guidance: 'Рекомендации по ралли',
+      formations: 'Формации',
+      objectives: 'Цели',
+      scoring: 'Очки',
+      results: 'Результаты',
     },
-    "reminderAudiences": {
-      "target": "Цель события",
-      "responded": "Ответившие игроки",
-      "registered": "Зарегистрированные игроки",
-      "rostered": "Игроки в составе",
-      "all_scope_players": "Все подходящие игроки"
-    }
-  }
+    reminderAudiences: {
+      target: 'Цель события',
+      responded: 'Ответившие игроки',
+      registered: 'Зарегистрированные игроки',
+      rostered: 'Игроки в составе',
+      all_scope_players: 'Все подходящие игроки',
+    },
+  },
 } satisfies MessageCatalogue;
 
 export default messages;

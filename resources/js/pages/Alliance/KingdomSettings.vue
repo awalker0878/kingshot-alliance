@@ -46,7 +46,10 @@ const { t } = useLocale();
     </header>
 
     <section class="ks-surface mt-6 p-5" aria-labelledby="kingdom-association-heading">
-      <p id="kingdom-association-heading" class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase">
+      <p
+        id="kingdom-association-heading"
+        class="text-xs font-semibold text-[var(--ks-text-muted)] uppercase"
+      >
         {{ t('kingdomP7A.association') }}
       </p>
       <p class="ks-display mt-3 text-3xl font-bold text-[var(--ks-gold)]">

@@ -103,30 +103,53 @@ function scopeLabel(scope: string): string {
           {{ t('events.catalogue.description') }}
         </p>
       </div>
-      <Link href="/platform" class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold">
+      <Link
+        href="/platform"
+        class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-4 py-2 text-sm font-semibold"
+      >
         {{ t('events.catalogue.back') }}
       </Link>
     </header>
 
-    <p v-if="props.status" role="status" class="mb-6 rounded-[var(--ks-radius-md)] border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+    <p
+      v-if="props.status"
+      role="status"
+      class="mb-6 rounded-[var(--ks-radius-md)] border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
+    >
       {{ t('events.catalogue.saved') }}
     </p>
 
     <div class="space-y-5">
-      <article v-for="type in props.eventTypes" :key="type.id" class="rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-5">
+      <article
+        v-for="type in props.eventTypes"
+        :key="type.id"
+        class="rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-surface-1)] p-5"
+      >
         <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
             <div class="flex items-center gap-2">
               <h2 class="text-xl font-semibold">{{ t(type.nameKey) }}</h2>
-              <span class="rounded-full border border-[var(--ks-border)] px-2 py-0.5 text-xs text-[var(--ks-text-muted)]">{{ type.category }}</span>
+              <span
+                class="rounded-full border border-[var(--ks-border)] px-2 py-0.5 text-xs text-[var(--ks-text-muted)]"
+                >{{ type.category }}</span
+              >
             </div>
-            <p v-if="type.descriptionKey" class="mt-2 max-w-3xl text-sm text-[var(--ks-text-muted)]">{{ t(type.descriptionKey) }}</p>
+            <p
+              v-if="type.descriptionKey"
+              class="mt-2 max-w-3xl text-sm text-[var(--ks-text-muted)]"
+            >
+              {{ t(type.descriptionKey) }}
+            </p>
           </div>
           <code class="text-xs text-[var(--ks-text-muted)]">{{ type.slug }}</code>
         </div>
 
         <div class="grid gap-4 xl:grid-cols-3">
-          <section v-for="scope in type.scopes" :key="scope.id" class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-4">
+          <section
+            v-for="scope in type.scopes"
+            :key="scope.id"
+            class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-[var(--ks-surface-2)] p-4"
+          >
             <div class="mb-4 flex items-center justify-between">
               <h3 class="font-semibold">{{ scopeLabel(scope.scope) }}</h3>
               <label class="flex items-center gap-2 text-sm">
@@ -138,71 +161,147 @@ function scopeLabel(scope: string): string {
             <div class="grid grid-cols-2 gap-3">
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{ t('events.catalogue.duration') }}
-                <input v-model.number="form(scope).default_duration_minutes" type="number" min="1" class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm" />
+                <input
+                  v-model.number="form(scope).default_duration_minutes"
+                  type="number"
+                  min="1"
+                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                />
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{ t('events.catalogue.capacity') }}
-                <input v-model.number="form(scope).default_capacity" type="number" min="1" class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm" />
+                <input
+                  v-model.number="form(scope).default_capacity"
+                  type="number"
+                  min="1"
+                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                />
               </label>
             </div>
 
             <div class="mt-3 grid gap-3 sm:grid-cols-2">
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{ t('events.catalogue.scheduleSource') }}
-                <select v-model="form(scope).schedule_source" class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm">
-                  <option v-for="value in props.scheduleSourceOptions" :key="value" :value="value">{{ value.replaceAll('_', ' ') }}</option>
+                <select
+                  v-model="form(scope).schedule_source"
+                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                >
+                  <option v-for="value in props.scheduleSourceOptions" :key="value" :value="value">
+                    {{ value.replaceAll('_', ' ') }}
+                  </option>
                 </select>
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{ t('events.catalogue.recurrencePolicy') }}
-                <select v-model="form(scope).recurrence_policy" class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm">
-                  <option v-for="value in props.recurrencePolicyOptions" :key="value" :value="value">{{ value.replaceAll('_', ' ') }}</option>
+                <select
+                  v-model="form(scope).recurrence_policy"
+                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                >
+                  <option
+                    v-for="value in props.recurrencePolicyOptions"
+                    :key="value"
+                    :value="value"
+                  >
+                    {{ value.replaceAll('_', ' ') }}
+                  </option>
                 </select>
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{ t('events.catalogue.recurrenceFrequency') }}
-                <select v-model="form(scope).default_recurrence_frequency" :disabled="form(scope).recurrence_policy === 'disabled'" class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm disabled:opacity-50">
-                  <option v-for="value in props.recurrenceFrequencyOptions" :key="value" :value="value">{{ value }}</option>
+                <select
+                  v-model="form(scope).default_recurrence_frequency"
+                  :disabled="form(scope).recurrence_policy === 'disabled'"
+                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm disabled:opacity-50"
+                >
+                  <option
+                    v-for="value in props.recurrenceFrequencyOptions"
+                    :key="value"
+                    :value="value"
+                  >
+                    {{ value }}
+                  </option>
                 </select>
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{ t('events.catalogue.recurrenceInterval') }}
-                <input v-model.number="form(scope).default_recurrence_interval" :disabled="form(scope).recurrence_policy === 'disabled'" type="number" min="1" class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm disabled:opacity-50" />
+                <input
+                  v-model.number="form(scope).default_recurrence_interval"
+                  :disabled="form(scope).recurrence_policy === 'disabled'"
+                  type="number"
+                  min="1"
+                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm disabled:opacity-50"
+                />
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{ t('events.catalogue.minimumRepeat') }}
-                <input v-model.number="form(scope).minimum_repeat_interval_minutes" :disabled="form(scope).recurrence_policy === 'disabled'" type="number" min="1" class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm disabled:opacity-50" />
+                <input
+                  v-model.number="form(scope).minimum_repeat_interval_minutes"
+                  :disabled="form(scope).recurrence_policy === 'disabled'"
+                  type="number"
+                  min="1"
+                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm disabled:opacity-50"
+                />
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{ t('events.catalogue.registrationOpens') }}
-                <input v-model.number="form(scope).default_registration_opens_minutes_before" type="number" min="0" class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm" />
+                <input
+                  v-model.number="form(scope).default_registration_opens_minutes_before"
+                  type="number"
+                  min="0"
+                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                />
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)]">
                 {{ t('events.catalogue.registrationCloses') }}
-                <input v-model.number="form(scope).default_registration_closes_minutes_before" type="number" min="0" class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm" />
+                <input
+                  v-model.number="form(scope).default_registration_closes_minutes_before"
+                  type="number"
+                  min="0"
+                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                />
               </label>
               <label class="text-xs font-semibold text-[var(--ks-text-muted)] sm:col-span-2">
                 {{ t('events.catalogue.instructionsKey') }}
-                <input v-model="form(scope).default_instructions_key" type="text" class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm" />
+                <input
+                  v-model="form(scope).default_instructions_key"
+                  type="text"
+                  class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 text-sm"
+                />
               </label>
             </div>
 
             <label class="mt-3 block text-xs font-semibold text-[var(--ks-text-muted)]">
               {{ t('events.catalogue.defaultSettings') }}
-              <textarea v-model="form(scope).default_settings_json" rows="9" spellcheck="false" class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 font-mono text-xs" />
+              <textarea
+                v-model="form(scope).default_settings_json"
+                rows="9"
+                spellcheck="false"
+                class="mt-1 w-full rounded border border-[var(--ks-border)] bg-[var(--ks-surface-1)] px-3 py-2 font-mono text-xs"
+              />
             </label>
 
             <fieldset class="mt-4">
-              <legend class="mb-2 text-xs font-semibold text-[var(--ks-text-muted)]">{{ t('events.catalogue.capabilities') }}</legend>
+              <legend class="mb-2 text-xs font-semibold text-[var(--ks-text-muted)]">
+                {{ t('events.catalogue.capabilities') }}
+              </legend>
               <div class="grid grid-cols-2 gap-2">
-                <label v-for="capability in props.capabilityOptions" :key="capability" class="flex items-center gap-2 text-xs">
+                <label
+                  v-for="capability in props.capabilityOptions"
+                  :key="capability"
+                  class="flex items-center gap-2 text-xs"
+                >
                   <input v-model="form(scope).capabilities" type="checkbox" :value="capability" />
                   <span>{{ capability.replaceAll('_', ' ') }}</span>
                 </label>
               </div>
             </fieldset>
 
-            <button type="button" class="mt-4 rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50" :disabled="form(scope).processing" @click="save(type, scope)">
+            <button
+              type="button"
+              class="mt-4 rounded-[var(--ks-radius-sm)] bg-[var(--ks-gold)] px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50"
+              :disabled="form(scope).processing"
+              @click="save(type, scope)"
+            >
               {{ t('events.catalogue.save') }}
             </button>
           </section>

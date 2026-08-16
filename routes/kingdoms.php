@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceController;
-use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyContactController;
-use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyController;
-use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceIntelligenceController;
-use App\Domain\Kingdoms\Http\Controllers\KingdomAllianceObservationController;
-use App\Domain\Kingdoms\Http\Controllers\KingdomIngestionController;
-use App\Domain\Kingdoms\Http\Controllers\KingdomIntelligenceSharingController;
-use App\Domain\Authorization\Http\Controllers\KingdomRoleController;
-use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
-use App\Domain\Kingdoms\Http\Controllers\PlayerSnapshotController;
-use App\Domain\Kingdoms\Http\Controllers\RosterController;
-use App\Domain\Kingdoms\Http\Controllers\RosterCsvController;
-use App\Domain\Kingdoms\Http\Controllers\RosterIntelligenceController;
-use App\Domain\Kingdoms\Http\Controllers\TransferCompletionController;
-use App\Domain\Kingdoms\Http\Controllers\TransferGroupController;
-use App\Domain\Kingdoms\Http\Controllers\TransferParticipantController;
-use App\Domain\Kingdoms\Http\Controllers\TransferPlanController;
-use App\Domain\Kingdoms\Http\Controllers\TransferReadinessController;
+use App\Contexts\Alliance\Access\Http\Controllers\KingdomRoleController;
+use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyContactController;
+use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyController;
+use App\Contexts\Intelligence\Http\Controllers\KingdomAllianceIntelligenceController;
+use App\Contexts\Intelligence\Ingestion\Http\Controllers\KingdomIngestionController;
+use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceController;
+use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceObservationController;
+use App\Contexts\Intelligence\Roster\Http\Controllers\PlayerSnapshotController;
+use App\Contexts\Intelligence\Roster\Http\Controllers\RosterController;
+use App\Contexts\Intelligence\Roster\Http\Controllers\RosterCsvController;
+use App\Contexts\Intelligence\Roster\Http\Controllers\RosterIntelligenceController;
+use App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController;
+use App\ReadModels\KingdomSettings\Http\Controllers\KingdomSettingsController;
+use App\Workflows\KingdomTransfer\Http\Controllers\TransferCompletionController;
+use App\Workflows\KingdomTransfer\Http\Controllers\TransferGroupController;
+use App\Workflows\KingdomTransfer\Http\Controllers\TransferParticipantController;
+use App\Workflows\KingdomTransfer\Http\Controllers\TransferPlanController;
+use App\Workflows\KingdomTransfer\Http\Controllers\TransferReadinessController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Domain\Integrations\Http\Controllers\IntegrationManagementController;
+use App\Contexts\Platform\Integrations\Http\Controllers\IntegrationManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {

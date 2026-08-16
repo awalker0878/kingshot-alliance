@@ -1,133 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  "events": {
-    "scope": {
-      "player": "لاعب",
-      "alliance": "تحالف",
-      "kingdom": "مملكة"
+  events: {
+    scope: {
+      player: 'لاعب',
+      alliance: 'تحالف',
+      kingdom: 'مملكة',
     },
-    "actions": {
-      "save": "حفظ",
-      "cancel": "إلغاء"
+    actions: {
+      save: 'حفظ',
+      cancel: 'إلغاء',
     },
-    "calendar": {
-      "title": "الأحداث",
-      "create": "إنشاء حدث",
-      "agenda": "جدول الأعمال",
-      "month": "التقويم",
-      "all": "كل النطاقات",
-      "manageable": "إدارة",
-      "empty": "لا توجد أحداث تطابق هذا العرض.",
-      "previousMonth": "الشهر السابق",
-      "nextMonth": "الشهر التالي",
-      "scopeFilters": "تصفية الأحداث حسب النطاق",
-      "viewOptions": "اختيار عرض الأحداث"
+    calendar: {
+      title: 'الأحداث',
+      create: 'إنشاء حدث',
+      agenda: 'جدول الأعمال',
+      month: 'التقويم',
+      all: 'كل النطاقات',
+      manageable: 'إدارة',
+      empty: 'لا توجد أحداث تطابق هذا العرض.',
+      previousMonth: 'الشهر السابق',
+      nextMonth: 'الشهر التالي',
+      scopeFilters: 'تصفية الأحداث حسب النطاق',
+      viewOptions: 'اختيار عرض الأحداث',
     },
-    "create": {
-      "title": "إنشاء حدث",
-      "back": "العودة إلى الأحداث",
-      "noContexts": "ليس لديك إذن حاليًا لإنشاء حدث.",
-      "context": "سياق الحدث",
-      "eventType": "نوع الحدث",
-      "start": "وقت البدء",
-      "duration": "المدة (بالدقائق)",
-      "capacity": "السعة",
-      "instructions": "التعليمات",
-      "submit": "إنشاء حدث"
+    create: {
+      title: 'إنشاء حدث',
+      back: 'العودة إلى الأحداث',
+      noContexts: 'ليس لديك إذن حاليًا لإنشاء حدث.',
+      context: 'سياق الحدث',
+      eventType: 'نوع الحدث',
+      start: 'وقت البدء',
+      duration: 'المدة (بالدقائق)',
+      capacity: 'السعة',
+      instructions: 'التعليمات',
+      submit: 'إنشاء حدث',
     },
-    "show": {
-      "back": "العودة إلى الأحداث",
-      "manage": "إدارة الحدث",
-      "details": "تفاصيل الحدث",
-      "status": "الحالة",
-      "capacity": "السعة",
-      "recurrence": "التكرار",
-      "modules": "الوحدات التشغيلية"
+    show: {
+      back: 'العودة إلى الأحداث',
+      manage: 'إدارة الحدث',
+      details: 'تفاصيل الحدث',
+      status: 'الحالة',
+      capacity: 'السعة',
+      recurrence: 'التكرار',
+      modules: 'الوحدات التشغيلية',
     },
-    "manage": {
-      "title": "إدارة الحدث",
-      "back": "العودة إلى الأحداث",
-      "save": "حفظ الحدث",
-      "cancel": "إلغاء الحدث"
+    manage: {
+      title: 'إدارة الحدث',
+      back: 'العودة إلى الأحداث',
+      save: 'حفظ الحدث',
+      cancel: 'إلغاء الحدث',
     },
-    "attention": {
-      "title": "إجراءات الحدث",
-      "response": "مطلوب رد",
-      "registration": "التسجيل متاح",
-      "vote": "مطلوب تصويت",
-      "roster_confirmation": "مطلوب تأكيد القائمة"
+    attention: {
+      title: 'إجراءات الحدث',
+      response: 'مطلوب رد',
+      registration: 'التسجيل متاح',
+      vote: 'مطلوب تصويت',
+      roster_confirmation: 'مطلوب تأكيد القائمة',
     },
-    "reminders": {
-      "title": "التذكيرات الأخيرة"
+    reminders: {
+      title: 'التذكيرات الأخيرة',
     },
-    "participation": {
-      "register": "تسجيل",
-      "cancelRegistration": "إلغاء التسجيل"
+    participation: {
+      register: 'تسجيل',
+      cancelRegistration: 'إلغاء التسجيل',
     },
-    "responses": {
-      "going": "سأشارك",
-      "maybe": "ربما",
-      "unavailable": "غير متاح"
+    responses: {
+      going: 'سأشارك',
+      maybe: 'ربما',
+      unavailable: 'غير متاح',
     },
-    "registration": {
-      "registered": "مسجل",
-      "waitlisted": "قائمة انتظار",
-      "cancelled": "ملغى"
+    registration: {
+      registered: 'مسجل',
+      waitlisted: 'قائمة انتظار',
+      cancelled: 'ملغى',
     },
-    "scheduleSources": {
-      "alliance_controlled": "يتحكم به التحالف",
-      "game_calendar": "تقويم اللعبة",
-      "matchmaking": "مطابقة",
-      "manual": "يدوي"
+    scheduleSources: {
+      alliance_controlled: 'يتحكم به التحالف',
+      game_calendar: 'تقويم اللعبة',
+      matchmaking: 'مطابقة',
+      manual: 'يدوي',
     },
-    "recurrencePolicies": {
-      "disabled": "بدون تكرار",
-      "fixed_interval": "فاصل ثابت",
-      "configurable": "قابل للتهيئة"
+    recurrencePolicies: {
+      disabled: 'بدون تكرار',
+      fixed_interval: 'فاصل ثابت',
+      configurable: 'قابل للتهيئة',
     },
-    "recurrenceFrequencies": {
-      "none": "بدون تكرار",
-      "daily": "يومي",
-      "weekly": "أسبوعي"
+    recurrenceFrequencies: {
+      none: 'بدون تكرار',
+      daily: 'يومي',
+      weekly: 'أسبوعي',
     },
-    "attendanceStatuses": {
-      "present": "حاضر",
-      "absent": "غائب",
-      "excused": "معذور",
-      "unknown": "غير معروف"
+    attendanceStatuses: {
+      present: 'حاضر',
+      absent: 'غائب',
+      excused: 'معذور',
+      unknown: 'غير معروف',
     },
-    "eventStatuses": {
-      "draft": "مسودة",
-      "published": "منشور",
-      "cancelled": "ملغى",
-      "completed": "مكتمل"
+    eventStatuses: {
+      draft: 'مسودة',
+      published: 'منشور',
+      cancelled: 'ملغى',
+      completed: 'مكتمل',
     },
-    "capabilities": {
-      "responses": "الردود",
-      "registration": "التسجيل",
-      "waitlist": "قائمة الانتظار",
-      "attendance": "الحضور",
-      "phases": "المراحل",
-      "polls": "الاستطلاعات",
-      "rosters": "القوائم",
-      "substitutes": "البدلاء",
-      "teams": "الفرق",
-      "legions": "الفيالق",
-      "rally_guidance": "إرشادات التجمع",
-      "formations": "التشكيلات",
-      "objectives": "الأهداف",
-      "scoring": "النقاط",
-      "results": "النتائج"
+    capabilities: {
+      responses: 'الردود',
+      registration: 'التسجيل',
+      waitlist: 'قائمة الانتظار',
+      attendance: 'الحضور',
+      phases: 'المراحل',
+      polls: 'الاستطلاعات',
+      rosters: 'القوائم',
+      substitutes: 'البدلاء',
+      teams: 'الفرق',
+      legions: 'الفيالق',
+      rally_guidance: 'إرشادات التجمع',
+      formations: 'التشكيلات',
+      objectives: 'الأهداف',
+      scoring: 'النقاط',
+      results: 'النتائج',
     },
-    "reminderAudiences": {
-      "target": "هدف الحدث",
-      "responded": "اللاعبون الذين ردوا",
-      "registered": "اللاعبون المسجلون",
-      "rostered": "اللاعبون في القائمة",
-      "all_scope_players": "كل اللاعبين المؤهلين"
-    }
-  }
+    reminderAudiences: {
+      target: 'هدف الحدث',
+      responded: 'اللاعبون الذين ردوا',
+      registered: 'اللاعبون المسجلون',
+      rostered: 'اللاعبون في القائمة',
+      all_scope_players: 'كل اللاعبين المؤهلين',
+    },
+  },
 } satisfies MessageCatalogue;
 
 export default messages;
