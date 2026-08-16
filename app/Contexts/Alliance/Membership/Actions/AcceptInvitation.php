@@ -15,6 +15,7 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Contexts\Alliance\Membership\Services\InvitationTokenService;
+use App\Contexts\GameWorld\Actions\ClaimPlayerAccount;
 use App\Contexts\GameWorld\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
@@ -28,6 +29,7 @@ final readonly class AcceptInvitation
 {
     public function __construct(
         private InvitationTokenService $tokens,
+        private ClaimPlayerAccount $claimPlayerAccount,
         private AuditRecorder $audit,
     ) {}
 
@@ -145,9 +147,7 @@ final readonly class AcceptInvitation
                 ])->save();
             }
 
-            if ($lockedPlayer->user_id === null) {
-                $lockedPlayer->forceFill(['user_id' => $currentUser->id])->save();
-            }
+            $lockedPlayer = $this->claimPlayerAccount->handle($lockedPlayer, $currentUser);
 
             $invitation->forceFill([
                 'status' => InvitationStatus::Accepted,

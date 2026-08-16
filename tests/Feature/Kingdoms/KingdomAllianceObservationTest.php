@@ -13,7 +13,7 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Workflows\KingdomTransfer\Models\TrackedKingdomAlliance;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;

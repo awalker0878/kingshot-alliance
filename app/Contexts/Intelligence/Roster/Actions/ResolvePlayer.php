@@ -9,12 +9,15 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\GameWorld\Actions\PersistPlayerIdentity;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Validation\ValidationException;
 
-final class ResolvePlayer
+final readonly class ResolvePlayer
 {
+    public function __construct(private PersistPlayerIdentity $playerIdentity) {}
+
     public function handle(
         Alliance $alliance,
         string $observedName,
@@ -59,17 +62,12 @@ final class ResolvePlayer
 
             $this->assertKingdomCanBeResolved($expected, $alliance);
 
-            $attributes = [
-                'current_kingdom_id' => $alliance->kingdom_id,
-                'current_name' => $name,
-            ];
-            if ($stableId !== null && $expected->game_player_id === null) {
-                $attributes['game_player_id'] = $stableId;
-            }
-
-            $expected->forceFill($attributes)->save();
-
-            return $expected;
+            return $this->playerIdentity->handle(
+                (string) $alliance->kingdom_id,
+                $name,
+                $stableId,
+                (string) $expected->id,
+            );
         }
 
         if ($stableId !== null) {
@@ -81,20 +79,16 @@ final class ResolvePlayer
             if ($existing instanceof Player) {
                 $this->assertKingdomCanBeResolved($existing, $alliance);
 
-                $existing->forceFill([
-                    'current_kingdom_id' => $alliance->kingdom_id,
-                    'current_name' => $name,
-                ])->save();
-
-                return $existing;
+                return $this->playerIdentity->handle(
+                    (string) $alliance->kingdom_id,
+                    $name,
+                    $stableId,
+                    (string) $existing->id,
+                );
             }
         }
 
-        return Player::query()->create([
-            'current_kingdom_id' => $alliance->kingdom_id,
-            'game_player_id' => $stableId,
-            'current_name' => $name,
-        ]);
+        return $this->playerIdentity->handle((string) $alliance->kingdom_id, $name, $stableId);
     }
 
     private function assertKingdomCanBeResolved(Player $player, Alliance $alliance): void
@@ -112,24 +106,20 @@ final class ResolvePlayer
             ]);
         }
 
-        $hasActiveMembership = AllianceMembership::query()
+        if (AllianceMembership::query()
             ->where('player_id', $player->id)
             ->where('status', MembershipStatus::Active->value)
-            ->exists();
-
-        if ($hasActiveMembership) {
+            ->exists()) {
             throw ValidationException::withMessages([
                 'game_player_id' => 'That Player has an active Alliance membership. End or transfer the membership before changing Kingdoms.',
             ]);
         }
 
-        $hasIncompatibleRoster = AllianceRosterEntry::query()
+        if (AllianceRosterEntry::query()
             ->where('player_id', $player->id)
             ->whereIn('state', [RosterState::Active->value, RosterState::Tracked->value])
             ->whereHas('alliance', fn ($query) => $query->where('kingdom_id', '!=', $alliance->kingdom_id))
-            ->exists();
-
-        if ($hasIncompatibleRoster) {
+            ->exists()) {
             throw ValidationException::withMessages([
                 'game_player_id' => 'That Player is active or tracked on a roster in another Kingdom. Resolve that roster before changing Kingdoms.',
             ]);

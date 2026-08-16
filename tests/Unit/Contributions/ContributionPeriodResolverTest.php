@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Contributions;
 
-use App\Domain\Contributions\Enums\ContributionDataClass;
-use App\Domain\Contributions\Enums\ContributionPeriod;
-use App\Domain\Contributions\Models\ContributionCategory;
-use App\Domain\Contributions\Services\ContributionPeriodResolver;
+use App\Contexts\Intelligence\Contributions\Enums\ContributionDataClass;
+use App\Contexts\Intelligence\Contributions\Enums\ContributionPeriod;
+use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
+use App\Contexts\Intelligence\Contributions\Services\ContributionPeriodResolver;
 use Carbon\CarbonImmutable;
 use Tests\TestCase;
 

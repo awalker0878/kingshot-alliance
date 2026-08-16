@@ -14,7 +14,7 @@ use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
-use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
+use App\Workflows\KingdomTransfer\Enums\TrackedKingdomAllianceState;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;

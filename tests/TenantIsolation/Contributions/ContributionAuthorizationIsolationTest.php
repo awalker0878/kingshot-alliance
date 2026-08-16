@@ -11,11 +11,11 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Contributions\Actions\CreateContributionCategory;
-use App\Domain\Contributions\Actions\RecordContribution;
-use App\Domain\Contributions\Enums\ContributionDataClass;
-use App\Domain\Contributions\Enums\ContributionPeriod;
-use App\Domain\Contributions\Enums\ContributionRecordSource;
+use App\Contexts\Intelligence\Contributions\Actions\CreateContributionCategory;
+use App\Contexts\Intelligence\Contributions\Actions\RecordContribution;
+use App\Contexts\Intelligence\Contributions\Enums\ContributionDataClass;
+use App\Contexts\Intelligence\Contributions\Enums\ContributionPeriod;
+use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordSource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

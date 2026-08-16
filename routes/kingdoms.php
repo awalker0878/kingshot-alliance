@@ -14,12 +14,12 @@ use App\Contexts\Intelligence\Roster\Http\Controllers\RosterController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterCsvController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterIntelligenceController;
 use App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController;
-use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
-use App\Domain\Kingdoms\Http\Controllers\TransferCompletionController;
-use App\Domain\Kingdoms\Http\Controllers\TransferGroupController;
-use App\Domain\Kingdoms\Http\Controllers\TransferParticipantController;
-use App\Domain\Kingdoms\Http\Controllers\TransferPlanController;
-use App\Domain\Kingdoms\Http\Controllers\TransferReadinessController;
+use App\ReadModels\KingdomSettings\Http\Controllers\KingdomSettingsController;
+use App\Workflows\KingdomTransfer\Http\Controllers\TransferCompletionController;
+use App\Workflows\KingdomTransfer\Http\Controllers\TransferGroupController;
+use App\Workflows\KingdomTransfer\Http\Controllers\TransferParticipantController;
+use App\Workflows\KingdomTransfer\Http\Controllers\TransferPlanController;
+use App\Workflows\KingdomTransfer\Http\Controllers\TransferReadinessController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {

@@ -66,6 +66,15 @@ final readonly class AllianceMutationAuthority
         return $this->acquire($actor, $alliance, false);
     }
 
+    /**
+     * Lock the Alliance exclusively without interpreting a downstream context or
+     * workflow permission vocabulary. The caller remains responsible for policy.
+     */
+    public function acquireExclusiveScope(Player $actor, Alliance $alliance): AllianceMutationContext
+    {
+        return $this->acquire($actor, $alliance, true);
+    }
+
     private function acquire(
         Player $actor,
         Alliance $alliance,
