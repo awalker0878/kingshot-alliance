@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Intelligence\Observations\V2;
+namespace Tests\Feature\Intelligence\Observations\v2;
 
 use App\Contexts\Intelligence\Observations\Actions\InvalidateKingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Actions\RecordKingdomAllianceObservation;
