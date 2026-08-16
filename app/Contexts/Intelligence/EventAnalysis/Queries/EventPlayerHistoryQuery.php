@@ -6,10 +6,10 @@ namespace App\Contexts\Intelligence\EventAnalysis\Queries;
 
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
-use App\Contexts\Operations\EventCore\Models\EventMetricDefinition;
-use App\Contexts\Operations\EventCore\Models\EventPlayerResult;
-use App\Contexts\Operations\EventCore\Models\EventPlayerResultMetric;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
+use App\Contexts\Operations\Results\Models\EventMetricDefinition;
+use App\Contexts\Operations\Results\Models\EventPlayerResult;
+use App\Contexts\Operations\Results\Models\EventPlayerResultMetric;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Database\Query\Builder;
