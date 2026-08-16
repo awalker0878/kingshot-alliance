@@ -1,4 +1,4 @@
-name: ARCH V2 Write State Migration
+name: ARCH V2 Semantic Validation
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
       - arch-v2-remediation-20260816
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  migrate:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,187 +17,82 @@ jobs:
         with:
           php-version: '8.5'
           coverage: none
-      - name: Split write state from authorization at callsites
+      - name: Static architecture gates
         shell: bash
         run: |
           set -euo pipefail
-          if [ -f .arch-v2-write-state-split ]; then
-            echo 'Write-state split already applied.'
-            exit 0
+          test ! -e tests/v2/Architecture/CapabilityCoverageV2Test.php
+          test ! -e tests/v2/Workflows/KingdomTransfer
+          test -e tests/v2/Contexts/GameWorld/KingdomTransfers/CapabilitySurfaceV2Test.php
+          test ! -d app/Contexts/Operations/Reminders
+          test ! -e docs/architecture/decisions/0004-transactional-mutation-authority.md
+          test -e docs/architecture/decisions/0004-transactional-write-authorization.md
+
+          if find app -type f -name '*MutationAuthority.php' | grep -q .; then
+            echo 'MutationAuthority file remains.'
+            find app -type f -name '*MutationAuthority.php'
+            exit 1
           fi
+          if grep -R -n -E 'MutationAuthority' app routes bootstrap --include='*.php'; then
+            echo 'MutationAuthority reference remains.'
+            exit 1
+          fi
+          if find app/Workflows -type f \( -path '*/Models/*' -o -path '*/Migrations/*' -o -path '*/Repositories/*' -o -path '*/Access/*' \) | grep -q .; then
+            echo 'Workflows still owns persistence or permission vocabulary.'
+            exit 1
+          fi
+          if grep -R -n -E 'App\\Contexts\\(Operations|Alliance|GameWorld)\\' app/Contexts/Communications --include='*.php'; then
+            echo 'Communications imports a business-owning context.'
+            exit 1
+          fi
+          if grep -R -n -i -E 'capability coverage|capability-coverage|mutation authority' docs --include='*.md'; then
+            echo 'Superseded architecture vocabulary remains.'
+            exit 1
+          fi
+          if grep -n -E 'App\\Contexts\\Accounts\\Models\\User|belongsTo\(User::class|function[[:space:]]+user[[:space:]]*\(' app/Contexts/GameWorld/Models/Player.php; then
+            echo 'Player still navigates into Accounts.'
+            exit 1
+          fi
+
           python3 - <<'PY'
           from pathlib import Path
-          import re
 
-          def args(raw):
-              return [part.strip() for part in raw.split(',') if part.strip()]
-
-          def add_use(text, fqcn):
-              line = f'use {fqcn};'
-              if line in text:
-                  return text
-              m = re.search(r'^namespace [^;]+;\n', text, re.M)
-              if not m:
-                  raise RuntimeError(f'No namespace for {fqcn}')
-              return text[:m.end()] + '\n' + line + text[m.end():]
-
-          def add_state_dependency(text, auth_type, active_props, state_type, state_prop):
-              if re.search(rf'private(?:\s+readonly)?\s+{state_type}\s+\${state_prop}\b', text):
-                  return text
-              pat = re.compile(rf'private(?P<ro>\s+readonly)?\s+{auth_type}\s+\$(?P<prop>\w+)')
-              for m in pat.finditer(text):
-                  if m.group('prop') not in active_props:
-                      continue
-                  start = text.rfind('\n', 0, m.start()) + 1
-                  prefix = text[start:m.start()]
-                  if prefix.strip():
-                      raise RuntimeError(f'Inline constructor dependency: {auth_type} ${m.group("prop")}')
-                  modifier = 'private' + (m.group('ro') or '')
-                  return text[:start] + f'{prefix}{modifier} {state_type} ${state_prop},\n' + text[start:]
-              raise RuntimeError(f'No constructor slot for {state_type}')
-
-          def alliance_style(text, auth_types, state_type, state_fqcn, state_prop):
-              active_by_type = {}
-              for auth_type in auth_types:
-                  props = set(re.findall(rf'private(?:\s+readonly)?\s+{auth_type}\s+\$(\w+)', text))
-                  active = {p for p in props if re.search(rf'\$this->{p}->(?:require|requireExclusive)\(', text)}
-                  if active:
-                      active_by_type[auth_type] = active
-              if not active_by_type:
-                  return text
-
-              text = add_use(text, state_fqcn)
-              first_type = next(iter(active_by_type))
-              all_active = set().union(*active_by_type.values())
-              text = add_state_dependency(text, first_type, active_by_type[first_type], state_type, state_prop)
-
-              ternary = re.compile(
-                  r'(?P<i>^[ \t]*)(?P<lhs>\$\w+)\s*=\s*(?P<cond>[^?;]+?)\?\s*'
-                  r'\$this->(?P<p>\w+)->requireExclusive\((?P<a>[^;]*?)\)\s*:\s*'
-                  r'\$this->(?P=p)->require\((?P<b>[^;]*?)\);', re.M | re.S)
-              def tr(m):
-                  if m.group('p') not in all_active:
-                      return m.group(0)
-                  a, b = args(m.group('a')), args(m.group('b'))
-                  if len(a) != 3 or len(b) != 3 or a[2] != b[2]:
-                      raise RuntimeError(f'Unexpected conditional call: {m.group(0)}')
-                  i, lhs, p, cond = m.group('i'), m.group('lhs'), m.group('p'), m.group('cond').strip()
-                  return (f'{i}{lhs} = {cond}\n'
-                          f'{i}    ? $this->{state_prop}->lockExclusiveScope({a[0]}, {a[1]})\n'
-                          f'{i}    : $this->{state_prop}->lockActiveScope({b[0]}, {b[1]});\n'
-                          f'{i}$this->{p}->authorizeContext({lhs}, {a[2]});')
-              text = ternary.sub(tr, text)
-
-              direct = re.compile(
-                  r'(?P<i>^[ \t]*)(?P<lhs>\$\w+)\s*=\s*\$this->(?P<p>\w+)->'
-                  r'(?P<m>requireExclusive|require)\((?P<a>[^;]*?)\);', re.M | re.S)
-              def dr(m):
-                  if m.group('p') not in all_active:
-                      return m.group(0)
-                  a = args(m.group('a'))
-                  if len(a) != 3:
-                      raise RuntimeError(f'Unexpected call: {m.group(0)}')
-                  lock = 'lockExclusiveScope' if m.group('m') == 'requireExclusive' else 'lockActiveScope'
-                  i, lhs, p = m.group('i'), m.group('lhs'), m.group('p')
-                  return (f'{i}{lhs} = $this->{state_prop}->{lock}({a[0]}, {a[1]});\n'
-                          f'{i}$this->{p}->authorizeContext({lhs}, {a[2]});')
-              return direct.sub(dr, text)
-
-          def event_style(text):
-              props = set(re.findall(r'private(?:\s+readonly)?\s+EventAuthorization\s+\$(\w+)', text))
-              active = {p for p in props if re.search(rf'\$this->{p}->(?:requireManagerExclusive|requireManager|requireSelf|requireCreate|requireManage)\(', text)}
-              if not active:
-                  return text
-              text = add_use(text, 'App\\Contexts\\Operations\\EventCore\\Services\\EventWriteState')
-              text = add_state_dependency(text, 'EventAuthorization', active, 'EventWriteState', 'eventWriteState')
-              pat = re.compile(
-                  r'(?P<i>^[ \t]*)(?P<lhs>\$\w+)\s*=\s*\$this->(?P<p>\w+)->'
-                  r'(?P<m>requireManagerExclusive|requireManager|requireSelf|requireCreate|requireManage)\((?P<a>[^;]*?)\);', re.M | re.S)
-              def repl(m):
-                  if m.group('p') not in active:
-                      return m.group(0)
-                  a, method = args(m.group('a')), m.group('m')
-                  i, lhs, p = m.group('i'), m.group('lhs'), m.group('p')
-                  if method in ('requireManager', 'requireManagerExclusive'):
-                      if len(a) != 2: raise RuntimeError(m.group(0))
-                      exclusive = ', true' if method == 'requireManagerExclusive' else ''
-                      return (f'{i}{lhs} = $this->eventWriteState->lockEventScope({a[0]}, {a[1]}{exclusive});\n'
-                              f'{i}$this->{p}->authorizeManager({lhs});')
-                  if method == 'requireSelf':
-                      if len(a) != 3: raise RuntimeError(m.group(0))
-                      return (f'{i}{lhs} = $this->eventWriteState->lockSelfScope({a[0]}, {a[1]}, {a[2]});\n'
-                              f'{i}$this->{p}->authorizeSelf({lhs}, {a[2]});')
-                  if method in ('requireCreate', 'requireManage'):
-                      if len(a) != 3: raise RuntimeError(m.group(0))
-                      manage = ', true' if method == 'requireManage' else ''
-                      return (f'{i}{lhs} = $this->eventWriteState->lockCreationScope({a[0]}, {a[1]}, {a[2]});\n'
-                              f'{i}$this->{p}->authorizeCreation({lhs}{manage});')
-                  return m.group(0)
-              return pat.sub(repl, text)
-
-          def platform_style(text):
-              props = set(re.findall(r'private(?:\s+readonly)?\s+PlatformAuthorization\s+\$(\w+)', text))
-              active = {p for p in props if re.search(rf'\$this->{p}->require\(', text)}
-              if not active:
-                  return text
-              text = add_use(text, 'App\\Contexts\\Platform\\Access\\Services\\PlatformWriteState')
-              text = add_state_dependency(text, 'PlatformAuthorization', active, 'PlatformWriteState', 'platformWriteState')
-              pat = re.compile(r'(?P<i>^[ \t]*)(?P<lhs>\$\w+)\s*=\s*\$this->(?P<p>\w+)->require\((?P<a>[^;]*?)\);', re.M | re.S)
-              def repl(m):
-                  if m.group('p') not in active:
-                      return m.group(0)
-                  a = args(m.group('a'))
-                  if len(a) != 1: raise RuntimeError(m.group(0))
-                  i, lhs, p = m.group('i'), m.group('lhs'), m.group('p')
-                  return (f'{i}$writeContext = $this->platformWriteState->lock({a[0]});\n'
-                          f'{i}{lhs} = $this->{p}->authorizeContext($writeContext);')
-              return pat.sub(repl, text)
-
-          changed = []
-          for path in Path('app').rglob('*.php'):
-              text = original = path.read_text()
-              text = alliance_style(text,
-                  ('AllianceAuthorization', 'AllianceOperationsAuthorization', 'AllianceIntelligenceAuthorization', 'TransferAuthorization'),
-                  'AllianceWriteState', 'App\\Contexts\\Alliance\\Access\\Services\\AllianceWriteState', 'allianceWriteState')
-              text = alliance_style(text,
-                  ('KingdomAuthorization',),
-                  'KingdomWriteState', 'App\\Contexts\\GameWorld\\Governance\\Services\\KingdomWriteState', 'kingdomWriteState')
-              text = event_style(text)
-              text = platform_style(text)
-
-              if 'use App\\Contexts\\GameWorld\\Governance\\Services\\PlayerWriteState;' in text:
-                  for prop in re.findall(r'private(?:\s+readonly)?\s+PlayerWriteState\s+\$(\w+)', text):
-                      text = re.sub(rf'\$this->{prop}->require\(([^;()]*)\)', rf'$this->{prop}->lockActor(\1)', text)
-
-              if text != original:
-                  path.write_text(text)
-                  changed.append(str(path))
-
-          print(f'Changed {len(changed)} PHP files')
-          print('\n'.join(changed))
-
-          # Only the removed service APIs are forbidden. Generic private helper
-          # methods such as ContributionController::requireManager() are allowed.
-          forbidden_definitions = {
-              Path('app/Contexts/Alliance/Access/Services/AllianceAuthorization.php'): ('function require(', 'function requireExclusive(', 'function acquireActiveScope(', 'function acquireExclusiveScope('),
-              Path('app/Contexts/GameWorld/Governance/Services/KingdomAuthorization.php'): ('function require(', 'function requireExclusive(', 'function acquireActiveScope('),
-              Path('app/Contexts/Operations/EventCore/Services/EventAuthorization.php'): ('function requireManager(', 'function requireManagerExclusive(', 'function requireSelf(', 'function requireCreate(', 'function requireManage('),
-              Path('app/Contexts/Platform/Access/Services/PlatformAuthorization.php'): ('function require(',),
-              Path('app/Contexts/Intelligence/Access/Services/AllianceIntelligenceAuthorization.php'): ('function require(',),
-              Path('app/Contexts/GameWorld/KingdomTransfers/Access/Services/TransferAuthorization.php'): ('function require(', 'function requireExclusive('),
-          }
-          for path, needles in forbidden_definitions.items():
+          authorization_files = sorted(Path('app/Contexts').rglob('*Authorization.php'))
+          assert authorization_files, 'No authorization services found.'
+          forbidden = ('lockForUpdate', 'sharedLock', 'transactionLevel', 'DB::transaction', 'WriteState', 'MutationAuthority')
+          for path in authorization_files:
               source = path.read_text()
-              for needle in needles:
-                  if needle in source:
-                      raise RuntimeError(f'Removed API still defined in {path}: {needle}')
-          PY
+              for needle in forbidden:
+                  assert needle not in source, f'{path} contains forbidden transactional concern: {needle}'
 
-          find app -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/write-state-lint.log
-          tail -n 30 /tmp/write-state-lint.log
-          touch .arch-v2-write-state-split
-          git add -A
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'refactor: split write state from authorization callsites'
-          git push
+          write_state_files = [
+              Path('app/Contexts/Alliance/Access/Services/AllianceWriteState.php'),
+              Path('app/Contexts/GameWorld/Governance/Services/KingdomWriteState.php'),
+              Path('app/Contexts/GameWorld/Governance/Services/PlayerWriteState.php'),
+              Path('app/Contexts/Operations/EventCore/Services/EventWriteState.php'),
+              Path('app/Contexts/Platform/Access/Services/PlatformWriteState.php'),
+          ]
+          for path in write_state_files:
+              source = path.read_text()
+              assert 'transactionLevel' in source, f'{path} does not enforce transaction ownership.'
+              assert 'lockForUpdate' in source, f'{path} does not acquire a write lock.'
+              assert 'Permission::' not in source, f'{path} interprets permission vocabulary.'
+          PY
+      - name: PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find app bootstrap config database routes tests/v2 -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/php-lint.log
+          tail -n 30 /tmp/php-lint.log
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Architecture V2 tests
+        run: php artisan test tests/v2/Architecture/ArchitectureComplianceV2Test.php tests/v2/Architecture/ArchitectureBoundariesV2Test.php tests/v2/Architecture/MutationSafetyV2Test.php
+      - name: Targeted semantic behavior tests
+        run: php artisan test tests/v2/Contexts/Platform/Access tests/v2/Contexts/GameWorld/KingdomTransfers
+      - name: Pint check
+        run: composer lint:check
+      - name: Larastan
+        run: composer types:check
+      - name: Full V2 suite
+        run: php artisan test tests/v2
