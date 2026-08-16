@@ -1,5 +1,5 @@
 name: Architecture V2 Verification
-# V2 verification: rewritten contracts are isolated under V2 folders and named *V2Test.
+# V2 verification: rewritten contracts are isolated under lowercase v2 folders and named *V2Test.
 
 on:
   pull_request:
@@ -10,8 +10,8 @@ on:
       - 'config/**'
       - 'database/**'
       - 'routes/**'
-      - 'tests/Architecture/V2/**'
-      - 'tests/Feature/**/V2/**'
+      - 'tests/Architecture/v2/**'
+      - 'tests/Feature/**/v2/**'
       - 'tests/Support/V2/**'
       - '.github/workflows/architecture-v2-verification.yml'
   workflow_dispatch:
@@ -94,20 +94,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -d tests/Architecture/V2
-          test -d tests/Feature/Accounts/Core/V2
-          test -d tests/Feature/GameWorld/Core/V2
-          test -d tests/Feature/GameWorld/Governance/V2
-          test -d tests/Feature/Operations/EventCore/V2
-          test -d tests/Feature/Operations/Reminders/V2
-          test -d tests/Feature/Intelligence/Observations/V2
+          test -d tests/Architecture/v2
+          test -d tests/Feature/Accounts/Core/v2
+          test -d tests/Feature/GameWorld/Core/v2
+          test -d tests/Feature/GameWorld/Governance/v2
+          test -d tests/Feature/Operations/EventCore/v2
+          test -d tests/Feature/Operations/Reminders/v2
+          test -d tests/Feature/Intelligence/Observations/v2
 
           while IFS= read -r file; do
             case "$(basename "$file")" in
               *V2Test.php) ;;
               *) echo "Rewritten test must end in V2Test.php: $file"; exit 1 ;;
             esac
-          done < <(find tests/Architecture/V2 tests/Feature -type f -path '*/V2/*.php' | sort)
+          done < <(find tests/Architecture/v2 tests/Feature -type f -path '*/v2/*.php' | sort)
 
       - name: Verify Player persistence ownership
         shell: bash
@@ -164,13 +164,13 @@ jobs:
       - name: Check V2 PHP formatting
         run: >-
           vendor/bin/pint --test
-          tests/Architecture/V2
-          tests/Feature/Accounts/Core/V2
-          tests/Feature/GameWorld/Core/V2
-          tests/Feature/GameWorld/Governance/V2
-          tests/Feature/Operations/EventCore/V2
-          tests/Feature/Operations/Reminders/V2
-          tests/Feature/Intelligence/Observations/V2
+          tests/Architecture/v2
+          tests/Feature/Accounts/Core/v2
+          tests/Feature/GameWorld/Core/v2
+          tests/Feature/GameWorld/Governance/v2
+          tests/Feature/Operations/EventCore/v2
+          tests/Feature/Operations/Reminders/v2
+          tests/Feature/Intelligence/Observations/v2
           tests/Support/V2
           app/Contexts
           app/Shared
@@ -193,7 +193,7 @@ jobs:
           routes/web.php
 
       - name: Run rewritten V2 architecture regression suite
-        run: php artisan test tests/Architecture/V2
+        run: php artisan test tests/Architecture/v2
 
       - name: Larastan final owners
         run: >-
@@ -219,19 +219,19 @@ jobs:
           routes/platform.php
 
       - name: Run rewritten Accounts V2 contracts
-        run: php artisan test tests/Feature/Accounts/Core/V2
+        run: php artisan test tests/Feature/Accounts/Core/v2
 
       - name: Run rewritten GameWorld V2 contracts
         run: >-
           php artisan test
-          tests/Feature/GameWorld/Core/V2
-          tests/Feature/GameWorld/Governance/V2
+          tests/Feature/GameWorld/Core/v2
+          tests/Feature/GameWorld/Governance/v2
 
       - name: Run rewritten Operations V2 contracts
         run: >-
           php artisan test
-          tests/Feature/Operations/EventCore/V2
-          tests/Feature/Operations/Reminders/V2
+          tests/Feature/Operations/EventCore/v2
+          tests/Feature/Operations/Reminders/v2
 
       - name: Run rewritten Intelligence V2 contracts
-        run: php artisan test tests/Feature/Intelligence/Observations/V2
+        run: php artisan test tests/Feature/Intelligence/Observations/v2
