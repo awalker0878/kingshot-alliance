@@ -58,7 +58,7 @@ jobs:
           fetch-depth: 0
 
       - name: Create clean-room environment file
-        run: : > .env
+        run: touch .env
 
       - name: Configure PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
