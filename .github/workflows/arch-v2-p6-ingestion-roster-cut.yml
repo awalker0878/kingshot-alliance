@@ -67,14 +67,18 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Format P6 cut
-        run: >-
-          vendor/bin/pint
-          app/Contexts/Intelligence/Ingestion
-          app/Contexts/Intelligence/Roster
-          app/Contexts/GameWorld/Actions/ResolveKingdom.php
-          tests/Feature/Intelligence/Ingestion
-          tests/Feature/Intelligence/Roster
-          tests/Unit/Intelligence
+        shell: bash
+        run: |
+          set -euo pipefail
+          vendor/bin/pint \
+            app/Contexts/Intelligence/Ingestion \
+            app/Contexts/Intelligence/Roster \
+            app/Contexts/GameWorld/Actions/ResolveKingdom.php \
+            tests/Feature/Intelligence/Ingestion \
+            tests/Feature/Intelligence/Roster
+          if [ -d tests/Unit/Intelligence ]; then
+            vendor/bin/pint tests/Unit/Intelligence
+          fi
 
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
@@ -100,12 +104,16 @@ jobs:
           app/Contexts/GameWorld/Actions/ResolveKingdom.php
 
       - name: Run recovered P6 behavior contracts
-        run: >-
-          php artisan test
-          tests/Feature/Intelligence/Ingestion
-          tests/Feature/Intelligence/Roster
-          tests/Unit/Intelligence
-          tests/Architecture/ArchitectureV2IntelligenceTest.php
+        shell: bash
+        run: |
+          set -euo pipefail
+          php artisan test \
+            tests/Feature/Intelligence/Ingestion \
+            tests/Feature/Intelligence/Roster \
+            tests/Architecture/ArchitectureV2IntelligenceTest.php
+          if [ -d tests/Unit/Intelligence ]; then
+            php artisan test tests/Unit/Intelligence
+          fi
 
       - name: Remove one-shot refactor machinery
         shell: bash
