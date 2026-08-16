@@ -28,17 +28,17 @@ trait RepositoryDomainDocumentationAssertions
         }
     }
 
-    public function test_historical_domain_documentation_inventory_is_preserved_until_p10(): void
+    public function test_historical_and_deferred_domain_documentation_inventory_is_preserved_until_p10(): void
     {
         $documentationDomains = $this->directories($this->root().'/docs/domains');
 
-        self::assertSame($this->historicalDomainDocumentation(), $documentationDomains);
+        self::assertSame($this->domainDocumentationInventory(), $documentationDomains);
         self::assertDirectoryDoesNotExist($this->root().'/app/Domain');
 
         foreach ($documentationDomains as $domain) {
             self::assertFileExists(
                 $this->root().'/docs/domains/'.$domain.'/README.md',
-                sprintf('Missing historical domain documentation index: docs/domains/%s/README.md', $domain),
+                sprintf('Missing domain documentation index: docs/domains/%s/README.md', $domain),
             );
         }
     }
@@ -151,6 +151,24 @@ trait RepositoryDomainDocumentationAssertions
                 );
             }
         }
+    }
+
+    /** @return list<string> */
+    private function domainDocumentationInventory(): array
+    {
+        $domains = [
+            ...$this->historicalDomainDocumentation(),
+            ...$this->deferredDomainDocumentation(),
+        ];
+        sort($domains);
+
+        return $domains;
+    }
+
+    /** @return list<string> */
+    private function deferredDomainDocumentation(): array
+    {
+        return ['king-perks'];
     }
 
     /** @return list<string> */
