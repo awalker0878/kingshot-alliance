@@ -10,7 +10,16 @@ use App\Contexts\Operations\EventCore\Enums\EventPhaseType;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property EventPhaseType $phase_type
+ * @property EventPhaseStatus $status
+ * @property Carbon|null $starts_at
+ * @property Carbon|null $ends_at
+ * @property int $sort_order
+ * @property array<string, mixed>|null $settings
+ */
 final class EventPhase extends Model
 {
     use HasUlids;
