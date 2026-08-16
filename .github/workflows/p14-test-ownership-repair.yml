@@ -1,5 +1,5 @@
 name: P1-P4 Test Ownership Repair
-# Rerun after semantic permission and legacy roster caller corrections.
+# Final P1-P4 alignment pass: semantic authority + context-owned acceptance paths.
 
 on:
   push:
@@ -45,7 +45,7 @@ jobs:
           ref: architecture-v2
           fetch-depth: 0
 
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+      - uses: shivammathur/setup-php@f3e473d116dccc5834248c87452386958240
         with:
           php-version: '8.5'
           extensions: dom, intl, mbstring, pdo_pgsql, simplexml, xml, xmlwriter, zip
@@ -54,6 +54,40 @@ jobs:
 
       - run: composer install --no-interaction --no-progress --prefer-dist
       - run: php artisan migrate --force
+
+      - name: Repair any remaining legacy Kingdom-to-Alliance intelligence authority leaks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('app/Domain/Kingdoms')
+          for path in root.rglob('*.php'):
+              text = path.read_text()
+              if 'IntelligencePermission' not in text:
+                  continue
+              updated = text.replace(
+                  'use App\\Contexts\\Alliance\\Access\\Services\\AllianceMutationAuthority;',
+                  'use App\\Contexts\\Intelligence\\Access\\Services\\AllianceIntelligenceMutationAuthority;',
+              ).replace(
+                  'AllianceMutationAuthority $',
+                  'AllianceIntelligenceMutationAuthority $',
+              )
+              if updated != text:
+                  path.write_text(updated)
+          PY
+
+          python3 - <<'PY'
+          from pathlib import Path
+          bad = []
+          for path in Path('app/Domain/Kingdoms').rglob('*.php'):
+              text = path.read_text()
+              if 'IntelligencePermission' in text and 'Alliance\\Access\\Services\\AllianceMutationAuthority' in text:
+                  bad.append(str(path))
+          if bad:
+              raise SystemExit('Downstream Intelligence permissions still routed through Alliance in: '+', '.join(bad))
+          PY
 
       - name: Move Alliance V2 tests under context-owned paths
         shell: bash
@@ -91,6 +125,8 @@ jobs:
         run: |
           set -euo pipefail
           vendor/bin/pint \
+            app/Domain/Kingdoms/Actions/MarkRosterEntryLeft.php \
+            app/Domain/Kingdoms/Actions/SaveRosterEntry.php \
             tests/Architecture/ArchitectureV2DependencyTest.php \
             tests/Architecture/ArchitectureV2AllianceTest.php \
             tests/Feature/Accounts \
@@ -123,6 +159,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm .github/workflows/p14-test-ownership-repair.yml
-          git add tests
+          git add app/Domain/Kingdoms tests
           git commit -m 'test: align P1-P4 acceptance with V2 context ownership'
           git push origin HEAD:architecture-v2
