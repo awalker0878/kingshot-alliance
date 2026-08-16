@@ -12,6 +12,12 @@ use App\Contexts\GameWorld\Actions\PersistPlayerIdentity;
 use App\Contexts\GameWorld\Actions\ResolveKingdom;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Operations\EventCore\Actions\CreateEvent;
+use App\Contexts\Operations\EventCore\Enums\EventScope;
+use App\Contexts\Operations\EventCore\Models\Event;
+use App\Contexts\Operations\EventCore\Models\EventType;
+use App\Contexts\Operations\EventCore\Services\EventTypeRegistry;
+use Carbon\CarbonImmutable;
 
 final class ScenarioFactory
 {
@@ -67,5 +73,31 @@ final class ScenarioFactory
         );
 
         return [...$scenario, 'alliance' => $alliance];
+    }
+
+    /** @return array{user: User, kingdom: Kingdom, player: Player, alliance: Alliance, event: Event} */
+    public function allianceEvent(
+        int $kingdomNumber = 9001,
+        string $eventType = 'custom',
+        string $allianceSlug = 'v2-event-alliance',
+        ?CarbonImmutable $startsAt = null,
+    ): array {
+        $scenario = $this->alliance(
+            $kingdomNumber,
+            'V2 Event Owner',
+            'V2 Event Alliance',
+            $allianceSlug,
+        );
+        $type = EventType::query()->where('slug', $eventType)->sole();
+        $configuration = app(EventTypeRegistry::class)->scope($type, EventScope::Alliance);
+        $event = app(CreateEvent::class)->handle(
+            actor: $scenario['player'],
+            configuration: $configuration,
+            target: $scenario['alliance'],
+            firstLocalStart: $startsAt ?? CarbonImmutable::now('UTC')->addDay()->startOfHour(),
+            durationMinutes: 60,
+        );
+
+        return [...$scenario, 'event' => $event];
     }
 }
