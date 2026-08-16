@@ -101,6 +101,7 @@ jobs:
           test -d tests/Feature/Alliance/Core/v2
           test -d tests/Feature/Alliance/Access/v2
           test -d tests/Feature/Alliance/Membership/v2
+          test -d tests/Feature/Alliance/Content/v2
           test -d tests/Feature/Operations/EventCore/v2
           test -d tests/Feature/Operations/Reminders/v2
           test -d tests/Feature/Intelligence/Observations/v2
@@ -175,6 +176,7 @@ jobs:
           tests/Feature/Alliance/Core/v2
           tests/Feature/Alliance/Access/v2
           tests/Feature/Alliance/Membership/v2
+          tests/Feature/Alliance/Content/v2
           tests/Feature/Operations/EventCore/v2
           tests/Feature/Operations/Reminders/v2
           tests/Feature/Intelligence/Observations/v2
@@ -241,6 +243,7 @@ jobs:
           tests/Feature/Alliance/Core/v2
           tests/Feature/Alliance/Access/v2
           tests/Feature/Alliance/Membership/v2
+          tests/Feature/Alliance/Content/v2
 
       - name: Run rewritten Registration workflow V2 contracts
         run: php artisan test tests/Feature/Workflows/Registration/v2
