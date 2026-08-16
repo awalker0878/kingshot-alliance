@@ -27,16 +27,18 @@ final class EventPhasePollArchitectureTest extends TestCase
     public function test_vote_route_uses_active_player_context_without_player_route_identity(): void
     {
         $routes = $this->read('routes/web.php');
-        $controller = $this->read('app/Domain/Events/Http/Controllers/EventOperationsController.php');
+        $controller = $this->read('app/Contexts/Operations/EventCore/Http/Controllers/EventOperationsController.php');
 
         self::assertStringContainsString("Route::put('/events/{occurrence}/polls/{poll}/vote'", $routes);
-        self::assertStringContainsString('$player = $context->playerOrNull();', $controller);
+        self::assertStringContainsString('private readonly PlayerContext $playerContext', $controller);
+        self::assertStringContainsString('$actor = $this->player();', $controller);
+        self::assertStringContainsString('$this->playerContext->playerOrNull()', $controller);
         self::assertStringContainsString('CastEventPollVote', $controller);
     }
 
     public function test_swordland_operations_are_catalogue_driven(): void
     {
-        $catalogue = $this->read('app/Domain/Events/Catalog/KingShotEventTypeCatalog.php');
+        $catalogue = $this->read('app/Contexts/Operations/EventCore/Catalog/KingShotEventTypeCatalog.php');
 
         self::assertStringContainsString("self::type('swordland-showdown'", $catalogue);
         self::assertStringContainsString("'default_phases'", $catalogue);
@@ -50,8 +52,8 @@ final class EventPhasePollArchitectureTest extends TestCase
         $show = $this->read('resources/js/pages/Events/Show.vue');
         $manage = $this->read('resources/js/pages/Events/Manage.vue');
 
-        self::assertStringContainsString("event.capabilities.includes('phases')", $show);
-        self::assertStringContainsString("event.capabilities.includes('polls')", $show);
+        self::assertStringContainsString('event.operations.phases.length', $show);
+        self::assertStringContainsString('event.operations.polls.length', $show);
         self::assertStringContainsString("event.capabilities.includes('phases')", $manage);
         self::assertStringContainsString("event.capabilities.includes('polls')", $manage);
         self::assertStringContainsString('saveVote', $show);
