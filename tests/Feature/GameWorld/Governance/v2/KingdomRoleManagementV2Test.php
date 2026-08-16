@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\GameWorld\Governance\V2;
+namespace Tests\Feature\GameWorld\Governance\v2;
 
 use App\Contexts\GameWorld\Governance\Actions\AssignKingdomRole;
 use App\Contexts\GameWorld\Governance\Actions\BootstrapKingdomAdministrator;
