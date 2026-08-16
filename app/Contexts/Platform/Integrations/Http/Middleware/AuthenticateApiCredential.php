@@ -7,13 +7,16 @@ namespace App\Contexts\Platform\Integrations\Http\Middleware;
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\TenantContextSnapshot;
+use App\Contexts\Platform\Integrations\Actions\RecordApiCredentialUse;
 use App\Contexts\Platform\Integrations\Models\ApiCredential;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-final class AuthenticateApiCredential
+final readonly class AuthenticateApiCredential
 {
+    public function __construct(private RecordApiCredentialUse $recordUse) {}
+
     public function handle(Request $request, Closure $next, string $requiredScope = 'alliance:read'): Response
     {
         $token = $request->bearerToken();
@@ -37,9 +40,7 @@ final class AuthenticateApiCredential
             abort(403, 'The alliance is not available for API access.');
         }
 
-        if ($credential->last_used_at === null || $credential->last_used_at->lt(now()->subMinutes(5))) {
-            $credential->forceFill(['last_used_at' => now()])->save();
-        }
+        $this->recordUse->handle($credential);
 
         $request->attributes->set('alliance_id', (string) $alliance->id);
         $request->attributes->set('api_credential_id', (string) $credential->id);
