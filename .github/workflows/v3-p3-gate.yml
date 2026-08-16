@@ -1,0 +1,44 @@
+name: V3 CA-P3 Gate
+
+on:
+  push:
+    branches:
+      - architecture-v3-capability-alignment
+
+permissions:
+  contents: write
+
+jobs:
+  gate:
+    if: ${{ !contains(github.event.head_commit.message, 'record CA-P3 gate') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v3-capability-alignment
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+      - name: Run P3 write invariant
+        shell: bash
+        run: |
+          set +e
+          vendor/bin/phpunit tests/v3/Architecture/CrossContextPersistenceV3Test.php > /tmp/p3.txt 2>&1
+          status=$?
+          rm -f ARCH_V3_P3_GATE_PASS ARCH_V3_P3_GATE_FAIL.txt
+          if [ "$status" -eq 0 ]; then
+            printf 'PASS\n' > ARCH_V3_P3_GATE_PASS
+          else
+            cp /tmp/p3.txt ARCH_V3_P3_GATE_FAIL.txt
+          fi
+      - name: Commit gate result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A ARCH_V3_P3_GATE_PASS ARCH_V3_P3_GATE_FAIL.txt || true
+          git commit -m "chore(v3): record CA-P3 gate [skip ci]" || exit 0
+          git push origin HEAD:architecture-v3-capability-alignment
