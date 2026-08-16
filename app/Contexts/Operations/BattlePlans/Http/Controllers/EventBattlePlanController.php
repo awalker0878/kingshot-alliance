@@ -31,7 +31,7 @@ final class EventBattlePlanController extends Controller
         $actor = $this->player();
         $record = $events->occurrence($actor, $occurrence);
         $validated = $this->validateObjective($request);
-        $parent = isset($validated['parent_id']) && $validated['parent_id'] !== null
+        $parent = isset($validated['parent_id'])
             ? EventObjective::query()->whereKey((string) $validated['parent_id'])->where('occurrence_id', $record->id)->firstOrFail()
             : null;
 
@@ -59,7 +59,7 @@ final class EventBattlePlanController extends Controller
         $record = $events->occurrence($actor, $occurrence);
         $objectiveRecord = EventObjective::query()->whereKey($objective)->where('occurrence_id', $record->id)->firstOrFail();
         $validated = $this->validateObjective($request);
-        $parent = isset($validated['parent_id']) && $validated['parent_id'] !== null
+        $parent = isset($validated['parent_id'])
             ? EventObjective::query()->whereKey((string) $validated['parent_id'])->where('occurrence_id', $record->id)->firstOrFail()
             : null;
 

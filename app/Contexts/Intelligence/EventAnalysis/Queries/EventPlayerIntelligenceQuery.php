@@ -33,7 +33,7 @@ final readonly class EventPlayerIntelligenceQuery
             $this->historicalOccurrenceIds($event, comparableScoresOnly: true),
         );
 
-        return $players->map(fn (Player $player): array => $metrics[(string) $player->id])->all();
+        return array_values($players->map(fn (Player $player): array => $metrics[(string) $player->id])->all());
     }
 
     /** @return array<string,mixed> */
@@ -138,6 +138,7 @@ final readonly class EventPlayerIntelligenceQuery
             $unresolved = $committed->diff($resolved)->unique();
             $denominator = $completed->count() + $missed->count();
             $playerScores = $scores->get($id, collect())->pluck('score')->map(static fn ($score): int => (int) $score);
+            $averageScore = $playerScores->avg();
 
             $result[$id] = [
                 'playerId' => $id,
@@ -149,7 +150,7 @@ final readonly class EventPlayerIntelligenceQuery
                 'unresolved' => $unresolved->count(),
                 'reliabilityPercent' => $denominator === 0 ? null : round(($completed->count() / $denominator) * 100, 1),
                 'resultCount' => $playerScores->count(),
-                'averageScore' => $playerScores->isEmpty() ? null : (int) round($playerScores->avg()),
+                'averageScore' => $averageScore === null ? null : (int) round((float) $averageScore),
                 'bestScore' => $playerScores->isEmpty() ? null : (int) $playerScores->max(),
                 'latestScore' => $playerScores->first(),
             ];
