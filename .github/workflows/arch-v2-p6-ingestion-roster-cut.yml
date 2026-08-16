@@ -1,6 +1,6 @@
 name: ARCH V2 P6 Ingestion Roster Cut
 # corrected boundary pass
-# v2 boundary fixups
+# behavior contract rewrite pass
 
 on:
   push:
@@ -10,6 +10,7 @@ on:
       - '.github/workflows/arch-v2-p6-ingestion-roster-cut.yml'
       - '.github/scripts/arch_v2_p6_ingestion_roster_cut.py'
       - '.github/scripts/arch_v2_p6_ingestion_roster_fixups_v2.py'
+      - '.github/scripts/arch_v2_p6_behavior_fixups.py'
 
 permissions:
   contents: write
@@ -58,6 +59,7 @@ jobs:
         run: |
           python3 .github/scripts/arch_v2_p6_ingestion_roster_cut.py
           python3 .github/scripts/arch_v2_p6_ingestion_roster_fixups_v2.py
+          python3 .github/scripts/arch_v2_p6_behavior_fixups.py
 
       - name: Configure PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
@@ -97,6 +99,8 @@ jobs:
           if [ -n "$refs" ]; then echo "$refs"; exit 1; fi
           stale=$(grep -R -n --include='*.php' -E 'App\\Contexts\\GameWorld\\Models\\(KingdomIngestion|PlayerSnapshot|RosterImport|KingdomAllianceObservation|TrackedKingdomAlliance)' app routes bootstrap config database tests 2>/dev/null || true)
           if [ -n "$stale" ]; then echo "$stale"; exit 1; fi
+          split_config=$(grep -R -n --include='*.php' -F 'intelligence.ingestion.' app routes bootstrap config database tests 2>/dev/null || true)
+          if [ -n "$split_config" ]; then echo "$split_config"; exit 1; fi
           test ! -e config/kingdoms.php
           test -e config/intelligence.php
 
@@ -128,6 +132,7 @@ jobs:
           rm -f .github/scripts/arch_v2_p6_ingestion_roster_cut.py
           rm -f .github/scripts/arch_v2_p6_ingestion_roster_fixups.py
           rm -f .github/scripts/arch_v2_p6_ingestion_roster_fixups_v2.py
+          rm -f .github/scripts/arch_v2_p6_behavior_fixups.py
 
       - name: Commit P6 ingestion and roster cut
         shell: bash
