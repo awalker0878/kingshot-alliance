@@ -104,8 +104,14 @@ jobs:
       - name: Verify PostgreSQL 18 fresh schema
         run: php artisan migrate:fresh --force
 
-      - name: Run complete clean-room V2 PHPUnit suite
-        run: php artisan test tests/v2
+      - name: Run warning-free clean-room V2 PHPUnit suite
+        run: >-
+          php artisan test tests/v2
+          --display-warnings
+          --display-deprecations
+          --display-phpunit-deprecations
+          --fail-on-warning
+          --fail-on-risky
 
       - name: Larastan all final V2 owners
         run: >-
@@ -150,6 +156,10 @@ jobs:
             exit 1
           fi
 
+          # GitHub Actions tokens cannot update workflow files without workflows permission.
+          # Preserve the checked-in verifier here and update it separately through the GitHub connector.
+          git restore --source=HEAD -- .github/workflows/architecture-v2-verification.yml
+          rm -rf playwright-report test-results
           rm .github/scripts/arch_v2_clean_room_tests.py
           rm .github/scripts/arch_v2_clean_room_test_fixups.py
           rm .github/workflows/architecture-v2-clean-room-tests.yml
