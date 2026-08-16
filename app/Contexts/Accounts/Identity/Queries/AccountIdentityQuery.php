@@ -44,6 +44,7 @@ final class AccountIdentityQuery
             email: (string) $user->email,
             emailVerified: $user->hasVerifiedEmail(),
             multiFactorConfirmed: $user->two_factor_confirmed_at !== null,
+            anonymized: $user->anonymized_at !== null,
         );
     }
 }
