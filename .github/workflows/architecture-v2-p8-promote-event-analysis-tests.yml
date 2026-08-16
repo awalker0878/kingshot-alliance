@@ -1,0 +1,110 @@
+name: Architecture V2 P8 Promote EventAnalysis Tests
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths:
+      - '.github/scripts/arch_v2_p8_promote_event_analysis_tests.py'
+      - '.github/workflows/architecture-v2-p8-promote-event-analysis-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: architecture-v2-p8-promote-event-analysis-tests
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Promote EventAnalysis rewrite-input tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+
+    steps:
+      - name: Check out architecture-v2
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v2
+          fetch-depth: 0
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Promote EventAnalysis tests
+        run: python3 .github/scripts/arch_v2_p8_promote_event_analysis_tests.py
+
+      - name: Verify rewrite staging root is gone
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -d tests/RewriteInput
+          test -d tests/Feature/Intelligence/EventAnalysis
+          test "$(find tests/Feature/Intelligence/EventAnalysis -maxdepth 1 -name '*.php' | wc -l)" -eq 10
+          if grep -R -n --include='*.php' 'Tests\\RewriteInput' tests; then
+            exit 1
+          fi
+
+      - name: Check promoted test formatting
+        run: vendor/bin/pint --test tests/Feature/Intelligence/EventAnalysis
+
+      - name: Verify PostgreSQL schema
+        run: php artisan migrate:fresh --force
+
+      - name: Run promoted EventAnalysis tests
+        run: php artisan test tests/Feature/Intelligence/EventAnalysis
+
+      - name: Run repository and Intelligence architecture contracts
+        run: php artisan test tests/Architecture/RepositoryStructureTest.php tests/Architecture/ArchitectureV2IntelligenceTest.php
+
+      - name: Larastan EventAnalysis owner
+        run: vendor/bin/phpstan analyse app/Contexts/Intelligence/EventAnalysis --memory-limit=1G --no-progress
+
+      - name: Commit verified promotion
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/scripts/arch_v2_p8_promote_event_analysis_tests.py
+          rm .github/workflows/architecture-v2-p8-promote-event-analysis-tests.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "ARCH-V2-P8: promote EventAnalysis test ownership"
+          git push origin HEAD:architecture-v2
