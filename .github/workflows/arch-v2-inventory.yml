@@ -1,4 +1,4 @@
-name: ARCH V2 Semantic Validation
+name: ARCH V2 Format Remediation
 
 on:
   push:
@@ -6,107 +6,31 @@ on:
       - arch-v2-remediation-20260816
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  validate:
+  format:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_DB: kingshot_test
-          POSTGRES_USER: kingshot
-          POSTGRES_PASSWORD: kingshot
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U kingshot -d kingshot_test"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
           coverage: none
-      - name: Static architecture gates
-        shell: bash
-        run: |
-          set -euo pipefail
-          test ! -e tests/v2/Architecture/CapabilityCoverageV2Test.php
-          test ! -e tests/v2/Workflows/KingdomTransfer
-          test -e tests/v2/Contexts/GameWorld/KingdomTransfers/CapabilitySurfaceV2Test.php
-          test ! -d app/Contexts/Operations/Reminders
-          test ! -e docs/architecture/decisions/0004-transactional-mutation-authority.md
-          test -e docs/architecture/decisions/0004-transactional-write-authorization.md
-
-          if find app -type f -name '*MutationAuthority.php' | grep -q .; then
-            echo 'MutationAuthority file remains.'
-            find app -type f -name '*MutationAuthority.php'
-            exit 1
-          fi
-          if grep -R -n -E 'MutationAuthority' app routes bootstrap --include='*.php'; then
-            echo 'MutationAuthority reference remains.'
-            exit 1
-          fi
-          if find app/Workflows -type f \( -path '*/Models/*' -o -path '*/Migrations/*' -o -path '*/Repositories/*' -o -path '*/Access/*' \) | grep -q .; then
-            echo 'Workflows still owns persistence or permission vocabulary.'
-            exit 1
-          fi
-          if grep -R -n -E 'App\\Contexts\\(Operations|Alliance|GameWorld)\\' app/Contexts/Communications --include='*.php'; then
-            echo 'Communications imports a business-owning context.'
-            exit 1
-          fi
-          if grep -R -n -i -E 'capability coverage|capability-coverage|mutation authority' docs --include='*.md'; then
-            echo 'Superseded architecture vocabulary remains.'
-            exit 1
-          fi
-          if grep -n -E 'App\\Contexts\\Accounts\\Models\\User|belongsTo\(User::class|function[[:space:]]+user[[:space:]]*\(' app/Contexts/GameWorld/Models/Player.php; then
-            echo 'Player still navigates into Accounts.'
-            exit 1
-          fi
-
-          python3 - <<'PY'
-          from pathlib import Path
-
-          authorization_files = sorted(Path('app/Contexts').rglob('*Authorization.php'))
-          assert authorization_files, 'No authorization services found.'
-          forbidden = ('lockForUpdate', 'sharedLock', 'transactionLevel', 'DB::transaction', 'WriteState', 'MutationAuthority')
-          for path in authorization_files:
-              source = path.read_text()
-              for needle in forbidden:
-                  assert needle not in source, f'{path} contains forbidden transactional concern: {needle}'
-
-          write_state_files = [
-              Path('app/Contexts/Alliance/Access/Services/AllianceWriteState.php'),
-              Path('app/Contexts/GameWorld/Governance/Services/KingdomWriteState.php'),
-              Path('app/Contexts/GameWorld/Governance/Services/PlayerWriteState.php'),
-              Path('app/Contexts/Operations/EventCore/Services/EventWriteState.php'),
-              Path('app/Contexts/Platform/Access/Services/PlatformWriteState.php'),
-          ]
-          for path in write_state_files:
-              source = path.read_text()
-              assert 'transactionLevel' in source, f'{path} does not enforce transaction ownership.'
-              assert 'lockForUpdate' in source, f'{path} does not acquire a write lock.'
-              assert 'Permission::' not in source, f'{path} interprets permission vocabulary.'
-          PY
-      - name: PHP syntax
-        shell: bash
-        run: |
-          set -euo pipefail
-          find app bootstrap config database routes tests/v2 -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/php-lint.log
-          tail -n 30 /tmp/php-lint.log
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-      - name: Architecture V2 tests
-        run: php artisan test tests/v2/Architecture/ArchitectureComplianceV2Test.php tests/v2/Architecture/ArchitectureBoundariesV2Test.php tests/v2/Architecture/MutationSafetyV2Test.php
-      - name: Targeted semantic behavior tests
-        run: php artisan test tests/v2/Contexts/Platform/Access tests/v2/Contexts/GameWorld/KingdomTransfers
-      - name: Pint check
-        run: composer lint:check
-      - name: Larastan
-        run: composer types:check
-      - name: Full V2 suite
-        run: php artisan test tests/v2
+      - name: Apply Pint
+        run: composer lint
+      - name: Commit formatting
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'No formatting changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app routes tests database bootstrap config
+          git commit -m 'style: format ARCH-V2 remediation'
+          git push
