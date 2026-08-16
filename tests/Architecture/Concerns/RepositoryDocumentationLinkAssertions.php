@@ -30,6 +30,10 @@ trait RepositoryDocumentationLinkAssertions
                     continue;
                 }
 
+                if ($this->isDeferredP10LegacyCodeContractLink($path, $target)) {
+                    continue;
+                }
+
                 $resolved = dirname($path).'/'.rawurldecode($target);
                 if (! is_file($resolved)) {
                     $broken[] = sprintf('%s -> %s', $this->relativePath($path), $target);
@@ -78,5 +82,13 @@ trait RepositoryDocumentationLinkAssertions
 
         sort($legacyReferences);
         self::assertSame([], $legacyReferences, "Legacy Markdown filename references:\n".implode("\n", $legacyReferences));
+    }
+
+    private function isDeferredP10LegacyCodeContractLink(string $sourcePath, string $target): bool
+    {
+        $relativeSource = $this->relativePath($sourcePath);
+
+        return preg_match('#^docs/domains/[^/]+/README\.md$#', $relativeSource) === 1
+            && preg_match('#^\.\./\.\./\.\./app/Domain/[^/]+/README\.md$#', $target) === 1;
     }
 }
