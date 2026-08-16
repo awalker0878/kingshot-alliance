@@ -9,6 +9,7 @@ on:
     paths:
       - '.github/workflows/arch-v2-p6-ingestion-roster-cut.yml'
       - '.github/scripts/arch_v2_p6_ingestion_roster_cut.py'
+      - '.github/scripts/arch_v2_p6_ingestion_roster_fixups.py'
 
 permissions:
   contents: write
@@ -54,7 +55,9 @@ jobs:
           fetch-depth: 0
 
       - name: Hard cut Intelligence ingestion and roster ownership
-        run: python3 .github/scripts/arch_v2_p6_ingestion_roster_cut.py
+        run: |
+          python3 .github/scripts/arch_v2_p6_ingestion_roster_cut.py
+          python3 .github/scripts/arch_v2_p6_ingestion_roster_fixups.py
 
       - name: Configure PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
@@ -123,6 +126,7 @@ jobs:
           rm -f .github/workflows/arch-v2-p6-observations-cut-v2.yml
           rm -f .github/workflows/arch-v2-p6-ingestion-roster-cut.yml
           rm -f .github/scripts/arch_v2_p6_ingestion_roster_cut.py
+          rm -f .github/scripts/arch_v2_p6_ingestion_roster_fixups.py
 
       - name: Commit P6 ingestion and roster cut
         shell: bash
