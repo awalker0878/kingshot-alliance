@@ -8,117 +8,48 @@ use PHPUnit\Framework\TestCase;
 
 final class AzureDeploymentDocumentationTest extends TestCase
 {
-    /** @return list<string> */
-    private function azureDeploymentFiles(): array
+    public function test_provider_deployment_stays_inside_system_operations(): void
     {
-        return [
-            'docs/operations/deployment/README.md',
-            'docs/operations/deployment/azure/README.md',
-            'docs/operations/deployment/azure/bootstrap.md',
-            'docs/operations/deployment/azure/networking.md',
-            'docs/operations/deployment/azure/data-services.md',
-            'docs/operations/deployment/azure/container-apps.md',
-            'docs/operations/deployment/azure/email.md',
-            'docs/operations/deployment/azure/application-configuration.md',
-            'docs/operations/deployment/azure/github-actions.md',
-            'docs/operations/deployment/azure/validation-and-recovery.md',
-        ];
+        self::assertFileExists($this->root().'/docs/operations/deployment/azure.md');
+        self::assertDirectoryDoesNotExist($this->root().'/docs/deployment');
+        self::assertStringContainsString('Azure/container deployment', $this->read('docs/operations/deployment/azure.md'));
     }
 
-    public function test_provider_deployment_lives_under_shared_operations(): void
+    public function test_azure_runtime_document_preserves_current_hosted_invariants(): void
     {
-        self::assertDirectoryDoesNotExist(
-            $this->root().'/docs/deployment',
-            'Provider deployment documentation belongs under docs/operations/deployment/, not a new top-level docs group.',
-        );
-
-        foreach ($this->azureDeploymentFiles() as $path) {
-            self::assertFileExists($this->root().'/'.$path, $path);
-        }
-    }
-
-    public function test_azure_deployment_index_links_every_required_procedure(): void
-    {
-        $index = $this->read('docs/operations/deployment/azure/README.md');
+        $azure = $this->read('docs/operations/deployment/azure.md');
 
         foreach ([
-            'bootstrap.md',
-            'networking.md',
-            'data-services.md',
-            'container-apps.md',
-            'email.md',
-            'application-configuration.md',
-            'github-actions.md',
-            'validation-and-recovery.md',
-        ] as $file) {
-            self::assertStringContainsString($file, $index, $file);
+            'immutable web application image',
+            'PostgreSQL 18-compatible',
+            'Redis service',
+            'S3-compatible',
+            'managed secret injection',
+            'same immutable image identity',
+            'trusted proxies',
+            'webhook egress policy',
+        ] as $invariant) {
+            self::assertStringContainsString($invariant, $azure, $invariant);
         }
-
-        $operations = $this->read('docs/operations/README.md');
-        self::assertStringContainsString('deployment/README.md', $operations);
-        self::assertStringContainsString('deployment/azure/README.md', $operations);
-
-        $standard = $this->read('docs/product/documentation-standard.md');
-        self::assertStringContainsString('docs/operations/deployment/<provider>/', $standard);
-        self::assertStringContainsString('`docs/deployment/`', $standard);
     }
 
-    public function test_azure_deployment_examples_remain_placeholder_only_for_sensitive_identifiers(): void
+    public function test_provider_documentation_contains_no_literal_guid_or_laravel_secret_material(): void
     {
-        $combined = implode("\n", array_map(
-            fn (string $path): string => $this->read($path),
-            $this->azureDeploymentFiles(),
-        ));
-
-        foreach ([
-            '<AZURE-SUBSCRIPTION-ID>',
-            '<AZURE-REGION>',
-            '<APP-PREFIX>',
-            '<GITHUB-OWNER>',
-            '<GITHUB-REPOSITORY>',
-        ] as $placeholder) {
-            self::assertStringContainsString($placeholder, $combined, $placeholder);
-        }
+        $azure = $this->read('docs/operations/deployment/azure.md');
 
         self::assertDoesNotMatchRegularExpression(
             '/\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/',
-            $combined,
-            'Provider documentation must not contain literal Azure/Entra GUID-shaped identifiers.',
+            $azure,
         );
-
-        self::assertDoesNotMatchRegularExpression(
-            '/base64:[A-Za-z0-9+\/=]{20,}/',
-            $combined,
-            'Provider documentation must not contain literal Laravel-style base64 secret material.',
-        );
+        self::assertDoesNotMatchRegularExpression('/base64:[A-Za-z0-9+\/=]{20,}/', $azure);
     }
 
-    public function test_azure_blueprint_documents_immutable_and_private_runtime_invariants(): void
+    public function test_documentation_standard_keeps_provider_material_under_operations(): void
     {
-        $index = $this->read('docs/operations/deployment/azure/README.md');
-        $containers = $this->read('docs/operations/deployment/azure/container-apps.md');
-        $data = $this->read('docs/operations/deployment/azure/data-services.md');
-        $configuration = $this->read('docs/operations/deployment/azure/application-configuration.md');
-        $email = $this->read('docs/operations/deployment/azure/email.md');
+        $standard = $this->read('docs/governance/documentation-standard.md');
 
-        self::assertStringContainsString('same immutable image', $index);
-        self::assertStringContainsString('127.0.0.1:9000', $index);
-        self::assertStringContainsString('allowInsecure: false', $containers);
-        self::assertStringContainsString('schedule:run', $containers);
-        self::assertStringContainsString('migrate --force', $containers);
-        self::assertStringContainsString('--clustering-policy NoCluster', $data);
-        self::assertStringContainsString('REDIS_PORT=10000', $data);
-        self::assertStringContainsString('REDIS_SCHEME=tls', $data);
-        self::assertStringContainsString('REDIS_DB=0', $data);
-        self::assertStringContainsString('REDIS_CACHE_DB=0', $data);
-        self::assertStringNotContainsString('REDIS_CACHE_DB=1', $containers);
-        self::assertStringContainsString('PULSE_ENABLED=false', $configuration);
-        self::assertStringContainsString('SESSION_SECURE_COOKIE=true', $configuration);
-        self::assertStringContainsString('MAIL_MAILER=smtp', $configuration);
-        self::assertStringContainsString('MAIL_HOST=smtp.azurecomm.net', $configuration);
-        self::assertStringContainsString('smtp.azurecomm.net', $email);
-        self::assertStringContainsString('MAIL_PASSWORD=secretref:smtp-password', $email);
-        self::assertStringContainsString('Communication and Email Service Owner', $email);
+        self::assertStringContainsString('Operations | How is the application deployed, monitored and recovered?', $standard);
+        self::assertStringContainsString('Deployment', $this->read('docs/operations/README.md'));
     }
 
     private function read(string $path): string

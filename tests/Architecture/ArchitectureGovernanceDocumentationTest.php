@@ -8,164 +8,78 @@ use PHPUnit\Framework\TestCase;
 
 final class ArchitectureGovernanceDocumentationTest extends TestCase
 {
-    public function test_required_p6_architecture_governance_artifacts_exist(): void
+    public function test_documentation_uses_the_canonical_reader_intent_structure(): void
     {
-        foreach ([
-            'docs/product/architecture-governance-standard.md',
-            'docs/product/architecture-governance-coverage-matrix.md',
-            'docs/product/cross-domain-dependency-map.md',
-            'docs/product/glossary.md',
-            'docs/product/current-capability-matrix.md',
-            'docs/product/repository-structure-audit.md',
-            'docs/product/domain-boundary-audit.md',
-            'docs/adr/README.md',
-        ] as $path) {
-            self::assertFileExists($this->root().'/'.$path, $path);
+        $directories = $this->directories($this->root().'/docs');
+
+        self::assertSame([
+            'architecture',
+            'codebase',
+            'governance',
+            'operations',
+            'product',
+            'reference',
+        ], $directories);
+
+        foreach (['domains', 'adr', 'security', 'contexts', 'legacy', 'wiki'] as $legacy) {
+            self::assertDirectoryDoesNotExist($this->root().'/docs/'.$legacy);
         }
     }
 
-    public function test_all_numbered_adrs_are_indexed_and_use_allowed_statuses(): void
+    public function test_architecture_documents_the_v2_contexts_and_composition_layers(): void
     {
-        $index = $this->read('docs/adr/README.md');
-        $allowed = ['Proposed', 'Accepted', 'Superseded', 'Rejected'];
-        $files = glob($this->root().'/docs/adr/[0-9][0-9][0-9][0-9]-*.md') ?: [];
+        $index = $this->read('docs/architecture/contexts/README.md');
 
-        self::assertNotSame([], $files);
+        foreach (['Accounts', 'GameWorld', 'Alliance', 'Operations', 'Intelligence', 'Communications', 'Platform'] as $context) {
+            self::assertStringContainsString($context, $index);
+        }
 
-        foreach ($files as $file) {
+        $overview = $this->read('docs/architecture/system-overview.md');
+        foreach (['app/ReadModels', 'app/Workflows', 'app/Shared'] as $layer) {
+            self::assertStringContainsString($layer, $overview);
+        }
+    }
+
+    public function test_living_architecture_is_separate_from_decision_history(): void
+    {
+        $index = $this->read('docs/architecture/decisions/README.md');
+        $decisions = glob($this->root().'/docs/architecture/decisions/[0-9][0-9][0-9][0-9]-*.md') ?: [];
+
+        self::assertNotSame([], $decisions);
+
+        foreach ($decisions as $file) {
             $source = file_get_contents($file);
             self::assertIsString($source);
-
-            self::assertMatchesRegularExpression('/^- \*\*Status:\*\* (Proposed|Accepted|Superseded|Rejected)$/m', $source, $file);
-            self::assertStringContainsString(basename($file), $index, basename($file).' is missing from the ADR index.');
-
-            preg_match('/^- \*\*Status:\*\* ([^\r\n]+)$/m', $source, $matches);
-            self::assertContains($matches[1] ?? null, $allowed, $file);
+            self::assertMatchesRegularExpression('/^Status: (Proposed|Accepted|Superseded|Rejected)$/m', $source, $file);
+            self::assertStringContainsString(basename($file), $index, basename($file).' is missing from the decision index.');
         }
+
+        self::assertStringContainsString('living architecture', strtolower($index));
+        self::assertStringContainsString('git history', strtolower($index));
     }
 
-    public function test_adr_template_and_index_define_p6_lifecycle(): void
+    public function test_authority_model_is_player_scoped_and_platform_admin_is_not_a_game_bypass(): void
     {
-        $template = $this->read('docs/adr/adr-template.md');
-        $index = $this->read('docs/adr/README.md');
+        $authority = $this->read('docs/architecture/authority-model.md');
 
-        self::assertStringContainsString('- **Status:** Proposed', $template);
-        self::assertStringContainsString('Proposed', $index);
-        self::assertStringContainsString('Accepted', $index);
-        self::assertStringContainsString('Superseded', $index);
-        self::assertStringContainsString('Rejected', $index);
-        self::assertStringContainsString('Supersession handling', $template);
-    }
-
-    public function test_p6_dependency_map_preserves_the_exact_historical_domain_inventory_without_recreating_v1_runtime(): void
-    {
-        $map = $this->read('docs/product/cross-domain-dependency-map.md');
-        $domains = $this->historicalDomains();
-
-        self::assertDirectoryDoesNotExist($this->root().'/app/Domain');
-
-        preg_match_all('/^\| \*\*([A-Za-z]+)\*\* \|/m', $map, $matches);
-        $documented = $matches[1] ?? [];
-        sort($documented);
-
-        self::assertSame($domains, $documented);
-
-        foreach ($domains as $domain) {
-            self::assertFileExists($this->root().'/docs/domains/'.$this->kebab($domain).'/README.md');
-        }
-    }
-
-    public function test_glossary_contains_high_risk_shared_terms(): void
-    {
-        $glossary = $this->read('docs/product/glossary.md');
-
-        foreach ([
-            '### Alliance',
-            '### Active Alliance',
-            '### Platform administrator',
-            '### KingdomAlliance',
-            '### TrackedKingdomAlliance',
-            '### Transactional outbox',
-            '### Internal domain/outbox event',
-            '### Externally eligible webhook event',
-            '### Living contract',
-            '### Historical evidence',
-            '### Supported contract',
-            '### Persistence reach-through',
-            '### Repository-controlled production hardening',
-            '### Real production launch',
-        ] as $term) {
-            self::assertStringContainsString($term, $glossary, $term);
-        }
-    }
-
-    public function test_current_architecture_audits_are_not_migration_candidate_records(): void
-    {
-        foreach ([
-            'docs/product/repository-structure-audit.md',
-            'docs/product/domain-boundary-audit.md',
-        ] as $path) {
-            $source = $this->read($path);
-            self::assertStringContainsString('**Status:** Current', $source, $path);
-            self::assertStringNotContainsString('**Status:** Current migration audit', $source, $path);
-            self::assertStringContainsString('cross-domain dependency map', strtolower($source), $path);
-        }
-    }
-
-    public function test_shared_indexes_keep_program_ownership_and_domain_navigation_explicit(): void
-    {
-        $product = $this->read('docs/product/README.md');
-        $security = $this->read('docs/security/README.md');
-        $operations = $this->read('docs/operations/README.md');
-
-        self::assertStringContainsString('repository-wide product/program governance', $product);
-        self::assertStringContainsString('docs/domains/<domain>/', $product);
-
-        self::assertStringContainsString('repository-wide security policy and program evidence', $security);
-        self::assertStringContainsString('docs/domains/<domain>/security/', $security);
-
-        self::assertStringContainsString('shared repository/runtime operating model', $operations);
-        self::assertStringContainsString('docs/domains/<domain>/operations/', $operations);
-    }
-
-    public function test_current_navigation_links_p6_architecture_surfaces(): void
-    {
-        foreach ([
-            'docs/README.md',
-            'docs/product/README.md',
-            'docs/product/current-capability-matrix.md',
-            'docs/adr/README.md',
-        ] as $path) {
-            $source = $this->read($path);
-            self::assertStringContainsString('cross-domain-dependency-map.md', $source, $path);
-            self::assertStringContainsString('glossary.md', $source, $path);
-        }
+        self::assertStringContainsString('active `Player` is the security principal for game-domain behavior', $authority);
+        self::assertStringContainsString('never aggregated across every Player owned by one User', $authority);
+        self::assertStringContainsString('does not bypass Alliance, Kingdom, Operations or Intelligence game authorization', $authority);
     }
 
     /** @return list<string> */
-    private function historicalDomains(): array
+    private function directories(string $path): array
     {
-        return [
-            'Alliances',
-            'Audit',
-            'Authorization',
-            'Content',
-            'Contributions',
-            'Events',
-            'Identity',
-            'Integrations',
-            'Kingdoms',
-            'Memberships',
-            'Notifications',
-            'Platform',
-            'Rallies',
-            'Recruitment',
-        ];
-    }
+        $entries = scandir($path);
+        self::assertIsArray($entries);
 
-    private function kebab(string $name): string
-    {
-        return strtolower((string) preg_replace('/(?<!^)[A-Z]/', '-$0', $name));
+        $directories = array_values(array_filter(
+            $entries,
+            static fn (string $entry): bool => $entry !== '.' && $entry !== '..' && is_dir($path.'/'.$entry),
+        ));
+        sort($directories);
+
+        return $directories;
     }
 
     private function read(string $path): string

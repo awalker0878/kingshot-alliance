@@ -8,135 +8,67 @@ use PHPUnit\Framework\TestCase;
 
 final class DocumentationMaintenanceTest extends TestCase
 {
-    public function test_all_specialized_dcp_standards_exist_are_current_and_are_indexed_by_actual_filename(): void
+    public function test_documentation_standard_defines_one_canonical_home_per_kind_of_truth(): void
     {
-        $standards = [
-            'domain-contract-standard.md',
-            'security-documentation-standard.md',
-            'operations-documentation-standard.md',
-            'interface-documentation-standard.md',
-            'testing-evidence-standard.md',
-            'architecture-governance-standard.md',
-            'documentation-maintenance-standard.md',
-        ];
+        $standard = $this->read('docs/governance/documentation-standard.md');
 
-        $plan = $this->read('docs/product/documentation-program-plan.md');
-        $product = $this->read('docs/product/README.md');
-
-        foreach ($standards as $standard) {
-            $path = 'docs/product/'.$standard;
-            self::assertFileExists($this->root().'/'.$path, $path);
-            self::assertStringContainsString('**Status:** Current', $this->read($path), $path);
-            self::assertStringContainsString($standard, $plan, $standard.' missing from DCP standards catalog.');
-            self::assertStringContainsString($standard, $product, $standard.' missing from product navigation.');
+        foreach (['Architecture', 'Codebase', 'Operations', 'Product', 'Governance', 'Reference'] as $area) {
+            self::assertStringContainsString($area, $standard);
         }
 
-        self::assertStringNotContainsString('testing-evidence-documentation-standard.md', $plan);
+        self::assertStringContainsString('Every rule should have one authoritative home', $standard);
+        self::assertStringContainsString('Git history is the archive', $standard);
+        self::assertStringContainsString('Do not recreate top-level `domains/`, `adr/`, `security/`', $standard);
     }
 
-    public function test_every_code_domain_keeps_canonical_contract_and_all_living_profile_families(): void
+    public function test_change_impact_guide_covers_material_change_classes(): void
     {
-        foreach ($this->canonicalDomains() as $domain) {
-            $slug = $this->kebab($domain);
-            $codeReadme = 'app/Domain/'.$domain.'/README.md';
-            $docsRoot = 'docs/domains/'.$slug;
-
-            self::assertFileExists($this->root().'/'.$codeReadme);
-            self::assertFileExists($this->root().'/'.$docsRoot.'/README.md');
-
-            foreach (['security', 'operations', 'interfaces', 'testing'] as $profile) {
-                self::assertFileExists($this->root().'/'.$docsRoot.'/'.$profile.'/README.md', $domain.' '.$profile);
-            }
-
-            $source = $this->read($codeReadme);
-            self::assertStringContainsString('../../../docs/domains/'.$slug.'/README.md', $source, $codeReadme);
-        }
-    }
-
-    public function test_final_program_artifacts_and_navigation_are_present(): void
-    {
-        foreach ([
-            'docs/product/documentation-maintenance-standard.md',
-            'docs/product/documentation-maintenance-coverage-matrix.md',
-            'docs/product/documentation-completion-program-exit-report.md',
-            'docs/product/documentation-program-status.md',
-            'docs/product/definition-of-done.md',
-        ] as $path) {
-            self::assertFileExists($this->root().'/'.$path, $path);
-        }
-
-        foreach (['docs/README.md', 'docs/product/README.md', 'docs/product/definition-of-done.md'] as $path) {
-            self::assertStringContainsString('documentation-maintenance-standard.md', $this->read($path), $path);
-        }
-
-        $status = $this->read('docs/product/documentation-program-status.md');
-        self::assertStringContainsString('DCP-P7', $status);
-        self::assertStringContainsString('no `dcp-p8`', strtolower($status));
-    }
-
-    public function test_prior_dcp_phase_governance_remains_discoverable(): void
-    {
-        $required = [
-            ['domain-contract-standard.md', 'domain-coverage-matrix.md', 'domain-contract-completeness-exit-report.md'],
-            ['security-documentation-standard.md', 'security-coverage-matrix.md', 'security-completeness-exit-report.md'],
-            ['operations-documentation-standard.md', 'operations-coverage-matrix.md', 'operations-completeness-exit-report.md'],
-            ['interface-documentation-standard.md', 'interface-coverage-matrix.md', 'interface-completeness-exit-report.md'],
-            ['testing-evidence-standard.md', 'testing-evidence-coverage-matrix.md', 'testing-evidence-completeness-exit-report.md'],
-            ['architecture-governance-standard.md', 'architecture-governance-coverage-matrix.md', 'architecture-governance-completeness-exit-report.md'],
-            ['documentation-maintenance-standard.md', 'documentation-maintenance-coverage-matrix.md', 'documentation-completion-program-exit-report.md'],
-        ];
-
-        foreach ($required as $phase) {
-            foreach ($phase as $file) {
-                self::assertFileExists($this->root().'/docs/product/'.$file, $file);
-            }
-        }
-    }
-
-    public function test_maintenance_standard_encodes_change_driven_non_brittle_governance(): void
-    {
-        $standard = $this->read('docs/product/documentation-maintenance-standard.md');
+        $guide = $this->read('docs/governance/change-impact.md');
 
         foreach ([
-            'Documentation changes are **impact-driven**, not file-count-driven.',
-            '## 3. Change classification and required documentation',
-            '## 8. Evidence lifecycle',
-            '## 9. Status vocabulary maintenance',
-            '## 11. Review and archival lifecycle',
-            '## 12. CI automation principles',
-            '## 13. Final DCP completeness protection',
-            'harmless refactors',
-            'raw dependency counts',
-            'historical test counts',
-        ] as $contract) {
-            self::assertStringContainsString($contract, $standard, $contract);
+            'New/changed business invariant',
+            'Context ownership/dependency changes',
+            'Player/User/permission semantics',
+            'Transaction/locking behavior',
+            'New async side effect/event',
+            'New environment/dependency',
+            'New user-facing capability',
+            'Production status change',
+        ] as $change) {
+            self::assertStringContainsString($change, $guide);
         }
     }
 
-    public function test_program_completion_never_implies_real_production_approval(): void
+    public function test_definition_of_done_uses_v2_ownership_and_documentation_rules(): void
     {
-        $status = $this->read('docs/product/documentation-program-status.md');
-        $exit = $this->read('docs/product/documentation-completion-program-exit-report.md');
-        $approval = $this->read('docs/product/production-launch-approval.md');
+        $dod = $this->read('docs/governance/definition-of-done.md');
 
-        self::assertStringContainsString('real production', strtolower($status));
-        self::assertStringContainsString('real production', strtolower($exit));
-        self::assertStringContainsString('not yet approved', strtolower($approval));
+        foreach (['owning context/capability', 'Workflow', 'ReadModel', 'Shared remains business-neutral', 'obsolete live documentation is removed'] as $rule) {
+            self::assertStringContainsString($rule, $dod);
+        }
     }
 
-    /** @return list<string> */
-    private function canonicalDomains(): array
+    public function test_live_documentation_contains_no_dcp_or_phase_program_tree(): void
     {
-        $directories = glob($this->root().'/app/Domain/*', GLOB_ONLYDIR) ?: [];
-        $domains = array_map(static fn (string $path): string => basename($path), $directories);
-        sort($domains);
+        self::assertDirectoryDoesNotExist($this->root().'/docs/domains');
+        self::assertDirectoryDoesNotExist($this->root().'/docs/adr');
 
-        return $domains;
+        foreach (glob($this->root().'/docs/product/phase-*.md') ?: [] as $file) {
+            self::fail('Historical phase documentation must not remain in the live tree: '.$file);
+        }
+
+        foreach (glob($this->root().'/docs/product/*documentation-program*.md') ?: [] as $file) {
+            self::fail('DCP documentation must not remain in the live tree: '.$file);
+        }
     }
 
-    private function kebab(string $name): string
+    public function test_production_approval_remains_an_explicit_go_no_go_record(): void
     {
-        return strtolower((string) preg_replace('/(?<!^)[A-Z]/', '-$0', $name));
+        $approval = strtolower($this->read('docs/governance/production-approval.md'));
+
+        self::assertStringContainsString('not yet approved', $approval);
+        self::assertStringContainsString('ci success never auto-approves production', $approval);
+        self::assertStringContainsString('pending', $approval);
     }
 
     private function read(string $path): string

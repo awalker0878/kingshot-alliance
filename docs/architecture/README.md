@@ -1,0 +1,29 @@
+# Architecture
+
+Status: Current
+
+This area describes the **logical architecture and business ownership model** of Kingshot Alliance. It answers what the system is, why boundaries exist, who owns business rules and data, and how contexts are allowed to collaborate.
+
+The source tree is an implementation of this architecture; it is not the definition of the architecture. Start with:
+
+- [System overview](system-overview.md)
+- [Context map](context-map.md)
+- [Capability map](capability-map.md)
+- [Authority model](authority-model.md)
+- [Data ownership](data-ownership.md)
+- [Consistency and transactions](consistency-and-transactions.md)
+- [Integration model](integration-model.md)
+- [Bounded contexts](contexts/README.md)
+- [Architecture decisions](decisions/README.md)
+
+## Architecture V2 rules
+
+1. Business behavior is organized into bounded contexts containing cohesive capabilities.
+2. A model, table, route, controller or folder is not evidence that a new bounded context is required.
+3. Write ownership belongs to one context. Other contexts collaborate through deliberate application contracts, workflow orchestration, read models or durable events.
+4. Cross-context read composition belongs in `app/ReadModels` when no single write-owning context naturally owns the view.
+5. Cross-context mutation orchestration belongs in `app/Workflows`; a workflow never becomes persistence owner of participating aggregates.
+6. `app/Shared` contains only business-neutral technical contracts and infrastructure.
+7. New Architecture V2 runtime code must not depend on the removed `App\Domain\*` structure.
+
+For physical implementation details, use [Codebase documentation](../codebase/README.md).

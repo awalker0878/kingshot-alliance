@@ -1,103 +1,30 @@
-# Deployment Runbook
+# Deployment runbook
 
-## Release artifact
+Status: Current
 
-Deploy one immutable application image built from a reviewed commit. The same digest runs the PHP-FPM application, Nginx web entry point, Horizon worker, scheduler, and one-shot migration job.
+## Preconditions
 
-Record:
+- exact release SHA selected;
+- protected checks green for that release;
+- immutable image built and digest recorded;
+- configuration/secrets supplied through approved runtime mechanisms;
+- migration/recovery impact reviewed;
+- production approval evidence requirements understood.
 
-- source commit
-- image repository and SHA-256 digest
-- local image ID resolved from that digest
-- OCI source, revision, version, and license labels
-- build, test, and dependency evidence
-- migration set
-- previously approved rollback digest
+## Procedure
 
-Mutable tags such as `latest`, branch names, or release labels are not accepted by `bin/deploy`. The image must declare a non-placeholder OCI version, a 40-character lowercase Git revision, and `GPL-3.0-only` license metadata.
+1. run repository release/configuration checks;
+2. create/verify database backup before migrations when the database is populated;
+3. execute the repository deployment path (`bin/deploy` or environment automation that preserves its release invariants);
+4. apply migrations from the intended release image;
+5. deploy web and worker processes;
+6. verify `/up` and `/health/ready`;
+7. run smoke checks for authentication and representative scoped functionality;
+8. verify queues/Horizon/outbox publication and error rate;
+9. record release SHA, image digest, validation evidence and operator/change owner.
 
-Each image owns its `bootstrap/cache` contents. Do not mount a persistent or shared volume over that path, clear it during deployment, or copy cache files between releases. This ensures a rollback digest uses the package manifest built into that exact image.
+## Abort conditions
 
-## Prepare staging
+Abort/rollback when release identity is inconsistent, migrations fail, readiness fails, critical background work is not processing, or the deployed environment violates a required production control.
 
-Create the environment file outside version control:
-
-```bash
-cp deploy/staging.env.example deploy/staging.env
-chmod 600 deploy/staging.env
-```
-
-Set a generated 32-byte Laravel `APP_KEY`, a strong database password, the correct HTTPS staging URL, and environment-specific integrations. Hosted startup fails unless PostgreSQL and Redis-backed cache, queues, and encrypted sessions remain enabled with secure cookies and `lax` or `strict` SameSite protection.
-
-Do not set `APP_VERSION` or `RELEASE_SHA` in the runtime environment. Those values are baked into the immutable image and must match its OCI labels. `bin/deploy` rejects runtime overrides that differ from the reviewed image.
-
-Configure explicit proxy addresses through `TRUSTED_PROXIES`. Using `TRUSTED_PROXIES=*` also requires `ALLOW_TRUST_ALL_PROXIES=true` and an architecture in which the application service is inaccessible except through a controlled internal ingress.
-
-`ALLOW_INSECURE_LOOPBACK_STAGING` must remain `false` for deployable environments. It exists only for the ephemeral CI topology, where the application is bound to a loopback URL and explicitly sets the flag to `true`; the validator rejects the exception for any non-loopback host.
-
-The default topology is `docker-compose.staging.yml`. It provides:
-
-- `app` — PHP-FPM
-- `web` — unprivileged Nginx on container port 8080 with runtime storage mounted read-only
-- `worker` — Horizon
-- `scheduler` — Laravel scheduler
-- `release` — one-shot migrations
-- private PostgreSQL and Redis services for the Phase 0 staging demonstration
-
-Application roles that require runtime writes share the `storage` volume. The web-only role does not receive write access. Package and framework manifests remain inside the immutable image.
-
-### Azure Container Apps topology
-
-Azure Container Apps uses the same immutable image but maps runtime lifecycles differently. See the [Azure Container Apps runbook](azure-container-apps.md) and [ADR 0009](../../adr/0009-azure-container-apps-runtime-topology.md) for the authoritative hosted topology.
-
-The ACA web Container App contains two containers per replica:
-
-- `nginx` — same image, explicit `nginx -c /etc/nginx/azure.conf -g "daemon off;"`, HTTP port 8080;
-- `app` — same image with no startup override, preserving `kingshot-entrypoint` and default `php-fpm` on FastCGI port 9000.
-
-ACA ingress terminates HTTPS, rejects insecure external traffic, and targets Nginx port 8080. The ACA Nginx profile uses replica-local `127.0.0.1:9000`; the Compose Nginx profile intentionally remains `app:9000`.
-
-Horizon is a separate Container App. Azure scheduler execution uses a scheduled Container Apps Job running `php artisan schedule:run`, and migrations use a manual Container Apps Job running `php artisan migrate --force`. Because ACA `command` overrides Docker ENTRYPOINT, non-web role overrides must invoke `kingshot-entrypoint` explicitly before the Artisan command when hosted runtime validation is required.
-
-Azure Managed Redis configuration uses the repository-supported `REDIS_SCHEME=tls` setting plus the environment-specific managed endpoint/port. Local and Compose Redis retain `REDIS_SCHEME=tcp`.
-
-## Deploy by digest
-
-```bash
-ENV_FILE=deploy/staging.env \
-STAGING_URL=https://staging.example.test \
-./bin/deploy ghcr.io/owner/kingshot-alliance@sha256:<64-hex-digest>
-```
-
-The command:
-
-1. Rejects mutable image references and broadly readable environment files.
-2. Validates the Compose and environment inputs.
-3. Pulls the exact digest and validates image ID, version, Git revision, and license metadata.
-4. Rejects runtime `APP_VERSION` or `RELEASE_SHA` overrides that differ from the image.
-5. Starts PostgreSQL and Redis and waits for database readiness.
-6. Inspects the PostgreSQL schema; a populated schema is backed up even when the prior application container is stopped or unhealthy. Only a verified empty first-deployment schema skips backup unless `SKIP_BACKUP=YES` is explicitly supplied.
-7. Creates a checksummed, owner-readable-only backup before migrations.
-8. Runs migrations once through the `release` service.
-9. Replaces app, web, worker, and scheduler services with the same digest.
-10. Proves every runtime role uses the expected image ID, application version, and release SHA.
-11. Requires both `/up` and `/health/ready` to pass.
-12. Prints expected and actual image identities, release metadata, service state, and recent logs on failure.
-
-Set `STAGING_HTTP_PORT` when direct host-port exposure differs from 8080. Set `DATABASE_READY_ATTEMPTS` or `HEALTHCHECK_ATTEMPTS` to adjust the default 30 two-second attempts.
-
-`SKIP_BACKUP=YES` and `SKIP_MIGRATIONS=YES` are controlled emergency or rollback inputs. Their use must be recorded with the release evidence; they are not normal deployment defaults.
-
-## CI staging demonstration
-
-The container CI job builds the runtime image, validates source-control and build-context exclusions, verifies OCI revision and license metadata, launches the staging topology, proves every runtime role uses the built image ID and release metadata, runs migrations, verifies liveness and readiness, performs a checksummed backup and restore, validates owner-only backup modes and manifest provenance, verifies service and image identity after restore, and scans the image. Loopback HTTP and insecure cookies are enabled only for this ephemeral topology through the explicit `ALLOW_INSECURE_LOOPBACK_STAGING=true` exception; externally reachable hosted environments require HTTPS and secure cookies.
-
-## Production promotion
-
-Production promotion must use the same image digest accepted in staging. Configuration may differ, but the image must not be rebuilt.
-
-Use an environment-specific production orchestrator and managed data services where available. Azure deployments must preserve the process/lifecycle boundaries in the [Azure Container Apps runbook](azure-container-apps.md). Preserve the same controls: digest-only images, verified image and release identity, OCI provenance, image-owned package manifests, a single release job, least-privilege storage mounts, health gates, backup evidence, and an explicit rollback digest.
-
-## Post-deployment
-
-Observe the release through the agreed stabilization window. Record JSON logs, error rate, latency, queue depth, worker failures, database health, deployed digest, image ID, application version, and source revision before closing the release.
+A successful technical deployment does not automatically change production approval to Approved.

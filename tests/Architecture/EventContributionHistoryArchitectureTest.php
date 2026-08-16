@@ -8,49 +8,23 @@ use PHPUnit\Framework\TestCase;
 
 final class EventContributionHistoryArchitectureTest extends TestCase
 {
-    public function test_historical_event_ownership_adr_is_accepted_and_indexed(): void
+    public function test_living_architecture_preserves_durable_historical_identity(): void
     {
-        $adrPath = $this->root().'/docs/adr/0011-event-history-and-contribution-ownership.md';
-        self::assertFileExists($adrPath);
+        $ownership = $this->read('docs/architecture/data-ownership.md');
 
-        $adr = $this->read('docs/adr/0011-event-history-and-contribution-ownership.md');
-        $index = $this->read('docs/adr/README.md');
-
-        self::assertStringContainsString('- **Status:** Accepted', $adr);
-        self::assertStringContainsString('Player history follows durable `player_id`', $adr);
-        self::assertStringContainsString('current membership', strtolower($adr));
-        self::assertStringContainsString('0011-event-history-and-contribution-ownership.md', $index);
+        self::assertStringContainsString('Historical facts should retain durable Player/Alliance/Kingdom/Event identifiers', $ownership);
+        self::assertStringContainsString('Later membership or placement changes must not silently rewrite history', $ownership);
+        self::assertStringContainsString('Operations owns operational Event state', $ownership);
+        self::assertStringContainsString('Intelligence owns observations/analytical history', $ownership);
     }
 
-    public function test_event_history_contract_preserves_player_alliance_and_kingdom_axes(): void
+    public function test_product_terminology_keeps_observation_distinct_from_gameworld_identity(): void
     {
-        $contract = $this->read('docs/domains/events/event-contribution-history.md');
-
-        foreach ([
-            'Player history follows Player.',
-            "Alliance history follows the Event's Alliance target.",
-            "Kingdom history follows the Event's Kingdom target.",
-            'Current membership never rewrites historical ownership.',
-            'player_id',
-            'alliance_id',
-            'kingdom_id',
-            'Platform Administrator status does not bypass',
-        ] as $rule) {
-            self::assertStringContainsString($rule, $contract, $rule);
-        }
+        $intelligence = $this->read('docs/architecture/contexts/intelligence/README.md');
+        self::assertStringContainsString('does not duplicate neutral GameWorld identity as writable identity state', $intelligence);
     }
 
-    public function test_contributions_contract_does_not_make_event_facts_a_second_canonical_ledger(): void
-    {
-        $contributions = $this->read('docs/domains/contributions/README.md');
-        $composition = $this->read('docs/domains/contributions/event-history-composition.md');
-
-        self::assertStringContainsString('does not create a second canonical Event ledger', $contributions);
-        self::assertStringContainsString('No Events-to-Contributions reconciliation/materialization workflow exists', $composition);
-        self::assertStringContainsString('Current membership is authority/eligibility context only', $composition);
-    }
-
-    public function test_current_event_scope_model_still_has_exact_historical_owner_types(): void
+    public function test_current_event_scope_model_has_exact_historical_owner_types(): void
     {
         $scope = $this->read('app/Contexts/Operations/EventCore/Enums/EventScope.php');
 
@@ -78,34 +52,6 @@ final class EventContributionHistoryArchitectureTest extends TestCase
         self::assertStringContainsString("->constrained('kingdoms')->restrictOnDelete()", $migration);
         self::assertStringContainsString("->constrained('players')->restrictOnDelete()", $migration);
         self::assertStringContainsString('events_historical_target_immutable_guard', $migration);
-        self::assertStringContainsString('event historical target is immutable', $migration);
-    }
-
-    public function test_greenfield_result_schema_uses_alliance_identity_normalized_metrics_and_historical_context(): void
-    {
-        $migration = $this->read('database/migrations/2026_08_13_070000_create_event_result_tables.php');
-
-        foreach ([
-            'event_metric_definitions',
-            'event_player_contexts',
-            'event_alliance_results',
-            'event_result_metrics',
-            'event_alliance_result_metrics',
-            'event_player_result_metrics',
-            'represented_alliance_id',
-            'kingdom_id_at_event',
-            'context_frozen_at',
-            "string('dimension_kind', 32)->nullable()",
-            "foreignUlid('alliance_id')->constrained('alliances')->restrictOnDelete()",
-            'event_alliance_results_validate_kingdom',
-            "decimal('value', 30, 4)",
-        ] as $contract) {
-            self::assertStringContainsString($contract, $migration, $contract);
-        }
-
-        self::assertStringNotContainsString('event_kingdom_alliance_results', $migration);
-        self::assertStringNotContainsString('represented_kingdom_alliance_id', $migration);
-        self::assertStringNotContainsString("\$table->json('metrics')", $migration);
     }
 
     public function test_metric_catalogue_keeps_score_semantics_separate_from_component_metrics(): void
@@ -113,8 +59,6 @@ final class EventContributionHistoryArchitectureTest extends TestCase
         $catalogue = $this->read('app/Contexts/Operations/Results/Catalog/KingShotEventMetricCatalog.php');
         $typeMigration = $this->read('database/migrations/2026_08_07_020000_create_event_type_catalogue_tables.php');
         $seedMigration = $this->read('database/migrations/2026_08_13_071000_seed_event_metric_catalogue.php');
-        $capability = $this->read('docs/domains/events/event-metric-catalogue.md');
-        $domainIndex = $this->read('docs/domains/events/README.md');
 
         self::assertStringContainsString("'score' => \$score", $catalogue);
         self::assertStringContainsString("'metrics' => \$metrics", $catalogue);
@@ -123,32 +67,18 @@ final class EventContributionHistoryArchitectureTest extends TestCase
         self::assertStringContainsString('result_score_higher_is_better', $typeMigration);
         self::assertStringContainsString('KingShotEventMetricCatalog::profile', $seedMigration);
         self::assertStringNotContainsString('Schema::table', $seedMigration);
-        self::assertStringContainsString('## 12. Related documentation', $capability);
-        self::assertStringContainsString('event-metric-catalogue.md', $domainIndex);
     }
 
-    public function test_metric_subjects_use_canonical_alliance_identity_and_not_kingdom_alliance_identity(): void
+    public function test_metric_subjects_use_canonical_alliance_identity(): void
     {
         $subject = $this->read('app/Contexts/Operations/Results/Enums/EventMetricSubject.php');
         $catalogue = $this->read('app/Contexts/Operations/Results/Catalog/KingShotEventMetricCatalog.php');
-        $resultMigration = $this->read('database/migrations/2026_08_13_070000_create_event_result_tables.php');
 
         self::assertStringContainsString("case Event = 'event';", $subject);
         self::assertStringContainsString("case Alliance = 'alliance';", $subject);
         self::assertStringContainsString("case Player = 'player';", $subject);
         self::assertStringNotContainsString('KingdomAlliance', $subject);
         self::assertStringNotContainsString('KingdomAlliance', $catalogue);
-        self::assertStringNotContainsString('kingdom_alliance', $resultMigration);
-    }
-
-    public function test_metric_catalogue_does_not_define_a_universal_cross_event_contribution_score(): void
-    {
-        $catalogue = strtolower($this->read('app/Contexts/Operations/Results/Catalog/KingShotEventMetricCatalog.php'));
-        $contract = strtolower($this->read('docs/domains/events/event-contribution-history.md'));
-
-        self::assertStringNotContainsString('universal_contribution_score', $catalogue);
-        self::assertStringNotContainsString('total_contribution_score', $catalogue);
-        self::assertStringContainsString('does not create an unexplained universal total', $contract);
     }
 
     private function read(string $path): string

@@ -1,28 +1,23 @@
-# Incident Response Runbook
+# Incident response runbook
 
-## Severity
+Status: Current
 
-- **SEV-1:** active compromise, broad data exposure, destructive corruption, or full outage
-- **SEV-2:** material security or availability degradation with limited workaround
-- **SEV-3:** contained degradation or defect without immediate material risk
+## Triage
 
-## First response
+1. identify user impact and affected environment/release;
+2. capture request/trace IDs and safe structured diagnostics;
+3. check liveness/readiness, database, Redis, queue/outbox backlog and recent deployment changes;
+4. contain active harm before attempting optimization;
+5. decide whether the safest action is configuration correction, worker recovery, release rollback or disaster recovery.
 
-1. Assign incident commander and scribe.
-2. Record detection time, release SHA, environment, request IDs, and affected alliances.
-3. Preserve logs and evidence.
-4. Contain access, traffic, queue processing, integrations, or releases as appropriate.
-5. Communicate known facts and next decision time.
-6. Avoid destructive investigation commands.
+## Security incidents
 
-## Investigation
-
-Correlate HTTP requests, logs, jobs, and integrations using request and trace IDs. Determine impact boundaries before querying or exporting tenant data.
+Preserve evidence, rotate/revoke affected credentials through the approved secret/identity mechanisms and avoid copying sensitive payloads into GitHub issues or documentation.
 
 ## Recovery
 
-Use the deployment, rollback, and backup runbooks. Validate liveness, readiness, key workflows, worker health, and data integrity.
+Use the narrowest safe recovery action. Do not restore the database merely to fix an application error when rollback is sufficient.
 
-## Close
+## Closeout
 
-Document timeline, root causes, contributing conditions, impact, remediation, detection gaps, and owners. Convert lessons into tests, alerts, runbooks, and ADR updates.
+Record impact, root cause, corrective action, relevant release IDs and follow-up ownership. Update a runbook or architecture/governance rule when the incident exposed a documentation or control gap.
