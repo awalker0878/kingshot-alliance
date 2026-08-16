@@ -26,15 +26,13 @@ on:
       - 'tests/Architecture/**'
       - 'tests/Feature/Accounts/**'
       - 'tests/Feature/GameWorld/**'
-      - 'tests/Feature/Alliances/**'
-      - 'tests/Feature/Memberships/**'
-      - 'tests/Feature/Recruitment/**'
-      - 'tests/Feature/Content/**'
+      - 'tests/Feature/Alliance/**'
       - 'tests/Feature/Operations/**'
       - 'tests/Feature/Intelligence/**'
-      - 'tests/TenantIsolation/Alliances/**'
+      - 'tests/TenantIsolation/Alliance/**'
       - 'tests/Unit/Accounts/**'
-      - 'tests/Unit/Authorization/**'
+      - 'tests/Unit/Alliance/**'
+      - 'tests/Unit/GameWorld/**'
       - 'tests/Unit/Operations/**'
       - 'tests/Unit/Intelligence/**'
       - 'docs/product/architecture-v2-*.md'
@@ -125,15 +123,13 @@ jobs:
             tests/Architecture \
             tests/Feature/Accounts \
             tests/Feature/GameWorld \
-            tests/Feature/Alliances \
-            tests/Feature/Memberships \
-            tests/Feature/Recruitment \
-            tests/Feature/Content \
+            tests/Feature/Alliance \
             tests/Feature/Operations \
             tests/Feature/Intelligence \
-            tests/TenantIsolation/Alliances \
+            tests/TenantIsolation/Alliance \
             tests/Unit/Accounts \
-            tests/Unit/Authorization \
+            tests/Unit/Alliance \
+            tests/Unit/GameWorld \
             tests/Unit/Operations \
             app/Contexts \
             app/Shared \
@@ -213,17 +209,14 @@ jobs:
           tests/Feature/Accounts
           tests/Feature/GameWorld
           tests/Unit/Accounts
-          tests/Unit/Authorization/KingdomRoleVocabularyTest.php
+          tests/Unit/GameWorld
 
       - name: Run Alliance bounded-context tests
         run: >-
           php artisan test
-          tests/Feature/Alliances
-          tests/Feature/Memberships
-          tests/Feature/Recruitment
-          tests/Feature/Content
-          tests/TenantIsolation/Alliances
-          tests/Unit/Authorization/AllianceRankPermissionsTest.php
+          tests/Feature/Alliance
+          tests/TenantIsolation/Alliance
+          tests/Unit/Alliance
 
       - name: Run V2 Operations bounded-context tests
         shell: bash
