@@ -105,6 +105,26 @@ def rewrite_kingdom_creates(text: str) -> str:
         lambda m: f"{m['i']}{m['v']} = app(ResolveKingdom::class)->handle({m['n'].strip()});",
         updated,
     )
+
+    compact_first = re.compile(
+        r"(?P<i>^[ \t]*)(?P<v>\$\w+)\s*=\s*Kingdom::query\(\)->firstOrCreate\("
+        r"\['number'\s*=>\s*(?P<n>.+?)\],\s*"
+        r"\['status'\s*=>\s*(?:'active'|KingdomStatus::Active)\]\);",
+        re.M,
+    )
+    updated = compact_first.sub(
+        lambda m: f"{m['i']}{m['v']} = app(ResolveKingdom::class)->handle({m['n'].strip()});",
+        updated,
+    )
+
+    nested_first = re.compile(
+        r"Kingdom::query\(\)->firstOrCreate\(\['number'\s*=>\s*(?P<n>[^\]\n]+)\]\)->id"
+    )
+    updated = nested_first.sub(
+        lambda m: f"app(ResolveKingdom::class)->handle({m['n'].strip()})->id",
+        updated,
+    )
+
     if updated != text and 'ResolveKingdom::class' in updated:
         updated = ensure_use(updated, r'App\Contexts\GameWorld\Actions\ResolveKingdom')
     return updated
@@ -191,7 +211,9 @@ def rewrite_player_creates(text: str) -> str:
 def rewrite_transfer_performance_player(text: str) -> str:
     old = """            $player = Player::query()->create([
                 'current_kingdom_id' => $direction === TransferDirection::Incoming ? $source->id : $alliance->kingdom_id,
-                'game_player_id' => $direction === TransferDirection::Incoming ? 'incoming-performance-'.$index : 'transfer-performance-'.$index,
+                'game_player_id' => $direction === TransferDirection::Incoming
+                    ? 'incoming-performance-'.$index
+                    : 'transfer-performance-'.$index,
                 'current_name' => 'Transfer Player '.$index,
             ]);"""
     if old not in text:
@@ -199,7 +221,9 @@ def rewrite_transfer_performance_player(text: str) -> str:
     new = """            $player = app(PersistPlayerIdentity::class)->handle(
                 (string) ($direction === TransferDirection::Incoming ? $source->id : $alliance->kingdom_id),
                 'Transfer Player '.$index,
-                $direction === TransferDirection::Incoming ? 'incoming-performance-'.$index : 'transfer-performance-'.$index,
+                $direction === TransferDirection::Incoming
+                    ? 'incoming-performance-'.$index
+                    : 'transfer-performance-'.$index,
             );"""
     text = text.replace(old, new)
     return ensure_use(text, r'App\Contexts\GameWorld\Actions\PersistPlayerIdentity')
