@@ -10,7 +10,7 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventPlayerContext;
+use App\Contexts\Operations\Participation\Models\EventPlayerContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;

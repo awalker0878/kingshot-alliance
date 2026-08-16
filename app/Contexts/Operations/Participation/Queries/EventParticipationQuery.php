@@ -7,9 +7,9 @@ namespace App\Contexts\Operations\Participation\Queries;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventResponse;
 use App\Contexts\Operations\Participation\Models\EventAttendance;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
+use App\Contexts\Operations\Participation\Models\EventResponse;
 
 final class EventParticipationQuery
 {

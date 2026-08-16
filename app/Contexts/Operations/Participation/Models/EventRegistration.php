@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Participation\Models;
 
 use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;

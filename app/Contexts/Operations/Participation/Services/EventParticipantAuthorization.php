@@ -12,6 +12,8 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Models\Event;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
+use App\Contexts\Operations\EventCore\Services\EventTargetResolver;
 use Illuminate\Auth\Access\AuthorizationException;
 
 final readonly class EventParticipantAuthorization

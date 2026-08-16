@@ -6,15 +6,16 @@ namespace App\Contexts\Operations\Results\Queries;
 
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Models\EventAllianceResult;
-use App\Contexts\Operations\EventCore\Models\EventAllianceResultMetric;
-use App\Contexts\Operations\EventCore\Models\EventMetricDefinition;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventResult;
-use App\Contexts\Operations\EventCore\Models\EventResultMetric;
+use App\Contexts\Operations\Participation\Queries\EventEligiblePlayerQuery;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
+use App\Contexts\Operations\Results\Models\EventAllianceResult;
+use App\Contexts\Operations\Results\Models\EventAllianceResultMetric;
+use App\Contexts\Operations\Results\Models\EventMetricDefinition;
 use App\Contexts\Operations\Results\Models\EventPlayerResult;
 use App\Contexts\Operations\Results\Models\EventPlayerResultMetric;
+use App\Contexts\Operations\Results\Models\EventResult;
+use App\Contexts\Operations\Results\Models\EventResultMetric;
 use Carbon\CarbonImmutable;
 use LogicException;
 

@@ -7,9 +7,10 @@ namespace App\Contexts\Operations\Polls\Services;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventPoll;
+use App\Contexts\Operations\EventCore\Services\EventCapabilityResolver;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Enums\EventPollType;
+use App\Contexts\Operations\Polls\Models\EventPoll;
 use Carbon\CarbonImmutable;
 
 final readonly class EventPollTemplateMaterializer
