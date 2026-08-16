@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\BattlePlans\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\BattlePlans\Actions\AssignEventObjectiveTarget;
 use App\Contexts\Operations\BattlePlans\Actions\RemoveEventObjectiveAssignment;
 use App\Contexts\Operations\BattlePlans\Actions\SaveEventObjective;
 use App\Contexts\Operations\BattlePlans\Enums\EventObjectiveStatus;
 use App\Contexts\Operations\BattlePlans\Models\EventObjective;
 use App\Contexts\Operations\BattlePlans\Models\EventObjectiveAssignment;
-use App\Contexts\Operations\EventCore\Queries\EventCalendarQuery;
+use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

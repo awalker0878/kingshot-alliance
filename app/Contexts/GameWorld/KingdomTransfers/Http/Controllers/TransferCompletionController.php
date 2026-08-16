@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\CompleteTransferParticipant;
@@ -15,7 +15,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCompletion;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

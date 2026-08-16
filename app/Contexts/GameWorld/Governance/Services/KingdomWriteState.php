@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Governance\Services;
 
 use App\Contexts\GameWorld\Governance\ValueObjects\KingdomMutationContext;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use LogicException;

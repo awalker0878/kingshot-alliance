@@ -6,8 +6,8 @@ namespace App\Contexts\Alliance\Access\Services;
 
 use App\Contexts\Alliance\Access\Enums\DefaultAllianceRole;
 use App\Contexts\Alliance\Access\Models\Role;
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Shared\Access\Models\Permission as PermissionModel;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Shared\Infrastructure\Access\Models\Permission as PermissionModel;
 use Illuminate\Support\Str;
 use RuntimeException;
 

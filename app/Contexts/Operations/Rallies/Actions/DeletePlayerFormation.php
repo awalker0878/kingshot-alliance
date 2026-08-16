@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Rallies\Actions;
 
 use App\Contexts\GameWorld\Governance\Services\PlayerWriteState;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Rallies\Models\PlayerFormation;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;

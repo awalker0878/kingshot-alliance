@@ -10,7 +10,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferPlanControl
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferReadinessController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyContactController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyController;
-use App\Contexts\Intelligence\Http\Controllers\KingdomAllianceIntelligenceController;
+use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceIntelligenceController;
 use App\Contexts\Intelligence\Ingestion\Http\Controllers\KingdomIngestionController;
 use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceController;
 use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceObservationController;

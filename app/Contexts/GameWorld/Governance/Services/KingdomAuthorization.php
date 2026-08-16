@@ -6,9 +6,9 @@ namespace App\Contexts\GameWorld\Governance\Services;
 
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\ValueObjects\KingdomMutationContext;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Access\Contracts\Permission;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Shared\Infrastructure\Access\Contracts\Permission;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 

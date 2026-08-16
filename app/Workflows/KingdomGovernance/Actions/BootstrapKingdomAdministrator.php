@@ -6,8 +6,8 @@ namespace App\Workflows\KingdomGovernance\Actions;
 
 use App\Contexts\GameWorld\Governance\Actions\BootstrapKingdomAdministrator as BootstrapGameWorldKingdomAdministrator;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Access\Services\KingdomOperationsRoleProvisioner;
 use Illuminate\Support\Facades\DB;
 

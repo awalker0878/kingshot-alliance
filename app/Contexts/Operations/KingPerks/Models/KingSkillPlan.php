@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Models;
 
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\KingPerks\Enums\KingSkill;
 use App\Contexts\Operations\KingPerks\Enums\KingSkillStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

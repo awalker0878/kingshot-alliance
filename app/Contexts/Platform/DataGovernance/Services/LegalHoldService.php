@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Platform\DataGovernance\Services;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Contexts\Platform\Administration\Services\PlatformWriteState;
 use App\Contexts\Platform\DataGovernance\Models\LegalHold;

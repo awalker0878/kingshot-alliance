@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Governance\ValueObjects;
 
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 
 final readonly class PlayerMutationContext
 {

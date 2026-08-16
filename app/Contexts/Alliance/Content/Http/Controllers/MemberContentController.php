@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
+use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
@@ -12,8 +12,8 @@ use App\Contexts\Alliance\Content\Enums\ContentVisibility;
 use App\Contexts\Alliance\Content\Models\ContentCategory;
 use App\Contexts\Alliance\Content\Queries\ContentQuery;
 use App\Contexts\Alliance\Content\Services\ContentPresenter;
-use App\Contexts\Alliance\Core\Services\AllianceContext;
-use App\Shared\Http\Controller;
+use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;

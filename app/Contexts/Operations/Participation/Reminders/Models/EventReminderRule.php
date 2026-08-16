@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Reminders\Models;
 
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Models\Event;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderAudience;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderTrigger;
 use App\Contexts\Operations\Polls\Models\EventPoll;

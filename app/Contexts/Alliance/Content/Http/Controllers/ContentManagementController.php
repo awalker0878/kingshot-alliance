@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
+use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Actions\ArchiveContentItem;
@@ -26,8 +26,8 @@ use App\Contexts\Alliance\Content\Models\ContentRevision;
 use App\Contexts\Alliance\Content\Models\MediaAsset;
 use App\Contexts\Alliance\Content\Queries\ContentQuery;
 use App\Contexts\Alliance\Content\Services\ContentPresenter;
-use App\Contexts\Alliance\Core\Services\AllianceContext;
-use App\Shared\Http\Controller;
+use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

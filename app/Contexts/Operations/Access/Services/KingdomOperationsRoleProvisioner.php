@@ -6,9 +6,9 @@ namespace App\Contexts\Operations\Access\Services;
 
 use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
-use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
-use App\Shared\Access\Models\Permission;
+use App\Shared\Infrastructure\Access\Models\Permission;
 use Illuminate\Support\Str;
 use RuntimeException;
 

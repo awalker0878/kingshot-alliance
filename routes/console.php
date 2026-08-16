@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Contexts\Accounts\Models\User;
+use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Content\Actions\PublishScheduledContent;
 use App\Contexts\Alliance\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Contributions\Actions\QueueDueContributionReports;
 use App\Contexts\Intelligence\Ingestion\Actions\EnforceKingdomIngestionRetention;
 use App\Contexts\Intelligence\Ingestion\Actions\QueueDueKingdomIngestionSubscriptions;
@@ -14,13 +14,13 @@ use App\Contexts\Intelligence\Ingestion\Actions\ReconcileKingdomIngestionSources
 use App\Contexts\Intelligence\Ingestion\Services\KingdomIngestionOperationalHealth;
 use App\Contexts\Intelligence\Sharing\Actions\EnforceKingdomIntelligenceSharingRetention;
 use App\Contexts\Operations\Participation\Reminders\Actions\QueueDueEventReminders;
-use App\Contexts\Platform\Actions\EnforcePlatformRetention;
-use App\Contexts\Platform\Actions\ManagePlatformAdministrator;
-use App\Contexts\Platform\Actions\ProcessAccountDeletionRequests;
+use App\Contexts\Platform\DataGovernance\Actions\EnforcePlatformRetention;
+use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
+use App\Contexts\Platform\DataGovernance\Actions\ProcessAccountDeletionRequests;
 use App\Contexts\Platform\Integrations\Actions\QueueDueWebhookDeliveries;
-use App\Contexts\Platform\Services\PlatformUsageService;
-use App\Contexts\Platform\Services\ProductionLaunchReadiness;
-use App\Contexts\Platform\Services\RuntimeConfigurationValidator;
+use App\Contexts\Platform\AllianceAdministration\Services\PlatformUsageService;
+use App\Contexts\Platform\Administration\Services\ProductionLaunchReadiness;
+use App\Shared\Infrastructure\Runtime\Services\RuntimeConfigurationValidator;
 use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
 use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Illuminate\Support\Facades\Artisan;

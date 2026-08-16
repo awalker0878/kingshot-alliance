@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Sharing\Models;
 
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareTargetState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

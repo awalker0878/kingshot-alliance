@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\ReadModels\AllianceDashboard;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 

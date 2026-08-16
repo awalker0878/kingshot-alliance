@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Polls\Queries;
 
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventPhase;
-use App\Contexts\Operations\EventCore\Services\EventPhaseService;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Models\Event;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Models\EventPhase;
+use App\Contexts\Operations\Events\Services\EventPhaseService;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Models\EventPoll;
 use App\Contexts\Operations\Polls\Models\EventPollVote;

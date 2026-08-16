@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\Credentials\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Sharing\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Sharing\Actions\AcceptKingdomIntelligenceShareInvitation;
@@ -19,7 +19,7 @@ use App\Contexts\Intelligence\Sharing\Actions\RevokeKingdomIntelligenceShare;
 use App\Contexts\Intelligence\Sharing\Queries\KingdomIntelligenceSharingManageQuery;
 use App\ReadModels\SharedKingdomIntelligence\SharedKingdomIntelligenceCurrentQuery;
 use App\ReadModels\SharedKingdomIntelligence\SharedKingdomIntelligenceHistoryQuery;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;

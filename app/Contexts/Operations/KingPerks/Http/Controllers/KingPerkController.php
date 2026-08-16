@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
+use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkAppointmentStatus;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPushCategory;
@@ -20,7 +20,7 @@ use App\Contexts\Operations\KingPerks\Queries\KingPerkScheduleQuery;
 use App\Contexts\Operations\KingPerks\Services\KingPerkAutoScheduler;
 use App\Contexts\Operations\KingPerks\Services\KingPerkRequestService;
 use App\Contexts\Operations\KingPerks\Services\KingPerkScheduler;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

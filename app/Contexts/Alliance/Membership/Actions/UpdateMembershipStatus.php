@@ -7,13 +7,13 @@ namespace App\Contexts\Alliance\Membership\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Services\MembershipAdministrationGuard;
-use App\Contexts\Alliance\Policies\AllianceCapacityPolicy;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Membership\Policies\MemberCapacityPolicy;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +25,7 @@ final readonly class UpdateMembershipStatus
         private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private MembershipAdministrationGuard $guard,
-        private AllianceCapacityPolicy $entitlements,
+        private MemberCapacityPolicy $entitlements,
         private AuditRecorder $audit,
     ) {}
 
@@ -90,7 +90,7 @@ final readonly class UpdateMembershipStatus
 
             if ($status === MembershipStatus::Active) {
                 if ($previousStatus !== MembershipStatus::Active) {
-                    $this->entitlements->assertMemberCapacity($context->alliance);
+                    $this->entitlements->assertCapacity($context->alliance);
                 }
 
                 if (! $player instanceof Player

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Access\Models;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Shared\Access\Models\Permission;
+use App\Shared\Infrastructure\Access\Models\Permission;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

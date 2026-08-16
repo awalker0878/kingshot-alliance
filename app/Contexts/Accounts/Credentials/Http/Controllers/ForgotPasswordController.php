@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Credentials\Http\Controllers;
 
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;

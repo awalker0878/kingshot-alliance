@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Access\Enums;
 
-use App\Shared\Access\Contracts\Permission;
+use App\Shared\Infrastructure\Access\Contracts\Permission;
 
 enum OperationsPermission: string implements Permission
 {

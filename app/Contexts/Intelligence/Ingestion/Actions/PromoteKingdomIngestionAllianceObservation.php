@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\Actions;
 
-use App\Contexts\GameWorld\Enums\KingdomAllianceStatus;
-use App\Contexts\GameWorld\Models\KingdomAlliance;
+use App\Contexts\GameWorld\Kingdoms\Enums\KingdomAllianceStatus;
+use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionBatchState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionCandidateState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionSubscriptionState;

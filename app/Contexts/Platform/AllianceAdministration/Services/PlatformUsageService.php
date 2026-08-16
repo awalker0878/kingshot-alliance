@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Platform\AllianceAdministration\Services;
 
 use App\Contexts\Alliance\Content\Models\MediaAsset;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Platform\AllianceAdministration\Models\AllianceUsageSnapshot;

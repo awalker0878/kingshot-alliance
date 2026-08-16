@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Http\Middleware;
 
-use App\Contexts\Alliance\Core\Enums\AllianceStatus;
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\Alliance\Core\ValueObjects\TenantContextSnapshot;
+use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\ValueObjects\TenantContextSnapshot;
 use App\Contexts\Platform\Integrations\Models\ApiCredential;
 use Closure;
 use Illuminate\Http\Request;

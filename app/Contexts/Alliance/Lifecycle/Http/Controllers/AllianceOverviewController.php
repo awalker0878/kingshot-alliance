@@ -21,7 +21,7 @@ use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\ReadModels\AllianceDashboard\AllianceDashboardCapabilitiesQuery;
 use App\ReadModels\AllianceDashboard\UpcomingAllianceActivitiesQuery;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;

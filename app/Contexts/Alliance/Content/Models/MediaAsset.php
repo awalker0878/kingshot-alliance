@@ -6,7 +6,7 @@ namespace App\Contexts\Alliance\Content\Models;
 
 use App\Contexts\Alliance\Content\Enums\MediaLifecycleStatus;
 use App\Contexts\Alliance\Content\Enums\MediaScanStatus;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

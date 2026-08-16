@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Governance\Services;
 
 use App\Contexts\GameWorld\Governance\ValueObjects\PlayerMutationContext;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 

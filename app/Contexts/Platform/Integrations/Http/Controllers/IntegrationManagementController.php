@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
+use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
-use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Platform\Integrations\Actions\CreateApiCredential;
 use App\Contexts\Platform\Integrations\Actions\CreateWebhookSubscription;
 use App\Contexts\Platform\Integrations\Actions\RevokeApiCredential;
@@ -15,9 +15,9 @@ use App\Contexts\Platform\Integrations\Actions\RevokeWebhookSubscription;
 use App\Contexts\Platform\Integrations\Models\ApiCredential;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
-use App\Contexts\Platform\Models\AlliancePlatformSetting;
-use App\Contexts\Platform\Services\PlanEntitlementService;
-use App\Shared\Http\Controller;
+use App\Contexts\Platform\AllianceAdministration\Models\AlliancePlatformSetting;
+use App\Contexts\Platform\AllianceAdministration\Services\PlanEntitlementService;
+use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

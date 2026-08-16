@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\EventAdministration\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Enums\EventRecurrencePolicy;
-use App\Contexts\Operations\EventCore\Enums\EventScheduleSource;
-use App\Contexts\Operations\EventCore\Enums\EventScope;
-use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
-use App\Contexts\Operations\EventCore\Models\EventType;
-use App\Contexts\Operations\EventCore\Models\EventTypeCapability;
-use App\Contexts\Operations\EventCore\Models\EventTypeScope;
+use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventRecurrencePolicy;
+use App\Contexts\Operations\Events\Enums\EventScheduleSource;
+use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\RecurrenceFrequency;
+use App\Contexts\Operations\Events\Models\EventType;
+use App\Contexts\Operations\Events\Models\EventTypeCapability;
+use App\Contexts\Operations\Events\Models\EventTypeScope;
 use App\Contexts\Platform\EventAdministration\Actions\UpdateEventTypeScope;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
@@ -17,7 +17,7 @@ use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
 use App\Contexts\Intelligence\Roster\Queries\PlayerSnapshotQuery;
 use App\Contexts\Intelligence\Roster\Queries\RosterQuery;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;

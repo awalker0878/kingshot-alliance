@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Workflows\PlayerContext\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Http\Controller;
+use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Shared\Infrastructure\Http\Controller;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

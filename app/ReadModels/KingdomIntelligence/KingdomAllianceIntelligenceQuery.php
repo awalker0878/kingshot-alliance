@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\ReadModels\KingdomIntelligence;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyContact;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;

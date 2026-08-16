@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
-use App\Contexts\Operations\EventCore\Queries\EventCalendarQuery;
+use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
 use App\Contexts\Operations\Rosters\Actions\AssignEventRosterPlayer;
 use App\Contexts\Operations\Rosters\Actions\RecordEventRosterParticipation;
 use App\Contexts\Operations\Rosters\Actions\RemoveEventRosterPlayer;
@@ -17,7 +17,7 @@ use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Enums\EventRosterType;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

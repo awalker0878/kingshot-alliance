@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\ReadModels\EventCalendar\Queries;
 
-use App\Contexts\Accounts\Models\User;
+use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
-use App\Contexts\Operations\EventCore\Enums\EventScope;
-use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventType;
-use App\Contexts\Operations\EventCore\Services\ActivePlayerEventVisibilityResolver;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Models\Event;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Models\EventType;
+use App\Contexts\Operations\Events\Services\ActivePlayerEventVisibilityResolver;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkReminderKind;
 use App\Contexts\Operations\KingPerks\Models\KingPerkAppointment;
 use App\Contexts\Operations\KingPerks\Models\KingPerkPlan;

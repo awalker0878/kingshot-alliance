@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-use App\Contexts\Accounts\Http\Controllers\AuthenticatedSessionController;
-use App\Contexts\Accounts\Http\Controllers\ConfirmPasswordController;
-use App\Contexts\Accounts\Http\Controllers\EmailVerificationNotificationController;
-use App\Contexts\Accounts\Http\Controllers\EmailVerificationPromptController;
-use App\Contexts\Accounts\Http\Controllers\ForgotPasswordController;
-use App\Contexts\Accounts\Http\Controllers\ProfileController;
-use App\Contexts\Accounts\Http\Controllers\ResetPasswordController;
-use App\Contexts\Accounts\Http\Controllers\TwoFactorChallengeController;
-use App\Contexts\Accounts\Http\Controllers\TwoFactorController;
-use App\Contexts\Accounts\Http\Controllers\VerifyEmailController;
+use App\Contexts\Accounts\Authentication\Http\Controllers\AuthenticatedSessionController;
+use App\Contexts\Accounts\Authentication\Http\Controllers\ConfirmPasswordController;
+use App\Contexts\Accounts\EmailVerification\Http\Controllers\EmailVerificationNotificationController;
+use App\Contexts\Accounts\EmailVerification\Http\Controllers\EmailVerificationPromptController;
+use App\Contexts\Accounts\Credentials\Http\Controllers\ForgotPasswordController;
+use App\Contexts\Accounts\Profile\Http\Controllers\ProfileController;
+use App\Contexts\Accounts\Credentials\Http\Controllers\ResetPasswordController;
+use App\Contexts\Accounts\MultiFactorAuthentication\Http\Controllers\TwoFactorChallengeController;
+use App\Contexts\Accounts\MultiFactorAuthentication\Http\Controllers\TwoFactorController;
+use App\Contexts\Accounts\EmailVerification\Http\Controllers\VerifyEmailController;
 use App\Contexts\Alliance\Content\Http\Controllers\ContentManagementController;
 use App\Contexts\Alliance\Content\Http\Controllers\MemberContentController;
 use App\Contexts\Alliance\Content\Http\Controllers\PublicAllianceController;
 use App\Contexts\Alliance\Content\Http\Controllers\PublicBrandingMediaController;
 use App\Contexts\Alliance\Content\Http\Controllers\PublicContentController;
-use App\Contexts\Alliance\Core\Http\Controllers\AllianceOverviewController;
-use App\Contexts\Alliance\Core\Http\Controllers\CreateAllianceController;
-use App\Contexts\Alliance\Core\Http\Controllers\DashboardController;
+use App\Contexts\Alliance\Lifecycle\Http\Controllers\AllianceOverviewController;
+use App\Contexts\Alliance\Lifecycle\Http\Controllers\CreateAllianceController;
+use App\Contexts\Alliance\Lifecycle\Http\Controllers\DashboardController;
 use App\Contexts\Alliance\Membership\Http\Controllers\InvitationAcceptanceController;
 use App\Contexts\Alliance\Membership\Http\Controllers\InvitationController;
 use App\Contexts\Alliance\Membership\Http\Controllers\MembershipController;
@@ -27,8 +27,8 @@ use App\Contexts\Alliance\Recruitment\Http\Controllers\PublicRecruitmentControll
 use App\Contexts\Alliance\Recruitment\Http\Controllers\RecruitmentCandidateController;
 use App\Contexts\Alliance\Recruitment\Http\Controllers\RecruitmentManagementController;
 use App\Contexts\Operations\BattlePlans\Http\Controllers\EventBattlePlanController;
-use App\Contexts\Operations\EventCore\Http\Controllers\EventManagementController;
-use App\Contexts\Operations\EventCore\Http\Controllers\EventOperationsController;
+use App\Contexts\Operations\Events\Http\Controllers\EventManagementController;
+use App\Contexts\Operations\Events\Http\Controllers\EventOperationsController;
 use App\Contexts\Operations\Participation\Http\Controllers\EventParticipationController;
 use App\Contexts\Operations\Participation\Reminders\Http\Controllers\EventReminderController;
 use App\Contexts\Operations\Rallies\Http\Controllers\EventRallyController;

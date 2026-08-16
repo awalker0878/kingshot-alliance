@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Models;
 
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
 use App\Contexts\Operations\Participation\Enums\EventResponseSource;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

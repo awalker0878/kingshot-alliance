@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Membership\Actions;
 
-use App\Contexts\Accounts\Models\User;
+use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\InvitationStatus;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
@@ -17,8 +17,8 @@ use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Contexts\Alliance\Membership\Services\InvitationTokenService;
 use App\Contexts\Alliance\Membership\ValueObjects\IssuedInvitation;
-use App\Contexts\Alliance\Policies\AllianceCapacityPolicy;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Membership\Policies\MemberCapacityPolicy;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +32,7 @@ final readonly class ResendInvitation
         private AllianceAuthorization $authority,
         private InvitationTokenService $tokens,
         private AuditRecorder $audit,
-        private AllianceCapacityPolicy $entitlements,
+        private MemberCapacityPolicy $entitlements,
     ) {}
 
     public function handle(Alliance $alliance, Player $actor, string $invitationId): IssuedInvitation
@@ -99,7 +99,7 @@ final readonly class ResendInvitation
                 && $invitation->expires_at->isFuture();
 
             if (! $alreadyConsumesCapacity) {
-                $this->entitlements->assertMemberCapacity($context->alliance);
+                $this->entitlements->assertCapacity($context->alliance);
             }
 
             $token = $this->tokens->issue();

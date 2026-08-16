@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\ValueObjects;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionSubscription;
 
 final readonly class KingdomIngestionMutationContext
