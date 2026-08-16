@@ -6,6 +6,7 @@ namespace Tests\Feature\Intelligence\Contributions;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Actions\CreateAlliance;
+use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
@@ -125,7 +126,7 @@ final class ContributionAuthorityContractTest extends TestCase
         self::assertSame(0, $secondSummary['contribution_records']);
     }
 
-    private function category(Player $actor, object $alliance): ContributionCategory
+    private function category(Player $actor, Alliance $alliance): ContributionCategory
     {
         return $this->app->make(CreateContributionCategory::class)->handle(
             actor: $actor,
