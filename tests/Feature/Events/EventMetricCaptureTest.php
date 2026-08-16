@@ -7,9 +7,6 @@ namespace Tests\Feature\Events;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
-use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
-use App\Contexts\GameWorld\Governance\Services\KingdomRoleProvisioner;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Actions\CreateEvent;
@@ -32,6 +29,7 @@ use App\Contexts\Operations\Results\Actions\SaveEventPlayerResult;
 use App\Contexts\Operations\Results\Actions\SaveEventResult;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -329,14 +327,7 @@ final class EventMetricCaptureTest extends TestCase
 
     private function grantKingdomAdministrator(Player $player, Kingdom $kingdom): void
     {
-        $roles = $this->app->make(KingdomRoleProvisioner::class)->provision($kingdom);
-        $administrator = $roles[DefaultKingdomRole::Administrator->value];
-
-        KingdomRoleAssignment::query()->create([
-            'kingdom_id' => $kingdom->id,
-            'player_id' => $player->id,
-            'kingdom_role_id' => $administrator->id,
-        ]);
+        $this->app->make(BootstrapKingdomAdministrator::class)->handle($kingdom, $player);
     }
 
     private function createEvent(
