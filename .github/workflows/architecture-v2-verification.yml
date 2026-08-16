@@ -98,6 +98,7 @@ jobs:
           test -d tests/Feature/Accounts/Core/v2
           test -d tests/Feature/GameWorld/Core/v2
           test -d tests/Feature/GameWorld/Governance/v2
+          test -d tests/Feature/Alliance/Core/v2
           test -d tests/Feature/Operations/EventCore/v2
           test -d tests/Feature/Operations/Reminders/v2
           test -d tests/Feature/Intelligence/Observations/v2
@@ -168,6 +169,7 @@ jobs:
           tests/Feature/Accounts/Core/v2
           tests/Feature/GameWorld/Core/v2
           tests/Feature/GameWorld/Governance/v2
+          tests/Feature/Alliance/Core/v2
           tests/Feature/Operations/EventCore/v2
           tests/Feature/Operations/Reminders/v2
           tests/Feature/Intelligence/Observations/v2
@@ -226,6 +228,9 @@ jobs:
           php artisan test
           tests/Feature/GameWorld/Core/v2
           tests/Feature/GameWorld/Governance/v2
+
+      - name: Run rewritten Alliance Core V2 contracts
+        run: php artisan test tests/Feature/Alliance/Core/v2
 
       - name: Run rewritten Operations V2 contracts
         run: >-
