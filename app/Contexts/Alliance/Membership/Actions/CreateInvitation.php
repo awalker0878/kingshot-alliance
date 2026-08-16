@@ -31,7 +31,7 @@ final readonly class CreateInvitation
             $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
             $this->authority->authorizeContext($context, AlliancePermission::InvitationManage);
 
-            return $this->issuer->handle($context, $target, $email);
+            return $this->issuer->handle($context, (string) $target->id, $email);
         });
     }
 }
