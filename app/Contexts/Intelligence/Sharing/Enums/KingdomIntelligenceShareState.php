@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Enums;
+namespace App\Contexts\Intelligence\Sharing\Enums;
 
 enum KingdomIntelligenceShareState: string
 {

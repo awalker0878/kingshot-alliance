@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Actions;
+namespace App\Contexts\Intelligence\Sharing\Actions;
 
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\KingdomIntelligenceShare;
-use App\Contexts\GameWorld\Models\KingdomIntelligenceShareTarget;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
-use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareTargetState;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
+use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareState;
+use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareTargetState;
+use App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShare;
+use App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShareTarget;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;

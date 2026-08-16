@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Services;
+namespace App\Contexts\Intelligence\Sharing\Services;
 
 final class KingdomIntelligenceShareTokenService
 {

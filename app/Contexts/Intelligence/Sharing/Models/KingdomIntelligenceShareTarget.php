@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Models;
+namespace App\Contexts\Intelligence\Sharing\Models;
 
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareTargetState;
+use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
+use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareTargetState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

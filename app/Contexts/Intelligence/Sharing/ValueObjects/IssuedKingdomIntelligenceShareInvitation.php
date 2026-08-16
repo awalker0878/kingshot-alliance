@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\ValueObjects;
+namespace App\Contexts\Intelligence\Sharing\ValueObjects;
 
 final readonly class IssuedKingdomIntelligenceShareInvitation
 {

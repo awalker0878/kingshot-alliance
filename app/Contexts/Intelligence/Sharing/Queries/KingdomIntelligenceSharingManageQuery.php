@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Queries;
+namespace App\Contexts\Intelligence\Sharing\Queries;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;

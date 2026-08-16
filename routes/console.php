@@ -9,7 +9,7 @@ use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Integrations\Actions\QueueDueWebhookDeliveries;
 use App\Domain\Kingdoms\Actions\EnforceKingdomIngestionRetention;
-use App\Domain\Kingdoms\Actions\EnforceKingdomIntelligenceSharingRetention;
+use App\Contexts\Intelligence\Sharing\Actions\EnforceKingdomIntelligenceSharingRetention;
 use App\Domain\Kingdoms\Actions\QueueDueKingdomIngestionSubscriptions;
 use App\Domain\Kingdoms\Actions\ReconcileKingdomIngestionSources;
 use App\Domain\Kingdoms\Services\KingdomIngestionOperationalHealth;

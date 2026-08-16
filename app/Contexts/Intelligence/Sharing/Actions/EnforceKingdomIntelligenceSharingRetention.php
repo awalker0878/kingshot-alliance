@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Actions;
+namespace App\Contexts\Intelligence\Sharing\Actions;
 
-use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
-use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareTargetState;
+use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareState;
+use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareTargetState;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
