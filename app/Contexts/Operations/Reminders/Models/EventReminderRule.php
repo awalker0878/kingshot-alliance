@@ -6,7 +6,7 @@ namespace App\Contexts\Operations\Reminders\Models;
 
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Models\EventPoll;
+use App\Contexts\Operations\Polls\Models\EventPoll;
 use App\Contexts\Operations\Reminders\Enums\EventReminderAudience;
 use App\Contexts\Operations\Reminders\Enums\EventReminderTrigger;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
