@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/scripts/arch_v2_p8a_fixture_fix.py'
       - '.github/scripts/arch_v2_p8a_workflow_cut.py'
+      - '.github/scripts/arch_v2_p8a_static_fixes.py'
       - '.github/scripts/arch_v2_p8a_contract_fix.py'
       - '.github/workflows/architecture-v2-p8-inventory.yml'
   workflow_dispatch:
@@ -75,6 +76,7 @@ jobs:
       - name: Apply P8A workflow and read-model ownership cut
         run: |
           python3 .github/scripts/arch_v2_p8a_workflow_cut.py
+          python3 .github/scripts/arch_v2_p8a_static_fixes.py
           python3 .github/scripts/arch_v2_p8a_contract_fix.py
 
       - name: Format P8A tree
@@ -110,10 +112,26 @@ jobs:
             exit 1
           fi
 
+      - name: Verify Kingdom Transfer owns its authorization policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f app/Workflows/KingdomTransfer/Access/Enums/TransferPermission.php
+          test -f app/Workflows/KingdomTransfer/Access/Services/TransferAuthorization.php
+          test -f app/Workflows/KingdomTransfer/Access/Services/TransferMutationAuthority.php
+          grep -R -n --include='*.php' 'TransferPermission::Manage' app/Workflows/KingdomTransfer >/dev/null
+          if grep -R -n --include='*.php' 'App\\Contexts\\Intelligence\\Access\\' app/Workflows/KingdomTransfer; then
+            exit 1
+          fi
+          if grep -R -n --include='*.php' 'IntelligencePermission::KingdomManage' app/Workflows/KingdomTransfer; then
+            exit 1
+          fi
+
       - name: Larastan P8A owners and affected contexts
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1536M
           app/Contexts/GameWorld
+          app/Contexts/Alliance/Access
           app/Contexts/Alliance/Membership
           app/Contexts/Intelligence/Roster
           app/Workflows
@@ -147,6 +165,7 @@ jobs:
         run: |
           rm .github/scripts/arch_v2_p8a_fixture_fix.py
           rm .github/scripts/arch_v2_p8a_workflow_cut.py
+          rm .github/scripts/arch_v2_p8a_static_fixes.py
           rm .github/scripts/arch_v2_p8a_contract_fix.py
           rm .github/workflows/architecture-v2-p8-inventory.yml
 
