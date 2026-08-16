@@ -11,12 +11,12 @@ final class EventUxSecurityArchitectureTest extends TestCase
     public function test_event_navigation_and_calendar_controls_are_permission_and_locale_aware(): void
     {
         $root = dirname(__DIR__, 2);
-        $controller = file_get_contents($root.'/app/Domain/Events/Http/Controllers/EventCalendarController.php');
+        $controller = file_get_contents($root.'/app/ReadModels/EventCalendar/Http/Controllers/EventCalendarController.php');
         $index = file_get_contents($root.'/resources/js/pages/Events/Index.vue');
 
         self::assertIsString($controller);
         self::assertIsString($index);
-        self::assertStringContainsString("'canCreate' => \$creationContexts->forUser(\$user) !== []", $controller);
+        self::assertStringContainsString("'canCreate' => \$creationContexts->forPlayer(\$actor) !== []", $controller);
         self::assertStringContainsString('v-if="props.canCreate"', $index);
         self::assertStringContainsString(':aria-pressed="scope === value"', $index);
         self::assertStringContainsString(':aria-pressed="view === \'calendar\'"', $index);
@@ -24,22 +24,23 @@ final class EventUxSecurityArchitectureTest extends TestCase
         self::assertStringNotContainsString("['Sun','Mon','Tue','Wed','Thu','Fri','Sat']", $index);
     }
 
-    public function test_alliance_overview_uses_the_scoped_event_calendar_query(): void
+    public function test_alliance_overview_uses_the_cross_context_upcoming_activity_read_model(): void
     {
         $root = dirname(__DIR__, 2);
-        $controller = file_get_contents($root.'/app/Domain/Alliances/Http/Controllers/AllianceOverviewController.php');
+        $controller = file_get_contents($root.'/app/Contexts/Alliance/Core/Http/Controllers/AllianceOverviewController.php');
 
         self::assertIsString($controller);
-        self::assertFileExists($root.'/app/Domain/Events/Queries/EventCalendarQuery.php');
-        self::assertStringContainsString('use App\\Domain\\Events\\Queries\\EventCalendarQuery;', $controller);
-        self::assertStringContainsString('$eventQuery->forAlliance($user, $alliance', $controller);
+        self::assertFileExists($root.'/app/ReadModels/AllianceDashboard/UpcomingAllianceActivitiesQuery.php');
+        self::assertStringContainsString('use App\\ReadModels\\AllianceDashboard\\UpcomingAllianceActivitiesQuery;', $controller);
+        self::assertStringContainsString('UpcomingAllianceActivitiesQuery $upcomingActivitiesQuery', $controller);
+        self::assertStringContainsString('$upcomingActivitiesQuery->handle($alliance)', $controller);
     }
 
     public function test_event_target_and_status_presentation_is_localized(): void
     {
         $root = dirname(__DIR__, 2);
-        $targetResolver = file_get_contents($root.'/app/Domain/Events/Services/EventTargetResolver.php');
-        $creationContexts = file_get_contents($root.'/app/Domain/Events/Services/EventCreationContextResolver.php');
+        $targetResolver = file_get_contents($root.'/app/Contexts/Operations/EventCore/Services/EventTargetResolver.php');
+        $creationContexts = file_get_contents($root.'/app/Contexts/Operations/EventCore/Services/EventCreationContextResolver.php');
         $create = file_get_contents($root.'/resources/js/pages/Events/Create.vue');
         $show = file_get_contents($root.'/resources/js/pages/Events/Show.vue');
         $manage = file_get_contents($root.'/resources/js/pages/Events/Manage.vue');
