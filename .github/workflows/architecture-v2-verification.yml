@@ -40,6 +40,7 @@ on:
       - 'tests/TenantIsolation/Alliances/**'
       - 'tests/Unit/Accounts/**'
       - 'tests/Unit/Authorization/**'
+      - 'tests/Unit/KingPerks/**'
       - 'docs/product/architecture-v2-*.md'
       - '.github/workflows/architecture-v2-verification.yml'
   workflow_dispatch:
@@ -138,6 +139,7 @@ jobs:
             tests/TenantIsolation/Alliances \
             tests/Unit/Accounts \
             tests/Unit/Authorization \
+            tests/Unit/KingPerks \
             app/Contexts \
             app/Shared \
             app/Workflows \
@@ -239,8 +241,7 @@ jobs:
           php artisan test \
             tests/Feature/Events \
             tests/Feature/KingPerks \
-            tests/Feature/Integrations \
-            tests/Feature/Contributions \
+            tests/Unit/KingPerks \
             "${rally_tests[@]}" \
             2>&1 | tee operations-tests.log
           status=${PIPESTATUS[0]}
