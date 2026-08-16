@@ -61,7 +61,11 @@ jobs:
         run: php artisan migrate --force
 
       - name: Apply P5 ownership repair
-        run: python3 .github/p5_alignment_repair.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i "/Path('tests\/Feature\/KingPerks').rmdir()/d" .github/p5_alignment_repair.py
+          python3 .github/p5_alignment_repair.py
 
       - name: Format P5 contracts
         run: >-
