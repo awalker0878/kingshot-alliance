@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
+use App\Contexts\Platform\AllianceAdministration\Models\AlliancePlatformSetting;
+use App\Contexts\Platform\AllianceAdministration\Services\PlanEntitlementService;
 use App\Contexts\Platform\Integrations\Actions\CreateApiCredential;
 use App\Contexts\Platform\Integrations\Actions\CreateWebhookSubscription;
 use App\Contexts\Platform\Integrations\Actions\RevokeApiCredential;
@@ -15,8 +17,6 @@ use App\Contexts\Platform\Integrations\Actions\RevokeWebhookSubscription;
 use App\Contexts\Platform\Integrations\Models\ApiCredential;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
-use App\Contexts\Platform\AllianceAdministration\Models\AlliancePlatformSetting;
-use App\Contexts\Platform\AllianceAdministration\Services\PlanEntitlementService;
 use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -26,14 +26,17 @@ use Inertia\Response;
 
 final class IntegrationManagementController extends Controller
 {
+    public function __construct(private readonly AccountIdentityQuery $accounts) {}
+
     public function index(
         Request $request,
         AllianceContext $context,
         AllianceAuthorization $authorization,
         PlanEntitlementService $entitlements,
     ): Response {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        $identifier = $request->user()?->getAuthIdentifier();
+        abort_unless(is_numeric($identifier), 401);
+        $account = $this->accounts->require((int) $identifier);
         $alliance = $context->alliance();
         abort_unless($authorization->allows($context->player(), $alliance, AlliancePermission::Manage), 403);
         $settings = AlliancePlatformSetting::query()->whereKey($alliance->id)->first();
@@ -46,8 +49,8 @@ final class IntegrationManagementController extends Controller
 
         return Inertia::render('Alliance/Integrations/Manage', [
             'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
+                'name' => $account->name,
+                'email' => $account->email,
             ],
             'alliance' => ['id' => (string) $alliance->id, 'name' => (string) $alliance->name],
             'settings' => [
