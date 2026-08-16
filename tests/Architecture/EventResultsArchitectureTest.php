@@ -12,8 +12,8 @@ final class EventResultsArchitectureTest extends TestCase
     {
         $root = dirname(__DIR__, 2);
         $migration = file_get_contents($root.'/database/migrations/2026_08_13_070000_create_event_result_tables.php');
-        $controller = file_get_contents($root.'/app/Domain/Events/Http/Controllers/EventResultController.php');
-        $intelligence = file_get_contents($root.'/app/Domain/Events/Queries/EventPlayerIntelligenceQuery.php');
+        $controller = file_get_contents($root.'/app/Contexts/Operations/Results/Http/Controllers/EventResultController.php');
+        $intelligence = file_get_contents($root.'/app/Contexts/Intelligence/EventAnalysis/Queries/EventPlayerIntelligenceQuery.php');
 
         self::assertIsString($migration);
         self::assertIsString($controller);
