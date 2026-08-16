@@ -1,4 +1,4 @@
-name: ARCH V2 Inventory
+name: ARCH V2 Authority Migration
 
 on:
   push:
@@ -6,21 +6,74 @@ on:
       - arch-v2-remediation-20260816
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  inventory:
+  migrate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Mutation authority references
+      - name: Replace authority dependencies
         shell: bash
         run: |
-          echo '=== MUTATION AUTHORITY REFERENCES ==='
-          grep -R -n -E '([A-Za-z]+MutationAuthority|MutationContext)' app routes bootstrap tests docs || true
-          echo '=== WORKFLOWS OWNERSHIP ==='
-          find app/Workflows -type f -print | sort || true
-          echo '=== OPERATIONS TOP LEVEL ==='
-          find app/Contexts/Operations -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
-          echo '=== STALE ARCH TERMS ==='
-          grep -R -n -i -E 'capability coverage|mutation authority|event_reminder_deliveries|king_perk_reminder_deliveries' docs tests app || true
+          if [ -f .arch-v2-p4-refactored ]; then
+            echo 'P4 migration already applied.'
+            exit 0
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              'AllianceMutationAuthority': 'AllianceAuthorization',
+              'KingdomMutationAuthority': 'KingdomAuthorization',
+              'PlayerMutationAuthority': 'PlayerWriteState',
+              'AllianceOperationsMutationAuthority': 'AllianceOperationsAuthorization',
+              'KingdomOperationsMutationAuthority': 'KingdomOperationsAuthorization',
+              'EventCreationMutationAuthority': 'EventAuthorization',
+              'EventMutationAuthority': 'EventAuthorization',
+              'AllianceIntelligenceMutationAuthority': 'AllianceIntelligenceAuthorization',
+              'TransferMutationAuthority': 'TransferAuthorization',
+              'PlatformMutationAuthority': 'PlatformAuthorization',
+          }
+
+          roots = [Path('app'), Path('tests'), Path('routes'), Path('bootstrap')]
+          for root in roots:
+              if not root.exists():
+                  continue
+              for path in root.rglob('*.php'):
+                  text = path.read_text()
+                  updated = text
+                  for old, new in replacements.items():
+                      updated = updated.replace(old, new)
+                  if updated == text:
+                      continue
+                  lines = updated.splitlines()
+                  seen_uses = set()
+                  result = []
+                  for line in lines:
+                      if line.startswith('use '):
+                          if line in seen_uses:
+                              continue
+                          seen_uses.add(line)
+                      result.append(line)
+                  path.write_text('\n'.join(result) + ('\n' if updated.endswith('\n') else ''))
+          PY
+
+          git rm -f \
+            app/Contexts/Alliance/Access/Services/AllianceMutationAuthority.php \
+            app/Contexts/GameWorld/Governance/Services/KingdomMutationAuthority.php \
+            app/Contexts/GameWorld/Governance/Services/PlayerMutationAuthority.php \
+            app/Contexts/GameWorld/KingdomTransfers/Access/Services/TransferMutationAuthority.php \
+            app/Contexts/Operations/Access/Services/AllianceOperationsMutationAuthority.php \
+            app/Contexts/Operations/Access/Services/KingdomOperationsMutationAuthority.php \
+            app/Contexts/Operations/EventCore/Services/EventCreationMutationAuthority.php \
+            app/Contexts/Operations/EventCore/Services/EventMutationAuthority.php \
+            app/Contexts/Intelligence/Access/Services/AllianceIntelligenceMutationAuthority.php \
+            app/Contexts/Platform/Access/Services/PlatformMutationAuthority.php
+
+          touch .arch-v2-p4-refactored
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'refactor: remove specialized mutation authorities'
+          git push
