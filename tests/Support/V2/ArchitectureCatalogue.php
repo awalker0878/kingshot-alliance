@@ -72,11 +72,11 @@ final class ArchitectureCatalogue
         return [
             'Accounts' => ['Actions', 'Http', 'Models', 'Services'],
             'GameWorld' => ['Actions', 'Enums', 'Http', 'Models', 'Queries', 'Services'],
-            'Alliance' => [],
+            'Alliance' => ['Core'],
             'Operations' => [],
             'Intelligence' => ['Http'],
             'Communications' => [],
-            'Platform' => ['Actions', 'Http', 'Models', 'Providers', 'Queries', 'Services'],
+            'Platform' => ['Actions', 'Core', 'Http', 'Models', 'Providers', 'Queries', 'Services'],
         ];
     }
 
