@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Access\Services;
 
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Access\ValueObjects\AllianceMutationContext;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
@@ -11,9 +14,12 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use Illuminate\Auth\Access\AuthorizationException;
 
 final class AllianceIntelligenceAuthorization
 {
+    public function __construct(private AllianceAuthorization $allianceAuthorization) {}
+
     public function allows(Player $actor, Alliance $alliance, IntelligencePermission $permission): bool
     {
         if ($alliance->status !== AllianceStatus::Active
@@ -31,11 +37,30 @@ final class AllianceIntelligenceAuthorization
             && $this->allowsMembership($membership, $alliance, $permission);
     }
 
-    public function allowsMembership(
-        AllianceMembership $membership,
+    public function require(
+        Player $actor,
         Alliance $alliance,
-        IntelligencePermission $permission,
-    ): bool {
+        IntelligencePermission|AlliancePermission $permission,
+    ): AllianceMutationContext {
+        $context = $this->allianceAuthorization->acquireActiveScope($actor, $alliance);
+
+        if ($permission instanceof AlliancePermission) {
+            if ($permission !== AlliancePermission::View) {
+                throw new AuthorizationException;
+            }
+
+            return $context;
+        }
+
+        if (! $this->allowsMembership($context->membership, $context->alliance, $permission)) {
+            throw new AuthorizationException;
+        }
+
+        return $context;
+    }
+
+    public function allowsMembership(AllianceMembership $membership, Alliance $alliance, IntelligencePermission $permission): bool
+    {
         if ($membership->status !== MembershipStatus::Active
             || (string) $membership->alliance_id !== (string) $alliance->id) {
             return false;
