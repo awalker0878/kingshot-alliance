@@ -55,23 +55,28 @@ final class EventParticipationQuery
         $attendance = EventAttendance::query()->whereIn('occurrence_id', $occurrenceIds)->with('player')->get()->keyBy(fn ($row): string => $row->occurrence_id.':'.$row->player_id);
         $keys = $responses->keys()->merge($registrations->keys())->merge($attendance->keys())->unique()->sort()->values();
 
-        return $keys->map(function (string $key) use ($responses, $registrations, $attendance): array {
+        return array_values($keys->map(function (string $key) use ($responses, $registrations, $attendance): array {
             [$occurrenceId, $playerId] = explode(':', $key, 2);
             $response = $responses->get($key);
             $registration = $registrations->get($key);
             $attendanceRecord = $attendance->get($key);
-            $player = $response?->player ?? $registration?->player ?? $attendanceRecord?->player;
+
+            $player = $response instanceof EventResponse
+                ? $response->player
+                : ($registration instanceof EventRegistration
+                    ? $registration->player
+                    : ($attendanceRecord instanceof EventAttendance ? $attendanceRecord->player : null));
 
             return [
                 'occurrenceId' => $occurrenceId,
                 'playerId' => $playerId,
                 'playerName' => $player instanceof Player ? (string) $player->current_name : 'Unknown Player',
-                'response' => $response?->response?->value,
-                'registration' => $registration?->status?->value,
-                'waitlistPosition' => $registration?->waitlist_position,
-                'attendance' => $attendanceRecord?->status?->value,
-                'attendanceNotes' => $attendanceRecord?->notes,
+                'response' => $response instanceof EventResponse ? $response->response->value : null,
+                'registration' => $registration instanceof EventRegistration ? $registration->status->value : null,
+                'waitlistPosition' => $registration instanceof EventRegistration ? $registration->waitlist_position : null,
+                'attendance' => $attendanceRecord instanceof EventAttendance ? $attendanceRecord->status->value : null,
+                'attendanceNotes' => $attendanceRecord instanceof EventAttendance ? $attendanceRecord->notes : null,
             ];
-        })->all();
+        })->all());
     }
 }
