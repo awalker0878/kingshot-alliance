@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\V3\Architecture;
+namespace Tests\v3\Architecture;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
