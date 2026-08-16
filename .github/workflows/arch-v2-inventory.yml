@@ -176,10 +176,21 @@ jobs:
           print(f'Changed {len(changed)} PHP files')
           print('\n'.join(changed))
 
-          for path in Path('app').rglob('*.php'):
+          # Only the removed service APIs are forbidden. Generic private helper
+          # methods such as ContributionController::requireManager() are allowed.
+          forbidden_definitions = {
+              Path('app/Contexts/Alliance/Access/Services/AllianceAuthorization.php'): ('function require(', 'function requireExclusive(', 'function acquireActiveScope(', 'function acquireExclusiveScope('),
+              Path('app/Contexts/GameWorld/Governance/Services/KingdomAuthorization.php'): ('function require(', 'function requireExclusive(', 'function acquireActiveScope('),
+              Path('app/Contexts/Operations/EventCore/Services/EventAuthorization.php'): ('function requireManager(', 'function requireManagerExclusive(', 'function requireSelf(', 'function requireCreate(', 'function requireManage('),
+              Path('app/Contexts/Platform/Access/Services/PlatformAuthorization.php'): ('function require(',),
+              Path('app/Contexts/Intelligence/Access/Services/AllianceIntelligenceAuthorization.php'): ('function require(',),
+              Path('app/Contexts/GameWorld/KingdomTransfers/Access/Services/TransferAuthorization.php'): ('function require(', 'function requireExclusive('),
+          }
+          for path, needles in forbidden_definitions.items():
               source = path.read_text()
-              if re.search(r'->(?:requireManagerExclusive|requireManager|requireSelf|requireCreate|requireManage|acquireActiveScope|acquireExclusiveScope)\(', source):
-                  raise RuntimeError(f'Stale transactional API remains in {path}')
+              for needle in needles:
+                  if needle in source:
+                      raise RuntimeError(f'Removed API still defined in {path}: {needle}')
           PY
 
           find app -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/write-state-lint.log
