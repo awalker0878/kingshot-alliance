@@ -185,11 +185,20 @@ final class KingdomTransferStructureTest extends TestCase
         self::assertStringContainsString("unique('transfer_participant_id')", $completions);
     }
 
-    public function test_transfer_events_remain_inside_the_existing_kingdoms_webhook_boundary(): void
+    public function test_transfer_events_are_not_implicitly_exposed_as_public_webhooks(): void
     {
-        $queue = file_get_contents(dirname(__DIR__, 2).'/app/Domain/Integrations/Actions/QueueWebhookDeliveries.php');
+        $root = dirname(__DIR__, 2);
+        $queue = file_get_contents($root.'/app/Contexts/Platform/Integrations/Actions/QueueWebhookDeliveries.php');
+        $catalog = file_get_contents($root.'/app/Contexts/Platform/Integrations/Contracts/WebhookEventCatalog.php');
         self::assertIsString($queue);
-        self::assertStringContainsString("str_starts_with(\$eventType, 'kingdoms.')", $queue);
+        self::assertIsString($catalog);
+
+        self::assertStringContainsString('WebhookEventCatalog::isPublic($eventType)', $queue);
+        self::assertStringNotContainsString("str_starts_with(\$eventType, 'kingdoms.')", $queue);
+
+        foreach (['transfer.', 'kingdom.transfer', 'kingdoms.transfer'] as $implicitTransferContract) {
+            self::assertStringNotContainsString($implicitTransferContract, $catalog);
+        }
     }
 
     public function test_transfer_planning_has_no_public_api_route_or_scope(): void
@@ -238,9 +247,13 @@ final class KingdomTransferStructureTest extends TestCase
         }
     }
 
-    public function test_transfer_runtime_stays_under_the_kingdoms_domain(): void
+    public function test_transfer_runtime_is_owned_by_the_kingdom_transfer_workflow(): void
     {
-        $root = dirname(__DIR__, 2).'/app/Domain/Kingdoms/';
+        $repositoryRoot = dirname(__DIR__, 2);
+        $root = $repositoryRoot.'/app/Workflows/KingdomTransfer/';
+
+        self::assertDirectoryExists($root);
+        self::assertDirectoryDoesNotExist($repositoryRoot.'/app/Domain');
 
         foreach ([
             'Models/TransferPlan.php',
@@ -280,5 +293,20 @@ final class KingdomTransferStructureTest extends TestCase
         ] as $path) {
             self::assertFileExists($root.$path);
         }
+
+        $readme = file_get_contents($root.'README.md');
+        self::assertIsString($readme);
+        self::assertStringContainsString('Cross-context transfer-cycle orchestration and saga state.', $readme);
+        self::assertStringContainsString(
+            'does not directly write GameWorld, Alliance, Operations, or Intelligence aggregates.',
+            $readme,
+        );
+
+        $routes = file_get_contents($repositoryRoot.'/routes/kingdoms.php');
+        self::assertIsString($routes);
+        self::assertStringContainsString(
+            'use App\\Workflows\\KingdomTransfer\\Http\\Controllers\\TransferPlanController;',
+            $routes,
+        );
     }
 }
