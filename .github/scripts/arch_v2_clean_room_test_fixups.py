@@ -14,15 +14,31 @@ def replace(path: str, old: str, new: str) -> None:
 
 
 def fix_capability_reflection() -> None:
+    path = "tests/v2/Support/CapabilitySurfaceTestCase.php"
     replace(
-        "tests/v2/Support/CapabilitySurfaceTestCase.php",
+        path,
         "$reflection->getMethods(ReflectionClass::IS_PUBLIC)",
         "$reflection->getMethods(\\ReflectionMethod::IS_PUBLIC)",
     )
 
     old = "&& ! str_starts_with($method->getName(), '__'),"
     new = "&& ($method->getName() === '__invoke' || ! str_starts_with($method->getName(), '__')) ,"
-    replace("tests/v2/Support/CapabilitySurfaceTestCase.php", old, new.replace("')) ,", "')),"))
+    replace(path, old, new.replace("')) ,", "')),"))
+
+    replace(
+        path,
+        """    public function test_capability_models_map_to_the_fresh_schema(): void
+    {
+        foreach ($this->phpFiles() as $file) {
+""",
+        """    public function test_capability_models_map_to_the_fresh_schema(): void
+    {
+        $files = $this->phpFiles();
+        self::assertNotSame([], $files, static::CAPABILITY.' has no implementation surface to inspect for models.');
+
+        foreach ($files as $file) {
+""",
+    )
 
 
 def fix_context_composition_boundary() -> None:
