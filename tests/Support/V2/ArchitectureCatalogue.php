@@ -105,6 +105,6 @@ final class ArchitectureCatalogue
 
     public static function featureTestPath(string $context, string $capability): string
     {
-        return 'tests/Feature/'.$context.'/'.$capability.'/V2';
+        return 'tests/Feature/'.$context.'/'.$capability.'/v2';
     }
 }
