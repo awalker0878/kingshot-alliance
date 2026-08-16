@@ -237,12 +237,12 @@ jobs:
             exit "$status"
           fi
 
-      - name: Run architecture regression suite
+      - name: Run rewritten V2 architecture regression suite
         shell: bash
         run: |
           set -o pipefail
           set +e
-          php artisan test tests/Architecture 2>&1 | tee architecture-tests.log
+          php artisan test tests/Architecture/V2 2>&1 | tee architecture-tests.log
           status=${PIPESTATUS[0]}
           set -e
           if [ "$status" -ne 0 ]; then
