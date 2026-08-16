@@ -68,29 +68,31 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           path = Path('.github/p5_alignment_repair.py')
-          text = path.read_text()
-          old = """    text = add_import_after(
-              text,
-              'use App\\\\Contexts\\\\Alliance\\\\Core\\\\Actions\\\\CreateAlliance;\\n',
-              'use App\\\\Contexts\\\\Alliance\\\\Membership\\\\Enums\\\\RosterState;\\n'
-              'use App\\\\Contexts\\\\Alliance\\\\Membership\\\\Models\\\\AllianceRosterEntry;\\n',
-          )
-          """
-          new = """    anchor = 'use App\\\\Contexts\\\\Alliance\\\\Core\\\\Actions\\\\CreateAlliance;\\n'
-              text = add_import_after(
-                  text,
-                  anchor,
-                  'use App\\\\Contexts\\\\Alliance\\\\Membership\\\\Enums\\\\RosterState;\\n',
-              )
-              text = add_import_after(
-                  text,
-                  anchor,
-                  'use App\\\\Contexts\\\\Alliance\\\\Membership\\\\Models\\\\AllianceRosterEntry;\\n',
-              )
-          """
-          if old not in text:
-              raise SystemExit('Expected combined roster import block not found')
-          path.write_text(text.replace(old, new))
+          lines = path.read_text().splitlines(keepends=True)
+          marker = "    text = text.replace('use App\\\\Domain\\\\Kingdoms\\\\Actions\\\\SaveRosterEntry;\\n', '')\n"
+          marker_index = next((i for i, line in enumerate(lines) if line == marker), None)
+          if marker_index is None:
+              raise SystemExit('SaveRosterEntry import-removal marker not found')
+          start = next((i for i in range(marker_index + 1, len(lines)) if lines[i] == '    text = add_import_after(\n'), None)
+          if start is None:
+              raise SystemExit('Combined roster import block not found')
+          end = next((i for i in range(start + 1, len(lines)) if lines[i] == '    )\n'), None)
+          if end is None:
+              raise SystemExit('Combined roster import block end not found')
+          replacement = [
+              "    anchor = 'use App\\\\Contexts\\\\Alliance\\\\Core\\\\Actions\\\\CreateAlliance;\\n'\n",
+              "    text = add_import_after(\n",
+              "        text,\n",
+              "        anchor,\n",
+              "        'use App\\\\Contexts\\\\Alliance\\\\Membership\\\\Enums\\\\RosterState;\\n',\n",
+              "    )\n",
+              "    text = add_import_after(\n",
+              "        text,\n",
+              "        anchor,\n",
+              "        'use App\\\\Contexts\\\\Alliance\\\\Membership\\\\Models\\\\AllianceRosterEntry;\\n',\n",
+              "    )\n",
+          ]
+          path.write_text(''.join(lines[:start] + replacement + lines[end + 1:]))
           PY
           python3 .github/p5_alignment_repair.py
 
