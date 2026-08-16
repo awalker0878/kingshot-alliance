@@ -45,6 +45,11 @@ def move_tree(src_root: Path, dst_root: Path) -> None:
         if src.suffix == '.php':
             move_php(src, dst)
         else:
+            # V2 context READMEs are authoritative when a legacy root is merged
+            # into an already-established destination context.
+            if dst.exists() and src.name == 'README.md':
+                src.unlink()
+                continue
             if dst.exists():
                 raise RuntimeError(f'Destination already exists: {dst}')
             dst.parent.mkdir(parents=True, exist_ok=True)
@@ -258,10 +263,10 @@ shared_readme = repo / 'app/Shared/README.md'
 shared_readme.write_text(
     "# V2 shared kernel\n\n"
     "Only genuinely cross-cutting technical contracts and infrastructure belong here. "
-    "Infrastructure packages live below `App\\\\Shared\\\\Infrastructure` (for example "
+    "Infrastructure packages live below `App\\Shared\\Infrastructure` (for example "
     "AuditTrail and Messaging/Outbox); access primitives and other tiny shared contracts may "
     "remain directly under Shared when they are not business capabilities.\n\n"
-    "`Shared` must not import any business context, workflow, read model, or `App\\\\Domain\\\\*` "
+    "`Shared` must not import any business context, workflow, read model, or `App\\Domain\\*` "
     "class. No feature aggregate or gameplay/alliance policy belongs here.\n",
     encoding='utf-8',
 )
