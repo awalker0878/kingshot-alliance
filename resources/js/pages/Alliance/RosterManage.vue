@@ -190,7 +190,8 @@ function stateTone(value: string): string {
           >
             <span class="font-semibold text-[var(--ks-text)]">{{ membership.name }}</span>
             <span class="block text-xs text-[var(--ks-text-muted)]">
-              {{ membership.rank.toUpperCase() }} · {{ membership.claimed ? t('roster.linked') : t('roster.unlinked') }}
+              {{ membership.rank.toUpperCase() }} ·
+              {{ membership.claimed ? t('roster.linked') : t('roster.unlinked') }}
             </span>
           </li>
         </ul>

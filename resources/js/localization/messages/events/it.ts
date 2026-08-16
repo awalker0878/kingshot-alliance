@@ -1,133 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  "events": {
-    "scope": {
-      "player": "Giocatore",
-      "alliance": "Alleanza",
-      "kingdom": "Regno"
+  events: {
+    scope: {
+      player: 'Giocatore',
+      alliance: 'Alleanza',
+      kingdom: 'Regno',
     },
-    "actions": {
-      "save": "Salva",
-      "cancel": "Annulla"
+    actions: {
+      save: 'Salva',
+      cancel: 'Annulla',
     },
-    "calendar": {
-      "title": "Eventi",
-      "create": "Crea evento",
-      "agenda": "Agenda",
-      "month": "Calendario",
-      "all": "Tutti gli ambiti",
-      "manageable": "Gestisci",
-      "empty": "Nessun evento corrisponde a questa vista.",
-      "previousMonth": "Mese precedente",
-      "nextMonth": "Mese successivo",
-      "scopeFilters": "Filtra eventi per ambito",
-      "viewOptions": "Scegli vista eventi"
+    calendar: {
+      title: 'Eventi',
+      create: 'Crea evento',
+      agenda: 'Agenda',
+      month: 'Calendario',
+      all: 'Tutti gli ambiti',
+      manageable: 'Gestisci',
+      empty: 'Nessun evento corrisponde a questa vista.',
+      previousMonth: 'Mese precedente',
+      nextMonth: 'Mese successivo',
+      scopeFilters: 'Filtra eventi per ambito',
+      viewOptions: 'Scegli vista eventi',
     },
-    "create": {
-      "title": "Crea evento",
-      "back": "Torna agli eventi",
-      "noContexts": "Al momento non hai il permesso di creare un evento.",
-      "context": "Contesto evento",
-      "eventType": "Tipo di evento",
-      "start": "Ora di inizio",
-      "duration": "Durata (minuti)",
-      "capacity": "Capacità",
-      "instructions": "Istruzioni",
-      "submit": "Crea evento"
+    create: {
+      title: 'Crea evento',
+      back: 'Torna agli eventi',
+      noContexts: 'Al momento non hai il permesso di creare un evento.',
+      context: 'Contesto evento',
+      eventType: 'Tipo di evento',
+      start: 'Ora di inizio',
+      duration: 'Durata (minuti)',
+      capacity: 'Capacità',
+      instructions: 'Istruzioni',
+      submit: 'Crea evento',
     },
-    "show": {
-      "back": "Torna agli eventi",
-      "manage": "Gestisci evento",
-      "details": "Dettagli evento",
-      "status": "Stato",
-      "capacity": "Capacità",
-      "recurrence": "Ricorrenza",
-      "modules": "Moduli operativi"
+    show: {
+      back: 'Torna agli eventi',
+      manage: 'Gestisci evento',
+      details: 'Dettagli evento',
+      status: 'Stato',
+      capacity: 'Capacità',
+      recurrence: 'Ricorrenza',
+      modules: 'Moduli operativi',
     },
-    "manage": {
-      "title": "Gestisci evento",
-      "back": "Torna agli eventi",
-      "save": "Salva evento",
-      "cancel": "Annulla evento"
+    manage: {
+      title: 'Gestisci evento',
+      back: 'Torna agli eventi',
+      save: 'Salva evento',
+      cancel: 'Annulla evento',
     },
-    "attention": {
-      "title": "Azioni evento",
-      "response": "Risposta richiesta",
-      "registration": "Registrazione disponibile",
-      "vote": "Voto richiesto",
-      "roster_confirmation": "Conferma roster richiesta"
+    attention: {
+      title: 'Azioni evento',
+      response: 'Risposta richiesta',
+      registration: 'Registrazione disponibile',
+      vote: 'Voto richiesto',
+      roster_confirmation: 'Conferma roster richiesta',
     },
-    "reminders": {
-      "title": "Promemoria recenti"
+    reminders: {
+      title: 'Promemoria recenti',
     },
-    "participation": {
-      "register": "Registrati",
-      "cancelRegistration": "Annulla registrazione"
+    participation: {
+      register: 'Registrati',
+      cancelRegistration: 'Annulla registrazione',
     },
-    "responses": {
-      "going": "Partecipo",
-      "maybe": "Forse",
-      "unavailable": "Non disponibile"
+    responses: {
+      going: 'Partecipo',
+      maybe: 'Forse',
+      unavailable: 'Non disponibile',
     },
-    "registration": {
-      "registered": "Registrato",
-      "waitlisted": "In lista d’attesa",
-      "cancelled": "Annullato"
+    registration: {
+      registered: 'Registrato',
+      waitlisted: 'In lista d’attesa',
+      cancelled: 'Annullato',
     },
-    "scheduleSources": {
-      "alliance_controlled": "Controllato dall’alleanza",
-      "game_calendar": "Calendario di gioco",
-      "matchmaking": "Matchmaking",
-      "manual": "Manuale"
+    scheduleSources: {
+      alliance_controlled: 'Controllato dall’alleanza',
+      game_calendar: 'Calendario di gioco',
+      matchmaking: 'Matchmaking',
+      manual: 'Manuale',
     },
-    "recurrencePolicies": {
-      "disabled": "Nessuna ricorrenza",
-      "fixed_interval": "Intervallo fisso",
-      "configurable": "Configurabile"
+    recurrencePolicies: {
+      disabled: 'Nessuna ricorrenza',
+      fixed_interval: 'Intervallo fisso',
+      configurable: 'Configurabile',
     },
-    "recurrenceFrequencies": {
-      "none": "Nessuna ricorrenza",
-      "daily": "Giornaliero",
-      "weekly": "Settimanale"
+    recurrenceFrequencies: {
+      none: 'Nessuna ricorrenza',
+      daily: 'Giornaliero',
+      weekly: 'Settimanale',
     },
-    "attendanceStatuses": {
-      "present": "Presente",
-      "absent": "Assente",
-      "excused": "Giustificato",
-      "unknown": "Sconosciuto"
+    attendanceStatuses: {
+      present: 'Presente',
+      absent: 'Assente',
+      excused: 'Giustificato',
+      unknown: 'Sconosciuto',
     },
-    "eventStatuses": {
-      "draft": "Bozza",
-      "published": "Pubblicato",
-      "cancelled": "Annullato",
-      "completed": "Completato"
+    eventStatuses: {
+      draft: 'Bozza',
+      published: 'Pubblicato',
+      cancelled: 'Annullato',
+      completed: 'Completato',
     },
-    "capabilities": {
-      "responses": "Risposte",
-      "registration": "Registrazione",
-      "waitlist": "Lista d’attesa",
-      "attendance": "Presenze",
-      "phases": "Fasi",
-      "polls": "Sondaggi",
-      "rosters": "Roster",
-      "substitutes": "Riserve",
-      "teams": "Squadre",
-      "legions": "Legioni",
-      "rally_guidance": "Guida rally",
-      "formations": "Formazioni",
-      "objectives": "Obiettivi",
-      "scoring": "Punteggio",
-      "results": "Risultati"
+    capabilities: {
+      responses: 'Risposte',
+      registration: 'Registrazione',
+      waitlist: 'Lista d’attesa',
+      attendance: 'Presenze',
+      phases: 'Fasi',
+      polls: 'Sondaggi',
+      rosters: 'Roster',
+      substitutes: 'Riserve',
+      teams: 'Squadre',
+      legions: 'Legioni',
+      rally_guidance: 'Guida rally',
+      formations: 'Formazioni',
+      objectives: 'Obiettivi',
+      scoring: 'Punteggio',
+      results: 'Risultati',
     },
-    "reminderAudiences": {
-      "target": "Destinatari evento",
-      "responded": "Giocatori che hanno risposto",
-      "registered": "Giocatori registrati",
-      "rostered": "Giocatori nel roster",
-      "all_scope_players": "Tutti i giocatori idonei"
-    }
-  }
+    reminderAudiences: {
+      target: 'Destinatari evento',
+      responded: 'Giocatori che hanno risposto',
+      registered: 'Giocatori registrati',
+      rostered: 'Giocatori nel roster',
+      all_scope_players: 'Tutti i giocatori idonei',
+    },
+  },
 } satisfies MessageCatalogue;
 
 export default messages;

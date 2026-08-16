@@ -453,7 +453,9 @@ function member(id: string) {
             >{{ t('contributions.recipient')
             }}<select v-model="scheduleForm.recipient_player_id" required class="field">
               <option value="" disabled>{{ t('contributions.selectMember') }}</option>
-              <option v-for="m in reporting.members" :key="m.playerId" :value="m.playerId">{{ m.name }}</option>
+              <option v-for="m in reporting.members" :key="m.playerId" :value="m.playerId">
+                {{ m.name }}
+              </option>
             </select></label
           ><label
             >{{ t('contributions.name')

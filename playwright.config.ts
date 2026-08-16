@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:8000';
 
 export default defineConfig({
-  testDir: './tests/Visual',
+  testDir: './tests/v2/Visual',
   snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{projectName}/{arg}{ext}',
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
@@ -31,19 +31,11 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      use: {
-        viewport: { width: 1440, height: 1000 },
-        deviceScaleFactor: 1,
-      },
+      use: { viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 },
     },
     {
       name: 'mobile',
-      use: {
-        viewport: { width: 390, height: 844 },
-        deviceScaleFactor: 1,
-        hasTouch: true,
-        isMobile: true,
-      },
+      use: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true },
     },
   ],
   outputDir: 'test-results/visual',

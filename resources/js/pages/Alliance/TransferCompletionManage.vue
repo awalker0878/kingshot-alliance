@@ -33,8 +33,6 @@ type Participant = {
   completion: Completion | null;
 };
 
-
-
 const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string | null };
@@ -43,8 +41,6 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
-
-
 
 const completionCounts = computed(() => ({
   completed: props.participants.filter((participant) => participant.completion !== null).length,
@@ -99,8 +95,6 @@ function destinationLabel(participant: Participant): string {
   return participant.destinationKingdom ?? '—';
 }
 
-
-
 function canComplete(participant: Participant): boolean {
   return (
     props.plan !== null &&
@@ -132,9 +126,6 @@ function completeParticipant(participant: Participant): void {
 function timestamp(value: string): string {
   return formatDate(value, { dateStyle: 'medium', timeStyle: 'short' });
 }
-
-const inputClass =
-  'mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm text-[var(--ks-text)] disabled:cursor-not-allowed disabled:opacity-50';
 </script>
 
 <template>

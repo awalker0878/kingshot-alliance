@@ -1,133 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  "events": {
-    "scope": {
-      "player": "Người chơi",
-      "alliance": "Liên minh",
-      "kingdom": "Vương quốc"
+  events: {
+    scope: {
+      player: 'Người chơi',
+      alliance: 'Liên minh',
+      kingdom: 'Vương quốc',
     },
-    "actions": {
-      "save": "Lưu",
-      "cancel": "Hủy"
+    actions: {
+      save: 'Lưu',
+      cancel: 'Hủy',
     },
-    "calendar": {
-      "title": "Sự kiện",
-      "create": "Tạo sự kiện",
-      "agenda": "Lịch trình",
-      "month": "Lịch",
-      "all": "Tất cả phạm vi",
-      "manageable": "Quản lý",
-      "empty": "Không có sự kiện phù hợp với chế độ xem này.",
-      "previousMonth": "Tháng trước",
-      "nextMonth": "Tháng sau",
-      "scopeFilters": "Lọc sự kiện theo phạm vi",
-      "viewOptions": "Chọn chế độ xem sự kiện"
+    calendar: {
+      title: 'Sự kiện',
+      create: 'Tạo sự kiện',
+      agenda: 'Lịch trình',
+      month: 'Lịch',
+      all: 'Tất cả phạm vi',
+      manageable: 'Quản lý',
+      empty: 'Không có sự kiện phù hợp với chế độ xem này.',
+      previousMonth: 'Tháng trước',
+      nextMonth: 'Tháng sau',
+      scopeFilters: 'Lọc sự kiện theo phạm vi',
+      viewOptions: 'Chọn chế độ xem sự kiện',
     },
-    "create": {
-      "title": "Tạo sự kiện",
-      "back": "Quay lại sự kiện",
-      "noContexts": "Hiện tại bạn không có quyền tạo sự kiện.",
-      "context": "Bối cảnh sự kiện",
-      "eventType": "Loại sự kiện",
-      "start": "Thời gian bắt đầu",
-      "duration": "Thời lượng (phút)",
-      "capacity": "Sức chứa",
-      "instructions": "Hướng dẫn",
-      "submit": "Tạo sự kiện"
+    create: {
+      title: 'Tạo sự kiện',
+      back: 'Quay lại sự kiện',
+      noContexts: 'Hiện tại bạn không có quyền tạo sự kiện.',
+      context: 'Bối cảnh sự kiện',
+      eventType: 'Loại sự kiện',
+      start: 'Thời gian bắt đầu',
+      duration: 'Thời lượng (phút)',
+      capacity: 'Sức chứa',
+      instructions: 'Hướng dẫn',
+      submit: 'Tạo sự kiện',
     },
-    "show": {
-      "back": "Quay lại sự kiện",
-      "manage": "Quản lý sự kiện",
-      "details": "Chi tiết sự kiện",
-      "status": "Trạng thái",
-      "capacity": "Sức chứa",
-      "recurrence": "Lặp lại",
-      "modules": "Mô-đun vận hành"
+    show: {
+      back: 'Quay lại sự kiện',
+      manage: 'Quản lý sự kiện',
+      details: 'Chi tiết sự kiện',
+      status: 'Trạng thái',
+      capacity: 'Sức chứa',
+      recurrence: 'Lặp lại',
+      modules: 'Mô-đun vận hành',
     },
-    "manage": {
-      "title": "Quản lý sự kiện",
-      "back": "Quay lại sự kiện",
-      "save": "Lưu sự kiện",
-      "cancel": "Hủy sự kiện"
+    manage: {
+      title: 'Quản lý sự kiện',
+      back: 'Quay lại sự kiện',
+      save: 'Lưu sự kiện',
+      cancel: 'Hủy sự kiện',
     },
-    "attention": {
-      "title": "Thao tác sự kiện",
-      "response": "Cần phản hồi",
-      "registration": "Có thể đăng ký",
-      "vote": "Cần bỏ phiếu",
-      "roster_confirmation": "Cần xác nhận đội hình"
+    attention: {
+      title: 'Thao tác sự kiện',
+      response: 'Cần phản hồi',
+      registration: 'Có thể đăng ký',
+      vote: 'Cần bỏ phiếu',
+      roster_confirmation: 'Cần xác nhận đội hình',
     },
-    "reminders": {
-      "title": "Nhắc nhở gần đây"
+    reminders: {
+      title: 'Nhắc nhở gần đây',
     },
-    "participation": {
-      "register": "Đăng ký",
-      "cancelRegistration": "Hủy đăng ký"
+    participation: {
+      register: 'Đăng ký',
+      cancelRegistration: 'Hủy đăng ký',
     },
-    "responses": {
-      "going": "Tham gia",
-      "maybe": "Có thể",
-      "unavailable": "Không thể tham gia"
+    responses: {
+      going: 'Tham gia',
+      maybe: 'Có thể',
+      unavailable: 'Không thể tham gia',
     },
-    "registration": {
-      "registered": "Đã đăng ký",
-      "waitlisted": "Danh sách chờ",
-      "cancelled": "Đã hủy"
+    registration: {
+      registered: 'Đã đăng ký',
+      waitlisted: 'Danh sách chờ',
+      cancelled: 'Đã hủy',
     },
-    "scheduleSources": {
-      "alliance_controlled": "Liên minh kiểm soát",
-      "game_calendar": "Lịch trong game",
-      "matchmaking": "Ghép trận",
-      "manual": "Thủ công"
+    scheduleSources: {
+      alliance_controlled: 'Liên minh kiểm soát',
+      game_calendar: 'Lịch trong game',
+      matchmaking: 'Ghép trận',
+      manual: 'Thủ công',
     },
-    "recurrencePolicies": {
-      "disabled": "Không lặp lại",
-      "fixed_interval": "Khoảng cố định",
-      "configurable": "Có thể cấu hình"
+    recurrencePolicies: {
+      disabled: 'Không lặp lại',
+      fixed_interval: 'Khoảng cố định',
+      configurable: 'Có thể cấu hình',
     },
-    "recurrenceFrequencies": {
-      "none": "Không lặp lại",
-      "daily": "Hằng ngày",
-      "weekly": "Hằng tuần"
+    recurrenceFrequencies: {
+      none: 'Không lặp lại',
+      daily: 'Hằng ngày',
+      weekly: 'Hằng tuần',
     },
-    "attendanceStatuses": {
-      "present": "Có mặt",
-      "absent": "Vắng mặt",
-      "excused": "Có phép",
-      "unknown": "Không rõ"
+    attendanceStatuses: {
+      present: 'Có mặt',
+      absent: 'Vắng mặt',
+      excused: 'Có phép',
+      unknown: 'Không rõ',
     },
-    "eventStatuses": {
-      "draft": "Bản nháp",
-      "published": "Đã đăng",
-      "cancelled": "Đã hủy",
-      "completed": "Hoàn tất"
+    eventStatuses: {
+      draft: 'Bản nháp',
+      published: 'Đã đăng',
+      cancelled: 'Đã hủy',
+      completed: 'Hoàn tất',
     },
-    "capabilities": {
-      "responses": "Phản hồi",
-      "registration": "Đăng ký",
-      "waitlist": "Danh sách chờ",
-      "attendance": "Điểm danh",
-      "phases": "Giai đoạn",
-      "polls": "Bình chọn",
-      "rosters": "Đội hình",
-      "substitutes": "Dự bị",
-      "teams": "Đội",
-      "legions": "Quân đoàn",
-      "rally_guidance": "Hướng dẫn rally",
-      "formations": "Đội hình quân",
-      "objectives": "Mục tiêu",
-      "scoring": "Điểm số",
-      "results": "Kết quả"
+    capabilities: {
+      responses: 'Phản hồi',
+      registration: 'Đăng ký',
+      waitlist: 'Danh sách chờ',
+      attendance: 'Điểm danh',
+      phases: 'Giai đoạn',
+      polls: 'Bình chọn',
+      rosters: 'Đội hình',
+      substitutes: 'Dự bị',
+      teams: 'Đội',
+      legions: 'Quân đoàn',
+      rally_guidance: 'Hướng dẫn rally',
+      formations: 'Đội hình quân',
+      objectives: 'Mục tiêu',
+      scoring: 'Điểm số',
+      results: 'Kết quả',
     },
-    "reminderAudiences": {
-      "target": "Đối tượng sự kiện",
-      "responded": "Người chơi đã phản hồi",
-      "registered": "Người chơi đã đăng ký",
-      "rostered": "Người chơi trong đội hình",
-      "all_scope_players": "Tất cả người chơi đủ điều kiện"
-    }
-  }
+    reminderAudiences: {
+      target: 'Đối tượng sự kiện',
+      responded: 'Người chơi đã phản hồi',
+      registered: 'Người chơi đã đăng ký',
+      rostered: 'Người chơi trong đội hình',
+      all_scope_players: 'Tất cả người chơi đủ điều kiện',
+    },
+  },
 } satisfies MessageCatalogue;
 
 export default messages;

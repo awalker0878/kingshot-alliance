@@ -83,7 +83,8 @@ const messages = {
     create: {
       eyebrow: 'Event operations',
       title: 'Create event',
-      description: 'Choose an authorized Player, Alliance, or Kingdom context. Event defaults are loaded from the event catalogue and can be adjusted only where the event policy allows it.',
+      description:
+        'Choose an authorized Player, Alliance, or Kingdom context. Event defaults are loaded from the event catalogue and can be adjusted only where the event policy allows it.',
       back: 'Back to events',
       noContexts: 'You do not currently have permission to create an event.',
       context: 'Event context',
@@ -105,7 +106,8 @@ const messages = {
       submit: 'Create event',
       templates: 'Event templates',
       template: 'Template',
-      templateHelp: 'Schedule a saved template for the selected Player, Alliance, or Kingdom context.',
+      templateHelp:
+        'Schedule a saved template for the selected Player, Alliance, or Kingdom context.',
       noTemplates: 'No templates are available for this context.',
       scheduleTemplate: 'Schedule template',
       templateStart: 'First start',
@@ -182,7 +184,8 @@ const messages = {
       templateTitle: 'Save as template',
       templateName: 'Template name',
       templateSave: 'Save template',
-      templateHelp: 'Save this event schedule, registration settings, instructions, and gameplay configuration for reuse.',
+      templateHelp:
+        'Save this event schedule, registration settings, instructions, and gameplay configuration for reuse.',
       participationEyebrow: 'Event operations',
       participants: 'Participation & attendance',
       player: 'Player',
@@ -404,7 +407,8 @@ const messages = {
     catalogue: {
       eyebrow: 'Event system',
       title: 'Event type catalogue',
-      description: 'Configure where each KingShot event can run, its defaults, and the operational modules available to coordinators.',
+      description:
+        'Configure where each KingShot event can run, its defaults, and the operational modules available to coordinators.',
       back: 'Back to platform administration',
       active: 'Active',
       duration: 'Default duration (minutes)',
@@ -423,28 +427,146 @@ const messages = {
       saved: 'Event type configuration updated.',
     },
     types: {
-      bear_hunt: { name: 'Bear Hunt', description: 'Alliance rally event focused on coordinated damage and formations.', instructions: 'Coordinate rally leaders and joiners, confirm formations before the trap starts, and respect the configured cooldown before scheduling the next hunt.' },
-      viking_vengeance: { name: 'Viking Vengeance', description: 'Alliance defensive event organized around coordinated waves.', instructions: 'Confirm eligible defenders, coordinate reinforcement coverage, and track defensive waves through the event.' },
-      alliance_mobilization: { name: 'Alliance Mobilization', description: 'Alliance competition built around coordinated task progress and scoring.', instructions: 'Review the active task window, coordinate high-value tasks across the Alliance, and track scoring through the game event period.' },
-      alliance_championship: { name: 'Alliance Championship', description: 'Alliance team competition with registration, roster selection, and scoring.', instructions: 'Confirm eligible registrants, build the competition roster, and coordinate team assignments before matchmaking.' },
-      alliance_brawl: { name: 'Alliance Brawl', description: 'Alliance-versus-alliance competition tracked across multiple scoring phases.', instructions: 'Use the game schedule for matchmaking and scoring phases. Coordinate Alliance priorities and track the score throughout the competition.' },
-      swordland_showdown: { name: 'Swordland Showdown', description: 'Alliance battlefield event with time voting, combatants, substitutes, and objectives.', instructions: 'Complete battle-time voting and roster selection before matchmaking. Confirm combatants and substitutes, then publish the battle plan before the battlefield opens.' },
-      tri_alliance_clash: { name: 'Tri-Alliance Clash', description: 'Alliance battlefield event organized into coordinated legions and objectives.', instructions: 'Follow the game signup and matchmaking schedule, organize up to two legions, and confirm assigned players before battle day.' },
-      flamedragon_tyrant: { name: 'Flamedragon Tyrant', description: 'Alliance battle event with qualification, roster selection, phases, and objectives.', instructions: 'Follow the game qualification and dispatch phases, confirm the combatant roster, and publish objectives before battlefield entry.' },
-      swordland_summit_league: { name: 'Swordland Summit League', description: 'Competitive alliance league with legions, substitutes, voting, and battle planning.', instructions: 'Coordinate league voting, legion rosters, substitutes, and battle objectives according to the current game schedule.' },
-      cesares_fury: { name: "Cesares Fury", description: 'Alliance combat event combining staged objectives, rally coordination, and scoring.', instructions: 'Coordinate Alliance progress and rally guidance. R4/R5 should only summon the Alliance Elite when the required conditions are satisfied.' },
-      outpost_battle: { name: 'Outpost Battle', description: 'Alliance territory battle focused on assigned players, objectives, and occupation results.', instructions: 'Confirm the selected Outpost, eligible roster, and occupation objective. Coordinate control time according to the Outpost level.' },
-      sanctuary_battle: { name: 'Sanctuary Battle', description: 'Alliance battle with signup, phases, rosters, and coordinated objectives.', instructions: 'Complete signup during the game window, confirm the eligible roster, and coordinate the occupation and defense plan before battle.' },
-      castle_battle: { name: 'Castle Battle', description: 'Castle-control battle that can be planned as an alliance operation or a kingdom-wide operation.', instructions: 'Coordinate teams and objectives for castle control. Track consecutive occupation progress and publish the command plan before battle.' },
-      kingdom_of_power: { name: 'Kingdom of Power', description: 'Kingdom-versus-kingdom operation with phases, teams, objectives, scoring, and results.', instructions: 'Follow the game preparation and battle schedule, coordinate Kingdom teams and objectives, and track castle-control progress during the battle phase.' },
-      hall_of_governors: { name: 'Hall of Governors', description: 'Personal progression event with phases, scoring, and results.', instructions: 'Track the current game stage, planned resource use, and scoring goals for this personal progression event.' },
-      armament_competition: { name: 'Armament Competition', description: 'Personal progression competition with staged scoring.', instructions: 'Track the current game stage and planned scoring actions during the active competition window.' },
-      hero_roulette: { name: 'Hero Roulette', description: 'Personal event for tracking a Hero Roulette window and outcome.', instructions: 'Track the active Hero Roulette window and any personal pull or resource plan.' },
-      fishing_tournament: { name: 'Fishing Tournament', description: 'Personal competition for tracking score and final result.', instructions: 'Track the active tournament window, personal score target, and final result.' },
-      treasure_raiders: { name: 'Treasure Raiders', description: 'Personal progression event with phases and scoring.', instructions: 'Follow the active game phase and track personal progression and scoring objectives.' },
-      merchant_empire: { name: 'Merchant Empire', description: 'Personal progression event with phases and scoring.', instructions: 'Follow the active game phase and track personal progression and scoring objectives.' },
-      eternitys_reach: { name: "Eternity's Reach", description: 'Personal progression event with phases, scoring, and results.', instructions: 'Register for an available game time slot when registration opens, then track participation and results for the selected run.' },
-      custom: { name: 'Custom Event', description: 'Flexible event type available at player, alliance, or kingdom scope.', instructions: 'Use the custom event fields to define the schedule, recurrence, participation rules, instructions, and operational modules required for this event.' },
+      bear_hunt: {
+        name: 'Bear Hunt',
+        description: 'Alliance rally event focused on coordinated damage and formations.',
+        instructions:
+          'Coordinate rally leaders and joiners, confirm formations before the trap starts, and respect the configured cooldown before scheduling the next hunt.',
+      },
+      viking_vengeance: {
+        name: 'Viking Vengeance',
+        description: 'Alliance defensive event organized around coordinated waves.',
+        instructions:
+          'Confirm eligible defenders, coordinate reinforcement coverage, and track defensive waves through the event.',
+      },
+      alliance_mobilization: {
+        name: 'Alliance Mobilization',
+        description: 'Alliance competition built around coordinated task progress and scoring.',
+        instructions:
+          'Review the active task window, coordinate high-value tasks across the Alliance, and track scoring through the game event period.',
+      },
+      alliance_championship: {
+        name: 'Alliance Championship',
+        description: 'Alliance team competition with registration, roster selection, and scoring.',
+        instructions:
+          'Confirm eligible registrants, build the competition roster, and coordinate team assignments before matchmaking.',
+      },
+      alliance_brawl: {
+        name: 'Alliance Brawl',
+        description: 'Alliance-versus-alliance competition tracked across multiple scoring phases.',
+        instructions:
+          'Use the game schedule for matchmaking and scoring phases. Coordinate Alliance priorities and track the score throughout the competition.',
+      },
+      swordland_showdown: {
+        name: 'Swordland Showdown',
+        description:
+          'Alliance battlefield event with time voting, combatants, substitutes, and objectives.',
+        instructions:
+          'Complete battle-time voting and roster selection before matchmaking. Confirm combatants and substitutes, then publish the battle plan before the battlefield opens.',
+      },
+      tri_alliance_clash: {
+        name: 'Tri-Alliance Clash',
+        description:
+          'Alliance battlefield event organized into coordinated legions and objectives.',
+        instructions:
+          'Follow the game signup and matchmaking schedule, organize up to two legions, and confirm assigned players before battle day.',
+      },
+      flamedragon_tyrant: {
+        name: 'Flamedragon Tyrant',
+        description:
+          'Alliance battle event with qualification, roster selection, phases, and objectives.',
+        instructions:
+          'Follow the game qualification and dispatch phases, confirm the combatant roster, and publish objectives before battlefield entry.',
+      },
+      swordland_summit_league: {
+        name: 'Swordland Summit League',
+        description:
+          'Competitive alliance league with legions, substitutes, voting, and battle planning.',
+        instructions:
+          'Coordinate league voting, legion rosters, substitutes, and battle objectives according to the current game schedule.',
+      },
+      cesares_fury: {
+        name: 'Cesares Fury',
+        description:
+          'Alliance combat event combining staged objectives, rally coordination, and scoring.',
+        instructions:
+          'Coordinate Alliance progress and rally guidance. R4/R5 should only summon the Alliance Elite when the required conditions are satisfied.',
+      },
+      outpost_battle: {
+        name: 'Outpost Battle',
+        description:
+          'Alliance territory battle focused on assigned players, objectives, and occupation results.',
+        instructions:
+          'Confirm the selected Outpost, eligible roster, and occupation objective. Coordinate control time according to the Outpost level.',
+      },
+      sanctuary_battle: {
+        name: 'Sanctuary Battle',
+        description: 'Alliance battle with signup, phases, rosters, and coordinated objectives.',
+        instructions:
+          'Complete signup during the game window, confirm the eligible roster, and coordinate the occupation and defense plan before battle.',
+      },
+      castle_battle: {
+        name: 'Castle Battle',
+        description:
+          'Castle-control battle that can be planned as an alliance operation or a kingdom-wide operation.',
+        instructions:
+          'Coordinate teams and objectives for castle control. Track consecutive occupation progress and publish the command plan before battle.',
+      },
+      kingdom_of_power: {
+        name: 'Kingdom of Power',
+        description:
+          'Kingdom-versus-kingdom operation with phases, teams, objectives, scoring, and results.',
+        instructions:
+          'Follow the game preparation and battle schedule, coordinate Kingdom teams and objectives, and track castle-control progress during the battle phase.',
+      },
+      hall_of_governors: {
+        name: 'Hall of Governors',
+        description: 'Personal progression event with phases, scoring, and results.',
+        instructions:
+          'Track the current game stage, planned resource use, and scoring goals for this personal progression event.',
+      },
+      armament_competition: {
+        name: 'Armament Competition',
+        description: 'Personal progression competition with staged scoring.',
+        instructions:
+          'Track the current game stage and planned scoring actions during the active competition window.',
+      },
+      hero_roulette: {
+        name: 'Hero Roulette',
+        description: 'Personal event for tracking a Hero Roulette window and outcome.',
+        instructions:
+          'Track the active Hero Roulette window and any personal pull or resource plan.',
+      },
+      fishing_tournament: {
+        name: 'Fishing Tournament',
+        description: 'Personal competition for tracking score and final result.',
+        instructions:
+          'Track the active tournament window, personal score target, and final result.',
+      },
+      treasure_raiders: {
+        name: 'Treasure Raiders',
+        description: 'Personal progression event with phases and scoring.',
+        instructions:
+          'Follow the active game phase and track personal progression and scoring objectives.',
+      },
+      merchant_empire: {
+        name: 'Merchant Empire',
+        description: 'Personal progression event with phases and scoring.',
+        instructions:
+          'Follow the active game phase and track personal progression and scoring objectives.',
+      },
+      eternitys_reach: {
+        name: "Eternity's Reach",
+        description: 'Personal progression event with phases, scoring, and results.',
+        instructions:
+          'Register for an available game time slot when registration opens, then track participation and results for the selected run.',
+      },
+      custom: {
+        name: 'Custom Event',
+        description: 'Flexible event type available at player, alliance, or kingdom scope.',
+        instructions:
+          'Use the custom event fields to define the schedule, recurrence, participation rules, instructions, and operational modules required for this event.',
+      },
     },
   },
 } satisfies MessageCatalogue;

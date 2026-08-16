@@ -390,6 +390,7 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
           </article>
         </div>
       </section>
+    </div>
 
     <section aria-labelledby="alliances-heading" class="mt-8 space-y-4">
       <div>

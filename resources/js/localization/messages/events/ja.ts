@@ -1,133 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  "events": {
-    "scope": {
-      "player": "プレイヤー",
-      "alliance": "同盟",
-      "kingdom": "王国"
+  events: {
+    scope: {
+      player: 'プレイヤー',
+      alliance: '同盟',
+      kingdom: '王国',
     },
-    "actions": {
-      "save": "保存",
-      "cancel": "キャンセル"
+    actions: {
+      save: '保存',
+      cancel: 'キャンセル',
     },
-    "calendar": {
-      "title": "イベント",
-      "create": "イベントを作成",
-      "agenda": "予定",
-      "month": "カレンダー",
-      "all": "すべての範囲",
-      "manageable": "管理",
-      "empty": "この表示に一致するイベントはありません。",
-      "previousMonth": "前の月",
-      "nextMonth": "次の月",
-      "scopeFilters": "範囲でイベントを絞り込む",
-      "viewOptions": "イベント表示を選択"
+    calendar: {
+      title: 'イベント',
+      create: 'イベントを作成',
+      agenda: '予定',
+      month: 'カレンダー',
+      all: 'すべての範囲',
+      manageable: '管理',
+      empty: 'この表示に一致するイベントはありません。',
+      previousMonth: '前の月',
+      nextMonth: '次の月',
+      scopeFilters: '範囲でイベントを絞り込む',
+      viewOptions: 'イベント表示を選択',
     },
-    "create": {
-      "title": "イベントを作成",
-      "back": "イベントに戻る",
-      "noContexts": "現在、イベントを作成する権限がありません。",
-      "context": "イベントのコンテキスト",
-      "eventType": "イベントタイプ",
-      "start": "開始時刻",
-      "duration": "時間（分）",
-      "capacity": "定員",
-      "instructions": "指示",
-      "submit": "イベントを作成"
+    create: {
+      title: 'イベントを作成',
+      back: 'イベントに戻る',
+      noContexts: '現在、イベントを作成する権限がありません。',
+      context: 'イベントのコンテキスト',
+      eventType: 'イベントタイプ',
+      start: '開始時刻',
+      duration: '時間（分）',
+      capacity: '定員',
+      instructions: '指示',
+      submit: 'イベントを作成',
     },
-    "show": {
-      "back": "イベントに戻る",
-      "manage": "イベントを管理",
-      "details": "イベント詳細",
-      "status": "ステータス",
-      "capacity": "定員",
-      "recurrence": "繰り返し",
-      "modules": "運用モジュール"
+    show: {
+      back: 'イベントに戻る',
+      manage: 'イベントを管理',
+      details: 'イベント詳細',
+      status: 'ステータス',
+      capacity: '定員',
+      recurrence: '繰り返し',
+      modules: '運用モジュール',
     },
-    "manage": {
-      "title": "イベントを管理",
-      "back": "イベントに戻る",
-      "save": "イベントを保存",
-      "cancel": "イベントをキャンセル"
+    manage: {
+      title: 'イベントを管理',
+      back: 'イベントに戻る',
+      save: 'イベントを保存',
+      cancel: 'イベントをキャンセル',
     },
-    "attention": {
-      "title": "イベント操作",
-      "response": "回答が必要",
-      "registration": "登録可能",
-      "vote": "投票が必要",
-      "roster_confirmation": "ロスター確認が必要"
+    attention: {
+      title: 'イベント操作',
+      response: '回答が必要',
+      registration: '登録可能',
+      vote: '投票が必要',
+      roster_confirmation: 'ロスター確認が必要',
     },
-    "reminders": {
-      "title": "最近のリマインダー"
+    reminders: {
+      title: '最近のリマインダー',
     },
-    "participation": {
-      "register": "登録",
-      "cancelRegistration": "登録をキャンセル"
+    participation: {
+      register: '登録',
+      cancelRegistration: '登録をキャンセル',
     },
-    "responses": {
-      "going": "参加",
-      "maybe": "未定",
-      "unavailable": "参加不可"
+    responses: {
+      going: '参加',
+      maybe: '未定',
+      unavailable: '参加不可',
     },
-    "registration": {
-      "registered": "登録済み",
-      "waitlisted": "待機リスト",
-      "cancelled": "キャンセル済み"
+    registration: {
+      registered: '登録済み',
+      waitlisted: '待機リスト',
+      cancelled: 'キャンセル済み',
     },
-    "scheduleSources": {
-      "alliance_controlled": "同盟管理",
-      "game_calendar": "ゲームカレンダー",
-      "matchmaking": "マッチメイキング",
-      "manual": "手動"
+    scheduleSources: {
+      alliance_controlled: '同盟管理',
+      game_calendar: 'ゲームカレンダー',
+      matchmaking: 'マッチメイキング',
+      manual: '手動',
     },
-    "recurrencePolicies": {
-      "disabled": "繰り返しなし",
-      "fixed_interval": "固定間隔",
-      "configurable": "設定可能"
+    recurrencePolicies: {
+      disabled: '繰り返しなし',
+      fixed_interval: '固定間隔',
+      configurable: '設定可能',
     },
-    "recurrenceFrequencies": {
-      "none": "繰り返しなし",
-      "daily": "毎日",
-      "weekly": "毎週"
+    recurrenceFrequencies: {
+      none: '繰り返しなし',
+      daily: '毎日',
+      weekly: '毎週',
     },
-    "attendanceStatuses": {
-      "present": "出席",
-      "absent": "欠席",
-      "excused": "公欠",
-      "unknown": "不明"
+    attendanceStatuses: {
+      present: '出席',
+      absent: '欠席',
+      excused: '公欠',
+      unknown: '不明',
     },
-    "eventStatuses": {
-      "draft": "下書き",
-      "published": "公開済み",
-      "cancelled": "キャンセル済み",
-      "completed": "完了"
+    eventStatuses: {
+      draft: '下書き',
+      published: '公開済み',
+      cancelled: 'キャンセル済み',
+      completed: '完了',
     },
-    "capabilities": {
-      "responses": "回答",
-      "registration": "登録",
-      "waitlist": "待機リスト",
-      "attendance": "出席",
-      "phases": "フェーズ",
-      "polls": "投票",
-      "rosters": "ロスター",
-      "substitutes": "補欠",
-      "teams": "チーム",
-      "legions": "レギオン",
-      "rally_guidance": "ラリー指針",
-      "formations": "編成",
-      "objectives": "目標",
-      "scoring": "スコア",
-      "results": "結果"
+    capabilities: {
+      responses: '回答',
+      registration: '登録',
+      waitlist: '待機リスト',
+      attendance: '出席',
+      phases: 'フェーズ',
+      polls: '投票',
+      rosters: 'ロスター',
+      substitutes: '補欠',
+      teams: 'チーム',
+      legions: 'レギオン',
+      rally_guidance: 'ラリー指針',
+      formations: '編成',
+      objectives: '目標',
+      scoring: 'スコア',
+      results: '結果',
     },
-    "reminderAudiences": {
-      "target": "イベント対象",
-      "responded": "回答済みプレイヤー",
-      "registered": "登録済みプレイヤー",
-      "rostered": "ロスター登録プレイヤー",
-      "all_scope_players": "対象となる全プレイヤー"
-    }
-  }
+    reminderAudiences: {
+      target: 'イベント対象',
+      responded: '回答済みプレイヤー',
+      registered: '登録済みプレイヤー',
+      rostered: 'ロスター登録プレイヤー',
+      all_scope_players: '対象となる全プレイヤー',
+    },
+  },
 } satisfies MessageCatalogue;
 
 export default messages;

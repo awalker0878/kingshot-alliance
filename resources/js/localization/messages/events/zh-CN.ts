@@ -1,133 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  "events": {
-    "scope": {
-      "player": "玩家",
-      "alliance": "联盟",
-      "kingdom": "王国"
+  events: {
+    scope: {
+      player: '玩家',
+      alliance: '联盟',
+      kingdom: '王国',
     },
-    "actions": {
-      "save": "保存",
-      "cancel": "取消"
+    actions: {
+      save: '保存',
+      cancel: '取消',
     },
-    "calendar": {
-      "title": "活动",
-      "create": "创建活动",
-      "agenda": "议程",
-      "month": "日历",
-      "all": "全部范围",
-      "manageable": "管理",
-      "empty": "没有符合当前视图的活动。",
-      "previousMonth": "上个月",
-      "nextMonth": "下个月",
-      "scopeFilters": "按范围筛选活动",
-      "viewOptions": "选择活动视图"
+    calendar: {
+      title: '活动',
+      create: '创建活动',
+      agenda: '议程',
+      month: '日历',
+      all: '全部范围',
+      manageable: '管理',
+      empty: '没有符合当前视图的活动。',
+      previousMonth: '上个月',
+      nextMonth: '下个月',
+      scopeFilters: '按范围筛选活动',
+      viewOptions: '选择活动视图',
     },
-    "create": {
-      "title": "创建活动",
-      "back": "返回活动",
-      "noContexts": "你当前没有创建活动的权限。",
-      "context": "活动范围",
-      "eventType": "活动类型",
-      "start": "开始时间",
-      "duration": "时长（分钟）",
-      "capacity": "容量",
-      "instructions": "说明",
-      "submit": "创建活动"
+    create: {
+      title: '创建活动',
+      back: '返回活动',
+      noContexts: '你当前没有创建活动的权限。',
+      context: '活动范围',
+      eventType: '活动类型',
+      start: '开始时间',
+      duration: '时长（分钟）',
+      capacity: '容量',
+      instructions: '说明',
+      submit: '创建活动',
     },
-    "show": {
-      "back": "返回活动",
-      "manage": "管理活动",
-      "details": "活动详情",
-      "status": "状态",
-      "capacity": "容量",
-      "recurrence": "重复",
-      "modules": "运营模块"
+    show: {
+      back: '返回活动',
+      manage: '管理活动',
+      details: '活动详情',
+      status: '状态',
+      capacity: '容量',
+      recurrence: '重复',
+      modules: '运营模块',
     },
-    "manage": {
-      "title": "管理活动",
-      "back": "返回活动",
-      "save": "保存活动",
-      "cancel": "取消活动"
+    manage: {
+      title: '管理活动',
+      back: '返回活动',
+      save: '保存活动',
+      cancel: '取消活动',
     },
-    "attention": {
-      "title": "活动操作",
-      "response": "需要回应",
-      "registration": "可报名",
-      "vote": "需要投票",
-      "roster_confirmation": "需要确认名单"
+    attention: {
+      title: '活动操作',
+      response: '需要回应',
+      registration: '可报名',
+      vote: '需要投票',
+      roster_confirmation: '需要确认名单',
     },
-    "reminders": {
-      "title": "最近提醒"
+    reminders: {
+      title: '最近提醒',
     },
-    "participation": {
-      "register": "报名",
-      "cancelRegistration": "取消报名"
+    participation: {
+      register: '报名',
+      cancelRegistration: '取消报名',
     },
-    "responses": {
-      "going": "参加",
-      "maybe": "可能",
-      "unavailable": "无法参加"
+    responses: {
+      going: '参加',
+      maybe: '可能',
+      unavailable: '无法参加',
     },
-    "registration": {
-      "registered": "已报名",
-      "waitlisted": "候补名单",
-      "cancelled": "已取消"
+    registration: {
+      registered: '已报名',
+      waitlisted: '候补名单',
+      cancelled: '已取消',
     },
-    "scheduleSources": {
-      "alliance_controlled": "联盟控制",
-      "game_calendar": "游戏日历",
-      "matchmaking": "匹配",
-      "manual": "手动"
+    scheduleSources: {
+      alliance_controlled: '联盟控制',
+      game_calendar: '游戏日历',
+      matchmaking: '匹配',
+      manual: '手动',
     },
-    "recurrencePolicies": {
-      "disabled": "不重复",
-      "fixed_interval": "固定间隔",
-      "configurable": "可配置"
+    recurrencePolicies: {
+      disabled: '不重复',
+      fixed_interval: '固定间隔',
+      configurable: '可配置',
     },
-    "recurrenceFrequencies": {
-      "none": "不重复",
-      "daily": "每天",
-      "weekly": "每周"
+    recurrenceFrequencies: {
+      none: '不重复',
+      daily: '每天',
+      weekly: '每周',
     },
-    "attendanceStatuses": {
-      "present": "出席",
-      "absent": "缺席",
-      "excused": "请假",
-      "unknown": "未知"
+    attendanceStatuses: {
+      present: '出席',
+      absent: '缺席',
+      excused: '请假',
+      unknown: '未知',
     },
-    "eventStatuses": {
-      "draft": "草稿",
-      "published": "已发布",
-      "cancelled": "已取消",
-      "completed": "已完成"
+    eventStatuses: {
+      draft: '草稿',
+      published: '已发布',
+      cancelled: '已取消',
+      completed: '已完成',
     },
-    "capabilities": {
-      "responses": "回应",
-      "registration": "报名",
-      "waitlist": "候补名单",
-      "attendance": "出勤",
-      "phases": "阶段",
-      "polls": "投票",
-      "rosters": "名单",
-      "substitutes": "替补",
-      "teams": "队伍",
-      "legions": "军团",
-      "rally_guidance": "集结指导",
-      "formations": "编队",
-      "objectives": "目标",
-      "scoring": "计分",
-      "results": "结果"
+    capabilities: {
+      responses: '回应',
+      registration: '报名',
+      waitlist: '候补名单',
+      attendance: '出勤',
+      phases: '阶段',
+      polls: '投票',
+      rosters: '名单',
+      substitutes: '替补',
+      teams: '队伍',
+      legions: '军团',
+      rally_guidance: '集结指导',
+      formations: '编队',
+      objectives: '目标',
+      scoring: '计分',
+      results: '结果',
     },
-    "reminderAudiences": {
-      "target": "活动目标",
-      "responded": "已回应玩家",
-      "registered": "已报名玩家",
-      "rostered": "已入选名单玩家",
-      "all_scope_players": "所有符合条件的玩家"
-    }
-  }
+    reminderAudiences: {
+      target: '活动目标',
+      responded: '已回应玩家',
+      registered: '已报名玩家',
+      rostered: '已入选名单玩家',
+      all_scope_players: '所有符合条件的玩家',
+    },
+  },
 } satisfies MessageCatalogue;
 
 export default messages;

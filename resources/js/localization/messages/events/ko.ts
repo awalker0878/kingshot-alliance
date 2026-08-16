@@ -1,133 +1,133 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
-  "events": {
-    "scope": {
-      "player": "플레이어",
-      "alliance": "연맹",
-      "kingdom": "왕국"
+  events: {
+    scope: {
+      player: '플레이어',
+      alliance: '연맹',
+      kingdom: '왕국',
     },
-    "actions": {
-      "save": "저장",
-      "cancel": "취소"
+    actions: {
+      save: '저장',
+      cancel: '취소',
     },
-    "calendar": {
-      "title": "이벤트",
-      "create": "이벤트 만들기",
-      "agenda": "일정",
-      "month": "캘린더",
-      "all": "모든 범위",
-      "manageable": "관리",
-      "empty": "이 보기에 맞는 이벤트가 없습니다.",
-      "previousMonth": "이전 달",
-      "nextMonth": "다음 달",
-      "scopeFilters": "범위별 이벤트 필터",
-      "viewOptions": "이벤트 보기 선택"
+    calendar: {
+      title: '이벤트',
+      create: '이벤트 만들기',
+      agenda: '일정',
+      month: '캘린더',
+      all: '모든 범위',
+      manageable: '관리',
+      empty: '이 보기에 맞는 이벤트가 없습니다.',
+      previousMonth: '이전 달',
+      nextMonth: '다음 달',
+      scopeFilters: '범위별 이벤트 필터',
+      viewOptions: '이벤트 보기 선택',
     },
-    "create": {
-      "title": "이벤트 만들기",
-      "back": "이벤트로 돌아가기",
-      "noContexts": "현재 이벤트를 만들 권한이 없습니다.",
-      "context": "이벤트 컨텍스트",
-      "eventType": "이벤트 유형",
-      "start": "시작 시간",
-      "duration": "진행 시간(분)",
-      "capacity": "정원",
-      "instructions": "안내",
-      "submit": "이벤트 만들기"
+    create: {
+      title: '이벤트 만들기',
+      back: '이벤트로 돌아가기',
+      noContexts: '현재 이벤트를 만들 권한이 없습니다.',
+      context: '이벤트 컨텍스트',
+      eventType: '이벤트 유형',
+      start: '시작 시간',
+      duration: '진행 시간(분)',
+      capacity: '정원',
+      instructions: '안내',
+      submit: '이벤트 만들기',
     },
-    "show": {
-      "back": "이벤트로 돌아가기",
-      "manage": "이벤트 관리",
-      "details": "이벤트 세부 정보",
-      "status": "상태",
-      "capacity": "정원",
-      "recurrence": "반복",
-      "modules": "운영 모듈"
+    show: {
+      back: '이벤트로 돌아가기',
+      manage: '이벤트 관리',
+      details: '이벤트 세부 정보',
+      status: '상태',
+      capacity: '정원',
+      recurrence: '반복',
+      modules: '운영 모듈',
     },
-    "manage": {
-      "title": "이벤트 관리",
-      "back": "이벤트로 돌아가기",
-      "save": "이벤트 저장",
-      "cancel": "이벤트 취소"
+    manage: {
+      title: '이벤트 관리',
+      back: '이벤트로 돌아가기',
+      save: '이벤트 저장',
+      cancel: '이벤트 취소',
     },
-    "attention": {
-      "title": "이벤트 작업",
-      "response": "응답 필요",
-      "registration": "등록 가능",
-      "vote": "투표 필요",
-      "roster_confirmation": "명단 확인 필요"
+    attention: {
+      title: '이벤트 작업',
+      response: '응답 필요',
+      registration: '등록 가능',
+      vote: '투표 필요',
+      roster_confirmation: '명단 확인 필요',
     },
-    "reminders": {
-      "title": "최근 알림"
+    reminders: {
+      title: '최근 알림',
     },
-    "participation": {
-      "register": "등록",
-      "cancelRegistration": "등록 취소"
+    participation: {
+      register: '등록',
+      cancelRegistration: '등록 취소',
     },
-    "responses": {
-      "going": "참여",
-      "maybe": "미정",
-      "unavailable": "참여 불가"
+    responses: {
+      going: '참여',
+      maybe: '미정',
+      unavailable: '참여 불가',
     },
-    "registration": {
-      "registered": "등록됨",
-      "waitlisted": "대기 명단",
-      "cancelled": "취소됨"
+    registration: {
+      registered: '등록됨',
+      waitlisted: '대기 명단',
+      cancelled: '취소됨',
     },
-    "scheduleSources": {
-      "alliance_controlled": "연맹 관리",
-      "game_calendar": "게임 캘린더",
-      "matchmaking": "매칭",
-      "manual": "수동"
+    scheduleSources: {
+      alliance_controlled: '연맹 관리',
+      game_calendar: '게임 캘린더',
+      matchmaking: '매칭',
+      manual: '수동',
     },
-    "recurrencePolicies": {
-      "disabled": "반복 없음",
-      "fixed_interval": "고정 간격",
-      "configurable": "설정 가능"
+    recurrencePolicies: {
+      disabled: '반복 없음',
+      fixed_interval: '고정 간격',
+      configurable: '설정 가능',
     },
-    "recurrenceFrequencies": {
-      "none": "반복 없음",
-      "daily": "매일",
-      "weekly": "매주"
+    recurrenceFrequencies: {
+      none: '반복 없음',
+      daily: '매일',
+      weekly: '매주',
     },
-    "attendanceStatuses": {
-      "present": "참석",
-      "absent": "불참",
-      "excused": "사유 있음",
-      "unknown": "알 수 없음"
+    attendanceStatuses: {
+      present: '참석',
+      absent: '불참',
+      excused: '사유 있음',
+      unknown: '알 수 없음',
     },
-    "eventStatuses": {
-      "draft": "초안",
-      "published": "게시됨",
-      "cancelled": "취소됨",
-      "completed": "완료"
+    eventStatuses: {
+      draft: '초안',
+      published: '게시됨',
+      cancelled: '취소됨',
+      completed: '완료',
     },
-    "capabilities": {
-      "responses": "응답",
-      "registration": "등록",
-      "waitlist": "대기 명단",
-      "attendance": "참석",
-      "phases": "단계",
-      "polls": "투표",
-      "rosters": "명단",
-      "substitutes": "후보",
-      "teams": "팀",
-      "legions": "군단",
-      "rally_guidance": "집결 안내",
-      "formations": "편성",
-      "objectives": "목표",
-      "scoring": "점수",
-      "results": "결과"
+    capabilities: {
+      responses: '응답',
+      registration: '등록',
+      waitlist: '대기 명단',
+      attendance: '참석',
+      phases: '단계',
+      polls: '투표',
+      rosters: '명단',
+      substitutes: '후보',
+      teams: '팀',
+      legions: '군단',
+      rally_guidance: '집결 안내',
+      formations: '편성',
+      objectives: '목표',
+      scoring: '점수',
+      results: '결과',
     },
-    "reminderAudiences": {
-      "target": "이벤트 대상",
-      "responded": "응답한 플레이어",
-      "registered": "등록한 플레이어",
-      "rostered": "명단에 배정된 플레이어",
-      "all_scope_players": "모든 참가 가능 플레이어"
-    }
-  }
+    reminderAudiences: {
+      target: '이벤트 대상',
+      responded: '응답한 플레이어',
+      registered: '등록한 플레이어',
+      rostered: '명단에 배정된 플레이어',
+      all_scope_players: '모든 참가 가능 플레이어',
+    },
+  },
 } satisfies MessageCatalogue;
 
 export default messages;
