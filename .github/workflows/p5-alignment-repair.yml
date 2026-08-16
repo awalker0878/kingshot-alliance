@@ -62,7 +62,37 @@ jobs:
         run: php artisan migrate --force
 
       - name: Apply P5 ownership repair
-        run: python3 .github/p5_alignment_repair.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/p5_alignment_repair.py')
+          text = path.read_text()
+          old = """    text = add_import_after(
+              text,
+              'use App\\\\Contexts\\\\Alliance\\\\Core\\\\Actions\\\\CreateAlliance;\\n',
+              'use App\\\\Contexts\\\\Alliance\\\\Membership\\\\Enums\\\\RosterState;\\n'
+              'use App\\\\Contexts\\\\Alliance\\\\Membership\\\\Models\\\\AllianceRosterEntry;\\n',
+          )
+          """
+          new = """    anchor = 'use App\\\\Contexts\\\\Alliance\\\\Core\\\\Actions\\\\CreateAlliance;\\n'
+              text = add_import_after(
+                  text,
+                  anchor,
+                  'use App\\\\Contexts\\\\Alliance\\\\Membership\\\\Enums\\\\RosterState;\\n',
+              )
+              text = add_import_after(
+                  text,
+                  anchor,
+                  'use App\\\\Contexts\\\\Alliance\\\\Membership\\\\Models\\\\AllianceRosterEntry;\\n',
+              )
+          """
+          if old not in text:
+              raise SystemExit('Expected combined roster import block not found')
+          path.write_text(text.replace(old, new))
+          PY
+          python3 .github/p5_alignment_repair.py
 
       - name: Format P5 contracts
         run: >-
