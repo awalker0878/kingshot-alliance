@@ -40,6 +40,10 @@ EVENT_CORE_MODELS = {
     "EventTypeScope",
 }
 EVENT_CORE_MODEL_IMPORT = re.compile(r"use App\\Contexts\\Operations\\EventCore\\Models\\([A-Za-z0-9_]+);")
+KINGDOM_ROLE_IMPORT = "use App\\Contexts\\GameWorld\\Governance\\Services\\KingdomRoleProvisioner;"
+KINGDOM_OPERATIONS_ROLE_IMPORT = "use App\\Contexts\\Operations\\Access\\Services\\KingdomOperationsRoleProvisioner;"
+KINGDOM_ROLE_PROVISION = "$roles = $this->app->make(KingdomRoleProvisioner::class)->provision($kingdom);"
+KINGDOM_OPERATIONS_ROLE_PROVISION = "$this->app->make(KingdomOperationsRoleProvisioner::class)->provision($kingdom);"
 
 if not SOURCE.is_dir():
     raise SystemExit(f"Expected staging directory is missing: {SOURCE.relative_to(ROOT)}")
@@ -51,6 +55,7 @@ if actual != EXPECTED:
     raise SystemExit(f"Unexpected EventAnalysis staging inventory; missing={missing}, unexpected={unexpected}")
 
 DESTINATION.mkdir(parents=True, exist_ok=True)
+kingdom_authority_fixture_files = 0
 
 for name in sorted(EXPECTED):
     source = SOURCE / name
@@ -66,6 +71,23 @@ for name in sorted(EXPECTED):
     for old_owner, new_owner in OWNER_REPLACEMENTS.items():
         contents = contents.replace(old_owner, new_owner)
 
+    if KINGDOM_ROLE_PROVISION in contents:
+        if contents.count(KINGDOM_ROLE_IMPORT) != 1:
+            raise SystemExit(f"Kingdom role fixture import is not deterministic in {source.relative_to(ROOT)}")
+        if KINGDOM_OPERATIONS_ROLE_IMPORT in contents or KINGDOM_OPERATIONS_ROLE_PROVISION in contents:
+            raise SystemExit(f"Kingdom Operations fixture is already present in {source.relative_to(ROOT)}")
+
+        contents = contents.replace(
+            KINGDOM_ROLE_IMPORT,
+            KINGDOM_ROLE_IMPORT + "\n" + KINGDOM_OPERATIONS_ROLE_IMPORT,
+            1,
+        )
+        contents = contents.replace(
+            KINGDOM_ROLE_PROVISION,
+            KINGDOM_ROLE_PROVISION + "\n        " + KINGDOM_OPERATIONS_ROLE_PROVISION,
+        )
+        kingdom_authority_fixture_files += 1
+
     stale_event_core_models = sorted(
         model
         for model in EVENT_CORE_MODEL_IMPORT.findall(contents)
@@ -78,6 +100,9 @@ for name in sorted(EXPECTED):
 
     destination.write_text(contents)
     source.unlink()
+
+if kingdom_authority_fixture_files == 0:
+    raise SystemExit("Expected at least one Kingdom-authorized EventAnalysis fixture to require Operations role provisioning")
 
 for directory in [SOURCE, SOURCE.parent, SOURCE.parent.parent]:
     if directory.exists():
@@ -94,4 +119,7 @@ for name in EXPECTED:
     if NEW_NAMESPACE not in contents or "Tests\\RewriteInput" in contents:
         raise SystemExit(f"Namespace promotion failed for {name}")
 
-print(f"Promoted {len(EXPECTED)} EventAnalysis tests into tests/Feature/Intelligence/EventAnalysis")
+print(
+    f"Promoted {len(EXPECTED)} EventAnalysis tests into tests/Feature/Intelligence/EventAnalysis "
+    f"and aligned Kingdom Operations authority in {kingdom_authority_fixture_files} fixture files"
+)
