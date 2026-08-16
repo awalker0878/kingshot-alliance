@@ -91,7 +91,7 @@ final class ObservationLifecycleTest extends TestCase
             'captured_at' => now()->toIso8601String(),
         ]);
 
-        self::assertSame('0', $zero->power);
+        self::assertSame(0, $zero->power);
         self::assertSame(0, $zero->member_count);
         self::assertNull($missing->power);
         self::assertNull($missing->member_count);
