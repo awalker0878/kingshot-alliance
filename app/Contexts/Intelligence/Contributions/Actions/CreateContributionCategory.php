@@ -11,8 +11,8 @@ use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthor
 use App\Contexts\Intelligence\Contributions\Enums\ContributionDataClass;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionPeriod;
 use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

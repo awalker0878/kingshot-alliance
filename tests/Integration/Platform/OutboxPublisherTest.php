@@ -6,9 +6,10 @@ namespace Tests\Integration\Platform;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Shared\Messaging\Actions\PublishOutboxBatch;
-use App\Shared\Messaging\Events\OutboxPublished;
-use App\Shared\Messaging\Models\OutboxMessage;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
+use App\Shared\Infrastructure\Messaging\Outbox\Events\OutboxPublished;
+use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use RuntimeException;
@@ -23,7 +24,9 @@ final class OutboxPublisherTest extends TestCase
         Event::fake([OutboxPublished::class]);
 
         $creator = User::factory()->create();
+        $kingdom = Kingdom::query()->create(['number' => 9901, 'status' => 'active']);
         $alliance = Alliance::query()->create([
+            'kingdom_id' => $kingdom->id,
             'name' => 'Outbox Test Alliance',
             'slug' => 'outbox-test-alliance',
             'created_by_user_id' => $creator->id,

@@ -7,7 +7,7 @@ namespace Tests\Performance;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Domain\Platform\Queries\PlatformAdministrationQuery;
+use App\Contexts\Platform\Queries\PlatformAdministrationQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

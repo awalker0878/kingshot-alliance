@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Platform;
 
 use App\Contexts\Accounts\Models\User;
-use App\Domain\Platform\Actions\ManagePlatformAdministrator;
+use App\Contexts\Platform\Actions\ManagePlatformAdministrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

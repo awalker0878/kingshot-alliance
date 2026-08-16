@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Roster\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\GameWorld\Models\Player;
@@ -104,7 +102,6 @@ final class RosterCsvController extends Controller
     public function export(
         Request $request,
         AllianceContext $context,
-        AllianceAuthorization $allianceAuthorization,
         AllianceIntelligenceAuthorization $intelligenceAuthorization,
         RosterCsvExporter $exporter,
     ): HttpResponse {
@@ -118,7 +115,7 @@ final class RosterCsvController extends Controller
         $includePrivate = ($validated['scope'] ?? 'member') === 'management';
         $allowed = $includePrivate
             ? $intelligenceAuthorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage)
-            : $allianceAuthorization->allows($context->player(), $alliance, AlliancePermission::View);
+            : $intelligenceAuthorization->allows($context->player(), $alliance, IntelligencePermission::View);
 
         if (! $allowed) {
             throw new AuthorizationException;

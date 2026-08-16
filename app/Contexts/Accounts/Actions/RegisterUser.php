@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\Actions;
 
 use App\Contexts\Accounts\Models\User;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Models\OutboxMessage;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 

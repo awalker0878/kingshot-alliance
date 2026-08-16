@@ -12,8 +12,8 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCommunication;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentDecisionTemplate;
 use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

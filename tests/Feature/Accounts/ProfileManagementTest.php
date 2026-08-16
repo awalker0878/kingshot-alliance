@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Accounts;
 
 use App\Contexts\Accounts\Models\User;
-use App\Shared\Messaging\Models\OutboxMessage;
+use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;

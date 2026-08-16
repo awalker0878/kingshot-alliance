@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Roster\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
@@ -28,7 +26,6 @@ final class PlayerSnapshotController extends Controller
     public function show(
         Request $request,
         AllianceContext $context,
-        AllianceAuthorization $authorization,
         AllianceIntelligenceAuthorization $intelligenceAuthorization,
         PlayerSnapshotQuery $snapshots,
         string $entry,
@@ -36,7 +33,7 @@ final class PlayerSnapshotController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($context->player(), $alliance, AlliancePermission::View)) {
+        if (! $intelligenceAuthorization->allows($context->player(), $alliance, IntelligencePermission::View)) {
             throw new AuthorizationException;
         }
 

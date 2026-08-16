@@ -12,8 +12,8 @@ use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
 use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 
 final readonly class RemoveEventObjectiveAssignment

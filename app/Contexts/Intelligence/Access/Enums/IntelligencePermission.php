@@ -8,6 +8,7 @@ use App\Shared\Access\Contracts\Permission;
 
 enum IntelligencePermission: string implements Permission
 {
+    case View = 'intelligence.view';
     case ContributionManage = 'contributions.manage';
     case KingdomManage = 'kingdoms.manage';
 
@@ -19,6 +20,7 @@ enum IntelligencePermission: string implements Permission
     public function description(): string
     {
         return match ($this) {
+            self::View => 'View Intelligence capabilities for the active Player Alliance context.',
             self::ContributionManage => 'Manage alliance contribution records, reporting, exports, and report schedules.',
             self::KingdomManage => 'Manage observed Kingdom, roster, transfer-planning, and intelligence state owned by Intelligence.',
         };

@@ -15,7 +15,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Roster\Actions\RecordPlayerSnapshot;
 use App\Contexts\Intelligence\Roster\Models\RosterImport;
 use App\Contexts\Intelligence\Roster\Services\RosterCsvParser;
-use App\Shared\Audit\Models\AuditEvent;
+use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;

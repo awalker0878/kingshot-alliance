@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Contexts\Platform\EventAdministration\Http\Controllers\EventTypeAdministrationController;
-use App\Domain\Platform\Http\Controllers\PlatformAdministrationController;
+use App\Contexts\Platform\Http\Controllers\PlatformAdministrationController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'platform.admin', 'password.confirm'])

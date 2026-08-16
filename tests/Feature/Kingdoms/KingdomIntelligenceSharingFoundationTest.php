@@ -14,7 +14,7 @@ use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\KingdomIntelligenceShare;
 use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
-use App\Shared\Messaging\Models\OutboxMessage;
+use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;

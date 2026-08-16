@@ -14,8 +14,8 @@ use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use App\Contexts\Operations\Results\Models\EventAllianceResult;
 use App\Contexts\Operations\Results\Services\EventMetricCapture;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

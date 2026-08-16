@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Domain\Integrations\Http\Controllers\AllianceApiController;
+use App\Contexts\Platform\Integrations\Http\Controllers\AllianceApiController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->middleware('throttle:api')->group(function (): void {

@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Sharing\Http\Controllers;
 
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
-
 use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Sharing\Actions\AcceptKingdomIntelligenceShareInvitation;
 use App\Contexts\Intelligence\Sharing\Actions\AddKingdomIntelligenceShareTarget;
 use App\Contexts\Intelligence\Sharing\Actions\CreateKingdomIntelligenceShareInvitation;
@@ -36,7 +33,6 @@ final class KingdomIntelligenceSharingController extends Controller
     public function index(
         Request $request,
         AllianceContext $context,
-        AllianceAuthorization $authorization,
         AllianceIntelligenceAuthorization $intelligenceAuthorization,
         SharedKingdomIntelligenceCurrentQuery $current,
         SharedKingdomIntelligenceHistoryQuery $history,
@@ -44,7 +40,7 @@ final class KingdomIntelligenceSharingController extends Controller
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($context->player(), $alliance, AlliancePermission::View)) {
+        if (! $intelligenceAuthorization->allows($context->player(), $alliance, IntelligencePermission::View)) {
             throw new AuthorizationException;
         }
 

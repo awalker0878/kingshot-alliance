@@ -10,8 +10,8 @@ use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareState;
 use App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShare;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 

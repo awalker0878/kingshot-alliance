@@ -42,6 +42,7 @@ final class AllianceIntelligenceAuthorization
         }
 
         return match ($permission) {
+            IntelligencePermission::View => true,
             IntelligencePermission::KingdomManage => in_array($membership->rank, [AllianceRank::R4, AllianceRank::R5], true),
             IntelligencePermission::ContributionManage => $membership->rank === AllianceRank::R5,
         };

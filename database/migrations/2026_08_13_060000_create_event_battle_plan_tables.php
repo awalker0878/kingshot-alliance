@@ -72,6 +72,7 @@ return new class extends Migration
             DB::statement('ALTER TABLE event_objectives ADD CONSTRAINT event_objectives_priority_check CHECK (priority BETWEEN 0 AND 100)');
             DB::statement('ALTER TABLE event_objectives ADD CONSTRAINT event_objectives_time_check CHECK (ends_at IS NULL OR starts_at IS NULL OR ends_at >= starts_at)');
             DB::statement('ALTER TABLE event_objective_assignments ADD CONSTRAINT event_objective_assignments_target_check CHECK ((roster_id IS NOT NULL)::int + (player_id IS NOT NULL)::int = 1)');
+
             return;
         }
 

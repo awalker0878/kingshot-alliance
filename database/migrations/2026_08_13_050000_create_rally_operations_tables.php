@@ -138,7 +138,8 @@ return new class extends Migration
             }
             DB::statement("ALTER TABLE rally_assignments ADD CONSTRAINT rally_assignments_role_check CHECK (role IN ('lead','joiner','standby'))");
             DB::statement("ALTER TABLE rally_assignments ADD CONSTRAINT rally_assignments_status_check CHECK (status IN ('assigned','confirmed','declined','participated','absent','removed'))");
-            DB::statement("ALTER TABLE rally_guidance_rules ADD CONSTRAINT rally_guidance_rules_effective_window_check CHECK (effective_until IS NULL OR effective_from IS NULL OR effective_until >= effective_from)");
+            DB::statement('ALTER TABLE rally_guidance_rules ADD CONSTRAINT rally_guidance_rules_effective_window_check CHECK (effective_until IS NULL OR effective_from IS NULL OR effective_until >= effective_from)');
+
             return;
         }
 

@@ -7,8 +7,8 @@ namespace App\Contexts\Operations\Rallies\Actions;
 use App\Contexts\GameWorld\Governance\Services\PlayerMutationAuthority;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Rallies\Models\PlayerFormation;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 

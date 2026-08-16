@@ -11,7 +11,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
 use App\Contexts\Intelligence\Roster\Queries\PlayerSnapshotQuery;
 use App\Contexts\Intelligence\Roster\Queries\RosterQuery;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use RuntimeException;
 
 final readonly class RosterCsvExporter

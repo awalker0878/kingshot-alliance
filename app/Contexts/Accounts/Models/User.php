@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Models;
 
-use App\Shared\Audit\Contracts\AuditActor;
+use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;

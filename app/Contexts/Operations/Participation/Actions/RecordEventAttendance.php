@@ -15,8 +15,8 @@ use App\Contexts\Operations\Participation\Models\EventAttendance;
 use App\Contexts\Operations\Participation\Models\EventPlayerContext;
 use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
 use App\Contexts\Operations\Participation\Services\EventPlayerContextFreezer;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 

@@ -11,7 +11,7 @@ use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Roster\Models\RosterImport;
 use App\Contexts\Intelligence\Roster\Services\RosterCsvParser;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;

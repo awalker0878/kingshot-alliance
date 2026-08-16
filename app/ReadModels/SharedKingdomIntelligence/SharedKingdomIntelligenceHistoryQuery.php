@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace App\ReadModels\SharedKingdomIntelligence;
 
-use App\Contexts\Intelligence\Observations\Queries\KingdomAllianceObservationQuery;
-
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
-use App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShareTarget;
+use App\Contexts\Intelligence\Observations\Queries\KingdomAllianceObservationQuery;
 use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareState;
 use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareTargetState;
-use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
-use App\ReadModels\SharedKingdomIntelligence\SharedKingdomIntelligenceHistoryCursor;
+use App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShareTarget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;

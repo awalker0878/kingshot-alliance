@@ -15,7 +15,7 @@ use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
 use App\Contexts\Intelligence\Contributions\Models\ContributionDataQualityFlag;
 use App\Contexts\Intelligence\Contributions\Models\ContributionRecord;
 use App\Contexts\Intelligence\Contributions\Services\ContributionPeriodResolver;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
 
 final class RefreshContributionDataQuality

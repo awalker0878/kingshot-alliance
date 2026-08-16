@@ -7,7 +7,7 @@ namespace App\Contexts\Intelligence\Ingestion\Actions;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionBatchState;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionBatch;
 use App\Contexts\Intelligence\Ingestion\Services\KingdomIngestionMutationState;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

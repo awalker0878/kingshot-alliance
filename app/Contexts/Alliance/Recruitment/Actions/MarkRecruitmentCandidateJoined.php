@@ -9,9 +9,9 @@ use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
 use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Events\OutboxPublished;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Events\OutboxPublished;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 
 final class MarkRecruitmentCandidateJoined

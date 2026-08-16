@@ -12,8 +12,8 @@ use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthor
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

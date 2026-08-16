@@ -6,8 +6,8 @@ namespace App\Contexts\Accounts\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Accounts\Services\TwoFactorManager;
-use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

@@ -3,18 +3,18 @@
 declare(strict_types=1);
 
 use App\Contexts\Alliance\Access\Http\Controllers\KingdomRoleController;
-use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyContactController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyController;
 use App\Contexts\Intelligence\Http\Controllers\KingdomAllianceIntelligenceController;
-use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceObservationController;
 use App\Contexts\Intelligence\Ingestion\Http\Controllers\KingdomIngestionController;
-use App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController;
-use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
+use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceController;
+use App\Contexts\Intelligence\Observations\Http\Controllers\KingdomAllianceObservationController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\PlayerSnapshotController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterCsvController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterIntelligenceController;
+use App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController;
+use App\Domain\Kingdoms\Http\Controllers\KingdomSettingsController;
 use App\Domain\Kingdoms\Http\Controllers\TransferCompletionController;
 use App\Domain\Kingdoms\Http\Controllers\TransferGroupController;
 use App\Domain\Kingdoms\Http\Controllers\TransferParticipantController;

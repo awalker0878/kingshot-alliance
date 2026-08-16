@@ -9,8 +9,8 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
 use App\Contexts\Operations\Reminders\Models\EventReminderRule;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 
 final readonly class DisableEventReminderRule

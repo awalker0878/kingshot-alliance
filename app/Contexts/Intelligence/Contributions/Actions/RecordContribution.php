@@ -16,8 +16,8 @@ use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordStatus;
 use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
 use App\Contexts\Intelligence\Contributions\Models\ContributionRecord;
 use App\Contexts\Intelligence\Contributions\Services\ContributionPeriodResolver;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 

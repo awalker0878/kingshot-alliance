@@ -12,8 +12,8 @@ use App\Contexts\Intelligence\Ingestion\Contracts\KingdomIngestionAcquisitionAda
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionSubscriptionState;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionSubscription;
 use App\Contexts\Intelligence\Ingestion\Services\KingdomIngestionAdapterRegistry;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

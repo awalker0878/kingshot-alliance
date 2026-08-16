@@ -35,7 +35,7 @@ use App\Contexts\Alliance\Recruitment\Queries\RecruitmentDuplicateFinder;
 use App\Contexts\Alliance\Recruitment\Queries\RecruitmentMetricsQuery;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Messaging\Actions\PublishOutboxBatch;
+use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Kingdoms\Actions;
 
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Actions\LeaveAlliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
@@ -16,14 +15,15 @@ use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
 use App\Domain\Kingdoms\Enums\TransferDirection;
 use App\Domain\Kingdoms\Enums\TransferPlanState;
 use App\Domain\Kingdoms\Enums\TransferReadinessState;
 use App\Domain\Kingdoms\Models\TransferCompletion;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

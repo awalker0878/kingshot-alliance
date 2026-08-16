@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Roster\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
@@ -33,7 +31,6 @@ final class RosterController extends Controller
     public function index(
         Request $request,
         AllianceContext $context,
-        AllianceAuthorization $authorization,
         AllianceIntelligenceAuthorization $intelligenceAuthorization,
         RosterQuery $roster,
         PlayerSnapshotQuery $snapshots,
@@ -42,7 +39,7 @@ final class RosterController extends Controller
         $actor = $context->player();
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($actor, $alliance, AlliancePermission::View)) {
+        if (! $intelligenceAuthorization->allows($actor, $alliance, IntelligencePermission::View)) {
             throw new AuthorizationException;
         }
 

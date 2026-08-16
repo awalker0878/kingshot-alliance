@@ -8,7 +8,7 @@ use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Integrations\Actions\CreateApiCredential;
+use App\Contexts\Platform\Integrations\Actions\CreateApiCredential;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

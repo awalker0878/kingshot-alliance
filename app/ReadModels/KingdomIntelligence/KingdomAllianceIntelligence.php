@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\ReadModels\KingdomIntelligence;
 
-use App\Contexts\Intelligence\Roster\Services\PowerMath;
-
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
-use App\ReadModels\KingdomIntelligence\KingdomAllianceIntelligenceQuery;
+use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Queries\KingdomAllianceObservationQuery;
+use App\Contexts\Intelligence\Roster\Services\PowerMath;
 use Illuminate\Support\Carbon;
 
 final readonly class KingdomAllianceIntelligence

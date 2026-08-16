@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Observations\Http\Controllers;
 
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
-
 use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
-use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Observations\Actions\InvalidateKingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Actions\RecordKingdomAllianceObservation;
+use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Contexts\Intelligence\Observations\Queries\KingdomAllianceObservationQuery;
 use App\Shared\Http\Controller;
@@ -29,14 +26,13 @@ final class KingdomAllianceObservationController extends Controller
     public function show(
         Request $request,
         AllianceContext $context,
-        AllianceAuthorization $authorization,
         AllianceIntelligenceAuthorization $intelligenceAuthorization,
         KingdomAllianceObservationQuery $observations,
         string $tracking,
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
-        if (! $authorization->allows($context->player(), $alliance, AlliancePermission::View)) {
+        if (! $intelligenceAuthorization->allows($context->player(), $alliance, IntelligencePermission::View)) {
             throw new AuthorizationException;
         }
 

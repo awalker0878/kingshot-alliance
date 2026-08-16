@@ -13,8 +13,8 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Services\MembershipAdministrationGuard;
 use App\Contexts\Alliance\Policies\AllianceCapacityPolicy;
 use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Models\OutboxMessage;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

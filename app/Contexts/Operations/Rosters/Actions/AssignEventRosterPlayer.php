@@ -16,8 +16,8 @@ use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use App\Contexts\Operations\Rosters\Services\EventRosterAllianceSnapshotResolver;
 use App\Contexts\Operations\Rosters\Services\EventRosterAvailabilityService;
-use App\Shared\Audit\Services\AuditRecorder;
-use App\Shared\Messaging\Services\OutboxRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

@@ -73,8 +73,8 @@ return new class extends Migration
     private function createContentGuards(): void
     {
         $driver = DB::connection()->getDriverName();
-        $nameExpression = "((name_key IS NOT NULL AND length(trim(name_key)) > 0) OR (name IS NOT NULL AND length(trim(name)) > 0))";
-        $sqliteNameExpression = "((NEW.name_key IS NOT NULL AND length(trim(NEW.name_key)) > 0) OR (NEW.name IS NOT NULL AND length(trim(NEW.name)) > 0))";
+        $nameExpression = '((name_key IS NOT NULL AND length(trim(name_key)) > 0) OR (name IS NOT NULL AND length(trim(name)) > 0))';
+        $sqliteNameExpression = '((NEW.name_key IS NOT NULL AND length(trim(NEW.name_key)) > 0) OR (NEW.name IS NOT NULL AND length(trim(NEW.name)) > 0))';
 
         if ($driver === 'pgsql') {
             DB::statement("ALTER TABLE event_rosters ADD CONSTRAINT event_rosters_name_check CHECK ({$nameExpression})");

@@ -32,7 +32,7 @@ use App\Contexts\Operations\Participation\Models\EventResponse;
 use App\Contexts\Operations\Reminders\Actions\CreateEventReminderRule;
 use App\Contexts\Operations\Reminders\Actions\DisableEventReminderRule;
 use App\Contexts\Operations\Reminders\Enums\EventReminderAudience;
-use App\Shared\Messaging\Models\OutboxMessage;
+use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

@@ -3,15 +3,15 @@
 declare(strict_types=1);
 
 use App\Contexts\Alliance\Core\Http\Middleware\ResolveAllianceContext;
+use App\Contexts\Communications\Reminders\Actions\QueueDueKingPerkReminders;
 use App\Contexts\GameWorld\Http\Middleware\ResolvePlayerContext;
-use App\Domain\Integrations\Http\Middleware\AuthenticateApiCredential;
-use App\Domain\Notifications\Actions\QueueDueKingPerkReminders;
-use App\Domain\Platform\Http\Controllers\ReadinessController;
-use App\Domain\Platform\Http\Middleware\AssignRequestContext;
-use App\Domain\Platform\Http\Middleware\HandleInertiaRequests;
-use App\Domain\Platform\Http\Middleware\RecordRequestMetrics;
-use App\Domain\Platform\Http\Middleware\RequirePlatformAdministrator;
-use App\Domain\Platform\Http\Middleware\SecurityHeaders;
+use App\Contexts\Platform\Http\Controllers\ReadinessController;
+use App\Contexts\Platform\Http\Middleware\AssignRequestContext;
+use App\Contexts\Platform\Http\Middleware\HandleInertiaRequests;
+use App\Contexts\Platform\Http\Middleware\RecordRequestMetrics;
+use App\Contexts\Platform\Http\Middleware\RequirePlatformAdministrator;
+use App\Contexts\Platform\Http\Middleware\SecurityHeaders;
+use App\Contexts\Platform\Integrations\Http\Middleware\AuthenticateApiCredential;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;

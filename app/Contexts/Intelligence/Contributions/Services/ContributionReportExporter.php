@@ -10,7 +10,7 @@ use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
 use App\Contexts\Intelligence\Contributions\Models\ContributionReportRun;
 use App\Contexts\Intelligence\Contributions\Queries\AllianceContributionReportQuery;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

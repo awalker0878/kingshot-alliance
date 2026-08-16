@@ -48,8 +48,8 @@ final class EventRosterArchitectureTest extends TestCase
 
     public function test_rostered_reminders_are_capability_gated_and_resolved_from_active_assignments(): void
     {
-        $create = $this->read('app/Domain/Notifications/Actions/CreateEventReminderRule.php');
-        $resolver = $this->read('app/Domain/Notifications/Services/EventReminderAudienceResolver.php');
+        $create = $this->read('app/Contexts/Operations/Reminders/Actions/CreateEventReminderRule.php');
+        $resolver = $this->read('app/Contexts/Communications/Reminders/Services/EventReminderAudienceResolver.php');
 
         self::assertStringContainsString('EventCapability::Rosters', $create);
         self::assertStringContainsString('EventRosterMember::query()', $resolver);

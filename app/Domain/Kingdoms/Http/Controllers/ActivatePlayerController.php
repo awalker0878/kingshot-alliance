@@ -6,8 +6,8 @@ namespace App\Domain\Kingdoms\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

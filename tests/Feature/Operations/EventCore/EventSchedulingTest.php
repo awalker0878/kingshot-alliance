@@ -17,7 +17,7 @@ use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\EventCore\Models\EventType;
 use App\Contexts\Operations\EventCore\Services\EventTypeRegistry;
-use App\Shared\Messaging\Models\OutboxMessage;
+use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

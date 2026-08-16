@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Roster\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
@@ -22,14 +20,13 @@ final class RosterIntelligenceController extends Controller
     public function index(
         Request $request,
         AllianceContext $context,
-        AllianceAuthorization $authorization,
         AllianceIntelligenceAuthorization $intelligenceAuthorization,
         RosterIntelligence $intelligence,
     ): Response {
         $user = $this->user($request);
         $alliance = $context->alliance()->load('kingdom');
 
-        if (! $authorization->allows($context->player(), $alliance, AlliancePermission::View)) {
+        if (! $intelligenceAuthorization->allows($context->player(), $alliance, IntelligencePermission::View)) {
             throw new AuthorizationException;
         }
 

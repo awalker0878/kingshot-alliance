@@ -9,7 +9,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
 use App\Contexts\Intelligence\Contributions\Models\ContributionDataQualityFlag;
-use App\Shared\Audit\Services\AuditRecorder;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
 
 final class ResolveContributionDataQualityFlag
