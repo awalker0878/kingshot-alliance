@@ -5,12 +5,21 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Rosters\Models;
 
 use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\Rosters\Enums\EventRosterType;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property string $key
+ * @property string|null $name_key
+ * @property string|null $name
+ * @property EventRosterType $roster_type
+ * @property int $sort_order
+ * @property-read EventOccurrence $occurrence
+ */
 final class EventRoster extends Model
 {
     use HasUlids;
