@@ -110,4 +110,98 @@ if source.count(old_tail) != 1:
 source = source.replace(old_tail, "])->all()),", 1)
 middleware.write_text(source, encoding='utf-8')
 
-print('Applied P7 V2 dependency and explicit list-contract corrections.')
+# Internal outbox publication must never implicitly become an external webhook
+# contract. Use one public-event catalog for both subscription validation and
+# fan-out eligibility; a wildcard means "all catalogued public events", not all
+# internal messages. The two events below are the public contracts evidenced by
+# the current UI/default and integration behavior suite.
+catalog = Path('app/Contexts/Platform/Integrations/Contracts/WebhookEventCatalog.php')
+catalog.parent.mkdir(parents=True, exist_ok=True)
+catalog.write_text(
+    """<?php
+
+declare(strict_types=1);
+
+namespace App\\Contexts\\Platform\\Integrations\\Contracts;
+
+final class WebhookEventCatalog
+{
+    /** @var list<string> */
+    private const PUBLIC_EVENTS = [
+        'alliance.created',
+        'member.joined',
+    ];
+
+    public static function isPublic(string $eventType): bool
+    {
+        return in_array($eventType, self::PUBLIC_EVENTS, true);
+    }
+
+    public static function isValidSelector(string $eventType): bool
+    {
+        return $eventType === '*' || self::isPublic($eventType);
+    }
+
+    /** @return list<string> */
+    public static function publicEvents(): array
+    {
+        return self::PUBLIC_EVENTS;
+    }
+}
+""",
+    encoding='utf-8',
+)
+
+subscription = 'app/Contexts/Platform/Integrations/Actions/CreateWebhookSubscription.php'
+replace(
+    subscription,
+    'use App\\Contexts\\Platform\\Integrations\\Models\\WebhookSubscription;',
+    'use App\\Contexts\\Platform\\Integrations\\Contracts\\WebhookEventCatalog;\nuse App\\Contexts\\Platform\\Integrations\\Models\\WebhookSubscription;',
+)
+replace(
+    subscription,
+    """        foreach ($events as $event) {
+            if ($event !== '*' && preg_match('/^[a-z0-9._-]{3,120}$/', $event) !== 1) {
+                throw ValidationException::withMessages(['events' => 'Webhook event names contain an unsupported value.']);
+            }
+        }
+""",
+    """        foreach ($events as $event) {
+            if (! WebhookEventCatalog::isValidSelector($event)) {
+                throw ValidationException::withMessages(['events' => 'Choose only supported public webhook event types or wildcard (*).']);
+            }
+        }
+""",
+)
+
+queue = 'app/Contexts/Platform/Integrations/Actions/QueueWebhookDeliveries.php'
+replace(
+    queue,
+    'use App\\Contexts\\Platform\\Integrations\\Enums\\WebhookDeliveryStatus;',
+    'use App\\Contexts\\Platform\\Integrations\\Contracts\\WebhookEventCatalog;\nuse App\\Contexts\\Platform\\Integrations\\Enums\\WebhookDeliveryStatus;',
+)
+replace(
+    queue,
+    """    private function isExternallyContracted(string $eventType): bool
+    {
+        return ! str_starts_with($eventType, 'kingdoms.');
+    }
+""",
+    """    private function isExternallyContracted(string $eventType): bool
+    {
+        return WebhookEventCatalog::isPublic($eventType);
+    }
+""",
+)
+
+# Make the living code-owner README match the hard external contract.
+integration_readme = Path('app/Contexts/Platform/Integrations/README.md')
+if integration_readme.is_file():
+    text = integration_readme.read_text(encoding='utf-8')
+    text = text.replace(
+        'Internal outbox publication does not automatically create a public webhook contract; current Kingdoms events remain explicitly excluded.',
+        'Internal outbox publication does not automatically create a public webhook contract. Webhook fan-out is allowlisted by `WebhookEventCatalog`; wildcard subscriptions mean all catalogued public events, never all internal outbox messages.',
+    )
+    integration_readme.write_text(text, encoding='utf-8')
+
+print('Applied P7 V2 dependency, explicit list-contract, and webhook allowlist corrections.')
