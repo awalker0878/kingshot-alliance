@@ -1,21 +1,21 @@
-# Reminder and notification delivery
+# Notification delivery
 
 Status: Current  
 Context: Communications  
-Implementation: `app/Contexts/Communications/Reminders`
+Implementation: `app/Contexts/Communications/Delivery`
 
 ## Owns
 
-- delivery records/attempt state;
-- recipient/channel preferences represented by the capability;
+- generic notification delivery records and attempt state;
+- recipient/channel preferences;
+- channel selection state supplied by the source context;
 - retry/backoff/idempotency behavior;
-- delivery-channel coordination and safe diagnostics.
+- delivery-channel coordination and bounded diagnostics.
 
-## Does not own
+## Boundary contract
 
-- Event schedule/occurrence;
-- King Perks appointment timing;
-- the rule deciding a business reminder is due;
-- Alliance/Kingdom business state.
+Source contexts decide that a business notification is due and provide only scalar delivery inputs: notification type, recipient identifiers, channel, due time, idempotency key, optional subject identifiers and bounded metadata. Communications persists and advances delivery state without navigating back into the source aggregate.
 
-Delivery is assumed retryable/at-least-once at infrastructure boundaries. Stable deduplication/idempotency prevents duplicate external effects. Diagnostic payloads must remain bounded and must not leak message secrets/private content.
+Operations therefore owns Event reminder rules, Event audience selection, King Perk reminder timing and every other Operations-specific notification policy. Communications does not inspect Event, King Perk, Alliance or Kingdom aggregates to decide whether a notification should exist.
+
+Delivery is retryable/at-least-once at infrastructure boundaries. Stable idempotency keys prevent duplicate external effects. Diagnostic payloads must remain bounded and must not leak message secrets or private content.
