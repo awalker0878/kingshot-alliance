@@ -1,0 +1,57 @@
+name: V3 CA-P3 Publish Inventory
+
+on:
+  push:
+    branches:
+      - architecture-v3-capability-alignment
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: ${{ !contains(github.event.head_commit.message, 'publish P3 foreign-model inventory') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v3-capability-alignment
+          fetch-depth: 0
+      - name: Generate inventory
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import collections
+          import re
+
+          root = Path('app/Contexts')
+          pattern = re.compile(r'^use App\\Contexts\\([A-Za-z0-9_]+)\\([^;]*\\Models\\[^;]+);', re.M)
+          rows = []
+          counts = collections.Counter()
+          for context_path in sorted(p for p in root.iterdir() if p.is_dir()):
+              context = context_path.name
+              for path in sorted(context_path.rglob('*.php')):
+                  text = path.read_text()
+                  for match in pattern.finditer(text):
+                      foreign = match.group(1)
+                      if foreign == context:
+                          continue
+                      counts[(context, foreign)] += 1
+                      rows.append((context, path.as_posix(), foreign, match.group(0)))
+
+          lines = [f'TOTAL={len(rows)}', '', 'COUNTS']
+          for (source, target), count in sorted(counts.items(), key=lambda item: (-item[1], item[0])):
+              lines.append(f'{source}->{target}={count}')
+          lines.extend(['', 'IMPORTS'])
+          for source, path, target, statement in rows:
+              lines.append(f'{source}|{target}|{path}|{statement}')
+          Path('ARCH_V3_P3_FOREIGN_MODEL_INVENTORY.txt').write_text('\n'.join(lines) + '\n')
+          PY
+      - name: Commit inventory
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ARCH_V3_P3_FOREIGN_MODEL_INVENTORY.txt
+          git commit -m "chore(v3): publish P3 foreign-model inventory [skip ci]"
+          git push origin HEAD:architecture-v3-capability-alignment
