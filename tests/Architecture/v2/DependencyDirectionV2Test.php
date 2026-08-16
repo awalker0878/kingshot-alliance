@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture\V2;
+namespace Tests\Architecture\v2;
 
 use PHPUnit\Framework\TestCase;
 use Tests\Support\V2\ArchitectureCatalogue;
