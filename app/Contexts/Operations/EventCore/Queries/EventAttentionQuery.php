@@ -10,18 +10,20 @@ use App\Contexts\Operations\EventCore\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventPoll;
-use App\Contexts\Operations\EventCore\Models\EventPollVote;
-use App\Contexts\Operations\EventCore\Models\EventResponse;
+use App\Contexts\Operations\EventCore\Models\EventTypeScope;
 use App\Contexts\Operations\EventCore\Services\ActivePlayerEventVisibilityResolver;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityResolver;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
+use App\Contexts\Operations\Participation\Models\EventResponse;
 use App\Contexts\Operations\Participation\Services\EventRegistrationWindow;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
+use App\Contexts\Operations\Polls\Models\EventPoll;
+use App\Contexts\Operations\Polls\Models\EventPollVote;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 final readonly class EventAttentionQuery
@@ -58,26 +60,30 @@ final readonly class EventAttentionQuery
             return [];
         }
 
-        $occurrenceIds = $occurrences->pluck('id')->map(static fn ($id): string => (string) $id)->all();
+        $occurrenceIds = array_values($occurrences->pluck('id')->map(static fn ($id): string => (string) $id)->all());
         $facts = $this->participationFacts($occurrenceIds, $player);
 
         $items = [];
         foreach ($occurrences as $occurrence) {
             $event = $occurrence->event;
+            $configuration = $event->typeScope;
+            if (! $configuration instanceof EventTypeScope) {
+                continue;
+            }
             $occurrenceId = (string) $occurrence->id;
 
-            if ($this->capabilities->supports($event->typeScope, EventCapability::Responses)
+            if ($this->capabilities->supports($configuration, EventCapability::Responses)
                 && ! isset($facts['responses'][$occurrenceId])) {
                 $items[] = $this->item($occurrence, $player, 'response');
             }
 
-            if ($this->capabilities->supports($event->typeScope, EventCapability::Registration)
+            if ($this->capabilities->supports($configuration, EventCapability::Registration)
                 && $this->window->for($event, $occurrence)['is_open']
                 && ! isset($facts['registrations'][$occurrenceId])) {
                 $items[] = $this->item($occurrence, $player, 'registration');
             }
 
-            if ($this->capabilities->supports($event->typeScope, EventCapability::Polls)) {
+            if ($this->capabilities->supports($configuration, EventCapability::Polls)) {
                 foreach ($facts['polls'][$occurrenceId] ?? [] as $pollId) {
                     if (! isset($facts['votes'][$pollId])) {
                         $items[] = $this->item($occurrence, $player, 'vote', $pollId);
@@ -85,7 +91,7 @@ final readonly class EventAttentionQuery
                 }
             }
 
-            if ($this->capabilities->supports($event->typeScope, EventCapability::Rosters)
+            if ($this->capabilities->supports($configuration, EventCapability::Rosters)
                 && isset($facts['roster_assignments'][$occurrenceId])) {
                 $items[] = $this->item(
                     $occurrence,
@@ -100,7 +106,7 @@ final readonly class EventAttentionQuery
     }
 
     /**
-     * @param  Builder<Event>  $query
+     * @param  Builder<Model>  $query
      * @param  array{alliance:list<string>,player:list<string>,kingdom:list<string>}  $targets
      */
     private function applyTargetScope(Builder $query, array $targets): void
@@ -179,7 +185,7 @@ final readonly class EventAttentionQuery
                 ->all())
             ->all();
 
-        $pollIds = $pollModels->pluck('id')->map(static fn ($id): string => (string) $id)->all();
+        $pollIds = array_values($pollModels->pluck('id')->map(static fn ($id): string => (string) $id)->all());
         $votes = $pollIds === []
             ? []
             : EventPollVote::query()
