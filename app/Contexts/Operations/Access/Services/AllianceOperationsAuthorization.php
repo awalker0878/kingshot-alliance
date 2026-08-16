@@ -26,7 +26,6 @@ final class AllianceOperationsAuthorization
             ->where('alliance_id', $alliance->id)
             ->where('player_id', $actor->id)
             ->where('status', MembershipStatus::Active->value)
-            ->with('roles:id,alliance_id,key')
             ->first();
 
         return $membership instanceof AllianceMembership
@@ -44,10 +43,10 @@ final class AllianceOperationsAuthorization
         }
 
         $isOfficer = in_array($membership->rank, [AllianceRank::R4, AllianceRank::R5], true);
-        $isEventCoordinator = $membership->roles->contains(
-            static fn ($role): bool => (string) $role->alliance_id === (string) $alliance->id
-                && (string) $role->key === DefaultAllianceRole::EventCoordinator->value,
-        );
+        $isEventCoordinator = $membership->roles()
+            ->where('roles.alliance_id', $alliance->id)
+            ->where('roles.key', DefaultAllianceRole::EventCoordinator->value)
+            ->exists();
 
         return match ($permission) {
             OperationsPermission::EventPlayerView,
