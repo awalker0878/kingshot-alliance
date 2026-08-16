@@ -44,6 +44,16 @@ def owner_from_id(value: str) -> str | None:
     return ''
 
 
+def kingdom_lines(indent: str, var: str, number: str, status: str | None) -> list[str]:
+    lines = [f"{indent}{var} = app(ResolveKingdom::class)->handle({number.strip()});"]
+    if status not in (None, "'active'", 'KingdomStatus::Active'):
+        lines += [
+            f"{indent}{var}->forceFill(['status' => {status.strip()}])->save();",
+            f"{indent}{var} = {var}->refresh();",
+        ]
+    return lines
+
+
 def rewrite_kingdom_creates(text: str) -> str:
     assignment = re.compile(
         r"(?P<i>^[ \t]*)(?:(?P<v>\$\w+)\s*=\s*|(?P<ret>return)\s+)Kingdom::query\(\)->create\(\[\s*\n"
@@ -55,23 +65,34 @@ def rewrite_kingdom_creates(text: str) -> str:
         values = parse_array(match['body'])
         if values is None or 'number' not in values:
             return match.group(0)
-        i = match['i']
-        var = match['v'] or '$kingdom'
-        status = values.get('status')
         extra = set(values) - {'number', 'status'}
         if extra:
             return match.group(0)
-        lines = [f"{i}{var} = app(ResolveKingdom::class)->handle({values['number']});"]
-        if status not in (None, "'active'", 'KingdomStatus::Active'):
-            lines += [
-                f"{i}{var}->forceFill(['status' => {status}])->save();",
-                f"{i}{var} = {var}->refresh();",
-            ]
+        i = match['i']
+        var = match['v'] or '$kingdom'
+        lines = kingdom_lines(i, var, values['number'], values.get('status'))
         if match['ret']:
             lines.append(f'{i}return {var};')
         return '\n'.join(lines)
 
     updated = assignment.sub(replace, text)
+
+    compact = re.compile(
+        r"(?P<i>^[ \t]*)(?:(?P<v>\$\w+)\s*=\s*|(?P<ret>return)\s+)"
+        r"Kingdom::query\(\)->create\(\[\s*'number'\s*=>\s*(?P<n>[^\n]+?)"
+        r"(?:,\s*'status'\s*=>\s*(?P<s>[^\n\]]+?))?,?\s*\]\);",
+        re.M,
+    )
+
+    def replace_compact(match: re.Match[str]) -> str:
+        i = match['i']
+        var = match['v'] or '$kingdom'
+        lines = kingdom_lines(i, var, match['n'], match['s'])
+        if match['ret']:
+            lines.append(f'{i}return {var};')
+        return '\n'.join(lines)
+
+    updated = compact.sub(replace_compact, updated)
 
     first_or_create = re.compile(
         r"(?P<i>^[ \t]*)(?P<v>\$\w+)\s*=\s*Kingdom::query\(\)->firstOrCreate\(\s*\n"
@@ -89,58 +110,99 @@ def rewrite_kingdom_creates(text: str) -> str:
     return updated
 
 
+def player_lines(indent: str, var: str, values: dict[str, str]) -> list[str] | None:
+    required = {'current_kingdom_id', 'current_name'}
+    if not required.issubset(values):
+        return None
+    owner = owner_from_id(values.get('user_id', 'null'))
+    if owner == '':
+        return None
+    lines = [
+        f"{indent}{var} = app(PersistPlayerIdentity::class)->handle(",
+        f"{indent}    (string) {values['current_kingdom_id']},",
+        f"{indent}    {values['current_name']},",
+        f"{indent}    {values.get('game_player_id', 'null')},",
+        f"{indent});",
+    ]
+    if owner is not None:
+        lines.append(f'{indent}{var} = app(ClaimPlayerAccount::class)->handle({var}, {owner});')
+    extras = {
+        key: value
+        for key, value in values.items()
+        if key not in {'user_id', 'current_kingdom_id', 'current_name', 'game_player_id'}
+    }
+    if extras:
+        lines.append(f'{indent}{var}->forceFill([')
+        for key, value in extras.items():
+            lines.append(f"{indent}    '{key}' => {value},")
+        lines += [f'{indent}])->save();', f'{indent}{var} = {var}->refresh();']
+    return lines
+
+
 def rewrite_player_creates(text: str) -> str:
     pattern = re.compile(
         r"(?P<i>^[ \t]*)(?:(?P<v>\$\w+)\s*=\s*|(?P<ret>return)\s+)Player::query\(\)->create\(\[\s*\n"
         r"(?P<body>.*?)^(?P=i)\]\);",
         re.M | re.S,
     )
-
     changed = False
 
     def replace(match: re.Match[str]) -> str:
         nonlocal changed
         values = parse_array(match['body'])
-        required = {'current_kingdom_id', 'current_name'}
-        if values is None or not required.issubset(values):
-            return match.group(0)
-        owner = owner_from_id(values.get('user_id', 'null'))
-        if owner == '':
+        if values is None:
             return match.group(0)
         i = match['i']
         var = match['v'] or '$player'
-        game_id = values.get('game_player_id', 'null')
-        lines = [
-            f"{i}{var} = app(PersistPlayerIdentity::class)->handle(",
-            f"{i}    (string) {values['current_kingdom_id']},",
-            f"{i}    {values['current_name']},",
-            f"{i}    {game_id},",
-            f"{i});",
-        ]
-        if owner is not None:
-            lines.append(f'{i}{var} = app(ClaimPlayerAccount::class)->handle({var}, {owner});')
-
-        extras = {
-            key: value
-            for key, value in values.items()
-            if key not in {'user_id', 'current_kingdom_id', 'current_name', 'game_player_id'}
-        }
-        if extras:
-            lines.append(f'{i}{var}->forceFill([')
-            for key, value in extras.items():
-                lines.append(f"{i}    '{key}' => {value},")
-            lines += [f'{i}])->save();', f'{i}{var} = {var}->refresh();']
+        lines = player_lines(i, var, values)
+        if lines is None:
+            return match.group(0)
         if match['ret']:
             lines.append(f'{i}return {var};')
         changed = True
         return '\n'.join(lines)
 
     updated = pattern.sub(replace, text)
+
+    standalone = re.compile(
+        r"(?P<i>^[ \t]*)Player::query\(\)->create\(\[\s*\n(?P<body>.*?)^(?P=i)\]\);",
+        re.M | re.S,
+    )
+
+    def replace_standalone(match: re.Match[str]) -> str:
+        nonlocal changed
+        values = parse_array(match['body'])
+        if values is None:
+            return match.group(0)
+        lines = player_lines(match['i'], '$fixturePlayer', values)
+        if lines is None:
+            return match.group(0)
+        changed = True
+        return '\n'.join(lines)
+
+    updated = standalone.sub(replace_standalone, updated)
     if changed:
         updated = ensure_use(updated, r'App\Contexts\GameWorld\Actions\PersistPlayerIdentity')
         if 'ClaimPlayerAccount::class' in updated:
             updated = ensure_use(updated, r'App\Contexts\GameWorld\Actions\ClaimPlayerAccount')
     return updated
+
+
+def rewrite_transfer_performance_player(text: str) -> str:
+    old = """            $player = Player::query()->create([
+                'current_kingdom_id' => $direction === TransferDirection::Incoming ? $source->id : $alliance->kingdom_id,
+                'game_player_id' => $direction === TransferDirection::Incoming ? 'incoming-performance-'.$index : 'transfer-performance-'.$index,
+                'current_name' => 'Transfer Player '.$index,
+            ]);"""
+    if old not in text:
+        return text
+    new = """            $player = app(PersistPlayerIdentity::class)->handle(
+                (string) ($direction === TransferDirection::Incoming ? $source->id : $alliance->kingdom_id),
+                'Transfer Player '.$index,
+                $direction === TransferDirection::Incoming ? 'incoming-performance-'.$index : 'transfer-performance-'.$index,
+            );"""
+    text = text.replace(old, new)
+    return ensure_use(text, r'App\Contexts\GameWorld\Actions\PersistPlayerIdentity')
 
 
 def rewrite_known_helper_shapes(text: str) -> str:
@@ -187,6 +249,7 @@ def rewrite_files() -> None:
             text = rewrite_kingdom_creates(text)
             text = rewrite_known_helper_shapes(text)
             text = rewrite_player_creates(text)
+            text = rewrite_transfer_performance_player(text)
         path.write_text(text)
 
 
