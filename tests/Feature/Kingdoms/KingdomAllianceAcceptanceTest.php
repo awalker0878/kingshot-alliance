@@ -15,7 +15,7 @@ use App\Contexts\GameWorld\Models\KingdomAlliance;
 use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy;
 use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyContact;
 use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyTransition;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
 use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;

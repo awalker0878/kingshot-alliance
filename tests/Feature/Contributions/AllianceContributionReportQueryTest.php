@@ -21,7 +21,7 @@ use App\Domain\Contributions\Enums\ContributionPeriod;
 use App\Domain\Contributions\Enums\ContributionRecordSource;
 use App\Domain\Contributions\Queries\AllianceContributionReportQuery;
 use App\Domain\Contributions\Services\ContributionReportExporter;
-use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

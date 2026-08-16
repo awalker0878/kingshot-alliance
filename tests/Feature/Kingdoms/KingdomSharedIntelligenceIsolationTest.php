@@ -8,7 +8,7 @@ use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\GameWorld\Models\KingdomIntelligenceShare;
 use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Actions\AcceptKingdomIntelligenceShareInvitation;
@@ -17,7 +17,7 @@ use App\Domain\Kingdoms\Actions\CreateKingdomIntelligenceShareInvitation;
 use App\Domain\Kingdoms\Actions\RecordKingdomAllianceObservation;
 use App\Domain\Kingdoms\Actions\StartTrackingKingdomAlliance;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
-use App\Domain\Kingdoms\Queries\SharedKingdomIntelligenceCurrentQuery;
+use App\ReadModels\SharedKingdomIntelligence\SharedKingdomIntelligenceCurrentQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

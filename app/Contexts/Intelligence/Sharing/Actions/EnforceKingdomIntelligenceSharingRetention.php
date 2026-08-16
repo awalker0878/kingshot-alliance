@@ -25,15 +25,15 @@ final class EnforceKingdomIntelligenceSharingRetention
 
         $expiredInvitationDays = max(
             1,
-            (int) config('kingdoms.shared_intelligence_retention.expired_invitation_days', 30),
+            (int) config('intelligence.shared_intelligence_retention.expired_invitation_days', 30),
         );
         $terminalShareDays = max(
             $expiredInvitationDays,
-            (int) config('kingdoms.shared_intelligence_retention.terminal_share_days', 180),
+            (int) config('intelligence.shared_intelligence_retention.terminal_share_days', 180),
         );
         $removedTargetDays = max(
             1,
-            (int) config('kingdoms.shared_intelligence_retention.removed_target_days', 90),
+            (int) config('intelligence.shared_intelligence_retention.removed_target_days', 90),
         );
 
         $expiredInvitationsPurged = $this->purgeExpiredInvitations($remaining, $expiredInvitationDays);

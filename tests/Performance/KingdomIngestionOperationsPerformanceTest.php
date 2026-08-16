@@ -6,7 +6,7 @@ namespace Tests\Performance;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Actions\CreateAlliance;
-use App\Domain\Kingdoms\Services\KingdomIngestionOperationalHealth;
+use App\Contexts\Intelligence\Ingestion\Services\KingdomIngestionOperationalHealth;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;

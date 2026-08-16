@@ -12,8 +12,8 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Kingdoms\Models\RosterImport;
-use App\Domain\Kingdoms\Services\RosterCsvParser;
+use App\Contexts\Intelligence\Roster\Models\RosterImport;
+use App\Contexts\Intelligence\Roster\Services\RosterCsvParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -172,11 +172,11 @@ final class KingdomIncrementAcceptanceTest extends TestCase
 
         $this->assertDatabaseHas('audit_events', [
             'alliance_id' => $alliance->id,
-            'event' => 'kingdoms.roster_import_committed',
+            'event' => 'intelligence.roster_import_committed',
         ]);
         $this->assertDatabaseHas('outbox_messages', [
             'alliance_id' => $alliance->id,
-            'event_type' => 'kingdoms.roster_import_committed',
+            'event_type' => 'intelligence.roster_import_committed',
         ]);
     }
 

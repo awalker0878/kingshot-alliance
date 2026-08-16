@@ -16,7 +16,7 @@ use App\Contexts\GameWorld\Enums\KingdomStatus;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Actions\CreateTransferPlan;
-use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
 use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;

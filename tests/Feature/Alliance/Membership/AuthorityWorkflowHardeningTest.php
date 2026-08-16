@@ -15,7 +15,7 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;

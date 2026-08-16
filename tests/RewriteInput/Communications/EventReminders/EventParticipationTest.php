@@ -32,7 +32,7 @@ use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
 use App\Contexts\Operations\Reminders\Actions\CreateEventReminderRule;
 use App\Contexts\Operations\Reminders\Actions\DisableEventReminderRule;
 use App\Contexts\Operations\Reminders\Enums\EventReminderAudience;
-use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
 use App\Domain\Notifications\Actions\MarkEventReminderSent;
 use App\Domain\Notifications\Actions\QueueDueEventReminders;
 use App\ReadModels\EventCalendar\Queries\EventReminderInboxQuery;

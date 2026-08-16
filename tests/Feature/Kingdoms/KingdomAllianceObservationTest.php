@@ -11,7 +11,7 @@ use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\GameWorld\Models\Player;
 use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
 use Illuminate\Foundation\Testing\RefreshDatabase;

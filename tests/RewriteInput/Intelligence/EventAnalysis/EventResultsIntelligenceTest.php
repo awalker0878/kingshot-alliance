@@ -20,7 +20,7 @@ use App\Contexts\Operations\Participation\Enums\EventAttendanceStatus;
 use App\Contexts\Operations\Results\Actions\SaveEventPlayerResult;
 use App\Contexts\Operations\Results\Actions\SaveEventResult;
 use App\Contexts\Operations\Results\Queries\EventResultQuery;
-use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;

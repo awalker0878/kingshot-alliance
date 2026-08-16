@@ -16,12 +16,12 @@ use App\Contexts\GameWorld\Governance\Actions\AssignKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Models\PlayerSnapshot;
+use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
 use App\Domain\Kingdoms\Actions\CompleteTransferParticipant;
 use App\Domain\Kingdoms\Actions\CreateTransferPlan;
 use App\Domain\Kingdoms\Actions\LockTransferPlan;
 use App\Domain\Kingdoms\Actions\OpenTransferPlan;
-use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
 use App\Domain\Kingdoms\Actions\SaveTransferParticipant;
 use App\Domain\Kingdoms\Actions\TransitionTransferReadiness;
 use App\Domain\Kingdoms\Actions\WithdrawTransferParticipant;
@@ -174,7 +174,7 @@ final class TransferCompletionTest extends TestCase
         self::assertSame(1, TransferCompletion::query()->where('transfer_participant_id', $participant->id)->count());
         self::assertSame(1, $this->eventCount('audit_events', 'event', 'membership.left', $alliance->id));
         self::assertSame(1, $this->eventCount('outbox_messages', 'event_type', 'membership.left', $alliance->id));
-        self::assertSame(1, $this->eventCount('audit_events', 'event', 'kingdoms.roster_entry_left', $alliance->id));
+        self::assertSame(1, $this->eventCount('audit_events', 'event', 'intelligence.roster_entry_left', $alliance->id));
         self::assertSame(1, $this->eventCount('audit_events', 'event', 'kingdoms.transfer_participant_completed', $alliance->id));
         self::assertSame(1, $this->eventCount('outbox_messages', 'event_type', 'kingdoms.transfer_participant_completed', $alliance->id));
     }
@@ -260,7 +260,7 @@ final class TransferCompletionTest extends TestCase
             'roster_entry_id' => $roster->id,
         ]);
         $this->confirmAndLock($alliance, $ownerPlayer, $plan, $participant);
-        $rosterEventsBefore = $this->eventCount('audit_events', 'event', 'kingdoms.roster_entry_updated', $alliance->id);
+        $rosterEventsBefore = $this->eventCount('audit_events', 'event', 'intelligence.roster_entry_updated', $alliance->id);
 
         $completion = $this->app->make(CompleteTransferParticipant::class)->handle(
             $alliance,
@@ -274,7 +274,7 @@ final class TransferCompletionTest extends TestCase
         self::assertSame(RosterState::Tracked, $roster->state);
         self::assertNull($roster->left_at);
         self::assertSame('Stay private note', $roster->manager_notes);
-        self::assertSame($rosterEventsBefore, $this->eventCount('audit_events', 'event', 'kingdoms.roster_entry_updated', $alliance->id));
+        self::assertSame($rosterEventsBefore, $this->eventCount('audit_events', 'event', 'intelligence.roster_entry_updated', $alliance->id));
     }
 
     public function test_completion_requires_confirmed_participant_and_locked_plan(): void

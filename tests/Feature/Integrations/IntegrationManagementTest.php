@@ -225,7 +225,7 @@ final class IntegrationManagementTest extends TestCase
         $queue = $this->app->make(QueueWebhookDeliveries::class);
 
         foreach ([
-            'kingdoms.roster_entry_created',
+            'intelligence.roster_entry_created',
             'kingdoms.player_snapshot_recorded',
             'kingdoms.transfer_plan_opened',
             'kingdoms.transfer_participant_completed',

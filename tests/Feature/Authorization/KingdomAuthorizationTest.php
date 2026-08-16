@@ -18,7 +18,7 @@ use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
-use App\Domain\Kingdoms\Actions\ResolvePlayer;
+use App\Contexts\Intelligence\Roster\Actions\ResolvePlayer;
 use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;

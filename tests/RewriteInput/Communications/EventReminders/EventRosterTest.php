@@ -24,7 +24,7 @@ use App\Contexts\Operations\Rosters\Actions\AssignEventRosterPlayer;
 use App\Contexts\Operations\Rosters\Actions\SaveEventRoster;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Enums\EventRosterType;
-use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
 use App\Domain\Notifications\Actions\QueueDueEventReminders;
 use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Carbon\CarbonImmutable;

@@ -8,7 +8,7 @@ use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\GameWorld\Models\KingdomIntelligenceShare;
 use App\Contexts\GameWorld\Models\KingdomIntelligenceShareTarget;
 use App\Contexts\GameWorld\Models\Player;

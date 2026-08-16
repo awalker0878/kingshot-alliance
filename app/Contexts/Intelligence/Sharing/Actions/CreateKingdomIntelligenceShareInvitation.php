@@ -43,7 +43,7 @@ final readonly class CreateKingdomIntelligenceShareInvitation
             }
 
             $token = $this->tokens->issue();
-            $ttlHours = max(1, min(168, (int) config('kingdoms.shared_intelligence.invitation_ttl_hours', 72)));
+            $ttlHours = max(1, min(168, (int) config('intelligence.shared_intelligence.invitation_ttl_hours', 72)));
 
             $share = KingdomIntelligenceShare::query()->create([
                 'source_alliance_id' => $source->id,

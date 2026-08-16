@@ -24,7 +24,7 @@ use App\Domain\Kingdoms\Models\TransferGroup;
 use App\Domain\Kingdoms\Models\TransferParticipant;
 use App\Domain\Kingdoms\Models\TransferPlan;
 use App\Domain\Kingdoms\Models\TransferReadinessTransition;
-use App\Domain\Kingdoms\Queries\RosterQuery;
+use App\Contexts\Intelligence\Roster\Queries\RosterQuery;
 use App\Domain\Kingdoms\Queries\TransferGroupQuery;
 use App\Domain\Kingdoms\Queries\TransferParticipantQuery;
 use App\Domain\Kingdoms\Queries\TransferPlanQuery;

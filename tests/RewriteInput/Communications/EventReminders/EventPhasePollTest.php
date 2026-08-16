@@ -28,7 +28,7 @@ use App\Contexts\Operations\Reminders\Actions\SyncEventPollDeadlineReminder;
 use App\Contexts\Operations\Reminders\Enums\EventReminderAudience;
 use App\Contexts\Operations\Reminders\Enums\EventReminderTrigger;
 use App\Contexts\Operations\Reminders\Models\EventReminderRule;
-use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
 use App\Domain\Notifications\Actions\QueueDueEventReminders;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;

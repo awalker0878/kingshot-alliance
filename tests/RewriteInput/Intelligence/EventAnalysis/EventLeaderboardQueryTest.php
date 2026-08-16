@@ -20,7 +20,7 @@ use App\Contexts\Operations\EventCore\Models\EventType;
 use App\Contexts\Operations\EventCore\Services\EventTypeRegistry;
 use App\Contexts\Operations\Results\Actions\SaveEventAllianceResult;
 use App\Contexts\Operations\Results\Actions\SaveEventPlayerResult;
-use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

@@ -41,6 +41,15 @@ final class ArchitectureV2IntelligenceTest extends TestCase
             'Queries/KingdomIntelligenceSharingManageQuery.php',
             'Http/Controllers/KingdomAllianceDiplomacyController.php',
             'Http/Controllers/KingdomAllianceDiplomacyContactController.php',
+            'Http/Controllers/KingdomAllianceController.php',
+            'Http/Controllers/KingdomAllianceObservationController.php',
+            'Http/Controllers/KingdomAllianceIntelligenceController.php',
+            'Http/Controllers/KingdomIntelligenceSharingController.php',
+            'Queries/KingdomAllianceIntelligenceQuery.php',
+            'Queries/SharedKingdomIntelligenceCurrentQuery.php',
+            'Queries/SharedKingdomIntelligenceHistoryQuery.php',
+            'Services/KingdomAllianceIntelligence.php',
+            'Services/SharedKingdomIntelligenceHistoryCursor.php',
         ] as $legacyPath) {
             self::assertFileDoesNotExist($this->root().'/app/Domain/Kingdoms/'.$legacyPath);
         }

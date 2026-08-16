@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Kingdoms;
 
-use App\Domain\Kingdoms\Services\PowerMath;
+use App\Contexts\Intelligence\Roster\Services\PowerMath;
 use PHPUnit\Framework\TestCase;
 
 final class PowerMathTest extends TestCase

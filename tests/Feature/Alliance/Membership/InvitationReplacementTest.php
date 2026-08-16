@@ -12,7 +12,7 @@ use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Kingdoms\Actions\SaveRosterEntry;
+use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
 use App\Shared\Audit\Models\AuditEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
