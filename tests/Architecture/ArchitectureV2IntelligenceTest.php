@@ -14,6 +14,29 @@ final class ArchitectureV2IntelligenceTest extends TestCase
         self::assertDirectoryExists($this->root().'/app/Contexts/Intelligence/Contributions');
     }
 
+    public function test_observation_foundation_and_diplomacy_are_owned_by_intelligence(): void
+    {
+        self::assertDirectoryExists($this->root().'/app/Contexts/Intelligence/Observations');
+        self::assertDirectoryExists($this->root().'/app/Contexts/Intelligence/Diplomacy');
+
+        foreach ([
+            'Models/TrackedKingdomAlliance.php',
+            'Models/KingdomAllianceObservation.php',
+            'Models/KingdomAllianceDiplomacy.php',
+            'Models/KingdomAllianceDiplomacyContact.php',
+            'Models/KingdomAllianceDiplomacyTransition.php',
+            'Actions/TransitionKingdomAllianceDiplomacy.php',
+            'Actions/SaveKingdomAllianceDiplomacyContact.php',
+            'Actions/DeactivateKingdomAllianceDiplomacyContact.php',
+            'Queries/KingdomAllianceDiplomacyQuery.php',
+            'Queries/KingdomAllianceDiplomacyContactQuery.php',
+            'Http/Controllers/KingdomAllianceDiplomacyController.php',
+            'Http/Controllers/KingdomAllianceDiplomacyContactController.php',
+        ] as $legacyPath) {
+            self::assertFileDoesNotExist($this->root().'/app/Domain/Kingdoms/'.$legacyPath);
+        }
+    }
+
     public function test_production_runtime_has_no_v1_contributions_namespace_references(): void
     {
         foreach (['app', 'routes', 'bootstrap', 'config', 'database'] as $root) {
@@ -23,6 +46,18 @@ final class ArchitectureV2IntelligenceTest extends TestCase
                     (string) file_get_contents($file),
                     $file.' still references the deleted V1 Contributions namespace.',
                 );
+            }
+        }
+    }
+
+    public function test_production_runtime_has_no_bogus_game_world_diplomacy_model_references(): void
+    {
+        foreach (['app', 'routes', 'bootstrap', 'config', 'database'] as $root) {
+            foreach ($this->phpFiles($this->root().'/'.$root) as $file) {
+                $source = (string) file_get_contents($file);
+                self::assertStringNotContainsString('App\\Contexts\\GameWorld\\Models\\KingdomAllianceDiplomacy', $source, $file);
+                self::assertStringNotContainsString('App\\Contexts\\GameWorld\\Models\\KingdomAllianceDiplomacyContact', $source, $file);
+                self::assertStringNotContainsString('App\\Contexts\\GameWorld\\Models\\KingdomAllianceDiplomacyTransition', $source, $file);
             }
         }
     }
@@ -52,15 +87,18 @@ final class ArchitectureV2IntelligenceTest extends TestCase
         self::assertStringNotContainsString('user_id', $source);
     }
 
-    public function test_foundation_and_operations_contexts_do_not_import_intelligence_contributions(): void
+    public function test_foundation_alliance_and_operations_contexts_do_not_import_intelligence_capabilities(): void
     {
         foreach (['Accounts', 'GameWorld', 'Alliance', 'Operations'] as $context) {
             foreach ($this->phpFiles($this->root().'/app/Contexts/'.$context) as $file) {
-                self::assertStringNotContainsString(
-                    'App\\Contexts\\Intelligence\\Contributions\\',
-                    (string) file_get_contents($file),
-                    $file.' must not depend upward on Intelligence Contributions.',
-                );
+                $source = (string) file_get_contents($file);
+                foreach (['Contributions', 'Observations', 'Diplomacy'] as $capability) {
+                    self::assertStringNotContainsString(
+                        'App\\Contexts\\Intelligence\\'.$capability.'\\',
+                        $source,
+                        $file.' must not depend upward on Intelligence '.$capability.'.',
+                    );
+                }
             }
         }
     }
