@@ -15,9 +15,10 @@ final class EventParticipationArchitectureTest extends TestCase
         self::assertStringContainsString("Route::post('/events/{occurrence}/registrations'", $routes);
         self::assertStringContainsString("Route::delete('/events/{occurrence}/registrations'", $routes);
 
-        $controller = $this->read('app/Domain/Events/Http/Controllers/EventParticipationController.php');
+        $controller = $this->read('app/Contexts/Operations/Participation/Http/Controllers/EventParticipationController.php');
         self::assertStringContainsString('PlayerContext $context', $controller);
-        self::assertStringContainsString('$this->activePlayer($user, $context)', $controller);
+        self::assertStringContainsString('$this->activePlayer($context)', $controller);
+        self::assertStringNotContainsString('$this->activePlayer($user, $context)', $controller);
     }
 
     public function test_participation_persistence_is_player_keyed(): void
