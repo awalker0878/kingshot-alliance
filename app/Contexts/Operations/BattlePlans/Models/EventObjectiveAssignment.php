@@ -10,8 +10,13 @@ use App\Contexts\Operations\Rosters\Models\EventRoster;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
+ * @property string|null $roster_id
+ * @property string|null $player_id
+ * @property string|null $notes
+ * @property Carbon|null $assigned_at
  * @property-read EventObjective $objective
  * @property-read EventOccurrence $occurrence
  * @property-read EventRoster|null $roster
