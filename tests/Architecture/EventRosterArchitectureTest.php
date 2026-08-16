@@ -15,7 +15,7 @@ final class EventRosterArchitectureTest extends TestCase
         self::assertStringContainsString('foreignUlid(\'player_id\')->constrained(\'players\')', $migration);
         self::assertStringContainsString('foreignUlid(\'alliance_id\')->nullable()->constrained(\'alliances\')', $migration);
         self::assertStringNotContainsString('membership_id', $migration);
-        self::assertStringContainsString('foreign([\'parent_id\', \'occurrence_id\'])', $migration);
+        self::assertStringContainsString("foreign(['parent_id', 'occurrence_id'], 'event_rosters_parent_occurrence_foreign')", $migration);
         self::assertStringContainsString('event_roster_members_active_slot_unique', $migration);
     }
 
@@ -29,7 +29,7 @@ final class EventRosterArchitectureTest extends TestCase
 
     public function test_catalogue_defines_stable_roster_shapes_as_database_configuration(): void
     {
-        $catalogue = $this->read('app/Domain/Events/Catalog/KingShotEventTypeCatalog.php');
+        $catalogue = $this->read('app/Contexts/Operations/EventCore/Catalog/KingShotEventTypeCatalog.php');
 
         foreach ([
             "'key' => 'combatants'",
