@@ -95,17 +95,20 @@ jobs:
         shell: bash
         run: |
           python3 - <<'PY'
+          import re
           from pathlib import Path
           path = Path('tests/Feature/Workflows/KingdomTransfer/v2/TransferCompletionV2Test.php')
           text = path.read_text()
-          old = """        return Kingdom::query()->firstOrCreate(
-              ['number' => $number],
-              ['status' => 'active'],
-          );"""
-          new = """        return app(ResolveKingdom::class)->handle($number);"""
-          if old not in text:
+          pattern = re.compile(
+              r'return\s+Kingdom::query\(\)->firstOrCreate\(\s*'
+              r"\['number'\s*=>\s*\$number\],\s*"
+              r"\['status'\s*=>\s*'active'\],\s*"
+              r'\);',
+              re.S,
+          )
+          text, count = pattern.subn('return app(ResolveKingdom::class)->handle($number);', text, count=1)
+          if count != 1:
               raise SystemExit('Expected TransferCompletion Kingdom helper was not found.')
-          text = text.replace(old, new, 1)
           import_line = 'use App\\Contexts\\GameWorld\\Actions\\ResolveKingdom;'
           if import_line not in text:
               namespace = 'namespace Tests\\Feature\\Workflows\\KingdomTransfer\\v2;'
