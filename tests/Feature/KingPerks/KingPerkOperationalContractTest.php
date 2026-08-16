@@ -11,6 +11,7 @@ use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomRoleProvisioner;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Operations\Access\Services\KingdomOperationsRoleProvisioner;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Enums\EventStatus;
 use App\Contexts\Operations\EventCore\Models\Event;
@@ -237,6 +238,7 @@ final class KingPerkOperationalContractTest extends TestCase
     {
         $player = $this->player($kingdom, $name);
         $roles = $this->app->make(KingdomRoleProvisioner::class)->provision($kingdom);
+        $this->app->make(KingdomOperationsRoleProvisioner::class)->provision($kingdom);
         $administrator = $roles[DefaultKingdomRole::Administrator->value];
 
         KingdomRoleAssignment::query()->create([
