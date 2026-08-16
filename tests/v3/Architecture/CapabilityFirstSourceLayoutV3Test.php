@@ -23,10 +23,14 @@ final class CapabilityFirstSourceLayoutV3Test extends TestCase
     #[Test]
     public function context_roots_do_not_expose_technical_layer_buckets(): void
     {
-        $forbidden = ['Actions','Catalog','Contracts','Enums','Events','Http','Jobs','Listeners','Models','Policies','Providers','Queries','Services','ValueObjects'];
+        $forbidden = ['Actions', 'Catalog', 'Contracts', 'Enums', 'Http', 'Jobs', 'Listeners', 'Models', 'Policies', 'Providers', 'Queries', 'Services', 'ValueObjects'];
+
         foreach (glob(dirname(__DIR__, 3).'/app/Contexts/*', GLOB_ONLYDIR) ?: [] as $context) {
             foreach ($forbidden as $name) {
-                self::assertDirectoryDoesNotExist($context.'/'.$name, basename($context).' exposes root technical bucket '.$name);
+                self::assertDirectoryDoesNotExist(
+                    $context.'/'.$name,
+                    basename($context).' exposes root technical bucket '.$name,
+                );
             }
         }
     }
@@ -35,7 +39,14 @@ final class CapabilityFirstSourceLayoutV3Test extends TestCase
     public function removed_pre_v3_packages_do_not_exist(): void
     {
         $app = dirname(__DIR__, 3).'/app';
-        foreach (['Contexts/Alliance/Core','Contexts/Alliance/Policies','Contexts/Operations/EventCore','Contexts/Intelligence/Http','Contexts/Communications/Reminders'] as $relative) {
+
+        foreach ([
+            'Contexts/Alliance/Core',
+            'Contexts/Alliance/Policies',
+            'Contexts/Operations/EventCore',
+            'Contexts/Intelligence/Http',
+            'Contexts/Communications/Reminders',
+        ] as $relative) {
             self::assertDirectoryDoesNotExist($app.'/'.$relative);
         }
     }
@@ -46,6 +57,7 @@ final class CapabilityFirstSourceLayoutV3Test extends TestCase
         $root = dirname(__DIR__, 3).'/app/Shared';
         $directories = array_values(array_map('basename', array_filter(glob($root.'/*') ?: [], 'is_dir')));
         sort($directories);
+
         self::assertSame(['Infrastructure'], $directories);
     }
 }
