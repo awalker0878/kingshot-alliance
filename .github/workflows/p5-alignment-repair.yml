@@ -163,7 +163,7 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm .github/workflows/p5-alignment-repair.yml .github/p5_alignment_repair.py
+          git rm -f .github/workflows/p5-alignment-repair.yml .github/p5_alignment_repair.py
           git add app tests
           git commit -m 'test: align P5 acceptance with Operations ownership'
           git push origin HEAD:architecture-v2
