@@ -8,6 +8,7 @@ on:
       - '.github/scripts/arch_v2_p7_static_fixes.py'
       - '.github/scripts/arch_v2_p7_contract_recovery.py'
       - '.github/scripts/arch_v2_p7_communications_contracts.py'
+      - '.github/scripts/arch_v2_p7_communications_fixture_fixes.py'
       - '.github/workflows/architecture-v2-p7-cut.yml'
   workflow_dispatch:
 
@@ -82,6 +83,9 @@ jobs:
       - name: Promote Communications delivery contracts
         run: python3 .github/scripts/arch_v2_p7_communications_contracts.py
 
+      - name: Correct promoted Communications authority fixture
+        run: python3 .github/scripts/arch_v2_p7_communications_fixture_fixes.py
+
       - name: Format changed PHP
         run: vendor/bin/pint
 
@@ -149,6 +153,7 @@ jobs:
           rm .github/scripts/arch_v2_p7_static_fixes.py
           rm .github/scripts/arch_v2_p7_contract_recovery.py
           rm .github/scripts/arch_v2_p7_communications_contracts.py
+          rm .github/scripts/arch_v2_p7_communications_fixture_fixes.py
           rm .github/workflows/architecture-v2-p7-cut.yml
 
       - name: Commit verified P7 cut
