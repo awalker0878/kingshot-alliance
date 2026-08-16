@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Contexts\Alliance\Core\Http\Middleware\ResolveAllianceContext;
-use App\Contexts\Communications\Reminders\Actions\QueueDueKingPerkReminders;
 use App\Contexts\GameWorld\Http\Middleware\ResolvePlayerContext;
+use App\Contexts\Operations\KingPerks\Actions\QueueDueKingPerkReminders;
 use App\Contexts\Platform\Http\Controllers\ReadinessController;
 use App\Contexts\Platform\Http\Middleware\AssignRequestContext;
 use App\Contexts\Platform\Http\Middleware\HandleInertiaRequests;
