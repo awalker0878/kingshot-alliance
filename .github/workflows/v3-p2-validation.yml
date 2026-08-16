@@ -1,0 +1,35 @@
+name: V3 CA-P2 Validation
+
+on:
+  push:
+    branches:
+      - architecture-v3-capability-alignment
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - name: Install locked dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Validate optimized PSR-4 autoload
+        run: composer dump-autoload --optimize --strict-psr
+      - name: Check PHP syntax
+        shell: bash
+        run: |
+          find app bootstrap config database routes tests/v3 -type f -name '*.php' -print0 \
+            | xargs -0 -n1 php -l
+      - name: Boot application routes
+        run: php artisan route:list --no-ansi > /tmp/routes.txt
+      - name: Run all V3 architecture tests
+        run: vendor/bin/phpunit tests/v3/Architecture
