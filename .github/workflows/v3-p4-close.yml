@@ -1,0 +1,44 @@
+name: V3 CA-P4 Close
+
+on:
+  push:
+    branches:
+      - architecture-v3-capability-alignment
+
+permissions:
+  contents: write
+
+jobs:
+  close:
+    if: ${{ !contains(github.event.head_commit.message, 'complete CA-P4') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v3-capability-alignment
+          fetch-depth: 0
+      - name: Require P4 gate pass
+        run: test -f ARCH_V3_P4_GATE_PASS && grep -qx PASS ARCH_V3_P4_GATE_PASS
+      - name: Remove temporary P4 tooling
+        run: rm -f .github/workflows/v3-p4-gate.yml .github/workflows/v3-p4-close.yml ARCH_V3_P4_GATE_PASS ARCH_V3_P4_GATE_FAIL.txt
+      - name: Advance status
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          p=Path('ARCH_V3_REWRITE_STATUS.md')
+          t=p.read_text()
+          start=t.index('## Phase CA-P4 — Workflow correction')
+          end=t.index('## Phase CA-P5 — Communications cleanup')
+          replacement='''## Phase CA-P4 — Workflow correction\n\nStatus: COMPLETE\n\n### Done\n- Removed `Workflows/PlayerContext`; Player activation is now owned by `GameWorld/Players`.\n- Player activation uses `AccountIdentity` plus GameWorld-owned Player locking and returns `PlayerReference`.\n- Replaced `Workflows/Registration` with `Workflows/AccountOnboarding`.\n- Removed the AccountOnboarding cross-context `DB::transaction`; the workflow now coordinates owner Actions rather than owning persistence.\n- Restricted the workflow root to `AccountOnboarding` and `KingdomGovernance`.\n- Added `tests/v3/Architecture/WorkflowBoundariesV3Test.php`.\n- Enforced no Workflow-owned transactions, locks, direct persistence, Models, Repositories, permission Enums/Policies, or context imports of Workflows.\n- Strict PSR-4, PHP syntax, route boot, and all V3 architecture tests pass after the workflow restructure.\n- Temporary P4 rewrite/gate workflows and sentinels removed.\n\n### Failed / blocked\n- None.\n\n'''
+          t=t[:start]+replacement+t[end:]
+          t=t.replace('## Phase CA-P5 — Communications cleanup\n\nStatus: NOT STARTED','## Phase CA-P5 — Communications cleanup\n\nStatus: IN PROGRESS')
+          p.write_text(t)
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor(v3): complete CA-P4 workflow correction [skip ci]"
+          git push origin HEAD:architecture-v3-capability-alignment
