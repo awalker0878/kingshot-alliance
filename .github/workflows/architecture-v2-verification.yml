@@ -236,13 +236,19 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
-          mapfile -t rally_tests < <(find tests -type f \( -name '*Rally*Test.php' -o -name '*Rallies*Test.php' \) -print | sort)
           set +e
           php artisan test \
-            tests/Feature/Events \
+            tests/Feature/Events/EventBattlePlanTest.php \
+            tests/Feature/Events/EventMetricCaptureTest.php \
+            tests/Feature/Events/EventParticipationTest.php \
+            tests/Feature/Events/EventPhasePollTest.php \
+            tests/Feature/Events/EventRallyTest.php \
+            tests/Feature/Events/EventRosterTest.php \
+            tests/Feature/Events/EventSchedulingTest.php \
+            tests/Feature/Events/EventScopedAuthorizationTest.php \
+            tests/Feature/Events/EventTypeCataloguePersistenceTest.php \
             tests/Feature/KingPerks \
             tests/Unit/KingPerks \
-            "${rally_tests[@]}" \
             2>&1 | tee operations-tests.log
           status=${PIPESTATUS[0]}
           set -e
