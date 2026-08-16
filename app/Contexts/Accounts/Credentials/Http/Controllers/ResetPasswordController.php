@@ -4,24 +4,17 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Credentials\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Credentials\Actions\ResetPassword;
 use App\Shared\Infrastructure\Http\Controller;
-use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
-use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final class ResetPasswordController extends Controller
 {
-    public function __construct(private readonly AuditRecorder $audit) {}
-
     public function create(Request $request, string $token): Response
     {
         return Inertia::render('Auth/ResetPassword', [
@@ -30,7 +23,7 @@ final class ResetPasswordController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ResetPassword $resetPassword): RedirectResponse
     {
         $validated = $request->validate([
             'token' => ['required', 'string'],
@@ -42,37 +35,11 @@ final class ResetPasswordController extends Controller
             ],
         ]);
 
-        $status = Password::reset(
-            [
-                'email' => Str::lower(trim((string) $validated['email'])),
-                'password' => (string) $validated['password'],
-                'password_confirmation' => (string) $request->input('password_confirmation'),
-                'token' => (string) $validated['token'],
-            ],
-            function ($user, string $password): void {
-                if (! $user instanceof User) {
-                    return;
-                }
-
-                $currentUser = DB::transaction(function () use ($user, $password): User {
-                    $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
-                    $locked->forceFill([
-                        'password' => Hash::make($password),
-                        'remember_token' => Str::random(60),
-                    ])->save();
-                    $locked->tokens()->delete();
-
-                    $this->audit->record(
-                        event: 'auth.password.reset',
-                        actor: $locked,
-                        subject: $locked,
-                    );
-
-                    return $locked->refresh();
-                });
-
-                event(new PasswordReset($currentUser));
-            },
+        $status = $resetPassword->handle(
+            (string) $validated['email'],
+            (string) $validated['password'],
+            (string) $request->input('password_confirmation'),
+            (string) $validated['token'],
         );
 
         if ($status !== Password::PASSWORD_RESET) {
