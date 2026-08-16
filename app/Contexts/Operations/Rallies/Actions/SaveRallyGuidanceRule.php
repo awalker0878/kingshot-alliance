@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use App\Contexts\Operations\Access\Services\AllianceOperationsMutationAuthority;
 use App\Contexts\Operations\Rallies\Models\RallyGuidanceRule;
 use App\Contexts\Operations\Rallies\ValueObjects\FormationComposition;
 use App\Shared\Audit\Services\AuditRecorder;
@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveRallyGuidanceRule
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceOperationsMutationAuthority $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -88,7 +88,6 @@ final readonly class SaveRallyGuidanceRule
                 'updated_by_player_id' => $context->actor->id,
             ])->save();
 
-            // The unique(alliance_id,name) constraint is the race-proof duplicate-name invariant.
             $event = $created ? 'rally.guidance.created' : 'rally.guidance.updated';
             $metadata = [
                 'alliance_id' => (string) $context->alliance->id,
