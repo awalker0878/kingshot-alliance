@@ -28,97 +28,50 @@ trait RepositoryDomainDocumentationAssertions
         }
     }
 
-    public function test_domain_documentation_directories_match_canonical_code_domains(): void
+    public function test_historical_domain_documentation_inventory_is_preserved_until_p10(): void
     {
-        $codeDomains = array_map(
-            fn (string $domain): string => $this->kebabCase($domain),
-            $this->directories($this->root().'/app/Domain'),
-        );
         $documentationDomains = $this->directories($this->root().'/docs/domains');
 
-        sort($codeDomains);
-
-        self::assertSame(
-            $codeDomains,
-            $documentationDomains,
-            'Every app/Domain/<Domain> must have exactly one docs/domains/<domain>/ directory, and every docs domain directory must map to a code domain.',
-        );
+        self::assertSame($this->historicalDomainDocumentation(), $documentationDomains);
+        self::assertDirectoryDoesNotExist($this->root().'/app/Domain');
 
         foreach ($documentationDomains as $domain) {
             self::assertFileExists(
                 $this->root().'/docs/domains/'.$domain.'/README.md',
-                sprintf('Missing canonical domain documentation index: docs/domains/%s/README.md', $domain),
+                sprintf('Missing historical domain documentation index: docs/domains/%s/README.md', $domain),
             );
         }
     }
 
-    public function test_code_local_domain_readmes_follow_the_domain_contract_standard(): void
+    public function test_deleted_v1_domain_runtime_is_not_required_for_historical_documentation(): void
     {
-        foreach ($this->directories($this->root().'/app/Domain') as $domain) {
-            $path = $this->root().'/app/Domain/'.$domain.'/README.md';
+        self::assertDirectoryDoesNotExist($this->root().'/app/Domain');
 
-            self::assertFileExists($path, sprintf('Missing code-local domain README: app/Domain/%s/README.md', $domain));
-
-            $contents = file_get_contents($path);
-            self::assertIsString($contents);
-            self::assertStringStartsWith('# '.$domain.' domain', $contents, sprintf('Unexpected domain README title: %s', $this->relativePath($path)));
-
-            $this->assertHeadingsAppearInOrder($contents, [
-                '## Purpose',
-                '## Owned code',
-                '## Public contracts',
-                '## Dependencies',
-                '## Canonical documentation',
-            ], $path);
-
-            $canonicalDocumentation = '../../../docs/domains/'.$this->kebabCase($domain).'/README.md';
-            self::assertStringContainsString(
-                $canonicalDocumentation,
-                $contents,
-                sprintf('Code-local domain README must link its canonical documentation: %s', $this->relativePath($path)),
-            );
+        foreach ($this->historicalDomainDocumentation() as $domain) {
+            self::assertFileExists($this->root().'/docs/domains/'.$domain.'/README.md');
         }
     }
 
-    public function test_canonical_domain_readmes_follow_the_domain_contract_standard(): void
+    public function test_historical_domain_readmes_remain_indexed_until_p10_rewrites_them(): void
     {
-        foreach ($this->directories($this->root().'/app/Domain') as $domain) {
-            $documentationDomain = $this->kebabCase($domain);
-            $path = $this->root().'/docs/domains/'.$documentationDomain.'/README.md';
+        $index = file_get_contents($this->root().'/docs/domains/README.md');
+        self::assertIsString($index);
+
+        foreach ($this->historicalDomainDocumentation() as $domain) {
+            $path = $this->root().'/docs/domains/'.$domain.'/README.md';
             $contents = file_get_contents($path);
 
             self::assertIsString($contents);
-            self::assertStringContainsString('**Document type:** Living domain contract', $contents, $this->relativePath($path));
-            self::assertStringContainsString('**Status:**', $contents, $this->relativePath($path));
-            self::assertStringContainsString('**Code owner:** `app/Domain/'.$domain.'`', $contents, $this->relativePath($path));
-            self::assertStringContainsString('**Primary authorization boundary:**', $contents, $this->relativePath($path));
-
-            $this->assertHeadingsAppearInOrder($contents, [
-                '## 1. Purpose and ownership',
-                '## 2. Scope',
-                '## 3. Domain model',
-                '## 4. Core invariants',
-                '## 5. Lifecycles and workflows',
-                '## 6. Authorization and tenancy',
-                '## 7. Cross-domain contracts',
-                '## 8. Persistence and data ownership',
-                '## 9. Events, outbox and integrations',
-                '## 10. HTTP, UI and API surfaces',
-                '## 11. Background processing',
-                '## 12. Failure, idempotency and concurrency',
-                '## 13. Security and privacy',
-                '## 14. Observability and operations',
-                '## 15. Testing and architecture enforcement',
-                '## 16. Explicit non-capabilities',
-                '## 17. Capability documents',
-                '## 18. Related documentation',
-            ], $path);
+            self::assertStringContainsString('[← Domain documentation](../README.md)', $contents, $this->relativePath($path));
+            self::assertStringContainsString($domain.'/', strtolower($index), sprintf('Domain index must retain %s historical evidence.', $domain));
         }
     }
 
-    public function test_living_capability_documents_follow_the_domain_contract_standard(): void
+    public function test_explicitly_living_capability_documents_follow_the_domain_contract_standard(): void
     {
-        foreach ($this->directories($this->root().'/docs/domains') as $documentationDomain) {
+        $validated = 0;
+
+        foreach ($this->historicalDomainDocumentation() as $documentationDomain) {
             $root = $this->root().'/docs/domains/'.$documentationDomain;
             $entries = scandir($root);
 
@@ -131,9 +84,13 @@ trait RepositoryDomainDocumentationAssertions
 
                 $path = $root.'/'.$entry;
                 $contents = file_get_contents($path);
-
                 self::assertIsString($contents);
-                self::assertStringContainsString('**Document type:** Living capability contract', $contents, $this->relativePath($path));
+
+                if (! str_contains($contents, '**Document type:** Living capability contract')) {
+                    continue;
+                }
+
+                $validated++;
                 self::assertStringContainsString('**Status:**', $contents, $this->relativePath($path));
                 self::assertStringContainsString('**Owning domain:**', $contents, $this->relativePath($path));
 
@@ -159,6 +116,8 @@ trait RepositoryDomainDocumentationAssertions
                 );
             }
         }
+
+        self::assertGreaterThan(0, $validated, 'Expected at least one explicitly living capability contract.');
     }
 
     public function test_required_dcp_p1_domain_capability_contracts_exist(): void
@@ -188,9 +147,30 @@ trait RepositoryDomainDocumentationAssertions
             foreach ($files as $file) {
                 self::assertFileExists(
                     $this->root().'/docs/domains/'.$domain.'/'.$file,
-                    sprintf('Missing DCP-P1 capability contract: docs/domains/%s/%s', $domain, $file),
+                    sprintf('Missing DCP-P1 capability evidence: docs/domains/%s/%s', $domain, $file),
                 );
             }
         }
+    }
+
+    /** @return list<string> */
+    private function historicalDomainDocumentation(): array
+    {
+        return [
+            'alliances',
+            'audit',
+            'authorization',
+            'content',
+            'contributions',
+            'events',
+            'identity',
+            'integrations',
+            'kingdoms',
+            'memberships',
+            'notifications',
+            'platform',
+            'rallies',
+            'recruitment',
+        ];
     }
 }
