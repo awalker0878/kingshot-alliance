@@ -36,16 +36,19 @@ final class EventPhase extends Model
         ];
     }
 
+    /** @return BelongsTo<EventOccurrence, $this> */
     public function occurrence(): BelongsTo
     {
         return $this->belongsTo(EventOccurrence::class, 'occurrence_id');
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function createdByPlayer(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'created_by_player_id');
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function updatedByPlayer(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'updated_by_player_id');
