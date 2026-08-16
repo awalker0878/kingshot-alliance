@@ -144,10 +144,10 @@ final class EventTypeAdministrationController extends Controller
             defaultRegistrationClosesMinutesBefore: isset($validated['default_registration_closes_minutes_before']) ? (int) $validated['default_registration_closes_minutes_before'] : null,
             defaultInstructionsKey: isset($validated['default_instructions_key']) ? (string) $validated['default_instructions_key'] : null,
             defaultSettings: $defaultSettings,
-            capabilities: array_map(
+            capabilities: array_values(array_map(
                 static fn (string $value): EventCapability => EventCapability::from($value),
                 $validated['capabilities'] ?? [],
-            ),
+            )),
         );
 
         return back()->with('status', 'event-type-scope-updated');
