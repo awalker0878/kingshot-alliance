@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 
 def replace(path: str, old: str, new: str, *, count: int | None = None) -> None:
@@ -37,12 +38,23 @@ replace(
     'use App\\Contexts\\Operations\\EventCore\\Models\\EventRosterMember;',
     'use App\\Contexts\\Operations\\Rosters\\Models\\EventRosterMember;',
 )
-replace(
-    resolver,
-    "->map(static fn ($id): string => (string) $id)\n                ->all()",
-    "->map(static fn ($id): string => (string) $id)\n                ->values()\n                ->all()",
-    count=2,
+
+# Both list<string> paths use the same map operation but different indentation.
+# Normalize each to a re-indexed list without depending on whitespace shape.
+resolver_path = Path(resolver)
+resolver_source = resolver_path.read_text(encoding='utf-8')
+resolver_source, list_hits = re.subn(
+    r'->map\(static fn \(\$id\): string => \(string\) \$id\)\n(?P<indent>\s*)->all\(\)',
+    lambda match: (
+        '->map(static fn ($id): string => (string) $id)\n'
+        f'{match.group("indent")}->values()\n'
+        f'{match.group("indent")}->all()'
+    ),
+    resolver_source,
 )
+if list_hits != 2:
+    raise RuntimeError(f'{resolver}: expected 2 mapped ID list paths, found {list_hits}.')
+resolver_path.write_text(resolver_source, encoding='utf-8')
 
 # This controller is self-contained; the legacy file extended a non-existent
 # sibling Controller and never used inherited behavior.
