@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Administration\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
 use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
+use App\Contexts\Platform\Administration\Queries\PlatformAdministrationQuery;
 use App\Contexts\Platform\AllianceAdministration\Actions\ConfigureAlliancePlatform;
 use App\Contexts\Platform\AllianceAdministration\Actions\ManageAllianceLifecycle;
-use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
-use App\Contexts\Platform\DataGovernance\Models\LegalHold;
-use App\Contexts\Platform\Administration\Queries\PlatformAdministrationQuery;
-use App\Contexts\Platform\DataGovernance\Services\AllianceDataExportService;
 use App\Contexts\Platform\AllianceAdministration\Services\AllianceFeatureService;
-use App\Contexts\Platform\DataGovernance\Services\LegalHoldService;
 use App\Contexts\Platform\AllianceAdministration\Services\PlatformUsageService;
+use App\Contexts\Platform\DataGovernance\Models\LegalHold;
+use App\Contexts\Platform\DataGovernance\Services\AllianceDataExportService;
+use App\Contexts\Platform\DataGovernance\Services\LegalHoldService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -28,12 +28,14 @@ use InvalidArgumentException;
 
 final class PlatformAdministrationController
 {
+    public function __construct(private readonly AccountIdentityQuery $accounts) {}
+
     public function index(
         Request $request,
         PlatformAdministrationQuery $query,
         AllianceFeatureService $features,
     ): Response {
-        $user = $this->user($request);
+        $account = $this->account($request);
         $dashboard = $query->dashboard();
         $selectedAllianceId = $request->query('alliance');
         $selectedAlliance = null;
@@ -51,22 +53,27 @@ final class PlatformAdministrationController
 
         return Inertia::render('Platform/Administration/Index', [
             'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
+                'name' => $account->name,
+                'email' => $account->email,
             ],
             'platform' => $dashboard,
             'selectedAlliance' => $selectedAlliance,
-            'currentUserId' => (int) $user->id,
+            'currentUserId' => $account->userId,
             'status' => $request->session()->get('status'),
         ]);
     }
 
     public function grantAdministrator(Request $request, ManagePlatformAdministrator $manage): RedirectResponse
     {
-        $actor = $this->user($request);
-        $validated = $request->validate(['email' => ['required', 'email', 'max:254', 'exists:users,email']]);
-        $target = User::query()->where('email', Str::lower((string) $validated['email']))->firstOrFail();
-        $manage->grant($target, $actor);
+        $actor = $this->account($request);
+        $validated = $request->validate(['email' => ['required', 'email', 'max:254']]);
+        $targetUserId = $this->accounts->findIdByEmail((string) $validated['email']);
+
+        if ($targetUserId === null) {
+            throw ValidationException::withMessages(['email' => 'No account exists for that email address.']);
+        }
+
+        $manage->grant($targetUserId, $actor);
 
         return back()->with('status', 'platform-administrator-granted');
     }
@@ -76,7 +83,7 @@ final class PlatformAdministrationController
         string $administrator,
         ManagePlatformAdministrator $manage,
     ): RedirectResponse {
-        $actor = $this->user($request);
+        $actor = $this->account($request);
         $grant = PlatformAdministrator::query()->findOrFail($administrator);
 
         try {
@@ -94,7 +101,7 @@ final class PlatformAdministrationController
         string $operation,
         ManageAllianceLifecycle $lifecycle,
     ): RedirectResponse {
-        $actor = $this->user($request);
+        $actor = $this->account($request);
         $target = Alliance::query()->findOrFail($alliance);
         $validated = $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
@@ -118,7 +125,7 @@ final class PlatformAdministrationController
         string $alliance,
         ConfigureAlliancePlatform $configure,
     ): RedirectResponse {
-        $actor = $this->user($request);
+        $actor = $this->account($request);
         $target = Alliance::query()->findOrFail($alliance);
         $validated = $request->validate(['plan_code' => ['required', 'string', 'max:40']]);
 
@@ -136,7 +143,7 @@ final class PlatformAdministrationController
         string $alliance,
         ConfigureAlliancePlatform $configure,
     ): RedirectResponse {
-        $actor = $this->user($request);
+        $actor = $this->account($request);
         $target = Alliance::query()->findOrFail($alliance);
         $validated = $request->validate([
             'retention_days' => ['required', 'integer', 'min:1', 'max:3650'],
@@ -161,7 +168,7 @@ final class PlatformAdministrationController
         string $alliance,
         ConfigureAlliancePlatform $configure,
     ): RedirectResponse {
-        $actor = $this->user($request);
+        $actor = $this->account($request);
         $target = Alliance::query()->findOrFail($alliance);
         $validated = $request->validate([
             'feature_key' => ['required', 'string', 'max:100'],
@@ -186,7 +193,7 @@ final class PlatformAdministrationController
 
     public function placeLegalHold(Request $request, LegalHoldService $legalHolds): RedirectResponse
     {
-        $actor = $this->user($request);
+        $actor = $this->account($request);
         $validated = $request->validate([
             'subject_type' => ['required', Rule::in(['user', 'alliance'])],
             'subject_id' => ['required', 'string', 'max:64'],
@@ -199,7 +206,7 @@ final class PlatformAdministrationController
 
     public function releaseLegalHold(Request $request, string $hold, LegalHoldService $legalHolds): RedirectResponse
     {
-        $actor = $this->user($request);
+        $actor = $this->account($request);
         $legalHolds->release($actor, LegalHold::query()->findOrFail($hold));
 
         return back()->with('status', 'legal-hold-released');
@@ -207,7 +214,7 @@ final class PlatformAdministrationController
 
     public function captureUsage(Request $request, string $alliance, PlatformUsageService $usage): RedirectResponse
     {
-        $this->user($request);
+        $this->account($request);
         $usage->capture(Alliance::query()->findOrFail($alliance));
 
         return back()->with('status', 'alliance-usage-captured');
@@ -215,7 +222,7 @@ final class PlatformAdministrationController
 
     public function export(Request $request, string $alliance, AllianceDataExportService $exports): HttpResponse
     {
-        $actor = $this->user($request);
+        $actor = $this->account($request);
         $target = Alliance::query()->findOrFail($alliance);
         $export = $exports->generate($actor, $target);
 
@@ -227,11 +234,11 @@ final class PlatformAdministrationController
         ]);
     }
 
-    private function user(Request $request): User
+    private function account(Request $request): AccountIdentity
     {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        $identifier = $request->user()?->getAuthIdentifier();
+        abort_unless(is_numeric($identifier), 401);
 
-        return $user;
+        return $this->accounts->require((int) $identifier);
     }
 }
