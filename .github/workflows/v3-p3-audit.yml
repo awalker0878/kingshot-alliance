@@ -21,4 +21,20 @@ jobs:
           tools: composer:v2
       - run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
       - name: Run cross-context persistence invariant
-        run: vendor/bin/phpunit tests/v3/Architecture/CrossContextPersistenceV3Test.php
+        id: audit
+        shell: bash
+        run: |
+          set +e
+          vendor/bin/phpunit tests/v3/Architecture/CrossContextPersistenceV3Test.php 2>&1 | tee /tmp/v3-p3-audit.txt
+          status=${PIPESTATUS[0]}
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3-p3-persistence-audit
+          path: /tmp/v3-p3-audit.txt
+          if-no-files-found: error
+      - name: Fail when leakage remains
+        if: steps.audit.outputs.exit_code != '0'
+        run: exit 1
