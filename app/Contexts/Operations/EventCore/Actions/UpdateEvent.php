@@ -20,7 +20,6 @@ use App\Contexts\Operations\Rosters\Services\EventRosterService;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -194,16 +193,16 @@ final class UpdateEvent
      * rows whose start time is unchanged. Occurrence-local participation, poll,
      * roster and result state therefore remains attached to the same occurrence.
      *
-     * @param Collection<int, CarbonImmutable> $occurrenceStarts
+     * @param  list<CarbonImmutable>  $occurrenceStarts
      */
     private function reconcileFutureOccurrences(
         Event $event,
-        Collection $occurrenceStarts,
+        array $occurrenceStarts,
         int $durationMinutes,
         Player $actor,
     ): void {
         $now = CarbonImmutable::now('UTC');
-        $desiredStarts = $occurrenceStarts
+        $desiredStarts = collect($occurrenceStarts)
             ->map(static fn (CarbonImmutable $start): CarbonImmutable => $start->utc())
             ->filter(static fn (CarbonImmutable $start): bool => ! $start->lessThan($now))
             ->values();

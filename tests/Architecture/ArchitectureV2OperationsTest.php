@@ -110,6 +110,38 @@ final class ArchitectureV2OperationsTest extends TestCase
     }
 
     #[Test]
+    public function kingdom_event_permissions_are_interpreted_by_operations_not_game_world(): void
+    {
+        $authorization = file_get_contents($this->root().'/app/Contexts/Operations/EventCore/Services/EventAuthorization.php');
+        $creation = file_get_contents($this->root().'/app/Contexts/Operations/EventCore/Services/EventCreationMutationAuthority.php');
+        $mutation = file_get_contents($this->root().'/app/Contexts/Operations/EventCore/Services/EventMutationAuthority.php');
+        $operationsMutation = file_get_contents($this->root().'/app/Contexts/Operations/Access/Services/KingdomOperationsMutationAuthority.php');
+        $gameWorldMutation = file_get_contents($this->root().'/app/Contexts/GameWorld/Governance/Services/KingdomMutationAuthority.php');
+
+        foreach ([$authorization, $creation, $mutation, $operationsMutation, $gameWorldMutation] as $source) {
+            self::assertIsString($source);
+        }
+
+        self::assertStringContainsString('KingdomOperationsAuthorization', $authorization);
+        self::assertStringNotContainsString('GameWorld\\Governance\\Services\\KingdomAuthorization', $authorization);
+        self::assertStringContainsString('KingdomOperationsMutationAuthority', $creation);
+        self::assertStringContainsString('KingdomOperationsMutationAuthority', $mutation);
+        self::assertStringNotContainsString('GameWorld\\Governance\\Services\\KingdomMutationAuthority', $creation);
+        self::assertStringNotContainsString('GameWorld\\Governance\\Services\\KingdomMutationAuthority', $mutation);
+        self::assertStringContainsString('acquireActiveScope', $operationsMutation);
+        self::assertStringContainsString('public function acquireActiveScope', $gameWorldMutation);
+    }
+
+    #[Test]
+    public function p5_acceptance_tests_are_owned_by_operations(): void
+    {
+        self::assertDirectoryDoesNotExist($this->root().'/tests/Feature/Events');
+        self::assertDirectoryDoesNotExist($this->root().'/tests/Feature/KingPerks');
+        self::assertDirectoryExists($this->root().'/tests/Feature/Operations/EventCore');
+        self::assertDirectoryExists($this->root().'/tests/Feature/Operations/KingPerks');
+    }
+
+    #[Test]
     public function event_reminder_policy_does_not_navigate_into_delivery_state(): void
     {
         $path = $this->root().'/app/Contexts/Operations/Reminders/Models/EventReminderRule.php';
