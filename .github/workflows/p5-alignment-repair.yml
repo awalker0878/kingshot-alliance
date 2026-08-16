@@ -1,0 +1,313 @@
+name: P5 Alignment Repair
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths:
+      - '.github/workflows/p5-alignment-repair.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v2
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@f3e473d116dccc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: php artisan migrate --force
+
+      - name: Re-home P5 Event tests by owning capability
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p \
+            tests/Feature/Operations/Access \
+            tests/Feature/Operations/BattlePlans \
+            tests/Feature/Operations/EventCore \
+            tests/Feature/Operations/Participation \
+            tests/Feature/Operations/Polls \
+            tests/Feature/Operations/Rallies \
+            tests/Feature/Operations/Results \
+            tests/Feature/Operations/Rosters \
+            tests/RewriteInput/Intelligence/EventAnalysis
+
+          declare -A moves=(
+            [EventBattlePlanTest.php]='BattlePlans/EventBattlePlanTest.php'
+            [EventMetricCaptureTest.php]='Results/EventMetricCaptureTest.php'
+            [EventParticipationTest.php]='Participation/EventParticipationTest.php'
+            [EventPhasePollTest.php]='Polls/EventPhasePollTest.php'
+            [EventRallyTest.php]='Rallies/EventRallyTest.php'
+            [EventRosterTest.php]='Rosters/EventRosterTest.php'
+            [EventSchedulingTest.php]='EventCore/EventSchedulingTest.php'
+            [EventScopedAuthorizationTest.php]='Access/EventScopedAuthorizationTest.php'
+            [EventTypeCataloguePersistenceTest.php]='EventCore/EventTypeCataloguePersistenceTest.php'
+          )
+
+          for source in "${!moves[@]}"; do
+            git mv "tests/Feature/Events/$source" "tests/Feature/Operations/${moves[$source]}"
+          done
+
+          for source in \
+            EventContributionHistorySchemaTest.php \
+            EventContributionIntelligenceQueryTest.php \
+            EventHistoryPerformanceContractTest.php \
+            EventHistorySecurityTest.php \
+            EventLeaderboardQueryTest.php \
+            EventOrganizationEvidenceQueryTest.php \
+            EventOrganizationHistoryQueryTest.php \
+            EventPlayerHistoryQueryTest.php \
+            EventResultsIntelligenceTest.php \
+            EventTrendQueryTest.php; do
+            git mv "tests/Feature/Events/$source" "tests/RewriteInput/Intelligence/EventAnalysis/$source"
+          done
+          rmdir tests/Feature/Events
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          namespaces = {
+              'Access': 'Tests\\Feature\\Operations\\Access',
+              'BattlePlans': 'Tests\\Feature\\Operations\\BattlePlans',
+              'EventCore': 'Tests\\Feature\\Operations\\EventCore',
+              'Participation': 'Tests\\Feature\\Operations\\Participation',
+              'Polls': 'Tests\\Feature\\Operations\\Polls',
+              'Rallies': 'Tests\\Feature\\Operations\\Rallies',
+              'Results': 'Tests\\Feature\\Operations\\Results',
+              'Rosters': 'Tests\\Feature\\Operations\\Rosters',
+          }
+          root = Path('tests/Feature/Operations')
+          for capability, namespace in namespaces.items():
+              directory = root / capability
+              if not directory.exists():
+                  continue
+              for path in directory.glob('*.php'):
+                  text = path.read_text().replace('namespace Tests\\Feature\\Events;', f'namespace {namespace};')
+                  path.write_text(text)
+
+          rewrite = Path('tests/RewriteInput/Intelligence/EventAnalysis')
+          for path in rewrite.glob('*.php'):
+              path.write_text(path.read_text().replace(
+                  'namespace Tests\\Feature\\Events;',
+                  'namespace Tests\\RewriteInput\\Intelligence\\EventAnalysis;',
+              ))
+
+          path = Path('tests/Feature/Operations/Access/EventScopedAuthorizationTest.php')
+          text = path.read_text()
+          text = text.replace(
+              'use App\\Contexts\\Alliance\\Membership\\Models\\AllianceMembership;\n',
+              'use App\\Contexts\\Alliance\\Membership\\Models\\AllianceMembership;\nuse App\\Contexts\\Alliance\\Membership\\Models\\AllianceRosterEntry;\n',
+          )
+          text = text.replace('use App\\Domain\\Kingdoms\\Actions\\SaveRosterEntry;\n', '')
+          old = """        $entry = $this->app->make(SaveRosterEntry::class)->handle($alliance, $ownerPlayer, [
+            'name' => 'Player One',
+            'game_player_id' => 'player-event-member',
+        ]);
+        $this->app->make(SaveRosterEntry::class)->handle($alliance, $ownerPlayer, [
+            'name' => 'Peer',
+            'game_player_id' => 'player-event-peer',
+        ]);
+"""
+          new = """        $entry = AllianceRosterEntry::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $memberPlayer->id,
+            'observed_name' => 'Player One',
+            'state' => RosterState::Active,
+            'joined_at' => now(),
+            'last_observed_at' => now(),
+            'source' => 'manual',
+        ]);
+        AllianceRosterEntry::query()->create([
+            'alliance_id' => $alliance->id,
+            'player_id' => $peerPlayer->id,
+            'observed_name' => 'Peer',
+            'state' => RosterState::Active,
+            'joined_at' => now(),
+            'last_observed_at' => now(),
+            'source' => 'manual',
+        ]);
+"""
+          if old not in text:
+              raise SystemExit('Expected SaveRosterEntry fixture block not found')
+          path.write_text(text.replace(old, new))
+          PY
+
+      - name: Re-home King Perks acceptance and isolate Communications rewrite input
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tests/Feature/Operations/KingPerks tests/RewriteInput/Communications/KingPerks
+
+          cp tests/Feature/KingPerks/KingPerkOperationalContractTest.php \
+            tests/RewriteInput/Communications/KingPerks/KingPerkReminderDeliveryRewriteInputTest.php
+          git add tests/RewriteInput/Communications/KingPerks/KingPerkReminderDeliveryRewriteInputTest.php
+
+          git mv tests/Feature/KingPerks/KingPerkOperationalContractTest.php \
+            tests/Feature/Operations/KingPerks/KingPerkOperationalContractTest.php
+          git mv tests/Feature/KingPerks/KingPerkTemporalGuardTest.php \
+            tests/Feature/Operations/KingPerks/KingPerkTemporalGuardTest.php
+          git rm tests/Feature/KingPerks/KingPerkCapabilityTest.php
+          rmdir tests/Feature/KingPerks
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          operational = Path('tests/Feature/Operations/KingPerks/KingPerkOperationalContractTest.php')
+          text = operational.read_text()
+          text = text.replace('namespace Tests\\Feature\\KingPerks;', 'namespace Tests\\Feature\\Operations\\KingPerks;')
+          for line in [
+              'use App\\Contexts\\Communications\\Reminders\\Models\\KingPerkReminderDelivery;\n',
+              'use App\\Contexts\\Operations\\KingPerks\\Enums\\KingPerkReminderKind;\n',
+              'use App\\Domain\\Notifications\\Actions\\QueueDueKingPerkReminders;\n',
+              'use Illuminate\\Support\\Carbon;\n',
+          ]:
+              text = text.replace(line, '')
+          start = text.find('    public function test_reminders_are_idempotent_and_resolve_current_kingdom_managers(): void')
+          end = text.find('    private function kingdom(int $number): Kingdom', start)
+          if start == -1 or end == -1:
+              raise SystemExit('Could not isolate reminder-delivery test from King Perks operational contract')
+          operational.write_text(text[:start] + text[end:])
+
+          temporal = Path('tests/Feature/Operations/KingPerks/KingPerkTemporalGuardTest.php')
+          temporal.write_text(temporal.read_text().replace(
+              'namespace Tests\\Feature\\KingPerks;',
+              'namespace Tests\\Feature\\Operations\\KingPerks;',
+          ))
+
+          rewrite = Path('tests/RewriteInput/Communications/KingPerks/KingPerkReminderDeliveryRewriteInputTest.php')
+          rewrite_text = rewrite.read_text()
+          rewrite_text = rewrite_text.replace(
+              'namespace Tests\\Feature\\KingPerks;',
+              'namespace Tests\\RewriteInput\\Communications\\KingPerks;',
+          ).replace(
+              'final class KingPerkOperationalContractTest extends TestCase',
+              'final class KingPerkReminderDeliveryRewriteInputTest extends TestCase',
+          )
+          rewrite.write_text(rewrite_text)
+          PY
+
+      - name: Strengthen P5 architecture invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tests/Architecture/ArchitectureV2OperationsTest.php')
+          text = path.read_text()
+          marker = "    #[Test]\n    public function event_reminder_policy_does_not_navigate_into_delivery_state(): void\n"
+          addition = r'''    #[Test]
+    public function kingdom_event_permissions_are_interpreted_by_operations_not_game_world(): void
+    {
+        $authorization = file_get_contents($this->root().'/app/Contexts/Operations/EventCore/Services/EventAuthorization.php');
+        $creation = file_get_contents($this->root().'/app/Contexts/Operations/EventCore/Services/EventCreationMutationAuthority.php');
+        $mutation = file_get_contents($this->root().'/app/Contexts/Operations/EventCore/Services/EventMutationAuthority.php');
+        $operationsMutation = file_get_contents($this->root().'/app/Contexts/Operations/Access/Services/KingdomOperationsMutationAuthority.php');
+        $gameWorldMutation = file_get_contents($this->root().'/app/Contexts/GameWorld/Governance/Services/KingdomMutationAuthority.php');
+
+        foreach ([$authorization, $creation, $mutation, $operationsMutation, $gameWorldMutation] as $source) {
+            self::assertIsString($source);
+        }
+
+        self::assertStringContainsString('KingdomOperationsAuthorization', $authorization);
+        self::assertStringNotContainsString('GameWorld\\Governance\\Services\\KingdomAuthorization', $authorization);
+        self::assertStringContainsString('KingdomOperationsMutationAuthority', $creation);
+        self::assertStringContainsString('KingdomOperationsMutationAuthority', $mutation);
+        self::assertStringNotContainsString('GameWorld\\Governance\\Services\\KingdomMutationAuthority', $creation);
+        self::assertStringNotContainsString('GameWorld\\Governance\\Services\\KingdomMutationAuthority', $mutation);
+        self::assertStringContainsString('acquireActiveScope', $operationsMutation);
+        self::assertStringContainsString('public function acquireActiveScope', $gameWorldMutation);
+    }
+
+    #[Test]
+    public function P5_acceptance_tests_are_owned_by_operations(): void
+    {
+        self::assertDirectoryDoesNotExist($this->root().'/tests/Feature/Events');
+        self::assertDirectoryDoesNotExist($this->root().'/tests/Feature/KingPerks');
+        self::assertDirectoryExists($this->root().'/tests/Feature/Operations/EventCore');
+        self::assertDirectoryExists($this->root().'/tests/Feature/Operations/KingPerks');
+    }
+
+'''
+          if marker not in text:
+              raise SystemExit('Architecture insertion marker not found')
+          path.write_text(text.replace(marker, addition + marker))
+          PY
+
+      - name: Verify moved P5 contracts are V2-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -d tests/Feature/Events
+          test ! -d tests/Feature/KingPerks
+          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\' tests/Feature/Operations 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "$matches"
+            exit 1
+          fi
+
+      - name: Format and verify P5 alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+          vendor/bin/pint \
+            app/Contexts/GameWorld/Governance/Services/KingdomMutationAuthority.php \
+            app/Contexts/Operations \
+            tests/Architecture/ArchitectureV2OperationsTest.php \
+            tests/Feature/Operations
+
+          php artisan test \
+            tests/Architecture/ArchitectureV2OperationsTest.php \
+            tests/Feature/Operations \
+            tests/Unit/Operations
+
+          vendor/bin/phpstan analyse --memory-limit=1536M \
+            app/Contexts/GameWorld/Governance/Services/KingdomMutationAuthority.php \
+            app/Contexts/Operations
+
+      - name: Commit aligned P5 test ownership and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/p5-alignment-repair.yml
+          git add tests app/Contexts/GameWorld/Governance/Services/KingdomMutationAuthority.php app/Contexts/Operations
+          git commit -m 'test: align P5 acceptance with Operations ownership'
+          git push origin HEAD:architecture-v2
