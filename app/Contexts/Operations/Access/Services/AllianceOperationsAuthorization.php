@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Access\Services;
 
 use App\Contexts\Alliance\Access\Enums\DefaultAllianceRole;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\ValueObjects\AllianceMutationContext;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -18,8 +17,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 
 final class AllianceOperationsAuthorization
 {
-    public function __construct(private AllianceAuthorization $allianceAuthorization) {}
-
     public function allows(Player $actor, Alliance $alliance, OperationsPermission $permission): bool
     {
         if ($alliance->status !== AllianceStatus::Active
@@ -37,14 +34,11 @@ final class AllianceOperationsAuthorization
             && $this->allowsMembership($membership, $alliance, $permission);
     }
 
-    public function require(Player $actor, Alliance $alliance, OperationsPermission $permission): AllianceMutationContext
+    public function authorizeContext(AllianceMutationContext $context, OperationsPermission $permission): void
     {
-        $context = $this->allianceAuthorization->acquireActiveScope($actor, $alliance);
         if (! $this->allowsMembership($context->membership, $context->alliance, $permission)) {
             throw new AuthorizationException;
         }
-
-        return $context;
     }
 
     public function allowsMembership(AllianceMembership $membership, Alliance $alliance, OperationsPermission $permission): bool
