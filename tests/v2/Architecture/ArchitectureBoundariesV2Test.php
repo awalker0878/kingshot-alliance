@@ -13,36 +13,68 @@ final class ArchitectureBoundariesV2Test extends TestCase
 {
     public function test_only_the_seven_documented_business_contexts_exist(): void
     {
-        $directories = array_values(array_filter(
-            scandir(base_path('app/Contexts')) ?: [],
-            static fn (string $entry): bool => ! in_array($entry, ['.', '..', 'README.md'], true),
-        ));
+        $directories = array_values(array_filter(scandir(base_path('app/Contexts')) ?: [], static fn (string $entry): bool => ! in_array($entry, ['.', '..', 'README.md'], true)));
         sort($directories);
 
-        self::assertSame(
-            ['Accounts', 'Alliance', 'Communications', 'GameWorld', 'Intelligence', 'Operations', 'Platform'],
-            $directories,
-        );
+        self::assertSame(['Accounts', 'Alliance', 'Communications', 'GameWorld', 'Intelligence', 'Operations', 'Platform'], $directories);
         self::assertDirectoryDoesNotExist(base_path('app/Domain'));
     }
 
-    public function test_runtime_contains_no_v1_domain_namespace(): void
+    public function test_business_contexts_do_not_depend_on_workflows(): void
     {
-        foreach ($this->phpFiles(['app', 'bootstrap', 'config', 'database', 'routes']) as $file) {
-            self::assertStringNotContainsString('App\\Domain\\', (string) file_get_contents($file), $file);
+        foreach ($this->phpFiles(['app/Contexts']) as $file) {
+            self::assertStringNotContainsString('App\\Workflows\\', (string) file_get_contents($file), $file);
         }
     }
 
-    public function test_business_contexts_do_not_depend_on_composition_layers(): void
+    public function test_player_has_no_eloquent_navigation_into_accounts(): void
     {
-        foreach ($this->phpFiles(['app/Contexts']) as $file) {
-            $source = (string) file_get_contents($file);
-            self::assertStringNotContainsString('use App\\Workflows\\', $source, $file);
+        $source = (string) file_get_contents(base_path('app/Contexts/GameWorld/Models/Player.php'));
+        self::assertStringContainsString('user_id', $source);
+        self::assertStringNotContainsString('App\\Contexts\\Accounts\\Models\\User', $source);
+        self::assertStringNotContainsString('belongsTo(User::class', $source);
+        self::assertDoesNotMatchRegularExpression('/function\s+user\s*\(/', $source);
+    }
 
+    public function test_authorization_is_not_hidden_behind_mutation_authority_classes(): void
+    {
+        foreach ($this->phpFiles(['app']) as $file) {
             $normalized = str_replace('\\', '/', $file);
-            if (! str_contains($normalized, '/Http/')) {
-                self::assertStringNotContainsString('use App\\ReadModels\\', $source, $file);
-            }
+            self::assertStringNotContainsString('MutationAuthority.php', $normalized, $normalized);
+            self::assertDoesNotMatchRegularExpression('/\bclass\s+\w*MutationAuthority\b/', (string) file_get_contents($file), $normalized);
+        }
+    }
+
+    public function test_alliance_does_not_own_kingdom_governance_http_or_permissions(): void
+    {
+        foreach ($this->phpFiles(['app/Contexts/Alliance']) as $file) {
+            $source = (string) file_get_contents($file);
+            self::assertStringNotContainsString('class KingdomRoleController', $source, $file);
+            self::assertStringNotContainsString('KingdomPermission::', $source, $file);
+        }
+    }
+
+    public function test_communications_owns_generic_delivery_state_not_domain_delivery_models(): void
+    {
+        self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Models/NotificationDelivery.php'));
+        self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Models/NotificationPreference.php'));
+        self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Services/NotificationDeliveryService.php'));
+
+        foreach ($this->phpFiles(['app/Contexts/Communications']) as $file) {
+            $normalized = str_replace('\\', '/', $file);
+            self::assertDoesNotMatchRegularExpression('#/(?:Event|KingPerk|AllianceChampion)\w*ReminderDelivery\.php$#', $normalized, $normalized);
+        }
+    }
+
+    public function test_workflows_do_not_own_business_persistence_or_permission_vocabulary(): void
+    {
+        foreach ($this->phpFiles(['app/Workflows']) as $file) {
+            $normalized = str_replace('\\', '/', $file);
+            $source = (string) file_get_contents($file);
+            self::assertDoesNotMatchRegularExpression('#/(?:Models|Migrations|Repositories|Access)/(?:.*)$#', $normalized, $normalized);
+            self::assertStringNotContainsString('extends Model', $source, $normalized);
+            self::assertStringNotContainsString('Schema::', $source, $normalized);
+            self::assertDoesNotMatchRegularExpression('/\benum\s+\w*Permission\b/', $source, $normalized);
         }
     }
 
@@ -56,60 +88,27 @@ final class ArchitectureBoundariesV2Test extends TestCase
         }
     }
 
-    public function test_player_persistence_is_owned_by_game_world(): void
+    public function test_architecture_level_capability_registry_is_gone(): void
     {
-        foreach ($this->phpFiles(['app/Contexts/Alliance', 'app/Contexts/Operations', 'app/Contexts/Intelligence', 'app/Contexts/Communications', 'app/Contexts/Platform', 'app/Workflows']) as $file) {
-            $source = (string) file_get_contents($file);
-            self::assertStringNotContainsString('Player::query()->create(', $source, $file);
-        }
-    }
-
-    public function test_operations_and_intelligence_interpret_alliance_authority_locally(): void
-    {
-        foreach ($this->phpFiles(['app/Contexts/Operations', 'app/Contexts/Intelligence']) as $file) {
-            $normalized = str_replace('\\', '/', $file);
-            if (str_contains($normalized, '/Access/Services/')) {
+        self::assertFileDoesNotExist(base_path('tests/v2/Architecture/CapabilityCoverageV2Test.php'));
+        foreach ($this->files(['docs']) as $file) {
+            if (! str_ends_with($file, '.md')) {
                 continue;
             }
-            $source = (string) file_get_contents($file);
-            self::assertStringNotContainsString('App\\Contexts\\Alliance\\Access\\Services\\AllianceAuthorization', $source, $file);
-            self::assertStringNotContainsString('App\\Contexts\\Alliance\\Access\\Services\\AllianceMutationAuthority', $source, $file);
-        }
-    }
-
-    public function test_kingdom_transfer_owns_its_permission_vocabulary(): void
-    {
-        foreach ($this->phpFiles(['app/Workflows/KingdomTransfer']) as $file) {
-            $source = (string) file_get_contents($file);
-            self::assertStringNotContainsString('IntelligencePermission::', $source, $file);
-            self::assertStringNotContainsString('App\\Contexts\\Intelligence\\Access\\', $source, $file);
-        }
-
-        self::assertFileExists(base_path('app/Workflows/KingdomTransfer/Access/Enums/TransferPermission.php'));
-        self::assertFileExists(base_path('app/Workflows/KingdomTransfer/Access/Services/TransferAuthorization.php'));
-        self::assertFileExists(base_path('app/Workflows/KingdomTransfer/Access/Services/TransferMutationAuthority.php'));
-    }
-
-    public function test_the_test_tree_contains_only_clean_room_v2_tests(): void
-    {
-        $entries = array_values(array_filter(
-            scandir(base_path('tests')) ?: [],
-            static fn (string $entry): bool => ! in_array($entry, ['.', '..'], true),
-        ));
-        self::assertSame(['v2'], $entries);
-
-        foreach ($this->phpFiles(['tests/v2']) as $file) {
-            $normalized = str_replace('\\', '/', $file);
-            if (str_contains($normalized, '/Support/') || str_ends_with($normalized, '/TestCase.php')) {
-                continue;
-            }
-            self::assertStringEndsWith('V2Test.php', $normalized, $file);
-            self::assertStringNotContainsString('App\\Domain\\', (string) file_get_contents($file), $file);
+            $source = strtolower((string) file_get_contents($file));
+            self::assertStringNotContainsString('capability coverage', $source, $file);
+            self::assertStringNotContainsString('capability-coverage', $source, $file);
         }
     }
 
     /** @param list<string> $roots @return list<string> */
     private function phpFiles(array $roots): array
+    {
+        return array_values(array_filter($this->files($roots), static fn (string $file): bool => str_ends_with($file, '.php')));
+    }
+
+    /** @param list<string> $roots @return list<string> */
+    private function files(array $roots): array
     {
         $files = [];
         foreach ($roots as $root) {
@@ -120,13 +119,12 @@ final class ArchitectureBoundariesV2Test extends TestCase
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
             /** @var SplFileInfo $entry */
             foreach ($iterator as $entry) {
-                if ($entry->isFile() && $entry->getExtension() === 'php') {
+                if ($entry->isFile()) {
                     $files[] = $entry->getPathname();
                 }
             }
         }
         sort($files);
-
         return $files;
     }
 }

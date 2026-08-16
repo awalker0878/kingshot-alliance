@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Alliance\Access\Http\Controllers;
+namespace App\Contexts\GameWorld\Governance\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -25,11 +25,8 @@ use Inertia\Response;
 
 final class KingdomRoleController extends Controller
 {
-    public function index(
-        Request $request,
-        AllianceContext $context,
-        KingdomAuthorization $authorization,
-    ): Response {
+    public function index(Request $request, AllianceContext $context, KingdomAuthorization $authorization): Response
+    {
         $user = $this->user($request);
         $actor = $context->player();
         [$alliance, $kingdom] = $this->context($context);
@@ -73,23 +70,11 @@ final class KingdomRoleController extends Controller
             ->all();
 
         return Inertia::render('Alliance/KingdomRoles', [
-            'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
-            ],
-            'alliance' => [
-                'id' => (string) $alliance->id,
-                'name' => (string) $alliance->name,
-            ],
-            'kingdom' => [
-                'id' => (string) $kingdom->id,
-                'number' => (int) $kingdom->number,
-            ],
+            'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
+            'alliance' => ['id' => (string) $alliance->id, 'name' => (string) $alliance->name],
+            'kingdom' => ['id' => (string) $kingdom->id, 'number' => (int) $kingdom->number],
             'roles' => array_map(
-                static fn (DefaultKingdomRole $role): array => [
-                    'key' => $role->value,
-                    'name' => $role->name(),
-                ],
+                static fn (DefaultKingdomRole $role): array => ['key' => $role->value, 'name' => $role->name()],
                 DefaultKingdomRole::cases(),
             ),
             'players' => $players,
@@ -97,11 +82,8 @@ final class KingdomRoleController extends Controller
         ]);
     }
 
-    public function store(
-        Request $request,
-        AllianceContext $context,
-        AssignKingdomRole $assign,
-    ): RedirectResponse {
+    public function store(Request $request, AllianceContext $context, AssignKingdomRole $assign): RedirectResponse
+    {
         $actor = $context->player();
         [, $kingdom] = $this->context($context);
 
@@ -111,7 +93,6 @@ final class KingdomRoleController extends Controller
         ]);
 
         $target = Player::query()->findOrFail((string) $validated['player_id']);
-
         $assign->handle(
             actor: $actor,
             kingdom: $kingdom,
@@ -122,14 +103,10 @@ final class KingdomRoleController extends Controller
         return back()->with('status', 'kingdom-role-assigned');
     }
 
-    public function destroy(
-        AllianceContext $context,
-        KingdomRoleAssignment $assignment,
-        RemoveKingdomRole $remove,
-    ): RedirectResponse {
+    public function destroy(AllianceContext $context, KingdomRoleAssignment $assignment, RemoveKingdomRole $remove): RedirectResponse
+    {
         $actor = $context->player();
         [, $kingdom] = $this->context($context);
-
         $remove->handle($actor, $kingdom, $assignment);
 
         return back()->with('status', 'kingdom-role-removed');
@@ -148,7 +125,6 @@ final class KingdomRoleController extends Controller
     {
         $alliance = $context->alliance()->load('kingdom');
         $kingdom = $alliance->kingdom;
-
         abort_unless($kingdom instanceof Kingdom, 404, 'The active Alliance has no Kingdom association.');
 
         return [$alliance, $kingdom];
