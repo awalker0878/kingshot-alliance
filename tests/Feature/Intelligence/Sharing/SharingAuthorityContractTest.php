@@ -47,7 +47,7 @@ final class SharingAuthorityContractTest extends TestCase
         $create->handle($source, $sourceSibling);
     }
 
-    public function test_invitation_cannot_be_accepted_after_recipient_is_in_a_different_kingdom(): void
+    public function test_invitation_cannot_be_accepted_by_an_alliance_in_a_different_kingdom(): void
     {
         $sourceUser = User::factory()->create();
         $recipientUser = User::factory()->create();
@@ -59,14 +59,16 @@ final class SharingAuthorityContractTest extends TestCase
         $recipient = $this->app->make(CreateAlliance::class)->handle($recipientOwner, 'Other Kingdom Recipient', 'other-recipient');
         $issued = $this->app->make(CreateKingdomIntelligenceShareInvitation::class)->handle($source, $sourceOwner);
 
-        $this->expectException(ValidationException::class);
-        $this->app->make(AcceptKingdomIntelligenceShareInvitation::class)
-            ->handle($recipient, $recipientOwner, $issued->token);
-
-        self::assertSame(
-            KingdomIntelligenceShareState::Pending,
-            KingdomIntelligenceShare::query()->whereKey($issued->shareId)->sole()->state,
-        );
+        try {
+            $this->app->make(AcceptKingdomIntelligenceShareInvitation::class)
+                ->handle($recipient, $recipientOwner, $issued->token);
+            self::fail('A sharing invitation must remain bound to its captured Kingdom.');
+        } catch (ValidationException) {
+            self::assertSame(
+                KingdomIntelligenceShareState::Pending,
+                KingdomIntelligenceShare::query()->whereKey($issued->shareId)->sole()->state,
+            );
+        }
     }
 
     private function kingdom(int $number): Kingdom
