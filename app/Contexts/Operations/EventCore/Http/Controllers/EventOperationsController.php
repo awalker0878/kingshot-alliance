@@ -11,12 +11,12 @@ use App\Contexts\Operations\EventCore\Actions\SaveEventPhase;
 use App\Contexts\Operations\EventCore\Enums\EventPhaseStatus;
 use App\Contexts\Operations\EventCore\Enums\EventPhaseType;
 use App\Contexts\Operations\EventCore\Models\EventPhase;
-use App\Contexts\Operations\EventCore\Models\EventPoll;
 use App\Contexts\Operations\EventCore\Queries\EventCalendarQuery;
 use App\Contexts\Operations\Polls\Actions\CastEventPollVote;
 use App\Contexts\Operations\Polls\Actions\SaveEventPoll;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Enums\EventPollType;
+use App\Contexts\Operations\Polls\Models\EventPoll;
 use App\Contexts\Operations\Reminders\Actions\SyncEventPollDeadlineReminder;
 use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
@@ -133,7 +133,7 @@ final class EventOperationsController extends Controller
             'option_ids' => ['required', 'array', 'min:1', 'max:20'],
             'option_ids.*' => ['required', 'string'],
         ]);
-        $vote->handle($actor, $pollRecord, $actor, array_map('strval', $validated['option_ids']));
+        $vote->handle($actor, $pollRecord, $actor, $this->optionIds($validated['option_ids']));
 
         return back()->with('status', 'event-poll-vote-saved');
     }
@@ -179,17 +179,43 @@ final class EventOperationsController extends Controller
         return CarbonImmutable::createFromFormat('Y-m-d\\TH:i', $value, $timezone);
     }
 
-    /** @param mixed $value @return list<array{label:string,value:string}> */
+    /** @return list<array{label: string, value: string, metadata?: array<string, mixed>}> */
     private function options(mixed $value): array
     {
         if (! is_array($value)) {
             return [];
         }
 
-        return array_values(array_map(static fn (array $option): array => [
-            'label' => (string) ($option['label'] ?? ''),
-            'value' => (string) ($option['value'] ?? ''),
-        ], $value));
+        $options = [];
+        foreach ($value as $option) {
+            if (! is_array($option)) {
+                continue;
+            }
+
+            $options[] = [
+                'label' => (string) ($option['label'] ?? ''),
+                'value' => (string) ($option['value'] ?? ''),
+            ];
+        }
+
+        return $options;
+    }
+
+    /** @return list<string> */
+    private function optionIds(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($value as $id) {
+            if (is_string($id) || is_int($id)) {
+                $ids[] = (string) $id;
+            }
+        }
+
+        return $ids;
     }
 
     private function player(): Player
