@@ -51,11 +51,25 @@ final class KingdomTransferExperienceTest extends TestCase
         ] as $contract) {
             self::assertStringContainsString($contract, $routes);
         }
+
+        foreach ([
+            'TransferPlanController',
+            'TransferParticipantController',
+            'TransferGroupController',
+            'TransferReadinessController',
+            'TransferCompletionController',
+        ] as $controller) {
+            self::assertStringContainsString(
+                "use App\\Workflows\\KingdomTransfer\\Http\\Controllers\\{$controller};",
+                $routes,
+                $controller,
+            );
+        }
     }
 
     public function test_transfer_controllers_supply_only_shell_identity_for_the_app_layout(): void
     {
-        $root = dirname(__DIR__, 2).'/app/Domain/Kingdoms/Http/Controllers/';
+        $root = dirname(__DIR__, 2).'/app/Workflows/KingdomTransfer/Http/Controllers/';
         $plan = file_get_contents($root.'TransferPlanController.php');
         self::assertIsString($plan);
         self::assertGreaterThanOrEqual(2, substr_count($plan, "'user' => ["));
