@@ -58,8 +58,8 @@ final readonly class EventPollTemplateMaterializer
                     'manager_supplied_options' => (bool) ($definition['manager_supplied_options'] ?? false),
                     'deadline_reminder_minutes' => isset($definition['deadline_reminder_minutes']) ? (int) $definition['deadline_reminder_minutes'] : null,
                 ],
-                'created_by_player_id' => $actor?->id,
-                'updated_by_player_id' => $actor?->id,
+                'created_by_player_id' => $actor->id,
+                'updated_by_player_id' => $actor->id,
             ]);
         }
     }
