@@ -15,6 +15,18 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $name
+ * @property string $timezone
+ * @property EventScope $scope
+ * @property EventScheduleSource $schedule_source
+ * @property EventRecurrencePolicy $recurrence_policy
+ * @property RecurrenceFrequency $recurrence_frequency
+ * @property int $recurrence_interval
+ * @property bool $is_active
+ * @property-read EventType|null $eventType
+ * @property-read EventTypeScope|null $typeScope
+ */
 final class EventTemplate extends Model
 {
     use HasUlids;
