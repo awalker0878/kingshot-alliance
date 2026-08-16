@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Notifications\Actions;
 
-use App\Domain\Contributions\Models\ContributionReportRun;
-use App\Domain\Contributions\Models\ContributionReportSchedule;
+use App\Contexts\Intelligence\Contributions\Models\ContributionReportRun;
+use App\Contexts\Intelligence\Contributions\Models\ContributionReportSchedule;
 use App\Shared\Messaging\Models\OutboxMessage;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
