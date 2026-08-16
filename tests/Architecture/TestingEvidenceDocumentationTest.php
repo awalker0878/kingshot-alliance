@@ -8,25 +8,26 @@ use PHPUnit\Framework\TestCase;
 
 final class TestingEvidenceDocumentationTest extends TestCase
 {
-    public function test_every_code_domain_has_a_living_testing_and_evidence_profile(): void
+    public function test_frozen_p5_domain_profiles_remain_preserved_as_historical_testing_evidence(): void
     {
-        $codeDomains = $this->directories($this->root().'/app/Domain');
+        self::assertDirectoryDoesNotExist($this->root().'/app/Domain');
 
-        foreach ($codeDomains as $domain) {
-            $documentationDomain = $this->kebabCase($domain);
-            $path = $this->root().'/docs/domains/'.$documentationDomain.'/testing/README.md';
+        $documentationDomains = $this->directories($this->root().'/docs/domains');
+
+        foreach ($documentationDomains as $domain) {
+            $path = $this->root().'/docs/domains/'.$domain.'/testing/README.md';
 
             self::assertFileExists(
                 $path,
-                sprintf('Missing domain testing/evidence profile: docs/domains/%s/testing/README.md', $documentationDomain),
+                sprintf('Missing historical domain testing/evidence profile: docs/domains/%s/testing/README.md', $domain),
             );
 
             $contents = file_get_contents($path);
             self::assertIsString($contents);
             self::assertStringContainsString('**Document type:** Living domain testing and evidence profile', $contents, $this->relativePath($path));
-            self::assertStringContainsString('**Status:** Current', $contents, $this->relativePath($path));
-            self::assertStringContainsString('**Owning domain:** '.$domain, $contents, $this->relativePath($path));
-            self::assertStringContainsString('**Code owner:** `app/Domain/'.$domain.'`', $contents, $this->relativePath($path));
+            self::assertStringContainsString('**Status:**', $contents, $this->relativePath($path));
+            self::assertStringContainsString('**Owning domain:**', $contents, $this->relativePath($path));
+            self::assertStringContainsString('**Code owner:**', $contents, $this->relativePath($path));
             self::assertStringContainsString('**Primary validation boundary:**', $contents, $this->relativePath($path));
             self::assertStringContainsString('**P5 evidence decision:**', $contents, $this->relativePath($path));
             self::assertStringContainsString('../README.md', $contents, $this->relativePath($path));
@@ -52,7 +53,7 @@ final class TestingEvidenceDocumentationTest extends TestCase
             ], $path);
         }
 
-        self::assertCount(14, $codeDomains, 'The frozen DCP-P5 inventory expects exactly 14 canonical code domains.');
+        self::assertCount(14, $documentationDomains, 'The frozen DCP-P5 documentation inventory expects exactly 14 historical domain profiles.');
     }
 
     public function test_p5_matrix_represents_the_exact_phpunit_suite_contract(): void
@@ -150,19 +151,18 @@ final class TestingEvidenceDocumentationTest extends TestCase
         }
     }
 
-    public function test_domain_index_exposes_testing_standard_matrix_and_all_profiles(): void
+    public function test_domain_index_exposes_testing_standard_matrix_and_all_historical_profiles(): void
     {
         $index = file_get_contents($this->root().'/docs/domains/README.md');
         self::assertIsString($index);
         self::assertStringContainsString('../product/testing-evidence-standard.md', $index);
         self::assertStringContainsString('../product/testing-evidence-coverage-matrix.md', $index);
 
-        foreach ($this->directories($this->root().'/app/Domain') as $domain) {
-            $documentationDomain = $this->kebabCase($domain);
+        foreach ($this->directories($this->root().'/docs/domains') as $domain) {
             self::assertStringContainsString(
-                $documentationDomain.'/testing/README.md',
+                $domain.'/testing/README.md',
                 $index,
-                sprintf('Domain index must expose testing/evidence profile for %s.', $domain),
+                sprintf('Domain index must expose historical testing/evidence profile for %s.', $domain),
             );
         }
     }
@@ -205,14 +205,6 @@ final class TestingEvidenceDocumentationTest extends TestCase
         sort($directories);
 
         return $directories;
-    }
-
-    private function kebabCase(string $value): string
-    {
-        $kebab = preg_replace('/(?<!^)[A-Z]/', '-$0', $value);
-        self::assertIsString($kebab);
-
-        return strtolower($kebab);
     }
 
     private function relativePath(string $path): string
