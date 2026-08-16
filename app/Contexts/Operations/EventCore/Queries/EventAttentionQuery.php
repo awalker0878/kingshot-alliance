@@ -8,7 +8,6 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
-use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Models\EventTypeScope;
 use App\Contexts\Operations\EventCore\Services\ActivePlayerEventVisibilityResolver;
