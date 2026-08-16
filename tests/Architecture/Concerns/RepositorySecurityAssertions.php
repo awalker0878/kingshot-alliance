@@ -6,38 +6,20 @@ namespace Tests\Architecture\Concerns;
 
 trait RepositorySecurityAssertions
 {
-    public function test_domain_security_profiles_follow_the_security_documentation_standard(): void
+    public function test_historical_domain_security_profiles_are_preserved_until_p10(): void
     {
-        foreach ($this->directories($this->root().'/app/Domain') as $domain) {
-            $documentationDomain = $this->kebabCase($domain);
-            $path = $this->root().'/docs/domains/'.$documentationDomain.'/security/README.md';
+        self::assertDirectoryDoesNotExist($this->root().'/app/Domain');
 
-            self::assertFileExists($path, sprintf('Missing domain security profile: docs/domains/%s/security/README.md', $documentationDomain));
+        foreach ($this->historicalDomainDocumentation() as $domain) {
+            $path = $this->root().'/docs/domains/'.$domain.'/security/README.md';
+
+            self::assertFileExists($path, sprintf('Missing historical domain security profile: docs/domains/%s/security/README.md', $domain));
 
             $contents = file_get_contents($path);
             self::assertIsString($contents);
-            self::assertStringContainsString('**Document type:** Living domain security profile', $contents, $this->relativePath($path));
-            self::assertStringContainsString('**Status:** Current', $contents, $this->relativePath($path));
-            self::assertStringContainsString('**Owning domain:** '.$domain, $contents, $this->relativePath($path));
-            self::assertStringContainsString('**Code owner:** `app/Domain/'.$domain.'`', $contents, $this->relativePath($path));
             self::assertStringContainsString('**Primary security boundary:**', $contents, $this->relativePath($path));
             self::assertStringContainsString('../README.md', $contents, $this->relativePath($path));
             self::assertStringContainsString('../../../security/security-baseline.md', $contents, $this->relativePath($path));
-
-            $this->assertHeadingsAppearInOrder($contents, [
-                '## 1. Security purpose and scope',
-                '## 2. Assets and sensitive data',
-                '## 3. Actors, authentication and authorization',
-                '## 4. Tenant and privacy boundaries',
-                '## 5. Trust boundaries and data flows',
-                '## 6. Threats, abuse cases and controls',
-                '## 7. Integrity, concurrency and idempotency',
-                '## 8. Secrets and credential handling',
-                '## 9. Destructive operations, retention and deletion',
-                '## 10. Auditability, observability and evidence',
-                '## 11. Residual risks and explicit non-capabilities',
-                '## 12. Focused reviews and related documentation',
-            ], $path);
         }
     }
 
@@ -68,7 +50,6 @@ trait RepositorySecurityAssertions
                 self::assertStringContainsString('**Status:** Current', $contents, $this->relativePath($path));
                 self::assertStringContainsString('**Owning domain:**', $contents, $this->relativePath($path));
                 self::assertStringContainsString('**Capability:**', $contents, $this->relativePath($path));
-                self::assertStringContainsString('**Code owner:** `app/Domain/', $contents, $this->relativePath($path));
 
                 $this->assertHeadingsAppearInOrder($contents, [
                     '## 1. Scope and security objective',
@@ -92,7 +73,7 @@ trait RepositorySecurityAssertions
             foreach ($files as $file) {
                 self::assertFileDoesNotExist(
                     $this->root().'/docs/security/'.$file,
-                    sprintf('Domain-specific living security review belongs under its owning domain: %s', $file),
+                    sprintf('Domain-specific living security review belongs under its owning documentation area: %s', $file),
                 );
             }
         }
