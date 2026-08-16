@@ -5,13 +5,24 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Polls\Models;
 
 use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Enums\EventPollType;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property EventPollType $poll_type
+ * @property EventPollStatus $status
+ * @property Carbon|null $opens_at
+ * @property Carbon|null $closes_at
+ * @property int $max_choices
+ * @property array<string, mixed>|null $settings
+ * @property-read EventOccurrence $occurrence
+ */
 final class EventPoll extends Model
 {
     use HasUlids;
@@ -37,26 +48,31 @@ final class EventPoll extends Model
         ];
     }
 
+    /** @return BelongsTo<EventOccurrence, $this> */
     public function occurrence(): BelongsTo
     {
         return $this->belongsTo(EventOccurrence::class, 'occurrence_id');
     }
 
+    /** @return HasMany<EventPollOption, $this> */
     public function options(): HasMany
     {
         return $this->hasMany(EventPollOption::class, 'poll_id')->orderBy('sort_order');
     }
 
+    /** @return HasMany<EventPollVote, $this> */
     public function votes(): HasMany
     {
         return $this->hasMany(EventPollVote::class, 'poll_id');
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function createdByPlayer(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'created_by_player_id');
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function updatedByPlayer(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'updated_by_player_id');
