@@ -88,6 +88,10 @@ Transaction-time mutation authority continues to lock and reload the relevant Pl
 
 Cross-context foreign keys/reference IDs are allowed. Cross-context aggregate navigation is not. `GameWorld::Player` must not expose relationships such as memberships, roles, Event registrations, contributions or Rally assignments; owning contexts query by `player_id` or through ReadModels.
 
+## Test rewrite rule
+
+V2 acceptance is defined by tests owned by the V2 bounded context, not by stale V1 test directories. Legacy tests are rewrite inputs only: behavior that still belongs in the product must be restated under the owning V2 context or ReadModel/Workflow phase. A stale V1 test may not force a compatibility shim, recreate a deleted domain boundary, or block a completed hard cut.
+
 ## Documentation end state
 
 The current one-code-domain = one documentation-domain = mandatory five-profile structure will be retired. Final living documentation will move to `docs/architecture`, `docs/contexts`, and focused `docs/capabilities` documents. Superseded living domain contracts are removed rather than kept in parallel.
@@ -116,15 +120,20 @@ The current one-code-domain = one documentation-domain = mandatory five-profile 
 - no compatibility aliases or V1 Authorization bridge remain.
 
 ### ARCH-V2-P5 — Operations rewrite
-**Implementation status:** in progress from the verified P4 boundary.
+**Implementation status:** complete. The Events, Rallies and KingPerks V1 runtime roots are deleted and Architecture V2 verification is green on rewritten Operations-owned contracts.
 
-- rebuild EventCore around Event type, scope, occurrence, phase, schedule and capability registration;
-- move participation, polls, rosters, battle plans, results and operational metrics into Operations capability modules;
-- move Rallies and KingPerks into Operations without creating separate event/calendar frameworks;
-- preserve Player-scoped event authority and exact Alliance/Kingdom scope checks;
-- delete replaced Events/Rallies/KingPerks code rather than bridge it.
+- EventCore owns Event type, scope, occurrence, phase, scheduling and capability registration;
+- participation, polls, rosters, battle plans, results and operational metrics live under Operations capability modules;
+- Rallies and KingPerks live under Operations without separate event/calendar frameworks;
+- Player-scoped event authority and exact Alliance/Kingdom checks remain enforced;
+- Kingdom role identity remains GameWorld-owned while Operations attaches its own permissions through explicit workflow composition;
+- `tests/Feature/Operations` and `tests/Unit/Operations` are the P5 behavior acceptance boundary;
+- stale `tests/Feature/Events` and legacy-named test suites are not compatibility contracts and will be rewritten or removed in the owning later phase;
+- the dedicated King Perks verifier now runs rewritten Operations test paths and is green for PostgreSQL, Pint, Larastan, backend contracts and frontend contracts.
 
 ### ARCH-V2-P6 — Intelligence rewrite
+**Implementation status:** in progress from the verified P5 boundary.
+
 - split observations/ingestion/sharing/diplomacy from old Kingdoms;
 - move Contributions/reporting/history/analytics to Intelligence/ReadModels;
 - keep Event facts owned by Operations.
