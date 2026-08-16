@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Diplomacy\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Diplomacy\Actions\DeactivateKingdomAllianceDiplomacyContact;
 use App\Contexts\Intelligence\Diplomacy\Actions\SaveKingdomAllianceDiplomacyContact;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceContactChannel;
@@ -28,7 +28,7 @@ final class KingdomAllianceDiplomacyContactController extends Controller
     public function show(
         Request $request,
         AllianceContext $context,
-        AllianceAuthorization $authorization,
+        AllianceIntelligenceAuthorization $authorization,
         KingdomAllianceDiplomacyContactQuery $contacts,
         string $tracking,
     ): Response {

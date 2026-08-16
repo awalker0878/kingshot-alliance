@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Contributions\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Contributions\Actions\ApproveContributionRecord;
 use App\Contexts\Intelligence\Contributions\Actions\CorrectContributionRecord;
 use App\Contexts\Intelligence\Contributions\Actions\CreateContributionCategory;
@@ -39,7 +39,7 @@ use Inertia\Response;
 
 final class ContributionController extends Controller
 {
-    public function index(Request $request, AllianceContext $context, AllianceAuthorization $authorization, ContributionReportingQuery $reports): Response
+    public function index(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionReportingQuery $reports): Response
     {
         $user = $this->user($request);
         $actor = $context->player();
@@ -54,7 +54,7 @@ final class ContributionController extends Controller
         ]);
     }
 
-    public function manage(Request $request, AllianceContext $context, AllianceAuthorization $authorization, ContributionReportingQuery $reports): Response
+    public function manage(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionReportingQuery $reports): Response
     {
         [$user, , $alliance] = $this->requireManager($request, $context, $authorization);
 
@@ -83,7 +83,7 @@ final class ContributionController extends Controller
         return back()->with('status', 'Contribution submitted for approval.');
     }
 
-    public function storeCategory(Request $request, AllianceContext $context, AllianceAuthorization $authorization, CreateContributionCategory $create): RedirectResponse
+    public function storeCategory(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, CreateContributionCategory $create): RedirectResponse
     {
         [, $actor, $alliance] = $this->requireManager($request, $context, $authorization);
         $validated = $request->validate([
@@ -125,7 +125,7 @@ final class ContributionController extends Controller
         return back()->with('status', 'Contribution category created.');
     }
 
-    public function storeManualRecord(Request $request, AllianceContext $context, AllianceAuthorization $authorization, RecordContribution $record): RedirectResponse
+    public function storeManualRecord(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, RecordContribution $record): RedirectResponse
     {
         [, $actor, $alliance] = $this->requireManager($request, $context, $authorization);
         $validated = $request->validate([
@@ -147,7 +147,7 @@ final class ContributionController extends Controller
         return back()->with('status', 'Contribution recorded and awaiting approval.');
     }
 
-    public function approve(Request $request, AllianceContext $context, AllianceAuthorization $authorization, ContributionRecord $record, ApproveContributionRecord $approve): RedirectResponse
+    public function approve(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionRecord $record, ApproveContributionRecord $approve): RedirectResponse
     {
         [, $actor, $alliance] = $this->requireManager($request, $context, $authorization);
         $record = ContributionRecord::query()->where('alliance_id', $alliance->id)->findOrFail($record->id);
@@ -156,7 +156,7 @@ final class ContributionController extends Controller
         return back()->with('status', 'Contribution approved.');
     }
 
-    public function correct(Request $request, AllianceContext $context, AllianceAuthorization $authorization, ContributionRecord $record, CorrectContributionRecord $correct): RedirectResponse
+    public function correct(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionRecord $record, CorrectContributionRecord $correct): RedirectResponse
     {
         [, $actor, $alliance] = $this->requireManager($request, $context, $authorization);
         $record = ContributionRecord::query()->where('alliance_id', $alliance->id)->findOrFail($record->id);
@@ -166,7 +166,7 @@ final class ContributionController extends Controller
         return back()->with('status', 'Contribution correction recorded.');
     }
 
-    public function reverse(Request $request, AllianceContext $context, AllianceAuthorization $authorization, ContributionRecord $record, ReverseContributionRecord $reverse): RedirectResponse
+    public function reverse(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionRecord $record, ReverseContributionRecord $reverse): RedirectResponse
     {
         [, $actor, $alliance] = $this->requireManager($request, $context, $authorization);
         $record = ContributionRecord::query()->where('alliance_id', $alliance->id)->findOrFail($record->id);
@@ -176,7 +176,7 @@ final class ContributionController extends Controller
         return back()->with('status', 'Contribution reversed.');
     }
 
-    public function refreshQuality(Request $request, AllianceContext $context, AllianceAuthorization $authorization, RefreshContributionDataQuality $refresh): RedirectResponse
+    public function refreshQuality(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, RefreshContributionDataQuality $refresh): RedirectResponse
     {
         [, $actor, $alliance] = $this->requireManager($request, $context, $authorization);
         $result = $refresh->handle($actor, $alliance);
@@ -184,7 +184,7 @@ final class ContributionController extends Controller
         return back()->with('status', sprintf('Data quality refreshed: %d missing evidence, %d missing records.', $result['missing_evidence'], $result['missing_records']));
     }
 
-    public function resolveQualityFlag(Request $request, AllianceContext $context, AllianceAuthorization $authorization, ContributionDataQualityFlag $flag, ResolveContributionDataQualityFlag $resolve): RedirectResponse
+    public function resolveQualityFlag(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionDataQualityFlag $flag, ResolveContributionDataQualityFlag $resolve): RedirectResponse
     {
         [, $actor, $alliance] = $this->requireManager($request, $context, $authorization);
         $flag = ContributionDataQualityFlag::query()->where('alliance_id', $alliance->id)->findOrFail($flag->id);
@@ -193,7 +193,7 @@ final class ContributionController extends Controller
         return back()->with('status', 'Data-quality flag resolved.');
     }
 
-    public function storeReportSchedule(Request $request, AllianceContext $context, AllianceAuthorization $authorization, CreateContributionReportSchedule $create): RedirectResponse
+    public function storeReportSchedule(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, CreateContributionReportSchedule $create): RedirectResponse
     {
         [, $actor, $alliance] = $this->requireManager($request, $context, $authorization);
         $validated = $request->validate([
@@ -215,17 +215,17 @@ final class ContributionController extends Controller
         return back()->with('status', 'Contribution report schedule created.');
     }
 
-    public function exportCsv(Request $request, AllianceContext $context, AllianceAuthorization $authorization, ContributionReportExporter $exporter): HttpResponse
+    public function exportCsv(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionReportExporter $exporter): HttpResponse
     {
         return $this->export($request, $context, $authorization, $exporter, 'csv');
     }
 
-    public function exportSpreadsheet(Request $request, AllianceContext $context, AllianceAuthorization $authorization, ContributionReportExporter $exporter): HttpResponse
+    public function exportSpreadsheet(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionReportExporter $exporter): HttpResponse
     {
         return $this->export($request, $context, $authorization, $exporter, 'spreadsheet');
     }
 
-    private function export(Request $request, AllianceContext $context, AllianceAuthorization $authorization, ContributionReportExporter $exporter, string $format): HttpResponse
+    private function export(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization, ContributionReportExporter $exporter, string $format): HttpResponse
     {
         [, $actor, $alliance] = $this->requireManager($request, $context, $authorization);
         $result = $exporter->export($alliance, $actor, $format);
@@ -239,7 +239,7 @@ final class ContributionController extends Controller
     }
 
     /** @return array{User, Player, Alliance} */
-    private function requireManager(Request $request, AllianceContext $context, AllianceAuthorization $authorization): array
+    private function requireManager(Request $request, AllianceContext $context, AllianceIntelligenceAuthorization $authorization): array
     {
         $user = $this->user($request);
         $actor = $context->player();

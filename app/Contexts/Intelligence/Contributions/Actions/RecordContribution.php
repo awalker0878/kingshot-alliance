@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordSource;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordStatus;
 use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
@@ -24,7 +24,7 @@ use InvalidArgumentException;
 final class RecordContribution
 {
     public function __construct(
-        private readonly AllianceMutationAuthority $authority,
+        private readonly AllianceIntelligenceMutationAuthority $authority,
         private readonly ContributionPeriodResolver $periods,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,

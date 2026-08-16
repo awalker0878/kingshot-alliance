@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Diplomacy\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceContactChannel;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceContactState;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyContact;
@@ -24,7 +24,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveKingdomAllianceDiplomacyContact
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceIntelligenceAuthorization $authorization,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Observations\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Shared\Audit\Services\AuditRecorder;
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class ArchiveTrackedKingdomAlliance
 {
     public function __construct(
-        private AllianceAuthorization $authorization,
+        private AllianceIntelligenceAuthorization $authorization,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
