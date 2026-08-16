@@ -6,6 +6,7 @@ namespace App\Domain\Kingdoms\Actions;
 
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Actions\ResolveKingdomAlliance;
 use App\Contexts\GameWorld\Enums\KingdomAllianceStatus;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
@@ -50,7 +51,7 @@ final readonly class StartTrackingKingdomAlliance
             }
 
             $reference = $this->alliances->handle(
-                $lockedAlliance,
+                $lockedAlliance->kingdom()->firstOrFail(),
                 $attributes['current_name'],
                 $attributes['current_tag'] ?? null,
                 $attributes['game_alliance_id'] ?? null,
