@@ -1,0 +1,177 @@
+name: ARCH V2 P6 Diplomacy Cut
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths:
+      - '.github/workflows/arch-v2-p6-diplomacy-cut.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  hard-cut:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out architecture-v2
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v2
+          fetch-depth: 0
+
+      - name: Move observation foundation and Diplomacy into Intelligence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          moves = {
+              'app/Domain/Kingdoms/Models/TrackedKingdomAlliance.php': 'app/Contexts/Intelligence/Observations/Models/TrackedKingdomAlliance.php',
+              'app/Domain/Kingdoms/Models/KingdomAllianceObservation.php': 'app/Contexts/Intelligence/Observations/Models/KingdomAllianceObservation.php',
+              'app/Domain/Kingdoms/Enums/TrackedKingdomAllianceState.php': 'app/Contexts/Intelligence/Observations/Enums/TrackedKingdomAllianceState.php',
+              'app/Domain/Kingdoms/Models/KingdomAllianceDiplomacy.php': 'app/Contexts/Intelligence/Diplomacy/Models/KingdomAllianceDiplomacy.php',
+              'app/Domain/Kingdoms/Models/KingdomAllianceDiplomacyContact.php': 'app/Contexts/Intelligence/Diplomacy/Models/KingdomAllianceDiplomacyContact.php',
+              'app/Domain/Kingdoms/Models/KingdomAllianceDiplomacyTransition.php': 'app/Contexts/Intelligence/Diplomacy/Models/KingdomAllianceDiplomacyTransition.php',
+              'app/Domain/Kingdoms/Enums/KingdomAllianceDiplomacyState.php': 'app/Contexts/Intelligence/Diplomacy/Enums/KingdomAllianceDiplomacyState.php',
+              'app/Domain/Kingdoms/Enums/KingdomAllianceContactChannel.php': 'app/Contexts/Intelligence/Diplomacy/Enums/KingdomAllianceContactChannel.php',
+              'app/Domain/Kingdoms/Enums/KingdomAllianceContactState.php': 'app/Contexts/Intelligence/Diplomacy/Enums/KingdomAllianceContactState.php',
+              'app/Domain/Kingdoms/Actions/TransitionKingdomAllianceDiplomacy.php': 'app/Contexts/Intelligence/Diplomacy/Actions/TransitionKingdomAllianceDiplomacy.php',
+              'app/Domain/Kingdoms/Actions/SaveKingdomAllianceDiplomacyContact.php': 'app/Contexts/Intelligence/Diplomacy/Actions/SaveKingdomAllianceDiplomacyContact.php',
+              'app/Domain/Kingdoms/Actions/DeactivateKingdomAllianceDiplomacyContact.php': 'app/Contexts/Intelligence/Diplomacy/Actions/DeactivateKingdomAllianceDiplomacyContact.php',
+              'app/Domain/Kingdoms/Queries/KingdomAllianceDiplomacyQuery.php': 'app/Contexts/Intelligence/Diplomacy/Queries/KingdomAllianceDiplomacyQuery.php',
+              'app/Domain/Kingdoms/Queries/KingdomAllianceDiplomacyContactQuery.php': 'app/Contexts/Intelligence/Diplomacy/Queries/KingdomAllianceDiplomacyContactQuery.php',
+              'app/Domain/Kingdoms/Http/Controllers/KingdomAllianceDiplomacyController.php': 'app/Contexts/Intelligence/Diplomacy/Http/Controllers/KingdomAllianceDiplomacyController.php',
+              'app/Domain/Kingdoms/Http/Controllers/KingdomAllianceDiplomacyContactController.php': 'app/Contexts/Intelligence/Diplomacy/Http/Controllers/KingdomAllianceDiplomacyContactController.php',
+          }
+
+          classes = {
+              r'App\Domain\Kingdoms\Models\TrackedKingdomAlliance': r'App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance',
+              r'App\Domain\Kingdoms\Models\KingdomAllianceObservation': r'App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation',
+              r'App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState': r'App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState',
+              r'App\Domain\Kingdoms\Models\KingdomAllianceDiplomacy': r'App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacy',
+              r'App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyContact': r'App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyContact',
+              r'App\Domain\Kingdoms\Models\KingdomAllianceDiplomacyTransition': r'App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyTransition',
+              r'App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy': r'App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacy',
+              r'App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyTransition': r'App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyTransition',
+              r'App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyContact': r'App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyContact',
+              r'App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState': r'App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState',
+              r'App\Domain\Kingdoms\Enums\KingdomAllianceContactChannel': r'App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceContactChannel',
+              r'App\Domain\Kingdoms\Enums\KingdomAllianceContactState': r'App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceContactState',
+              r'App\Domain\Kingdoms\Actions\TransitionKingdomAllianceDiplomacy': r'App\Contexts\Intelligence\Diplomacy\Actions\TransitionKingdomAllianceDiplomacy',
+              r'App\Domain\Kingdoms\Actions\SaveKingdomAllianceDiplomacyContact': r'App\Contexts\Intelligence\Diplomacy\Actions\SaveKingdomAllianceDiplomacyContact',
+              r'App\Domain\Kingdoms\Actions\DeactivateKingdomAllianceDiplomacyContact': r'App\Contexts\Intelligence\Diplomacy\Actions\DeactivateKingdomAllianceDiplomacyContact',
+              r'App\Domain\Kingdoms\Queries\KingdomAllianceDiplomacyQuery': r'App\Contexts\Intelligence\Diplomacy\Queries\KingdomAllianceDiplomacyQuery',
+              r'App\Domain\Kingdoms\Queries\KingdomAllianceDiplomacyContactQuery': r'App\Contexts\Intelligence\Diplomacy\Queries\KingdomAllianceDiplomacyContactQuery',
+              r'App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyController': r'App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyController',
+              r'App\Domain\Kingdoms\Http\Controllers\KingdomAllianceDiplomacyContactController': r'App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyContactController',
+          }
+
+          namespace_for = {
+              'app/Contexts/Intelligence/Observations/Models/': r'App\Contexts\Intelligence\Observations\Models',
+              'app/Contexts/Intelligence/Observations/Enums/': r'App\Contexts\Intelligence\Observations\Enums',
+              'app/Contexts/Intelligence/Diplomacy/Models/': r'App\Contexts\Intelligence\Diplomacy\Models',
+              'app/Contexts/Intelligence/Diplomacy/Enums/': r'App\Contexts\Intelligence\Diplomacy\Enums',
+              'app/Contexts/Intelligence/Diplomacy/Actions/': r'App\Contexts\Intelligence\Diplomacy\Actions',
+              'app/Contexts/Intelligence/Diplomacy/Queries/': r'App\Contexts\Intelligence\Diplomacy\Queries',
+              'app/Contexts/Intelligence/Diplomacy/Http/Controllers/': r'App\Contexts\Intelligence\Diplomacy\Http\Controllers',
+          }
+
+          for src_name, dst_name in moves.items():
+              src = Path(src_name)
+              dst = Path(dst_name)
+              if not src.is_file():
+                  raise SystemExit(f'Missing source for P6 cut: {src}')
+              dst.parent.mkdir(parents=True, exist_ok=True)
+              text = src.read_text(encoding='utf-8')
+              old_ns = None
+              if '/Models/' in src_name:
+                  old_ns = r'App\Domain\Kingdoms\Models'
+              elif '/Enums/' in src_name:
+                  old_ns = r'App\Domain\Kingdoms\Enums'
+              elif '/Actions/' in src_name:
+                  old_ns = r'App\Domain\Kingdoms\Actions'
+              elif '/Queries/' in src_name:
+                  old_ns = r'App\Domain\Kingdoms\Queries'
+              elif '/Http/Controllers/' in src_name:
+                  old_ns = r'App\Domain\Kingdoms\Http\Controllers'
+              new_ns = next(v for k, v in namespace_for.items() if dst_name.startswith(k))
+              text = text.replace(f'namespace {old_ns};', f'namespace {new_ns};')
+              for old, new in classes.items():
+                  text = text.replace(old, new)
+              dst.write_text(text, encoding='utf-8')
+              src.unlink()
+
+          # Repair explicit cross-capability/foundation imports that the V1 same-namespace layout hid.
+          patches = {
+              Path('app/Contexts/Intelligence/Observations/Models/TrackedKingdomAlliance.php'): [
+                  ('use App\\Contexts\\Alliance\\Core\\Models\\Alliance;\n', 'use App\\Contexts\\Alliance\\Core\\Models\\Alliance;\nuse App\\Contexts\\GameWorld\\Models\\Kingdom;\nuse App\\Contexts\\GameWorld\\Models\\KingdomAlliance;\nuse App\\Contexts\\Intelligence\\Diplomacy\\Models\\KingdomAllianceDiplomacy;\n'),
+              ],
+              Path('app/Contexts/Intelligence/Observations/Models/KingdomAllianceObservation.php'): [
+                  ('use App\\Contexts\\Alliance\\Core\\Models\\Alliance;\n', 'use App\\Contexts\\Alliance\\Core\\Models\\Alliance;\nuse App\\Contexts\\GameWorld\\Models\\KingdomAlliance;\n'),
+              ],
+              Path('app/Contexts/Intelligence/Diplomacy/Models/KingdomAllianceDiplomacy.php'): [
+                  ('use App\\Contexts\\Alliance\\Core\\Models\\Alliance;\n', 'use App\\Contexts\\Alliance\\Core\\Models\\Alliance;\nuse App\\Contexts\\GameWorld\\Models\\KingdomAlliance;\nuse App\\Contexts\\Intelligence\\Observations\\Models\\TrackedKingdomAlliance;\n'),
+              ],
+              Path('app/Contexts/Intelligence/Diplomacy/Models/KingdomAllianceDiplomacyContact.php'): [
+                  ('use App\\Contexts\\Alliance\\Core\\Models\\Alliance;\n', 'use App\\Contexts\\Alliance\\Core\\Models\\Alliance;\nuse App\\Contexts\\GameWorld\\Models\\KingdomAlliance;\nuse App\\Contexts\\Intelligence\\Observations\\Models\\TrackedKingdomAlliance;\n'),
+              ],
+              Path('app/Contexts/Intelligence/Diplomacy/Models/KingdomAllianceDiplomacyTransition.php'): [
+                  ('use App\\Contexts\\Alliance\\Core\\Models\\Alliance;\n', 'use App\\Contexts\\Alliance\\Core\\Models\\Alliance;\nuse App\\Contexts\\GameWorld\\Models\\KingdomAlliance;\nuse App\\Contexts\\Intelligence\\Observations\\Models\\TrackedKingdomAlliance;\n'),
+              ],
+          }
+          for path, replacements in patches.items():
+              text = path.read_text(encoding='utf-8')
+              for old, new in replacements:
+                  if old not in text:
+                      raise SystemExit(f'Expected import anchor missing in {path}: {old!r}')
+                  text = text.replace(old, new, 1)
+              path.write_text(text, encoding='utf-8')
+
+          # Rewrite every production caller to the new owners.
+          for root_name in ('app', 'routes', 'bootstrap', 'config', 'database'):
+              root = Path(root_name)
+              if not root.exists():
+                  continue
+              for path in root.rglob('*.php'):
+                  text = path.read_text(encoding='utf-8')
+                  rewritten = text
+                  for old, new in classes.items():
+                      rewritten = rewritten.replace(old, new)
+                  if rewritten != text:
+                      path.write_text(rewritten, encoding='utf-8')
+          PY
+
+      - name: Verify new Intelligence owners are V2-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d app/Contexts/Intelligence/Observations
+          test -d app/Contexts/Intelligence/Diplomacy
+          for path in \
+            app/Domain/Kingdoms/Models/TrackedKingdomAlliance.php \
+            app/Domain/Kingdoms/Models/KingdomAllianceObservation.php \
+            app/Domain/Kingdoms/Models/KingdomAllianceDiplomacy.php \
+            app/Domain/Kingdoms/Models/KingdomAllianceDiplomacyContact.php \
+            app/Domain/Kingdoms/Models/KingdomAllianceDiplomacyTransition.php; do
+            test ! -e "$path"
+          done
+          matches=$(grep -R -n --include='*.php' 'App\\Domain\\' app/Contexts/Intelligence/Observations app/Contexts/Intelligence/Diplomacy 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "$matches"
+            exit 1
+          fi
+
+      - name: Commit P6 Diplomacy cut
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'awalker0878'
+          git config user.email '52688461+awalker0878@users.noreply.github.com'
+          git add app routes bootstrap config database
+          if git diff --cached --quiet; then
+            echo 'No Diplomacy migration changes found.'
+            exit 0
+          fi
+          git commit -m 'ARCH-V2-P6: hard cut observation foundation and Diplomacy'
+          git push origin HEAD:architecture-v2
