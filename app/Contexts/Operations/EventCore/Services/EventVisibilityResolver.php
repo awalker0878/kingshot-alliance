@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\EventCore\Services;
 
-use App\Contexts\Alliance\Access\Services\AllianceRankPermissions;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
@@ -13,11 +12,12 @@ use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
 use Illuminate\Database\Eloquent\Builder;
 
 final class EventVisibilityResolver
 {
-    public function __construct(private AllianceRankPermissions $rankPermissions) {}
+    public function __construct(private AllianceOperationsAuthorization $allianceAuthorization) {}
 
     /** @return array{alliance:list<string>,player:list<string>,kingdom:list<string>} */
     public function targetIds(Player $actor): array
@@ -66,7 +66,7 @@ final class EventVisibilityResolver
         $membership = AllianceMembership::query()
             ->where('player_id', $actor->id)
             ->where('status', MembershipStatus::Active->value)
-            ->with(['alliance', 'roles.permissions'])
+            ->with('alliance')
             ->first();
 
         if (! $membership instanceof AllianceMembership
@@ -76,11 +76,12 @@ final class EventVisibilityResolver
             return [[], []];
         }
 
+        $alliance = $membership->alliance;
         $allianceId = (string) $membership->alliance_id;
 
         return [
-            $this->membershipAllows($membership, $alliancePermission) ? [$allianceId] : [],
-            $this->membershipAllows($membership, $playerPermission) ? [$allianceId] : [],
+            $this->allianceAuthorization->allowsMembership($membership, $alliance, $alliancePermission) ? [$allianceId] : [],
+            $this->allianceAuthorization->allowsMembership($membership, $alliance, $playerPermission) ? [$allianceId] : [],
         ];
     }
 
@@ -128,24 +129,5 @@ final class EventVisibilityResolver
             ->all();
 
         return array_values($ids);
-    }
-
-    private function membershipAllows(AllianceMembership $membership, OperationsPermission $permission): bool
-    {
-        if ($this->rankPermissions->allows($membership->rank, $permission)) {
-            return true;
-        }
-
-        foreach ($membership->roles as $role) {
-            if ((string) $role->alliance_id !== (string) $membership->alliance_id) {
-                continue;
-            }
-
-            if ($role->permissions->contains(static fn ($candidate): bool => (string) $candidate->key === $permission->value)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
