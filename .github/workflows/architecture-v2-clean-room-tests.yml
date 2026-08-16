@@ -105,13 +105,30 @@ jobs:
         run: php artisan migrate:fresh --force
 
       - name: Run warning-free clean-room V2 PHPUnit suite
-        run: >-
-          php artisan test tests/v2
-          --display-warnings
-          --display-deprecations
-          --display-phpunit-deprecations
-          --fail-on-warning
-          --fail-on-risky
+        shell: bash
+        run: |
+          set -uo pipefail
+          php artisan test tests/v2 \
+            --display-warnings \
+            --display-deprecations \
+            --display-phpunit-deprecations \
+            --fail-on-warning \
+            --fail-on-risky \
+            2>&1 | tee "${RUNNER_TEMP}/clean-room-phpunit.log"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          log = Path(os.environ["RUNNER_TEMP"]) / "clean-room-phpunit.log"
+          lines = log.read_text(errors="replace").splitlines()
+          payload = "\n".join(lines[-100:])
+          payload = payload.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title=Strict clean-room PHPUnit::{payload}")
+          PY
+            exit "$status"
+          fi
 
       - name: Larastan all final V2 owners
         run: >-
@@ -132,6 +149,9 @@ jobs:
 
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
+
+      - name: Verify frontend source
+        run: npm run check
 
       - name: Verify clean-room visual test discovery
         run: npx playwright test --list

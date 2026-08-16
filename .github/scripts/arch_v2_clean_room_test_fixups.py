@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 from pathlib import Path
+from textwrap import dedent
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def replace(path: str, old: str, new: str) -> None:
+def replace(path: str, old: str, new: str, expected: int = 1) -> None:
     target = ROOT / path
     content = target.read_text()
-    if old not in content:
-        raise RuntimeError(f"Expected clean-room contract fragment not found in {path}")
+    count = content.count(old)
+    if count != expected:
+        raise RuntimeError(
+            f"Expected {expected} clean-room contract fragment(s) in {path}; found {count}"
+        )
     target.write_text(content.replace(old, new))
 
 
@@ -108,6 +112,118 @@ def fix_platform_authority_scenario() -> None:
     target.write_text(content)
 
 
+def write_alliance_capacity_policy_behavior() -> None:
+    target = ROOT / "tests/v2/Contexts/Alliance/Policies/AllianceCapacityPolicyBehaviorV2Test.php"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        dedent(
+            r"""
+            <?php
+
+            declare(strict_types=1);
+
+            namespace Tests\v2\Contexts\Alliance\Policies;
+
+            use App\Contexts\Alliance\Policies\AllianceCapacityPolicy;
+            use Illuminate\Foundation\Testing\RefreshDatabase;
+            use Illuminate\Support\Facades\DB;
+            use Illuminate\Validation\ValidationException;
+            use Tests\v2\Support\ScenarioFactory;
+            use Tests\v2\TestCase;
+
+            final class AllianceCapacityPolicyBehaviorV2Test extends TestCase
+            {
+                use RefreshDatabase;
+
+                public function test_member_capacity_enforces_the_current_plan_entitlement(): void
+                {
+                    $factory = new ScenarioFactory();
+                    $alliance = $factory->alliance($factory->player($factory->user()));
+
+                    DB::table('platform_plan_entitlements')
+                        ->where('plan_code', 'standard')
+                        ->where('entitlement_key', 'members.max')
+                        ->update([
+                            'limit_value' => 1,
+                            'updated_at' => now(),
+                        ]);
+
+                    $this->expectException(ValidationException::class);
+
+                    app(AllianceCapacityPolicy::class)->assertMemberCapacity($alliance);
+                }
+            }
+            """
+        ).lstrip()
+    )
+
+
+def fix_frontend_sources() -> None:
+    replace(
+        "resources/js/pages/Alliance/TransferCompletionManage.vue",
+        """const inputClass =
+  'mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm text-[var(--ks-text)] disabled:cursor-not-allowed disabled:opacity-50';
+""",
+        "",
+    )
+    replace(
+        "resources/js/pages/Dashboard.vue",
+        "const props = defineProps<{",
+        "defineProps<{",
+    )
+    replace(
+        "resources/js/pages/Events/Manage.vue",
+        """function parsedPollOptions(): Array<{ label: string; value: string }> {
+  return pollForm.options_text
+    .split(/\\r?\\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [label, ...rest] = line.split('|');
+      const value = rest.join('|').trim() || label.trim();
+      return { label: label.trim(), value };
+    });
+}
+function savePoll(): void {
+  pollForm.transform((data) => {
+    const { options_text: _optionsText, ...rest } = data;
+    return editingPollOptionsLocked.value ? rest : { ...rest, options: parsedPollOptions() };
+  });
+""",
+        """function parsedPollOptions(optionsText: string): Array<{ label: string; value: string }> {
+  return optionsText
+    .split(/\\r?\\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [label, ...rest] = line.split('|');
+      const value = rest.join('|').trim() || label.trim();
+      return { label: label.trim(), value };
+    });
+}
+function savePoll(): void {
+  pollForm.transform((data) => {
+    const { options_text: optionsText, ...rest } = data;
+    return editingPollOptionsLocked.value
+      ? rest
+      : { ...rest, options: parsedPollOptions(optionsText) };
+  });
+""",
+    )
+    replace(
+        "scripts/check-event-localization-coverage.mjs",
+        """import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+""",
+        """import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+import { createRequire } from 'node:module';
+""",
+    )
+
+
 def diagnose_context_composition_dependencies() -> None:
     invalid: list[str] = []
     allowed_http: list[str] = []
@@ -141,6 +257,8 @@ def main() -> None:
     fix_context_composition_boundary()
     fix_game_world_governance_scenario()
     fix_platform_authority_scenario()
+    write_alliance_capacity_policy_behavior()
+    fix_frontend_sources()
     diagnose_context_composition_dependencies()
     print("ARCH-V2-TESTS: applied clean-room test harness corrections.")
 
