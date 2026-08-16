@@ -20,6 +20,10 @@ A shared PostgreSQL database does not imply shared business ownership. Every wri
 | Audit trail and transactional outbox mechanics | Shared infrastructure |
 | Cross-context UI/report projections | ReadModels; read-only, no source ownership |
 
+## Operational versus analytical ownership
+
+Operations owns operational Event state: scheduling, occurrences, execution, participation, planning and results captured as part of live coordination. Intelligence owns observations/analytical history: contribution evidence, event analysis, trends and other observational projections. Neither creates a second writable copy of the other's source facts.
+
 ## Historical identity
 
 Historical facts should retain durable Player/Alliance/Kingdom/Event identifiers appropriate to the fact at the time it occurred. Later membership or placement changes must not silently rewrite history.
