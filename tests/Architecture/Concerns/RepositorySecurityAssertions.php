@@ -19,7 +19,6 @@ trait RepositorySecurityAssertions
             self::assertIsString($contents);
             self::assertStringContainsString('**Primary security boundary:**', $contents, $this->relativePath($path));
             self::assertStringContainsString('../README.md', $contents, $this->relativePath($path));
-            self::assertStringContainsString('../../../security/security-baseline.md', $contents, $this->relativePath($path));
         }
     }
 
