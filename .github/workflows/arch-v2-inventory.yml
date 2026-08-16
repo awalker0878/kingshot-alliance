@@ -11,6 +11,20 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U kingshot -d kingshot_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
