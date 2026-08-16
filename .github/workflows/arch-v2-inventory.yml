@@ -1,0 +1,26 @@
+name: ARCH V2 Inventory
+
+on:
+  push:
+    branches:
+      - arch-v2-remediation-20260816
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mutation authority references
+        shell: bash
+        run: |
+          echo '=== MUTATION AUTHORITY REFERENCES ==='
+          grep -R -n -E '([A-Za-z]+MutationAuthority|MutationContext)' app routes bootstrap tests docs || true
+          echo '=== WORKFLOWS OWNERSHIP ==='
+          find app/Workflows -type f -print | sort || true
+          echo '=== OPERATIONS TOP LEVEL ==='
+          find app/Contexts/Operations -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
+          echo '=== STALE ARCH TERMS ==='
+          grep -R -n -i -E 'capability coverage|mutation authority|event_reminder_deliveries|king_perk_reminder_deliveries' docs tests app || true
