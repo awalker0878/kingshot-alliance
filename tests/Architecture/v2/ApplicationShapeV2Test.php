@@ -70,11 +70,11 @@ final class ApplicationShapeV2Test extends TestCase
 
     public function test_rewritten_tests_are_visibly_marked_as_v2_in_path_namespace_and_class_name(): void
     {
-        foreach (['tests/Architecture/V2', 'tests/Feature'] as $directory) {
+        foreach (['tests/Architecture/v2', 'tests/Feature'] as $directory) {
             foreach (RepositoryInspector::phpFiles($directory) as $file) {
                 $relative = str_replace('\\', '/', RepositoryInspector::relative($file));
 
-                if (! str_contains('/'.$relative, '/V2/')) {
+                if (! str_contains('/'.$relative, '/v2/')) {
                     continue;
                 }
 
