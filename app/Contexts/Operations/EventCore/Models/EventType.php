@@ -9,6 +9,16 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property string $slug
+ * @property string $name_key
+ * @property string|null $description_key
+ * @property EventCategory $category
+ * @property string|null $icon_key
+ * @property bool $is_system
+ * @property bool $is_active
+ * @property int $sort_order
+ */
 final class EventType extends Model
 {
     use HasUlids;
