@@ -233,11 +233,23 @@ jobs:
       - name: Run Operations bounded-context tests
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           mapfile -t rally_tests < <(find tests -type f \( -name '*Rally*Test.php' -o -name '*Rallies*Test.php' \) -print | sort)
+          set +e
           php artisan test \
             tests/Feature/Events \
             tests/Feature/KingPerks \
             tests/Feature/Integrations \
             tests/Feature/Contributions \
-            "${rally_tests[@]}"
+            "${rally_tests[@]}" \
+            2>&1 | tee operations-tests.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 0 ]; then
+            details=$(tail -n 120 operations-tests.log)
+            details=${details//'%'/'%25'}
+            details=${details//$'\r'/'%0D'}
+            details=${details//$'\n'/'%0A'}
+            echo "::error title=Operations bounded-context tests failed::$details"
+            exit "$status"
+          fi
