@@ -24,11 +24,13 @@ final class EventPollOption extends Model
         return ['sort_order' => 'integer', 'metadata' => 'array'];
     }
 
+    /** @return BelongsTo<EventPoll, $this> */
     public function poll(): BelongsTo
     {
         return $this->belongsTo(EventPoll::class, 'poll_id');
     }
 
+    /** @return HasMany<EventPollVote, $this> */
     public function votes(): HasMany
     {
         return $this->hasMany(EventPollVote::class, 'option_id');
