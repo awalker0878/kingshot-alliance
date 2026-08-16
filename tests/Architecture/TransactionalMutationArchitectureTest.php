@@ -17,18 +17,18 @@ final class TransactionalMutationArchitectureTest extends TestCase
         self::assertIsString($source);
         self::assertStringContainsString('domain-owned', strtolower($source));
         self::assertStringContainsString('compare-and-set', strtolower($source));
-        self::assertStringContainsString('deterministic lock ordering', strtolower($source));
+        self::assertStringContainsString('lock ordering is deterministic', strtolower($source));
         self::assertStringContainsString('external side effects', strtolower($source));
     }
 
     public function test_scope_specific_mutation_authority_boundaries_exist(): void
     {
         foreach ([
-            'app/Domain/Authorization/Services/AllianceMutationAuthority.php',
+            'app/Contexts/Alliance/Access/Services/AllianceMutationAuthority.php',
             'app/Contexts/GameWorld/Governance/Services/KingdomMutationAuthority.php',
             'app/Contexts/GameWorld/Governance/Services/PlayerMutationAuthority.php',
-            'app/Domain/Platform/Services/PlatformMutationAuthority.php',
-            'app/Domain/Events/Services/EventMutationAuthority.php',
+            'app/Contexts/Platform/Access/Services/PlatformMutationAuthority.php',
+            'app/Contexts/Operations/EventCore/Services/EventMutationAuthority.php',
         ] as $path) {
             self::assertFileExists($this->root().'/'.$path, $path);
         }
@@ -37,7 +37,7 @@ final class TransactionalMutationArchitectureTest extends TestCase
     public function test_read_authorization_services_do_not_acquire_write_locks(): void
     {
         foreach ([
-            'app/Domain/Authorization/Services/AllianceAuthorization.php',
+            'app/Contexts/Alliance/Access/Services/AllianceAuthorization.php',
             'app/Contexts/GameWorld/Governance/Services/KingdomAuthorization.php',
         ] as $path) {
             $source = file_get_contents($this->root().'/'.$path);
@@ -49,7 +49,7 @@ final class TransactionalMutationArchitectureTest extends TestCase
 
     public function test_deprecated_lock_aware_read_authorization_apis_cannot_return(): void
     {
-        foreach ($this->phpFiles($this->root().'/app/Domain') as $file) {
+        foreach ($this->v2PhpFiles() as $file) {
             $source = file_get_contents($file);
             self::assertIsString($source);
             self::assertStringNotContainsString('allowsForUpdate(', $source, $file);
@@ -63,12 +63,35 @@ final class TransactionalMutationArchitectureTest extends TestCase
             $this->root().'/database/migrations/2026_08_14_000001_create_mutation_locks_table.php',
         );
 
-        foreach ($this->phpFiles($this->root().'/app/Domain') as $file) {
+        foreach ($this->v2PhpFiles() as $file) {
             $source = file_get_contents($file);
             self::assertIsString($source);
             self::assertStringNotContainsString("'mutation_locks'", $source, $file);
             self::assertStringNotContainsString('"mutation_locks"', $source, $file);
         }
+    }
+
+    /** @return list<string> */
+    private function v2PhpFiles(): array
+    {
+        $files = [];
+
+        foreach ([
+            $this->root().'/app/Contexts',
+            $this->root().'/app/Workflows',
+            $this->root().'/app/ReadModels',
+            $this->root().'/app/Shared',
+        ] as $directory) {
+            if (! is_dir($directory)) {
+                continue;
+            }
+
+            $files = [...$files, ...$this->phpFiles($directory)];
+        }
+
+        sort($files);
+
+        return $files;
     }
 
     /** @return list<string> */
