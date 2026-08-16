@@ -36,7 +36,7 @@ final class ArchitectureV2IntelligenceTest extends TestCase
         self::assertStringContainsString('Player $actor', $source);
         self::assertStringContainsString('Player $player', $source);
         self::assertStringContainsString("->where('player_id',", $source);
-        self::assertStringContainsString("'recorded_by_player_id' => $context->actor->id", $source);
+        self::assertStringContainsString("'recorded_by_player_id' => \$context->actor->id", $source);
         self::assertStringNotContainsString('User $user', $source);
     }
 
@@ -47,7 +47,7 @@ final class ArchitectureV2IntelligenceTest extends TestCase
         );
 
         self::assertStringContainsString('forPlayer(Player $player', $source);
-        self::assertStringContainsString("->where('player_id', $player->id)", $source);
+        self::assertStringContainsString("->where('player_id', \$player->id)", $source);
         self::assertStringContainsString('summaryForPlayer(Player $player)', $source);
         self::assertStringNotContainsString('user_id', $source);
     }
