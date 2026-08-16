@@ -7,30 +7,25 @@ namespace App\Contexts\Platform\Access\Services;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Platform\Access\Models\PlatformAdministrator;
 use App\Contexts\Platform\Access\ValueObjects\PlatformMutationContext;
+use App\Contexts\Platform\Access\ValueObjects\PlatformWriteContext;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Support\Facades\DB;
-use LogicException;
 
 final class PlatformAuthorization
 {
-    public function require(User $actor): PlatformMutationContext
+    public function allows(User $actor): bool
     {
-        if (DB::transactionLevel() < 1) {
-            throw new LogicException('Platform administrator authorization must run inside a database transaction.');
-        }
-
-        $grant = PlatformAdministrator::query()
+        return PlatformAdministrator::query()
             ->where('user_id', $actor->id)
             ->whereNull('revoked_at')
-            ->lockForUpdate()
-            ->first();
+            ->exists();
+    }
 
-        if (! $grant instanceof PlatformAdministrator) {
+    public function authorizeContext(PlatformWriteContext $context): PlatformMutationContext
+    {
+        if (! $context->grant instanceof PlatformAdministrator) {
             throw new AuthorizationException('Platform administrator access is required.');
         }
 
-        $currentActor = User::query()->whereKey($actor->id)->firstOrFail();
-
-        return new PlatformMutationContext($currentActor, $grant);
+        return new PlatformMutationContext($context->actor, $context->grant);
     }
 }
