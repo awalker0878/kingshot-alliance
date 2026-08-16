@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Access\Services;
 
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\ValueObjects\AllianceMutationContext;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -17,8 +16,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 
 final class TransferAuthorization
 {
-    public function __construct(private AllianceAuthorization $allianceAuthorization) {}
-
     public function allows(Player $actor, Alliance $alliance, TransferPermission $permission): bool
     {
         if ($alliance->status !== AllianceStatus::Active
@@ -36,20 +33,11 @@ final class TransferAuthorization
             && $this->allowsMembership($membership, $alliance, $permission);
     }
 
-    public function require(Player $actor, Alliance $alliance, TransferPermission $permission): AllianceMutationContext
+    public function authorizeContext(AllianceMutationContext $context, TransferPermission $permission): void
     {
-        $context = $this->allianceAuthorization->acquireActiveScope($actor, $alliance);
-        $this->assertAllowed($context, $permission);
-
-        return $context;
-    }
-
-    public function requireExclusive(Player $actor, Alliance $alliance, TransferPermission $permission): AllianceMutationContext
-    {
-        $context = $this->allianceAuthorization->acquireExclusiveScope($actor, $alliance);
-        $this->assertAllowed($context, $permission);
-
-        return $context;
+        if (! $this->allowsMembership($context->membership, $context->alliance, $permission)) {
+            throw new AuthorizationException;
+        }
     }
 
     public function allowsMembership(AllianceMembership $membership, Alliance $alliance, TransferPermission $permission): bool
@@ -62,12 +50,5 @@ final class TransferAuthorization
         return match ($permission) {
             TransferPermission::Manage => in_array($membership->rank, [AllianceRank::R4, AllianceRank::R5], true),
         };
-    }
-
-    private function assertAllowed(AllianceMutationContext $context, TransferPermission $permission): void
-    {
-        if (! $this->allowsMembership($context->membership, $context->alliance, $permission)) {
-            throw new AuthorizationException;
-        }
     }
 }
