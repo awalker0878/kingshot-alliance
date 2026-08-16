@@ -37,4 +37,4 @@ User
 
 ## Transaction-time authority
 
-For protected writes, authorization that depends on mutable scope state must be resolved inside the write transaction after the relevant scope records are locked. Pre-request context is useful for navigation and early rejection; it is not a substitute for transaction-time mutation authority.
+For protected writes, authorization that depends on mutable scope state must be resolved inside the write transaction after the relevant scope records are locked. Pre-request context is useful for navigation and early rejection; it is not a substitute for transaction-time authorization.

@@ -77,7 +77,7 @@ final class ArchitectureComplianceV2Test extends TestCase
             self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Models/'.$model));
         }
         self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Services/NotificationDeliveryService.php'));
-        self::assertFileExists(base_path('app/Contexts/Operations/Reminders/Actions/QueueDueEventReminders.php'));
+        self::assertFileExists(base_path('app/Contexts/Operations/Participation/Reminders/Actions/QueueDueEventReminders.php'));
         self::assertFileExists(base_path('app/Contexts/Operations/KingPerks/Actions/QueueDueKingPerkReminders.php'));
 
         $migration = (string) file_get_contents(base_path('database/migrations/2026_08_16_000000_create_notification_delivery_tables.php'));

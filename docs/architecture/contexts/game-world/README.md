@@ -9,7 +9,7 @@ GameWorld is the neutral KingShot identity and governance foundation. It owns du
 
 - [Player context](player-context.md) — Player claim/ownership and active Player resolution.
 - [Reference and placement state](reference-state.md) — neutral Player, Kingdom and game-Alliance reference facts.
-- [Kingdom governance](kingdom-governance.md) — Kingdom roles, assignments and transaction-time Kingdom mutation authority.
+- [Kingdom governance](kingdom-governance.md) — Kingdom roles, assignments and transaction-time Kingdom transaction-time authorization.
 
 ## Boundary
 

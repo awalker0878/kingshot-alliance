@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Operations\Reminders\Enums;
+namespace App\Contexts\Operations\Participation\Reminders\Enums;
 
 enum EventReminderAudience: string
 {

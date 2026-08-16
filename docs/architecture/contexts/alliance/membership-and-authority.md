@@ -25,7 +25,7 @@ Effective Alliance permissions are evaluated from the active Player's current me
 - no authority aggregation across a User's Players;
 - switching active Player changes Alliance authority;
 - invitations/membership transitions target Player identity where the game relationship is Player-specific;
-- leadership/role changes use current transaction-time mutation authority rather than stale request-time assumptions;
+- leadership/role changes use current transaction-time authorization rather than stale request-time assumptions;
 - Platform Administrator has no Alliance authorization bypass.
 
 ## Consumers

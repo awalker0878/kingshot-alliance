@@ -2,7 +2,7 @@
 
 Status: Current
 
-Architecture V2 uses explicit transaction-time mutation authority for sensitive writes.
+Architecture V2 uses explicit transaction-time authorization for sensitive writes.
 
 ## Preferred pattern
 
@@ -17,7 +17,7 @@ DB transaction
   -> commit
 ```
 
-Context-specific mutation authority services include Alliance, GameWorld/Kingdom, Operations/Intelligence and Platform boundaries as implemented in their `Access`/`Governance` packages.
+Context-specific transaction-time authorization services include Alliance, GameWorld/Kingdom, Operations/Intelligence and Platform boundaries as implemented in their `Access`/`Governance` packages.
 
 ## Avoid
 

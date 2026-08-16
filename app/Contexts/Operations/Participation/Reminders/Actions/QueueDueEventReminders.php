@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Operations\Reminders\Actions;
+namespace App\Contexts\Operations\Participation\Reminders\Actions;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
@@ -13,9 +13,9 @@ use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventTargetResolver;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Models\EventPoll;
-use App\Contexts\Operations\Reminders\Enums\EventReminderTrigger;
-use App\Contexts\Operations\Reminders\Models\EventReminderRule;
-use App\Contexts\Operations\Reminders\Services\EventReminderAudienceResolver;
+use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderTrigger;
+use App\Contexts\Operations\Participation\Reminders\Models\EventReminderRule;
+use App\Contexts\Operations\Participation\Reminders\Services\EventReminderAudienceResolver;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;

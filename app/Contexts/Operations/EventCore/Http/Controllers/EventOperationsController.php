@@ -17,7 +17,7 @@ use App\Contexts\Operations\Polls\Actions\SaveEventPoll;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Enums\EventPollType;
 use App\Contexts\Operations\Polls\Models\EventPoll;
-use App\Contexts\Operations\Reminders\Actions\SyncEventPollDeadlineReminder;
+use App\Contexts\Operations\Participation\Reminders\Actions\SyncEventPollDeadlineReminder;
 use App\Shared\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;

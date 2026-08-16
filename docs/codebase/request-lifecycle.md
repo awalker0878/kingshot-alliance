@@ -13,7 +13,7 @@ HTTP request
   -> resolve current scope facts
   -> controller
   -> owning action/service/query or ReadModel
-  -> transaction + transaction-time mutation authority for writes
+  -> transaction + transaction-time authorization for writes
   -> persistence
   -> audit/outbox intent in same transaction when required
   -> commit

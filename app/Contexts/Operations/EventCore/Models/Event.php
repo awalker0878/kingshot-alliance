@@ -12,7 +12,7 @@ use App\Contexts\Operations\EventCore\Enums\EventScheduleSource;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Enums\EventStatus;
 use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
-use App\Contexts\Operations\Reminders\Models\EventReminderRule;
+use App\Contexts\Operations\Participation\Reminders\Models\EventReminderRule;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

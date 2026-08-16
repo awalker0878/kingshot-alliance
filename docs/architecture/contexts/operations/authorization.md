@@ -15,5 +15,5 @@ The actor is the active Player. Operations may consume current Alliance membersh
 - authority is scoped to the concrete Player, Alliance or Kingdom involved;
 - authority is never aggregated across Players owned by one User;
 - Platform Administrator does not bypass Operations authorization;
-- protected writes use Operations mutation authority and revalidate mutable scope/authority inside the transaction where required;
+- protected writes use Operations transaction-time authorization and revalidate mutable scope/authority inside the transaction where required;
 - Operations does not delegate its permission meaning to Alliance or Intelligence authorization services.

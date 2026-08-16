@@ -33,7 +33,7 @@ use App\Contexts\Operations\Participation\Http\Controllers\EventParticipationCon
 use App\Contexts\Operations\Rallies\Http\Controllers\EventRallyController;
 use App\Contexts\Operations\Rallies\Http\Controllers\PlayerFormationController;
 use App\Contexts\Operations\Rallies\Http\Controllers\RallyGuidanceController;
-use App\Contexts\Operations\Reminders\Http\Controllers\EventReminderController;
+use App\Contexts\Operations\Participation\Reminders\Http\Controllers\EventReminderController;
 use App\Contexts\Operations\Results\Http\Controllers\EventResultController;
 use App\Contexts\Operations\Rosters\Http\Controllers\EventRosterController;
 use App\ReadModels\EventCalendar\Http\Controllers\EventCalendarController;

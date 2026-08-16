@@ -7,7 +7,7 @@ Capabilities live **inside** bounded contexts. The map below is architectural; p
 | Context | Current capabilities |
 | --- | --- |
 | Accounts | Registration, authentication, sessions, profile, email verification, password reset/change, MFA/TOTP and recovery. |
-| GameWorld | Player identity/claim, Kingdom resolution, Alliance reference placement, active Player context, Kingdom roles and Kingdom mutation authority. |
+| GameWorld | Player identity/claim, Kingdom resolution, Alliance reference placement, active Player context, Kingdom roles and Kingdom transaction-time authorization. |
 | Alliance | Core Alliance lifecycle/settings, membership, R1–R5 leadership, specialist roles/permissions, recruitment, Alliance content/media and Alliance policies. |
 | Operations | Event core/scheduling, participation, polls, rosters, battle plans, results, rallies, King Perks, reminder rules and Operations permission semantics. |
 | Intelligence | Observations, ingestion/reconciliation, roster intelligence, contributions, Event analysis/history, diplomacy, sharing/grants and Intelligence access. |

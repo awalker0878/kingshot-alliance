@@ -17,6 +17,6 @@ Own the Alliance tenant's core business state and settings used by Alliance-owne
 
 ## Invariants
 
-Alliance lifecycle writes must use Alliance mutation authority for the active Player and concrete Alliance scope. Platform lifecycle/entitlement actions may orchestrate platform concerns around an Alliance, but they do not become the owner of Alliance membership or in-game authority.
+Alliance lifecycle writes must use Alliance transaction-time authorization for the active Player and concrete Alliance scope. Platform lifecycle/entitlement actions may orchestrate platform concerns around an Alliance, but they do not become the owner of Alliance membership or in-game authority.
 
 Cross-context dashboards should use ReadModels when they combine Alliance state with Operations or Intelligence.

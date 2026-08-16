@@ -12,7 +12,7 @@ User authenticates the account. Active Player is the game-domain principal. Neve
 
 ## Explicit write boundaries
 
-Controllers stay thin. Owning actions/services enforce invariants and transaction-time mutation authority. Multi-context writes use explicit Workflows; composed reads use ReadModels.
+Controllers stay thin. Owning actions/services enforce invariants and transaction-time authorization. Multi-context writes use explicit Workflows; composed reads use ReadModels.
 
 ## No persistence reach-through
 

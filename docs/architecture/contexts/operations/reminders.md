@@ -2,7 +2,7 @@
 
 Status: Current  
 Context: Operations  
-Implementation: `app/Contexts/Operations/Reminders`
+Implementation: `app/Contexts/Operations/Participation/Reminders`
 
 Operations owns **whether and when** an Event reminder is due: reminder rules, offsets/scheduling policy and the Event/occurrence relationship that caused the reminder.
 

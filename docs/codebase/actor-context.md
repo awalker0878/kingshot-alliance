@@ -23,4 +23,4 @@ Game authorization must use the active Player rather than aggregating every Play
 
 ## Writes
 
-Request-level actor context is not enough for mutable authorization. Actions whose permission depends on mutable membership/role/scope state must use their transaction-time mutation authority services inside the write transaction.
+Request-level actor context is not enough for mutable authorization. Actions whose permission depends on mutable membership/role/scope state must use their transaction-time authorization services inside the write transaction.

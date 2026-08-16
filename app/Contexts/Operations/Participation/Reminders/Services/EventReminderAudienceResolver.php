@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Operations\Reminders\Services;
+namespace App\Contexts\Operations\Participation\Reminders\Services;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
@@ -16,7 +16,7 @@ use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\Participation\Models\EventResponse;
 use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
-use App\Contexts\Operations\Reminders\Enums\EventReminderAudience;
+use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderAudience;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Illuminate\Auth\Access\AuthorizationException;

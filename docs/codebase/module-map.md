@@ -14,7 +14,7 @@ This map connects physical implementation to logical ownership. **The source tre
 | `app/Contexts/Alliance/Policies` | Alliance | Alliance-owned business policies. |
 | `app/Contexts/Alliance/Recruitment` | Alliance | Recruitment. |
 | `app/Contexts/Alliance/Content` | Alliance | Alliance content/media. |
-| `app/Contexts/Operations/Access` | Operations | Operations permission and mutation authority. |
+| `app/Contexts/Operations/Access` | Operations | Operations permission and transaction-time authorization. |
 | `app/Contexts/Operations/EventCore` | Operations | Event identity/scheduling/occurrences. |
 | `app/Contexts/Operations/Participation` | Operations | Registration/attendance. |
 | `app/Contexts/Operations/Polls` | Operations | Event polls/voting. |
@@ -23,7 +23,7 @@ This map connects physical implementation to logical ownership. **The source tre
 | `app/Contexts/Operations/Results` | Operations | Operational results/metrics. |
 | `app/Contexts/Operations/Rallies` | Operations | Rally coordination. |
 | `app/Contexts/Operations/KingPerks` | Operations | King Perks planning/scheduling. |
-| `app/Contexts/Operations/Reminders` | Operations | Reminder rules/scheduling policy. |
+| `app/Contexts/Operations/Participation/Reminders` | Operations | Reminder rules/scheduling policy. |
 | `app/Contexts/Intelligence/Access` | Intelligence | Intelligence authorization semantics. |
 | `app/Contexts/Intelligence/Observations` | Intelligence | Observed game facts. |
 | `app/Contexts/Intelligence/Ingestion` | Intelligence | Ingestion/reconciliation. |

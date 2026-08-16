@@ -59,7 +59,7 @@ final class ArchitectureBoundariesV2Test extends TestCase
         self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Models/NotificationDelivery.php'));
         self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Models/NotificationPreference.php'));
         self::assertFileExists(base_path('app/Contexts/Communications/Delivery/Services/NotificationDeliveryService.php'));
-        self::assertFileExists(base_path('app/Contexts/Operations/Reminders/Actions/QueueDueEventReminders.php'));
+        self::assertFileExists(base_path('app/Contexts/Operations/Participation/Reminders/Actions/QueueDueEventReminders.php'));
         self::assertFileExists(base_path('app/Contexts/Operations/KingPerks/Actions/QueueDueKingPerkReminders.php'));
 
         foreach ($this->phpFiles(['app/Contexts/Communications']) as $file) {

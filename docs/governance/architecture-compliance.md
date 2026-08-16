@@ -38,4 +38,4 @@ Workflows coordinate multi-context commands without taking persistence ownership
 
 ## 9. Verification and documentation
 
-The executable verification suite lives under `tests/v2`. Architecture tests enforce source shape, dependency direction, capability coverage, mutation safety and the contracts above. Living documentation states current ownership, invariants and supported collaboration; implementation maps and operational procedures are updated with the same change when those contracts move.
+The executable verification suite lives under `tests/v2`. Architecture tests enforce source shape, dependency direction, architecture contract validation, mutation safety and the contracts above. Living documentation states current ownership, invariants and supported collaboration; implementation maps and operational procedures are updated with the same change when those contracts move.
