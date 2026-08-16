@@ -11,6 +11,7 @@ use App\Contexts\Operations\EventCore\Enums\EventScheduleSource;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\EventCore\Models\EventType;
+use App\Contexts\Operations\EventCore\Models\EventTypeCapability;
 use App\Contexts\Operations\EventCore\Models\EventTypeScope;
 use App\Contexts\Platform\EventAdministration\Actions\UpdateEventTypeScope;
 use App\Shared\Http\Controller;
@@ -33,41 +34,40 @@ final class EventTypeAdministrationController extends Controller
 
         return Inertia::render('Platform/EventTypes', [
             'user' => $this->identity($request),
-            'eventTypes' => $types->map(static fn (EventType $type): array => [
+            'eventTypes' => array_values($types->map(static fn (EventType $type): array => [
                 'id' => (string) $type->id,
                 'slug' => $type->slug,
                 'nameKey' => $type->name_key,
                 'descriptionKey' => $type->description_key,
-                'category' => $type->category->value,
+                'category' => $type->categoryEnum()->value,
                 'iconKey' => $type->icon_key,
                 'active' => (bool) $type->is_active,
                 'system' => (bool) $type->is_system,
-                'scopes' => $type->scopes
+                'scopes' => array_values($type->scopes
                     ->sortBy('sort_order')
                     ->values()
                     ->map(static fn (EventTypeScope $scope): array => [
                         'id' => (string) $scope->id,
-                        'scope' => $scope->scope->value,
+                        'scope' => $scope->scopeEnum()->value,
                         'active' => (bool) $scope->is_active,
                         'defaultDurationMinutes' => $scope->default_duration_minutes,
                         'defaultCapacity' => $scope->default_capacity,
-                        'scheduleSource' => $scope->schedule_source->value,
-                        'recurrencePolicy' => $scope->recurrence_policy->value,
-                        'defaultRecurrenceFrequency' => $scope->default_recurrence_frequency->value,
+                        'scheduleSource' => $scope->scheduleSourceEnum()->value,
+                        'recurrencePolicy' => $scope->recurrencePolicyEnum()->value,
+                        'defaultRecurrenceFrequency' => $scope->defaultRecurrenceFrequencyEnum()->value,
                         'defaultRecurrenceInterval' => $scope->default_recurrence_interval,
                         'minimumRepeatIntervalMinutes' => $scope->minimum_repeat_interval_minutes,
                         'defaultRegistrationOpensMinutesBefore' => $scope->default_registration_opens_minutes_before,
                         'defaultRegistrationClosesMinutesBefore' => $scope->default_registration_closes_minutes_before,
                         'defaultInstructionsKey' => $scope->default_instructions_key,
                         'defaultSettings' => $scope->default_settings ?? [],
-                        'capabilities' => $scope->capabilities
-                            ->pluck('capability')
-                            ->map(static fn ($value): string => $value instanceof EventCapability ? $value->value : (string) $value)
+                        'capabilities' => array_values($scope->capabilities
+                            ->map(static fn (EventTypeCapability $capability): string => $capability->capabilityEnum()->value)
                             ->sort()
                             ->values()
-                            ->all(),
-                    ])->all(),
-            ])->all(),
+                            ->all()),
+                    ])->all()),
+            ])->all()),
             'capabilityOptions' => array_map(
                 static fn (EventCapability $capability): string => $capability->value,
                 EventCapability::cases(),

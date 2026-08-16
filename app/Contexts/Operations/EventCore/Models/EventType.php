@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\EventCore\Models;
 
 use App\Contexts\Operations\EventCore\Enums\EventCategory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_system
  * @property bool $is_active
  * @property int $sort_order
+ * @property-read Collection<int, EventTypeScope> $scopes
  */
 final class EventType extends Model
 {
@@ -46,6 +48,13 @@ final class EventType extends Model
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    public function categoryEnum(): EventCategory
+    {
+        $value = $this->getAttribute('category');
+
+        return $value instanceof EventCategory ? $value : EventCategory::from((string) $value);
     }
 
     /** @return HasMany<EventTypeScope, $this> */

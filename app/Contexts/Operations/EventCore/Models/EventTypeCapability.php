@@ -9,6 +9,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $event_type_scope_id
+ * @property EventCapability $capability
+ * @property array<string, mixed>|null $configuration
+ * @property-read EventTypeScope $eventTypeScope
+ */
 final class EventTypeCapability extends Model
 {
     use HasUlids;

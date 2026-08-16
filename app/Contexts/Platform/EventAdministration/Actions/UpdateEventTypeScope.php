@@ -121,7 +121,7 @@ final class UpdateEventTypeScope
             $eventType = $locked->eventType()->firstOrFail();
             $metadata = [
                 'event_type_id' => $eventType->id,
-                'scope' => $locked->scope->value,
+                'scope' => $locked->scopeEnum()->value,
                 'is_active' => $isActive,
                 'schedule_source' => $scheduleSource->value,
                 'recurrence_policy' => $recurrencePolicy->value,
