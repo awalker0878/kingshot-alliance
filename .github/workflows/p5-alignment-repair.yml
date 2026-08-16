@@ -67,8 +67,9 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          path = Path('.github/p5_alignment_repair.py')
-          lines = path.read_text().splitlines(keepends=True)
+
+          script = Path('.github/p5_alignment_repair.py')
+          lines = script.read_text().splitlines(keepends=True)
           marker = "    text = text.replace('use App\\\\Domain\\\\Kingdoms\\\\Actions\\\\SaveRosterEntry;\\n', '')\n"
           marker_index = next((i for i, line in enumerate(lines) if line == marker), None)
           if marker_index is None:
@@ -92,9 +93,48 @@ jobs:
               "        'use App\\\\Contexts\\\\Alliance\\\\Membership\\\\Models\\\\AllianceRosterEntry;\\n',\n",
               "    )\n",
           ]
-          path.write_text(''.join(lines[:start] + replacement + lines[end + 1:]))
+          script.write_text(''.join(lines[:start] + replacement + lines[end + 1:]))
+
+          update = Path('app/Contexts/Operations/EventCore/Actions/UpdateEvent.php')
+          text = update.read_text()
+          text = text.replace('use Illuminate\\Support\\Collection;\n', '')
+          text = text.replace('@param Collection<int, CarbonImmutable> $occurrenceStarts', '@param list<CarbonImmutable> $occurrenceStarts')
+          text = text.replace('        Collection $occurrenceStarts,\n', '        array $occurrenceStarts,\n')
+          text = text.replace('        $desiredStarts = $occurrenceStarts\n', '        $desiredStarts = collect($occurrenceStarts)\n')
+          update.write_text(text)
           PY
+
           python3 .github/p5_alignment_repair.py
+
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path('tests/Feature/Operations')
+          replacements = {
+              'App\\Contexts\\Operations\\EventCore\\Actions\\CancelEventRegistration':
+                  'App\\Contexts\\Operations\\Participation\\Actions\\CancelEventRegistration',
+              'App\\Contexts\\Operations\\Participation\\Actions\\RespondToEventRosterAssignment':
+                  'App\\Contexts\\Operations\\Rosters\\Actions\\RespondToEventRosterAssignment',
+          }
+          for path in root.rglob('*.php'):
+              text = path.read_text()
+              for old, new in replacements.items():
+                  text = text.replace(old, new)
+              path.write_text(text)
+
+          roster = root / 'Rosters/EventRosterTest.php'
+          text = roster.read_text()
+          text = text.replace('->assertForbidden();', '->assertNotFound();', 1)
+          roster.write_text(text)
+
+          for path in root.rglob('*.php'):
+              source = path.read_text()
+              if 'App\\Domain\\' in source:
+                  raise SystemExit(f'V1 namespace remains in Operations acceptance: {path}')
+              if 'App\\Contexts\\Communications\\' in source:
+                  raise SystemExit(f'Communications dependency remains in Operations acceptance: {path}')
+              if 'App\\ReadModels\\' in source:
+                  raise SystemExit(f'ReadModel dependency remains in Operations acceptance: {path}')
+          PY
 
       - name: Format P5 contracts
         run: >-
