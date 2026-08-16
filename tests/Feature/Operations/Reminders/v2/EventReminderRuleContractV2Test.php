@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Operations\Reminders\V2;
+namespace Tests\Feature\Operations\Reminders\v2;
 
 use App\Contexts\Operations\Reminders\Actions\CreateEventReminderRule;
 use App\Contexts\Operations\Reminders\Actions\DisableEventReminderRule;
