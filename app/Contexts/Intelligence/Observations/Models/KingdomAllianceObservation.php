@@ -38,9 +38,9 @@ use Illuminate\Support\Carbon;
  * @property-read Alliance $alliance
  * @property-read TrackedKingdomAlliance $tracking
  * @property-read KingdomAlliance $kingdomAlliance
- * @property-read User|null $actor
+ * @property-read Player|null $actor
  * @property-read KingdomAllianceObservation|null $correctsObservation
- * @property-read User|null $invalidatedBy
+ * @property-read Player|null $invalidatedBy
  */
 final class KingdomAllianceObservation extends Model
 {
