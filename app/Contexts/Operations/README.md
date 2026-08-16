@@ -26,4 +26,6 @@ Reminder delivery state is not owned by Operations. Delivery records live under 
 
 Platform Event-type administration is Platform-owned orchestration over Operations configuration.
 
+Alliance and Kingdom Event permission semantics are Operations-owned. Alliance and GameWorld expose current Player-scoped membership/governance facts and transaction-time scope locks; Operations decides what those facts authorize for `events.*`. GameWorld does not interpret Operations permission vocabulary.
+
 All Alliance/Kingdom Event authority remains Player-scoped. User is account/platform identity only and never receives game-domain Event permissions directly.
