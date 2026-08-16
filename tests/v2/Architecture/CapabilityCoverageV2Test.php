@@ -17,8 +17,10 @@ final class CapabilityCoverageV2Test extends TestCase
             ['capability' => 'Contexts/Alliance/Core', 'sources' => ['app/Contexts/Alliance/Core'], 'documentation' => 'docs/architecture/contexts/alliance/lifecycle-and-settings.md', 'test' => 'tests/v2/Contexts/Alliance/Core/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Alliance/Membership', 'sources' => ['app/Contexts/Alliance/Membership'], 'documentation' => 'docs/architecture/contexts/alliance/membership-and-authority.md', 'test' => 'tests/v2/Contexts/Alliance/Membership/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Alliance/Access', 'sources' => ['app/Contexts/Alliance/Access'], 'documentation' => 'docs/architecture/contexts/alliance/membership-and-authority.md', 'test' => 'tests/v2/Contexts/Alliance/Access/CapabilitySurfaceV2Test.php'],
+            ['capability' => 'Contexts/Alliance/Policies', 'sources' => ['app/Contexts/Alliance/Policies'], 'documentation' => 'docs/architecture/contexts/alliance/policies.md', 'test' => 'tests/v2/Contexts/Alliance/Policies/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Alliance/Recruitment', 'sources' => ['app/Contexts/Alliance/Recruitment'], 'documentation' => 'docs/architecture/contexts/alliance/recruitment.md', 'test' => 'tests/v2/Contexts/Alliance/Recruitment/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Alliance/Content', 'sources' => ['app/Contexts/Alliance/Content'], 'documentation' => 'docs/architecture/contexts/alliance/content.md', 'test' => 'tests/v2/Contexts/Alliance/Content/CapabilitySurfaceV2Test.php'],
+            ['capability' => 'Contexts/Operations/Access', 'sources' => ['app/Contexts/Operations/Access'], 'documentation' => 'docs/architecture/contexts/operations/authorization.md', 'test' => 'tests/v2/Contexts/Operations/Access/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Operations/EventCore', 'sources' => ['app/Contexts/Operations/EventCore'], 'documentation' => 'docs/architecture/contexts/operations/event-core.md', 'test' => 'tests/v2/Contexts/Operations/EventCore/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Operations/Participation', 'sources' => ['app/Contexts/Operations/Participation'], 'documentation' => 'docs/architecture/contexts/operations/participation.md', 'test' => 'tests/v2/Contexts/Operations/Participation/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Operations/Polls', 'sources' => ['app/Contexts/Operations/Polls'], 'documentation' => 'docs/architecture/contexts/operations/planning.md', 'test' => 'tests/v2/Contexts/Operations/Polls/CapabilitySurfaceV2Test.php'],
@@ -28,6 +30,7 @@ final class CapabilityCoverageV2Test extends TestCase
             ['capability' => 'Contexts/Operations/Rallies', 'sources' => ['app/Contexts/Operations/Rallies'], 'documentation' => 'docs/architecture/contexts/operations/rallies.md', 'test' => 'tests/v2/Contexts/Operations/Rallies/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Operations/KingPerks', 'sources' => ['app/Contexts/Operations/KingPerks'], 'documentation' => 'docs/architecture/contexts/operations/king-perks.md', 'test' => 'tests/v2/Contexts/Operations/KingPerks/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Operations/Reminders', 'sources' => ['app/Contexts/Operations/Reminders'], 'documentation' => 'docs/architecture/contexts/operations/reminders.md', 'test' => 'tests/v2/Contexts/Operations/Reminders/CapabilitySurfaceV2Test.php'],
+            ['capability' => 'Contexts/Intelligence/Access', 'sources' => ['app/Contexts/Intelligence/Access'], 'documentation' => 'docs/architecture/contexts/intelligence/authorization.md', 'test' => 'tests/v2/Contexts/Intelligence/Access/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Intelligence/Observations', 'sources' => ['app/Contexts/Intelligence/Observations'], 'documentation' => 'docs/architecture/contexts/intelligence/observations-and-ingestion.md', 'test' => 'tests/v2/Contexts/Intelligence/Observations/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Intelligence/Ingestion', 'sources' => ['app/Contexts/Intelligence/Ingestion'], 'documentation' => 'docs/architecture/contexts/intelligence/observations-and-ingestion.md', 'test' => 'tests/v2/Contexts/Intelligence/Ingestion/CapabilitySurfaceV2Test.php'],
             ['capability' => 'Contexts/Intelligence/Roster', 'sources' => ['app/Contexts/Intelligence/Roster'], 'documentation' => 'docs/architecture/contexts/intelligence/roster-and-contributions.md', 'test' => 'tests/v2/Contexts/Intelligence/Roster/CapabilitySurfaceV2Test.php'],
@@ -55,7 +58,7 @@ final class CapabilityCoverageV2Test extends TestCase
             ['capability' => 'Shared/Outbox', 'sources' => ['app/Shared/Infrastructure/Messaging/Outbox'], 'documentation' => 'docs/architecture/integration-model.md', 'test' => 'tests/v2/Shared/Outbox/CapabilitySurfaceV2Test.php'],
         ];
 
-        self::assertCount(42, $capabilities);
+        self::assertCount(45, $capabilities);
 
         foreach ($capabilities as $capability) {
             self::assertFileExists(base_path($capability['documentation']), $capability['capability'].' documentation missing.');
