@@ -18,6 +18,21 @@ jobs:
           ref: architecture-v3-capability-alignment
           fetch-depth: 0
 
+      - name: Normalize generated refactor literals
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+          path = Path('bin/v3_p1_refactor.py')
+          text = path.read_text()
+          pattern = re.compile(r"(?<![A-Za-z])r'([^'\n]*)'")
+          def fix(match):
+              body = match.group(1)
+              return repr(body) if body.endswith('\\') else match.group(0)
+          path.write_text(pattern.sub(fix, text))
+          PY
+
       - name: Apply CA-P1 mechanical rewrite
         run: python3 bin/v3_p1_refactor.py
 
