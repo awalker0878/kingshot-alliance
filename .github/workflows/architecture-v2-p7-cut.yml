@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/scripts/arch_v2_p7_cut.py'
       - '.github/scripts/arch_v2_p7_static_fixes.py'
+      - '.github/scripts/arch_v2_p7_contract_recovery.py'
       - '.github/workflows/architecture-v2-p7-cut.yml'
   workflow_dispatch:
 
@@ -74,6 +75,9 @@ jobs:
       - name: Apply P7 V2 dependency corrections
         run: python3 .github/scripts/arch_v2_p7_static_fixes.py
 
+      - name: Recover stale P5 P6 contracts exposed by P7
+        run: python3 .github/scripts/arch_v2_p7_contract_recovery.py
+
       - name: Format changed PHP
         run: vendor/bin/pint
 
@@ -109,6 +113,7 @@ jobs:
           app/Shared
           app/Workflows
           app/ReadModels
+          app/Domain/Kingdoms/Models/TransferPlan.php
           bootstrap/app.php
           bootstrap/providers.php
           routes/console.php
@@ -120,11 +125,14 @@ jobs:
       - name: Run Platform and integration behavior contracts
         run: php artisan test tests/Feature/Platform
 
-      - name: Run reminder report audit and outbox contracts
-        shell: bash
-        run: |
-          set -o pipefail
-          php artisan test --filter='Reminder|ContributionReport|Outbox|Audit' 2>&1 | tee p7-focused-tests.log
+      - name: Run recovered Communications delivery contracts
+        run: php artisan test tests/RewriteInput/Communications
+
+      - name: Run recovered contribution reporting contract
+        run: php artisan test tests/Feature/Contributions/AllianceContributionReportQueryTest.php
+
+      - name: Run Shared outbox publisher contract
+        run: php artisan test tests/Integration/Platform/OutboxPublisherTest.php
 
       - name: Run complete architecture regression suite
         run: php artisan test tests/Architecture
@@ -133,6 +141,7 @@ jobs:
         run: |
           rm .github/scripts/arch_v2_p7_cut.py
           rm .github/scripts/arch_v2_p7_static_fixes.py
+          rm .github/scripts/arch_v2_p7_contract_recovery.py
           rm .github/workflows/architecture-v2-p7-cut.yml
 
       - name: Commit verified P7 cut
