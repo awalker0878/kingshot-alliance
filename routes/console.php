@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Content\Actions\PublishScheduledContent;
 use App\Contexts\Alliance\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
-use App\Contexts\Communications\Reminders\Actions\QueueDueEventReminders;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Contributions\Actions\QueueDueContributionReports;
@@ -14,6 +13,7 @@ use App\Contexts\Intelligence\Ingestion\Actions\QueueDueKingdomIngestionSubscrip
 use App\Contexts\Intelligence\Ingestion\Actions\ReconcileKingdomIngestionSources;
 use App\Contexts\Intelligence\Ingestion\Services\KingdomIngestionOperationalHealth;
 use App\Contexts\Intelligence\Sharing\Actions\EnforceKingdomIntelligenceSharingRetention;
+use App\Contexts\Operations\Reminders\Actions\QueueDueEventReminders;
 use App\Contexts\Platform\Actions\EnforcePlatformRetention;
 use App\Contexts\Platform\Actions\ManagePlatformAdministrator;
 use App\Contexts\Platform\Actions\ProcessAccountDeletionRequests;
