@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Administration\Providers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
@@ -16,12 +16,19 @@ final class AdministrationServiceProvider extends ServiceProvider
     {
         Horizon::auth(static function (): bool {
             $request = app()->bound('request') ? request() : null;
-            $user = $request instanceof Request ? $request->user() : null;
+            $principal = $request instanceof Request ? $request->user() : null;
+            $identifier = $principal?->getAuthIdentifier();
 
-            return $user instanceof User
-                && $user->hasVerifiedEmail()
-                && $user->two_factor_confirmed_at !== null
-                && PlatformAdministrator::activeFor($user);
+            if (! is_numeric($identifier)) {
+                return false;
+            }
+
+            $account = app(AccountIdentityQuery::class)->find((int) $identifier);
+
+            return $account !== null
+                && $account->emailVerified
+                && $account->multiFactorConfirmed
+                && PlatformAdministrator::activeForUserId($account->userId);
         });
     }
 }
