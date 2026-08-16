@@ -15,11 +15,11 @@ use App\Contexts\Intelligence\Roster\Http\Controllers\RosterCsvController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterIntelligenceController;
 use App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController;
 use App\ReadModels\KingdomSettings\Http\Controllers\KingdomSettingsController;
-use App\Workflows\KingdomTransfer\Http\Controllers\TransferCompletionController;
-use App\Workflows\KingdomTransfer\Http\Controllers\TransferGroupController;
-use App\Workflows\KingdomTransfer\Http\Controllers\TransferParticipantController;
-use App\Workflows\KingdomTransfer\Http\Controllers\TransferPlanController;
-use App\Workflows\KingdomTransfer\Http\Controllers\TransferReadinessController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferCompletionController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferGroupController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferParticipantController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferPlanController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferReadinessController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {
