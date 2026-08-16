@@ -38,7 +38,9 @@ final class AllianceOperationsAuthorizationTest extends TestCase
             ->where('alliance_id', $alliance->id)
             ->where('key', DefaultAllianceRole::EventCoordinator->value)
             ->sole();
-        $coordinatorMembership->roles()->attach($eventCoordinator->id);
+        $coordinatorMembership->roles()->attach($eventCoordinator->id, [
+            'alliance_id' => $alliance->id,
+        ]);
 
         $authorization = $this->app->make(AllianceOperationsAuthorization::class);
 
