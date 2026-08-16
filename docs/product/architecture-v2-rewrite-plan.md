@@ -80,7 +80,11 @@ May intentionally compose/join data across contexts for dashboards, history and 
 
 The global business-permission enum has been deleted. Permission definitions live with their owning contexts/capabilities and implement the Shared `Permission` contract.
 
-Alliance authority resolves from the active Player's membership/rank/specialist roles. Kingdom authority resolves from Player-scoped GameWorld governance assignments. Operations and Intelligence own their permission vocabulary rather than embedding it into GameWorld roles or a global catalogue.
+Alliance authority resolves from the active Player's membership/rank/specialist roles. Kingdom authority resolves from Player-scoped GameWorld governance assignments. Operations and Intelligence own their permission vocabulary rather than embedding it into Alliance or GameWorld roles or a global catalogue.
+
+**Permission ownership includes semantic interpretation, not only enum location.** Alliance and GameWorld expose their own role/rank/membership/governance facts and context-local permissions. A downstream context may interpret those facts for its own capability, but the lower context must not contain downstream permission keys, `NamedPermission` surrogates, or generic permission-bearing APIs that decide another context's policy.
+
+For transaction-time writes, a lower context may expose a locked/current scope acquisition primitive. The downstream context then applies its own authorization policy against that locked scope. This preserves transaction ordering and current-state authority without making the lower context an authorization service for unrelated capabilities.
 
 Transaction-time mutation authority continues to lock and reload the relevant Player/scope before authorization. User authentication never becomes a game-domain permission grant.
 
@@ -92,6 +96,20 @@ Cross-context foreign keys/reference IDs are allowed. Cross-context aggregate na
 
 V2 acceptance is defined by tests owned by the V2 bounded context, not by stale V1 test directories. Legacy tests are rewrite inputs only: behavior that still belongs in the product must be restated under the owning V2 context or ReadModel/Workflow phase. A stale V1 test may not force a compatibility shim, recreate a deleted domain boundary, or block a completed hard cut.
 
+The authoritative test tree mirrors context ownership. For the P1-P4 foundation this means `tests/Feature/Accounts`, `tests/Feature/GameWorld`, `tests/Feature/Alliance`, `tests/Unit/Accounts`, `tests/Unit/GameWorld`, `tests/Unit/Alliance`, and explicit downstream authorization contracts under Operations/Intelligence. Legacy noun folders and `tests/Unit/Authorization` are not V2 acceptance boundaries.
+
+## P1-P4 alignment audit
+
+A post-P5 audit revalidated the first four phases against the same clean-cut rules used by later phases. The audit is complete and the permanent Architecture V2 verifier is green.
+
+- **P1:** dependency direction remains executable; V2 contexts may not depend on `App\\Domain`, Shared may not import business contexts, and upward context dependencies remain forbidden.
+- **P2:** User remains account/platform identity only; Player remains the exact game principal; GameWorld foundation models have no reverse feature-aggregate navigation into Alliance/Operations/Intelligence.
+- **P3:** Alliance test ownership now mirrors the production context (`Alliance/Core`, `Membership`, `Recruitment`, `Content`); Alliance permissions and default-role grants are Alliance-local only.
+- **P4:** Alliance and GameWorld role/rank identity are separated from downstream capability semantics. Operations owns Event interpretation of Alliance rank/Event Coordinator identity; Intelligence owns its own Alliance-rank interpretation; neither permission vocabulary is embedded back into Alliance.
+- `AllianceMutationAuthority` authorizes only Alliance permissions and separately exposes locked active-scope acquisition for downstream contexts.
+- Architecture tests forbid downstream permission keys/`NamedPermission` inside Alliance Access and forbid downstream contexts from bypassing their context-owned Alliance authorization/mutation policies.
+- Valid P4 contracts were restated under `tests/Unit/Alliance`, `tests/Unit/GameWorld`, `tests/Feature/Operations`, and `tests/Feature/Intelligence`; superseded `tests/Unit/Authorization` acceptance tests were deleted.
+
 ## Documentation end state
 
 The current one-code-domain = one documentation-domain = mandatory five-profile structure will be retired. Final living documentation will move to `docs/architecture`, `docs/contexts`, and focused `docs/capabilities` documents. Superseded living domain contracts are removed rather than kept in parallel.
@@ -102,22 +120,24 @@ The current one-code-domain = one documentation-domain = mandatory five-profile 
 **Implementation status:** complete.
 
 ### ARCH-V2-P1 — New skeleton and architecture enforcement
-**Implementation status:** complete.
+**Implementation status:** complete and re-audited. Dependency direction and Shared/foundation boundaries remain executable and green.
 
 ### ARCH-V2-P2 — Accounts and GameWorld foundation
-**Implementation status:** complete.
+**Implementation status:** complete and re-audited. User/Player separation, exact Player authority and foundation ORM boundaries are verified under context-owned tests.
 
 ### ARCH-V2-P3 — Alliance context
-**Implementation status:** complete. Architecture V2 verification is green for schema, Pint, architecture contracts, Larastan, Accounts/GameWorld behavior and Alliance bounded-context behavior.
+**Implementation status:** complete and re-audited. Alliance/Membership/Recruitment/Content are consolidated under one context-owned test tree; Player-scoped Alliance authority is enforced and Alliance contains only Alliance-local permission semantics.
 
 ### ARCH-V2-P4 — Access rewrite
-**Implementation status:** complete. The global `PermissionKey` and `app/Domain/Authorization` have been deleted. Architecture V2 verification is green for PostgreSQL, Pint, Player-scoped authority contracts, Larastan and Accounts/GameWorld/Alliance runtime behavior.
+**Implementation status:** complete and re-audited. The global `PermissionKey` and `app/Domain/Authorization` are deleted, permission semantics are context-owned, and the Architecture V2 verifier is green for PostgreSQL, Pint, architecture contracts, Larastan and context-owned runtime behavior.
 
-- context-owned permission enums define Alliance, Kingdom, Operations and Intelligence access vocabulary;
 - Alliance and Kingdom authority remain Player-scoped and are never granted directly to User;
+- Alliance owns Alliance permissions plus rank/specialist-role facts, not Operations/Intelligence permission meaning;
 - GameWorld owns Player/Kingdom governance state and locking without depending on Operations;
-- Operations owns `events.*` permissions and attaches them to Kingdom roles through an explicit cross-context bootstrap workflow;
-- no compatibility aliases or V1 Authorization bridge remain.
+- Operations owns `events.*` permissions and the interpretation of Alliance officer/Event Coordinator identity for Event capabilities;
+- Intelligence owns its own permission vocabulary and the interpretation of Alliance rank for Intelligence capabilities;
+- downstream mutation policies acquire locked current scope from lower contexts and then authorize in the owning context;
+- no compatibility aliases, `NamedPermission` downstream surrogates, generic V1 Authorization bridge or legacy Authorization acceptance suite remains.
 
 ### ARCH-V2-P5 — Operations rewrite
 **Implementation status:** complete. The Events, Rallies and KingPerks V1 runtime roots are deleted and Architecture V2 verification is green on rewritten Operations-owned contracts.
