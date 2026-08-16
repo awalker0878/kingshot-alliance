@@ -20,11 +20,9 @@ def fix_capability_reflection() -> None:
         "$reflection->getMethods(\\ReflectionMethod::IS_PUBLIC)",
     )
 
-    replace(
-        "tests/v2/Support/CapabilitySurfaceTestCase.php",
-        "&& ! str_starts_with($method->getName(), '__'),",
-        "&& ($method->getName() === '__invoke' || ! str_starts_with($method->getName(), '__')),"," 
-    )
+    old = "&& ! str_starts_with($method->getName(), '__'),"
+    new = "&& ($method->getName() === '__invoke' || ! str_starts_with($method->getName(), '__')) ,"
+    replace("tests/v2/Support/CapabilitySurfaceTestCase.php", old, new.replace("')) ,", "')),"))
 
 
 def fix_context_composition_boundary() -> None:
