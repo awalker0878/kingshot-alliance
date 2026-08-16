@@ -1,0 +1,34 @@
+name: V3 CA-P1 Runner
+
+on:
+  push:
+    branches:
+      - architecture-v3-capability-alignment
+
+permissions:
+  contents: write
+
+jobs:
+  run-refactor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout rewrite branch
+        uses: actions/checkout@v4
+        with:
+          ref: architecture-v3-capability-alignment
+          fetch-depth: 0
+
+      - name: Apply CA-P1 mechanical rewrite
+        run: python3 bin/v3_p1_refactor.py
+
+      - name: Remove one-use refactor tooling
+        run: rm -f .github/workflows/v3-p1-mechanical-refactor.yml .github/workflows/v3-p1-runner.yml bin/v3_p1_refactor.py
+
+      - name: Commit CA-P1 mechanical rewrite
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --stat
+          git commit -m "refactor(v3): apply CA-P1 mechanical capability moves [skip ci]"
+          git push origin HEAD:architecture-v3-capability-alignment
