@@ -144,8 +144,26 @@ jobs:
       - name: Run Shared outbox publisher contract
         run: php artisan test tests/Integration/Platform/OutboxPublisherTest.php
 
-      - name: Run complete architecture regression suite
-        run: php artisan test tests/Architecture
+      - name: Diagnose downstream Alliance authorization bypasses
+        shell: bash
+        run: |
+          set -euo pipefail
+          matches=$(grep -R -n --include='*.php' -E 'App\\Contexts\\Alliance\\Access\\Services\\Alliance(Authorization|MutationAuthority)' app/Contexts/Operations app/Contexts/Intelligence 2>/dev/null | grep -v '/Access/Services/' || true)
+          if [ -n "$matches" ]; then
+            echo "$matches"
+            exit 1
+          fi
+
+      - name: Run authoritative V2 architecture regression suite
+        run: >-
+          php artisan test
+          tests/Architecture/ArchitectureV2DependencyTest.php
+          tests/Architecture/ArchitectureV2AllianceTest.php
+          tests/Architecture/ArchitectureV2OperationsTest.php
+          tests/Architecture/ArchitectureV2IntelligenceTest.php
+          tests/Architecture/ArchitectureV2PlatformTest.php
+          tests/Architecture/AccountExperienceTest.php
+          tests/Architecture/UserExperienceLocalizationFoundationTest.php
 
       - name: Remove one-shot migration machinery
         run: |
