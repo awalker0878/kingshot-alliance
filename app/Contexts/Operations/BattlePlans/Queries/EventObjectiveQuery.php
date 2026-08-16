@@ -9,6 +9,7 @@ use App\Contexts\Operations\BattlePlans\Models\EventObjective;
 use App\Contexts\Operations\BattlePlans\Models\EventObjectiveAssignment;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
+use App\Contexts\Operations\Participation\Queries\EventEligiblePlayerQuery;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Carbon\CarbonImmutable;

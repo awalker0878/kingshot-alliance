@@ -8,7 +8,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventRoster;
+use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
 use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;

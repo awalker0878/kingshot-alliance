@@ -9,7 +9,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Models\EventPlayerContext;
-use App\Contexts\Operations\EventCore\Models\EventPlayerResult;
+use App\Contexts\Operations\Results\Models\EventPlayerResult;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
 use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
 use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
