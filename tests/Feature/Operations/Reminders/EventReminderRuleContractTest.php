@@ -20,7 +20,7 @@ final class EventReminderRuleContractTest extends TestCase
 
     public function test_manager_creates_one_idempotent_in_app_rule_for_an_event_scope(): void
     {
-        $scenario = (new ScenarioFactory())->allianceEvent(4410, 'custom', 'reminder-rule-v2');
+        $scenario = (new ScenarioFactory)->allianceEvent(4410, 'custom', 'reminder-rule-v2');
         $create = app(CreateEventReminderRule::class);
 
         $first = $create->handle(
@@ -45,7 +45,7 @@ final class EventReminderRuleContractTest extends TestCase
 
     public function test_reminder_policy_rejects_invalid_lead_time_channel_and_target_audience_for_alliance_event(): void
     {
-        $scenario = (new ScenarioFactory())->allianceEvent(4411, 'custom', 'reminder-policy-v2');
+        $scenario = (new ScenarioFactory)->allianceEvent(4411, 'custom', 'reminder-policy-v2');
         $create = app(CreateEventReminderRule::class);
 
         foreach ([
@@ -67,7 +67,7 @@ final class EventReminderRuleContractTest extends TestCase
 
     public function test_disable_is_idempotent_and_recreating_the_definition_reenables_the_same_rule(): void
     {
-        $scenario = (new ScenarioFactory())->allianceEvent(4412, 'custom', 'reminder-reenable-v2');
+        $scenario = (new ScenarioFactory)->allianceEvent(4412, 'custom', 'reminder-reenable-v2');
         $create = app(CreateEventReminderRule::class);
         $disable = app(DisableEventReminderRule::class);
         $rule = $create->handle($scenario['player'], $scenario['event'], 45, EventReminderAudience::AllScopePlayers);
