@@ -1,0 +1,80 @@
+name: P5 Pint Normalize
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths: [.github/workflows/p5-pint-normalize.yml]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v2
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Normalize verifier PHP targets
+        shell: bash
+        run: |
+          vendor/bin/pint \
+            tests/Architecture \
+            tests/Feature/Accounts \
+            tests/Feature/GameWorld \
+            tests/Feature/Alliances \
+            tests/Feature/Memberships \
+            tests/Feature/Recruitment \
+            tests/Feature/Content \
+            tests/Feature/Events \
+            tests/Feature/KingPerks \
+            tests/Feature/Integrations \
+            tests/Feature/Contributions \
+            tests/TenantIsolation/Alliances \
+            tests/Unit/Accounts \
+            tests/Unit/Authorization \
+            app/Contexts \
+            app/Shared \
+            app/Workflows \
+            app/ReadModels \
+            bootstrap/app.php \
+            bootstrap/providers.php \
+            config/accounts.php \
+            config/alliance.php \
+            config/auth.php \
+            config/game_world.php \
+            config/operations.php \
+            database/factories/UserFactory.php \
+            routes/account.php \
+            routes/console.php \
+            routes/event-history.php \
+            routes/king-perks.php \
+            routes/platform.php \
+            routes/web.php
+
+      - name: Commit normalization and remove helper workflow
+        shell: bash
+        run: |
+          rm .github/workflows/p5-pint-normalize.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'style(arch-v2): normalize P5 context formatting'
+          git push origin HEAD:architecture-v2
+
+      - name: Dispatch authoritative verifier
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run architecture-v2-verification.yml --ref architecture-v2
