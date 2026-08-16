@@ -5,6 +5,7 @@ on:
     branches: [architecture-v2]
     paths:
       - '.github/scripts/arch_v2_p7_cut.py'
+      - '.github/scripts/arch_v2_p7_static_fixes.py'
       - '.github/workflows/architecture-v2-p7-cut.yml'
   workflow_dispatch:
 
@@ -70,6 +71,9 @@ jobs:
       - name: Apply P7 ownership cut
         run: python3 .github/scripts/arch_v2_p7_cut.py
 
+      - name: Apply P7 V2 dependency corrections
+        run: python3 .github/scripts/arch_v2_p7_static_fixes.py
+
       - name: Format changed PHP
         run: vendor/bin/pint
 
@@ -128,6 +132,7 @@ jobs:
       - name: Remove one-shot migration machinery
         run: |
           rm .github/scripts/arch_v2_p7_cut.py
+          rm .github/scripts/arch_v2_p7_static_fixes.py
           rm .github/workflows/architecture-v2-p7-cut.yml
 
       - name: Commit verified P7 cut
