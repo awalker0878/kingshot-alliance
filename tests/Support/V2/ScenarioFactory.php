@@ -22,6 +22,20 @@ final class ScenarioFactory
         ?string $gamePlayerId = null,
     ): array {
         $user = User::factory()->create();
+
+        return [
+            'user' => $user,
+            ...$this->playerFor($user, $kingdomNumber, $playerName, $gamePlayerId),
+        ];
+    }
+
+    /** @return array{kingdom: Kingdom, player: Player} */
+    public function playerFor(
+        User $user,
+        int $kingdomNumber,
+        string $playerName,
+        ?string $gamePlayerId = null,
+    ): array {
         $kingdom = app(ResolveKingdom::class)->handle($kingdomNumber);
 
         if (! $kingdom instanceof Kingdom) {
@@ -35,7 +49,7 @@ final class ScenarioFactory
         );
         $player = app(ClaimPlayerAccount::class)->handle($player, $user);
 
-        return compact('user', 'kingdom', 'player');
+        return compact('kingdom', 'player');
     }
 
     /** @return array{user: User, kingdom: Kingdom, player: Player, alliance: Alliance} */
