@@ -84,14 +84,17 @@ final class EventVisibilityResolver
         ];
     }
 
-    /** @param list<string> $allianceIds @return list<string> */
+    /**
+     * @param  list<string>  $allianceIds
+     * @return list<string>
+     */
     private function managedPlayerIds(array $allianceIds): array
     {
         if ($allianceIds === []) {
             return [];
         }
 
-        return AllianceRosterEntry::query()
+        $ids = AllianceRosterEntry::query()
             ->where('state', RosterState::Active->value)
             ->whereIn('alliance_id', $allianceIds)
             ->with(['alliance:id,kingdom_id', 'player:id,current_kingdom_id'])
@@ -106,12 +109,14 @@ final class EventVisibilityResolver
             ->unique()
             ->values()
             ->all();
+
+        return array_values($ids);
     }
 
     /** @return list<string> */
     private function kingdomIds(Player $actor, OperationsPermission $permission): array
     {
-        return KingdomRoleAssignment::query()
+        $ids = KingdomRoleAssignment::query()
             ->where('player_id', $actor->id)
             ->where('kingdom_id', $actor->current_kingdom_id)
             ->whereHas('role.permissions', static fn (Builder $query) => $query
@@ -121,6 +126,8 @@ final class EventVisibilityResolver
             ->unique()
             ->values()
             ->all();
+
+        return array_values($ids);
     }
 
     private function membershipAllows(AllianceMembership $membership, OperationsPermission $permission): bool
