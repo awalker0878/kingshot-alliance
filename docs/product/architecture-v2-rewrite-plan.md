@@ -98,6 +98,8 @@ V2 acceptance is defined by tests owned by the V2 bounded context, not by stale 
 
 The authoritative test tree mirrors context ownership. For the P1-P4 foundation this means `tests/Feature/Accounts`, `tests/Feature/GameWorld`, `tests/Feature/Alliance`, `tests/Unit/Accounts`, `tests/Unit/GameWorld`, `tests/Unit/Alliance`, and explicit downstream authorization contracts under Operations/Intelligence. Legacy noun folders and `tests/Unit/Authorization` are not V2 acceptance boundaries.
 
+For P5, all operational Event, Rally and King Perks behavior is owned by `tests/Feature/Operations` and `tests/Unit/Operations`. Historical Event analysis is staged as Intelligence rewrite input, while notification/reminder-delivery behavior is staged as Communications rewrite input. Deleted `tests/Feature/Events` and `tests/Feature/KingPerks` roots may not return.
+
 ## P1-P4 alignment audit
 
 A post-P5 audit revalidated the first four phases against the same clean-cut rules used by later phases. The audit is complete and the permanent Architecture V2 verifier is green.
@@ -109,6 +111,19 @@ A post-P5 audit revalidated the first four phases against the same clean-cut rul
 - `AllianceMutationAuthority` authorizes only Alliance permissions and separately exposes locked active-scope acquisition for downstream contexts.
 - Architecture tests forbid downstream permission keys/`NamedPermission` inside Alliance Access and forbid downstream contexts from bypassing their context-owned Alliance authorization/mutation policies.
 - Valid P4 contracts were restated under `tests/Unit/Alliance`, `tests/Unit/GameWorld`, `tests/Feature/Operations`, and `tests/Feature/Intelligence`; superseded `tests/Unit/Authorization` acceptance tests were deleted.
+
+## P5 alignment audit
+
+P5 was re-audited against the same semantic-ownership and clean-test-boundary rules used for P1-P4. The audit recovered valid behavior from dormant V1-named tests rather than preserving their old boundaries.
+
+- Kingdom-scoped Event permissions are now interpreted by Operations. GameWorld exposes the current locked Player/Kingdom scope but does not decide `events.kingdom.*` semantics.
+- `KingdomOperationsAuthorization` and `KingdomOperationsMutationAuthority` own Kingdom Event authorization, matching the Alliance Operations authorization pattern.
+- Event command/state ownership remains in Operations; the Event management cross-context page remains in `ReadModels/EventManagement`; historical analysis remains Intelligence-owned.
+- Event reminder rules/policy remain Operations-owned, while reminder delivery/read composition is explicitly deferred to Communications/ReadModels rather than imported into Operations acceptance tests.
+- `tests/Feature/Events` and `tests/Feature/KingPerks` are deleted. Valid Event/Rally/King Perks behavior has been rewritten under capability-owned `tests/Feature/Operations/*` paths; Intelligence and Communications-only behavior is staged under explicit rewrite-input paths for those phases.
+- Recovered tests no longer use `App\\Domain`, Communications or ReadModels as dependencies of Operations acceptance.
+- Event schedule mutation now reconciles future occurrences by start identity instead of cancelling/recreating unchanged occurrence starts. Duration-only changes preserve occurrence identity and therefore preserve occurrence-owned participation, polls, rosters and results.
+- The recovered P5 suite, Pint and Larastan are green, and permanent architecture/King Perks verification enforces the hard-cut paths.
 
 ## Documentation end state
 
@@ -140,19 +155,21 @@ The current one-code-domain = one documentation-domain = mandatory five-profile 
 - no compatibility aliases, `NamedPermission` downstream surrogates, generic V1 Authorization bridge or legacy Authorization acceptance suite remains.
 
 ### ARCH-V2-P5 — Operations rewrite
-**Implementation status:** complete. The Events, Rallies and KingPerks V1 runtime roots are deleted and Architecture V2 verification is green on rewritten Operations-owned contracts.
+**Implementation status:** complete and re-audited. The Events, Rallies and KingPerks V1 runtime/test roots are deleted; semantic authorization, capability ownership and the Operations acceptance boundary are aligned.
 
 - EventCore owns Event type, scope, occurrence, phase, scheduling and capability registration;
 - participation, polls, rosters, battle plans, results and operational metrics live under Operations capability modules;
 - Rallies and KingPerks live under Operations without separate event/calendar frameworks;
-- Player-scoped event authority and exact Alliance/Kingdom checks remain enforced;
-- Kingdom role identity remains GameWorld-owned while Operations attaches its own permissions through explicit workflow composition;
+- Player-scoped Event authority and exact Alliance/Kingdom checks remain enforced;
+- Alliance/GameWorld provide Player-scoped role/governance facts and locked scope; Operations owns the meaning of `events.*` for both Alliance- and Kingdom-scoped Event operations;
+- Event commands remain Operations-owned, cross-context management projection remains ReadModels-owned, Event analysis/history remains Intelligence-owned, and reminder delivery remains Communications-owned;
+- future Event schedule reconciliation preserves existing occurrence identity when a start time remains valid, preventing duplicate-key regeneration and retaining occurrence-local operational state;
 - `tests/Feature/Operations` and `tests/Unit/Operations` are the P5 behavior acceptance boundary;
-- stale `tests/Feature/Events` and legacy-named test suites are not compatibility contracts and will be rewritten or removed in the owning later phase;
-- the dedicated King Perks verifier now runs rewritten Operations test paths and is green for PostgreSQL, Pint, Larastan, backend contracts and frontend contracts.
+- deleted `tests/Feature/Events` and `tests/Feature/KingPerks` roots are executable hard-cut invariants and may not return;
+- the recovered Operations contracts, PostgreSQL bootstrap, Pint and Larastan are green; dedicated King Perks verification uses only V2 Operations paths.
 
 ### ARCH-V2-P6 — Intelligence rewrite
-**Implementation status:** in progress from the verified P5 boundary.
+**Implementation status:** in progress from the re-audited P5 boundary.
 
 - split observations/ingestion/sharing/diplomacy from old Kingdoms;
 - move Contributions/reporting/history/analytics to Intelligence/ReadModels;
