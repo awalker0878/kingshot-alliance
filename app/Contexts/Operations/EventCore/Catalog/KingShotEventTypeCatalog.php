@@ -300,7 +300,10 @@ final class KingShotEventTypeCatalog
         ];
     }
 
-    /** @param list<array<string, mixed>> $scopes */
+    /**
+     * @param  list<array<string, mixed>>  $scopes
+     * @return array<string, mixed>
+     */
     private static function type(string $slug, EventCategory $category, string $icon, int $sortOrder, array $scopes): array
     {
         $key = str_replace('-', '_', $slug);
@@ -325,6 +328,7 @@ final class KingShotEventTypeCatalog
 
     /**
      * @param  list<EventCapability>  $capabilities
+     * @param  array<string, mixed>  $defaultSettings
      * @param  array<string, array<string, int|string|bool|array<array-key, mixed>>>  $capabilityConfiguration
      * @return array<string, mixed>
      */
