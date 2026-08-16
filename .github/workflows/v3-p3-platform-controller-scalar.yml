@@ -1,0 +1,61 @@
+name: V3 CA-P3 Platform Controller Scalarization
+
+on:
+  push:
+    branches:
+      - architecture-v3-capability-alignment
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v3-capability-alignment
+          fetch-depth: 0
+      - name: Patch Platform administration controller
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('app/Contexts/Platform/Administration/Http/Controllers/PlatformAdministrationController.php')
+          text = path.read_text()
+          text = text.replace('use App\\Contexts\\Alliance\\Lifecycle\\Models\\Alliance;\n', '')
+          if 'use App\\Contexts\\Alliance\\Lifecycle\\Queries\\AllianceReferenceQuery;\n' not in text:
+              text = text.replace(
+                  'use App\\Contexts\\Accounts\\Identity\\ValueObjects\\AccountIdentity;\n',
+                  'use App\\Contexts\\Accounts\\Identity\\ValueObjects\\AccountIdentity;\nuse App\\Contexts\\Alliance\\Lifecycle\\Queries\\AllianceReferenceQuery;\n',
+              )
+          text = text.replace(
+              'public function __construct(private readonly AccountIdentityQuery $accounts) {}',
+              'public function __construct(\n        private readonly AccountIdentityQuery $accounts,\n        private readonly AllianceReferenceQuery $alliances,\n    ) {}',
+          )
+          old = '''            $alliance = Alliance::query()->find($selectedAllianceId);\n            if ($alliance instanceof Alliance) {\n                $selectedAlliance = [\n                    'id' => (string) $alliance->id,\n                    'name' => (string) $alliance->name,\n                    'features' => $features->all($alliance),\n                ];\n            }'''
+          new = '''            $alliance = $this->alliances->find($selectedAllianceId);\n            if ($alliance !== null) {\n                $selectedAlliance = [\n                    'id' => $alliance->allianceId,\n                    'name' => $alliance->name,\n                    'features' => $features->all($alliance->allianceId),\n                ];\n            }'''
+          if old not in text:
+              raise SystemExit('selected Alliance block not found')
+          text = text.replace(old, new)
+          text = text.replace('        $target = Alliance::query()->findOrFail($alliance);\n', '')
+          text = text.replace('$lifecycle->suspend($actor, $target,', '$lifecycle->suspend($actor, $alliance,')
+          text = text.replace('$lifecycle->close($actor, $target,', '$lifecycle->close($actor, $alliance,')
+          text = text.replace('$lifecycle->delete($actor, $target,', '$lifecycle->delete($actor, $alliance,')
+          text = text.replace('$lifecycle->restore($actor, $target,', '$lifecycle->restore($actor, $alliance,')
+          text = text.replace('$configure->assignPlan($actor, $target,', '$configure->assignPlan($actor, $alliance,')
+          text = text.replace('            $target,\n            (int) $validated[\'retention_days\']', '            $alliance,\n            (int) $validated[\'retention_days\']')
+          text = text.replace('                $target,\n                (string) $validated[\'feature_key\']', '                $alliance,\n                (string) $validated[\'feature_key\']')
+          text = text.replace('$usage->capture(Alliance::query()->findOrFail($alliance));', '$usage->capture($alliance);')
+          text = text.replace('        $target = Alliance::query()->findOrFail($alliance);\n        $export = $exports->generate($actor, $target);', '        $export = $exports->generate($actor, $alliance);')
+          path.write_text(text)
+          PY
+      - run: php -l app/Contexts/Platform/Administration/Http/Controllers/PlatformAdministrationController.php
+      - run: rm -f .github/workflows/v3-p3-platform-controller-scalar.yml
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor(v3): scalarize Platform administration controller [skip ci]"
+          git push origin HEAD:architecture-v3-capability-alignment
