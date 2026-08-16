@@ -57,10 +57,12 @@ final class ArchitectureGovernanceDocumentationTest extends TestCase
         self::assertStringContainsString('Supersession handling', $template);
     }
 
-    public function test_dependency_map_contains_every_canonical_code_domain_once(): void
+    public function test_p6_dependency_map_preserves_the_exact_historical_domain_inventory_without_recreating_v1_runtime(): void
     {
         $map = $this->read('docs/product/cross-domain-dependency-map.md');
-        $domains = $this->canonicalDomains();
+        $domains = $this->historicalDomains();
+
+        self::assertDirectoryDoesNotExist($this->root().'/app/Domain');
 
         preg_match_all('/^\| \*\*([A-Za-z]+)\*\* \|/m', $map, $matches);
         $documented = $matches[1] ?? [];
@@ -69,7 +71,6 @@ final class ArchitectureGovernanceDocumentationTest extends TestCase
         self::assertSame($domains, $documented);
 
         foreach ($domains as $domain) {
-            self::assertFileExists($this->root().'/app/Domain/'.$domain.'/README.md');
             self::assertFileExists($this->root().'/docs/domains/'.$this->kebab($domain).'/README.md');
         }
     }
@@ -142,13 +143,24 @@ final class ArchitectureGovernanceDocumentationTest extends TestCase
     }
 
     /** @return list<string> */
-    private function canonicalDomains(): array
+    private function historicalDomains(): array
     {
-        $directories = glob($this->root().'/app/Domain/*', GLOB_ONLYDIR) ?: [];
-        $domains = array_map(static fn (string $path): string => basename($path), $directories);
-        sort($domains);
-
-        return $domains;
+        return [
+            'Alliances',
+            'Audit',
+            'Authorization',
+            'Content',
+            'Contributions',
+            'Events',
+            'Identity',
+            'Integrations',
+            'Kingdoms',
+            'Memberships',
+            'Notifications',
+            'Platform',
+            'Rallies',
+            'Recruitment',
+        ];
     }
 
     private function kebab(string $name): string
