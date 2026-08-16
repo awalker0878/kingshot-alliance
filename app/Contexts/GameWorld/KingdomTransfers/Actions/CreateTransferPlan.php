@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Enums\KingdomStatus;
 use App\Contexts\GameWorld\Models\Kingdom;
@@ -21,6 +22,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreateTransferPlan
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private TransferAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -35,7 +37,8 @@ final readonly class CreateTransferPlan
             // Creating a Draft transfer plan is not an Alliance-wide singleton. The
             // ordinary mutation boundary protects lifecycle/authority without turning
             // unrelated Draft creation into an Alliance mutex.
-            $context = $this->authority->require($actor, $alliance, TransferPermission::Manage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, TransferPermission::Manage);
 
             $homeKingdom = Kingdom::query()
                 ->whereKey($context->alliance->kingdom_id)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -20,6 +21,7 @@ use Illuminate\Validation\ValidationException;
 final class AssignRecruitmentReviewer
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -32,7 +34,8 @@ final class AssignRecruitmentReviewer
         Player $reviewer,
     ): void {
         DB::transaction(function () use ($actor, $alliance, $candidate, $reviewer): void {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::RecruitmentManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             // Reviewer assignment is a child mutation: share-lock candidate state so
             // independent candidate children can proceed while merge remains exclusive.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
@@ -25,6 +26,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveRallyGroup
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private RallyAllianceResolver $alliances,
@@ -68,7 +70,8 @@ final readonly class SaveRallyGroup
         }
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $allianceId, $name, $maxJoiners, $recommendedFormation, $notes, $sortOrder, $group): RallyGroup {
-            $context = $this->eventAuthority->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->eventAuthority->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::RallyGuidance);
 
             // Group metadata is not occurrence-wide occupancy state. Share-lock the

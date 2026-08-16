@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
@@ -26,6 +27,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveEventRecommendedFormation
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private RallyAllianceResolver $alliances,
@@ -65,7 +67,8 @@ final readonly class SaveEventRecommendedFormation
         ), 0, 5));
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $allianceId, $key, $name, $composition, $heroes, $assignmentRole, $guidance, $notes, $sortOrder, $formation): EventRecommendedFormation {
-            $context = $this->eventAuthority->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->eventAuthority->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Formations);
 
             $lockedOccurrence = EventOccurrence::query()

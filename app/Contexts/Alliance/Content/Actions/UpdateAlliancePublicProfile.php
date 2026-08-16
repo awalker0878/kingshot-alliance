@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Enums\MediaLifecycleStatus;
@@ -22,6 +23,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class UpdateAlliancePublicProfile
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private ContentSanitizer $sanitizer,
         private AuditRecorder $audit,
@@ -44,7 +46,8 @@ final readonly class UpdateAlliancePublicProfile
         return DB::transaction(function () use ($alliance, $actor, $attributes): Alliance {
             // This workflow changes the Alliance aggregate itself, so the exclusive
             // parent boundary is intentional rather than an ordinary child lock.
-            $context = $this->authority->requireExclusive($actor, $alliance, AlliancePermission::ContentManage);
+            $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
             $locked = $context->alliance;
 
             $locked->forceFill([

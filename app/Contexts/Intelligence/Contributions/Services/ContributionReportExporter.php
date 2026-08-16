@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Services;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
@@ -23,6 +24,7 @@ final class ContributionReportExporter
     public const REPORT_VERSION = 'event-history.v2';
 
     public function __construct(
+        private readonly AllianceWriteState $allianceWriteState,
         private readonly AllianceIntelligenceAuthorization $authority,
         private readonly AllianceContributionReportQuery $reports,
         private readonly AuditRecorder $audit,
@@ -58,7 +60,8 @@ final class ContributionReportExporter
     /** @return array{content: string, mime: string, filename: string, run: ContributionReportRun} */
     private function exportWithinTransaction(Alliance $alliance, Player $actor, string $format): array
     {
-        $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
+        $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
         $rows = $this->reports->rows($context->alliance);
         $content = $format === 'csv'
             ? $this->csv($context->alliance, $rows)

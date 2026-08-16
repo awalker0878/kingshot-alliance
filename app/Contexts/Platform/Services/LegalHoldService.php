@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Services;
 
+use App\Contexts\Platform\Access\Services\PlatformWriteState;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Platform\Access\Services\PlatformAuthorization;
@@ -17,6 +18,7 @@ final readonly class LegalHoldService
 {
     public function __construct(
         private AuditRecorder $audit,
+        private PlatformWriteState $platformWriteState,
         private PlatformAuthorization $mutations,
     ) {}
 
@@ -38,7 +40,8 @@ final readonly class LegalHoldService
         }
 
         return DB::transaction(function () use ($actor, $subjectType, $subjectId, $reason): LegalHold {
-            $context = $this->mutations->require($actor);
+            $writeContext = $this->platformWriteState->lock($actor);
+            $context = $this->mutations->authorizeContext($writeContext);
             $this->lockSubject($subjectType, $subjectId);
 
             $hold = LegalHold::query()->create([
@@ -62,7 +65,8 @@ final readonly class LegalHoldService
     public function release(User $actor, LegalHold $hold): LegalHold
     {
         return DB::transaction(function () use ($actor, $hold): LegalHold {
-            $context = $this->mutations->require($actor);
+            $writeContext = $this->platformWriteState->lock($actor);
+            $context = $this->mutations->authorizeContext($writeContext);
 
             // Route from an unlocked snapshot, then lock the subject before the hold.
             // Deletion workflows use the same subject row as their legal-hold boundary.

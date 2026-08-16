@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Access\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Models\Role;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
@@ -20,6 +21,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class AssignMembershipRole
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private AuditRecorder $audit,
     ) {}
@@ -31,7 +33,8 @@ final readonly class AssignMembershipRole
         string $roleId,
     ): AllianceMembership {
         return DB::transaction(function () use ($alliance, $actor, $membershipId, $roleId): AllianceMembership {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::RoleManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::RoleManage);
 
             $membership = AllianceMembership::query()
                 ->where('id', $membershipId)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Enums\MediaLifecycleStatus;
@@ -28,6 +29,7 @@ final readonly class UploadMediaAsset
 {
     public function __construct(
         private AllianceAuthorization $readAuthorization,
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $mutationAuthority,
         private MediaScanner $scanner,
         private AuditRecorder $audit,
@@ -110,11 +112,8 @@ final readonly class UploadMediaAsset
             return DB::transaction(function () use ($alliance, $actor, $file, $disk, $path, $mimeType, $size, $sha256): MediaAsset {
                 // Storage capacity is Alliance-wide, so creation takes the exclusive
                 // authority variant to serialize the quota check with this insert.
-                $context = $this->mutationAuthority->requireExclusive(
-                    $actor,
-                    $alliance,
-                    AlliancePermission::ContentManage,
-                );
+                $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+                $this->mutationAuthority->authorizeContext($context, AlliancePermission::ContentManage);
                 $this->entitlements->assertStorageCapacity($context->alliance, $size);
 
                 $asset = MediaAsset::query()->create([

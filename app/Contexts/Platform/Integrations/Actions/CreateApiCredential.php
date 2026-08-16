@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -28,6 +29,7 @@ final readonly class CreateApiCredential
     ];
 
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $mutations,
         private PlanEntitlementService $entitlements,
         private AuditRecorder $audit,
@@ -58,7 +60,8 @@ final readonly class CreateApiCredential
 
         return DB::transaction(function () use ($alliance, $actor, $name, $scopes, $expiresAt): IssuedApiCredential {
             // Credential capacity is Alliance-wide, so acquire the exclusive mutation boundary.
-            $authority = $this->mutations->requireExclusive($actor, $alliance, AlliancePermission::Manage);
+            $authority = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $this->mutations->authorizeContext($authority, AlliancePermission::Manage);
             $currentAlliance = $authority->alliance;
             $currentActor = $authority->actor;
 

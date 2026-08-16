@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
@@ -21,6 +22,7 @@ use InvalidArgumentException;
 final class CreateContributionReportSchedule
 {
     public function __construct(
+        private readonly AllianceWriteState $allianceWriteState,
         private readonly AllianceIntelligenceAuthorization $authority,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
@@ -40,7 +42,8 @@ final class CreateContributionReportSchedule
         }
 
         return DB::transaction(function () use ($actor, $alliance, $recipient, $name, $cadence, $timezone, $nextDueAt): ContributionReportSchedule {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
 
             $currentRecipient = (string) $recipient->id === (string) $context->actor->id
                 ? $context->actor

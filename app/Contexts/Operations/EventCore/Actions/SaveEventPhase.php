@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\EventCore\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
@@ -22,6 +23,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveEventPhase
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
@@ -63,7 +65,8 @@ final readonly class SaveEventPhase
         }
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $phase, $key, $type, $name, $nameKey, $startsAt, $endsAt, $status, $sortOrder, $settings): EventPhase {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Phases);
 
             $lockedOccurrence = EventOccurrence::query()

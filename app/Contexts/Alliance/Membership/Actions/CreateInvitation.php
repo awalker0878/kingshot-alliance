@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Membership\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -16,6 +17,7 @@ use Illuminate\Support\Str;
 final readonly class CreateInvitation
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private IssueAllianceInvitation $issuer,
     ) {}
@@ -26,11 +28,8 @@ final readonly class CreateInvitation
 
         return DB::transaction(function () use ($alliance, $actor, $target, $email): IssuedInvitation {
             // Invitation creation reserves Alliance-wide member capacity.
-            $context = $this->authority->requireExclusive(
-                $actor,
-                $alliance,
-                AlliancePermission::InvitationManage,
-            );
+            $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::InvitationManage);
 
             return $this->issuer->handle($context, $target, $email);
         });

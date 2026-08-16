@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Governance\Actions;
 
+use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
 use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
@@ -21,6 +22,7 @@ use LogicException;
 final readonly class RemoveKingdomRole
 {
     public function __construct(
+        private KingdomWriteState $kingdomWriteState,
         private KingdomAuthorization $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -33,7 +35,8 @@ final readonly class RemoveKingdomRole
         }
 
         DB::transaction(function () use ($actor, $kingdom, $assignment): void {
-            $authority = $this->mutations->require($actor, $kingdom, KingdomPermission::RoleManage);
+            $authority = $this->kingdomWriteState->lockActiveScope($actor, $kingdom);
+            $this->mutations->authorizeContext($authority, KingdomPermission::RoleManage);
             $currentKingdom = $authority->kingdom;
             $currentActor = $authority->actor;
 

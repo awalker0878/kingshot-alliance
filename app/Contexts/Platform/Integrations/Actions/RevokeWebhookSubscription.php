@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -17,6 +18,7 @@ use InvalidArgumentException;
 final readonly class RevokeWebhookSubscription
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -29,7 +31,8 @@ final readonly class RevokeWebhookSubscription
         }
 
         return DB::transaction(function () use ($alliance, $actor, $subscription): WebhookSubscription {
-            $authority = $this->mutations->require($actor, $alliance, AlliancePermission::Manage);
+            $authority = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->mutations->authorizeContext($authority, AlliancePermission::Manage);
             $currentAlliance = $authority->alliance;
             $currentActor = $authority->actor;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
@@ -24,6 +25,7 @@ use InvalidArgumentException;
 final class RecordContribution
 {
     public function __construct(
+        private readonly AllianceWriteState $allianceWriteState,
         private readonly AllianceIntelligenceAuthorization $authority,
         private readonly ContributionPeriodResolver $periods,
         private readonly AuditRecorder $audit,
@@ -43,7 +45,8 @@ final class RecordContribution
             $permission = $source === ContributionRecordSource::SelfReported
                 ? AlliancePermission::View
                 : IntelligencePermission::ContributionManage;
-            $context = $this->authority->require($actor, $alliance, $permission);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, $permission);
 
             $isActorTarget = (string) $player->id === (string) $context->actor->id;
             if ($source === ContributionRecordSource::SelfReported && ! $isActorTarget) {

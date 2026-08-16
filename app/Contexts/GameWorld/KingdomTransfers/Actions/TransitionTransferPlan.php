@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
@@ -20,6 +21,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class TransitionTransferPlan
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private TransferAuthorization $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -46,8 +48,9 @@ final readonly class TransitionTransferPlan
         ): TransferPlan {
             // Opening enforces the Alliance-wide singleton-open-plan invariant.
             $authority = $target === TransferPlanState::Open
-                ? $this->mutations->requireExclusive($actor, $alliance, TransferPermission::Manage)
-                : $this->mutations->require($actor, $alliance, TransferPermission::Manage);
+                ? $this->allianceWriteState->lockExclusiveScope($actor, $alliance)
+                : $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->mutations->authorizeContext($authority, TransferPermission::Manage);
             $currentAlliance = $authority->alliance;
             $currentActor = $authority->actor;
 

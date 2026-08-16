@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
@@ -26,6 +27,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveTransferGroup
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private TransferAuthorization $authority,
         private ResolveKingdom $kingdoms,
         private AuditRecorder $audit,
@@ -49,7 +51,8 @@ final readonly class SaveTransferGroup
         ?string $groupId = null,
     ): TransferGroup {
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $groupId): TransferGroup {
-            $context = $this->authority->require($actor, $alliance, TransferPermission::Manage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, TransferPermission::Manage);
 
             // Child mutations share-lock the transfer-plan lifecycle so unrelated
             // groups can change concurrently while plan transitions remain exclusive.

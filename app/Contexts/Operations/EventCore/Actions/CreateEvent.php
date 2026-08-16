@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\EventCore\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
@@ -31,6 +32,7 @@ use InvalidArgumentException;
 final class CreateEvent
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventTargetResolver $targets,
         private EventTypeDefaultsResolver $defaults,
@@ -80,7 +82,8 @@ final class CreateEvent
             $publish,
             $template,
         ): Event {
-            $context = $this->mutations->requireCreate($actor, $configuration, $target);
+            $context = $this->eventWriteState->lockCreationScope($actor, $configuration, $target);
+            $this->mutations->authorizeCreation($context);
             $currentConfiguration = $context->typeScope;
             $currentTarget = $context->target;
             $currentActor = $context->actor;

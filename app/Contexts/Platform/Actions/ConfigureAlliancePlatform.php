@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Actions;
 
+use App\Contexts\Platform\Access\Services\PlatformWriteState;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Platform\Access\Services\PlatformAuthorization;
@@ -20,13 +21,15 @@ final readonly class ConfigureAlliancePlatform
         private AllianceFeatureService $features,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
+        private PlatformWriteState $platformWriteState,
         private PlatformAuthorization $mutations,
     ) {}
 
     public function assignPlan(User $actor, Alliance $alliance, string $planCode): void
     {
         DB::transaction(function () use ($actor, $alliance, $planCode): void {
-            $context = $this->mutations->require($actor);
+            $writeContext = $this->platformWriteState->lock($actor);
+            $context = $this->mutations->authorizeContext($writeContext);
             $currentAlliance = Alliance::query()->whereKey($alliance->id)->sharedLock()->firstOrFail();
 
             $exists = DB::table('platform_plans')
@@ -78,7 +81,8 @@ final readonly class ConfigureAlliancePlatform
         }
 
         return DB::transaction(function () use ($actor, $alliance, $retentionDays, $queuePartition, $apiAccessEnabled, $webhooksEnabled): AlliancePlatformSetting {
-            $context = $this->mutations->require($actor);
+            $writeContext = $this->platformWriteState->lock($actor);
+            $context = $this->mutations->authorizeContext($writeContext);
             $currentAlliance = Alliance::query()->whereKey($alliance->id)->sharedLock()->firstOrFail();
 
             AlliancePlatformSetting::query()->upsert([[
@@ -122,7 +126,8 @@ final readonly class ConfigureAlliancePlatform
         }
 
         DB::transaction(function () use ($actor, $alliance, $featureKey, $enabled, $configuration): void {
-            $context = $this->mutations->require($actor);
+            $writeContext = $this->platformWriteState->lock($actor);
+            $context = $this->mutations->authorizeContext($writeContext);
             $currentAlliance = Alliance::query()->whereKey($alliance->id)->sharedLock()->firstOrFail();
 
             $flag = $this->features->set(

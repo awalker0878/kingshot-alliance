@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Services;
 
+use App\Contexts\Platform\Access\Services\PlatformWriteState;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Platform\Access\Services\PlatformAuthorization;
@@ -27,6 +28,7 @@ final readonly class AllianceDataExportService
 
     public function __construct(
         private AuditRecorder $audit,
+        private PlatformWriteState $platformWriteState,
         private PlatformAuthorization $mutations,
     ) {}
 
@@ -40,7 +42,8 @@ final readonly class AllianceDataExportService
                 DB::statement('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
             }
 
-            $context = $this->mutations->require($actor);
+            $writeContext = $this->platformWriteState->lock($actor);
+            $context = $this->mutations->authorizeContext($writeContext);
             $currentAlliance = Alliance::query()
                 ->whereKey($alliance->id)
                 ->sharedLock()

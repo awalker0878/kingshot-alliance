@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -21,6 +22,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreateWebhookSubscription
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $mutations,
         private PlanEntitlementService $entitlements,
         private WebhookEndpointPolicy $endpointPolicy,
@@ -50,7 +52,8 @@ final readonly class CreateWebhookSubscription
 
         return DB::transaction(function () use ($alliance, $actor, $name, $url, $events): WebhookSubscription {
             // Webhook capacity is Alliance-wide, so serialize this quota-sensitive mutation.
-            $authority = $this->mutations->requireExclusive($actor, $alliance, AlliancePermission::Manage);
+            $authority = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $this->mutations->authorizeContext($authority, AlliancePermission::Manage);
             $currentAlliance = $authority->alliance;
             $currentActor = $authority->actor;
 

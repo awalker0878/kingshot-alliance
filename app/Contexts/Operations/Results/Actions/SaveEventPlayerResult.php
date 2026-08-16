@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
@@ -24,6 +25,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveEventPlayerResult
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventParticipantAuthorization $participants,
         private EventCapabilityGuard $capabilities,
@@ -63,7 +65,8 @@ final readonly class SaveEventPlayerResult
         }
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $player, $outcome, $score, $rank, $notes, $metrics, $metricSource): EventPlayerResult {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Results);
 
             $lockedOccurrence = EventOccurrence::query()

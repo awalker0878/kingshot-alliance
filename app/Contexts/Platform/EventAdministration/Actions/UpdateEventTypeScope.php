@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\EventAdministration\Actions;
 
+use App\Contexts\Platform\Access\Services\PlatformWriteState;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Operations\EventCore\Actions\PersistEventTypeScopeConfiguration;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 final class UpdateEventTypeScope
 {
     public function __construct(
+        private PlatformWriteState $platformWriteState,
         private PlatformAuthorization $platformMutations,
         private PersistEventTypeScopeConfiguration $persistConfiguration,
         private AuditRecorder $audit,
@@ -63,7 +65,8 @@ final class UpdateEventTypeScope
             $defaultSettings,
             $capabilities,
         ): EventTypeScope {
-            $context = $this->platformMutations->require($actor);
+            $writeContext = $this->platformWriteState->lock($actor);
+            $context = $this->platformMutations->authorizeContext($writeContext);
             $updated = $this->persistConfiguration->handle(
                 configuration: $configuration,
                 isActive: $isActive,

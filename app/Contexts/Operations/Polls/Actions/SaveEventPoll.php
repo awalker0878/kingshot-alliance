@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Polls\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
@@ -23,6 +24,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveEventPoll
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
@@ -71,7 +73,8 @@ final readonly class SaveEventPoll
         }
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $poll, $key, $type, $question, $questionKey, $opensAt, $closesAt, $status, $maxChoices, $options, $settings): EventPoll {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Polls);
 
             $lockedOccurrence = EventOccurrence::query()

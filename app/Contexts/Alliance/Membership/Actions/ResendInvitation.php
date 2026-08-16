@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Membership\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
@@ -27,6 +28,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class ResendInvitation
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private InvitationTokenService $tokens,
         private AuditRecorder $audit,
@@ -38,11 +40,8 @@ final readonly class ResendInvitation
         return DB::transaction(function () use ($alliance, $actor, $invitationId): IssuedInvitation {
             // Resend can revive an expired invitation and therefore reserve member
             // capacity again; serialize it with other capacity-sensitive membership writes.
-            $context = $this->authority->requireExclusive(
-                $actor,
-                $alliance,
-                AlliancePermission::InvitationManage,
-            );
+            $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::InvitationManage);
 
             $invitation = Invitation::query()
                 ->where('id', $invitationId)

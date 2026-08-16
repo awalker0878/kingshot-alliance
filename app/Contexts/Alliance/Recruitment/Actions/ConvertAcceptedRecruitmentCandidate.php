@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AlliancePermissionEvaluator;
@@ -25,6 +26,7 @@ use Illuminate\Validation\ValidationException;
 final class ConvertAcceptedRecruitmentCandidate
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private AlliancePermissionEvaluator $permissions,
         private IssueAllianceInvitation $invitationIssuer,
@@ -41,11 +43,8 @@ final class ConvertAcceptedRecruitmentCandidate
         return DB::transaction(function () use ($actor, $alliance, $candidate, $target): ConvertedRecruitmentCandidate {
             // Conversion creates a member-capacity reservation, so acquire the
             // Alliance-wide boundary before candidate/Player child state.
-            $context = $this->authority->requireExclusive(
-                $actor,
-                $alliance,
-                AlliancePermission::RecruitmentManage,
-            );
+            $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             // Conversion composes Recruitment and Memberships. Both permissions must
             // be true on the same locked membership authority snapshot.

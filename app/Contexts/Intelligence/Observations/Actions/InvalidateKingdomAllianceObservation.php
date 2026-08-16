@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Observations\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
 use App\Contexts\GameWorld\Models\Player;
@@ -20,6 +21,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class InvalidateKingdomAllianceObservation
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceIntelligenceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -33,7 +35,8 @@ final readonly class InvalidateKingdomAllianceObservation
         ?string $reason,
     ): KingdomAllianceObservation {
         return DB::transaction(function () use ($alliance, $actor, $trackingId, $observationId, $reason): KingdomAllianceObservation {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
 
             $tracking = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $context->alliance->id)

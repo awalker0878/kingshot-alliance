@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
@@ -21,6 +22,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveEventRoster
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
@@ -72,7 +74,8 @@ final readonly class SaveEventRoster
         );
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $key, $type, $assignmentGroup, $name, $nameKey, $capacity, $sortOrder, $settings, $parent, $roster, $occupying): EventRoster {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Rosters);
 
             // The occurrence is the Roster subdomain coordination boundary: hierarchy,

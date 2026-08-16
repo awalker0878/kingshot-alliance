@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Reminders\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Models\Event;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class DisableEventReminderRule
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -24,7 +26,8 @@ final readonly class DisableEventReminderRule
     public function handle(Player $actor, Event $event, EventReminderRule $rule): EventReminderRule
     {
         return DB::transaction(function () use ($actor, $event, $rule): EventReminderRule {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $locked = EventReminderRule::query()
                 ->whereKey($rule->id)
                 ->where('event_id', $context->event->id)

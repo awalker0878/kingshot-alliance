@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
@@ -26,6 +27,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveTransferParticipant
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private TransferAuthorization $authority,
         private ResolveKingdom $kingdoms,
         private ResolveTransferPlayer $players,
@@ -52,7 +54,8 @@ final readonly class SaveTransferParticipant
         ?string $participantId = null,
     ): TransferParticipant {
         return DB::transaction(function () use ($alliance, $actor, $planId, $attributes, $participantId): TransferParticipant {
-            $context = $this->authority->require($actor, $alliance, TransferPermission::Manage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, TransferPermission::Manage);
 
             // Ordinary participant work shares the transfer-plan lifecycle. Plan
             // transitions retain the exclusive plan lock and therefore wait for all

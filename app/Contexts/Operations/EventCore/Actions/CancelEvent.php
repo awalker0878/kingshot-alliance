@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\EventCore\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventOccurrenceStatus;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 final class CancelEvent
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -25,7 +27,8 @@ final class CancelEvent
     public function handle(Player $actor, Event $event): Event
     {
         return DB::transaction(function () use ($actor, $event): Event {
-            $context = $this->mutations->requireManagerExclusive($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event, true);
+            $this->mutations->authorizeManager($context);
             $locked = $context->event;
             $target = $context->target;
             $currentActor = $context->actor;

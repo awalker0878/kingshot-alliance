@@ -27,7 +27,7 @@ final readonly class DeletePlayerFormation
         }
 
         DB::transaction(function () use ($actor, $formation): void {
-            $context = $this->authority->require($actor);
+            $context = $this->authority->lockActor($actor);
 
             $locked = PlayerFormation::query()
                 ->whereKey($formation->id)

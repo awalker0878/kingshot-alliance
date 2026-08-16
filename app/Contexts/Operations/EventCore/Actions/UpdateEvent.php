@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\EventCore\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventOccurrenceStatus;
@@ -26,6 +27,7 @@ use InvalidArgumentException;
 final class UpdateEvent
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventSchedulePolicyResolver $schedulePolicy,
         private RecurrenceCalculator $recurrence,
@@ -67,7 +69,8 @@ final class UpdateEvent
             $recurrenceUntilLocal,
             $settings,
         ): Event {
-            $context = $this->mutations->requireManagerExclusive($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event, true);
+            $this->mutations->authorizeManager($context);
             $locked = $context->event;
             $target = $context->target;
             $currentActor = $context->actor;

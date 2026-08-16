@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
@@ -23,6 +24,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveContentItem
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private ContentSanitizer $sanitizer,
         private ContentRevisionWriter $revisions,
@@ -46,7 +48,8 @@ final readonly class SaveContentItem
     public function handle(Alliance $alliance, Player $actor, array $attributes, ?string $contentItemId = null): ContentItem
     {
         return DB::transaction(function () use ($alliance, $actor, $attributes, $contentItemId): ContentItem {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::ContentManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
             $categoryId = $attributes['category_id'] ?? null;
             $this->assertCategory($context->alliance, $categoryId);
 

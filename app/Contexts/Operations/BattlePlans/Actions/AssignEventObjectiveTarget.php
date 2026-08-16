@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\BattlePlans\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\BattlePlans\Models\EventObjective;
@@ -22,6 +23,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class AssignEventObjectiveTarget
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventParticipantAuthorization $participants,
         private EventCapabilityGuard $capabilities,
@@ -43,7 +45,8 @@ final readonly class AssignEventObjectiveTarget
         }
 
         return DB::transaction(function () use ($actor, $objective, $occurrence, $event, $assignmentTarget, $notes): EventObjectiveAssignment {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Objectives);
 
             $lockedOccurrence = EventOccurrence::query()

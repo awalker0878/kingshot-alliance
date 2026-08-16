@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -21,6 +22,7 @@ use Illuminate\Validation\ValidationException;
 final class ChangeRecruitmentStage
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -35,7 +37,8 @@ final class ChangeRecruitmentStage
         ?CarbonImmutable $nextActionAt = null,
     ): RecruitmentCandidate {
         return DB::transaction(function () use ($actor, $alliance, $candidate, $target, $reason, $nextActionAt): RecruitmentCandidate {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::RecruitmentManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             $locked = RecruitmentCandidate::query()
                 ->where('alliance_id', $context->alliance->id)

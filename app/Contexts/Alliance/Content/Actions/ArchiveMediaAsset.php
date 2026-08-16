@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Enums\MediaLifecycleStatus;
@@ -19,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class ArchiveMediaAsset
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -27,7 +29,8 @@ final readonly class ArchiveMediaAsset
     public function handle(Alliance $alliance, Player $actor, string $mediaId): MediaAsset
     {
         return DB::transaction(function () use ($alliance, $actor, $mediaId): MediaAsset {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::ContentManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
             $asset = MediaAsset::query()
                 ->where('id', $mediaId)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\BattlePlans\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\BattlePlans\Enums\EventObjectiveStatus;
@@ -21,6 +22,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveEventObjective
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
@@ -74,7 +76,8 @@ final readonly class SaveEventObjective
         }
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $name, $objectiveType, $description, $priority, $startsAt, $endsAt, $status, $sortOrder, $metadata, $parent, $objective): EventObjective {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Objectives);
 
             // Objective hierarchy/timing is occurrence-owned. Serializing structure on

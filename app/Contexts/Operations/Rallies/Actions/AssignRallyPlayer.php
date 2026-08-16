@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
@@ -22,6 +23,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class AssignRallyPlayer
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private RallyPlayerEligibility $eligibility,
@@ -45,7 +47,8 @@ final readonly class AssignRallyPlayer
         $event = $group->occurrence->event;
 
         return DB::transaction(function () use ($actor, $group, $player, $role, $slotNumber, $notes, $event): RallyAssignment {
-            $context = $this->eventAuthority->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->eventAuthority->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::RallyGuidance);
 
             // One Player may occupy only one Rally group per occurrence, so the

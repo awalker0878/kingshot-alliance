@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 final class RefreshContributionDataQuality
 {
     public function __construct(
+        private readonly AllianceWriteState $allianceWriteState,
         private readonly AllianceIntelligenceAuthorization $authority,
         private readonly ContributionPeriodResolver $periods,
         private readonly AuditRecorder $audit,
@@ -30,7 +32,8 @@ final class RefreshContributionDataQuality
     public function handle(Player $actor, Alliance $alliance): array
     {
         return DB::transaction(function () use ($actor, $alliance): array {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
 
             // Refresh is a Contributions-wide derived-state rebuild. Stabilize the two
             // source sets in the same order used by contribution entry: membership then category.

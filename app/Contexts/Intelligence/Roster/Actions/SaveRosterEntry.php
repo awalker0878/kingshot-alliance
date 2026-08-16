@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
@@ -20,6 +21,7 @@ use InvalidArgumentException;
 final readonly class SaveRosterEntry
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceIntelligenceAuthorization $authority,
         private ResolvePlayer $players,
         private AuditRecorder $audit,
@@ -50,7 +52,8 @@ final readonly class SaveRosterEntry
         }
 
         return DB::transaction(function () use ($alliance, $actor, $attributes, $entryId, $source, $importId, $expectedPlayerId): AllianceRosterEntry {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
             $name = trim($attributes['name']);
             $state = $attributes['state'] ?? RosterState::Active;
 

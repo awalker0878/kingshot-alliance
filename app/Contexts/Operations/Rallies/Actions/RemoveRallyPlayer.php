@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class RemoveRallyPlayer
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
@@ -32,7 +34,8 @@ final readonly class RemoveRallyPlayer
         $event = $group->occurrence->event;
 
         return DB::transaction(function () use ($actor, $assignment, $group, $event): RallyAssignment {
-            $context = $this->eventAuthority->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->eventAuthority->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::RallyGuidance);
 
             // Removal changes only one assignment. Shared occurrence/group locks make

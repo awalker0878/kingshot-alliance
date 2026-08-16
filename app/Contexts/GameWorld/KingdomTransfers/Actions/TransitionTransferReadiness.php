@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -23,6 +24,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class TransitionTransferReadiness
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private TransferAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -36,7 +38,8 @@ final readonly class TransitionTransferReadiness
         TransferReadinessState $target,
     ): TransferParticipant {
         return DB::transaction(function () use ($alliance, $actor, $planId, $participantId, $target): TransferParticipant {
-            $context = $this->authority->require($actor, $alliance, TransferPermission::Manage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, TransferPermission::Manage);
 
             $plan = TransferPlan::query()
                 ->where('alliance_id', $context->alliance->id)

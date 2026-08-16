@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Membership\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -19,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class UpdateAllianceRank
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -37,7 +39,8 @@ final readonly class UpdateAllianceRank
         }
 
         return DB::transaction(function () use ($alliance, $actor, $membershipId, $rank): AllianceMembership {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::RoleManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::RoleManage);
 
             $locked = AllianceMembership::query()
                 ->whereKey($membershipId)

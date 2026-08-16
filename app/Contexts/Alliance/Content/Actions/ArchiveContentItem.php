@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class ArchiveContentItem
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -25,7 +27,8 @@ final readonly class ArchiveContentItem
     public function handle(Alliance $alliance, Player $actor, string $contentItemId): ContentItem
     {
         return DB::transaction(function () use ($alliance, $actor, $contentItemId): ContentItem {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::ContentManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
             $item = ContentItem::query()
                 ->where('id', $contentItemId)

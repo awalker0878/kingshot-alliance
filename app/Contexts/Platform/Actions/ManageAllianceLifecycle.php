@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Actions;
 
+use App\Contexts\Platform\Access\Services\PlatformWriteState;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Actions\AllianceLifecycleMutation;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
@@ -23,6 +24,7 @@ final readonly class ManageAllianceLifecycle
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
         private LegalHoldService $legalHolds,
+        private PlatformWriteState $platformWriteState,
         private PlatformAuthorization $mutations,
         private AllianceLifecycleMutation $allianceLifecycle,
     ) {}
@@ -60,7 +62,8 @@ final readonly class ManageAllianceLifecycle
         }
 
         return DB::transaction(function () use ($actor, $alliance, $target, $reason, $event): Alliance {
-            $context = $this->mutations->require($actor);
+            $writeContext = $this->platformWriteState->lock($actor);
+            $context = $this->mutations->authorizeContext($writeContext);
 
             // Alliance Core owns the exclusive lifecycle lock and state transition.
             // Holding that lock while Platform checks its legal-hold and retention

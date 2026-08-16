@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Content\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
@@ -21,6 +22,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class RestoreContentRevision
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private ContentRevisionWriter $revisions,
         private AuditRecorder $audit,
@@ -30,7 +32,8 @@ final readonly class RestoreContentRevision
     public function handle(Alliance $alliance, Player $actor, string $contentItemId, string $revisionId): ContentItem
     {
         return DB::transaction(function () use ($alliance, $actor, $contentItemId, $revisionId): ContentItem {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::ContentManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
             $item = ContentItem::query()
                 ->where('id', $contentItemId)

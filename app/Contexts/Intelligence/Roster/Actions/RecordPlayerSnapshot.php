@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
@@ -23,6 +24,7 @@ final readonly class RecordPlayerSnapshot
     private const MAX_POWER = '9223372036854775807';
 
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceIntelligenceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -63,7 +65,8 @@ final readonly class RecordPlayerSnapshot
                 $currentActor = null;
             } else {
                 /** @var Player $actor */
-                $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
+                $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+                $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
                 $currentAlliance = $context->alliance;
                 $currentActor = $context->actor;
             }

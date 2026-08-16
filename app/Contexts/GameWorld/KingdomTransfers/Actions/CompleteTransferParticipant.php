@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Actions\LeaveAlliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
@@ -33,6 +34,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CompleteTransferParticipant
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private TransferAuthorization $authority,
         private SaveRosterEntry $saveRoster,
         private MarkRosterEntryLeft $markRosterLeft,
@@ -49,7 +51,8 @@ final readonly class CompleteTransferParticipant
         string $participantId,
     ): TransferCompletion {
         return DB::transaction(function () use ($alliance, $actor, $planId, $participantId): TransferCompletion {
-            $context = $this->authority->require($actor, $alliance, TransferPermission::Manage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, TransferPermission::Manage);
 
             // Completion is child work after a plan is Locked. Shared plan lifecycle
             // permits independent participant completions while close/other plan state

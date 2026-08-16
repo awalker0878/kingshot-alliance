@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Services;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
@@ -27,6 +28,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class KingPerkAutoScheduler
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private KingPerkScheduler $scheduler,
@@ -49,7 +51,8 @@ final readonly class KingPerkAutoScheduler
         $authorizedPlan = DB::transaction(function () use ($actor, $plan): KingPerkPlan {
             $route = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($plan->id)->firstOrFail();
             $event = Event::query()->whereKey($route->event_id)->firstOrFail();
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::KingPerks);
 
             if (! $context->target instanceof Kingdom

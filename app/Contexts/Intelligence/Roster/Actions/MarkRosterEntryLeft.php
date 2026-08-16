@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class MarkRosterEntryLeft
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceIntelligenceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -25,7 +27,8 @@ final readonly class MarkRosterEntryLeft
     public function handle(Alliance $alliance, Player $actor, string $entryId): AllianceRosterEntry
     {
         return DB::transaction(function () use ($alliance, $actor, $entryId): AllianceRosterEntry {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
 
             $routing = AllianceRosterEntry::query()
                 ->select(['id', 'player_id'])

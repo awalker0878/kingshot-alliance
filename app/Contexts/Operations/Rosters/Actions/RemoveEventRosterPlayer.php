@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class RemoveEventRosterPlayer
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
@@ -33,7 +35,8 @@ final readonly class RemoveEventRosterPlayer
         $event = $occurrence->event;
 
         return DB::transaction(function () use ($actor, $member, $roster, $occurrence, $event): EventRosterMember {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Rosters);
 
             $lockedOccurrence = EventOccurrence::query()

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
@@ -21,6 +22,7 @@ use InvalidArgumentException;
 final class CreateContributionCategory
 {
     public function __construct(
+        private readonly AllianceWriteState $allianceWriteState,
         private readonly AllianceIntelligenceAuthorization $authority,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
@@ -59,7 +61,8 @@ final class CreateContributionCategory
         }
 
         return DB::transaction(function () use ($actor, $alliance, $name, $slug, $unit, $period, $dataClass, $goalValue, $evidenceRequired, $allowSelfReport, $leaderboardEnabled, $description, $periodStart, $periodEnd, $calculationKey, $calculationVersion, $calculationDescription): ContributionCategory {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
 
             if (ContributionCategory::query()
                 ->where('alliance_id', $context->alliance->id)

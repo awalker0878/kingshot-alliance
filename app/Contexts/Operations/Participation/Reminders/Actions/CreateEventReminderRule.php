@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Reminders\Actions;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
@@ -23,6 +24,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreateEventReminderRule
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventCapabilityResolver $capabilities,
         private AuditRecorder $audit,
@@ -46,7 +48,8 @@ final readonly class CreateEventReminderRule
         }
 
         return DB::transaction(function () use ($actor, $event, $minutesBefore, $audience, $channel, $trigger, $poll): EventReminderRule {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $currentEvent = $context->event;
 
             if ($audience === EventReminderAudience::Target && $currentEvent->scope !== EventScope::Player) {

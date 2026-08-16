@@ -54,7 +54,7 @@ final readonly class SavePlayerFormation
         return DB::transaction(function () use ($actor, $name, $composition, $heroes, $notes, $isDefault, $formation): PlayerFormation {
             // Player is the natural configuration anchor. It serializes default
             // selection across all of this Player's formations without any Alliance lock.
-            $context = $this->authority->require($actor);
+            $context = $this->authority->lockActor($actor);
 
             $record = $formation instanceof PlayerFormation
                 ? PlayerFormation::query()

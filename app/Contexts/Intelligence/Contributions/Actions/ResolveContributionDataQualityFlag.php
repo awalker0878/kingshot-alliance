@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 final class ResolveContributionDataQualityFlag
 {
     public function __construct(
+        private readonly AllianceWriteState $allianceWriteState,
         private readonly AllianceIntelligenceAuthorization $authority,
         private readonly AuditRecorder $audit,
     ) {}
@@ -25,7 +27,8 @@ final class ResolveContributionDataQualityFlag
         ContributionDataQualityFlag $flag,
     ): ContributionDataQualityFlag {
         return DB::transaction(function () use ($actor, $alliance, $flag): ContributionDataQualityFlag {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
             $locked = ContributionDataQualityFlag::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($flag->id)

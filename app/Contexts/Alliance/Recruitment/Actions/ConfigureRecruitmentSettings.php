@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -18,6 +19,7 @@ use InvalidArgumentException;
 final class ConfigureRecruitmentSettings
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -52,11 +54,8 @@ final class ConfigureRecruitmentSettings
         ): RecruitmentSetting {
             // Recruitment settings are one singleton row per Alliance. Exclusive
             // parent coordination prevents concurrent first-create races.
-            $context = $this->authority->requireExclusive(
-                $actor,
-                $alliance,
-                AlliancePermission::RecruitmentManage,
-            );
+            $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             $settings = RecruitmentSetting::query()
                 ->where('alliance_id', $context->alliance->id)

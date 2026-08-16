@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Membership\Actions;
 
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -18,6 +19,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class RevokeInvitation
 {
     public function __construct(
+        private AllianceWriteState $allianceWriteState,
         private AllianceAuthorization $authority,
         private AuditRecorder $audit,
     ) {}
@@ -25,7 +27,8 @@ final readonly class RevokeInvitation
     public function handle(Alliance $alliance, Player $actor, string $invitationId): Invitation
     {
         return DB::transaction(function () use ($alliance, $actor, $invitationId): Invitation {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::InvitationManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::InvitationManage);
 
             $invitation = Invitation::query()
                 ->where('id', $invitationId)

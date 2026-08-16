@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Services;
 
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
@@ -31,6 +32,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class KingPerkScheduler
 {
     public function __construct(
+        private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private KingPerkWindowResolver $windows,
@@ -44,7 +46,8 @@ final readonly class KingPerkScheduler
         $event = $occurrence->event;
 
         return DB::transaction(function () use ($actor, $occurrence, $event): KingPerkPlan {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::KingPerks);
             $kingdom = $this->requireKingdom($context->target);
 
@@ -371,7 +374,8 @@ final readonly class KingPerkScheduler
         $route = KingPerkAppointment::query()->select(['id', 'plan_id', 'assigned_player_id'])->whereKey($appointment->id)->firstOrFail();
         $planRoute = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($route->plan_id)->firstOrFail();
         $event = Event::query()->whereKey($planRoute->event_id)->firstOrFail();
-        $context = $this->mutations->requireSelf($actor, $event, $actor);
+        $context = $this->eventWriteState->lockSelfScope($actor, $event, $actor);
+        $this->mutations->authorizeSelf($context, $actor);
         $this->capabilities->require($context->event, EventCapability::KingPerks);
 
         if ((string) $route->assigned_player_id !== (string) $context->actor->id
@@ -415,7 +419,8 @@ final readonly class KingPerkScheduler
     {
         $route = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($plan->id)->firstOrFail();
         $event = Event::query()->whereKey($route->event_id)->firstOrFail();
-        $context = $this->mutations->requireManager($actor, $event);
+        $context = $this->eventWriteState->lockEventScope($actor, $event);
+        $this->mutations->authorizeManager($context);
         $this->capabilities->require($context->event, EventCapability::KingPerks);
         $kingdom = $this->requireKingdom($context->target);
 

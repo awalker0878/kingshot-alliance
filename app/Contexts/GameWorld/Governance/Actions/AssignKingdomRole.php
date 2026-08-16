@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Governance\Actions;
 
+use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
 use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
@@ -19,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class AssignKingdomRole
 {
     public function __construct(
+        private KingdomWriteState $kingdomWriteState,
         private KingdomAuthorization $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -31,7 +33,8 @@ final readonly class AssignKingdomRole
         DefaultKingdomRole $roleTemplate,
     ): KingdomRoleAssignment {
         return DB::transaction(function () use ($actor, $kingdom, $target, $roleTemplate): KingdomRoleAssignment {
-            $authority = $this->mutations->require($actor, $kingdom, KingdomPermission::RoleManage);
+            $authority = $this->kingdomWriteState->lockActiveScope($actor, $kingdom);
+            $this->mutations->authorizeContext($authority, KingdomPermission::RoleManage);
             $currentKingdom = $authority->kingdom;
             $currentActor = $authority->actor;
 
