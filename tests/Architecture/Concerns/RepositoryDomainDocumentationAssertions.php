@@ -92,7 +92,11 @@ trait RepositoryDomainDocumentationAssertions
 
                 $validated++;
                 self::assertStringContainsString('**Status:**', $contents, $this->relativePath($path));
-                self::assertStringContainsString('**Owning domain:**', $contents, $this->relativePath($path));
+                self::assertMatchesRegularExpression(
+                    '/^\*\*Owning domains?:\*\*\s+\S.+$/m',
+                    $contents,
+                    $this->relativePath($path).' must declare one or more owning domains.',
+                );
 
                 $this->assertHeadingsAppearInOrder($contents, [
                     '## 1. Purpose',
@@ -165,13 +169,11 @@ trait RepositoryDomainDocumentationAssertions
         return $domains;
     }
 
-    /** @return list<string> */
     private function deferredDomainDocumentation(): array
     {
         return ['king-perks'];
     }
 
-    /** @return list<string> */
     private function historicalDomainDocumentation(): array
     {
         return [
