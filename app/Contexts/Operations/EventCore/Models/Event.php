@@ -28,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $starts_at
  * @property Carbon|null $recurrence_until
  * @property-read EventType $eventType
+ * @property-read EventTypeScope $typeScope
  */
 final class Event extends Model
 {
