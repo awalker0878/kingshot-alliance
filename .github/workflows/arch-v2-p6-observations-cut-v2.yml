@@ -1,0 +1,132 @@
+name: ARCH V2 P6 Observations Cut V2
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths:
+      - '.github/workflows/arch-v2-p6-observations-cut-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  hard-cut:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out architecture-v2
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v2
+          fetch-depth: 0
+
+      - name: Move tracking and observation core into Intelligence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          groups = {
+              'Actions': [
+                  'ArchiveTrackedKingdomAlliance',
+                  'InvalidateKingdomAllianceObservation',
+                  'RecordKingdomAllianceObservation',
+                  'StartTrackingKingdomAlliance',
+                  'UpdateTrackedKingdomAlliance',
+              ],
+              'Queries': ['KingdomAllianceObservationQuery', 'KingdomAllianceQuery'],
+          }
+          replacements = {
+              r'App\Contexts\GameWorld\Models\KingdomAllianceObservation': r'App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation',
+          }
+          for group, names in groups.items():
+              for name in names:
+                  replacements[f'App\\Domain\\Kingdoms\\{group}\\{name}'] = f'App\\Contexts\\Intelligence\\Observations\\{group}\\{name}'
+
+          for group, names in groups.items():
+              for name in names:
+                  src = Path(f'app/Domain/Kingdoms/{group}/{name}.php')
+                  dst = Path(f'app/Contexts/Intelligence/Observations/{group}/{name}.php')
+                  if not src.is_file():
+                      raise SystemExit(f'Missing source for P6 Observations cut: {src}')
+                  dst.parent.mkdir(parents=True, exist_ok=True)
+                  text = src.read_text(encoding='utf-8')
+                  text = text.replace(
+                      f'namespace App\\Domain\\Kingdoms\\{group};',
+                      f'namespace App\\Contexts\\Intelligence\\Observations\\{group};',
+                  )
+                  for old, new in replacements.items():
+                      text = text.replace(old, new)
+                  dst.write_text(text, encoding='utf-8')
+                  src.unlink()
+
+          # The V1 one-line PHPDoc was not parsed as a generic return type by phpstan.
+          record = Path('app/Contexts/Intelligence/Observations/Actions/RecordKingdomAllianceObservation.php')
+          text = record.read_text(encoding='utf-8')
+          old_doc = '/** @param array<string,mixed> $provenance @return array<string,string|null> */'
+          new_doc = '''/**
+     * @param array<string, mixed> $provenance
+     * @return array<string, string|null>
+     */'''
+          if old_doc not in text:
+              raise SystemExit('Expected machineProvenance PHPDoc was not found after move.')
+          record.write_text(text.replace(old_doc, new_doc, 1), encoding='utf-8')
+
+          for root_name in ('app', 'routes', 'bootstrap', 'config', 'database'):
+              root = Path(root_name)
+              if not root.exists():
+                  continue
+              for path in root.rglob('*.php'):
+                  text = path.read_text(encoding='utf-8')
+                  rewritten = text
+                  for old, new in replacements.items():
+                      rewritten = rewritten.replace(old, new)
+                  if rewritten != text:
+                      path.write_text(rewritten, encoding='utf-8')
+          PY
+
+      - name: Verify observation core is V2-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in \
+            app/Domain/Kingdoms/Actions/ArchiveTrackedKingdomAlliance.php \
+            app/Domain/Kingdoms/Actions/InvalidateKingdomAllianceObservation.php \
+            app/Domain/Kingdoms/Actions/RecordKingdomAllianceObservation.php \
+            app/Domain/Kingdoms/Actions/StartTrackingKingdomAlliance.php \
+            app/Domain/Kingdoms/Actions/UpdateTrackedKingdomAlliance.php \
+            app/Domain/Kingdoms/Queries/KingdomAllianceObservationQuery.php \
+            app/Domain/Kingdoms/Queries/KingdomAllianceQuery.php; do
+            test ! -e "$path"
+          done
+          matches=$(grep -R -n --include='*.php' 'App\\Domain\\' app/Contexts/Intelligence/Observations 2>/dev/null || true)
+          if [ -n "$matches" ]; then echo "$matches"; exit 1; fi
+          bogus=$(grep -R -n --include='*.php' 'App\\Contexts\\GameWorld\\Models\\KingdomAllianceObservation' app routes bootstrap config database 2>/dev/null || true)
+          if [ -n "$bogus" ]; then echo "$bogus"; exit 1; fi
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pdo_pgsql, xml, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Format Observations
+        run: vendor/bin/pint app/Contexts/Intelligence/Observations
+
+      - name: Static-check Observations
+        run: vendor/bin/phpstan analyse --memory-limit=1G app/Contexts/Intelligence/Observations app/Contexts/GameWorld/Actions/ResolveKingdomAlliance.php
+
+      - name: Commit P6 observation core cut
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'awalker0878'
+          git config user.email '52688461+awalker0878@users.noreply.github.com'
+          git add app routes bootstrap config database
+          git commit -m 'ARCH-V2-P6: hard cut Intelligence observation core'
+          git push origin HEAD:architecture-v2
