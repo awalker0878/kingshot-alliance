@@ -1,0 +1,38 @@
+name: V3 CA-P3 Publish Write Audit
+
+on:
+  push:
+    branches:
+      - architecture-v3-capability-alignment
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: ${{ !contains(github.event.head_commit.message, 'publish P3 foreign-write audit') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v3-capability-alignment
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+      - name: Generate readable audit
+        shell: bash
+        run: |
+          set +e
+          vendor/bin/phpunit tests/v3/Architecture/CrossContextPersistenceV3Test.php 2>&1 | tee ARCH_V3_P3_FOREIGN_WRITE_AUDIT.txt
+          exit 0
+      - name: Commit audit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ARCH_V3_P3_FOREIGN_WRITE_AUDIT.txt
+          git commit -m "chore(v3): publish P3 foreign-write audit [skip ci]"
+          git push origin HEAD:architecture-v3-capability-alignment
