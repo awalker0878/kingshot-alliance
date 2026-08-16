@@ -7,8 +7,8 @@ namespace App\Contexts\Operations\Rosters\Services;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Enums\EventRosterType;
+use App\Contexts\Operations\Rosters\Models\EventRoster;
 
 final readonly class EventRosterService
 {

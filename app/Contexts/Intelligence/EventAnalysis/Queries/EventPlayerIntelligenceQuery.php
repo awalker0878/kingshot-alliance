@@ -6,17 +6,17 @@ namespace App\Contexts\Intelligence\EventAnalysis\Queries;
 
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\Participation\Models\EventAttendance;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\Results\Models\EventPlayerResult;
-use App\Contexts\Operations\Participation\Models\EventRegistration;
-use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use App\Contexts\Operations\Participation\Enums\EventAttendanceStatus;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
+use App\Contexts\Operations\Participation\Models\EventAttendance;
+use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\Participation\Queries\EventEligiblePlayerQuery;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
 use App\Contexts\Operations\Rallies\Models\RallyAssignment;
+use App\Contexts\Operations\Results\Models\EventPlayerResult;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
+use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Illuminate\Support\Collection;
 
 final readonly class EventPlayerIntelligenceQuery

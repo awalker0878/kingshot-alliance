@@ -7,12 +7,12 @@ namespace App\Contexts\Operations\Rosters\Queries;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\EventCore\Models\EventResponse;
+use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
+use App\Contexts\Operations\Participation\Models\EventRegistration;
+use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
-use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
-use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Services\EventRosterAvailabilityService;
 
 final readonly class EventRosterQuery

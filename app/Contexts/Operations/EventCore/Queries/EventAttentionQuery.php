@@ -12,15 +12,15 @@ use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Models\EventPoll;
 use App\Contexts\Operations\EventCore\Models\EventPollVote;
-use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\EventCore\Models\EventResponse;
-use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use App\Contexts\Operations\EventCore\Services\ActivePlayerEventVisibilityResolver;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityResolver;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
+use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\Participation\Services\EventRegistrationWindow;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
+use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 

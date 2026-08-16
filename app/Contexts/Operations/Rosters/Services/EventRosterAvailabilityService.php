@@ -7,10 +7,10 @@ namespace App\Contexts\Operations\Rosters\Services;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\EventCore\Models\EventResponse;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
+use App\Contexts\Operations\Participation\Models\EventRegistration;
 use Carbon\CarbonImmutable;
 
 final readonly class EventRosterAvailabilityService

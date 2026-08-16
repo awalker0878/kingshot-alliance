@@ -10,11 +10,11 @@ use App\Contexts\Operations\EventCore\Models\EventAllianceResult;
 use App\Contexts\Operations\EventCore\Models\EventAllianceResultMetric;
 use App\Contexts\Operations\EventCore\Models\EventMetricDefinition;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\Results\Models\EventPlayerResult;
-use App\Contexts\Operations\Results\Models\EventPlayerResultMetric;
 use App\Contexts\Operations\EventCore\Models\EventResult;
 use App\Contexts\Operations\EventCore\Models\EventResultMetric;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
+use App\Contexts\Operations\Results\Models\EventPlayerResult;
+use App\Contexts\Operations\Results\Models\EventPlayerResultMetric;
 use Carbon\CarbonImmutable;
 use LogicException;
 
