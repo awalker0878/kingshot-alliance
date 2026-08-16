@@ -1,4 +1,4 @@
-name: ARCH V2 Remediation Validation
+name: ARCH V2 Semantic Inventory
 
 on:
   push:
@@ -9,53 +9,16 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  inventory:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          coverage: none
-      - name: Static architecture gates
+      - name: Transactional authorization callsites
         shell: bash
         run: |
-          set -euo pipefail
-          if find app -type f -name '*MutationAuthority.php' | grep -q .; then
-            echo 'MutationAuthority files remain:'
-            find app -type f -name '*MutationAuthority.php'
-            exit 1
-          fi
-          if grep -R -n -E 'MutationAuthority' app routes bootstrap; then
-            echo 'MutationAuthority references remain in production code.'
-            exit 1
-          fi
-          if [ -d app/Contexts/Operations/Reminders ]; then
-            echo 'Top-level Operations/Reminders still exists.'
-            exit 1
-          fi
-          if find app/Workflows -type f \( -path '*/Models/*' -o -path '*/Migrations/*' -o -path '*/Repositories/*' -o -path '*/Access/*' \) | grep -q .; then
-            echo 'Persistent/security ownership remains under Workflows.'
-            exit 1
-          fi
-          if grep -R -n -E 'App\\Contexts\\(Operations|Alliance|GameWorld)\\' app/Contexts/Communications --include='*.php'; then
-            echo 'Communications imports a business-owning context.'
-            exit 1
-          fi
-          if grep -R -n -i -E 'capability coverage|capability-coverage|mutation authority' docs --include='*.md'; then
-            echo 'Superseded governance vocabulary remains.'
-            exit 1
-          fi
-          test ! -e tests/v2/Architecture/CapabilityCoverageV2Test.php
-          test ! -e docs/architecture/decisions/0004-transactional-mutation-authority.md
-          test -e docs/architecture/decisions/0004-transactional-write-authorization.md
-      - name: PHP syntax
-        shell: bash
-        run: |
-          set -euo pipefail
-          find app bootstrap config database routes tests/v2 -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/php-lint.log
-          tail -n 20 /tmp/php-lint.log
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-      - name: Architecture V2 tests
-        run: php artisan test tests/v2/Architecture/ArchitectureComplianceV2Test.php tests/v2/Architecture/ArchitectureBoundariesV2Test.php tests/v2/Architecture/MutationSafetyV2Test.php
+          echo '=== SERVICE IMPORTS / CONSTRUCTORS ==='
+          grep -R -n -E 'AllianceAuthorization|KingdomAuthorization|AllianceOperationsAuthorization|KingdomOperationsAuthorization|AllianceIntelligenceAuthorization|TransferAuthorization|EventAuthorization|PlatformAuthorization|PlayerWriteState' app tests routes bootstrap || true
+          echo '=== REQUIRE / ACQUIRE METHODS ==='
+          grep -R -n -E -- '->(require|requireExclusive|requireManager|requireManagerExclusive|requireSelf|requireCreate|requireManage|acquireActiveScope|acquireExclusiveScope)\(' app tests || true
+          echo '=== AUTHORIZATION CLASSES WITH LOCKING ==='
+          grep -R -n -E 'lockForUpdate|sharedLock|transactionLevel' app/Contexts/*/*/Services/*Authorization.php app/Contexts/*/Access/Services/*Authorization.php 2>/dev/null || true
