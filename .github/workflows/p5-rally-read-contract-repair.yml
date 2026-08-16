@@ -1,0 +1,90 @@
+name: P5 Rally Read Contract Repair
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths:
+      - '.github/workflows/p5-rally-read-contract-repair.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v2
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+          coverage: none
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Repair Rally read contracts
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          query = Path('app/Contexts/Operations/Rallies/Queries/EventRallyQuery.php')
+          text = query.read_text()
+          text = text.replace(
+              "        return $event->occurrences()\n            ->orderBy('starts_at')",
+              "        return array_values($event->occurrences()\n            ->orderBy('starts_at')",
+              1,
+          )
+          text = text.replace("            })->all();\n    }\n\n    /** @return list<array<string,mixed>> */\n    private function savedFormations", "            })->all());\n    }\n\n    /** @return list<array<string,mixed>> */\n    private function savedFormations", 1)
+          text = text.replace(
+              "        return PlayerFormation::query()\n            ->where('player_id', $player->id)",
+              "        return array_values(PlayerFormation::query()\n            ->where('player_id', $player->id)",
+              1,
+          )
+          text = text.replace("            ])->all();\n    }\n\n    /** @param Collection<int,Alliance> $alliances @return list<array<string,mixed>> */", "            ])->all());\n    }\n\n    /**\n     * @param Collection<int,Alliance> $alliances\n     * @return list<array<string,mixed>>\n     */", 1)
+          text = text.replace(
+              "        return RallyGuidanceRule::query()\n            ->whereIn('alliance_id', $alliances->pluck('id'))",
+              "        return array_values(RallyGuidanceRule::query()\n            ->whereIn('alliance_id', $alliances->pluck('id'))",
+              1,
+          )
+          marker = "                'effectiveUntil' => $rule->effective_until?->toDateString(),\n            ])->all();"
+          text = text.replace(marker, "                'effectiveUntil' => $rule->effective_until?->toDateString(),\n            ])->all());", 1)
+          query.write_text(text)
+
+          controller = Path('app/Contexts/Operations/Rallies/Http/Controllers/EventRallyController.php')
+          text = controller.read_text()
+          for key in ['guidance_rule_id', 'assignment_role', 'recommended_formation_id']:
+              text = text.replace(f"isset($validated['{key}']) && $validated['{key}'] !== null", f"isset($validated['{key}'])")
+          controller.write_text(text)
+
+          action = Path('app/Contexts/Operations/Rallies/Actions/SaveRallyGuidanceRule.php')
+          text = action.read_text()
+          text = text.replace(
+              '    /** @param list<string> $heroes @return list<string> */\n    private function normalizeHeroes',
+              '    /**\n     * @param list<string> $heroes\n     * @return list<string>\n     */\n    private function normalizeHeroes',
+              1,
+          )
+          action.write_text(text)
+          PY
+          vendor/bin/pint app/Contexts/Operations/Rallies
+      - name: Commit and self-remove
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/p5-rally-read-contract-repair.yml
+          git add app/Contexts/Operations/Rallies
+          git commit -m 'ARCH-V2: repair Rally read contracts'
+          git push origin HEAD:architecture-v2
+      - name: Dispatch verifier
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail-with-body -L -X POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/architecture-v2-verification.yml/dispatches \
+            -d '{"ref":"architecture-v2"}'
