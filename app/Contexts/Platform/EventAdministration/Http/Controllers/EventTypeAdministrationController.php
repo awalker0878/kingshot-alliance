@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\EventAdministration\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventRecurrencePolicy;
 use App\Contexts\Operations\Events\Enums\EventScheduleSource;
@@ -24,6 +25,8 @@ use Inertia\Response;
 
 final class EventTypeAdministrationController extends Controller
 {
+    public function __construct(private readonly AccountIdentityQuery $accounts) {}
+
     public function index(Request $request): Response
     {
         $types = EventType::query()
@@ -130,7 +133,7 @@ final class EventTypeAdministrationController extends Controller
         }
 
         $update->handle(
-            actor: $this->user($request),
+            actor: $this->account($request),
             configuration: $configuration,
             isActive: (bool) $validated['is_active'],
             defaultDurationMinutes: isset($validated['default_duration_minutes']) ? (int) $validated['default_duration_minutes'] : null,
@@ -156,19 +159,19 @@ final class EventTypeAdministrationController extends Controller
     /** @return array{name:string,email:string} */
     private function identity(Request $request): array
     {
-        $user = $this->user($request);
+        $account = $this->account($request);
 
         return [
-            'name' => (string) $user->name,
-            'email' => (string) $user->email,
+            'name' => $account->name,
+            'email' => $account->email,
         ];
     }
 
-    private function user(Request $request): User
+    private function account(Request $request): AccountIdentity
     {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        $identifier = $request->user()?->getAuthIdentifier();
+        abort_unless(is_numeric($identifier), 401);
 
-        return $user;
+        return $this->accounts->require((int) $identifier);
     }
 }
