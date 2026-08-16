@@ -113,7 +113,21 @@ jobs:
           routes/king-perks.php
 
       - name: King Perks backend tests
-        run: php artisan test tests/Feature/KingPerks tests/Unit/KingPerks
+        shell: bash
+        run: |
+          set -uo pipefail
+          set +e
+          php artisan test tests/Feature/KingPerks tests/Unit/KingPerks 2>&1 | tee king-perks-tests.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 0 ]; then
+            details=$(tail -n 120 king-perks-tests.log)
+            details=${details//'%'/'%25'}
+            details=${details//$'\r'/'%0D'}
+            details=${details//$'\n'/'%0A'}
+            echo "::error title=King Perks backend tests failed::$details"
+            exit "$status"
+          fi
 
   frontend:
     name: King Perks frontend contracts
