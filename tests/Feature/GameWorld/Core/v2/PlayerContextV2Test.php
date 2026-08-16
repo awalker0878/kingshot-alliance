@@ -67,7 +67,7 @@ final class PlayerContextV2Test extends TestCase
 
         $this->actingAs($multiUser)
             ->get(route('dashboard'))
-            ->assertOk()
+            ->assertForbidden()
             ->assertSessionMissing($sessionKey);
     }
 
