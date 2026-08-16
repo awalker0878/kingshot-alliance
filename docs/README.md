@@ -1,68 +1,38 @@
 # Kingshot Alliance documentation
 
-Status: Current — Architecture V2
+Status: Current — Architecture V3
 
-Documentation is organized by **what the reader is trying to understand**, not by mirroring every code package.
+This documentation describes the current intended architecture and operating model. It does not preserve superseded architecture descriptions; repository history provides change history.
 
-## Where do I go?
+## Documentation areas
 
-| I want to… | Go to |
+| Area | Purpose |
 | --- | --- |
-| understand the system, boundaries, ownership and invariants | [Architecture](architecture/README.md) |
-| find where/how something is implemented | [Codebase](codebase/README.md) |
-| deploy, monitor, troubleshoot or recover the application | [System operations](operations/README.md) |
-| understand what users can do | [Product](product/README.md) |
-| understand engineering/security/documentation/production rules | [Governance](governance/README.md) |
-| look up permissions, events, configuration, routes or API facts | [Reference](reference/README.md) |
+| [Architecture](architecture/README.md) | Bounded contexts, capabilities, ownership, authority, consistency and integration boundaries. |
+| [Codebase](codebase/README.md) | Physical source layout and implementation rules. |
+| [System operations](operations/README.md) | Deployment, runtime, monitoring and recovery. |
+| [Product](product/README.md) | User-facing capabilities and terminology. |
+| [Governance](governance/README.md) | Engineering, security, verification and production rules. |
+| [Reference](reference/README.md) | Lookup-oriented permissions, events, configuration, routes and API facts. |
 
-## Canonical structure
+## Architecture V3
 
-```text
-docs/
-├── architecture/
-│   ├── contexts/
-│   └── decisions/
-├── codebase/
-├── operations/
-├── product/
-├── governance/
-└── reference/
-```
+Architecture V3 is capability-first inside seven bounded contexts:
 
-### Architecture
+- Accounts
+- GameWorld
+- Alliance
+- Operations
+- Intelligence
+- Communications
+- Platform
 
-Architecture is organized around bounded contexts containing capabilities. Architecture V2 uses Accounts, GameWorld, Alliance, Operations, Intelligence, Communications and Platform. `app/Workflows`, `app/ReadModels` and `app/Shared` are explicit composition/technical layers, not additional business contexts.
+The source tree is intentionally shaped so the business architecture is visible from `app/Contexts`.
 
-### Codebase
+`app/Workflows` contains only true cross-context command orchestration. `app/ReadModels` contains read-only cross-context composition. `app/Shared` contains business-neutral infrastructure.
 
-Codebase documentation maps that logical model onto `app/Contexts`, Workflows, ReadModels, Shared, routes, persistence, frontend and tests. Physical folders implement architecture; they do not redefine it.
+The canonical V3 source tree is defined in [Source layout](codebase/source-layout.md), and the capability ownership map is defined in [Capability map](architecture/capability-map.md).
 
-### Operations
+## Source-of-truth rule
 
-`docs/operations` describes running the software. This is distinct from the Operations bounded context, which owns Events and live game coordination.
-
-### Product
-
-Product documentation describes implemented user outcomes and terminology.
-
-### Governance
-
-Governance defines how changes are engineered, documented, secured, verified and approved for production. The [Architecture V2 compliance](governance/architecture-compliance.md) document defines the nine continuously enforced architecture contracts.
-
-### Reference
-
-Reference contains lookup-oriented material that should be derived or generated from code where practical.
-
-## Source-of-truth precedence
-
-Use the narrowest authoritative source:
-
-1. executable code/database constraints define exact runtime behavior;
-2. Architecture defines logical ownership, invariants and supported collaboration;
-3. Codebase documents physical implementation patterns/locations;
-4. Operations defines safe run/deploy/recovery procedure;
-5. Product defines user-facing outcomes/terminology;
-6. Governance defines change/security/approval requirements;
-7. Reference summarizes mechanical values without overriding their code definitions.
-
-When code and documentation disagree, determine whether the code or the intended contract is wrong, then fix both as part of the same change.
+Architecture documentation defines intended ownership and boundaries. Executable code and database constraints must implement those contracts. When implementation and documentation disagree, the change is incomplete until they are aligned.

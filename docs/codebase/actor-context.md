@@ -1,26 +1,27 @@
 # Actor context
 
-Status: Current
+Status: Current — Architecture V3
 
-The application carries two distinct actor concepts.
+The application carries distinct account and game principals.
 
 ## Account actor
 
-`App\Contexts\Accounts\Models\User` is the authenticated account identity. Account-level security such as verified email, password confirmation and MFA attaches to this identity.
+`App\Contexts\Accounts\Identity\Models\User` is the authenticated account identity. Account assurance capabilities such as Authentication, Credentials, EmailVerification and MultiFactorAuthentication operate on this principal.
 
 ## Game actor
 
-`App\Contexts\GameWorld\Models\Player` is the game-domain principal. `ResolvePlayerContext` and the GameWorld Player context services support selection/validation of the active Player.
+`App\Contexts\GameWorld\Players\Models\Player` is the game-domain principal. `GameWorld/Players` owns active Player resolution/activation.
 
-Game authorization must use the active Player rather than aggregating every Player owned by the authenticated User.
+A User may own multiple Players through scalar `user_id`, but game authority is derived only from the currently active Player.
 
 ## Scope authority
 
-- Alliance authority: current active Player membership + rank + specialist roles in the concrete Alliance.
-- Kingdom authority: current Player-scoped Kingdom governance assignment in the concrete Kingdom.
-- Operations/Intelligence authority: interpreted by those owning contexts using the current Player/scope facts they require.
-- Platform authority: User-scoped Platform Administrator grant only; never a game bypass.
+- Alliance authority: `Alliance/Access`, using the active Player's current Alliance relationship.
+- Kingdom authority: `GameWorld/Governance`, using current Player-scoped Kingdom governance state.
+- Operations authority: `Operations/Access`.
+- Intelligence authority: `Intelligence/Access`.
+- Platform authority: `Platform/Administration`, User-scoped only.
 
 ## Writes
 
-Request-level actor context is not enough for mutable authorization. Actions whose permission depends on mutable membership/role/scope state must use their transaction-time authorization services inside the write transaction.
+Request-level actor context establishes who is acting. Mutable authorization for sensitive writes is revalidated by the owning capability Action inside its transaction after the owner acquires the required state locks.

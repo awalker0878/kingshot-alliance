@@ -1,30 +1,59 @@
 # Integration model
 
-Status: Current
+Status: Current — Architecture V3
 
-Integration is divided into **internal context collaboration**, **asynchronous infrastructure**, and **external platform integrations**.
+Bounded contexts collaborate through deliberate contracts rather than unrestricted model imports.
 
-## Internal collaboration
+## Same-context collaboration
 
-Preferred mechanisms, from tightest to loosest:
+Capabilities inside one bounded context may collaborate using context-owned Actions, Queries, Services, value objects and domain events while preserving each capability's responsibilities.
 
-1. small synchronous application/query contract when an immediate fact is required;
-2. explicit `app/Workflows` orchestration when one user intent spans several write owners;
-3. durable outbox/event publication for asynchronous reactions;
-4. `app/ReadModels` for read-only composition.
+## Cross-context reads
 
-Direct cross-context persistence mutation is not a supported integration mechanism.
+For a stable fact owned by another context, use the owner's supported Query/service contract and scalar identifiers.
 
-## Transactional outbox
+For a user-facing projection combining multiple owners, use `app/ReadModels`.
 
-Business state and required outbox records are committed atomically. Publication is at-least-once, so downstream consumers and delivery handlers must use stable idempotency/deduplication semantics.
+ReadModels are read-only.
 
-Generic outbox infrastructure belongs under `app/Shared/Infrastructure/Messaging/Outbox`, not inside a business context.
+## Cross-context writes
+
+Call the owning capability Action. Do not import the foreign Model and mutate it directly.
+
+Example:
+
+```text
+Workflows/AccountOnboarding
+    -> Accounts/Registration/RegisterUser
+    -> Alliance/Membership/AcceptInvitation
+```
+
+not:
+
+```text
+Workflow
+    -> User::query()/save()
+    -> AllianceMembership::query()/save()
+```
+
+## Multi-owner processes
+
+Use `app/Workflows` only when a command genuinely coordinates multiple owners. V3 intended workflow packages are `AccountOnboarding` and `KingdomGovernance`.
+
+Player activation belongs to `GameWorld/Players`. Kingdom transfer belongs to `GameWorld/KingdomTransfers`.
+
+## Durable integration
+
+Use outbox-backed events/messages when eventual coordination is appropriate or when a remote/retryable side effect must survive process failure.
+
+The event publisher owns the fact being published. Consumers must not treat an event as permission to mutate the publisher's aggregate.
 
 ## Communications
 
-The source context owns **why and when** a communication should exist. Communications owns **how delivery is coordinated**, including attempts, retry/idempotency, recipient preferences and channel state.
+Source capabilities retain the semantics/timing of notifications they request. `Communications/Delivery` accepts generic delivery intent and owns recipient preferences, channels, attempts, retries/failure and idempotency.
 
-## External integrations
+Communications does not import source-domain Models to reconstruct Event/KingPerk/business meaning.
 
-Platform owns API credential and webhook administration. External access must be scoped/revocable, webhook delivery signed and retryable, and endpoint handling must respect network/SSRF controls. External contracts are not automatically equivalent to internal domain/outbox event representations.
+## Shared infrastructure
+
+`app/Shared/Infrastructure` implements generic mechanisms such as audit/outbox/runtime plumbing. It is not an integration shortcut between business contexts.

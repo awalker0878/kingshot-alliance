@@ -1,35 +1,45 @@
 # Engineering principles
 
-Status: Current
+Status: Current — Architecture V3
 
-## Ownership before implementation
+## Context first, capability second
 
-Identify the owning bounded context/capability before choosing a namespace, table or endpoint. Do not create a context for every noun.
+Identify the owning bounded context and cohesive capability before choosing Models, Actions, Services or endpoints. Do not create a bounded context for every noun, and do not organize a context around framework-layer folders.
+
+## Capability-first source shape
+
+Business code lives under:
+
+```text
+app/Contexts/<Context>/<Capability>/...
+```
+
+Actions, Models, Queries, Services, Policies and Http are subordinate implementation details inside a capability.
 
 ## Player-scoped game authority
 
 User authenticates the account. Active Player is the game-domain principal. Never aggregate privileges across all Players owned by a User. Platform Administrator is platform authority only.
 
-## Explicit write boundaries
+## Owner-controlled writes
 
-Controllers stay thin. Owning actions/services enforce invariants and transaction-time authorization. Multi-context writes use explicit Workflows; composed reads use ReadModels.
+Controllers stay thin. Owning capability Actions enforce business invariants, transactions and current authorization. Authorization services interpret permissions but do not acquire locks.
 
 ## No persistence reach-through
 
-A shared database is not permission to mutate another context's aggregates. Use supported application/query/event contracts.
+A shared database is not permission to mutate or navigate another context's aggregate. Cross-context calls use owner Actions/Queries, scalar identifiers, durable events, Workflows or ReadModels.
+
+## Narrow composition layers
+
+Workflows coordinate true multi-owner commands and own no participating business persistence. ReadModels compose reads and own no writes. Shared contains business-neutral infrastructure only.
+
+## Generic communications
+
+Communications owns delivery, not the business fact that caused delivery. Source contexts retain reminder/event semantics.
 
 ## Transactional side effects
 
-Persist durable outbox intent with the business transaction where required. Execute remote/retryable side effects after commit and design for at-least-once delivery.
-
-## Operational correctness
-
-Treat migrations, recovery, observability, queue behavior and configuration as part of feature quality—not post-release cleanup.
-
-## Security and privacy
-
-Fail closed at privileged boundaries, keep secrets out of source/logs/evidence, minimize sensitive data and keep real infrastructure evidence separate from repository claims.
+Persist durable outbox intent with the owner business transaction where required. Execute remote/retryable effects after commit and design consumers for at-least-once delivery.
 
 ## Delete superseded structure
 
-When Architecture V2 replaces a V1 code/documentation path, remove the superseded path rather than adding permanent compatibility scaffolding unless a deliberate compatibility contract is required.
+When V3 replaces a source package, capability name or documentation page, remove the superseded structure. Do not leave compatibility folders or historical docs unless they are part of an explicit product/runtime compatibility contract.

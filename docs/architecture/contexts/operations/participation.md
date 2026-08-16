@@ -1,20 +1,15 @@
-# Event participation
+# Operations — Participation
 
-Status: Current  
-Context: Operations  
-Implementation: `app/Contexts/Operations/Participation`
+Status: Current — Architecture V3
 
-Participation owns a Player's operational relationship to an Event occurrence.
+Implementation target: `app/Contexts/Operations/Participation`
 
-## Current state families
+Participation owns Event registration, attendance/participation state and reminder business policy tied to participation/Event timing.
 
-- Event responses;
-- registrations/waitlist behavior as implemented;
-- attendance;
-- frozen Player context required to preserve historical participation attribution.
+## Reminder boundary
 
-## Invariants
+Operations owns **whether and when** an Event reminder is due, including business rules, offsets and the Event/occurrence relationship that caused the reminder.
 
-Self-service participation resolves Player identity from the server-side active Player context rather than accepting arbitrary User/Player authority from the browser. Persistence is Player-keyed for occurrence participation.
+Communications/Delivery owns only generic delivery behavior: recipient preferences, channel, attempts, retry/failure and idempotency.
 
-Capacity, duplicate registration, waitlist/attendance transitions and similar concurrency-sensitive changes must be protected transactionally rather than by preflight UI checks alone.
+Participation does not navigate Communications persistence to decide delivery state; cross-context delivery is requested through an explicit generic contract/event.

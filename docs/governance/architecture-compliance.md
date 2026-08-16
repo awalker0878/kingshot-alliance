@@ -1,41 +1,110 @@
-# Architecture V2 compliance
+# Architecture V3 compliance
 
 Status: Current
 
-Architecture compliance is continuously evaluated across nine contracts. These contracts describe the system as it exists now and are enforced by `tests/v2` and repository verification.
+Architecture V3 compliance is defined by structural and semantic architecture invariants. Test implementation and CI enforcement are documented and implemented separately.
 
-## 1. Canonical source shape
+## 1. Canonical bounded contexts
 
-Business behavior lives in exactly seven bounded contexts: Accounts, GameWorld, Alliance, Operations, Intelligence, Communications and Platform. Cross-context composition uses Workflows and ReadModels; business-neutral technical concerns use Shared. Alternate compatibility surfaces, alias layers and shim packages are not valid architecture.
+Exactly seven business contexts exist under `app/Contexts`:
 
-## 2. Accounts and GameWorld identity
+```text
+Accounts
+GameWorld
+Alliance
+Operations
+Intelligence
+Communications
+Platform
+```
 
-Accounts owns User identity and account assurance. GameWorld owns Player and Kingdom identity. A User may own multiple Players, but the active Player is the game-domain security principal and must belong to the authenticated User.
+`Workflows`, `ReadModels` and `Shared` are composition/infrastructure layers, not business contexts.
 
-## 3. Alliance ownership
+## 2. Capability-first physical structure
 
-Alliance membership, R1-R5 rank, specialist roles, invitations, recruitment and Alliance policy are Player/Alliance scoped. Authority is evaluated from the active Player's current Alliance relationship and is never aggregated across a User's Players.
+Context-root technical buckets are not valid V3 structure:
 
-## 4. Authorization ownership
+```text
+Actions
+Models
+Queries
+Services
+Policies
+Http
+```
 
-Permission vocabulary and authorization interpretation live with the owner that applies the rule. Alliance, Operations, Intelligence, GameWorld governance and Platform each own their authorization semantics. Platform Administrator is User-scoped Platform authority only and does not grant game-domain access.
+Those technical layers belong inside an owning capability.
 
-## 5. Operations
+## 3. Identity and cross-context persistence
 
-Operations owns Event execution and scheduling, participation, polls, rosters, battle plans, results, rallies, King Perks, reminder policy and Operations-specific permission interpretation.
+Accounts owns User identity. GameWorld owns Player identity. A User may own multiple Players, but the active Player is the game-domain principal.
 
-## 6. Intelligence
+Cross-context Eloquent relationships are not the V3 integration mechanism. In particular, GameWorld `Player` has no Eloquent relationship into Accounts `User`; ownership is represented through scalar `user_id` and supported owner queries/contracts.
 
-Intelligence owns observations, ingestion/reconciliation, roster intelligence, contributions, Event analysis, diplomacy, sharing and Intelligence-specific permission interpretation. It consumes identifiers and facts without becoming the owner of GameWorld identity or Operations aggregates.
+## 4. Context-owned writes
 
-## 7. Communications and Platform
+A business write is implemented by the owning capability Action. Cross-context callers use explicit owner Actions/Queries and stable identifiers instead of foreign Models.
 
-Communications owns delivery state, channels, preferences, retries and idempotency. Platform owns Platform Administrator access, platform lifecycle controls, Event-type administration and external API/webhook administration. Neither changes ownership of game-domain aggregates.
+Authorization services interpret owner permission vocabulary. They do not acquire locks or own transactions.
 
-## 8. Composition and shared infrastructure
+`*MutationAuthority` abstractions are not part of V3.
 
-Workflows coordinate multi-context commands without taking persistence ownership. ReadModels compose cross-context reads and remain read-only. Shared contains business-neutral contracts and infrastructure and has no dependency on business contexts, Workflows or ReadModels.
+## 5. Thin adapters
 
-## 9. Verification and documentation
+Controllers, middleware and route closures do not own:
 
-The executable verification suite lives under `tests/v2`. Architecture tests enforce source shape, dependency direction, architecture contract validation, mutation safety and the contracts above. Living documentation states current ownership, invariants and supported collaboration; implementation maps and operational procedures are updated with the same change when those contracts move.
+- business `DB::transaction` blocks;
+- direct domain persistence;
+- business `lockForUpdate` / `sharedLock` behavior;
+- outbox business writes.
+
+The write path is:
+
+```text
+HTTP -> owning capability Action -> transaction/invariants/persistence
+```
+
+## 6. Workflow boundary
+
+V3 Workflows are true multi-owner command processes. The intended packages are:
+
+```text
+AccountOnboarding
+KingdomGovernance
+```
+
+Workflows own process coordination, not business Models, migrations, repositories, owner permission vocabularies or foreign aggregate writes.
+
+Player activation belongs to `GameWorld/Players`. Kingdom transfer belongs to `GameWorld/KingdomTransfers`.
+
+## 7. ReadModels and Shared
+
+ReadModels combine cross-context reads and own no writes.
+
+Shared contains business-neutral infrastructure only and does not import business contexts or encode business permissions/policy.
+
+## 8. Communications boundary
+
+Communications contains generic delivery behavior only. It does not own source-domain reminder semantics such as Event or King Perk reminder meaning/timing and does not inspect source-domain Models to reconstruct that meaning.
+
+## 9. Full architecture boundary
+
+Architecture compliance applies across the complete implementation surface:
+
+```text
+directories
+namespaces
+imports
+Eloquent relationships
+database ownership
+controllers
+routes
+actions
+permissions
+transactions
+events
+listeners
+documentation
+```
+
+A correct directory shape does not excuse semantic ownership leakage elsewhere in the implementation.

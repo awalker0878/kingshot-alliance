@@ -1,10 +1,10 @@
-# Operational results
+# Operations — Results
 
-Status: Current  
-Context: Operations  
-Implementation: `app/Contexts/Operations/Results`
+Status: Current — Architecture V3
 
-Results owns operational Event result capture and normalized result metrics.
+Implementation target: `app/Contexts/Operations/Results`
+
+Results owns authoritative operational Event result capture and normalized result metrics.
 
 ## Ownership
 
@@ -17,4 +17,4 @@ Score and component metrics remain distinct concepts; the metric catalogue does 
 
 ## Boundary
 
-Operations owns captured operational result facts. Intelligence/EventAnalysis may consume those facts for history/trend/reporting without becoming a second canonical result ledger.
+Operations owns captured operational result facts. `Intelligence/EventAnalysis` may consume those facts for history, trend and reporting without becoming a second canonical result ledger.

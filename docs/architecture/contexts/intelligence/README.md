@@ -1,18 +1,36 @@
 # Intelligence context
 
-Status: Current  
-Implementation: `app/Contexts/Intelligence`
+Status: Current — Architecture V3
 
-Intelligence owns observational and analytical state derived from game and Alliance activity. It does not duplicate neutral GameWorld identity as writable identity state.
+Implementation target: `app/Contexts/Intelligence`
+
+Intelligence owns observational and analytical state derived from game and Alliance activity.
 
 ## Capabilities
 
-- [Intelligence authorization](authorization.md)
-- [Observations and ingestion](observations-and-ingestion.md)
-- [Roster and contributions](roster-and-contributions.md)
-- [Event analysis](event-analysis.md)
-- [Diplomacy and sharing](diplomacy-and-sharing.md)
+```text
+Intelligence/
+├── Access/
+├── Observations/
+├── Ingestion/
+├── Roster/
+├── Contributions/
+├── EventAnalysis/
+├── Diplomacy/
+└── Sharing/
+```
+
+- **Access** owns Intelligence permission vocabulary and authorization interpretation.
+- **Observations** owns durable observed facts and provenance.
+- **Ingestion** owns import/reconciliation of external observations.
+- **Roster** owns roster intelligence/history projections, not authoritative Alliance membership.
+- **Contributions** owns contribution facts, history and reporting.
+- **EventAnalysis** owns Event history, analytics and projections.
+- **Diplomacy** owns diplomacy intelligence.
+- **Sharing** owns Intelligence grants/distribution.
 
 ## Boundary
 
-Operations owns live Event execution. Intelligence may consume operational facts and produce durable analytical state, but must not mutate Operations aggregates or recreate Player identity ownership.
+GameWorld owns neutral Player/Kingdom identity. Alliance owns current authoritative Alliance membership. Operations owns live Event execution/results. Intelligence consumes stable identifiers/facts without mutating those owners or duplicating their writable identity/state.
+
+Root `Intelligence/Http` or other technical buckets are not V3 modules; HTTP and other implementation layers belong under the owning capability.

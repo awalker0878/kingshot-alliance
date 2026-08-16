@@ -1,35 +1,50 @@
 # Data ownership
 
-Status: Current
+Status: Current — Architecture V3
 
-A shared PostgreSQL database does not imply shared business ownership. Every writable fact has one logical owner.
+Data ownership follows bounded-context capabilities, not table proximity or Eloquent reachability.
 
-| Data/fact | Owner |
-| --- | --- |
-| User account, credentials, MFA/profile state | Accounts |
-| Player identity and claim relationship, Kingdom identity, current placement | GameWorld |
-| Kingdom roles/governance assignments | GameWorld |
-| Alliance lifecycle, settings, membership, rank, specialist roles | Alliance |
-| Recruitment and Alliance-authored content | Alliance |
-| Event schedule/occurrence and execution state | Operations |
-| Participation, polls, event rosters, battle plans, rallies, operational results | Operations |
-| King Perks plans/appointments/skills | Operations |
-| Observations, contribution ledger, analytical Event history, diplomacy/sharing | Intelligence |
-| Delivery attempts/preferences/channel state | Communications |
-| Platform administrator grants, platform lifecycle controls, API/webhook administration | Platform |
-| Audit trail and transactional outbox mechanics | Shared infrastructure |
-| Cross-context UI/report projections | ReadModels; read-only, no source ownership |
+## Core rule
 
-## Operational versus analytical ownership
+Every writable business aggregate has one owning context/capability. Other contexts may reference its identifier, query supported facts, consume events or invoke owner Actions, but they do not mutate the aggregate directly.
 
-Operations owns operational Event state: scheduling, occurrences, execution, participation, planning and results captured as part of live coordination. Intelligence owns observations/analytical history: contribution evidence, event analysis, trends and other observational projections. Neither creates a second writable copy of the other's source facts.
+## Ownership summary
 
-## Historical identity
+- **Accounts/Identity** — User account identity.
+- **GameWorld/Players** — Player identity/claim and active Player state.
+- **GameWorld/Kingdoms** — Kingdom/reference placement state.
+- **GameWorld/Governance** — Kingdom governance assignments.
+- **GameWorld/KingdomTransfers** — transfer-domain state.
+- **Alliance** capabilities — Alliance lifecycle, membership/leadership/access, recruitment and content.
+- **Operations** capabilities — live operational Event/participation/planning/rally/KingPerk/result state.
+- **Intelligence** capabilities — observations, ingestion, analytical/history state and sharing grants.
+- **Communications/Delivery** — generic delivery/preference/attempt state.
+- **Platform** capabilities — platform administration, Alliance platform administration, data governance, Event administration and integrations.
 
-Historical facts should retain durable Player/Alliance/Kingdom/Event identifiers appropriate to the fact at the time it occurred. Later membership or placement changes must not silently rewrite history.
+## Scalar cross-context references
 
-## Cross-context data access
+Cross-context identity is normally represented by stable scalar identifiers:
 
-A context may receive IDs, immutable snapshots, query results or explicit contracts from another owner. It must not mutate another context's tables through its models or duplicate a second writable source of truth.
+```text
+user_id
+player_id
+alliance_id
+kingdom_id
+event_id
+```
 
-Where a user-facing screen needs several owners, compose a ReadModel rather than weakening write ownership.
+Keeping an identifier does not transfer ownership.
+
+## Relationship boundary
+
+Eloquent relationships are an implementation convenience inside an ownership boundary. They are not a cross-context integration contract.
+
+Cross-context navigation that makes a foreign aggregate appear locally owned is prohibited. The explicit Player -> Accounts User Eloquent relationship is not part of V3.
+
+## Historical facts
+
+Historical Event/Intelligence/contribution facts retain the identifiers and attribution relevant when the fact occurred. Later current membership or placement changes must not silently rewrite historical ownership/actor attribution.
+
+## Database
+
+A single PostgreSQL database may host several contexts. Shared physical storage does not weaken logical ownership or permission boundaries.

@@ -1,19 +1,28 @@
 # Shared infrastructure
 
-Status: Current
+Status: Current — Architecture V3
 
-`app/Shared` is the technical shared kernel. It contains only genuinely cross-cutting infrastructure/contracts that do not carry business ownership.
+`app/Shared/Infrastructure` contains reusable technical infrastructure only. It is not a business context and does not own game or platform policy.
 
-Current structure includes:
+## Appropriate Shared concerns
 
-- `Access` — small cross-cutting access primitives;
-- `Http` — technical HTTP helpers/contracts;
-- `Infrastructure/AuditTrail` — generic audit mechanics;
-- `Infrastructure/Messaging` — generic messaging/outbox infrastructure;
-- `Providers` — shared technical providers.
+Examples include:
 
-## Dependency rule
+- audit mechanics;
+- transactional outbox/messaging transport;
+- generic runtime health/readiness mechanics;
+- generic metrics/telemetry mechanics;
+- generic security/HTTP infrastructure;
+- framework/provider glue that has no business vocabulary.
 
-Shared must not import a business context, workflow, ReadModel or legacy `App\Domain\*` class. No gameplay, Alliance, Event, Kingdom or product policy belongs here.
+## Boundary rules
 
-If a shared helper starts needing business nouns or context-specific permissions, it probably belongs back in the owning context.
+Shared must not:
+
+- import a business context;
+- define Alliance, Kingdom, Event, King Perk, Intelligence or Platform business policy;
+- own game permissions;
+- persist business aggregates;
+- become a dumping ground for code with unclear ownership.
+
+If code contains business language, rules or state, identify the owning context and capability instead.

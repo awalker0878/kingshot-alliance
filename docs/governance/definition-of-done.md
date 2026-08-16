@@ -1,66 +1,70 @@
 # Definition of Done
 
-Status: Current
+Status: Current — Architecture V3
 
 A change is done only when applicable product, architecture, quality, security and operational obligations are satisfied.
 
-## Scope and outcome
-
-- intended user/operator outcome and acceptance criteria are clear;
-- new capability is intentional rather than accidentally created by a model/table/folder;
-- deferred behavior is explicit rather than half-implemented.
-
 ## Architecture
 
-- owning context/capability is identified;
-- active Player/User/Platform authority model remains correct;
-- no unsupported cross-context persistence mutation is introduced;
-- multi-owner mutations use an appropriate Workflow;
-- multi-owner read composition uses a ReadModel where appropriate;
+- the owning bounded context and capability are identified;
+- new business behavior is placed under `app/Contexts/<Context>/<Capability>`;
+- no context-root technical bucket is introduced;
+- User/Player/Platform authority semantics remain correct;
+- no cross-context Eloquent navigation or unsupported persistence mutation is introduced;
+- cross-context calls use explicit owner Actions/Queries, scalar identifiers, events, Workflows or ReadModels as appropriate;
+- true multi-owner commands use a Workflow without transferring persistence ownership;
+- cross-context read composition uses a ReadModel;
 - Shared remains business-neutral;
-- material architecture changes update living architecture and add/supersede a decision record where justified.
+- removed architecture/module names are removed from live documentation.
+
+## HTTP and writes
+
+- controllers, middleware and routes remain adapters;
+- business writes flow through owning capability Actions;
+- HTTP adapters contain no business `DB::transaction`, direct domain persistence or business locking;
+- mutable authorization is revalidated inside the owner-controlled write transaction where required;
+- authorization services do not acquire locks;
+- write Actions/services do not interpret foreign permission vocabularies.
 
 ## Data and concurrency
 
-- migrations have forward and recovery implications understood;
+- schema ownership is identifiable from the writing capability;
 - database constraints protect critical persistence invariants where appropriate;
-- mutable write authority is revalidated transactionally where required;
-- lock ordering/concurrency/idempotency risks are addressed;
-- historical identity/ownership is not silently rewritten by current membership/placement.
+- lock ordering, idempotency and concurrency risks are addressed;
+- historical identity/attribution is not silently rewritten by current membership/placement changes;
+- durable asynchronous intent is persisted transactionally where required.
+
+## Composition
+
+- Workflows contain no business Models, migrations, repositories or owner permission enums;
+- ReadModels perform no writes;
+- Communications remains generic delivery infrastructure at the business level and does not absorb source-domain reminder semantics.
 
 ## Quality
 
-- success/failure/authorization/scope/concurrency/retry behavior is tested as applicable;
-- formatting, static analysis, type checks and production frontend build pass;
-- relevant Architecture V2 verification suites remain green;
-- dependency/code/container security checks pass where required.
+- success, failure, authorization, scope, concurrency and retry behavior are tested as applicable;
+- architecture structural tests pass;
+- formatting, static analysis, type checks and relevant build/test suites pass;
+- architecture certification checks directories, namespaces, imports, relationships, controllers, routes, actions, permissions, transactions, events/listeners, tests, documentation and CI as applicable.
 
 ## Security and privacy
 
-- authorization, sensitive data, secrets/tokens, destructive actions, retention and external trust boundaries are addressed;
-- no secret/recovery material is committed to code/docs/evidence;
-- repository checks are not represented as proof of external infrastructure controls.
+- sensitive data, secrets/tokens, destructive actions, retention and external trust boundaries are addressed;
+- secret/recovery material is not committed to code/docs/evidence;
+- platform authority is not used as a game-domain bypass.
 
 ## Operations
 
-- configuration, logs/metrics, queue behavior, deployment, migration, rollback and recovery changes are documented where materially affected;
-- new dependencies have health/ownership/recovery expectations;
-- alerts map to useful runbooks when operational action is required.
-
-## Product and frontend
-
-- user-facing loading/empty/error/accessibility/responsive/localization impacts are handled as applicable;
-- Product capability/terminology documentation changes only when the user contract changes materially.
+- configuration, observability, queues, deployment, migration, rollback and recovery impacts are documented where materially affected;
+- new dependencies have health/ownership/recovery expectations.
 
 ## Documentation
 
-- follow [Documentation standard](documentation-standard.md);
-- update the authoritative document instead of duplicating a rule;
+- update the authoritative current document rather than creating parallel architecture descriptions;
 - internal links resolve;
-- obsolete live documentation is removed rather than kept as a parallel legacy tree;
-- Reference catalogues are updated when their lookup facts materially change.
+- obsolete live documentation is removed;
+- capability/module names match Architecture V3.
 
 ## Acceptance
 
-- required CI/review findings are resolved on the final intended head;
-- production cutover remains governed by [Production approval](production-approval.md), not inferred from feature completion.
+A directory test alone is not sufficient for Architecture V3 certification. Structural gates and behavior tests must both pass on the intended final head.

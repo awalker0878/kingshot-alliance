@@ -1,32 +1,56 @@
 # Transactions and locking
 
-Status: Current
+Status: Current — Architecture V3
 
-Architecture V2 uses explicit transaction-time authorization for sensitive writes.
+Transactions, locks and mutable authorization belong to the **owning capability write path**, not to HTTP adapters or generic authorization helpers.
 
-## Preferred pattern
+## Write pattern
 
 ```text
+Capability Action
+  ↓
 DB transaction
-  -> lock mutable scope/authority state
-  -> resolve actor + concrete scope
-  -> assert current permission/invariant
-  -> lock target aggregate in deterministic order
-  -> mutate
-  -> write audit/outbox intent if required
-  -> commit
+  ↓
+lock mutable scope / authority state
+  ↓
+resolve actor + concrete scope
+  ↓
+assert current owner permission/invariants
+  ↓
+lock target aggregate in deterministic order
+  ↓
+mutate owner state
+  ↓
+write audit/outbox intent when required
+  ↓
+commit
 ```
 
-Context-specific transaction-time authorization services include Alliance, GameWorld/Kingdom, Operations/Intelligence and Platform boundaries as implemented in their `Access`/`Governance` packages.
+## Separation of responsibilities
+
+Authorization services interpret owner permission vocabulary. They do not acquire database locks or own transactions.
+
+Write-state/application services may acquire the locks required by their owner, but they do not interpret foreign-context permissions.
+
+Controllers, middleware, route closures and ReadModels do not own business write transactions.
+
+Workflows coordinate owner Actions. They do not become the place where participating contexts' model locks and permission checks are implemented.
+
+## Cross-context writes
+
+A context never locks or mutates another context's aggregate through its Eloquent model. It invokes the owner's supported Action using stable identifiers and command data.
+
+Where a process spans multiple owners, prefer explicit process coordination and durable state/events over a Workflow reaching through all participating models inside one shared transaction.
 
 ## Avoid
 
-- authorizing only before the transaction and assuming the membership/role is unchanged;
-- loading a target, doing unrelated work, then locking later;
-- locking resources in inconsistent orders between competing code paths;
-- modifying another context's aggregate directly from a workflow/controller;
-- dispatching non-transactional remote side effects before commit.
+- request-time authorization treated as sufficient for mutable writes;
+- `*MutationAuthority` abstractions combining lock acquisition and permission interpretation;
+- direct foreign-model mutation;
+- inconsistent lock ordering;
+- remote side effects before commit;
+- stale scope/role assumptions after locks are acquired.
 
 ## Testing
 
-Concurrency-sensitive capabilities should test duplicate requests, capacity races, role/leadership changes, idempotent retries and lock-sensitive transitions where applicable.
+Concurrency-sensitive capability tests should cover duplicate requests, capacity/slot races, role changes, leadership changes, idempotent retry and conflicting transitions where applicable.

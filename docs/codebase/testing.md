@@ -1,35 +1,66 @@
 # Testing
 
-Status: Current
+Status: Current — Architecture V3
 
-Architecture V2 uses one verification suite under `tests/v2`.
+Architecture V3 verification must test both **source structure** and **business behavior**. A passing directory check alone is not architecture certification.
 
-## Sources of truth
+This document defines the intended V3 verification contract only. Implementing or rewriting `/tests` and CI enforcement is a separate step.
 
-Tests are authored from current contracts in this order:
+## Structural architecture verification
 
-1. executable code and database constraints for exact runtime behavior;
-2. architecture documentation for ownership, invariants and supported collaboration;
-3. codebase documentation for physical implementation locations;
-4. product documentation for user outcomes;
-5. governance, reference and operations documentation for cross-cutting requirements.
+V3 verification should derive rules from the architecture rather than maintain a second hardcoded capability registry.
 
-## Structure
+It should cover, at minimum:
 
-- all executable PHP tests live below `tests/v2`;
-- every PHP test file/class ends in `V2Test`;
-- support code lives under `tests/v2/Support` and is not a test;
-- visual tests live under `tests/v2/Visual` and use `V2` in their spec names;
-- `phpunit.xml` exposes one `Architecture V2` suite rooted at `tests/v2`.
+- exactly seven business contexts under `app/Contexts`;
+- no context-root `Actions`, `Models`, `Queries`, `Services`, `Policies` or `Http` directories;
+- no `*MutationAuthority` classes/references;
+- GameWorld Player has no Accounts User Eloquent relationship;
+- contexts do not import Workflows;
+- Workflows contain no business Models, migrations, repositories, owner permission enums or direct foreign writes;
+- ReadModels perform no writes;
+- HTTP adapters contain no business transactions, direct persistence or business locks;
+- Communications contains no Event/KingPerk-specific delivery classes or direct source-context model dependencies;
+- cross-context Eloquent navigation is prohibited;
+- authorization services do not acquire locks;
+- write Actions/services do not interpret foreign permission vocabularies.
 
-## Coverage model
+## Behavior verification
 
-Every owned implementation surface has an executable contract that verifies documentation, autoloadable symbols, persistence mappings or public application behavior as appropriate. Behavior tests protect high-risk identity, authority, isolation, transaction and policy invariants.
+Behavior verification should continue protecting high-risk identity, authority, scope, transaction, concurrency, retry/idempotency and business invariants.
 
-The nine architecture compliance contracts are defined in [Architecture V2 compliance](../governance/architecture-compliance.md) and enforced by `ArchitectureComplianceV2Test` together with focused context/workflow tests.
+Important areas include:
 
-Protected mutations cover authorization failure, scope isolation and transaction/locking behavior where relevant. Cross-context behavior uses supported context contracts, Workflows, ReadModels or durable messaging rather than persistence ownership leakage.
+- User -> many Players and active Player selection;
+- Player-scoped Alliance, Kingdom, Operations and Intelligence authority;
+- Alliance membership and leadership changes;
+- Kingdom governance and transfer behavior;
+- Event execution, participation, planning and results;
+- KingPerks occupancy, cooldown and scheduling rules;
+- Intelligence historical attribution;
+- generic Communications delivery idempotency/retry;
+- Platform authority isolation.
 
-## Required verification
+## Full architecture certification
 
-The Architecture V2 gate uses PostgreSQL 18, `migrate:fresh`, Pint, Larastan and the complete `tests/v2` suite, plus frontend checks and visual-test discovery.
+Final V3 certification must inspect more than tests named `Architecture*`:
+
+```text
+directories
+namespaces
+imports
+Eloquent relationships
+database ownership
+controllers
+routes
+actions
+permissions
+transactions
+events
+listeners
+tests
+documentation
+CI
+```
+
+The actual `/tests` implementation and CI gate design are intentionally deferred to the dedicated testing phase.

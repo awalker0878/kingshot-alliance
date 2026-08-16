@@ -1,21 +1,24 @@
-# Alliance content and media
+# Alliance — Content
 
-Status: Current  
-Context: Alliance  
-Implementation: `app/Contexts/Alliance/Content`
+Status: Current — Architecture V3
 
-Alliance Content owns Alliance-authored content and its media lifecycle.
+Implementation target: `app/Contexts/Alliance/Content`
 
-## Current behavior represented in code
+Content owns Alliance-authored content and media lifecycle.
 
-The capability includes content categories/items, publish/archive behavior, revisions/restore, scheduled publishing, Alliance public-profile content and media upload/archive lifecycle.
+## Responsibilities
+
+- content categories/items;
+- publish/archive behavior;
+- revisions/restore;
+- scheduled publishing;
+- Alliance public-profile content;
+- media upload/archive lifecycle.
 
 ## Authority
 
-Management uses Alliance content permission derived from the active Player's Alliance authority. Public/member visibility is a content policy; it does not make the content aggregate globally owned.
+Management uses Alliance content permissions interpreted by `Alliance/Access` from the active Player's current Alliance authority. Public/member visibility remains a Content policy and does not change aggregate ownership.
 
 ## Media boundary
 
-Business metadata/lifecycle belongs to Alliance Content. Generic filesystem/S3 transport is infrastructure. Production private/content media must use the configured durable/private storage boundary described in system operations/security governance.
-
-Asynchronous scanning/publishing work must remain retry-safe and must not expose private media or secret storage details.
+Business metadata/lifecycle belongs to Alliance Content. Generic filesystem/object-storage transport is infrastructure. Asynchronous scanning/publishing must remain retry-safe and must not expose private media or storage secrets.

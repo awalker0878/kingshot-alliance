@@ -1,29 +1,92 @@
 # Capability map
 
-Status: Current
+Status: Current — Architecture V3
 
-Capabilities live **inside** bounded contexts. The map below is architectural; physical implementation paths are documented separately in [Codebase module map](../codebase/module-map.md).
+Capabilities are first-class modules inside the seven bounded contexts. This map is the canonical business capability inventory for V3.
 
-| Context | Current capabilities |
+| Context | Capabilities |
 | --- | --- |
-| Accounts | Registration, authentication, sessions, profile, email verification, password reset/change, MFA/TOTP and recovery. |
-| GameWorld | Player identity/claim, Kingdom resolution, Alliance reference placement, active Player context, Kingdom roles and Kingdom transaction-time authorization. |
-| Alliance | Core Alliance lifecycle/settings, membership, R1–R5 leadership, specialist roles/permissions, recruitment, Alliance content/media and Alliance policies. |
-| Operations | Event core/scheduling, participation, polls, rosters, battle plans, results, rallies, King Perks, reminder rules and Operations permission semantics. |
-| Intelligence | Observations, ingestion/reconciliation, roster intelligence, contributions, Event analysis/history, diplomacy, sharing/grants and Intelligence access. |
-| Communications | Reminder/notification delivery coordination, recipient preferences, channel behavior, retries and idempotency. |
-| Platform | Platform administrator access, Alliance lifecycle/entitlement controls, retention/account deletion orchestration, Event-type administration, API credentials and webhooks. |
+| Accounts | Identity, Registration, Authentication, Credentials, EmailVerification, Profile, MultiFactorAuthentication |
+| GameWorld | Players, Kingdoms, Governance, KingdomTransfers |
+| Alliance | Lifecycle, Membership, Access, Recruitment, Content |
+| Operations | Access, Events, Participation, Polls, Rosters, BattlePlans, Rallies, KingPerks, Results |
+| Intelligence | Access, Observations, Ingestion, Roster, Contributions, EventAnalysis, Diplomacy, Sharing |
+| Communications | Delivery |
+| Platform | Administration, AllianceAdministration, DataGovernance, EventAdministration, Integrations |
 
-## What is not a bounded context
+## Accounts
 
-The following are architectural mechanisms, not additional business contexts:
+- **Identity** — User account identity and account-owned identity state.
+- **Registration** — account creation.
+- **Authentication** — sign-in, sign-out, session establishment and confirmation.
+- **Credentials** — password change/reset and credential lifecycle.
+- **EmailVerification** — verification state and verification flows.
+- **Profile** — account profile changes.
+- **MultiFactorAuthentication** — TOTP, MFA challenge and recovery mechanisms.
 
-- controllers, models, actions, queries and services;
+## GameWorld
+
+- **Players** — Player identity/claim, Player ownership references and active Player selection.
+- **Kingdoms** — Kingdom identity and neutral Kingdom/Alliance placement/reference state.
+- **Governance** — Kingdom roles, assignments and GameWorld-owned governance authorization.
+- **KingdomTransfers** — Player/Kingdom transfer planning and transfer-domain state owned by GameWorld.
+
+## Alliance
+
+- **Lifecycle** — Alliance creation, lifecycle and settings.
+- **Membership** — Player membership, invitations and R1–R5 leadership behavior.
+- **Access** — Alliance permission vocabulary, specialist roles and Alliance authorization interpretation.
+- **Recruitment** — applications, recruiting and review behavior.
+- **Content** — Alliance-owned content and media.
+
+Alliance policies belong to the capability that owns the rule; `Alliance/Policies` is not a V3 capability.
+
+## Operations
+
+- **Access** — Operations permission vocabulary and authorization interpretation.
+- **Events** — Event identity, scheduling and occurrences.
+- **Participation** — registration, attendance and reminder business policy associated with participation/event timing.
+- **Polls** — Event polls and voting.
+- **Rosters** — Event roster planning.
+- **BattlePlans** — objectives and assignments.
+- **Rallies** — rally coordination.
+- **KingPerks** — Kingdom of Power appointment/skill planning and scheduling.
+- **Results** — authoritative operational results and metrics.
+
+## Intelligence
+
+- **Access** — Intelligence permission vocabulary and authorization interpretation.
+- **Observations** — durable observed facts and provenance.
+- **Ingestion** — import and reconciliation of external observations.
+- **Roster** — roster intelligence/history projections, not authoritative Alliance membership.
+- **Contributions** — contribution facts, history and reporting.
+- **EventAnalysis** — Event history, analytics and projections.
+- **Diplomacy** — diplomacy intelligence.
+- **Sharing** — Intelligence grants and distribution.
+
+## Communications
+
+- **Delivery** — notification delivery coordination, recipient/preferences, channels, attempts, retry/failure handling and idempotency.
+
+Communications does not own Event, King Perk or other source-domain reminder semantics.
+
+## Platform
+
+- **Administration** — Platform Administrator access and platform administrative behavior.
+- **AllianceAdministration** — platform-side Alliance lifecycle, entitlement, feature and usage controls.
+- **DataGovernance** — retention, legal hold, export and account deletion orchestration.
+- **EventAdministration** — platform Event-type administration.
+- **Integrations** — API credentials, webhooks and external integration administration.
+
+## Not capabilities or contexts
+
+The following are implementation/composition mechanisms, not business capabilities:
+
+- Actions, Models, Queries, Services, Policies, Http and Events folders;
 - PostgreSQL tables;
-- `app/ReadModels`;
+- routes and frontend pages;
 - `app/Workflows`;
-- `app/Shared`;
-- routes or frontend pages;
-- individual features such as King Perks, Rallies, Contributions or Recruitment.
+- `app/ReadModels`;
+- `app/Shared`.
 
-A capability should become a peer context only when it has meaningfully different language, ownership/policy, consistency boundaries and independent evolution—not simply because it is large.
+The capability map is documentation, not an executable hardcoded registry. Architecture tests enforce structural invariants instead of duplicating this list in production/test code.

@@ -1,21 +1,25 @@
 # Change impact guide
 
-Status: Current
+Status: Current — Architecture V3
 
-Use this guide to decide which documentation and reviews should change with code.
+Use this guide to decide which contracts and checks move with a code change.
 
 | Change | Update/check |
 | --- | --- |
-| New/changed business invariant | Owning `architecture/contexts/...` document; tests. |
-| Context ownership/dependency changes | `architecture/context-map.md`, capability/data maps and decision record if durable. |
-| Physical namespace/module move only | `codebase/module-map.md` / source docs; architecture only if ownership changed. |
-| Player/User/permission semantics | `architecture/authority-model.md`, owning context, security requirements, authorization tests. |
-| Transaction/locking behavior | Architecture consistency doc + codebase transaction doc + concurrency tests. |
-| New async side effect/event | Integration/outbox docs, owning capability, queue/idempotency tests, Reference event catalogue. |
-| New environment/dependency | Operations configuration/runtime/recovery + security/production evidence impact. |
-| New user-facing capability | Product catalogue/experience + owning architecture capability. |
-| New deployment/recovery procedure | Operations runbook/release docs. |
-| Security/trust-boundary change | Governance security requirements plus focused architecture/context material. |
-| Production status change | `governance/production-approval.md` only after accountable evidence. |
+| New/changed business behavior | Owning context/capability docs and behavior tests. |
+| New capability | `architecture/capability-map.md`, context README, `codebase/source-layout.md` / module map and architecture structural tests. |
+| Capability rename/split/merge | Replace current docs and remove superseded pages/names; update namespaces/imports/tests. |
+| Context ownership/dependency change | Context map, data ownership, integration model and leakage tests. |
+| Context-root technical folder introduced | Reject/move code under the owning capability. |
+| Player/User/permission semantics | Authority model, owning Access/Governance capability and authorization tests. |
+| Transaction/locking behavior | Consistency/transaction docs and concurrency tests. |
+| Controller/middleware write behavior | Move write into owner Action; update HTTP architecture tests. |
+| Cross-context mutation | Owner Actions/Workflow boundary plus persistence/import tests. |
+| Cross-context read | ReadModel boundary and no-write tests. |
+| New async side effect/event | Integration/outbox docs, owner capability and idempotency/retry tests. |
+| Communications change | Confirm delivery remains generic and source-domain semantics stay with source owner. |
+| New environment/dependency | Operations configuration/runtime/recovery and security impact. |
+| Security/trust-boundary change | Governance security requirements plus focused architecture/context docs. |
+| Production status change | `production-approval.md` after accountable evidence. |
 
-Avoid documentation churn for private refactors that leave documented contracts unchanged.
+Do not keep old architecture documentation as migration history after the current contract changes.
