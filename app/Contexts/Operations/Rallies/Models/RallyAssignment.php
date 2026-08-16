@@ -11,6 +11,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property RallyAssignmentRole $role
+ * @property RallyAssignmentStatus $status
+ * @property-read RallyGroup $rallyGroup
+ * @property-read Player $player
+ */
 final class RallyAssignment extends Model
 {
     use HasUlids;
