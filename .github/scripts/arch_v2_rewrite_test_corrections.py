@@ -144,7 +144,6 @@ def rewrite_player_creates(text: str) -> str:
 
 
 def rewrite_known_helper_shapes(text: str) -> str:
-    # Some old fixtures return simple creates from compact one-line helpers.
     text = re.sub(
         r"return\s+Kingdom::query\(\)->create\(\[\s*'number'\s*=>\s*\$number,\s*'status'\s*=>\s*'active',?\s*\]\);",
         "return app(ResolveKingdom::class)->handle($number);",
@@ -152,6 +151,17 @@ def rewrite_known_helper_shapes(text: str) -> str:
     )
     if 'ResolveKingdom::class' in text:
         text = ensure_use(text, r'App\Contexts\GameWorld\Actions\ResolveKingdom')
+    return text
+
+
+def rewrite_domain_namespaces(text: str) -> str:
+    for old, new in DOMAIN_REPLACEMENTS.items():
+        text = text.replace(old, new)
+    for layer in ('Enums', 'Models', 'Queries'):
+        text = text.replace(
+            f'App\\Domain\\Kingdoms\\{layer}\\Transfer',
+            f'App\\Workflows\\KingdomTransfer\\{layer}\\Transfer',
+        )
     return text
 
 
@@ -172,9 +182,7 @@ def rewrite_files() -> None:
     for path in sorted(TESTS.rglob('*.php')):
         if not path.is_file() or 'Support' in path.parts or path.name == 'TestCase.php':
             continue
-        text = path.read_text()
-        for old, new in DOMAIN_REPLACEMENTS.items():
-            text = text.replace(old, new)
+        text = rewrite_domain_namespaces(path.read_text())
         if 'Architecture' not in path.parts:
             text = rewrite_kingdom_creates(text)
             text = rewrite_known_helper_shapes(text)
@@ -193,7 +201,7 @@ def verify() -> None:
         if not path.name.endswith('V2Test.php'):
             failures.append(f'PHP test missing V2 suffix: {rel}')
         text = path.read_text()
-        if r'App\Domain\' in text:
+        if 'App\\Domain\\' in text:
             failures.append(f'V1 namespace remains: {rel}')
         if 'Architecture' not in rel.parts:
             if 'Player::query()->create(' in text:
