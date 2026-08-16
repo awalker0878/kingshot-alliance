@@ -1,0 +1,219 @@
+name: P5 Controller Contract Repair
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths:
+      - '.github/workflows/p5-controller-contract-repair.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v2
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pdo_pgsql, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Repair controller input contracts
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          operations = Path('app/Contexts/Operations/EventCore/Http/Controllers/EventOperationsController.php')
+          text = operations.read_text()
+          old = 'use App\\Contexts\\Operations\\EventCore\\Models\\EventPoll;'
+          new = 'use App\\Contexts\\Operations\\Polls\\Models\\EventPoll;'
+          assert old in text, 'stale EventPoll import was not found'
+          text = text.replace(old, new)
+
+          old_vote = "$vote->handle($actor, $pollRecord, $actor, array_map('strval', $validated['option_ids']));"
+          new_vote = "$vote->handle($actor, $pollRecord, $actor, $this->optionIds($validated['option_ids']));"
+          assert old_vote in text, 'vote option conversion was not found'
+          text = text.replace(old_vote, new_vote)
+
+          pattern = re.compile(r"    /\*\* @param mixed \$value @return list<array\{label:string,value:string\}> \*/\n    private function options\(mixed \$value\): array\n    \{.*?\n    \}\n\n    private function player", re.S)
+          replacement = '''    /**
+     * @return list<array{label: string, value: string, metadata?: array<string, mixed>}>
+     */
+    private function options(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $options = [];
+        foreach ($value as $option) {
+            if (! is_array($option)) {
+                continue;
+            }
+
+            $options[] = [
+                'label' => (string) ($option['label'] ?? ''),
+                'value' => (string) ($option['value'] ?? ''),
+            ];
+        }
+
+        return $options;
+    }
+
+    /** @return list<string> */
+    private function optionIds(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($value as $id) {
+            if (is_string($id) || is_int($id)) {
+                $ids[] = (string) $id;
+            }
+        }
+
+        return $ids;
+    }
+
+    private function player'''
+          text, count = pattern.subn(replacement, text, count=1)
+          assert count == 1, f'options helper replacement count was {count}'
+          operations.write_text(text)
+
+          management = Path('app/Contexts/Operations/EventCore/Http/Controllers/EventManagementController.php')
+          text = management.read_text()
+          if 'use Illuminate\\Validation\\ValidationException;' not in text:
+              text = text.replace('use Illuminate\\Validation\\Rule;\n', 'use Illuminate\\Validation\\Rule;\nuse Illuminate\\Validation\\ValidationException;\n')
+
+          pattern = re.compile(r"        \$typesByScope = \[\];\n\n        foreach \(EventScope::cases\(\) as \$scope\) \{.*?        return Inertia::render\('Events/Create', \[.*?        \]\);\n    \}\n\n    public function store", re.S)
+          replacement = '''        $typesByScope = [];
+
+        foreach (EventScope::cases() as $scope) {
+            $scopeTypes = [];
+            foreach ($types->activeForScope($scope) as $type) {
+                if (! $type instanceof EventType) {
+                    continue;
+                }
+
+                $configuration = $types->scope($type, $scope);
+                $scopeTypes[] = [
+                    'id' => (string) $type->id,
+                    'scopeConfigurationId' => (string) $configuration->id,
+                    'slug' => $type->slug,
+                    'nameKey' => $type->name_key,
+                    'descriptionKey' => $type->description_key,
+                    'category' => $type->category->value,
+                    'iconKey' => $type->icon_key,
+                    'defaults' => $defaults->resolve($configuration),
+                ];
+            }
+            $typesByScope[$scope->value] = $scopeTypes;
+        }
+
+        $templateOptions = [];
+        foreach ($templates->available($actor) as $template) {
+            if (! $template instanceof EventTemplate) {
+                continue;
+            }
+
+            $eventType = $template->eventType;
+            if (! $eventType instanceof EventType) {
+                continue;
+            }
+
+            $target = $targets->forTemplate($template);
+            $templateOptions[] = [
+                'id' => (string) $template->id,
+                'name' => $template->name,
+                'nameKey' => $eventType->name_key,
+                'scope' => $template->scope->value,
+                'targetId' => (string) $target->id,
+                'targetLabel' => $targets->label($target),
+                'timezone' => $template->timezone,
+                'recurrenceFrequency' => $template->recurrence_frequency->value,
+                'recurrenceInterval' => $template->recurrence_interval,
+            ];
+        }
+
+        return Inertia::render('Events/Create', [
+            'user' => $this->identity($user),
+            'contexts' => $creationContexts,
+            'typesByScope' => $typesByScope,
+            'templates' => $templateOptions,
+        ]);
+    }
+
+    public function store'''
+          text, count = pattern.subn(replacement, text, count=1)
+          assert count == 1, f'create DTO replacement count was {count}'
+
+          old_required = "CarbonImmutable::createFromFormat('Y-m-d\\\\TH:i', (string) $validated['first_local_start'], $timezone)"
+          assert old_required in text, 'required create start parse not found'
+          text = text.replace(old_required, "$this->requiredTime((string) $validated['first_local_start'], $timezone, 'first_local_start')", 1)
+
+          old_template_required = "CarbonImmutable::createFromFormat('Y-m-d\\\\TH:i', (string) $validated['first_local_start'], $record->timezone)"
+          assert old_template_required in text, 'required template start parse not found'
+          text = text.replace(old_template_required, "$this->requiredTime((string) $validated['first_local_start'], $record->timezone, 'first_local_start')", 1)
+
+          text = text.replace("isset($validated['recurrence_until_local']) && $validated['recurrence_until_local'] !== null", "isset($validated['recurrence_until_local'])")
+
+          marker = '''    /** @return array{name:string,email:string} */
+    private function identity(User $user): array
+'''
+          helper = '''    private function requiredTime(string $value, string $timezone, string $field): CarbonImmutable
+    {
+        $time = CarbonImmutable::createFromFormat('Y-m-d\\\\TH:i', $value, $timezone);
+        if (! $time instanceof CarbonImmutable) {
+            throw ValidationException::withMessages([$field => 'A valid local date and time is required.']);
+        }
+
+        return $time;
+    }
+
+    /** @return array{name:string,email:string} */
+    private function identity(User $user): array
+'''
+          assert marker in text, 'identity insertion marker not found'
+          text = text.replace(marker, helper, 1)
+          management.write_text(text)
+          PY
+
+          vendor/bin/pint \
+            app/Contexts/Operations/EventCore/Http/Controllers/EventOperationsController.php \
+            app/Contexts/Operations/EventCore/Http/Controllers/EventManagementController.php
+
+      - name: Verify targeted static analysis
+        run: >-
+          vendor/bin/phpstan analyse --memory-limit=1024M
+          app/Contexts/Operations/EventCore/Http/Controllers/EventOperationsController.php
+          app/Contexts/Operations/EventCore/Http/Controllers/EventManagementController.php
+
+      - name: Commit repair and remove helper workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/p5-controller-contract-repair.yml
+          git add app/Contexts/Operations/EventCore/Http/Controllers
+          git commit -m 'ARCH-V2: tighten Event controller contracts'
+          git push origin HEAD:architecture-v2
+
+      - name: Dispatch authoritative verifier
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run architecture-v2-verification.yml --ref architecture-v2
