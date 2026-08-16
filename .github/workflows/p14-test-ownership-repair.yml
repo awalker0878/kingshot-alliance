@@ -1,0 +1,127 @@
+name: P1-P4 Test Ownership Repair
+
+on:
+  push:
+    branches: [architecture-v2]
+    paths:
+      - '.github/workflows/p14-test-ownership-repair.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v2
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pdo_pgsql, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: php artisan migrate --force
+
+      - name: Move Alliance V2 tests under context-owned paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tests/Feature/Alliance tests/TenantIsolation tests/Unit/Alliance tests/Unit/GameWorld
+          git mv tests/Feature/Alliances tests/Feature/Alliance/Core
+          git mv tests/Feature/Memberships tests/Feature/Alliance/Membership
+          git mv tests/Feature/Recruitment tests/Feature/Alliance/Recruitment
+          git mv tests/Feature/Content tests/Feature/Alliance/Content
+          git mv tests/TenantIsolation/Alliances tests/TenantIsolation/Alliance
+          git rm tests/Unit/Authorization/AllianceRankPermissionsTest.php
+          git rm tests/Unit/Authorization/KingdomRoleVocabularyTest.php
+          rmdir tests/Unit/Authorization 2>/dev/null || true
+
+          python3 - <<'PY'
+          from pathlib import Path
+          replacements = {
+              'namespace Tests\\Feature\\Alliances;': 'namespace Tests\\Feature\\Alliance\\Core;',
+              'namespace Tests\\Feature\\Memberships;': 'namespace Tests\\Feature\\Alliance\\Membership;',
+              'namespace Tests\\Feature\\Recruitment;': 'namespace Tests\\Feature\\Alliance\\Recruitment;',
+              'namespace Tests\\Feature\\Content;': 'namespace Tests\\Feature\\Alliance\\Content;',
+              'namespace Tests\\TenantIsolation\\Alliances;': 'namespace Tests\\TenantIsolation\\Alliance;',
+          }
+          for root in [Path('tests/Feature/Alliance'), Path('tests/TenantIsolation/Alliance')]:
+              for path in root.rglob('*.php'):
+                  text = path.read_text()
+                  for old, new in replacements.items():
+                      text = text.replace(old, new)
+                  path.write_text(text)
+          PY
+
+      - name: Format and run P1-P4 context-owned contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          vendor/bin/pint \
+            tests/Architecture/ArchitectureV2DependencyTest.php \
+            tests/Architecture/ArchitectureV2AllianceTest.php \
+            tests/Feature/Accounts \
+            tests/Feature/GameWorld \
+            tests/Feature/Alliance \
+            tests/TenantIsolation/Alliance \
+            tests/Unit/Accounts \
+            tests/Unit/Alliance \
+            tests/Unit/GameWorld \
+            tests/Feature/Operations/AllianceOperationsAuthorizationTest.php \
+            tests/Feature/Intelligence/AllianceIntelligenceAuthorizationTest.php
+
+          php artisan test \
+            tests/Architecture/ArchitectureV2DependencyTest.php \
+            tests/Architecture/ArchitectureV2AllianceTest.php \
+            tests/Feature/Accounts \
+            tests/Feature/GameWorld \
+            tests/Feature/Alliance \
+            tests/TenantIsolation/Alliance \
+            tests/Unit/Accounts \
+            tests/Unit/Alliance \
+            tests/Unit/GameWorld \
+            tests/Feature/Operations/AllianceOperationsAuthorizationTest.php \
+            tests/Feature/Intelligence/AllianceIntelligenceAuthorizationTest.php
+
+      - name: Commit test ownership cut and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/p14-test-ownership-repair.yml
+          git add tests
+          git commit -m 'test: align P1-P4 acceptance with V2 context ownership'
+          git push origin HEAD:architecture-v2
