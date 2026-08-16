@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 
 
 def replace(path: str, old: str, new: str, *, count: int | None = None) -> None:
@@ -39,22 +38,44 @@ replace(
     'use App\\Contexts\\Operations\\Rosters\\Models\\EventRosterMember;',
 )
 
-# Both list<string> paths use the same map operation but different indentation.
-# Normalize each to a re-indexed list without depending on whitespace shape.
-resolver_path = Path(resolver)
-resolver_source = resolver_path.read_text(encoding='utf-8')
-resolver_source, list_hits = re.subn(
-    r'->map\(static fn \(\$id\): string => \(string\) \$id\)\n(?P<indent>\s*)->all\(\)',
-    lambda match: (
-        '->map(static fn ($id): string => (string) $id)\n'
-        f'{match.group("indent")}->values()\n'
-        f'{match.group("indent")}->all()'
-    ),
-    resolver_source,
+# PHPStan correctly treats array_values(array<int, string>) as list<string>, while
+# Collection::values()->all() remains only array<int, string> in Larastan's model.
+replace(
+    resolver,
+    """            EventScope::Kingdom => Player::query()
+                ->where('current_kingdom_id', $event->kingdom_id)
+                ->whereNotNull('user_id')
+                ->pluck('id')
+                ->map(static fn ($id): string => (string) $id)
+                ->all(),""",
+    """            EventScope::Kingdom => array_values(Player::query()
+                ->where('current_kingdom_id', $event->kingdom_id)
+                ->whereNotNull('user_id')
+                ->pluck('id')
+                ->map(static fn ($id): string => (string) $id)
+                ->all()),""",
 )
-if list_hits != 2:
-    raise RuntimeError(f'{resolver}: expected 2 mapped ID list paths, found {list_hits}.')
-resolver_path.write_text(resolver_source, encoding='utf-8')
+replace(
+    resolver,
+    """        return AllianceRosterEntry::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('state', RosterState::Active->value)
+            ->whereHas('player', static fn ($query) => $query
+                ->where('current_kingdom_id', $alliance->kingdom_id)
+                ->whereNotNull('user_id'))
+            ->pluck('player_id')
+            ->map(static fn ($id): string => (string) $id)
+            ->all();""",
+    """        return array_values(AllianceRosterEntry::query()
+            ->where('alliance_id', $alliance->id)
+            ->where('state', RosterState::Active->value)
+            ->whereHas('player', static fn ($query) => $query
+                ->where('current_kingdom_id', $alliance->kingdom_id)
+                ->whereNotNull('user_id'))
+            ->pluck('player_id')
+            ->map(static fn ($id): string => (string) $id)
+            ->all());""",
+)
 
 # This controller is self-contained; the legacy file extended a non-existent
 # sibling Controller and never used inherited behavior.
@@ -75,8 +96,8 @@ for service in (
         'use App\\Contexts\\Accounts\\Models\\User;\nuse App\\Contexts\\Platform\\Access\\Services\\PlatformMutationAuthority;',
     )
 
-# Larastan cannot prove Collection::values()->all() is a PHP list in this path.
-# Materialize the UI payload through array_values so the list contract is explicit.
+# Materialize the UI payload through array_values so its list contract is also
+# explicit to Larastan.
 middleware = Path('app/Contexts/Platform/Http/Middleware/HandleInertiaRequests.php')
 source = middleware.read_text(encoding='utf-8')
 old = "'players' => $players->map(static fn (Player $player): array => ["
@@ -89,4 +110,4 @@ if source.count(old_tail) != 1:
 source = source.replace(old_tail, "])->all()),", 1)
 middleware.write_text(source, encoding='utf-8')
 
-print('Applied P7 V2 dependency and list-contract corrections.')
+print('Applied P7 V2 dependency and explicit list-contract corrections.')
