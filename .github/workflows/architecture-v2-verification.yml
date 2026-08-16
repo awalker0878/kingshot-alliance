@@ -1,5 +1,5 @@
 name: Architecture V2 Verification
-# P5 verification: V1 operational roots stay absent and only V2-owned Operations tests define P5 acceptance.
+# P6 verification: completed hard cuts remain absent; V2 context-owned tests define acceptance.
 
 on:
   pull_request:
@@ -31,10 +31,12 @@ on:
       - 'tests/Feature/Recruitment/**'
       - 'tests/Feature/Content/**'
       - 'tests/Feature/Operations/**'
+      - 'tests/Feature/Intelligence/**'
       - 'tests/TenantIsolation/Alliances/**'
       - 'tests/Unit/Accounts/**'
       - 'tests/Unit/Authorization/**'
       - 'tests/Unit/Operations/**'
+      - 'tests/Unit/Intelligence/**'
       - 'docs/product/architecture-v2-*.md'
       - '.github/workflows/architecture-v2-verification.yml'
   workflow_dispatch:
@@ -48,7 +50,7 @@ concurrency:
 
 jobs:
   architecture-contract:
-    name: V2 architecture through P5 Operations cut
+    name: V2 architecture through P6 Intelligence cut
     runs-on: ubuntu-24.04
     timeout-minutes: 35
 
@@ -84,7 +86,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
-      - name: Verify V1 hard cuts are absent
+      - name: Verify completed V1 hard cuts are absent
         shell: bash
         run: |
           set -euo pipefail
@@ -92,8 +94,9 @@ jobs:
           test ! -d app/Domain/Events
           test ! -d app/Domain/Rallies
           test ! -d app/Domain/KingPerks
+          test ! -d app/Domain/Contributions
 
-          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\(Authorization|Events|Rallies|KingPerks)\\' app routes bootstrap config database 2>/dev/null || true)
+          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\(Authorization|Events|Rallies|KingPerks|Contributions)\\' app routes bootstrap config database 2>/dev/null || true)
           if [ -n "$matches" ]; then
             echo "$matches"
             exit 1
@@ -113,7 +116,7 @@ jobs:
       - name: Verify PostgreSQL schema
         run: php artisan migrate --force
 
-      - name: Check V2 through P5 PHP formatting
+      - name: Check V2 through P6 PHP formatting
         shell: bash
         run: |
           set -o pipefail
@@ -127,6 +130,7 @@ jobs:
             tests/Feature/Recruitment \
             tests/Feature/Content \
             tests/Feature/Operations \
+            tests/Feature/Intelligence \
             tests/TenantIsolation/Alliances \
             tests/Unit/Accounts \
             tests/Unit/Authorization \
@@ -169,6 +173,7 @@ jobs:
             tests/Architecture/ArchitectureV2DependencyTest.php \
             tests/Architecture/ArchitectureV2AllianceTest.php \
             tests/Architecture/ArchitectureV2OperationsTest.php \
+            tests/Architecture/ArchitectureV2IntelligenceTest.php \
             tests/Architecture/AccountExperienceTest.php \
             tests/Architecture/UserExperienceLocalizationFoundationTest.php \
             2>&1 | tee architecture-tests.log
@@ -183,13 +188,14 @@ jobs:
             exit "$status"
           fi
 
-      - name: Larastan P2 through P5 contexts
+      - name: Larastan P2 through P6 contexts
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1536M
           app/Contexts/Accounts
           app/Contexts/GameWorld
           app/Contexts/Alliance
           app/Contexts/Operations
+          app/Contexts/Intelligence
           app/Shared
           app/Workflows
           app/ReadModels
@@ -233,5 +239,22 @@ jobs:
             details=${details//$'\r'/'%0D'}
             details=${details//$'\n'/'%0A'}
             echo "::error title=V2 Operations tests failed::$details"
+            exit "$status"
+          fi
+
+      - name: Run V2 Intelligence bounded-context tests
+        shell: bash
+        run: |
+          set -uo pipefail
+          set +e
+          php artisan test tests/Feature/Intelligence 2>&1 | tee intelligence-tests.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 0 ]; then
+            details=$(tail -n 120 intelligence-tests.log)
+            details=${details//'%'/'%25'}
+            details=${details//$'\r'/'%0D'}
+            details=${details//$'\n'/'%0A'}
+            echo "::error title=V2 Intelligence tests failed::$details"
             exit "$status"
           fi
