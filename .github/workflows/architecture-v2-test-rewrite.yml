@@ -91,6 +91,28 @@ jobs:
       - name: Rewrite all tests into final V2 owners
         run: python3 .github/scripts/arch_v2_rewrite_tests.py
 
+      - name: Normalize final TransferCompletion Kingdom helper
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tests/Feature/Workflows/KingdomTransfer/v2/TransferCompletionV2Test.php')
+          text = path.read_text()
+          old = """        return Kingdom::query()->firstOrCreate(
+              ['number' => $number],
+              ['status' => 'active'],
+          );"""
+          new = """        return app(ResolveKingdom::class)->handle($number);"""
+          if old not in text:
+              raise SystemExit('Expected TransferCompletion Kingdom helper was not found.')
+          text = text.replace(old, new, 1)
+          import_line = 'use App\\Contexts\\GameWorld\\Actions\\ResolveKingdom;'
+          if import_line not in text:
+              namespace = 'namespace Tests\\Feature\\Workflows\\KingdomTransfer\\v2;'
+              text = text.replace(namespace, namespace + '\n\n' + import_line, 1)
+          path.write_text(text)
+          PY
+
       - name: Correct residual V2 fixtures and imports
         run: python3 .github/scripts/arch_v2_rewrite_test_corrections.py
 
