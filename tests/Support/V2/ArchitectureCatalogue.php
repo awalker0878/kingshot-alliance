@@ -76,7 +76,7 @@ final class ArchitectureCatalogue
             'Operations' => [],
             'Intelligence' => ['Http'],
             'Communications' => [],
-            'Platform' => ['Actions', 'Core', 'Http', 'Models', 'Providers', 'Queries', 'Services'],
+            'Platform' => ['Actions', 'Http', 'Models', 'Providers', 'Queries', 'Services'],
         ];
     }
 
