@@ -4,6 +4,7 @@ on:
   push:
     branches: [architecture-v2]
     paths:
+      - '.github/scripts/arch_v2_p8a_fixture_fix.py'
       - '.github/scripts/arch_v2_p8a_workflow_cut.py'
       - '.github/scripts/arch_v2_p8a_contract_fix.py'
       - '.github/workflows/architecture-v2-p8-inventory.yml'
@@ -67,6 +68,9 @@ jobs:
 
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Migrate stale executable fixtures to completed V2 owners
+        run: python3 .github/scripts/arch_v2_p8a_fixture_fix.py
 
       - name: Apply P8A workflow and read-model ownership cut
         run: |
@@ -141,6 +145,7 @@ jobs:
 
       - name: Remove P8A one-shot migration machinery
         run: |
+          rm .github/scripts/arch_v2_p8a_fixture_fix.py
           rm .github/scripts/arch_v2_p8a_workflow_cut.py
           rm .github/scripts/arch_v2_p8a_contract_fix.py
           rm .github/workflows/architecture-v2-p8-inventory.yml
