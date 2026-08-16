@@ -20,6 +20,7 @@ use App\Contexts\GameWorld\Governance\Services\KingdomRoleProvisioner;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use App\Contexts\Operations\Access\Services\KingdomOperationsRoleProvisioner;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\EventCore\Services\EventCreationContextResolver;
@@ -136,6 +137,7 @@ final class EventScopedAuthorizationTest extends TestCase
             'current_name' => 'Kingdom Event Admin',
         ]);
         $roles = $this->app->make(KingdomRoleProvisioner::class)->provision($firstKingdom);
+        $this->app->make(KingdomOperationsRoleProvisioner::class)->provision($firstKingdom);
         $administrator = $roles[DefaultKingdomRole::Administrator->value];
         KingdomRoleAssignment::query()->create([
             'kingdom_id' => $firstKingdom->id,
@@ -337,6 +339,7 @@ final class EventScopedAuthorizationTest extends TestCase
             ->handle($alliance, $ownerPlayer, $membership->id, $role->id);
 
         $kingdomRoles = $this->app->make(KingdomRoleProvisioner::class)->provision($kingdom);
+        $this->app->make(KingdomOperationsRoleProvisioner::class)->provision($kingdom);
         $eventCoordinator = $kingdomRoles[DefaultKingdomRole::EventCoordinator->value];
         KingdomRoleAssignment::query()->create([
             'kingdom_id' => $kingdom->id,
