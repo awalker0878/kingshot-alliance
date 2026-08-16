@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Operations\EventCore\V2;
+namespace Tests\Feature\Operations\EventCore\v2;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Operations\EventCore\Actions\CreateEvent;
