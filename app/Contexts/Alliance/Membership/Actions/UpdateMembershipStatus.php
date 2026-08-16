@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Membership\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
@@ -21,7 +21,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class UpdateMembershipStatus
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceAuthorization $authority,
         private MembershipAdministrationGuard $guard,
         private AllianceCapacityPolicy $entitlements,
         private AuditRecorder $audit,

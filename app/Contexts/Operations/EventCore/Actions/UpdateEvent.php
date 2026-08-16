@@ -10,7 +10,7 @@ use App\Contexts\Operations\EventCore\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\EventCore\Services\EventPhaseService;
 use App\Contexts\Operations\EventCore\Services\EventSchedulePolicyResolver;
 use App\Contexts\Operations\EventCore\Services\RecurrenceCalculator;
@@ -26,7 +26,7 @@ use InvalidArgumentException;
 final class UpdateEvent
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventSchedulePolicyResolver $schedulePolicy,
         private RecurrenceCalculator $recurrence,
         private EventPhaseService $phases,

@@ -11,7 +11,7 @@ use App\Contexts\Operations\BattlePlans\Models\EventObjectiveAssignment;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class RemoveEventObjectiveAssignment
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

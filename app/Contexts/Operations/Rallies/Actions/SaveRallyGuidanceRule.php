@@ -7,7 +7,7 @@ namespace App\Contexts\Operations\Rallies\Actions;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
-use App\Contexts\Operations\Access\Services\AllianceOperationsMutationAuthority;
+use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
 use App\Contexts\Operations\Rallies\Models\RallyGuidanceRule;
 use App\Contexts\Operations\Rallies\ValueObjects\FormationComposition;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveRallyGuidanceRule
 {
     public function __construct(
-        private AllianceOperationsMutationAuthority $authority,
+        private AllianceOperationsAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}

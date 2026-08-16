@@ -9,7 +9,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CancelEventRegistration
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

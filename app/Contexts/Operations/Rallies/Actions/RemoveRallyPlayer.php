@@ -8,7 +8,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
 use App\Contexts\Operations\Rallies\Models\RallyAssignment;
 use App\Contexts\Operations\Rallies\Models\RallyGroup;
@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class RemoveRallyPlayer
 {
     public function __construct(
-        private EventMutationAuthority $eventAuthority,
+        private EventAuthorization $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

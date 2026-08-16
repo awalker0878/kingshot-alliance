@@ -9,7 +9,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
 use App\Contexts\Operations\Participation\Enums\EventResponseSource;
 use App\Contexts\Operations\Participation\Models\EventResponse;
@@ -22,7 +22,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class RespondToEvent
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

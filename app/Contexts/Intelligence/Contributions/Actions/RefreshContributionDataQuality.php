@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordStatus;
 use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
 use App\Contexts\Intelligence\Contributions\Models\ContributionDataQualityFlag;
@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 final class RefreshContributionDataQuality
 {
     public function __construct(
-        private readonly AllianceIntelligenceMutationAuthority $authority,
+        private readonly AllianceIntelligenceAuthorization $authority,
         private readonly ContributionPeriodResolver $periods,
         private readonly AuditRecorder $audit,
     ) {}

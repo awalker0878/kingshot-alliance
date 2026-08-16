@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
-use App\Contexts\GameWorld\Governance\Services\PlayerMutationAuthority;
+use App\Contexts\GameWorld\Governance\Services\PlayerWriteState;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Rallies\Models\PlayerFormation;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class DeletePlayerFormation
 {
     public function __construct(
-        private PlayerMutationAuthority $authority,
+        private PlayerWriteState $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}

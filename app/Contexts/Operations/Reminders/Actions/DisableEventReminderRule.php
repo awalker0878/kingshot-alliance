@@ -7,7 +7,7 @@ namespace App\Contexts\Operations\Reminders\Actions;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\Reminders\Models\EventReminderRule;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class DisableEventReminderRule
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}

@@ -6,7 +6,7 @@ namespace App\Contexts\Platform\Actions;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\Platform\Access\Services\PlatformMutationAuthority;
+use App\Contexts\Platform\Access\Services\PlatformAuthorization;
 use App\Contexts\Platform\Models\AlliancePlatformSetting;
 use App\Contexts\Platform\Services\AllianceFeatureService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -20,7 +20,7 @@ final readonly class ConfigureAlliancePlatform
         private AllianceFeatureService $features,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
-        private PlatformMutationAuthority $mutations,
+        private PlatformAuthorization $mutations,
     ) {}
 
     public function assignPlan(User $actor, Alliance $alliance, string $planCode): void

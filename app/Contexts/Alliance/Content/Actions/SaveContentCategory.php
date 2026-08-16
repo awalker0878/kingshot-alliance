@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Content\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Models\ContentCategory;
 use App\Contexts\Alliance\Content\Services\ContentSanitizer;
 use App\Contexts\Alliance\Core\Models\Alliance;
@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class SaveContentCategory
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceAuthorization $authority,
         private ContentSanitizer $sanitizer,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

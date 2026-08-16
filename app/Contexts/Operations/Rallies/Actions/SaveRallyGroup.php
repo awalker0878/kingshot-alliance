@@ -10,7 +10,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentRole;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
 use App\Contexts\Operations\Rallies\Models\EventRecommendedFormation;
@@ -25,7 +25,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveRallyGroup
 {
     public function __construct(
-        private EventMutationAuthority $eventAuthority,
+        private EventAuthorization $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private RallyAllianceResolver $alliances,
         private AuditRecorder $audit,

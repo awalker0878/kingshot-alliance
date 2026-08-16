@@ -10,7 +10,7 @@ use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkAppointmentStatus;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPlanStatus;
@@ -31,7 +31,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class KingPerkScheduler
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private KingPerkWindowResolver $windows,
         private AuditRecorder $audit,

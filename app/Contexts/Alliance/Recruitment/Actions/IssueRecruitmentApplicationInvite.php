@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentApplicationInvite;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentApplicationTokenService;
@@ -20,7 +20,7 @@ use InvalidArgumentException;
 final class IssueRecruitmentApplicationInvite
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceAuthorization $authority,
         private RecruitmentApplicationTokenService $tokens,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

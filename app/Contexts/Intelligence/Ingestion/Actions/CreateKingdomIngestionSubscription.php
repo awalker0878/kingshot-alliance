@@ -7,7 +7,7 @@ namespace App\Contexts\Intelligence\Ingestion\Actions;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Ingestion\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionSubscriptionState;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionSubscription;
@@ -21,7 +21,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreateKingdomIngestionSubscription
 {
     public function __construct(
-        private AllianceIntelligenceMutationAuthority $authority,
+        private AllianceIntelligenceAuthorization $authority,
         private KingdomIngestionAdapterRegistry $adapters,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

@@ -14,7 +14,7 @@ use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Models\EventTemplate;
 use App\Contexts\Operations\EventCore\Models\EventTypeScope;
-use App\Contexts\Operations\EventCore\Services\EventCreationMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\EventCore\Services\EventPhaseService;
 use App\Contexts\Operations\EventCore\Services\EventSchedulePolicyResolver;
 use App\Contexts\Operations\EventCore\Services\EventTargetResolver;
@@ -31,7 +31,7 @@ use InvalidArgumentException;
 final class CreateEvent
 {
     public function __construct(
-        private EventCreationMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventTargetResolver $targets,
         private EventTypeDefaultsResolver $defaults,
         private EventSchedulePolicyResolver $schedulePolicy,

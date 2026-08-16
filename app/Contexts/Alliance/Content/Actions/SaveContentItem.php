@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Content\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
 use App\Contexts\Alliance\Content\Enums\ContentType;
 use App\Contexts\Alliance\Content\Enums\ContentVisibility;
@@ -23,7 +23,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveContentItem
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceAuthorization $authority,
         private ContentSanitizer $sanitizer,
         private ContentRevisionWriter $revisions,
         private AuditRecorder $audit,

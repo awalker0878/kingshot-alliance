@@ -10,7 +10,7 @@ use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityResolver;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\Participation\Services\EventPlayerContextFreezer;
@@ -23,7 +23,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class RegisterForEvent
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private EventCapabilityResolver $capabilityResolver,
         private EventRegistrationWindow $window,

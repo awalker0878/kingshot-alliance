@@ -10,7 +10,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\EventCore\Models\EventTemplate;
 use App\Contexts\Operations\EventCore\Models\EventTypeScope;
-use App\Contexts\Operations\EventCore\Services\EventCreationMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\EventCore\Services\EventSchedulePolicyResolver;
 use App\Contexts\Operations\EventCore\Services\EventTargetResolver;
 use App\Contexts\Operations\EventCore\Services\EventTypeDefaultsResolver;
@@ -22,7 +22,7 @@ use InvalidArgumentException;
 final class CreateEventTemplate
 {
     public function __construct(
-        private EventCreationMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventTargetResolver $targets,
         private EventTypeDefaultsResolver $defaults,
         private EventSchedulePolicyResolver $schedulePolicy,

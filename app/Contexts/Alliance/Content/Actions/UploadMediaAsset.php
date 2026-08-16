@@ -6,7 +6,6 @@ namespace App\Contexts\Alliance\Content\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Content\Enums\MediaLifecycleStatus;
 use App\Contexts\Alliance\Content\Enums\MediaScanStatus;
 use App\Contexts\Alliance\Content\Models\MediaAsset;
@@ -29,7 +28,7 @@ final readonly class UploadMediaAsset
 {
     public function __construct(
         private AllianceAuthorization $readAuthorization,
-        private AllianceMutationAuthority $mutationAuthority,
+        private AllianceAuthorization $mutationAuthority,
         private MediaScanner $scanner,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

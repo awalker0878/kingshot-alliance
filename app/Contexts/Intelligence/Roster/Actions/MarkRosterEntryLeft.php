@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class MarkRosterEntryLeft
 {
     public function __construct(
-        private AllianceIntelligenceMutationAuthority $authority,
+        private AllianceIntelligenceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}

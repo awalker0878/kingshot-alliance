@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Platform\Integrations\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Platform\Integrations\Contracts\WebhookEventCatalog;
@@ -21,7 +21,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreateWebhookSubscription
 {
     public function __construct(
-        private AllianceMutationAuthority $mutations,
+        private AllianceAuthorization $mutations,
         private PlanEntitlementService $entitlements,
         private WebhookEndpointPolicy $endpointPolicy,
         private AuditRecorder $audit,

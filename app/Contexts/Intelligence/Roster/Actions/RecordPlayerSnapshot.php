@@ -8,7 +8,7 @@ use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -23,7 +23,7 @@ final readonly class RecordPlayerSnapshot
     private const MAX_POWER = '9223372036854775807';
 
     public function __construct(
-        private AllianceIntelligenceMutationAuthority $authority,
+        private AllianceIntelligenceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}

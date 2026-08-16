@@ -8,7 +8,7 @@ use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
-use App\Contexts\GameWorld\Governance\Services\KingdomMutationAuthority;
+use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -21,7 +21,7 @@ use LogicException;
 final readonly class RemoveKingdomRole
 {
     public function __construct(
-        private KingdomMutationAuthority $mutations,
+        private KingdomAuthorization $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}

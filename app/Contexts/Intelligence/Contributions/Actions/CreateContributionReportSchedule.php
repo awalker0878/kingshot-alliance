@@ -9,7 +9,7 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Contributions\Models\ContributionReportSchedule;
 use App\Contexts\Intelligence\Contributions\Services\ContributionReportExporter;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -21,7 +21,7 @@ use InvalidArgumentException;
 final class CreateContributionReportSchedule
 {
     public function __construct(
-        private readonly AllianceIntelligenceMutationAuthority $authority,
+        private readonly AllianceIntelligenceAuthorization $authority,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
     ) {}

@@ -10,7 +10,7 @@ use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use App\Contexts\Operations\Results\Models\EventAllianceResult;
 use App\Contexts\Operations\Results\Services\EventMetricCapture;
@@ -22,7 +22,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveEventAllianceResult
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private EventMetricCapture $metrics,
         private AuditRecorder $audit,

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\v2\Contexts\Platform\Access;
 
 use App\Contexts\Platform\Access\Models\PlatformAdministrator;
-use App\Contexts\Platform\Access\Services\PlatformMutationAuthority;
+use App\Contexts\Platform\Access\Services\PlatformAuthorization;
 use App\Contexts\Platform\Actions\ManagePlatformAdministrator;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -41,7 +41,7 @@ final class PlatformAdministrationBehaviorV2Test extends TestCase
     public function test_platform_mutation_authority_requires_an_active_grant(): void
     {
         $user = (new ScenarioFactory)->user();
-        $authority = app(PlatformMutationAuthority::class);
+        $authority = app(PlatformAuthorization::class);
 
         try {
             $authority->require($user);

@@ -10,7 +10,7 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordSource;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordStatus;
 use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
@@ -24,7 +24,7 @@ use InvalidArgumentException;
 final class RecordContribution
 {
     public function __construct(
-        private readonly AllianceIntelligenceMutationAuthority $authority,
+        private readonly AllianceIntelligenceAuthorization $authority,
         private readonly ContributionPeriodResolver $periods,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
@@ -50,7 +50,7 @@ final class RecordContribution
                 throw new InvalidArgumentException('Self-reported contributions may only be recorded for the active Player.');
             }
 
-            // AllianceMutationAuthority already stabilized the actor membership. Avoid
+            // AllianceAuthorization already stabilized the actor membership. Avoid
             // re-locking that same actor Player after its membership; target other Players
             // using the normal Player -> target-membership eligibility order.
             $currentPlayer = $isActorTarget

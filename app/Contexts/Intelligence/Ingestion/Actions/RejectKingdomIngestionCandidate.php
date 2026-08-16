@@ -7,7 +7,7 @@ namespace App\Contexts\Intelligence\Ingestion\Actions;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionCandidateState;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionBatch;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionCandidate;
@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class RejectKingdomIngestionCandidate
 {
     public function __construct(
-        private AllianceIntelligenceMutationAuthority $authority,
+        private AllianceIntelligenceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}

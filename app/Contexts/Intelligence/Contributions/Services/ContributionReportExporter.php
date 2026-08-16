@@ -7,7 +7,7 @@ namespace App\Contexts\Intelligence\Contributions\Services;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Contributions\Models\ContributionReportRun;
 use App\Contexts\Intelligence\Contributions\Queries\AllianceContributionReportQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -23,7 +23,7 @@ final class ContributionReportExporter
     public const REPORT_VERSION = 'event-history.v2';
 
     public function __construct(
-        private readonly AllianceIntelligenceMutationAuthority $authority,
+        private readonly AllianceIntelligenceAuthorization $authority,
         private readonly AllianceContributionReportQuery $reports,
         private readonly AuditRecorder $audit,
     ) {}

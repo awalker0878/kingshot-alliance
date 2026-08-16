@@ -8,7 +8,7 @@ use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Actions\AllianceLifecycleMutation;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\Platform\Access\Services\PlatformMutationAuthority;
+use App\Contexts\Platform\Access\Services\PlatformAuthorization;
 use App\Contexts\Platform\Models\AlliancePlatformSetting;
 use App\Contexts\Platform\Services\LegalHoldService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -23,7 +23,7 @@ final readonly class ManageAllianceLifecycle
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
         private LegalHoldService $legalHolds,
-        private PlatformMutationAuthority $mutations,
+        private PlatformAuthorization $mutations,
         private AllianceLifecycleMutation $allianceLifecycle,
     ) {}
 

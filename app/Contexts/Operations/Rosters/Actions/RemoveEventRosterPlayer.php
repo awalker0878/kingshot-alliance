@@ -9,7 +9,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class RemoveEventRosterPlayer
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

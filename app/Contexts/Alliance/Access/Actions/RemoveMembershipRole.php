@@ -6,7 +6,7 @@ namespace App\Contexts\Alliance\Access\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Models\Role;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class RemoveMembershipRole
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceAuthorization $authority,
         private AuditRecorder $audit,
     ) {}
 

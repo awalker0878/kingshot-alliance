@@ -10,7 +10,7 @@ use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityResolver;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\Polls\Models\EventPoll;
 use App\Contexts\Operations\Reminders\Enums\EventReminderAudience;
 use App\Contexts\Operations\Reminders\Enums\EventReminderTrigger;
@@ -23,7 +23,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreateEventReminderRule
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventCapabilityResolver $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

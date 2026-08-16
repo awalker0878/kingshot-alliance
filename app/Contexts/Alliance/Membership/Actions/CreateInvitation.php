@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Membership\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Services\IssueAllianceInvitation;
 use App\Contexts\Alliance\Membership\ValueObjects\IssuedInvitation;
@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 final readonly class CreateInvitation
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceAuthorization $authority,
         private IssueAllianceInvitation $issuer,
     ) {}
 

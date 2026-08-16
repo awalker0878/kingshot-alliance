@@ -9,7 +9,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
-use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferMutationAuthority;
+use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferBlockerState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferBlocker;
@@ -21,7 +21,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreateTransferBlocker
 {
     public function __construct(
-        private TransferMutationAuthority $authority,
+        private TransferAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}

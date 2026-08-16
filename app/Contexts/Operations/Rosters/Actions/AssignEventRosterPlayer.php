@@ -9,7 +9,7 @@ use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\EventCore\Services\EventAuthorization;
 use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
@@ -24,7 +24,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class AssignEventRosterPlayer
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventAuthorization $mutations,
         private EventParticipantAuthorization $participants,
         private EventCapabilityGuard $capabilities,
         private EventRosterAvailabilityService $availability,

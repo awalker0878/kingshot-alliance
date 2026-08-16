@@ -6,7 +6,7 @@ namespace App\Contexts\Platform\Services;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\Platform\Access\Services\PlatformMutationAuthority;
+use App\Contexts\Platform\Access\Services\PlatformAuthorization;
 use App\Contexts\Platform\Models\LegalHold;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +17,7 @@ final readonly class LegalHoldService
 {
     public function __construct(
         private AuditRecorder $audit,
-        private PlatformMutationAuthority $mutations,
+        private PlatformAuthorization $mutations,
     ) {}
 
     public function active(string $subjectType, string $subjectId): bool

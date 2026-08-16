@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentCommunicationStatus;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 final class PrepareRecruitmentDecisionCommunication
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
