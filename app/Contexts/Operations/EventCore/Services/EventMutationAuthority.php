@@ -7,12 +7,12 @@ namespace App\Contexts\Operations\EventCore\Services;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Governance\Services\KingdomMutationAuthority;
 use App\Contexts\GameWorld\Governance\Services\PlayerMutationAuthority;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Access\Services\AllianceOperationsMutationAuthority;
+use App\Contexts\Operations\Access\Services\KingdomOperationsMutationAuthority;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventTypeScope;
@@ -30,7 +30,7 @@ final readonly class EventMutationAuthority
     public function __construct(
         private EventAuthorization $authorization,
         private AllianceOperationsMutationAuthority $allianceAuthority,
-        private KingdomMutationAuthority $kingdomAuthority,
+        private KingdomOperationsMutationAuthority $kingdomAuthority,
         private PlayerMutationAuthority $playerAuthority,
     ) {}
 
