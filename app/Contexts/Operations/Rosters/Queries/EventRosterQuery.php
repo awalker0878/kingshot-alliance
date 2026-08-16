@@ -26,7 +26,7 @@ final readonly class EventRosterQuery
     /** @return list<array<string,mixed>> */
     public function forPlayer(EventOccurrence $occurrence, Player $player): array
     {
-        return EventRosterMember::query()
+        return array_values(EventRosterMember::query()
             ->where('player_id', $player->id)
             ->where('status', '!=', EventRosterMemberStatus::Removed->value)
             ->whereHas('roster', static fn ($query) => $query->where('occurrence_id', $occurrence->id))
@@ -47,7 +47,7 @@ final readonly class EventRosterQuery
                 'warnings' => $this->availability->warnings($occurrence, $player),
                 'notes' => $member->notes,
                 'respondedAt' => $member->responded_at?->toIso8601String(),
-            ])->all();
+            ])->all());
     }
 
     /** @return list<array<string,mixed>> */
@@ -55,7 +55,7 @@ final readonly class EventRosterQuery
     {
         $players = $this->eligiblePlayers->for($event)->keyBy(static fn (Player $player): string => (string) $player->id);
 
-        return $event->occurrences
+        return array_values($event->occurrences
             ->sortBy('starts_at')
             ->values()
             ->map(function (EventOccurrence $occurrence) use ($players): array {
@@ -91,7 +91,7 @@ final readonly class EventRosterQuery
                         ];
                     })->all(),
                 ];
-            })->all();
+            })->all());
     }
 
     /** @return array<string,mixed> */
