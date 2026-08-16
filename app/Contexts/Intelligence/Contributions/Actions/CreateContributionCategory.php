@@ -91,12 +91,10 @@ final class CreateContributionCategory
                     'updated_by_player_id' => $context->actor->id,
                 ]);
             } catch (QueryException $exception) {
-                if (ContributionCategory::query()
-                    ->where('alliance_id', $context->alliance->id)
-                    ->where('slug', $slug)
-                    ->exists()) {
+                if ((string) $exception->getCode() === '23505') {
                     throw new InvalidArgumentException('Contribution category name must be unique within the alliance.');
                 }
+
                 throw $exception;
             }
 
