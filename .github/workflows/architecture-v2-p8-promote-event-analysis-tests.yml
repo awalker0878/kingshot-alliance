@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/scripts/arch_v2_p8_promote_event_analysis_tests.py'
       - '.github/workflows/architecture-v2-p8-promote-event-analysis-tests.yml'
+      - 'docs/domains/events/battle-plans.md'
       - 'tests/Architecture/Concerns/RepositoryDocumentationLinkAssertions.php'
       - 'tests/Architecture/Concerns/RepositoryDomainDocumentationAssertions.php'
       - 'tests/Architecture/Concerns/RepositorySecurityAssertions.php'
