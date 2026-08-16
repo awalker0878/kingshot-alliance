@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Administration\Models;
 
-use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
-/** @property Carbon $granted_at @property Carbon|null $revoked_at */
+/**
+ * Platform-owned administrative grant keyed to an Accounts user by scalar ID.
+ *
+ * @property int $user_id
+ * @property int|null $granted_by_user_id
+ * @property Carbon $granted_at
+ * @property Carbon|null $revoked_at
+ */
 final class PlatformAdministrator extends Model
 {
     use HasUlids;
@@ -21,17 +26,19 @@ final class PlatformAdministrator extends Model
 
     protected function casts(): array
     {
-        return ['granted_at' => 'datetime', 'revoked_at' => 'datetime'];
+        return [
+            'user_id' => 'integer',
+            'granted_by_user_id' => 'integer',
+            'granted_at' => 'datetime',
+            'revoked_at' => 'datetime',
+        ];
     }
 
-    /** @return BelongsTo<User, $this> */
-    public function user(): BelongsTo
+    public static function activeForUserId(int $userId): bool
     {
-        return $this->belongsTo(User::class);
-    }
-
-    public static function activeFor(User $user): bool
-    {
-        return self::query()->where('user_id', $user->id)->whereNull('revoked_at')->exists();
+        return self::query()
+            ->where('user_id', $userId)
+            ->whereNull('revoked_at')
+            ->exists();
     }
 }
