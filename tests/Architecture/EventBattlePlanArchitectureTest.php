@@ -12,7 +12,7 @@ final class EventBattlePlanArchitectureTest extends TestCase
     {
         $root = dirname(__DIR__, 2);
         $migration = file_get_contents($root.'/database/migrations/2026_08_13_060000_create_event_battle_plan_tables.php');
-        $controller = file_get_contents($root.'/app/Domain/Events/Http/Controllers/EventBattlePlanController.php');
+        $controller = file_get_contents($root.'/app/Contexts/Operations/BattlePlans/Http/Controllers/EventBattlePlanController.php');
 
         self::assertIsString($migration);
         self::assertIsString($controller);
