@@ -6,10 +6,10 @@ namespace App\Contexts\Intelligence\Diplomacy\Models;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
-use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceContactChannel;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceContactState;
+use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
