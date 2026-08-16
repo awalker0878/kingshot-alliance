@@ -1,0 +1,288 @@
+name: V3 CA-P4 Workflow Restructure
+
+on:
+  push:
+    branches:
+      - architecture-v3-capability-alignment
+
+permissions:
+  contents: write
+
+jobs:
+  rewrite:
+    if: ${{ !contains(github.event.head_commit.message, 'apply CA-P4 workflow restructure') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v3-capability-alignment
+          fetch-depth: 0
+
+      - name: Restructure workflows
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import shutil
+
+          def move(src, dst):
+              source = Path(src)
+              target = Path(dst)
+              if not source.exists():
+                  return
+              target.parent.mkdir(parents=True, exist_ok=True)
+              if target.exists():
+                  raise SystemExit(f'target exists: {dst}')
+              shutil.move(str(source), str(target))
+
+          move('app/Workflows/PlayerContext/Actions/ActivatePlayer.php', 'app/Contexts/GameWorld/Players/Actions/ActivatePlayer.php')
+          move('app/Workflows/PlayerContext/Http/Controllers/ActivatePlayerController.php', 'app/Contexts/GameWorld/Players/Http/Controllers/ActivatePlayerController.php')
+          if Path('app/Workflows/PlayerContext').exists():
+              shutil.rmtree('app/Workflows/PlayerContext')
+
+          move('app/Workflows/Registration', 'app/Workflows/AccountOnboarding')
+
+          replacements = [
+              ('App\\Workflows\\PlayerContext\\Actions\\ActivatePlayer', 'App\\Contexts\\GameWorld\\Players\\Actions\\ActivatePlayer'),
+              ('App\\Workflows\\PlayerContext\\Http\\Controllers\\ActivatePlayerController', 'App\\Contexts\\GameWorld\\Players\\Http\\Controllers\\ActivatePlayerController'),
+              ('App\\Workflows\\Registration\\', 'App\\Workflows\\AccountOnboarding\\'),
+          ]
+          for root in ['app', 'routes', 'bootstrap', 'config']:
+              for path in Path(root).rglob('*.php'):
+                  text = path.read_text()
+                  updated = text
+                  for old, new in replacements:
+                      updated = updated.replace(old, new)
+                  if updated != text:
+                      path.write_text(updated)
+
+          Path('app/Contexts/GameWorld/Players/Actions/ActivatePlayer.php').write_text(r'''<?php
+
+declare(strict_types=1);
+
+namespace App\Contexts\GameWorld\Players\Actions;
+
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use Illuminate\Support\Facades\DB;
+
+final readonly class ActivatePlayer
+{
+    public function __construct(
+        private AuditRecorder $audit,
+        private PlayerReferenceQuery $players,
+    ) {}
+
+    public function handle(
+        AccountIdentity $account,
+        string $playerId,
+        ?string $previousPlayerId,
+    ): PlayerReference {
+        DB::transaction(function () use ($account, $playerId, $previousPlayerId): void {
+            $player = Player::query()
+                ->whereKey($playerId)
+                ->where('user_id', $account->userId)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $this->audit->record(
+                'player.context_changed',
+                $account,
+                $player,
+                null,
+                [
+                    'previous_player_id' => $previousPlayerId,
+                    'player_id' => (string) $player->id,
+                ],
+            );
+        });
+
+        return $this->players->require($playerId);
+    }
+}
+''')
+
+          Path('app/Contexts/GameWorld/Players/Http/Controllers/ActivatePlayerController.php').write_text(r'''<?php
+
+declare(strict_types=1);
+
+namespace App\Contexts\GameWorld\Players\Http\Controllers;
+
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\GameWorld\Players\Actions\ActivatePlayer;
+use App\Shared\Infrastructure\Http\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+
+final class ActivatePlayerController extends Controller
+{
+    public function __invoke(
+        Request $request,
+        string $player,
+        ActivatePlayer $activatePlayer,
+        AccountIdentityQuery $accounts,
+    ): RedirectResponse {
+        $identifier = $request->user()?->getAuthIdentifier();
+        abort_unless(is_numeric($identifier), 401);
+        $account = $accounts->require((int) $identifier);
+
+        $sessionKey = (string) config('game_world.active_player_session_key');
+        $previousPlayerId = $request->session()->get($sessionKey);
+        $target = $activatePlayer->handle(
+            $account,
+            $player,
+            is_string($previousPlayerId) ? $previousPlayerId : null,
+        );
+
+        $request->session()->put($sessionKey, $target->playerId);
+
+        return back();
+    }
+}
+''')
+
+          Path('app/Workflows/AccountOnboarding/Actions/RegisterAccount.php').write_text(r'''<?php
+
+declare(strict_types=1);
+
+namespace App\Workflows\AccountOnboarding\Actions;
+
+use App\Contexts\Accounts\Registration\Actions\RegisterUser;
+use App\Contexts\Alliance\Membership\Actions\AcceptInvitation;
+
+final readonly class RegisterAccount
+{
+    public function __construct(
+        private RegisterUser $registerUser,
+        private AcceptInvitation $acceptInvitation,
+    ) {}
+
+    /** @return array{user: object, membership: object|null} */
+    public function handle(
+        string $name,
+        string $email,
+        string $password,
+        string $timezone,
+        ?string $invitationToken,
+    ): array {
+        $user = $this->registerUser->handle(
+            name: $name,
+            email: $email,
+            password: $password,
+            timezone: $timezone,
+        );
+
+        $membership = $invitationToken !== null
+            ? $this->acceptInvitation->handle($user, $invitationToken)
+            : null;
+
+        $user->sendEmailVerificationNotification();
+
+        return ['user' => $user, 'membership' => $membership];
+    }
+}
+''')
+
+          controller = Path('app/Workflows/AccountOnboarding/Http/Controllers/RegistrationController.php')
+          text = controller.read_text()
+          text = text.replace('namespace App\\Workflows\\Registration\\Http\\Controllers;', 'namespace App\\Workflows\\AccountOnboarding\\Http\\Controllers;')
+          text = text.replace('use App\\Workflows\\Registration\\Actions\\RegisterAccount;', 'use App\\Workflows\\AccountOnboarding\\Actions\\RegisterAccount;')
+          text = text.replace('            invitation: $invitation,\n            invitationToken: $token === \'\' ? null : $token,', '            invitationToken: $token === \'\' ? null : $token,')
+          controller.write_text(text)
+          PY
+
+      - name: Add CA-P4 architecture test
+        shell: bash
+        run: |
+          cat > tests/v3/Architecture/WorkflowBoundariesV3Test.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          namespace Tests\v3\Architecture;
+          use PHPUnit\Framework\Attributes\Test;
+          use PHPUnit\Framework\TestCase;
+          use RecursiveDirectoryIterator;
+          use RecursiveIteratorIterator;
+
+          final class WorkflowBoundariesV3Test extends TestCase
+          {
+              #[Test]
+              public function only_intended_workflow_packages_exist(): void
+              {
+                  $root = dirname(__DIR__, 3).'/app/Workflows';
+                  $actual = array_values(array_map('basename', array_filter(glob($root.'/*') ?: [], 'is_dir')));
+                  sort($actual);
+                  self::assertSame(['AccountOnboarding', 'KingdomGovernance'], $actual);
+              }
+
+              #[Test]
+              public function workflows_do_not_own_persistence_or_transactions(): void
+              {
+                  $root = dirname(__DIR__, 3).'/app/Workflows';
+                  $violations = [];
+                  $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
+                  foreach ($iterator as $file) {
+                      if (! $file->isFile() || $file->getExtension() !== 'php') continue;
+                      $contents = file_get_contents($file->getPathname());
+                      self::assertIsString($contents);
+                      foreach ([
+                          '/\bDB::transaction\s*\(/' => 'transaction',
+                          '/->lockForUpdate\s*\(/' => 'lockForUpdate',
+                          '/->sharedLock\s*\(/' => 'sharedLock',
+                          '/->forceFill\s*\(/' => 'forceFill',
+                          '/->save\s*\(\s*\)/' => 'save',
+                          '/::(?:query\(\)->)?create\s*\(/' => 'create',
+                          '/->(?:insert|upsert|update|delete)\s*\(/' => 'direct persistence',
+                      ] as $pattern => $label) {
+                          if (preg_match($pattern, $contents) === 1) {
+                              $violations[] = str_replace(dirname(__DIR__, 3).'/', '', $file->getPathname()).' ['.$label.']';
+                          }
+                      }
+                  }
+                  self::assertSame([], array_values(array_unique($violations)), implode("\n", $violations));
+              }
+
+              #[Test]
+              public function workflows_do_not_define_business_models_repositories_or_permission_enums(): void
+              {
+                  $root = dirname(__DIR__, 3).'/app/Workflows';
+                  foreach (glob($root.'/*', GLOB_ONLYDIR) ?: [] as $workflow) {
+                      foreach (['Models', 'Repositories', 'Enums', 'Policies'] as $forbidden) {
+                          self::assertDirectoryDoesNotExist($workflow.'/'.$forbidden);
+                      }
+                  }
+              }
+
+              #[Test]
+              public function contexts_do_not_import_workflows(): void
+              {
+                  $root = dirname(__DIR__, 3).'/app/Contexts';
+                  $violations = [];
+                  $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
+                  foreach ($iterator as $file) {
+                      if (! $file->isFile() || $file->getExtension() !== 'php') continue;
+                      $contents = file_get_contents($file->getPathname());
+                      if (is_string($contents) && str_contains($contents, 'App\\Workflows\\')) {
+                          $violations[] = str_replace(dirname(__DIR__, 3).'/', '', $file->getPathname());
+                      }
+                  }
+                  self::assertSame([], $violations, implode("\n", $violations));
+              }
+          }
+          PHP
+
+      - name: Syntax check rewrite
+        run: find app/Workflows app/Contexts/GameWorld/Players tests/v3/Architecture -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Remove one-use workflow
+        run: rm -f .github/workflows/v3-p4-workflow-restructure.yml
+
+      - name: Commit CA-P4 restructure
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor(v3): apply CA-P4 workflow restructure [skip ci]"
+          git push origin HEAD:architecture-v3-capability-alignment
