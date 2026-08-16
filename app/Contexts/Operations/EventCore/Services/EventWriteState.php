@@ -77,6 +77,25 @@ final class EventWriteState
         return new EventMutationContext($lockedEvent, $typeScope, $currentActor, $target);
     }
 
+    public function lockSelfScope(Player $actor, Event $event, Player $participant): EventMutationContext
+    {
+        $context = $this->lockEventScope($actor, $event);
+
+        if ($context->event->scope === EventScope::Alliance) {
+            if (! $context->target instanceof Alliance
+                || ! AllianceRosterEntry::query()
+                    ->where('alliance_id', $context->target->id)
+                    ->where('player_id', $participant->id)
+                    ->where('state', RosterState::Active->value)
+                    ->lockForUpdate()
+                    ->exists()) {
+                throw new AuthorizationException;
+            }
+        }
+
+        return $context;
+    }
+
     public function lockCreationScope(
         Player $actor,
         EventTypeScope $configuration,
