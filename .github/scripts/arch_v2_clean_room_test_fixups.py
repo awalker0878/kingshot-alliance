@@ -226,6 +226,18 @@ function savePoll(): void {
 """,
     )
     replace(
+        "resources/js/pages/Platform/Administration/Index.vue",
+        """      </section>
+
+    <section aria-labelledby="alliances-heading" class="mt-8 space-y-4">
+""",
+        """      </section>
+    </div>
+
+    <section aria-labelledby="alliances-heading" class="mt-8 space-y-4">
+""",
+    )
+    replace(
         "scripts/check-event-localization-coverage.mjs",
         """import fs from 'node:fs';
 import path from 'node:path';
