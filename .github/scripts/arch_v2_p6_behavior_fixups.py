@@ -1,6 +1,16 @@
 from pathlib import Path
+import runpy
 
 repo = Path('.')
+
+# Finish the Intelligence presentation/read-model boundary after the mechanical
+# ingestion/roster cut. Keep this invoked from the existing one-shot workflow so
+# the whole P6 change is still reproduced and committed as a single verified cut.
+runtime_cut = repo / '.github/scripts/arch_v2_p6_intelligence_runtime_cut.py'
+if not runtime_cut.is_file():
+    raise RuntimeError('Missing P6 Intelligence runtime cut helper.')
+runpy.run_path(str(runtime_cut), run_name='__main__')
+runtime_cut.unlink()
 
 # The hard-cut configuration keeps the existing flat key shape under the new
 # Intelligence owner. The first mechanical pass rewrote config()->set() keys
