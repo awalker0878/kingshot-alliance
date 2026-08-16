@@ -1,4 +1,5 @@
 name: P1-P4 Test Ownership Repair
+# Rerun after semantic permission and legacy roster caller corrections.
 
 on:
   push:
