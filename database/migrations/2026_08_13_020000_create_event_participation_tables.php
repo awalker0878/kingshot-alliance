@@ -79,26 +79,6 @@ return new class extends Migration
             $table->index(['event_id', 'is_enabled']);
         });
 
-        Schema::create('event_reminder_deliveries', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('occurrence_id')->constrained('event_occurrences')->cascadeOnDelete();
-            $table->foreignUlid('rule_id')->constrained('event_reminder_rules')->cascadeOnDelete();
-            $table->foreignId('recipient_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignUlid('player_id')->constrained('players')->restrictOnDelete();
-            $table->timestamp('due_at')->index();
-            $table->string('status', 16)->default('pending')->index();
-            $table->unsignedInteger('attempts')->default(0);
-            $table->string('idempotency_key', 64)->unique();
-            $table->timestamp('queued_at')->nullable();
-            $table->timestamp('sent_at')->nullable();
-            $table->text('last_error')->nullable();
-            $table->timestamps();
-
-            $table->unique(['rule_id', 'occurrence_id', 'player_id'], 'event_reminder_delivery_player_unique');
-            $table->index(['status', 'due_at']);
-            $table->index(['recipient_user_id', 'status']);
-        });
-
         $this->createRegistrationStatusGuard();
     }
 
@@ -121,7 +101,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('event_reminder_deliveries');
         Schema::dropIfExists('event_reminder_rules');
         Schema::dropIfExists('event_attendance');
         Schema::dropIfExists('event_registrations');
