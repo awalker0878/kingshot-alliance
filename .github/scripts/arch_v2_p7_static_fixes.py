@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 
@@ -76,6 +77,106 @@ replace(
             ->map(static fn ($id): string => (string) $id)
             ->all());""",
 )
+
+# Intelligence owns the interpretation of Alliance membership for Intelligence
+# capabilities. Read admission is any active Player membership in the active
+# Alliance/Kingdom; management remains the stricter Intelligence-owned rank rule.
+replace(
+    'app/Contexts/Intelligence/Access/Enums/IntelligencePermission.php',
+    """enum IntelligencePermission: string implements Permission
+{
+    case ContributionManage = 'contributions.manage';""",
+    """enum IntelligencePermission: string implements Permission
+{
+    case View = 'intelligence.view';
+    case ContributionManage = 'contributions.manage';""",
+)
+replace(
+    'app/Contexts/Intelligence/Access/Enums/IntelligencePermission.php',
+    """        return match ($this) {
+            self::ContributionManage => 'Manage alliance contribution records, reporting, exports, and report schedules.',""",
+    """        return match ($this) {
+            self::View => 'View Intelligence capabilities for the active Player Alliance context.',
+            self::ContributionManage => 'Manage alliance contribution records, reporting, exports, and report schedules.',""",
+)
+replace(
+    'app/Contexts/Intelligence/Access/Services/AllianceIntelligenceAuthorization.php',
+    """        return match ($permission) {
+            IntelligencePermission::KingdomManage => in_array($membership->rank, [AllianceRank::R4, AllianceRank::R5], true),""",
+    """        return match ($permission) {
+            IntelligencePermission::View => true,
+            IntelligencePermission::KingdomManage => in_array($membership->rank, [AllianceRank::R4, AllianceRank::R5], true),""",
+)
+
+# P6 left eight Intelligence read controllers coupled directly to Alliance's
+# authorization service for AlliancePermission::View. Each affected method
+# already receives Intelligence's own policy for its management decisions. Fold
+# the read gate into that local policy and remove the upward permission vocabulary.
+intelligence_root = Path('app/Contexts/Intelligence')
+direct_permission_import = 'use App\\Contexts\\Alliance\\Access\\Enums\\AlliancePermission;'
+direct_authorization_import = 'use App\\Contexts\\Alliance\\Access\\Services\\AllianceAuthorization;'
+local_permission_import = 'use App\\Contexts\\Intelligence\\Access\\Enums\\IntelligencePermission;'
+local_authorization_import = 'use App\\Contexts\\Intelligence\\Access\\Services\\AllianceIntelligenceAuthorization;'
+converted_intelligence_controllers: list[str] = []
+
+for target in sorted(intelligence_root.rglob('*.php')):
+    source = target.read_text(encoding='utf-8')
+    if direct_authorization_import not in source:
+        continue
+
+    if direct_permission_import not in source:
+        raise RuntimeError(f'{target}: direct AllianceAuthorization import has no AlliancePermission import.')
+    if local_permission_import not in source or local_authorization_import not in source:
+        raise RuntimeError(f'{target}: Intelligence controller lacks its context-owned authorization imports.')
+    if source.count('AlliancePermission::View') != 1:
+        raise RuntimeError(f'{target}: expected exactly one direct Alliance View gate.')
+
+    view_position = source.index('AlliancePermission::View')
+    method_start = source.rfind('public function ', 0, view_position)
+    signature_end = source.find('):', method_start)
+    if method_start < 0 or signature_end < 0:
+        raise RuntimeError(f'{target}: could not resolve the method signature for the Alliance View gate.')
+
+    signature = source[method_start:signature_end]
+    direct_variables = re.findall(r'AllianceAuthorization \$(\w+)', signature)
+    local_variables = re.findall(r'AllianceIntelligenceAuthorization \$(\w+)', signature)
+    if len(direct_variables) != 1 or len(local_variables) != 1:
+        raise RuntimeError(
+            f'{target}: expected one direct and one Intelligence authorization parameter in the read method; '
+            f'found direct={direct_variables}, local={local_variables}.'
+        )
+
+    direct_variable = direct_variables[0]
+    local_variable = local_variables[0]
+    direct_parameter = re.compile(rf'^[ \t]*AllianceAuthorization \${re.escape(direct_variable)},\n', re.MULTILINE)
+    source, parameter_count = direct_parameter.subn('', source, count=1)
+    if parameter_count != 1:
+        raise RuntimeError(f'{target}: could not remove the direct Alliance authorization parameter.')
+
+    direct_call = re.compile(
+        rf'\${re.escape(direct_variable)}->allows\(([^;\n]+?), AlliancePermission::View\)'
+    )
+    source, call_count = direct_call.subn(
+        lambda match: f'${local_variable}->allows({match.group(1)}, IntelligencePermission::View)',
+        source,
+        count=1,
+    )
+    if call_count != 1:
+        raise RuntimeError(f'{target}: could not rewrite the direct Alliance View authorization call.')
+
+    source = source.replace(direct_permission_import + '\n', '', 1)
+    source = source.replace(direct_authorization_import + '\n', '', 1)
+    if direct_permission_import in source or direct_authorization_import in source or 'AlliancePermission::View' in source:
+        raise RuntimeError(f'{target}: direct Alliance read authorization survived the Intelligence conversion.')
+
+    target.write_text(source, encoding='utf-8')
+    converted_intelligence_controllers.append(str(target))
+
+if len(converted_intelligence_controllers) != 8:
+    raise RuntimeError(
+        'Expected to convert 8 Intelligence controllers away from direct Alliance authorization; '
+        f'converted {len(converted_intelligence_controllers)}: {converted_intelligence_controllers}'
+    )
 
 # This controller is self-contained; the legacy file extended a non-existent
 # sibling Controller and never used inherited behavior.
@@ -204,4 +305,7 @@ if integration_readme.is_file():
     )
     integration_readme.write_text(text, encoding='utf-8')
 
-print('Applied P7 V2 dependency, explicit list-contract, and webhook allowlist corrections.')
+print(
+    'Applied P7 V2 dependency, Intelligence authorization, explicit list-contract, '
+    'and webhook allowlist corrections.'
+)
