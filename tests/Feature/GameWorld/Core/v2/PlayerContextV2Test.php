@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\GameWorld\Core\V2;
+namespace Tests\Feature\GameWorld\Core\v2;
 
 use App\Contexts\Accounts\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
