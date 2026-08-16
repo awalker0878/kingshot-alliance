@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\AllianceAdministration\Actions;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Alliance\Lifecycle\Actions\AllianceLifecycleMutation;
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
@@ -29,27 +29,27 @@ final readonly class ManageAllianceLifecycle
         private AllianceLifecycleMutation $allianceLifecycle,
     ) {}
 
-    public function suspend(User $actor, Alliance $alliance, string $reason): Alliance
+    public function suspend(AccountIdentity $actor, Alliance $alliance, string $reason): Alliance
     {
         return $this->transition($actor, $alliance, AllianceStatus::Suspended, $reason, 'platform.alliance.suspended');
     }
 
-    public function close(User $actor, Alliance $alliance, string $reason): Alliance
+    public function close(AccountIdentity $actor, Alliance $alliance, string $reason): Alliance
     {
         return $this->transition($actor, $alliance, AllianceStatus::Closed, $reason, 'platform.alliance.closed');
     }
 
-    public function delete(User $actor, Alliance $alliance, string $reason): Alliance
+    public function delete(AccountIdentity $actor, Alliance $alliance, string $reason): Alliance
     {
         return $this->transition($actor, $alliance, AllianceStatus::Deleted, $reason, 'platform.alliance.deleted');
     }
 
-    public function restore(User $actor, Alliance $alliance, string $reason): Alliance
+    public function restore(AccountIdentity $actor, Alliance $alliance, string $reason): Alliance
     {
         return $this->transition($actor, $alliance, AllianceStatus::Active, $reason, 'platform.alliance.restored');
     }
 
-    private function transition(User $actor, Alliance $alliance, AllianceStatus $target, string $reason, string $event): Alliance
+    private function transition(AccountIdentity $actor, Alliance $alliance, AllianceStatus $target, string $reason, string $event): Alliance
     {
         $reason = trim($reason);
         if ($reason === '') {

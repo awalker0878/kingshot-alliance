@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\EventAdministration\Actions;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Operations\Events\Actions\PersistEventTypeScopeConfiguration;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventRecurrencePolicy;
@@ -32,7 +32,7 @@ final class UpdateEventTypeScope
      * @param  array<string, mixed>  $defaultSettings
      */
     public function handle(
-        User $actor,
+        AccountIdentity $actor,
         EventTypeScope $configuration,
         bool $isActive,
         ?int $defaultDurationMinutes,

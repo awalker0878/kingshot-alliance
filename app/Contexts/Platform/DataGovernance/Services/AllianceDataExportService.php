@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\DataGovernance\Services;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Contexts\Platform\Administration\Services\PlatformWriteState;
@@ -20,7 +20,7 @@ final readonly class AllianceDataExportService
 
     public function __construct(private AuditRecorder $audit, private PlatformWriteState $platformWriteState, private PlatformAuthorization $mutations) {}
 
-    public function generate(User $actor, Alliance $alliance): array
+    public function generate(AccountIdentity $actor, Alliance $alliance): array
     {
         return DB::transaction(function () use ($actor, $alliance): array {
             if (DB::connection()->getDriverName() === 'pgsql') DB::statement('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\DataGovernance\Services;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Contexts\Platform\Administration\Services\PlatformWriteState;
@@ -23,7 +23,7 @@ final readonly class LegalHoldService
         return LegalHold::query()->where('subject_type', $subjectType)->where('subject_id', $subjectId)->whereNull('released_at')->exists();
     }
 
-    public function place(User $actor, string $subjectType, string $subjectId, string $reason): LegalHold
+    public function place(AccountIdentity $actor, string $subjectType, string $subjectId, string $reason): LegalHold
     {
         $this->assertSubjectType($subjectType);
         $reason = trim($reason);
@@ -37,7 +37,7 @@ final readonly class LegalHoldService
         });
     }
 
-    public function release(User $actor, LegalHold $hold): LegalHold
+    public function release(AccountIdentity $actor, LegalHold $hold): LegalHold
     {
         return DB::transaction(function () use ($actor, $hold): LegalHold {
             $context = $this->mutations->authorizeContext($this->platformWriteState->lock($actor));

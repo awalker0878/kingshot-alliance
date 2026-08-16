@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\AllianceAdministration\Actions;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Contexts\Platform\Administration\Services\PlatformWriteState;
@@ -19,7 +19,7 @@ final readonly class ConfigureAlliancePlatform
 {
     public function __construct(private AllianceFeatureService $features, private AuditRecorder $audit, private OutboxRecorder $outbox, private PlatformWriteState $platformWriteState, private PlatformAuthorization $mutations) {}
 
-    public function assignPlan(User $actor, Alliance $alliance, string $planCode): void
+    public function assignPlan(AccountIdentity $actor, Alliance $alliance, string $planCode): void
     {
         DB::transaction(function () use ($actor, $alliance, $planCode): void {
             $context = $this->mutations->authorizeContext($this->platformWriteState->lock($actor));
@@ -33,7 +33,7 @@ final readonly class ConfigureAlliancePlatform
         });
     }
 
-    public function updateSettings(User $actor, Alliance $alliance, int $retentionDays, string $queuePartition, bool $apiAccessEnabled, bool $webhooksEnabled): AlliancePlatformSetting
+    public function updateSettings(AccountIdentity $actor, Alliance $alliance, int $retentionDays, string $queuePartition, bool $apiAccessEnabled, bool $webhooksEnabled): AlliancePlatformSetting
     {
         if ($retentionDays < 1 || $retentionDays > 3650) throw new InvalidArgumentException('Retention must be between 1 and 3650 days.');
         if (! in_array($queuePartition, ['standard', 'high-volume', 'maintenance-sensitive'], true)) throw new InvalidArgumentException('Unsupported queue partition.');
@@ -47,7 +47,7 @@ final readonly class ConfigureAlliancePlatform
         });
     }
 
-    public function setFeature(User $actor, Alliance $alliance, string $featureKey, bool $enabled, ?array $configuration = null): void
+    public function setFeature(AccountIdentity $actor, Alliance $alliance, string $featureKey, bool $enabled, ?array $configuration = null): void
     {
         if (preg_match('/^[a-z0-9][a-z0-9._-]{2,99}$/', $featureKey) !== 1) throw new InvalidArgumentException('Feature key is invalid.');
         DB::transaction(function () use ($actor, $alliance, $featureKey, $enabled, $configuration): void {
