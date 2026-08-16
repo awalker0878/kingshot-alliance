@@ -1,0 +1,61 @@
+name: V3 CA-P2 KingPerks Patch
+
+on:
+  push:
+    branches:
+      - architecture-v3-capability-alignment
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: architecture-v3-capability-alignment
+          fetch-depth: 0
+
+      - name: Patch KingPerk controller
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path('app/Contexts/Operations/KingPerks/Http/Controllers/KingPerkController.php')
+          text = path.read_text()
+
+          anchor = 'use App\\Contexts\\Operations\\KingPerks\\Enums\\KingAppointmentType;\n'
+          import_line = 'use App\\Contexts\\Operations\\KingPerks\\Actions\\ReplaceNoShowAppointment;\n'
+          if import_line not in text:
+              if anchor not in text:
+                  raise SystemExit('KingPerk import anchor not found')
+              text = text.replace(anchor, import_line + anchor, 1)
+
+          text = text.replace('use Illuminate\\Support\\Facades\\DB;\n', '')
+
+          old_signature = '''        string $appointment,\n        KingPerkScheduler $scheduler,\n    ): RedirectResponse {'''
+          new_signature = '''        string $appointment,\n        ReplaceNoShowAppointment $replace,\n    ): RedirectResponse {'''
+          if old_signature not in text:
+              raise SystemExit('KingPerk replace signature not found')
+          text = text.replace(old_signature, new_signature, 1)
+
+          old_block = '''\n        DB::transaction(function () use ($actor, $original, $target, $scheduler): void {\n            $current = $scheduler->markAppointment($actor, $original, KingPerkAppointmentStatus::NoShow);\n            $plan = KingPerkPlan::query()->whereKey($current->plan_id)->firstOrFail();\n            $replacement = $scheduler->assignAppointment(\n                actor: $actor,\n                plan: $plan,\n                type: $current->appointmentType(),\n                target: $target,\n                startsAt: $current->startsAt(),\n                notes: 'Live replacement for no-show appointment '.(string) $current->id,\n            );\n\n            $now = CarbonImmutable::now('UTC');\n            if (! $now->lt($replacement->startsAt()) && $now->lt($replacement->endsAt())) {\n                $scheduler->markAppointmentActive($actor, $replacement);\n            }\n        });\n'''
+          new_block = '''\n        $replace->handle($actor, $original, $target);\n'''
+          if old_block not in text:
+              raise SystemExit('KingPerk transaction block not found')
+          text = text.replace(old_block, new_block, 1)
+          path.write_text(text)
+          PY
+
+      - name: Remove one-use workflow
+        run: rm -f .github/workflows/v3-p2-kingperk-patch.yml
+
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor(v3): thin KingPerks HTTP replacement flow [skip ci]"
+          git push origin HEAD:architecture-v3-capability-alignment
