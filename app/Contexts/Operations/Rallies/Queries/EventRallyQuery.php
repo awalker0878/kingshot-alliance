@@ -144,7 +144,7 @@ final readonly class EventRallyQuery
     /** @return list<array<string,mixed>> */
     private function recommendations(EventOccurrence $occurrence): array
     {
-        return EventRecommendedFormation::query()
+        return array_values(EventRecommendedFormation::query()
             ->where('occurrence_id', $occurrence->id)
             ->with(['alliance', 'guidanceRule'])
             ->orderBy('alliance_id')
@@ -165,13 +165,13 @@ final readonly class EventRallyQuery
                 'heroes' => $formation->heroes ?? [],
                 'notes' => $formation->notes,
                 'sortOrder' => (int) $formation->sort_order,
-            ])->all();
+            ])->all());
     }
 
     /** @return list<array<string,mixed>> */
     private function groupsForPlayer(EventOccurrence $occurrence, ?Player $player): array
     {
-        return RallyGroup::query()
+        return array_values(RallyGroup::query()
             ->where('occurrence_id', $occurrence->id)
             ->with(['alliance', 'recommendedFormation'])
             ->orderBy('alliance_id')
@@ -194,13 +194,13 @@ final readonly class EventRallyQuery
                     'recommendedFormationName' => $group->recommendedFormation?->name,
                     'myAssignmentStatus' => $assignment?->status?->value,
                 ];
-            })->all();
+            })->all());
     }
 
     /** @return list<array<string,mixed>> */
     private function myAssignments(EventOccurrence $occurrence, Player $player): array
     {
-        return RallyAssignment::query()
+        return array_values(RallyAssignment::query()
             ->where('player_id', $player->id)
             ->where('status', '!=', RallyAssignmentStatus::Removed->value)
             ->whereHas('rallyGroup', static fn ($query) => $query->where('occurrence_id', $occurrence->id))
@@ -219,13 +219,13 @@ final readonly class EventRallyQuery
                 'recommendedFormationName' => $assignment->rallyGroup->recommendedFormation?->name,
                 'respondedAt' => $assignment->responded_at?->toIso8601String(),
                 'recordedAt' => $assignment->recorded_at?->toIso8601String(),
-            ])->all();
+            ])->all());
     }
 
     /** @return list<array<string,mixed>> */
     private function managementGroups(EventOccurrence $occurrence): array
     {
-        return RallyGroup::query()
+        return array_values(RallyGroup::query()
             ->where('occurrence_id', $occurrence->id)
             ->with(['alliance', 'recommendedFormation', 'assignments.player'])
             ->orderBy('alliance_id')
@@ -256,6 +256,6 @@ final readonly class EventRallyQuery
                         'notes' => $assignment->notes,
                     ])->values()->all(),
                 ];
-            })->all();
+            })->all());
     }
 }
