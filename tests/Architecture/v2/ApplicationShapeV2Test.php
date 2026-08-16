@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture\V2;
+namespace Tests\Architecture\v2;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -79,7 +79,7 @@ final class ApplicationShapeV2Test extends TestCase
                 }
 
                 self::assertStringEndsWith('V2Test.php', basename($relative), $relative.' must end in V2Test.php.');
-                self::assertStringContainsString('\\V2;', RepositoryInspector::source($file), $relative.' must live in a V2 namespace.');
+                self::assertStringContainsString('\\v2;', RepositoryInspector::source($file), $relative.' must live in a lowercase v2 namespace matching its folder.');
                 self::assertMatchesRegularExpression('/final class [A-Za-z0-9_]+V2Test extends TestCase/', RepositoryInspector::source($file), $relative.' must use a V2Test class name.');
             }
         }
