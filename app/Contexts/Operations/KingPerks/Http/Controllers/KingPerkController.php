@@ -8,6 +8,7 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\KingPerks\Actions\ReplaceNoShowAppointment;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkAppointmentStatus;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPushCategory;
@@ -24,7 +25,6 @@ use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -148,7 +148,7 @@ final class KingPerkController extends Controller
     public function outcome(
         Request $request,
         string $appointment,
-        KingPerkScheduler $scheduler,
+        ReplaceNoShowAppointment $replace,
     ): RedirectResponse {
         $this->user($request);
         $validated = $request->validate([
@@ -180,23 +180,7 @@ final class KingPerkController extends Controller
         $original = KingPerkAppointment::query()->whereKey($appointment)->firstOrFail();
         $target = Player::query()->whereKey((string) $validated['player_id'])->firstOrFail();
 
-        DB::transaction(function () use ($actor, $original, $target, $scheduler): void {
-            $current = $scheduler->markAppointment($actor, $original, KingPerkAppointmentStatus::NoShow);
-            $plan = KingPerkPlan::query()->whereKey($current->plan_id)->firstOrFail();
-            $replacement = $scheduler->assignAppointment(
-                actor: $actor,
-                plan: $plan,
-                type: $current->appointmentType(),
-                target: $target,
-                startsAt: $current->startsAt(),
-                notes: 'Live replacement for no-show appointment '.(string) $current->id,
-            );
-
-            $now = CarbonImmutable::now('UTC');
-            if (! $now->lt($replacement->startsAt()) && $now->lt($replacement->endsAt())) {
-                $scheduler->markAppointmentActive($actor, $replacement);
-            }
-        });
+        $replace->handle($actor, $original, $target);
 
         return back()->with('status', 'king-perk-appointment-replaced');
     }
