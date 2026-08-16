@@ -11,6 +11,7 @@ use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Queries\EventEligiblePlayerQuery;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
+use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Carbon\CarbonImmutable;
 
@@ -32,14 +33,15 @@ final readonly class EventObjectiveQuery
             ->whereHas('roster', static fn ($query) => $query->where('occurrence_id', $occurrence->id))
             ->pluck('roster_id');
 
-        $assignmentIds = EventObjectiveAssignment::query()
+        $assignmentIds = [];
+        foreach (EventObjectiveAssignment::query()
             ->where('occurrence_id', $occurrence->id)
             ->where(static fn ($query) => $query
                 ->where('player_id', $player->id)
                 ->orWhereIn('roster_id', $rosterIds))
-            ->pluck('id')
-            ->map(static fn ($id): string => (string) $id)
-            ->all();
+            ->pluck('id') as $id) {
+            $assignmentIds[] = (string) $id;
+        }
 
         return ['objectives' => $objectives, 'myAssignmentIds' => $assignmentIds];
     }
@@ -48,63 +50,80 @@ final readonly class EventObjectiveQuery
     public function management(Event $event): array
     {
         $players = $this->eligiblePlayers->for($event);
+        $playerOptions = [];
+        foreach ($players as $player) {
+            $playerOptions[] = [
+                'id' => (string) $player->id,
+                'name' => (string) $player->current_name,
+                'claimed' => $player->user_id !== null,
+            ];
+        }
 
-        return $event->occurrences
-            ->sortBy('starts_at')
-            ->values()
-            ->map(function (EventOccurrence $occurrence) use ($players): array {
-                $rosters = $occurrence->rosters()->orderBy('sort_order')->orderBy('key')->get();
-                $objectives = array_map(function (array $objective) use ($event): array {
-                    $objective['startsLocal'] = $objective['startsAt'] === null ? null : CarbonImmutable::parse($objective['startsAt'])->setTimezone($event->timezone)->format('Y-m-d\\TH:i');
-                    $objective['endsLocal'] = $objective['endsAt'] === null ? null : CarbonImmutable::parse($objective['endsAt'])->setTimezone($event->timezone)->format('Y-m-d\\TH:i');
+        $rows = [];
+        foreach ($event->occurrences->sortBy('starts_at') as $occurrence) {
+            if (! $occurrence instanceof EventOccurrence) {
+                continue;
+            }
 
-                    return $objective;
-                }, $this->objectives($occurrence));
+            $rosterOptions = [];
+            foreach ($occurrence->rosters()->orderBy('sort_order')->orderBy('key')->get() as $roster) {
+                if (! $roster instanceof EventRoster) {
+                    continue;
+                }
 
-                return [
-                    'occurrenceId' => (string) $occurrence->id,
-                    'startsAt' => $occurrence->starts_at->toIso8601String(),
-                    'endsAt' => $occurrence->ends_at->toIso8601String(),
-                    'objectives' => $objectives,
-                    'rosters' => $rosters->map(static fn ($roster): array => [
-                        'id' => (string) $roster->id,
-                        'name' => $roster->name,
-                        'nameKey' => $roster->name_key,
-                        'key' => (string) $roster->key,
-                        'type' => $roster->roster_type->value,
-                    ])->all(),
-                    'players' => $players->map(static fn (Player $player): array => [
-                        'id' => (string) $player->id,
-                        'name' => (string) $player->current_name,
-                        'claimed' => $player->user_id !== null,
-                    ])->values()->all(),
+                $rosterOptions[] = [
+                    'id' => (string) $roster->id,
+                    'name' => $roster->name,
+                    'nameKey' => $roster->name_key,
+                    'key' => $roster->key,
+                    'type' => $roster->roster_type->value,
                 ];
-            })->all();
+            }
+
+            $objectiveRows = [];
+            foreach ($this->objectives($occurrence) as $objective) {
+                $objective['startsLocal'] = $this->localTime($objective['startsAt'] ?? null, (string) $event->timezone);
+                $objective['endsLocal'] = $this->localTime($objective['endsAt'] ?? null, (string) $event->timezone);
+                $objectiveRows[] = $objective;
+            }
+
+            $rows[] = [
+                'occurrenceId' => (string) $occurrence->id,
+                'startsAt' => $occurrence->starts_at->toIso8601String(),
+                'endsAt' => $occurrence->ends_at->toIso8601String(),
+                'objectives' => $objectiveRows,
+                'rosters' => $rosterOptions,
+                'players' => $playerOptions,
+            ];
+        }
+
+        return $rows;
     }
 
     /** @return list<array<string,mixed>> */
     private function objectives(EventOccurrence $occurrence): array
     {
-        return EventObjective::query()
+        $rows = [];
+        $objectives = EventObjective::query()
             ->where('occurrence_id', $occurrence->id)
             ->with(['assignments.player', 'assignments.roster'])
             ->orderByDesc('priority')
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get()
-            ->map(static fn (EventObjective $objective): array => [
-                'id' => (string) $objective->id,
-                'parentId' => $objective->parent_id === null ? null : (string) $objective->parent_id,
-                'type' => (string) $objective->objective_type,
-                'name' => (string) $objective->name,
-                'description' => $objective->description,
-                'priority' => (int) $objective->priority,
-                'startsAt' => $objective->starts_at?->toIso8601String(),
-                'endsAt' => $objective->ends_at?->toIso8601String(),
-                'status' => $objective->status->value,
-                'sortOrder' => (int) $objective->sort_order,
-                'metadata' => $objective->metadata ?? [],
-                'assignments' => $objective->assignments->map(static fn (EventObjectiveAssignment $assignment): array => [
+            ->get();
+
+        foreach ($objectives as $objective) {
+            if (! $objective instanceof EventObjective) {
+                continue;
+            }
+
+            $assignments = [];
+            foreach ($objective->assignments as $assignment) {
+                if (! $assignment instanceof EventObjectiveAssignment) {
+                    continue;
+                }
+
+                $assignments[] = [
                     'id' => (string) $assignment->id,
                     'rosterId' => $assignment->roster_id === null ? null : (string) $assignment->roster_id,
                     'rosterName' => $assignment->roster?->name,
@@ -114,7 +133,34 @@ final readonly class EventObjectiveQuery
                     'playerName' => $assignment->player?->current_name,
                     'notes' => $assignment->notes,
                     'assignedAt' => $assignment->assigned_at?->toIso8601String(),
-                ])->values()->all(),
-            ])->all();
+                ];
+            }
+
+            $rows[] = [
+                'id' => (string) $objective->id,
+                'parentId' => $objective->parent_id === null ? null : (string) $objective->parent_id,
+                'type' => $objective->objective_type,
+                'name' => $objective->name,
+                'description' => $objective->description,
+                'priority' => $objective->priority,
+                'startsAt' => $objective->starts_at?->toIso8601String(),
+                'endsAt' => $objective->ends_at?->toIso8601String(),
+                'status' => $objective->status->value,
+                'sortOrder' => $objective->sort_order,
+                'metadata' => $objective->metadata ?? [],
+                'assignments' => $assignments,
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function localTime(mixed $value, string $timezone): ?string
+    {
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        return CarbonImmutable::parse($value)->setTimezone($timezone)->format('Y-m-d\\TH:i');
     }
 }
