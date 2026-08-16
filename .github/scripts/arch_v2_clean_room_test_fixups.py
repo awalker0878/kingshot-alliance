@@ -31,47 +31,39 @@ def fix_game_world_governance_scenario() -> None:
 
 def fix_platform_authority_scenario() -> None:
     path = "tests/v2/Contexts/Platform/Access/PlatformAdministrationBehaviorV2Test.php"
-    old = """            public function test_platform_mutation_authority_requires_transaction_and_active_grant(): void
-            {
-                $user = (new ScenarioFactory)->user();
-                $authority = app(PlatformMutationAuthority::class);
-
-                try {
-                    $authority->require($user);
-                    self::fail('Authority outside transaction must fail.');
-                } catch (LogicException) {
-                    self::assertTrue(true);
-                }
-
-                $this->expectException(AuthorizationException::class);
-                DB::transaction(static fn () => $authority->require($user));
-            }
-"""
-    new = """            public function test_platform_mutation_authority_requires_an_active_grant(): void
-            {
-                $user = (new ScenarioFactory)->user();
-                $authority = app(PlatformMutationAuthority::class);
-
-                try {
-                    $authority->require($user);
-                    self::fail('A user without an active Platform Administrator grant must fail.');
-                } catch (AuthorizationException) {
-                    self::assertTrue(true);
-                }
-
-                app(ManagePlatformAdministrator::class)->grant($user);
-                $context = $authority->require($user);
-
-                self::assertSame((int) $user->id, (int) $context->actor->id);
-                self::assertSame((int) $user->id, (int) $context->grant->user_id);
-            }
-"""
-    replace(path, old, new)
-
     target = ROOT / path
     content = target.read_text()
-    content = content.replace("        use Illuminate\\Support\\Facades\\DB;\n", "")
-    content = content.replace("        use LogicException;\n", "")
+    signature = "    public function test_platform_mutation_authority_requires_transaction_and_active_grant(): void\n"
+    start = content.find(signature)
+    if start < 0:
+        raise RuntimeError(f"Expected Platform authority test method not found in {path}")
+
+    class_end = content.rfind("\n}")
+    if class_end <= start:
+        raise RuntimeError(f"Could not locate Platform authority test class end in {path}")
+
+    replacement = """    public function test_platform_mutation_authority_requires_an_active_grant(): void
+    {
+        $user = (new ScenarioFactory)->user();
+        $authority = app(PlatformMutationAuthority::class);
+
+        try {
+            $authority->require($user);
+            self::fail('A user without an active Platform Administrator grant must fail.');
+        } catch (AuthorizationException) {
+            self::assertTrue(true);
+        }
+
+        app(ManagePlatformAdministrator::class)->grant($user);
+        $context = $authority->require($user);
+
+        self::assertSame((int) $user->id, (int) $context->actor->id);
+        self::assertSame((int) $user->id, (int) $context->grant->user_id);
+    }
+"""
+    content = content[:start] + replacement + content[class_end:]
+    content = content.replace("use Illuminate\\Support\\Facades\\DB;\n", "")
+    content = content.replace("use LogicException;\n", "")
     target.write_text(content)
 
 
