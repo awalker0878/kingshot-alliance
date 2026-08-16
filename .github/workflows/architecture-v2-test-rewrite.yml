@@ -69,6 +69,20 @@ jobs:
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Correct rewrite script literal namespace insertion
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/scripts/arch_v2_rewrite_tests.py')
+          text = path.read_text()
+          old = 'text = NS_RE.sub(f"namespace {ns};", text, count=1)'
+          new = 'text = NS_RE.sub(lambda _: f"namespace {ns};", text, count=1)'
+          if old not in text:
+              raise SystemExit('Expected namespace replacement line was not found.')
+          path.write_text(text.replace(old, new, 1))
+          PY
+
       - name: Rewrite all tests into final V2 owners
         run: python3 .github/scripts/arch_v2_rewrite_tests.py
 
