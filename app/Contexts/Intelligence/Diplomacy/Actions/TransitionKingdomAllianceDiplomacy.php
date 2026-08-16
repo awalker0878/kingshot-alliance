@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Actions;
+namespace App\Contexts\Intelligence\Diplomacy\Actions;
 
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy;
-use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyTransition;
+use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacy;
+use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyTransition;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
-use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
-use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
+use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
+use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;

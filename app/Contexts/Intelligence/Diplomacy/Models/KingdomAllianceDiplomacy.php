@@ -2,67 +2,65 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Models;
+namespace App\Contexts\Intelligence\Diplomacy\Models;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\GameWorld\Models\KingdomAlliance;
+use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Contexts\GameWorld\Models\Player;
-use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
+use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
  * @property string $alliance_id
- * @property string $diplomacy_relationship_id
  * @property string $tracked_kingdom_alliance_id
  * @property string $kingdom_alliance_id
- * @property KingdomAllianceDiplomacyState $from_state
- * @property KingdomAllianceDiplomacyState $to_state
+ * @property KingdomAllianceDiplomacyState $current_state
  * @property Carbon $effective_at
  * @property Carbon|null $review_at
  * @property Carbon|null $expires_at
  * @property string|null $terms
  * @property string|null $rationale
- * @property string|null $actor_player_id
- * @property Carbon $created_at
- * @property-read Player|null $actor
+ * @property string|null $last_transition_player_id
+ * @property-read Alliance $alliance
+ * @property-read TrackedKingdomAlliance $tracking
+ * @property-read KingdomAlliance $kingdomAlliance
+ * @property-read Player|null $lastTransitionPlayer
  */
-final class KingdomAllianceDiplomacyTransition extends Model
+final class KingdomAllianceDiplomacy extends Model
 {
     use HasUlids;
 
     public $incrementing = false;
 
-    public $timestamps = false;
-
     protected $keyType = 'string';
+
+    protected $table = 'kingdom_alliance_diplomacy_relationships';
 
     protected $fillable = [
         'alliance_id',
-        'diplomacy_relationship_id',
         'tracked_kingdom_alliance_id',
         'kingdom_alliance_id',
-        'from_state',
-        'to_state',
+        'current_state',
         'effective_at',
         'review_at',
         'expires_at',
         'terms',
         'rationale',
-        'actor_player_id',
-        'created_at',
+        'last_transition_player_id',
     ];
 
     protected function casts(): array
     {
         return [
-            'from_state' => KingdomAllianceDiplomacyState::class,
-            'to_state' => KingdomAllianceDiplomacyState::class,
+            'current_state' => KingdomAllianceDiplomacyState::class,
             'effective_at' => 'datetime',
             'review_at' => 'datetime',
             'expires_at' => 'datetime',
-            'created_at' => 'datetime',
         ];
     }
 
@@ -70,12 +68,6 @@ final class KingdomAllianceDiplomacyTransition extends Model
     public function alliance(): BelongsTo
     {
         return $this->belongsTo(Alliance::class);
-    }
-
-    /** @return BelongsTo<KingdomAllianceDiplomacy, $this> */
-    public function relationship(): BelongsTo
-    {
-        return $this->belongsTo(KingdomAllianceDiplomacy::class, 'diplomacy_relationship_id');
     }
 
     /** @return BelongsTo<TrackedKingdomAlliance, $this> */
@@ -91,8 +83,14 @@ final class KingdomAllianceDiplomacyTransition extends Model
     }
 
     /** @return BelongsTo<Player, $this> */
-    public function actor(): BelongsTo
+    public function lastTransitionPlayer(): BelongsTo
     {
-        return $this->belongsTo(Player::class, 'actor_player_id');
+        return $this->belongsTo(Player::class, 'last_transition_player_id');
+    }
+
+    /** @return HasMany<KingdomAllianceDiplomacyTransition, $this> */
+    public function transitions(): HasMany
+    {
+        return $this->hasMany(KingdomAllianceDiplomacyTransition::class, 'diplomacy_relationship_id');
     }
 }

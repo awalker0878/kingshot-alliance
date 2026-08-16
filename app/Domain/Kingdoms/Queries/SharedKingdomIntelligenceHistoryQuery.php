@@ -10,7 +10,7 @@ use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
 use App\Contexts\GameWorld\Models\KingdomIntelligenceShareTarget;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareState;
 use App\Domain\Kingdoms\Enums\KingdomIntelligenceShareTargetState;
-use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
+use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Services\SharedKingdomIntelligenceHistoryCursor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;

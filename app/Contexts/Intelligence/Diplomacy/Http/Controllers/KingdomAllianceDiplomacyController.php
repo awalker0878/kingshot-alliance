@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Http\Controllers;
+namespace App\Contexts\Intelligence\Diplomacy\Http\Controllers;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
-use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy;
-use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyTransition;
+use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacy;
+use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyTransition;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Domain\Kingdoms\Actions\TransitionKingdomAllianceDiplomacy;
-use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
-use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
-use App\Domain\Kingdoms\Queries\KingdomAllianceDiplomacyQuery;
+use App\Contexts\Intelligence\Diplomacy\Actions\TransitionKingdomAllianceDiplomacy;
+use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
+use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
+use App\Contexts\Intelligence\Diplomacy\Queries\KingdomAllianceDiplomacyQuery;
 use App\Shared\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;

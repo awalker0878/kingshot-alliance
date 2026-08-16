@@ -6,7 +6,7 @@ namespace App\Domain\Kingdoms\Queries;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use Illuminate\Database\Eloquent\Collection;
 
 final class KingdomAllianceObservationQuery

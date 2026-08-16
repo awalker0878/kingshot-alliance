@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Kingdoms\Queries;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyContact;
+use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyContact;
 use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;

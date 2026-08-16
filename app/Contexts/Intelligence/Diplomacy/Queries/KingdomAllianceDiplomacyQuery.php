@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Queries;
+namespace App\Contexts\Intelligence\Diplomacy\Queries;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacy;
-use App\Contexts\GameWorld\Models\KingdomAllianceDiplomacyTransition;
-use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacy;
+use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyTransition;
+use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use Illuminate\Database\Eloquent\Collection;
 
 final class KingdomAllianceDiplomacyQuery

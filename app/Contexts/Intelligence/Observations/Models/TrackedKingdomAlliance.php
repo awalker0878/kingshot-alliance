@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Models;
+namespace App\Contexts\Intelligence\Observations\Models;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
+use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Models\KingdomAlliance;
+use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacy;
+use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

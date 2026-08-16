@@ -13,7 +13,7 @@ use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Domain\Kingdoms\Actions\InvalidateKingdomAllianceObservation;
 use App\Domain\Kingdoms\Actions\RecordKingdomAllianceObservation;
-use App\Domain\Kingdoms\Models\TrackedKingdomAlliance;
+use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Domain\Kingdoms\Queries\KingdomAllianceObservationQuery;
 use App\Shared\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;

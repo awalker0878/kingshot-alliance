@@ -10,7 +10,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Core\Services\AllianceContext;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
+use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
 use App\Domain\Kingdoms\Services\KingdomAllianceIntelligence;
 use App\Shared\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;

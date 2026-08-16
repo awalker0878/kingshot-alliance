@@ -6,8 +6,8 @@ namespace App\Domain\Kingdoms\Services;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
-use App\Domain\Kingdoms\Enums\KingdomAllianceDiplomacyState;
-use App\Domain\Kingdoms\Enums\TrackedKingdomAllianceState;
+use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
+use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Domain\Kingdoms\Queries\KingdomAllianceIntelligenceQuery;
 use App\Domain\Kingdoms\Queries\KingdomAllianceObservationQuery;
 use Illuminate\Support\Carbon;
