@@ -42,13 +42,25 @@ final class DependencyDirectionTest extends TestCase
         }
     }
 
-    public function test_business_contexts_do_not_depend_on_workflows_or_read_models(): void
+    public function test_business_context_core_does_not_depend_on_orchestration_or_composed_read_models(): void
     {
         foreach (RepositoryInspector::phpFiles('app/Contexts') as $file) {
+            $relative = RepositoryInspector::relative($file);
             $source = RepositoryInspector::source($file);
 
-            self::assertStringNotContainsString('App\\Workflows\\', $source, RepositoryInspector::relative($file).' depends on orchestration.');
-            self::assertStringNotContainsString('App\\ReadModels\\', $source, RepositoryInspector::relative($file).' depends on a composed read model.');
+            self::assertStringNotContainsString(
+                'App\\Workflows\\',
+                $source,
+                $relative.' depends on orchestration.',
+            );
+
+            if (! str_contains('/'.str_replace('\\', '/', $relative), '/Http/')) {
+                self::assertStringNotContainsString(
+                    'App\\ReadModels\\',
+                    $source,
+                    $relative.' depends on a composed read model outside the presentation boundary.',
+                );
+            }
         }
     }
 
