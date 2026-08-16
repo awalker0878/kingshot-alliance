@@ -1,4 +1,4 @@
-name: ARCH V2 Semantic Inventory
+name: ARCH V2 Write State Migration
 
 on:
   push:
@@ -6,19 +6,266 @@ on:
       - arch-v2-remediation-20260816
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  inventory:
+  migrate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Transactional authorization callsites
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+      - name: Split write state from authorization at callsites
         shell: bash
         run: |
-          echo '=== SERVICE IMPORTS / CONSTRUCTORS ==='
-          grep -R -n -E 'AllianceAuthorization|KingdomAuthorization|AllianceOperationsAuthorization|KingdomOperationsAuthorization|AllianceIntelligenceAuthorization|TransferAuthorization|EventAuthorization|PlatformAuthorization|PlayerWriteState' app tests routes bootstrap || true
-          echo '=== REQUIRE / ACQUIRE METHODS ==='
-          grep -R -n -E -- '->(require|requireExclusive|requireManager|requireManagerExclusive|requireSelf|requireCreate|requireManage|acquireActiveScope|acquireExclusiveScope)\(' app tests || true
-          echo '=== AUTHORIZATION CLASSES WITH LOCKING ==='
-          grep -R -n -E 'lockForUpdate|sharedLock|transactionLevel' app/Contexts/*/*/Services/*Authorization.php app/Contexts/*/Access/Services/*Authorization.php 2>/dev/null || true
+          set -euo pipefail
+          if [ -f .arch-v2-write-state-split ]; then
+            echo 'Write-state split already applied.'
+            exit 0
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          ROOTS = [Path('app')]
+
+          def add_use(text: str, fqcn: str) -> str:
+              line = f'use {fqcn};'
+              if line in text:
+                  return text
+              m = re.search(r'^namespace [^;]+;\n', text, re.M)
+              if not m:
+                  raise RuntimeError(f'No namespace found for {fqcn}')
+              return text[:m.end()] + '\n' + line + text[m.end():]
+
+          def split_args(raw: str):
+              args, buf, depth = [], [], 0
+              pairs = {'(': ')', '[': ']', '{': '}'}
+              opens, closes = set(pairs), set(pairs.values())
+              quote = None
+              escaped = False
+              for ch in raw:
+                  if quote:
+                      buf.append(ch)
+                      if escaped:
+                          escaped = False
+                      elif ch == '\\':
+                          escaped = True
+                      elif ch == quote:
+                          quote = None
+                      continue
+                  if ch in "'\"":
+                      quote = ch
+                      buf.append(ch)
+                  elif ch in opens:
+                      depth += 1
+                      buf.append(ch)
+                  elif ch in closes:
+                      depth -= 1
+                      buf.append(ch)
+                  elif ch == ',' and depth == 0:
+                      args.append(''.join(buf).strip())
+                      buf = []
+                  else:
+                      buf.append(ch)
+              if buf or raw.strip():
+                  args.append(''.join(buf).strip())
+              return args
+
+          def add_promoted_dependency(text: str, auth_type: str, active_props: set[str], state_type: str, state_prop: str) -> str:
+              if re.search(rf'private(?:\s+readonly)?\s+{re.escape(state_type)}\s+\${re.escape(state_prop)}\b', text):
+                  return text
+              pat = re.compile(rf'private(?P<ro>\s+readonly)?\s+{re.escape(auth_type)}\s+\$(?P<prop>\w+)')
+              for m in pat.finditer(text):
+                  if m.group('prop') not in active_props:
+                      continue
+                  line_start = text.rfind('\n', 0, m.start()) + 1
+                  prefix = text[line_start:m.start()]
+                  if prefix.strip():
+                      raise RuntimeError(f'Inline promoted constructor dependency not supported for {auth_type} ${m.group("prop")}')
+                  modifier = 'private' + (m.group('ro') or '')
+                  insertion = f'{prefix}{modifier} {state_type} ${state_prop},\n'
+                  return text[:line_start] + insertion + text[line_start:]
+              raise RuntimeError(f'Could not place {state_type} ${state_prop} for active {auth_type} dependency')
+
+          def transform_alliance_style(text: str, auth_types: tuple[str, ...], state_type: str, state_fqcn: str, state_prop: str) -> str:
+              active = {}
+              for auth_type in auth_types:
+                  props = set(re.findall(rf'private(?:\s+readonly)?\s+{re.escape(auth_type)}\s+\$(\w+)', text))
+                  active_props = {p for p in props if re.search(rf'\$this->{re.escape(p)}->(?:require|requireExclusive)\(', text)}
+                  if active_props:
+                      active[auth_type] = active_props
+              if not active:
+                  return text
+              text = add_use(text, state_fqcn)
+              first_type = next(iter(active))
+              all_active = set().union(*active.values())
+              text = add_promoted_dependency(text, first_type, active[first_type], state_type, state_prop)
+
+              ternary = re.compile(
+                  r'(?P<indent>^[ \t]*)(?P<lhs>\$\w+)\s*=\s*(?P<cond>[^?;]+?)\?\s*'
+                  r'\$this->(?P<prop>\w+)->requireExclusive\((?P<exclusive>[^;]*?)\)\s*:\s*'
+                  r'\$this->(?P=prop)->require\((?P<active>[^;]*?)\);',
+                  re.M | re.S,
+              )
+              def ternary_repl(m):
+                  if m.group('prop') not in all_active:
+                      return m.group(0)
+                  ex = split_args(m.group('exclusive'))
+                  ac = split_args(m.group('active'))
+                  if len(ex) != 3 or len(ac) != 3 or ex[2] != ac[2]:
+                      raise RuntimeError(f'Unexpected conditional authorization call: {m.group(0)}')
+                  ind, lhs, cond, prop = m.group('indent'), m.group('lhs'), m.group('cond').strip(), m.group('prop')
+                  return (
+                      f'{ind}{lhs} = {cond}\n'
+                      f'{ind}    ? $this->{state_prop}->lockExclusiveScope({ex[0]}, {ex[1]})\n'
+                      f'{ind}    : $this->{state_prop}->lockActiveScope({ac[0]}, {ac[1]});\n'
+                      f'{ind}$this->{prop}->authorizeContext({lhs}, {ex[2]});'
+                  )
+              text = ternary.sub(ternary_repl, text)
+
+              direct = re.compile(
+                  r'(?P<indent>^[ \t]*)(?P<lhs>\$\w+)\s*=\s*\$this->(?P<prop>\w+)->'
+                  r'(?P<method>requireExclusive|require)\((?P<args>[^;]*?)\);',
+                  re.M | re.S,
+              )
+              def direct_repl(m):
+                  if m.group('prop') not in all_active:
+                      return m.group(0)
+                  args = split_args(m.group('args'))
+                  if len(args) != 3:
+                      raise RuntimeError(f'Unexpected authorization call: {m.group(0)}')
+                  lock = 'lockExclusiveScope' if m.group('method') == 'requireExclusive' else 'lockActiveScope'
+                  ind, lhs, prop = m.group('indent'), m.group('lhs'), m.group('prop')
+                  return (
+                      f'{ind}{lhs} = $this->{state_prop}->{lock}({args[0]}, {args[1]});\n'
+                      f'{ind}$this->{prop}->authorizeContext({lhs}, {args[2]});'
+                  )
+              return direct.sub(direct_repl, text)
+
+          def transform_event(text: str) -> str:
+              props = set(re.findall(r'private(?:\s+readonly)?\s+EventAuthorization\s+\$(\w+)', text))
+              active = {p for p in props if re.search(rf'\$this->{re.escape(p)}->(?:requireManager|requireManagerExclusive|requireSelf|requireCreate|requireManage)\(', text)}
+              if not active:
+                  return text
+              text = add_use(text, 'App\\Contexts\\Operations\\EventCore\\Services\\EventWriteState')
+              text = add_promoted_dependency(text, 'EventAuthorization', active, 'EventWriteState', 'eventWriteState')
+              pat = re.compile(
+                  r'(?P<indent>^[ \t]*)(?P<lhs>\$\w+)\s*=\s*\$this->(?P<prop>\w+)->'
+                  r'(?P<method>requireManagerExclusive|requireManager|requireSelf|requireCreate|requireManage)\((?P<args>[^;]*?)\);',
+                  re.M | re.S,
+              )
+              def repl(m):
+                  if m.group('prop') not in active:
+                      return m.group(0)
+                  args = split_args(m.group('args'))
+                  method, ind, lhs, prop = m.group('method'), m.group('indent'), m.group('lhs'), m.group('prop')
+                  if method in {'requireManager', 'requireManagerExclusive'}:
+                      if len(args) != 2:
+                          raise RuntimeError(m.group(0))
+                      exclusive = ', true' if method == 'requireManagerExclusive' else ''
+                      return (
+                          f'{ind}{lhs} = $this->eventWriteState->lockEventScope({args[0]}, {args[1]}{exclusive});\n'
+                          f'{ind}$this->{prop}->authorizeManager({lhs});'
+                      )
+                  if method == 'requireSelf':
+                      if len(args) != 3:
+                          raise RuntimeError(m.group(0))
+                      return (
+                          f'{ind}{lhs} = $this->eventWriteState->lockSelfScope({args[0]}, {args[1]}, {args[2]});\n'
+                          f'{ind}$this->{prop}->authorizeSelf({lhs}, {args[2]});'
+                      )
+                  if method in {'requireCreate', 'requireManage'}:
+                      if len(args) != 3:
+                          raise RuntimeError(m.group(0))
+                      manage = ', true' if method == 'requireManage' else ''
+                      return (
+                          f'{ind}{lhs} = $this->eventWriteState->lockCreationScope({args[0]}, {args[1]}, {args[2]});\n'
+                          f'{ind}$this->{prop}->authorizeCreation({lhs}{manage});'
+                      )
+                  return m.group(0)
+              return pat.sub(repl, text)
+
+          def transform_platform(text: str) -> str:
+              props = set(re.findall(r'private(?:\s+readonly)?\s+PlatformAuthorization\s+\$(\w+)', text))
+              active = {p for p in props if re.search(rf'\$this->{re.escape(p)}->require\(', text)}
+              if not active:
+                  return text
+              text = add_use(text, 'App\\Contexts\\Platform\\Access\\Services\\PlatformWriteState')
+              text = add_promoted_dependency(text, 'PlatformAuthorization', active, 'PlatformWriteState', 'platformWriteState')
+              pat = re.compile(
+                  r'(?P<indent>^[ \t]*)(?P<lhs>\$\w+)\s*=\s*\$this->(?P<prop>\w+)->require\((?P<args>[^;]*?)\);',
+                  re.M | re.S,
+              )
+              def repl(m):
+                  if m.group('prop') not in active:
+                      return m.group(0)
+                  args = split_args(m.group('args'))
+                  if len(args) != 1:
+                      raise RuntimeError(m.group(0))
+                  ind, lhs, prop = m.group('indent'), m.group('lhs'), m.group('prop')
+                  return (
+                      f'{ind}$writeContext = $this->platformWriteState->lock({args[0]});\n'
+                      f'{ind}{lhs} = $this->{prop}->authorizeContext($writeContext);'
+                  )
+              return pat.sub(repl, text)
+
+          changed = []
+          for root in ROOTS:
+              for path in root.rglob('*.php'):
+                  text = path.read_text()
+                  original = text
+                  text = transform_alliance_style(
+                      text,
+                      ('AllianceAuthorization', 'AllianceOperationsAuthorization', 'AllianceIntelligenceAuthorization', 'TransferAuthorization'),
+                      'AllianceWriteState',
+                      'App\\Contexts\\Alliance\\Access\\Services\\AllianceWriteState',
+                      'allianceWriteState',
+                  )
+                  text = transform_alliance_style(
+                      text,
+                      ('KingdomAuthorization',),
+                      'KingdomWriteState',
+                      'App\\Contexts\\GameWorld\\Governance\\Services\\KingdomWriteState',
+                      'kingdomWriteState',
+                  )
+                  text = transform_event(text)
+                  text = transform_platform(text)
+
+                  if 'use App\\Contexts\\GameWorld\\Governance\\Services\\PlayerWriteState;' in text:
+                      props = re.findall(r'private(?:\s+readonly)?\s+PlayerWriteState\s+\$(\w+)', text)
+                      for prop in props:
+                          text = re.sub(
+                              rf'\$this->{re.escape(prop)}->require\(([^;()]*)\)',
+                              rf'$this->{prop}->lockActor(\1)',
+                              text,
+                          )
+
+                  if text != original:
+                      path.write_text(text)
+                      changed.append(str(path))
+
+          print(f'Changed {len(changed)} PHP files')
+          for path in changed:
+              print(path)
+
+          stale_patterns = [
+              r'->requireManager\(', r'->requireManagerExclusive\(', r'->requireSelf\(',
+              r'->requireCreate\(', r'->requireManage\(', r'->acquireActiveScope\(', r'->acquireExclusiveScope\(',
+          ]
+          for path in Path('app').rglob('*.php'):
+              source = path.read_text()
+              if any(re.search(p, source) for p in stale_patterns):
+                  raise RuntimeError(f'Stale transactional authorization API remains in {path}')
+          PY
+
+          find app -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/write-state-lint.log
+          tail -n 30 /tmp/write-state-lint.log
+          touch .arch-v2-write-state-split
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'refactor: split write state from authorization callsites'
+          git push
