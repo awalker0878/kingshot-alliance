@@ -23,7 +23,7 @@ final readonly class EventPhasePollQuery
     {
         $occurrence->loadMissing('event');
         $timezone = (string) $occurrence->event->timezone;
-        $phaseRows = EventPhase::query()
+        $phaseRows = array_values(EventPhase::query()
             ->where('occurrence_id', $occurrence->id)
             ->orderBy('sort_order')
             ->orderBy('starts_at')
@@ -41,7 +41,7 @@ final readonly class EventPhasePollQuery
                 'status' => $this->phases->effectiveStatus($phase)->value,
                 'storedStatus' => $phase->status->value,
                 'sortOrder' => (int) $phase->sort_order,
-            ])->all();
+            ])->all());
 
         $pollQuery = EventPoll::query()
             ->where('occurrence_id', $occurrence->id)
@@ -50,7 +50,7 @@ final readonly class EventPhasePollQuery
             $pollQuery->whereIn('status', [EventPollStatus::Open->value, EventPollStatus::Closed->value]);
         }
 
-        $pollRows = $pollQuery->orderBy('created_at')->get()->map(function (EventPoll $poll) use ($player, $manager, $timezone): array {
+        $pollRows = array_values($pollQuery->orderBy('created_at')->get()->map(function (EventPoll $poll) use ($player, $manager, $timezone): array {
             $selected = $player instanceof Player
                 ? EventPollVote::query()->where('poll_id', $poll->id)->where('player_id', $player->id)->pluck('option_id')->map(static fn ($id): string => (string) $id)->all()
                 : [];
@@ -83,7 +83,7 @@ final readonly class EventPhasePollQuery
                     'votes' => $showResults ? (int) ($counts[$option->id] ?? 0) : null,
                 ])->all(),
             ];
-        })->all();
+        })->all());
 
         return ['phases' => $phaseRows, 'polls' => $pollRows];
     }
@@ -91,7 +91,7 @@ final readonly class EventPhasePollQuery
     /** @return list<array<string,mixed>> */
     public function management(Event $event): array
     {
-        return $event->occurrences
+        return array_values($event->occurrences
             ->sortBy('starts_at')
             ->values()
             ->map(fn (EventOccurrence $occurrence): array => [
@@ -99,6 +99,6 @@ final readonly class EventPhasePollQuery
                 'startsAt' => $occurrence->starts_at->toIso8601String(),
                 ...$this->forOccurrence($occurrence, manager: true),
             ])
-            ->all();
+            ->all());
     }
 }
