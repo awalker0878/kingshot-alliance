@@ -42,7 +42,7 @@ final readonly class StartTrackingKingdomAlliance
         }
 
         return DB::transaction(function () use ($alliance, $actor, $attributes): TrackedKingdomAlliance {
-            $lockedAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $lockedAlliance = Alliance::query()->findOrFail($alliance->id);
 
             if ($lockedAlliance->kingdom_id === null) {
                 throw ValidationException::withMessages([

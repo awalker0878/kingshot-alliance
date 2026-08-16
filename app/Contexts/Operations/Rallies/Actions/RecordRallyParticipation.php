@@ -77,7 +77,7 @@ final readonly class RecordRallyParticipation
 
             if (! $frozenContext instanceof EventPlayerContext) {
                 if ((string) $context->actor->id !== (string) $player->id) {
-                    $player = Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
+                    $player = Player::query()->whereKey($player->id)->firstOrFail();
                 }
                 if (! $this->eligibility->eligible($context->event, $alliance, $player)) {
                     throw ValidationException::withMessages([

@@ -61,7 +61,7 @@ final readonly class RecordPlayerSnapshot
 
         return DB::transaction(function () use ($alliance, $actor, $entryId, $attributes, $source, $importId, $provenance): PlayerSnapshot {
             if ($source === 'ingestion') {
-                $currentAlliance = Alliance::query()->whereKey($alliance->id)->sharedLock()->firstOrFail();
+                $currentAlliance = Alliance::query()->whereKey($alliance->id)->firstOrFail();
                 $currentActor = null;
             } else {
                 /** @var Player $actor */
@@ -74,7 +74,7 @@ final readonly class RecordPlayerSnapshot
             $entry = AllianceRosterEntry::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->whereKey($entryId)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             $capturedAt = $this->capturedAt($attributes['captured_at']);

@@ -86,7 +86,7 @@ final readonly class SaveRallyGroup
             $alliance = Alliance::query()
                 ->whereKey($resolvedAlliance->id)
                 ->where('status', AllianceStatus::Active->value)
-                ->sharedLock()
+                
                 ->firstOrFail();
 
             $formation = null;

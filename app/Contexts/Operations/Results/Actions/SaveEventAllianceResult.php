@@ -64,7 +64,7 @@ final readonly class SaveEventAllianceResult
                 ->where('event_id', $context->event->id)
                 ->lockForUpdate()
                 ->firstOrFail();
-            $lockedAlliance = Alliance::query()->whereKey($alliance->id)->lockForUpdate()->firstOrFail();
+            $lockedAlliance = Alliance::query()->whereKey($alliance->id)->firstOrFail();
 
             if ((string) $lockedAlliance->kingdom_id !== (string) $context->event->kingdom_id) {
                 throw ValidationException::withMessages([

@@ -87,7 +87,7 @@ final class EventWriteState
                     ->where('alliance_id', $context->target->id)
                     ->where('player_id', $participant->id)
                     ->where('state', RosterState::Active->value)
-                    ->lockForUpdate()
+                    
                     ->exists()) {
                 throw new AuthorizationException;
             }
@@ -107,7 +107,7 @@ final class EventWriteState
         $currentConfiguration = EventTypeScope::query()
             ->whereKey($configuration->id)
             ->where('scope', $scope->value)
-            ->sharedLock()
+            
             ->firstOrFail();
 
         [$currentActor, $currentTarget] = match ($scope) {
@@ -144,7 +144,7 @@ final class EventWriteState
         $currentActor = $actorContext->actor;
         $currentTarget = Player::query()
             ->whereKey($event->player_id)
-            ->lockForUpdate()
+            
             ->firstOrFail();
 
         if ((string) $currentActor->id !== (string) $currentTarget->id) {
@@ -152,7 +152,7 @@ final class EventWriteState
                 ->where('player_id', $currentTarget->id)
                 ->where('state', RosterState::Active->value)
                 ->orderBy('alliance_id')
-                ->lockForUpdate()
+                
                 ->get();
 
             foreach ($entries as $entry) {
@@ -208,7 +208,7 @@ final class EventWriteState
         $actorContext = $this->playerWriteState->lockActor($actor);
         $currentTarget = (string) $target->id === (string) $actorContext->actor->id
             ? $actorContext->actor
-            : Player::query()->whereKey($target->id)->lockForUpdate()->firstOrFail();
+            : Player::query()->whereKey($target->id)->firstOrFail();
 
         return [$actorContext->actor, $currentTarget];
     }

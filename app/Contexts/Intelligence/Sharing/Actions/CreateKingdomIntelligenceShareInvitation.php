@@ -34,7 +34,7 @@ final readonly class CreateKingdomIntelligenceShareInvitation
         }
 
         return DB::transaction(function () use ($sourceAlliance, $actor): IssuedKingdomIntelligenceShareInvitation {
-            $source = Alliance::query()->whereKey($sourceAlliance->id)->lockForUpdate()->firstOrFail();
+            $source = Alliance::query()->whereKey($sourceAlliance->id)->firstOrFail();
 
             if ($source->kingdom_id === null) {
                 throw ValidationException::withMessages([

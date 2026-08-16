@@ -59,7 +59,7 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
             $locked = Alliance::query()
                 ->whereIn('id', $ids)
                 ->orderBy('id')
-                ->lockForUpdate()
+                
                 ->get()
                 ->keyBy(static fn (Alliance $alliance): string => (string) $alliance->id);
 

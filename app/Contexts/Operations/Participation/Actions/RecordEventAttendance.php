@@ -62,7 +62,7 @@ final readonly class RecordEventAttendance
                 if ((string) $context->actor->id !== (string) $currentPlayer->id) {
                     $currentPlayer = Player::query()
                         ->whereKey($currentPlayer->id)
-                        ->lockForUpdate()
+                        
                         ->firstOrFail();
                 }
 

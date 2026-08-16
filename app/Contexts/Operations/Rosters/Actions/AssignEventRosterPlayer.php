@@ -85,7 +85,7 @@ final readonly class AssignEventRosterPlayer
 
             $currentPlayer = Player::query()
                 ->whereKey($player->id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
             if (! $this->participants->eligible($context->event, $currentPlayer)) {
                 throw ValidationException::withMessages([

@@ -35,7 +35,7 @@ final readonly class RemoveKingdomIntelligenceShareTarget
         }
 
         return DB::transaction(function () use ($sourceAlliance, $actor, $shareId, $targetId): KingdomIntelligenceShareTarget {
-            $source = Alliance::query()->whereKey($sourceAlliance->id)->lockForUpdate()->firstOrFail();
+            $source = Alliance::query()->whereKey($sourceAlliance->id)->firstOrFail();
             $share = KingdomIntelligenceShare::query()
                 ->whereKey($shareId)
                 ->where('source_alliance_id', $source->id)

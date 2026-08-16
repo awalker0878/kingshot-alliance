@@ -121,7 +121,7 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
             // Player -> roster is the identity/Kingdom movement order used elsewhere.
             $player = Player::query()
                 ->whereKey($playerIds->first())
-                ->lockForUpdate()
+                
                 ->firstOrFail();
             if ((string) $player->current_kingdom_id !== (string) $subscription->kingdom_id
                 || $player->game_player_id !== $candidate->stable_game_id) {
@@ -134,7 +134,7 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
                 ->where('alliance_id', $context->alliance->id)
                 ->where('player_id', $player->id)
                 ->orderBy('id')
-                ->lockForUpdate()
+                
                 ->limit(2)
                 ->get();
             if ($entries->isEmpty()) {

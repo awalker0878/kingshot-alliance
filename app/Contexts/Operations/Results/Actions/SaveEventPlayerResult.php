@@ -84,7 +84,7 @@ final readonly class SaveEventPlayerResult
                 if ((string) $context->actor->id !== (string) $currentPlayer->id) {
                     $currentPlayer = Player::query()
                         ->whereKey($currentPlayer->id)
-                        ->lockForUpdate()
+                        
                         ->firstOrFail();
                 }
 

@@ -48,7 +48,7 @@ final readonly class DeclineKingdomIntelligenceShareInvitation
                 throw $this->invalidToken();
             }
 
-            $recipient = Alliance::query()->whereKey($recipientAlliance->id)->lockForUpdate()->firstOrFail();
+            $recipient = Alliance::query()->whereKey($recipientAlliance->id)->firstOrFail();
             $share = KingdomIntelligenceShare::query()
                 ->whereKey($candidate->id)
                 ->where('invitation_token_hash', $tokenHash)

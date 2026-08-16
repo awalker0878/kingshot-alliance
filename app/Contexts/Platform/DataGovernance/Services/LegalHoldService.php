@@ -60,7 +60,7 @@ final readonly class LegalHoldService
     private function lockSubject(string $subjectType, string $subjectId): Model
     {
         return match ($subjectType) {
-            'alliance' => Alliance::query()->whereKey($subjectId)->lockForUpdate()->firstOrFail(),
+            'alliance' => Alliance::query()->whereKey($subjectId)->firstOrFail(),
             'user' => User::query()->whereKey($subjectId)->lockForUpdate()->firstOrFail(),
             default => throw new InvalidArgumentException('Unsupported legal hold subject type.'),
         };

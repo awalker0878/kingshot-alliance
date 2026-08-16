@@ -185,7 +185,7 @@ final readonly class CompleteTransferParticipant
         $existing = AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
             ->where('player_id', $participant->player_id)
-            ->lockForUpdate()
+            
             ->first();
 
         if ($existing instanceof AllianceRosterEntry) {
@@ -234,7 +234,7 @@ final readonly class CompleteTransferParticipant
             ->where('player_id', $player->id)
             ->where('status', MembershipStatus::Active->value)
             ->orderBy('id')
-            ->lockForUpdate()
+            
             ->first();
 
         if ($activeMembership instanceof AllianceMembership) {
@@ -310,7 +310,7 @@ final readonly class CompleteTransferParticipant
         $query = AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
             ->with('player')
-            ->lockForUpdate();
+            ;
 
         if ($mustStillBePresent) {
             $query->whereIn('state', [RosterState::Active->value, RosterState::Tracked->value]);

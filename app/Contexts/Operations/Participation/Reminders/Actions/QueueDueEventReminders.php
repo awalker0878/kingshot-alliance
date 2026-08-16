@@ -106,7 +106,7 @@ final readonly class QueueDueEventReminders
                         $currentPlayer = Player::query()
                             ->whereKey($player->id)
                             ->whereNotNull('user_id')
-                            ->sharedLock()
+                            
                             ->first();
                         if (! $currentPlayer instanceof Player
                             || ! $this->audiences->includes($currentOccurrence, $currentRule->audience, $currentPlayer)) {

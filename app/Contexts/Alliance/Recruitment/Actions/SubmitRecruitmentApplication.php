@@ -93,7 +93,7 @@ final class SubmitRecruitmentApplication
             if ($applicant instanceof User) {
                 $currentApplicant = User::query()
                     ->whereKey($applicant->id)
-                    ->sharedLock()
+                    
                     ->firstOrFail();
 
                 if (Str::lower((string) $currentApplicant->email) !== $normalizedEmail) {

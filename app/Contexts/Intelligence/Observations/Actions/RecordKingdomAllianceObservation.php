@@ -67,7 +67,7 @@ final readonly class RecordKingdomAllianceObservation
             if ($source === 'ingestion') {
                 // Automated promotion has no human authority principal. It still uses
                 // the same Alliance lifecycle boundary as manual intelligence writes.
-                $currentAlliance = Alliance::query()->whereKey($alliance->id)->sharedLock()->firstOrFail();
+                $currentAlliance = Alliance::query()->whereKey($alliance->id)->firstOrFail();
                 $currentActor = null;
             } else {
                 /** @var Player $actor */
@@ -80,7 +80,7 @@ final readonly class RecordKingdomAllianceObservation
             $tracking = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->whereKey($trackingId)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             if ($tracking->state !== TrackedKingdomAllianceState::Active) {
@@ -99,7 +99,7 @@ final readonly class RecordKingdomAllianceObservation
             // The reference is also the current-name/tag synchronization anchor.
             $reference = KingdomAlliance::query()
                 ->whereKey($tracking->kingdom_alliance_id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
             if ((string) $reference->kingdom_id !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages([

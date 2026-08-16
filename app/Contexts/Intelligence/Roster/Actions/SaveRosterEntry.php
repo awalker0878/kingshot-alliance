@@ -92,20 +92,20 @@ final readonly class SaveRosterEntry
 
                 $player = Player::query()
                     ->whereKey($routing->player_id)
-                    ->lockForUpdate()
+                    
                     ->firstOrFail();
 
                 $entry = AllianceRosterEntry::query()
                     ->where('alliance_id', $context->alliance->id)
                     ->where('player_id', $player->id)
                     ->whereKey($entryId)
-                    ->lockForUpdate()
+                    
                     ->firstOrFail();
                 $event = 'intelligence.roster_entry_updated';
             }
 
             if (! isset($player)) {
-                $player = Player::query()->whereKey($entry->player_id)->lockForUpdate()->firstOrFail();
+                $player = Player::query()->whereKey($entry->player_id)->firstOrFail();
             }
 
             if ((string) $player->current_kingdom_id !== (string) $context->alliance->kingdom_id) {

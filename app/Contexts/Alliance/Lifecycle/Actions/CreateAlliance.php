@@ -24,7 +24,7 @@ final readonly class CreateAlliance
     public function handle(Player $owner, string $name, string $slug, string $language = 'en', string $timezone = 'UTC'): Alliance
     {
         return DB::transaction(function () use ($owner,$name,$slug,$language,$timezone): Alliance {
-            $lockedOwner = Player::query()->whereKey($owner->id)->lockForUpdate()->firstOrFail();
+            $lockedOwner = Player::query()->whereKey($owner->id)->firstOrFail();
             if ($lockedOwner->user_id === null) throw ValidationException::withMessages(['player'=>'An Alliance can only be created by a Player claimed by a User account.']);
             if (AllianceMembership::query()->where('player_id',$lockedOwner->id)->where('status',MembershipStatus::Active->value)->exists()) throw ValidationException::withMessages(['player'=>'The active Player already belongs to an Alliance.']);
             $alliance = Alliance::query()->create(['name'=>$name,'slug'=>$slug,'kingdom_id'=>$lockedOwner->current_kingdom_id,'language'=>$language,'timezone'=>$timezone,'status'=>AllianceStatus::Active]);

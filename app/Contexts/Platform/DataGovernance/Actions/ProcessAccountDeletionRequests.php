@@ -55,7 +55,7 @@ final readonly class ProcessAccountDeletionRequests
                 return false;
             }
 
-            $user = User::query()->whereKey($lockedRequest->user_id)->lockForUpdate()->first();
+            $user = User::query()->whereKey($lockedRequest->user_id)->first();
             if (! $user instanceof User) {
                 $lockedRequest->forceFill(['status' => 'processed', 'processed_at' => now(), 'blocked_reason' => null])->save();
                 return true;
@@ -78,14 +78,14 @@ final readonly class ProcessAccountDeletionRequests
                 ->values()
                 ->all();
 
-            $alliances = Alliance::query()->whereIn('id', $routedAllianceIds)->orderBy('id')->sharedLock()->get()->keyBy(fn (Alliance $alliance): string => (string) $alliance->id);
-            $players = Player::query()->whereIn('id', $playerIds)->where('user_id', $user->id)->orderBy('id')->lockForUpdate()->get()->keyBy(fn (Player $player): string => (string) $player->id);
+            $alliances = Alliance::query()->whereIn('id', $routedAllianceIds)->orderBy('id')->get()->keyBy(fn (Alliance $alliance): string => (string) $alliance->id);
+            $players = Player::query()->whereIn('id', $playerIds)->where('user_id', $user->id)->orderBy('id')->get()->keyBy(fn (Player $player): string => (string) $player->id);
             $activeMemberships = AllianceMembership::query()
                 ->whereIn('player_id', $players->keys())
                 ->where('status', MembershipStatus::Active->value)
                 ->orderBy('alliance_id')
                 ->orderBy('id')
-                ->lockForUpdate()
+                
                 ->get();
 
             foreach ($activeMemberships as $membership) {

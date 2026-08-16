@@ -71,7 +71,7 @@ final readonly class AssignEventObjectiveTarget
             } else {
                 $targetPlayer = Player::query()
                     ->whereKey($assignmentTarget->id)
-                    ->lockForUpdate()
+                    
                     ->firstOrFail();
                 if (! $this->participants->eligible($context->event, $targetPlayer)) {
                     throw ValidationException::withMessages([

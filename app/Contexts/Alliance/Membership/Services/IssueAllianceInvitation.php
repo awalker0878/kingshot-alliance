@@ -30,13 +30,13 @@ final readonly class IssueAllianceInvitation
     {
         if (DB::transactionLevel() < 1) throw new LogicException('Alliance invitations must be issued inside an existing database transaction.');
         $email=Str::lower(trim($email));
-        $lockedTarget=Player::query()->whereKey($target->id)->lockForUpdate()->firstOrFail();
-        $roster=AllianceRosterEntry::query()->where('alliance_id',$context->alliance->id)->where('player_id',$lockedTarget->id)->where('state',RosterState::Active->value)->sharedLock()->first();
+        $lockedTarget=Player::query()->whereKey($target->id)->firstOrFail();
+        $roster=AllianceRosterEntry::query()->where('alliance_id',$context->alliance->id)->where('player_id',$lockedTarget->id)->where('state',RosterState::Active->value)->first();
         if(!$roster instanceof AllianceRosterEntry||(string)$lockedTarget->current_kingdom_id!==(string)$context->alliance->kingdom_id)throw ValidationException::withMessages(['player_id'=>'The invited Player must be active on this Alliance roster.']);
         $activeMembership=AllianceMembership::query()->where('player_id',$lockedTarget->id)->where('status',MembershipStatus::Active->value)->orderBy('id')->lockForUpdate()->first();
         if($activeMembership instanceof AllianceMembership)throw ValidationException::withMessages(['player_id'=>(string)$activeMembership->alliance_id===(string)$context->alliance->id?'This Player is already an active Alliance member.':'This Player is already active in another Alliance.']);
         if($lockedTarget->user_id!==null){$ownerEmail=User::query()->whereKey($lockedTarget->user_id)->value('email');if(!is_string($ownerEmail)||!hash_equals(Str::lower($ownerEmail),$email))throw ValidationException::withMessages(['email'=>'This Player is already owned by a different account.']);}
-        $supersededInvitations=Invitation::query()->where('alliance_id',$context->alliance->id)->where(function($query)use($lockedTarget,$email):void{$query->where('player_id',$lockedTarget->id)->orWhere('email',$email);})->where('status',InvitationStatus::Pending->value)->orderBy('id')->lockForUpdate()->get();
+        $supersededInvitations=Invitation::query()->where('alliance_id',$context->alliance->id)->where(function($query)use($lockedTarget,$email):void{$query->where('player_id',$lockedTarget->id)->orWhere('email',$email);})->where('status',InvitationStatus::Pending->value)->orderBy('id')->get();
         foreach($supersededInvitations as $superseded){$superseded->forceFill(['status'=>InvitationStatus::Revoked,'revoked_at'=>now()])->save();$this->audit->record('invitation.revoked',$context->actor,$superseded,$context->alliance,['player_id'=>(string)$superseded->player_id,'reason'=>'superseded']);}
         $this->capacity->assertCapacity($context->alliance);
         $token=$this->tokens->issue();$ttlHours=max(1,(int)config('alliance.invitation_ttl_hours',72));

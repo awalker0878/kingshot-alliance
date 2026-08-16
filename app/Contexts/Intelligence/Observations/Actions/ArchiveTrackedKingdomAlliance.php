@@ -30,7 +30,7 @@ final readonly class ArchiveTrackedKingdomAlliance
         }
 
         return DB::transaction(function () use ($alliance, $actor, $trackingId): TrackedKingdomAlliance {
-            $lockedAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $lockedAlliance = Alliance::query()->findOrFail($alliance->id);
             $tracking = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $lockedAlliance->id)
                 ->lockForUpdate()

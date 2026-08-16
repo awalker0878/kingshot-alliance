@@ -71,7 +71,7 @@ final readonly class AssignRallyPlayer
             // roster mutation workflows use the same Player anchor before roster state.
             $lockedPlayer = Player::query()
                 ->whereKey($player->id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             if (! $this->eligibility->eligible($context->event, $alliance, $lockedPlayer)) {

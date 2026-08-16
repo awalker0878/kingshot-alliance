@@ -69,7 +69,7 @@ final readonly class AcceptInvitation
 
             $currentUser = User::query()
                 ->whereKey($user->id)
-                ->sharedLock()
+                
                 ->firstOrFail();
 
             if (! hash_equals(Str::lower((string) $invitation->email), Str::lower((string) $currentUser->email))) {
@@ -83,7 +83,7 @@ final readonly class AcceptInvitation
 
             $lockedPlayer = Player::query()
                 ->whereKey($player->id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             if ($lockedPlayer->user_id !== null && (int) $lockedPlayer->user_id !== (int) $currentUser->id) {

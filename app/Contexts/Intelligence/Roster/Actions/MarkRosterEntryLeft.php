@@ -40,14 +40,14 @@ final readonly class MarkRosterEntryLeft
             // the roster row so leave/manual cleanup cannot race a Player transfer.
             Player::query()
                 ->whereKey($routing->player_id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             $entry = AllianceRosterEntry::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->where('player_id', $routing->player_id)
                 ->whereKey($entryId)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             if ($entry->state === RosterState::Left) {

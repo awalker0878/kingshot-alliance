@@ -25,7 +25,7 @@ final readonly class AllianceDataExportService
         return DB::transaction(function () use ($actor, $alliance): array {
             if (DB::connection()->getDriverName() === 'pgsql') DB::statement('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
             $context = $this->mutations->authorizeContext($this->platformWriteState->lock($actor));
-            $currentAlliance = Alliance::query()->whereKey($alliance->id)->sharedLock()->firstOrFail();
+            $currentAlliance = Alliance::query()->whereKey($alliance->id)->firstOrFail();
             $tables = DB::table('information_schema.columns')->where('table_schema','public')->where('column_name','alliance_id')->orderBy('table_name')->pluck('table_name')->filter('is_string')->values();
             $tablePayloads = []; $tableCounts = []; $rowCount = 1;
             foreach ($tables as $table) {

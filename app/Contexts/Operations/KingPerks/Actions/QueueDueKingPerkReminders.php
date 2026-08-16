@@ -161,7 +161,7 @@ final readonly class QueueDueKingPerkReminders
     ): bool {
         return DB::transaction(function () use ($plan, $recipient, $kind, $dueAt, $appointment, $skill): bool {
             $currentPlan = KingPerkPlan::query()->whereKey($plan->id)->sharedLock()->first();
-            $currentPlayer = Player::query()->whereKey($recipient->id)->sharedLock()->first();
+            $currentPlayer = Player::query()->whereKey($recipient->id)->first();
             if (! $currentPlan instanceof KingPerkPlan
                 || ! $currentPlayer instanceof Player
                 || ! $this->eligiblePlayer($currentPlayer, $currentPlan)) {

@@ -120,7 +120,7 @@ final readonly class KingPerkScheduler
             [$lockedPlan, $event, $currentActor] = $this->manager($actor, $plan);
             $this->assertOpenPlan($lockedPlan);
 
-            $currentTarget = Player::query()->whereKey($target->id)->lockForUpdate()->firstOrFail();
+            $currentTarget = Player::query()->whereKey($target->id)->firstOrFail();
             if ((string) $currentTarget->current_kingdom_id !== (string) $lockedPlan->kingdom_id) {
                 throw ValidationException::withMessages(['player_id' => 'The selected Player is not currently in this Kingdom.']);
             }

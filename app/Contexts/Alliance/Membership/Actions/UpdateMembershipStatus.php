@@ -62,7 +62,7 @@ final readonly class UpdateMembershipStatus
 
                 $player = Player::query()
                     ->whereKey($routing->player_id)
-                    ->lockForUpdate()
+                    
                     ->firstOrFail();
 
                 $membership = AllianceMembership::query()

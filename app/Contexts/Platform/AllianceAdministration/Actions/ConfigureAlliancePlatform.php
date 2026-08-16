@@ -23,7 +23,7 @@ final readonly class ConfigureAlliancePlatform
     {
         DB::transaction(function () use ($actor, $alliance, $planCode): void {
             $context = $this->mutations->authorizeContext($this->platformWriteState->lock($actor));
-            $currentAlliance = Alliance::query()->whereKey($alliance->id)->sharedLock()->firstOrFail();
+            $currentAlliance = Alliance::query()->whereKey($alliance->id)->firstOrFail();
             if (! DB::table('platform_plans')->where('code', $planCode)->where('is_active', true)->sharedLock()->exists()) {
                 throw new InvalidArgumentException('The requested platform plan is not active.');
             }
@@ -39,7 +39,7 @@ final readonly class ConfigureAlliancePlatform
         if (! in_array($queuePartition, ['standard', 'high-volume', 'maintenance-sensitive'], true)) throw new InvalidArgumentException('Unsupported queue partition.');
         return DB::transaction(function () use ($actor, $alliance, $retentionDays, $queuePartition, $apiAccessEnabled, $webhooksEnabled): AlliancePlatformSetting {
             $context = $this->mutations->authorizeContext($this->platformWriteState->lock($actor));
-            $currentAlliance = Alliance::query()->whereKey($alliance->id)->sharedLock()->firstOrFail();
+            $currentAlliance = Alliance::query()->whereKey($alliance->id)->firstOrFail();
             AlliancePlatformSetting::query()->upsert([['alliance_id' => $currentAlliance->id, 'retention_days' => $retentionDays, 'queue_partition' => $queuePartition, 'api_access_enabled' => $apiAccessEnabled, 'webhooks_enabled' => $webhooksEnabled, 'created_at' => now(), 'updated_at' => now()]], ['alliance_id'], ['retention_days','queue_partition','api_access_enabled','webhooks_enabled','updated_at']);
             $settings = AlliancePlatformSetting::query()->whereKey($currentAlliance->id)->firstOrFail();
             $this->audit->record('platform.alliance.settings-updated', $context->actor, $currentAlliance, $currentAlliance, ['retention_days'=>$retentionDays,'queue_partition'=>$queuePartition,'api_access_enabled'=>$apiAccessEnabled,'webhooks_enabled'=>$webhooksEnabled]);
@@ -52,7 +52,7 @@ final readonly class ConfigureAlliancePlatform
         if (preg_match('/^[a-z0-9][a-z0-9._-]{2,99}$/', $featureKey) !== 1) throw new InvalidArgumentException('Feature key is invalid.');
         DB::transaction(function () use ($actor, $alliance, $featureKey, $enabled, $configuration): void {
             $context = $this->mutations->authorizeContext($this->platformWriteState->lock($actor));
-            $currentAlliance = Alliance::query()->whereKey($alliance->id)->sharedLock()->firstOrFail();
+            $currentAlliance = Alliance::query()->whereKey($alliance->id)->firstOrFail();
             $flag = $this->features->set($currentAlliance, $context->actor, $featureKey, $enabled, $configuration);
             $this->audit->record('platform.alliance.feature-updated', $context->actor, $flag, $currentAlliance, ['feature_key'=>$featureKey,'enabled'=>$enabled]);
         });

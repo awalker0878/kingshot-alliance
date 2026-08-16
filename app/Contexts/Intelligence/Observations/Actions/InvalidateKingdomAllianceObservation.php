@@ -59,7 +59,7 @@ final readonly class InvalidateKingdomAllianceObservation
             // Match RecordKingdomAllianceObservation exactly: tracking -> reference -> history.
             $reference = KingdomAlliance::query()
                 ->whereKey($tracking->kingdom_alliance_id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             $observation = KingdomAllianceObservation::query()

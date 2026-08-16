@@ -61,7 +61,7 @@ final class AllianceWriteState
 
         $currentActor = Player::query()
             ->whereKey($membership->player_id)
-            ->lockForUpdate()
+            
             ->firstOrFail();
 
         if ((string) $currentActor->current_kingdom_id !== (string) $currentAlliance->kingdom_id) {

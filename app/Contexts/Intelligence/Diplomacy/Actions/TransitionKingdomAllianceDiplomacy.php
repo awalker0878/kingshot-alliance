@@ -50,7 +50,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
         }
 
         return DB::transaction(function () use ($alliance, $actor, $trackingId, $target, $attributes): KingdomAllianceDiplomacy {
-            $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $currentAlliance = Alliance::query()->findOrFail($alliance->id);
             $tracking = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->lockForUpdate()
@@ -68,7 +68,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 ]);
             }
 
-            $reference = KingdomAlliance::query()->lockForUpdate()->findOrFail($tracking->kingdom_alliance_id);
+            $reference = KingdomAlliance::query()->findOrFail($tracking->kingdom_alliance_id);
             if ($reference->kingdom_id !== $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
                     'diplomacy' => 'The tracked alliance reference no longer matches its captured Kingdom context.',

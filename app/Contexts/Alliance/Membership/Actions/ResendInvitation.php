@@ -57,14 +57,14 @@ final readonly class ResendInvitation
 
             $target = Player::query()
                 ->whereKey($invitation->player_id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             $roster = AllianceRosterEntry::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->where('player_id', $target->id)
                 ->where('state', RosterState::Active->value)
-                ->sharedLock()
+                
                 ->first();
 
             if (! $roster instanceof AllianceRosterEntry

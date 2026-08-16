@@ -41,13 +41,13 @@ final class RefreshContributionDataQuality
                 ->where('alliance_id', $context->alliance->id)
                 ->where('status', MembershipStatus::Active->value)
                 ->orderBy('id')
-                ->sharedLock()
+                
                 ->get();
             $categories = ContributionCategory::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->where('is_active', true)
                 ->orderBy('id')
-                ->lockForUpdate()
+                
                 ->get();
 
             ContributionDataQualityFlag::query()

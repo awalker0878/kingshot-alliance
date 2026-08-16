@@ -53,7 +53,7 @@ final class AssignRecruitmentReviewer
 
             $lockedReviewer = Player::query()
                 ->whereKey($reviewer->id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             if ((string) $lockedReviewer->current_kingdom_id !== (string) $context->alliance->kingdom_id) {

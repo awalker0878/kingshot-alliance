@@ -229,7 +229,7 @@ final readonly class SaveTransferGroup
             ->where('alliance_id', $alliance->id)
             ->where('player_id', $playerId)
             ->where('status', MembershipStatus::Active->value)
-            ->sharedLock()
+            
             ->first();
 
         if (! $membership instanceof AllianceMembership) {

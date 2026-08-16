@@ -51,14 +51,14 @@ final readonly class SaveKingdomAllianceDiplomacyContact
         }
 
         return DB::transaction(function () use ($alliance, $actor, $trackingId, $attributes, $contactId): KingdomAllianceDiplomacyContact {
-            $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $currentAlliance = Alliance::query()->findOrFail($alliance->id);
             $tracking = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->lockForUpdate()
                 ->findOrFail($trackingId);
             $this->assertMutableContext($currentAlliance, $tracking);
 
-            $reference = KingdomAlliance::query()->lockForUpdate()->findOrFail($tracking->kingdom_alliance_id);
+            $reference = KingdomAlliance::query()->findOrFail($tracking->kingdom_alliance_id);
             if ($reference->kingdom_id !== $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
                     'contact' => 'The tracked alliance reference no longer matches its captured Kingdom context.',

@@ -81,7 +81,7 @@ final readonly class SaveEventRecommendedFormation
             $alliance = Alliance::query()
                 ->whereKey($resolvedAlliance->id)
                 ->where('status', AllianceStatus::Active->value)
-                ->sharedLock()
+                
                 ->firstOrFail();
 
             $lockedGuidance = null;

@@ -58,7 +58,7 @@ final class RecordContribution
             // using the normal Player -> target-membership eligibility order.
             $currentPlayer = $isActorTarget
                 ? $context->actor
-                : Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
+                : Player::query()->whereKey($player->id)->firstOrFail();
             if ((string) $currentPlayer->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
                 throw new InvalidArgumentException('Contribution Player must belong to the active Alliance Kingdom.');
             }
@@ -70,7 +70,7 @@ final class RecordContribution
                         ->where('alliance_id', $context->alliance->id)
                         ->where('player_id', $currentPlayer->id)
                         ->where('status', MembershipStatus::Active->value)
-                        ->lockForUpdate()
+                        
                         ->first();
                 if (! $membership instanceof AllianceMembership || $membership->status !== MembershipStatus::Active) {
                     throw new InvalidArgumentException('Manual contributions may only target a current active Alliance Player.');
@@ -80,7 +80,7 @@ final class RecordContribution
             $currentCategory = ContributionCategory::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($category->id)
-                ->sharedLock()
+                
                 ->firstOrFail();
             if (! $currentCategory->is_active) {
                 throw new InvalidArgumentException('Contribution category is inactive.');

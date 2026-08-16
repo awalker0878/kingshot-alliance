@@ -276,7 +276,7 @@ final readonly class SaveTransferParticipant
 
         $rosterPlayer = Player::query()
             ->whereKey($routing->player_id)
-            ->lockForUpdate()
+            
             ->firstOrFail();
 
         $roster = AllianceRosterEntry::query()
@@ -284,7 +284,7 @@ final readonly class SaveTransferParticipant
             ->where('player_id', $rosterPlayer->id)
             ->whereIn('state', [RosterState::Active->value, RosterState::Tracked->value])
             ->whereKey($rosterId)
-            ->lockForUpdate()
+            
             ->first();
 
         if (! $roster instanceof AllianceRosterEntry) {

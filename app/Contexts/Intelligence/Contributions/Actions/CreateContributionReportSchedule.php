@@ -47,7 +47,7 @@ final class CreateContributionReportSchedule
 
             $currentRecipient = (string) $recipient->id === (string) $context->actor->id
                 ? $context->actor
-                : Player::query()->whereKey($recipient->id)->lockForUpdate()->firstOrFail();
+                : Player::query()->whereKey($recipient->id)->firstOrFail();
             if ((string) $currentRecipient->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
                 throw new InvalidArgumentException('Scheduled report recipient must belong to the Alliance Kingdom.');
             }
@@ -58,7 +58,7 @@ final class CreateContributionReportSchedule
                     ->where('alliance_id', $context->alliance->id)
                     ->where('player_id', $currentRecipient->id)
                     ->where('status', MembershipStatus::Active->value)
-                    ->lockForUpdate()
+                    
                     ->first();
             if (! $recipientMembership instanceof AllianceMembership) {
                 throw new InvalidArgumentException('Scheduled report recipient must be an active Alliance Player.');

@@ -57,7 +57,7 @@ final readonly class AddKingdomIntelligenceShareTarget
             $alliances = Alliance::query()
                 ->whereIn('id', $allianceIds)
                 ->orderBy('id')
-                ->lockForUpdate()
+                
                 ->get()
                 ->keyBy(static fn (Alliance $alliance): string => (string) $alliance->id);
 

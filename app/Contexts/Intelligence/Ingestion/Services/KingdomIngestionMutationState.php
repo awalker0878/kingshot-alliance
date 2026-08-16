@@ -40,7 +40,7 @@ final readonly class KingdomIngestionMutationState
             return null;
         }
 
-        $allianceQuery = Alliance::query()->whereKey($route->alliance_id)->sharedLock();
+        $allianceQuery = Alliance::query()->whereKey($route->alliance_id);
         $alliance = $nullable ? $allianceQuery->first() : $allianceQuery->firstOrFail();
         if (! $alliance instanceof Alliance) {
             return null;
@@ -57,7 +57,7 @@ final readonly class KingdomIngestionMutationState
         $subscriptionQuery = KingdomIngestionSubscription::query()
             ->whereKey($route->id)
             ->where('alliance_id', $alliance->id)
-            ->lockForUpdate();
+            ;
         $subscription = $nullable ? $subscriptionQuery->first() : $subscriptionQuery->firstOrFail();
         if (! $subscription instanceof KingdomIngestionSubscription) {
             return null;

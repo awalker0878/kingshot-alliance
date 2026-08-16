@@ -39,12 +39,12 @@ final readonly class ResolvePlayer
         $stableId = $stableId === '' ? null : $stableId;
 
         if ($expectedPlayerId !== null) {
-            $expected = Player::query()->lockForUpdate()->findOrFail($expectedPlayerId);
+            $expected = Player::query()->findOrFail($expectedPlayerId);
 
             if ($stableId !== null) {
                 $stableOwner = Player::query()
                     ->where('game_player_id', $stableId)
-                    ->lockForUpdate()
+                    
                     ->first();
 
                 if ($stableOwner instanceof Player && $stableOwner->id !== $expected->id) {
@@ -73,7 +73,7 @@ final readonly class ResolvePlayer
         if ($stableId !== null) {
             $existing = Player::query()
                 ->where('game_player_id', $stableId)
-                ->lockForUpdate()
+                
                 ->first();
 
             if ($existing instanceof Player) {

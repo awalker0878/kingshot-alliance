@@ -83,7 +83,7 @@ final readonly class RecordEventRosterParticipation
 
             if (! $frozenContext instanceof EventPlayerContext) {
                 if ((string) $context->actor->id !== (string) $player->id) {
-                    $player = Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
+                    $player = Player::query()->whereKey($player->id)->firstOrFail();
                 }
                 if (! $this->participants->eligible($context->event, $player)) {
                     throw ValidationException::withMessages([

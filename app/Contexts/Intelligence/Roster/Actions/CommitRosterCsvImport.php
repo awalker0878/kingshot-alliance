@@ -117,7 +117,7 @@ final readonly class CommitRosterCsvImport
                     $existing = AllianceRosterEntry::query()
                         ->where('alliance_id', $alliance->id)
                         ->with('player:id,current_kingdom_id,game_player_id,current_name')
-                        ->lockForUpdate()
+                        
                         ->find($entryId);
 
                     if (! $existing instanceof AllianceRosterEntry) {
