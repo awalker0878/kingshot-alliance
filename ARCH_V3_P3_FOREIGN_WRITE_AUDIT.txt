@@ -5,7 +5,7 @@ Configuration: /home/runner/work/kingshot-alliance/kingshot-alliance/phpunit.xml
 
 [41;37mF[0m[41;37mF[0m                                                                  2 / 2 (100%)
 
-Time: 00:00.034, Memory: 24.00 MB
+Time: 00:00.033, Memory: 24.00 MB
 
 There were 2 failures:
 
@@ -1346,4 +1346,4 @@ Failed asserting that two arrays are identical.
 /home/runner/work/kingshot-alliance/kingshot-alliance/tests/v3/Architecture/CrossContextPersistenceV3Test.php:120
 
 [37;41mFAILURES![0m
-[37;41mTests: 2[0m[37;41m, Assertions: 685[0m[37;41m, Failures: 2[0m[37;41m.[0m
+[37;41mTests: 2[0m[37;41m, Assertions: 686[0m[37;41m, Failures: 2[0m[37;41m.[0m
