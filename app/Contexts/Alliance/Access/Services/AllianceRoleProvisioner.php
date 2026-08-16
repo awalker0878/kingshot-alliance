@@ -11,14 +11,16 @@ use App\Shared\Access\Models\Permission as PermissionModel;
 use Illuminate\Support\Str;
 use RuntimeException;
 
-final class AllianceRoleProvisioner
+final readonly class AllianceRoleProvisioner
 {
+    public function __construct(private AllianceDefaultRolePermissions $rolePermissions) {}
+
     /** @return array<string, Role> */
     public function provision(Alliance $alliance): array
     {
         $permissionRows = [];
         foreach (DefaultAllianceRole::cases() as $roleTemplate) {
-            foreach ($roleTemplate->permissions() as $permission) {
+            foreach ($this->rolePermissions->for($roleTemplate) as $permission) {
                 $permissionRows[$permission->key()] = [
                     'id' => (string) Str::ulid(),
                     'key' => $permission->key(),
@@ -27,7 +29,9 @@ final class AllianceRoleProvisioner
             }
         }
 
-        PermissionModel::query()->upsert(array_values($permissionRows), ['key'], ['description']);
+        if ($permissionRows !== []) {
+            PermissionModel::query()->upsert(array_values($permissionRows), ['key'], ['description']);
+        }
 
         /** @var array<string, PermissionModel> $permissions */
         $permissions = [];
@@ -44,7 +48,7 @@ final class AllianceRoleProvisioner
                 'is_system' => true,
             ]);
             $permissionIds = [];
-            foreach ($roleTemplate->permissions() as $permission) {
+            foreach ($this->rolePermissions->for($roleTemplate) as $permission) {
                 $permissionRow = $permissions[$permission->key()] ?? null;
                 if (! $permissionRow instanceof PermissionModel) {
                     throw new RuntimeException('A default Alliance permission was not provisioned.');
