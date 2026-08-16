@@ -1,4 +1,4 @@
-name: ARCH V2 Boundary Cleanup
+name: ARCH V2 Remediation Validation
 
 on:
   push:
@@ -6,83 +6,56 @@ on:
       - arch-v2-remediation-20260816
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  cleanup:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Apply P5 and P9 cleanup
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - name: Static architecture gates
         shell: bash
         run: |
-          if [ -f .arch-v2-p5p9-cleaned ]; then
-            echo 'P5/P9 cleanup already applied.'
-            exit 0
+          set -euo pipefail
+          if find app -type f -name '*MutationAuthority.php' | grep -q .; then
+            echo 'MutationAuthority files remain:'
+            find app -type f -name '*MutationAuthority.php'
+            exit 1
           fi
-
-          git mv app/Contexts/Operations/Reminders app/Contexts/Operations/Participation/Reminders
-
-          python3 - <<'PY'
-          from pathlib import Path
-
-          for root in [Path('app'), Path('tests'), Path('routes'), Path('bootstrap'), Path('docs')]:
-              if not root.exists():
-                  continue
-              for path in root.rglob('*'):
-                  if not path.is_file() or path.suffix not in {'.php', '.md'}:
-                      continue
-                  text = path.read_text()
-                  updated = text.replace(
-                      'App\\Contexts\\Operations\\Reminders',
-                      'App\\Contexts\\Operations\\Participation\\Reminders',
-                  ).replace(
-                      'app/Contexts/Operations/Reminders',
-                      'app/Contexts/Operations/Participation/Reminders',
-                  )
-                  if path.suffix == '.md':
-                      replacements = [
-                          ('transaction-time mutation authorities', 'transaction-time authorization checks'),
-                          ('transaction-time mutation authority', 'transaction-time authorization'),
-                          ('Transactional mutation authority', 'Transactional write authorization'),
-                          ('mutation authority services', 'transaction-time authorization services'),
-                          ('mutation authority', 'transaction-time authorization'),
-                          ('Mutation authority', 'Transaction-time authorization'),
-                          ('capability coverage', 'architecture contract validation'),
-                          ('capability-coverage', 'architecture-contract-validation'),
-                          ('0004-transactional-mutation-authority.md', '0004-transactional-write-authorization.md'),
-                      ]
-                      for old, new in replacements:
-                          updated = updated.replace(old, new)
-                  if updated != text:
-                      path.write_text(updated)
-          PY
-
-          cat > docs/architecture/decisions/0004-transactional-write-authorization.md <<'EOF'
-          # ADR 0004: Transactional write authorization
-
-          Status: Accepted
-
-          ## Decision
-
-          For writes whose authorization depends on mutable membership, role, scope, lifecycle, or ownership state, the owning action or service opens the transaction, locks the relevant current state in deterministic order, and then performs the final authorization check against that locked state.
-
-          Authorization services express policy and evaluate the current locked principal/scope. They do not act as cross-context authority facades. Capability-specific write-state helpers may only acquire or revalidate state; they must not interpret another context's permission vocabulary.
-
-          ## Rationale
-
-          Request-time authorization can become stale before a write commits. Revalidating after locks prevents time-of-check/time-of-use privilege errors while keeping transaction ownership with the context that owns the data being changed.
-
-          ## Consequences
-
-          Controllers remain thin. Owning actions/services define transaction boundaries, lock their aggregates and mutable scope records, enforce invariants, and invoke authorization against the current state. Cross-context Workflows coordinate owner APIs rather than owning persistence or bypassing a context's write contract.
-          EOF
-          sed -i 's/^          //' docs/architecture/decisions/0004-transactional-write-authorization.md
-          git rm -f docs/architecture/decisions/0004-transactional-mutation-authority.md
-
-          touch .arch-v2-p5p9-cleaned
-          git add -A
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'refactor: align operations boundaries and architecture governance'
-          git push
+          if grep -R -n -E 'MutationAuthority' app routes bootstrap; then
+            echo 'MutationAuthority references remain in production code.'
+            exit 1
+          fi
+          if [ -d app/Contexts/Operations/Reminders ]; then
+            echo 'Top-level Operations/Reminders still exists.'
+            exit 1
+          fi
+          if find app/Workflows -type f \( -path '*/Models/*' -o -path '*/Migrations/*' -o -path '*/Repositories/*' -o -path '*/Access/*' \) | grep -q .; then
+            echo 'Persistent/security ownership remains under Workflows.'
+            exit 1
+          fi
+          if grep -R -n -E 'App\\Contexts\\(Operations|Alliance|GameWorld)\\' app/Contexts/Communications --include='*.php'; then
+            echo 'Communications imports a business-owning context.'
+            exit 1
+          fi
+          if grep -R -n -i -E 'capability coverage|capability-coverage|mutation authority' docs --include='*.md'; then
+            echo 'Superseded governance vocabulary remains.'
+            exit 1
+          fi
+          test ! -e tests/v2/Architecture/CapabilityCoverageV2Test.php
+          test ! -e docs/architecture/decisions/0004-transactional-mutation-authority.md
+          test -e docs/architecture/decisions/0004-transactional-write-authorization.md
+      - name: PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find app bootstrap config database routes tests/v2 -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/php-lint.log
+          tail -n 20 /tmp/php-lint.log
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Architecture V2 tests
+        run: php artisan test tests/v2/Architecture/ArchitectureComplianceV2Test.php tests/v2/Architecture/ArchitectureBoundariesV2Test.php tests/v2/Architecture/MutationSafetyV2Test.php
