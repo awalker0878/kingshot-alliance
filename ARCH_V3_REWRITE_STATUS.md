@@ -64,31 +64,61 @@ Status: COMPLETE
 ### Intentionally deferred to later phases
 - `Workflows/PlayerContext` and `Workflows/Registration` remain until CA-P4 workflow correction.
 - Cross-context persistence/ORM leakage exposed by the reorganization remains visible until CA-P3 rather than being hidden behind compatibility helpers.
-- HTTP write logic remains for CA-P2.
 
 ### Failed / blocked
 - None.
 
 ## Phase CA-P2 — Thin HTTP adapters
 
-Status: IN PROGRESS
-
-### Planned work
-- Add V3 structural test that rejects business transactions, direct persistence, and business locking in Controllers, Middleware, and route closures.
-- Inventory every current HTTP write violation on the V3 tree.
-- Move each write into the owning capability Action/service without introducing controller helpers or compatibility facades.
-- Keep HTTP adapters limited to validation/context resolution, dispatch, and response rendering.
-- Validate autoload, syntax, application boot/routes, and V3 tests after conversion.
+Status: COMPLETE
 
 ### Done
-- Phase started after CA-P1 validation completed successfully.
+- Added `tests/v3/Architecture/ThinHttpAdaptersV3Test.php` to reject business transactions, locks, direct persistence, and force-fill mutation in Controllers, Middleware, and route files.
+- Converted Accounts Profile writes into capability Actions: `UpdateProfile`, `ChangePassword`, and `AuthorizeOtherSessionRevocation`.
+- Converted password reset persistence into `Accounts/Credentials/Actions/ResetPassword`.
+- Thinned Accounts Profile and ResetPassword controllers to validation/dispatch/session-response behavior only.
+- Moved Registration workflow persistence out of its controller into `Workflows/Registration/Actions/RegisterAccount` pending CA-P4 workflow correction.
+- Moved Player activation locking/audit out of its controller into `Workflows/PlayerContext/Actions/ActivatePlayer` pending CA-P4 relocation to GameWorld/Players.
+- Extracted API credential usage mutation from middleware into `Platform/Integrations/Actions/RecordApiCredentialUse`.
+- Extracted KingPerks live no-show replacement transaction into `Operations/KingPerks/Actions/ReplaceNoShowAppointment`.
+- Corrected the HTTP invariant to distinguish zero-argument Eloquent `save()`/`delete()` from application methods named `save`/`delete`.
+- Thin-HTTP audit passes with no remaining controller, middleware, or route-owned business write/lock violations.
+- Strict PSR-4 optimized autoload validation passes.
+- PHP syntax validation passes across app/bootstrap/config/database/routes/tests-v3.
+- Application routes boot successfully with `php artisan route:list`.
+- All V3 architecture tests pass.
+- Temporary CA-P2 audit and validation workflows removed after successful execution.
+
+### Validation issues found and resolved
+- RallyGuidanceController and PlatformAdministrationController were initially reported due to application helper/action methods named `save`/`delete`; the invariant was narrowed to actual zero-argument Eloquent mutations instead of forcing artificial renames.
+- The KingPerks controller contained a real multi-step transaction; it was moved to an owner Action rather than hidden behind a controller helper.
+
+### Intentionally deferred
+- `Workflows/Registration` still owns a cross-context transaction; CA-P4 will replace it with `AccountOnboarding` orchestration and owner-controlled transactions.
+- `Workflows/PlayerContext` remains until CA-P4 and will move to GameWorld/Players.
+- Cross-context ORM relationships, foreign model mutation, foreign locks, and foreign table access are CA-P3 work.
 
 ### Failed / blocked
 - None.
 
 ## Phase CA-P3 — Context-owned write APIs
 
-Status: NOT STARTED
+Status: IN PROGRESS
+
+### Planned work
+- Add V3 structural leakage tests that inventory cross-context Eloquent relationships, foreign model mutation/locks, and unsupported direct context persistence access.
+- Remove Game/Platform cross-context ORM navigation beginning with PlatformAdministrator -> Accounts User.
+- Replace foreign aggregate mutation/locking with owner Actions and stable scalar identifiers.
+- Replace direct foreign table/model reads used for business decisions with owner Queries/contracts where appropriate.
+- Remove Alliance writes into Platform tables and Platform writes into Alliance/Accounts/GameWorld aggregates.
+- Preserve visible ownership boundaries instead of creating compatibility façades.
+- Validate autoload, syntax, application boot, and all V3 architecture tests after each corrected slice.
+
+### Done
+- Phase started after CA-P2 completed with all validation gates green.
+
+### Failed / blocked
+- None.
 
 ## Phase CA-P4 — Workflow correction
 
