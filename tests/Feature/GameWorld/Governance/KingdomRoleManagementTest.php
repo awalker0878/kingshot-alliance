@@ -21,7 +21,7 @@ final class KingdomRoleManagementTest extends TestCase
 
     public function test_bootstrap_establishes_exactly_one_initial_administrator_and_emits_durable_events(): void
     {
-        $scenario = (new ScenarioFactory())->claimedPlayer(4220, 'Initial Admin', 'game-4220-admin');
+        $scenario = (new ScenarioFactory)->claimedPlayer(4220, 'Initial Admin', 'game-4220-admin');
         $assignment = app(BootstrapKingdomAdministrator::class)->handle($scenario['kingdom'], $scenario['player']);
 
         self::assertSame($scenario['player']->id, $assignment->player_id);
@@ -35,7 +35,7 @@ final class KingdomRoleManagementTest extends TestCase
 
     public function test_authorized_administrator_assigns_roles_idempotently_only_inside_the_current_kingdom(): void
     {
-        $factory = new ScenarioFactory();
+        $factory = new ScenarioFactory;
         $admin = $factory->claimedPlayer(4221, 'Admin', 'game-4221-admin');
         $target = $factory->claimedPlayer(4221, 'Coordinator', 'game-4221-coordinator');
         $outsider = $factory->claimedPlayer(4222, 'Outsider', 'game-4222-outsider');
@@ -73,7 +73,7 @@ final class KingdomRoleManagementTest extends TestCase
 
     public function test_role_removal_emits_events_and_cannot_remove_the_last_administrator(): void
     {
-        $factory = new ScenarioFactory();
+        $factory = new ScenarioFactory;
         $admin = $factory->claimedPlayer(4223, 'Admin', 'game-4223-admin');
         $target = $factory->claimedPlayer(4223, 'Viewer', 'game-4223-viewer');
         $adminAssignment = app(BootstrapKingdomAdministrator::class)->handle($admin['kingdom'], $admin['player']);
