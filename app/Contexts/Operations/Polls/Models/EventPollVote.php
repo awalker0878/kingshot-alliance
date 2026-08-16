@@ -26,21 +26,25 @@ final class EventPollVote extends Model
         return ['cast_at' => 'datetime'];
     }
 
+    /** @return BelongsTo<EventPoll, $this> */
     public function poll(): BelongsTo
     {
         return $this->belongsTo(EventPoll::class, 'poll_id');
     }
 
+    /** @return BelongsTo<EventPollOption, $this> */
     public function option(): BelongsTo
     {
         return $this->belongsTo(EventPollOption::class, 'option_id');
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'player_id');
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function castByPlayer(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'cast_by_player_id');
