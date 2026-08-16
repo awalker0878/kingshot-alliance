@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\EventCore\Services;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Governance\Services\KingdomMutationAuthority;
 use App\Contexts\GameWorld\Governance\Services\PlayerMutationAuthority;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Access\Services\AllianceOperationsMutationAuthority;
+use App\Contexts\Operations\Access\Services\KingdomOperationsMutationAuthority;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Models\EventTypeScope;
 use App\Contexts\Operations\EventCore\ValueObjects\EventCreationMutationContext;
@@ -25,7 +25,7 @@ final readonly class EventCreationMutationAuthority
         private EventAuthorization $authorization,
         private EventTargetResolver $targets,
         private AllianceOperationsMutationAuthority $allianceAuthority,
-        private KingdomMutationAuthority $kingdomAuthority,
+        private KingdomOperationsMutationAuthority $kingdomAuthority,
         private PlayerMutationAuthority $playerAuthority,
     ) {}
 
