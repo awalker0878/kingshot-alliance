@@ -63,7 +63,7 @@ final class ArchitectureComplianceV2Test extends TestCase
 
     public function test_p5_operations_contains_complete_live_coordination_ownership(): void
     {
-        self::assertSame(['Access', 'BattlePlans', 'EventCore', 'KingPerks', 'Participation', 'Polls', 'Rallies', 'Reminders', 'Results', 'Rosters'], $this->directories('app/Contexts/Operations', ['README.md']));
+        self::assertSame(['Access', 'BattlePlans', 'EventCore', 'KingPerks', 'Participation', 'Polls', 'Rallies', 'Results', 'Rosters'], $this->directories('app/Contexts/Operations', ['README.md']));
     }
 
     public function test_p6_intelligence_contains_observation_analysis_and_sharing_ownership(): void
