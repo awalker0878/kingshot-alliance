@@ -5,41 +5,28 @@ declare(strict_types=1);
 namespace App\Workflows\PlayerContext\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\Http\Controller;
-use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Workflows\PlayerContext\Actions\ActivatePlayer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 final class ActivatePlayerController extends Controller
 {
-    public function __invoke(Request $request, string $player, AuditRecorder $audit): RedirectResponse
-    {
+    public function __invoke(
+        Request $request,
+        string $player,
+        ActivatePlayer $activatePlayer,
+    ): RedirectResponse {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
         $sessionKey = (string) config('game_world.active_player_session_key');
         $previousPlayerId = $request->session()->get($sessionKey);
-
-        $target = DB::transaction(function () use ($user, $player, $audit, $previousPlayerId): Player {
-            // Ownership mutation/account deletion uses User -> Player. Share-lock the
-            // same rows while selecting a new game principal so the activation evidence
-            // cannot be recorded for a Player that is being detached concurrently.
-            $currentUser = User::query()->whereKey($user->id)->sharedLock()->firstOrFail();
-            $currentPlayer = Player::query()
-                ->whereKey($player)
-                ->where('user_id', $currentUser->id)
-                ->sharedLock()
-                ->firstOrFail();
-
-            $audit->record('player.context_changed', $currentUser, $currentPlayer, null, [
-                'previous_player_id' => is_string($previousPlayerId) ? $previousPlayerId : null,
-                'player_id' => (string) $currentPlayer->id,
-            ]);
-
-            return $currentPlayer;
-        });
+        $target = $activatePlayer->handle(
+            $user,
+            $player,
+            is_string($previousPlayerId) ? $previousPlayerId : null,
+        );
 
         $request->session()->put($sessionKey, (string) $target->id);
 
