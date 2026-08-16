@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\KingdomTransfers\Models;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
+use App\Contexts\GameWorld\Models\Kingdom;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

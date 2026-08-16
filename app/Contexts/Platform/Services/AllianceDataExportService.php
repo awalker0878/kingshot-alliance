@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Services;
 
-use App\Contexts\Platform\Access\Services\PlatformWriteState;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Platform\Access\Services\PlatformAuthorization;
+use App\Contexts\Platform\Access\Services\PlatformWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

@@ -15,8 +15,8 @@ use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\Participation\Models\EventResponse;
-use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderAudience;
+use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -99,6 +99,7 @@ final readonly class EventReminderAudienceResolver
     {
         try {
             $this->authorization->authorizeSelf($player, $event, $player);
+
             return true;
         } catch (AuthorizationException) {
             return false;

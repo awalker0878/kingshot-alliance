@@ -137,6 +137,7 @@ final class ArchitectureBoundariesV2Test extends TestCase
             }
         }
         sort($files);
+
         return $files;
     }
 }

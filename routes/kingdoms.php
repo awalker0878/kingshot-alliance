@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\Contexts\GameWorld\Governance\Http\Controllers\KingdomRoleController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferCompletionController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferGroupController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferParticipantController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferPlanController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferReadinessController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyContactController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyController;
 use App\Contexts\Intelligence\Http\Controllers\KingdomAllianceIntelligenceController;
@@ -15,11 +20,6 @@ use App\Contexts\Intelligence\Roster\Http\Controllers\RosterCsvController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterIntelligenceController;
 use App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController;
 use App\ReadModels\KingdomSettings\Http\Controllers\KingdomSettingsController;
-use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferCompletionController;
-use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferGroupController;
-use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferParticipantController;
-use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferPlanController;
-use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferReadinessController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {

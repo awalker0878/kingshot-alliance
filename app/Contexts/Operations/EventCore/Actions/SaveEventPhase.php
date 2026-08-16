@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\EventCore\Actions;
 
-use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
@@ -12,8 +11,9 @@ use App\Contexts\Operations\EventCore\Enums\EventPhaseStatus;
 use App\Contexts\Operations\EventCore\Enums\EventPhaseType;
 use App\Contexts\Operations\EventCore\Models\EventOccurrence;
 use App\Contexts\Operations\EventCore\Models\EventPhase;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
 use App\Contexts\Operations\EventCore\Services\EventAuthorization;
+use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
+use App\Contexts\Operations\EventCore\Services\EventWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;

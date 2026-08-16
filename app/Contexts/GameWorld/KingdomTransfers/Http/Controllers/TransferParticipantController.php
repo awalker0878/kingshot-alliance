@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\KingdomTransfers\Http\Controllers;
 
 use App\Contexts\Alliance\Core\Services\AllianceContext;
-use App\Shared\Http\Controller;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\SaveTransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\WithdrawTransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferDirection;
+use App\Shared\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

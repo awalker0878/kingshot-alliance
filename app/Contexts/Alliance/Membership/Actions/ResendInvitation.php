@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Membership\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\InvitationStatus;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;

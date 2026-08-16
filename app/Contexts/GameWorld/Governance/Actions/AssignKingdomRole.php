@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Governance\Actions;
 
-use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
 use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
+use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;

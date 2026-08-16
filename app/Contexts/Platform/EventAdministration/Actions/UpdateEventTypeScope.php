@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\EventAdministration\Actions;
 
-use App\Contexts\Platform\Access\Services\PlatformWriteState;
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Operations\EventCore\Actions\PersistEventTypeScopeConfiguration;
 use App\Contexts\Operations\EventCore\Enums\EventCapability;
@@ -13,6 +12,7 @@ use App\Contexts\Operations\EventCore\Enums\EventScheduleSource;
 use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\EventCore\Models\EventTypeScope;
 use App\Contexts\Platform\Access\Services\PlatformAuthorization;
+use App\Contexts\Platform\Access\Services\PlatformWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;

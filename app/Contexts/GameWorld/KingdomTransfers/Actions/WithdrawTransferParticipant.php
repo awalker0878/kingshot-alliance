@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferReadinessState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
+use App\Contexts\GameWorld\Models\Player;
 
 final readonly class WithdrawTransferParticipant
 {

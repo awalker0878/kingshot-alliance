@@ -133,6 +133,7 @@ final class ArchitectureComplianceV2Test extends TestCase
     {
         $entries = array_values(array_filter(scandir(base_path($root)) ?: [], static fn (string $entry): bool => ! in_array($entry, ['.', '..', ...$ignored], true)));
         sort($entries);
+
         return $entries;
     }
 
@@ -154,6 +155,7 @@ final class ArchitectureComplianceV2Test extends TestCase
             }
         }
         sort($files);
+
         return $files;
     }
 

@@ -86,6 +86,7 @@ final class NotificationDeliveryService
             ->where(static function ($query) use ($playerId): void {
                 if ($playerId === null) {
                     $query->whereNull('player_id');
+
                     return;
                 }
 
