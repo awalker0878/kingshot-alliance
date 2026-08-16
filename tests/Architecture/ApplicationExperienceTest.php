@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ApplicationExperienceTest extends TestCase
 {
-    public function test_dashboard_uses_the_shared_application_experience_without_invented_metrics(): void
+    public function test_dashboard_uses_the_shared_application_experience_and_active_player_context_without_invented_metrics(): void
     {
         $dashboard = $this->read('resources/js/pages/Dashboard.vue');
 
@@ -18,7 +18,11 @@ final class ApplicationExperienceTest extends TestCase
         self::assertStringNotContainsString('<main', $dashboard);
 
         self::assertStringContainsString("allianceForm.post('/alliances'", $dashboard);
-        self::assertStringContainsString('router.put(`/alliances/${allianceId}/active`)', $dashboard);
+        self::assertStringContainsString('activePlayer: { id: string; name: string; gamePlayerId: string | null; kingdomNumber: number | null } | null;', $dashboard);
+        self::assertStringContainsString(':has-player-alliance="membership !== null"', $dashboard);
+        self::assertStringContainsString('{{ activePlayer.name }}', $dashboard);
+        self::assertStringNotContainsString('router.put(`/alliances/${allianceId}/active`)', $dashboard);
+        self::assertStringNotContainsString('activeAlliance', $dashboard);
         self::assertStringContainsString('href="/alliance"', $dashboard);
         self::assertStringContainsString('href="/alliance/roster"', $dashboard);
         self::assertStringContainsString('href="/alliance/kingdom-alliances"', $dashboard);
