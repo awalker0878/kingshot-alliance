@@ -1,8 +1,6 @@
-# V2 bounded contexts
+# Business contexts
 
-Architecture V2 business behavior lives under this root.
-
-Current target contexts:
+Business behavior is owned by exactly seven bounded contexts:
 
 - `Accounts`
 - `GameWorld`
@@ -12,8 +10,8 @@ Current target contexts:
 - `Communications`
 - `Platform`
 
-Capabilities are modules inside a context; a capability does not become a peer top-level context merely because it has models, routes, or tests.
+Capabilities remain inside their owning context. A model, route, table, controller or implementation folder does not create a new bounded context.
 
-New V2 code must not import `App\Domain\*`. Superseded V1 call sites are rewritten directly and old code is deleted rather than bridged.
+Cross-context commands are coordinated through `app/Workflows`, cross-context reads through `app/ReadModels`, and business-neutral technical concerns through `app/Shared`.
 
-Dependency direction is enforced by `tests/Architecture/ArchitectureV2DependencyTest.php`.
+Architecture boundaries are enforced by the tests under `tests/v2/Architecture`.

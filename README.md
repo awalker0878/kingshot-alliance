@@ -1,6 +1,6 @@
 # Kingshot Alliance
 
-Enterprise-ready coordination platform for the KingShot community, currently evolving on the `architecture-v2` code architecture.
+Enterprise-ready coordination platform for the KingShot community, organized around the Architecture V2 bounded-context model.
 
 ## Technology baseline
 
@@ -47,7 +47,7 @@ Capabilities live inside those contexts. Cross-context commands are coordinated 
 
 A User is the account principal; the active Player is the game-domain principal. Platform Administrator is User-scoped platform authority and is not a game-domain bypass.
 
-See the [architecture overview](docs/architecture/README.md) and [codebase module map](docs/codebase/module-map.md).
+See the [architecture overview](docs/architecture/README.md), [Architecture V2 compliance](docs/governance/architecture-compliance.md) and [codebase module map](docs/codebase/module-map.md).
 
 ## Health endpoints
 

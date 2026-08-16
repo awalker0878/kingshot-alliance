@@ -31,27 +31,27 @@ docs/
 
 ### Architecture
 
-Architecture is organized around **bounded contexts containing capabilities**. Architecture V2 currently uses Accounts, GameWorld, Alliance, Operations, Intelligence, Communications and Platform. `app/Workflows`, `app/ReadModels` and `app/Shared` are explicit composition/technical layers, not extra business contexts.
+Architecture is organized around bounded contexts containing capabilities. Architecture V2 uses Accounts, GameWorld, Alliance, Operations, Intelligence, Communications and Platform. `app/Workflows`, `app/ReadModels` and `app/Shared` are explicit composition/technical layers, not additional business contexts.
 
 ### Codebase
 
-Codebase documentation maps that logical model onto `app/Contexts`, Workflows, ReadModels, Shared, routes, persistence, frontend and tests. Physical folders implement architecture; they do not get to redefine it.
+Codebase documentation maps that logical model onto `app/Contexts`, Workflows, ReadModels, Shared, routes, persistence, frontend and tests. Physical folders implement architecture; they do not redefine it.
 
 ### Operations
 
-`docs/operations` means running the software. This is intentionally distinct from the **Operations bounded context**, which owns Events and live game coordination.
+`docs/operations` describes running the software. This is distinct from the Operations bounded context, which owns Events and live game coordination.
 
 ### Product
 
-Product documentation describes implemented user outcomes and terminology. Historical phase/DCP plans are not part of the live product model.
+Product documentation describes implemented user outcomes and terminology.
 
 ### Governance
 
-Governance defines how changes are engineered, documented, secured and approved for production.
+Governance defines how changes are engineered, documented, secured, verified and approved for production. The [Architecture V2 compliance](governance/architecture-compliance.md) document defines the nine continuously enforced architecture contracts.
 
 ### Reference
 
-Reference contains lookup-oriented material that should be derived/generated from code where practical.
+Reference contains lookup-oriented material that should be derived or generated from code where practical.
 
 ## Source-of-truth precedence
 
@@ -65,8 +65,4 @@ Use the narrowest authoritative source:
 6. Governance defines change/security/approval requirements;
 7. Reference summarizes mechanical values without overriding their code definitions.
 
-When code and documentation disagree, determine whether the code or the intended contract is wrong—then fix both as part of the same change.
-
-## No legacy documentation tree
-
-The previous `docs/domains`, top-level `docs/adr`, top-level `docs/security`, phase/DCP documentation and other superseded taxonomy are intentionally not retained here. Useful current knowledge has been rewritten into the new owning area. Git history is the archive.
+When code and documentation disagree, determine whether the code or the intended contract is wrong, then fix both as part of the same change.

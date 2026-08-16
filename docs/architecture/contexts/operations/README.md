@@ -7,6 +7,7 @@ Operations owns execution-time game coordination centered on Events and operatio
 
 ## Capabilities
 
+- [Operations authorization](authorization.md)
 - [Event core](event-core.md)
 - [Participation](participation.md)
 - [Planning: polls, rosters and battle plans](planning.md)
@@ -15,8 +16,6 @@ Operations owns execution-time game coordination centered on Events and operatio
 - [King Perks](king-perks.md)
 - [Reminder policy](reminders.md)
 
-`Access` owns Operations permission interpretation.
-
 ## Boundary
 
-Operations owns live operational state. Historical/analytical projections belong to Intelligence or ReadModels. Reminder delivery state belongs to Communications. Platform may orchestrate Event-type administration but does not own Event execution semantics.
+Operations owns live operational state. Analytical projections belong to Intelligence or ReadModels. Reminder delivery state belongs to Communications. Platform may administer Event types but does not own Event execution semantics.

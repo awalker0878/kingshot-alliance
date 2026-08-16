@@ -2,9 +2,10 @@
 
 Status: Current
 
-Governance contains the **rules for changing and approving the system**. It is not a product backlog and not a historical phase archive.
+Governance contains the rules for changing, securing and approving the system.
 
 - [Engineering principles](engineering-principles.md)
+- [Architecture V2 compliance](architecture-compliance.md)
 - [Documentation standard](documentation-standard.md)
 - [Definition of Done](definition-of-done.md)
 - [Security requirements](security-requirements.md)

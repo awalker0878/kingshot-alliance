@@ -10,11 +10,11 @@ Cross-context read composition uses `app/ReadModels`; cross-context mutation orc
 
 ## Rationale
 
-The previous noun/domain-per-package model encouraged accidental architectural boundaries around entities and implementation folders. Context-first ownership keeps related capabilities together and makes persistence, policy and dependency direction clearer.
+Context-first ownership keeps cohesive business language, persistence, policy and consistency rules together. Implementation folders remain subordinate to those ownership boundaries rather than defining them.
 
 ## Consequences
 
-- a new model/table/route does not imply a new context;
-- context ownership must be decided before implementation placement;
-- V2 code does not import legacy `App\Domain\*` classes;
+- a new model, table or route does not imply a new context;
+- context ownership is decided before implementation placement;
+- cross-context collaboration uses explicit composition or durable contracts;
 - architecture documentation is organized by context/capability, while general documentation is organized by reader intent.

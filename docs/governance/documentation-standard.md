@@ -17,7 +17,7 @@ docs/
 └── reference/
 ```
 
-Do not recreate top-level `domains/`, `adr/`, `security/`, `contexts/`, `wiki/`, `legacy/` or phase/DCP trees. ADRs belong in `architecture/decisions`; security policy belongs in Governance; bounded contexts belong in `architecture/contexts`.
+The live documentation tree uses these groups only. Architecture decisions live in `architecture/decisions`; bounded contexts and their capabilities live in `architecture/contexts`; security and approval rules live in Governance.
 
 ## What goes where
 
@@ -32,7 +32,7 @@ Do not recreate top-level `domains/`, `adr/`, `security/`, `contexts/`, `wiki/`,
 
 ## Canonical ownership
 
-Every rule should have one authoritative home. Other documents link to it instead of restating a competing version.
+Every rule has one authoritative home. Other documents link to it instead of restating a competing version.
 
 - business invariant/ownership: Architecture;
 - implementation path/pattern: Codebase;
@@ -43,15 +43,11 @@ Every rule should have one authoritative home. Other documents link to it instea
 
 ## Context documents
 
-A context/capability document should normally cover purpose, ownership, actors/authority, invariants, workflow, cross-context dependencies and implementation link. Do not create mandatory `security/operations/interfaces/testing` subtrees under every capability.
+A context/capability document normally covers purpose, ownership, actors/authority, invariants, workflow, cross-context dependencies and implementation link. Security, operations, interface and testing material is added where it provides useful context rather than as mandatory repeated subtrees.
 
-## Current truth vs decisions
+## Current truth and decisions
 
-Living architecture describes current truth. Decision records explain why durable choices were made. Do not require a reader to reconstruct current behavior by replaying old ADR history.
-
-## Historical documentation
-
-Git history is the archive. Superseded phase, migration-program or old taxonomy documents are deleted from the live tree once their current useful knowledge has been incorporated.
+Living architecture is the authoritative description of current behavior and ownership. Decision records capture durable rationale for choices that remain part of the current architecture.
 
 ## Maintenance trigger
 

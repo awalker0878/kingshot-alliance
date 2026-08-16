@@ -2,19 +2,17 @@
 
 Status: Current
 
-Architecture V2 uses a **clean-room test suite** under `tests/v2`. The previous Architecture/Feature/Integration/Performance/TenantIsolation/Unit taxonomy is not retained as an acceptance model.
+Architecture V2 uses one verification suite under `tests/v2`.
 
 ## Sources of truth
 
-New tests are authored from the current code/database constraints and `/docs`, in this order:
+Tests are authored from current contracts in this order:
 
 1. executable code and database constraints for exact runtime behavior;
 2. architecture documentation for ownership, invariants and supported collaboration;
 3. codebase documentation for physical implementation locations;
 4. product documentation for user outcomes;
-5. governance/reference/operations documentation for cross-cutting requirements.
-
-Historical tests are not specifications and are not migrated into V2.
+5. governance, reference and operations documentation for cross-cutting requirements.
 
 ## Structure
 
@@ -26,10 +24,12 @@ Historical tests are not specifications and are not migrated into V2.
 
 ## Coverage model
 
-Every documented capability has a dedicated V2 surface contract that verifies current documentation, autoloadable implementation symbols, persistence mappings and public application surfaces. Separate behavior tests protect high-risk business/security invariants.
+Every owned implementation surface has an executable contract that verifies documentation, autoloadable symbols, persistence mappings or public application behavior as appropriate. Behavior tests protect high-risk identity, authority, isolation, transaction and policy invariants.
 
-Protected mutations must cover authorization failure, scope isolation and transaction/locking behavior where relevant. Cross-context behavior must use supported context contracts, Workflows, ReadModels or durable messaging rather than direct persistence reach-through.
+The nine architecture compliance contracts are defined in [Architecture V2 compliance](../governance/architecture-compliance.md) and enforced by `ArchitectureComplianceV2Test` together with focused context/workflow tests.
+
+Protected mutations cover authorization failure, scope isolation and transaction/locking behavior where relevant. Cross-context behavior uses supported context contracts, Workflows, ReadModels or durable messaging rather than persistence ownership leakage.
 
 ## Required verification
 
-The V2 gate uses PostgreSQL, `migrate:fresh`, Pint, Larastan and the complete `tests/v2` suite. It also verifies that `tests` contains no legacy test tree and that `App\\Domain` cannot return in runtime or tests.
+The Architecture V2 gate uses PostgreSQL 18, `migrate:fresh`, Pint, Larastan and the complete `tests/v2` suite, plus frontend checks and visual-test discovery.

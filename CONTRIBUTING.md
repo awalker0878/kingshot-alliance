@@ -12,10 +12,10 @@ Do not create a new bounded context merely because a feature has its own model, 
 2. Identify the owning context/capability and any cross-context contracts.
 3. Implement the smallest complete vertical slice.
 4. Use `app/Workflows` for genuine multi-context command orchestration and `app/ReadModels` for cross-context reads.
-5. Keep `app/Shared` business-neutral; do not reintroduce `App\Domain\*` compatibility code.
+5. Keep `app/Shared` business-neutral and keep business behavior inside the canonical architecture boundaries.
 6. Run the relevant targeted checks, then `make check` when appropriate.
 7. Update the authoritative documentation using the [change impact guide](docs/governance/change-impact.md).
-8. Open/review the pull request with migration, security, operational and rollback impact made explicit.
+8. Open/review the pull request with schema, security, operational and rollback impact made explicit.
 
 ## Engineering conventions
 
@@ -45,7 +45,7 @@ Documentation is organized by reader intent:
 - `docs/governance` — engineering/security/documentation/approval rules;
 - `docs/reference` — lookup-oriented facts.
 
-Follow [Documentation standard](docs/governance/documentation-standard.md). Update one canonical owner rather than copying the same rule into multiple files. Superseded documentation is deleted; Git history is the archive.
+Follow [Documentation standard](docs/governance/documentation-standard.md). Update one canonical owner rather than copying the same rule into multiple files.
 
 ## Required checks
 
@@ -60,5 +60,7 @@ Use the checks relevant to the change, including:
 - Vite production build
 - Docker/container validation where affected
 - CodeQL and dependency review through repository CI
+
+The nine permanent architecture contracts are defined in [Architecture V2 compliance](docs/governance/architecture-compliance.md).
 
 A green repository does not by itself approve real production. Production status is controlled by [Production approval](docs/governance/production-approval.md).

@@ -1,5 +1,5 @@
-# V2 shared kernel
+# Shared technical layer
 
-Only genuinely cross-cutting technical contracts and infrastructure belong here. Infrastructure packages live below `App\Shared\Infrastructure` (for example AuditTrail and Messaging/Outbox); access primitives and other tiny shared contracts may remain directly under Shared when they are not business capabilities.
+Only genuinely cross-cutting technical contracts and infrastructure belong here. Infrastructure packages live below `App\Shared\Infrastructure`; small access and HTTP contracts may live directly below Shared when they remain business-neutral.
 
-`Shared` must not import any business context, workflow, read model, or `App\Domain\*` class. No feature aggregate or gameplay/alliance policy belongs here.
+Shared does not import business contexts, Workflows or ReadModels. Feature aggregates and game/Alliance policy belong to their owning bounded context.

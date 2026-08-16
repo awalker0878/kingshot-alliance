@@ -9,10 +9,11 @@ Alliance owns the cohesive Alliance tenant and member-management capability spac
 
 - [Lifecycle and settings](lifecycle-and-settings.md)
 - [Membership and authority](membership-and-authority.md)
+- [Alliance policies](policies.md)
 - [Recruitment](recruitment.md)
 - [Content and media](content.md)
 
-Implementation modules are `Core`, `Membership`, `Access`, `Recruitment`, `Content` and Alliance-owned `Policies`.
+Implementation modules are `Core`, `Membership`, `Access`, `Policies`, `Recruitment` and `Content`.
 
 ## Authority
 
