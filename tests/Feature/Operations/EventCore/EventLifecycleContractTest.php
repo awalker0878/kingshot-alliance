@@ -29,7 +29,7 @@ final class EventLifecycleContractTest extends TestCase
     public function test_player_scoped_events_are_owned_by_the_active_player_not_the_account(): void
     {
         $user = User::factory()->create();
-        $factory = new ScenarioFactory();
+        $factory = new ScenarioFactory;
         $first = $factory->playerFor($user, 4401, 'Alpha', 'game-4401-a')['player'];
         $second = $factory->playerFor($user, 4401, 'Bravo', 'game-4401-b')['player'];
         $type = EventType::query()->where('slug', 'hall-of-governors')->sole();
@@ -51,7 +51,7 @@ final class EventLifecycleContractTest extends TestCase
 
     public function test_alliance_event_creation_is_tenant_scoped_and_emits_durable_state_change(): void
     {
-        $scenario = (new ScenarioFactory())->allianceEvent(4402, 'custom', 'event-core-tenant');
+        $scenario = (new ScenarioFactory)->allianceEvent(4402, 'custom', 'event-core-tenant');
 
         self::assertSame($scenario['alliance']->id, $scenario['event']->alliance_id);
         self::assertSame($scenario['player']->id, $scenario['event']->created_by_player_id);
@@ -60,7 +60,7 @@ final class EventLifecycleContractTest extends TestCase
 
     public function test_template_snapshots_configuration_and_materializes_independent_event_occurrences(): void
     {
-        $scenario = (new ScenarioFactory())->alliance(4403, 'Template Owner', 'Template Alliance', 'event-template-v2');
+        $scenario = (new ScenarioFactory)->alliance(4403, 'Template Owner', 'Template Alliance', 'event-template-v2');
         $type = EventType::query()->where('slug', 'custom')->sole();
         $configuration = app(EventTypeRegistry::class)->scope($type, EventScope::Alliance);
 
@@ -95,7 +95,7 @@ final class EventLifecycleContractTest extends TestCase
 
     public function test_existing_event_keeps_its_schedule_policy_snapshot_when_catalogue_configuration_changes(): void
     {
-        $scenario = (new ScenarioFactory())->alliance(4404, 'Snapshot Owner', 'Snapshot Alliance', 'event-snapshot-v2');
+        $scenario = (new ScenarioFactory)->alliance(4404, 'Snapshot Owner', 'Snapshot Alliance', 'event-snapshot-v2');
         $type = EventType::query()->where('slug', 'custom')->sole();
         $configuration = app(EventTypeRegistry::class)->scope($type, EventScope::Alliance);
         $event = app(CreateEvent::class)->handle(
@@ -124,7 +124,7 @@ final class EventLifecycleContractTest extends TestCase
 
     public function test_calendar_driven_configuration_rejects_application_recurrence(): void
     {
-        $scenario = (new ScenarioFactory())->alliance(4405, 'Policy Owner', 'Policy Alliance', 'event-policy-v2');
+        $scenario = (new ScenarioFactory)->alliance(4405, 'Policy Owner', 'Policy Alliance', 'event-policy-v2');
         $type = EventType::query()->where('slug', 'swordland-showdown')->sole();
         $configuration = app(EventTypeRegistry::class)->scope($type, EventScope::Alliance);
 
