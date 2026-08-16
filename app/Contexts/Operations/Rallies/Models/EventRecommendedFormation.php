@@ -11,6 +11,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property-read EventOccurrence $occurrence
+ * @property-read Alliance $alliance
+ * @property-read RallyGuidanceRule|null $guidanceRule
+ */
 final class EventRecommendedFormation extends Model
 {
     use HasUlids;
