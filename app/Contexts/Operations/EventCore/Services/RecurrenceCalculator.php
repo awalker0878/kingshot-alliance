@@ -45,7 +45,6 @@ final class RecurrenceCalculator
             }
 
             $candidate = match ($frequency) {
-                RecurrenceFrequency::None => $candidate,
                 RecurrenceFrequency::Daily => $candidate->addDays($interval),
                 RecurrenceFrequency::Weekly => $candidate->addWeeks($interval),
             };
