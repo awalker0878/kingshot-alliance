@@ -7,8 +7,10 @@ namespace App\Contexts\Operations\EventCore\Actions;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventTemplate;
+use App\Contexts\Operations\EventCore\Models\EventTypeScope;
 use App\Contexts\Operations\EventCore\Services\EventTargetResolver;
 use Carbon\CarbonImmutable;
+use LogicException;
 
 final class CreateEventFromTemplate
 {
@@ -26,12 +28,16 @@ final class CreateEventFromTemplate
         bool $publish = true,
     ): Event {
         $template->loadMissing('typeScope');
+        $configuration = $template->typeScope;
+        if (! $configuration instanceof EventTypeScope) {
+            throw new LogicException('Event template must reference an Event type scope configuration.');
+        }
 
         // The template object is only routing input here. CreateEvent re-resolves and
         // shared-locks the current template row before reading any mutable defaults.
         return $this->create->handle(
             actor: $actor,
-            configuration: $template->typeScope,
+            configuration: $configuration,
             target: $this->targets->forTemplate($template),
             firstLocalStart: $firstLocalStart,
             title: $title,
