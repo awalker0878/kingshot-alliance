@@ -44,11 +44,6 @@ final class ArchitectureV2IntelligenceTest extends TestCase
         ] as $legacyPath) {
             self::assertFileDoesNotExist($this->root().'/app/Domain/Kingdoms/'.$legacyPath);
         }
-
-        self::assertFileExists(
-            $this->root().'/app/Domain/Kingdoms/Http/Controllers/KingdomIntelligenceSharingController.php',
-            'The legacy sharing UI controller remains only until its current/history read side is rebuilt under ReadModels.',
-        );
     }
 
     public function test_production_runtime_has_no_v1_contributions_namespace_references(): void
