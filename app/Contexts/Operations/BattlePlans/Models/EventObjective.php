@@ -10,11 +10,21 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
+ * @property string $objective_type
+ * @property string $name
+ * @property string|null $description
+ * @property int $priority
+ * @property Carbon|null $starts_at
+ * @property Carbon|null $ends_at
  * @property EventObjectiveStatus $status
+ * @property int $sort_order
+ * @property array<string, mixed>|null $metadata
  * @property-read EventOccurrence $occurrence
  * @property-read EventObjective|null $parent
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, EventObjectiveAssignment> $assignments
  */
 final class EventObjective extends Model
 {
