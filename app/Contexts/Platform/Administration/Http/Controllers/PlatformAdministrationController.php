@@ -6,7 +6,7 @@ namespace App\Contexts\Platform\Administration\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
 use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
 use App\Contexts\Platform\Administration\Queries\PlatformAdministrationQuery;
@@ -28,7 +28,10 @@ use InvalidArgumentException;
 
 final class PlatformAdministrationController
 {
-    public function __construct(private readonly AccountIdentityQuery $accounts) {}
+    public function __construct(
+        private readonly AccountIdentityQuery $accounts,
+        private readonly AllianceReferenceQuery $alliances,
+    ) {}
 
     public function index(
         Request $request,
@@ -41,12 +44,12 @@ final class PlatformAdministrationController
         $selectedAlliance = null;
 
         if (is_string($selectedAllianceId) && $selectedAllianceId !== '') {
-            $alliance = Alliance::query()->find($selectedAllianceId);
-            if ($alliance instanceof Alliance) {
+            $alliance = $this->alliances->find($selectedAllianceId);
+            if ($alliance !== null) {
                 $selectedAlliance = [
-                    'id' => (string) $alliance->id,
-                    'name' => (string) $alliance->name,
-                    'features' => $features->all($alliance),
+                    'id' => $alliance->allianceId,
+                    'name' => $alliance->name,
+                    'features' => $features->all($alliance->allianceId),
                 ];
             }
         }
@@ -102,15 +105,14 @@ final class PlatformAdministrationController
         ManageAllianceLifecycle $lifecycle,
     ): RedirectResponse {
         $actor = $this->account($request);
-        $target = Alliance::query()->findOrFail($alliance);
         $validated = $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
         try {
             match ($operation) {
-                'suspend' => $lifecycle->suspend($actor, $target, (string) $validated['reason']),
-                'close' => $lifecycle->close($actor, $target, (string) $validated['reason']),
-                'delete' => $lifecycle->delete($actor, $target, (string) $validated['reason']),
-                'restore' => $lifecycle->restore($actor, $target, (string) $validated['reason']),
+                'suspend' => $lifecycle->suspend($actor, $alliance, (string) $validated['reason']),
+                'close' => $lifecycle->close($actor, $alliance, (string) $validated['reason']),
+                'delete' => $lifecycle->delete($actor, $alliance, (string) $validated['reason']),
+                'restore' => $lifecycle->restore($actor, $alliance, (string) $validated['reason']),
                 default => throw new InvalidArgumentException('Unsupported alliance lifecycle operation.'),
             };
         } catch (InvalidArgumentException $exception) {
@@ -126,11 +128,10 @@ final class PlatformAdministrationController
         ConfigureAlliancePlatform $configure,
     ): RedirectResponse {
         $actor = $this->account($request);
-        $target = Alliance::query()->findOrFail($alliance);
         $validated = $request->validate(['plan_code' => ['required', 'string', 'max:40']]);
 
         try {
-            $configure->assignPlan($actor, $target, (string) $validated['plan_code']);
+            $configure->assignPlan($actor, $alliance, (string) $validated['plan_code']);
         } catch (InvalidArgumentException $exception) {
             throw ValidationException::withMessages(['plan' => $exception->getMessage()]);
         }
@@ -144,7 +145,6 @@ final class PlatformAdministrationController
         ConfigureAlliancePlatform $configure,
     ): RedirectResponse {
         $actor = $this->account($request);
-        $target = Alliance::query()->findOrFail($alliance);
         $validated = $request->validate([
             'retention_days' => ['required', 'integer', 'min:1', 'max:3650'],
             'queue_partition' => ['required', Rule::in(['standard', 'high-volume', 'maintenance-sensitive'])],
@@ -153,7 +153,7 @@ final class PlatformAdministrationController
         ]);
         $configure->updateSettings(
             $actor,
-            $target,
+            $alliance,
             (int) $validated['retention_days'],
             (string) $validated['queue_partition'],
             (bool) $validated['api_access_enabled'],
@@ -169,7 +169,6 @@ final class PlatformAdministrationController
         ConfigureAlliancePlatform $configure,
     ): RedirectResponse {
         $actor = $this->account($request);
-        $target = Alliance::query()->findOrFail($alliance);
         $validated = $request->validate([
             'feature_key' => ['required', 'string', 'max:100'],
             'enabled' => ['required', 'boolean'],
@@ -179,7 +178,7 @@ final class PlatformAdministrationController
         try {
             $configure->setFeature(
                 $actor,
-                $target,
+                $alliance,
                 (string) $validated['feature_key'],
                 (bool) $validated['enabled'],
                 isset($validated['configuration']) && is_array($validated['configuration']) ? $validated['configuration'] : null,
@@ -215,7 +214,7 @@ final class PlatformAdministrationController
     public function captureUsage(Request $request, string $alliance, PlatformUsageService $usage): RedirectResponse
     {
         $this->account($request);
-        $usage->capture(Alliance::query()->findOrFail($alliance));
+        $usage->capture($alliance);
 
         return back()->with('status', 'alliance-usage-captured');
     }
@@ -223,7 +222,6 @@ final class PlatformAdministrationController
     public function export(Request $request, string $alliance, AllianceDataExportService $exports): HttpResponse
     {
         $actor = $this->account($request);
-        $target = Alliance::query()->findOrFail($alliance);
         $export = $exports->generate($actor, $target);
 
         return response($export['contents'], 200, [
