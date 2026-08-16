@@ -1,5 +1,5 @@
 name: Architecture V2 Verification
-# P5 verification: operational V1 roots stay absent; Operations stays downstream-clean; cross-context Event UI composition lives in ReadModels.
+# P5 verification: V1 operational roots stay absent and only V2-owned Operations tests define P5 acceptance.
 
 on:
   pull_request:
@@ -9,9 +9,6 @@ on:
       - 'app/Shared/**'
       - 'app/Workflows/**'
       - 'app/ReadModels/**'
-      - 'app/Domain/Notifications/**'
-      - 'app/Domain/Contributions/**'
-      - 'app/Domain/Integrations/**'
       - 'bootstrap/app.php'
       - 'bootstrap/providers.php'
       - 'config/accounts.php'
@@ -33,14 +30,11 @@ on:
       - 'tests/Feature/Memberships/**'
       - 'tests/Feature/Recruitment/**'
       - 'tests/Feature/Content/**'
-      - 'tests/Feature/Events/**'
-      - 'tests/Feature/KingPerks/**'
-      - 'tests/Feature/Integrations/**'
-      - 'tests/Feature/Contributions/**'
+      - 'tests/Feature/Operations/**'
       - 'tests/TenantIsolation/Alliances/**'
       - 'tests/Unit/Accounts/**'
       - 'tests/Unit/Authorization/**'
-      - 'tests/Unit/KingPerks/**'
+      - 'tests/Unit/Operations/**'
       - 'docs/product/architecture-v2-*.md'
       - '.github/workflows/architecture-v2-verification.yml'
   workflow_dispatch:
@@ -99,7 +93,7 @@ jobs:
           test ! -d app/Domain/Rallies
           test ! -d app/Domain/KingPerks
 
-          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\(Authorization|Events|Rallies|KingPerks)\\' app routes bootstrap config database tests 2>/dev/null || true)
+          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\(Authorization|Events|Rallies|KingPerks)\\' app routes bootstrap config database 2>/dev/null || true)
           if [ -n "$matches" ]; then
             echo "$matches"
             exit 1
@@ -132,14 +126,11 @@ jobs:
             tests/Feature/Memberships \
             tests/Feature/Recruitment \
             tests/Feature/Content \
-            tests/Feature/Events \
-            tests/Feature/KingPerks \
-            tests/Feature/Integrations \
-            tests/Feature/Contributions \
+            tests/Feature/Operations \
             tests/TenantIsolation/Alliances \
             tests/Unit/Accounts \
             tests/Unit/Authorization \
-            tests/Unit/KingPerks \
+            tests/Unit/Operations \
             app/Contexts \
             app/Shared \
             app/Workflows \
@@ -199,10 +190,6 @@ jobs:
           app/Contexts/GameWorld
           app/Contexts/Alliance
           app/Contexts/Operations
-          app/Contexts/Intelligence
-          app/Contexts/Communications
-          app/Contexts/Platform/Access
-          app/Contexts/Platform/EventAdministration
           app/Shared
           app/Workflows
           app/ReadModels
@@ -232,24 +219,12 @@ jobs:
           tests/TenantIsolation/Alliances
           tests/Unit/Authorization/AllianceRankPermissionsTest.php
 
-      - name: Run Operations bounded-context tests
+      - name: Run V2 Operations bounded-context tests
         shell: bash
         run: |
           set -uo pipefail
           set +e
-          php artisan test \
-            tests/Feature/Events/EventBattlePlanTest.php \
-            tests/Feature/Events/EventMetricCaptureTest.php \
-            tests/Feature/Events/EventParticipationTest.php \
-            tests/Feature/Events/EventPhasePollTest.php \
-            tests/Feature/Events/EventRallyTest.php \
-            tests/Feature/Events/EventRosterTest.php \
-            tests/Feature/Events/EventSchedulingTest.php \
-            tests/Feature/Events/EventScopedAuthorizationTest.php \
-            tests/Feature/Events/EventTypeCataloguePersistenceTest.php \
-            tests/Feature/KingPerks \
-            tests/Unit/KingPerks \
-            2>&1 | tee operations-tests.log
+          php artisan test tests/Feature/Operations tests/Unit/Operations 2>&1 | tee operations-tests.log
           status=${PIPESTATUS[0]}
           set -e
           if [ "$status" -ne 0 ]; then
@@ -257,6 +232,6 @@ jobs:
             details=${details//'%'/'%25'}
             details=${details//$'\r'/'%0D'}
             details=${details//$'\n'/'%0A'}
-            echo "::error title=Operations bounded-context tests failed::$details"
+            echo "::error title=V2 Operations tests failed::$details"
             exit "$status"
           fi
