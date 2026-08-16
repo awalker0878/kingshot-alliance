@@ -175,6 +175,16 @@ def write_alliance_capacity_policy_behavior() -> None:
 
 def fix_frontend_sources() -> None:
     replace(
+        "resources/js/pages/Events/Manage.vue",
+        """type EventSettingValue =
+  string | number | boolean | null | EventSettingValue[] | { [key: string]: EventSettingValue };
+""",
+        """type EventSettingScalar = string | number | boolean | null;
+type EventSettingLeaf = EventSettingScalar | EventSettingScalar[];
+type EventSettingValue = EventSettingLeaf | Record<string, EventSettingLeaf>;
+""",
+    )
+    replace(
         "resources/js/pages/Alliance/TransferCompletionManage.vue",
         """const inputClass =
   'mt-2 w-full rounded-lg border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3 py-2 text-sm text-[var(--ks-text)] disabled:cursor-not-allowed disabled:opacity-50';
