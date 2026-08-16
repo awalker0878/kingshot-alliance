@@ -52,7 +52,7 @@ final class EventContributionHistoryArchitectureTest extends TestCase
 
     public function test_current_event_scope_model_still_has_exact_historical_owner_types(): void
     {
-        $scope = $this->read('app/Domain/Events/Enums/EventScope.php');
+        $scope = $this->read('app/Contexts/Operations/EventCore/Enums/EventScope.php');
 
         self::assertStringContainsString("case Player = 'player';", $scope);
         self::assertStringContainsString("case Alliance = 'alliance';", $scope);
@@ -61,7 +61,7 @@ final class EventContributionHistoryArchitectureTest extends TestCase
 
     public function test_player_event_results_use_durable_player_identity_not_membership_identity(): void
     {
-        $result = $this->read('app/Domain/Events/Models/EventPlayerResult.php');
+        $result = $this->read('app/Contexts/Operations/Results/Models/EventPlayerResult.php');
 
         self::assertStringContainsString("'player_id'", $result);
         self::assertStringNotContainsString('membership_id', $result);
@@ -110,7 +110,7 @@ final class EventContributionHistoryArchitectureTest extends TestCase
 
     public function test_metric_catalogue_keeps_score_semantics_separate_from_component_metrics(): void
     {
-        $catalogue = $this->read('app/Domain/Events/Catalog/KingShotEventMetricCatalog.php');
+        $catalogue = $this->read('app/Contexts/Operations/Results/Catalog/KingShotEventMetricCatalog.php');
         $typeMigration = $this->read('database/migrations/2026_08_07_020000_create_event_type_catalogue_tables.php');
         $seedMigration = $this->read('database/migrations/2026_08_13_071000_seed_event_metric_catalogue.php');
         $capability = $this->read('docs/domains/events/event-metric-catalogue.md');
@@ -129,8 +129,8 @@ final class EventContributionHistoryArchitectureTest extends TestCase
 
     public function test_metric_subjects_use_canonical_alliance_identity_and_not_kingdom_alliance_identity(): void
     {
-        $subject = $this->read('app/Domain/Events/Enums/EventMetricSubject.php');
-        $catalogue = $this->read('app/Domain/Events/Catalog/KingShotEventMetricCatalog.php');
+        $subject = $this->read('app/Contexts/Operations/Results/Enums/EventMetricSubject.php');
+        $catalogue = $this->read('app/Contexts/Operations/Results/Catalog/KingShotEventMetricCatalog.php');
         $resultMigration = $this->read('database/migrations/2026_08_13_070000_create_event_result_tables.php');
 
         self::assertStringContainsString("case Event = 'event';", $subject);
@@ -143,7 +143,7 @@ final class EventContributionHistoryArchitectureTest extends TestCase
 
     public function test_metric_catalogue_does_not_define_a_universal_cross_event_contribution_score(): void
     {
-        $catalogue = strtolower($this->read('app/Domain/Events/Catalog/KingShotEventMetricCatalog.php'));
+        $catalogue = strtolower($this->read('app/Contexts/Operations/Results/Catalog/KingShotEventMetricCatalog.php'));
         $contract = strtolower($this->read('docs/domains/events/event-contribution-history.md'));
 
         self::assertStringNotContainsString('universal_contribution_score', $catalogue);
