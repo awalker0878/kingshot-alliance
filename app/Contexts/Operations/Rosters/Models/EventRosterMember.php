@@ -10,7 +10,19 @@ use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property EventRosterMemberStatus $status
+ * @property Carbon|null $assigned_at
+ * @property Carbon|null $responded_at
+ * @property Carbon|null $removed_at
+ * @property-read EventRoster $roster
+ * @property-read Player $player
+ * @property-read Alliance|null $alliance
+ * @property-read Player|null $assignedByPlayer
+ * @property-read Player|null $respondedByPlayer
+ */
 final class EventRosterMember extends Model
 {
     use HasUlids;
