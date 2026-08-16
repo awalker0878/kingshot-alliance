@@ -20,7 +20,7 @@ final class ObservationLifecycleTest extends TestCase
 
     public function test_tracking_is_owned_by_intelligence_and_is_unique_per_active_game_alliance(): void
     {
-        $scenario = (new ScenarioFactory())->alliance(4301, 'Observer', 'Observation Owners', 'observation-owners');
+        $scenario = (new ScenarioFactory)->alliance(4301, 'Observer', 'Observation Owners', 'observation-owners');
         $action = app(StartTrackingKingdomAlliance::class);
 
         $tracking = $action->handle($scenario['alliance'], $scenario['player'], [
@@ -46,7 +46,7 @@ final class ObservationLifecycleTest extends TestCase
 
     public function test_manual_observation_retry_is_idempotent_and_updates_the_neutral_reference(): void
     {
-        $scenario = (new ScenarioFactory())->alliance(4302, 'Observer', 'Observation Retry', 'observation-retry');
+        $scenario = (new ScenarioFactory)->alliance(4302, 'Observer', 'Observation Retry', 'observation-retry');
         $tracking = app(StartTrackingKingdomAlliance::class)->handle($scenario['alliance'], $scenario['player'], [
             'current_name' => 'Retry Target',
             'game_alliance_id' => 'ks-4302-retry',
@@ -73,7 +73,7 @@ final class ObservationLifecycleTest extends TestCase
 
     public function test_zero_metrics_are_distinct_from_missing_metrics_and_future_or_overflow_values_are_rejected(): void
     {
-        $scenario = (new ScenarioFactory())->alliance(4303, 'Observer', 'Observation Bounds', 'observation-bounds');
+        $scenario = (new ScenarioFactory)->alliance(4303, 'Observer', 'Observation Bounds', 'observation-bounds');
         $tracking = app(StartTrackingKingdomAlliance::class)->handle($scenario['alliance'], $scenario['player'], [
             'current_name' => 'Bounds Target',
             'game_alliance_id' => 'ks-4303-bounds',
@@ -114,7 +114,7 @@ final class ObservationLifecycleTest extends TestCase
 
     public function test_invalidation_is_idempotent_restores_previous_reference_and_keeps_reason_private_from_events(): void
     {
-        $scenario = (new ScenarioFactory())->alliance(4304, 'Observer', 'Observation Invalid', 'observation-invalid');
+        $scenario = (new ScenarioFactory)->alliance(4304, 'Observer', 'Observation Invalid', 'observation-invalid');
         $tracking = app(StartTrackingKingdomAlliance::class)->handle($scenario['alliance'], $scenario['player'], [
             'current_name' => 'Invalidation Target',
             'game_alliance_id' => 'ks-4304-invalid',
