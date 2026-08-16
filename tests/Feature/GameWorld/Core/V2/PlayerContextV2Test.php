@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\GameWorld\Core;
+namespace Tests\Feature\GameWorld\Core\V2;
 
 use App\Contexts\Accounts\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\V2\ScenarioFactory;
 use Tests\TestCase;
 
-final class PlayerContextTest extends TestCase
+final class PlayerContextV2Test extends TestCase
 {
     use RefreshDatabase;
 

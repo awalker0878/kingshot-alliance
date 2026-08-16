@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\GameWorld\Core;
+namespace Tests\Feature\GameWorld\Core\V2;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\GameWorld\Actions\ClaimPlayerAccount;
@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Tests\Support\V2\ScenarioFactory;
 use Tests\TestCase;
 
-final class IdentityLifecycleTest extends TestCase
+final class IdentityLifecycleV2Test extends TestCase
 {
     use RefreshDatabase;
 

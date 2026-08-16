@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Operations\EventCore;
+namespace Tests\Feature\Operations\EventCore\V2;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Operations\EventCore\Actions\CreateEvent;
@@ -22,7 +22,7 @@ use InvalidArgumentException;
 use Tests\Support\V2\ScenarioFactory;
 use Tests\TestCase;
 
-final class EventLifecycleContractTest extends TestCase
+final class EventLifecycleContractV2Test extends TestCase
 {
     use RefreshDatabase;
 

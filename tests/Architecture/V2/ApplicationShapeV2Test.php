@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Tests\Support\V2\ArchitectureCatalogue;
 use Tests\Support\V2\RepositoryInspector;
 
-final class ApplicationShapeTest extends TestCase
+final class ApplicationShapeV2Test extends TestCase
 {
     public function test_only_final_application_roots_are_present(): void
     {
@@ -66,6 +66,23 @@ final class ApplicationShapeTest extends TestCase
         sort($expected);
 
         self::assertSame($expected, RepositoryInspector::childDirectories('app/Shared'));
+    }
+
+    public function test_rewritten_tests_are_visibly_marked_as_v2_in_path_namespace_and_class_name(): void
+    {
+        foreach (['tests/Architecture/V2', 'tests/Feature'] as $directory) {
+            foreach (RepositoryInspector::phpFiles($directory) as $file) {
+                $relative = str_replace('\\', '/', RepositoryInspector::relative($file));
+
+                if (! str_contains('/'.$relative, '/V2/')) {
+                    continue;
+                }
+
+                self::assertStringEndsWith('V2Test.php', basename($relative), $relative.' must end in V2Test.php.');
+                self::assertStringContainsString('\\V2;', RepositoryInspector::source($file), $relative.' must live in a V2 namespace.');
+                self::assertMatchesRegularExpression('/final class [A-Za-z0-9_]+V2Test extends TestCase/', RepositoryInspector::source($file), $relative.' must use a V2Test class name.');
+            }
+        }
     }
 
     #[DataProvider('namespaceRoots')]

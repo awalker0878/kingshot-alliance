@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Operations\Reminders;
+namespace Tests\Feature\Operations\Reminders\V2;
 
 use App\Contexts\Operations\Reminders\Actions\CreateEventReminderRule;
 use App\Contexts\Operations\Reminders\Actions\DisableEventReminderRule;
@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Tests\Support\V2\ScenarioFactory;
 use Tests\TestCase;
 
-final class EventReminderRuleContractTest extends TestCase
+final class EventReminderRuleContractV2Test extends TestCase
 {
     use RefreshDatabase;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\GameWorld\Governance;
+namespace Tests\Feature\GameWorld\Governance\V2;
 
 use App\Contexts\GameWorld\Governance\Actions\AssignKingdomRole;
 use App\Contexts\GameWorld\Governance\Actions\BootstrapKingdomAdministrator;
@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 use Tests\Support\V2\ScenarioFactory;
 use Tests\TestCase;
 
-final class KingdomRoleManagementTest extends TestCase
+final class KingdomRoleManagementV2Test extends TestCase
 {
     use RefreshDatabase;
 

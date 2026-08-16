@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Intelligence\Observations;
+namespace Tests\Feature\Intelligence\Observations\V2;
 
 use App\Contexts\Intelligence\Observations\Actions\InvalidateKingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Actions\RecordKingdomAllianceObservation;
@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Tests\Support\V2\ScenarioFactory;
 use Tests\TestCase;
 
-final class ObservationLifecycleTest extends TestCase
+final class ObservationLifecycleV2Test extends TestCase
 {
     use RefreshDatabase;
 

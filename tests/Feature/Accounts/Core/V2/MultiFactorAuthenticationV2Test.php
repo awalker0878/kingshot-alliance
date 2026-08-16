@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Accounts\Core;
+namespace Tests\Feature\Accounts\Core\V2;
 
 use App\Contexts\Accounts\Models\User;
 use App\Contexts\Accounts\Services\TotpService;
@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
-final class MultiFactorAuthenticationTest extends TestCase
+final class MultiFactorAuthenticationV2Test extends TestCase
 {
     use RefreshDatabase;
 

@@ -7,7 +7,7 @@ namespace Tests\Architecture\V2;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\V2\RepositoryInspector;
 
-final class AuthorityOwnershipTest extends TestCase
+final class AuthorityOwnershipV2Test extends TestCase
 {
     public function test_game_authority_is_player_scoped(): void
     {

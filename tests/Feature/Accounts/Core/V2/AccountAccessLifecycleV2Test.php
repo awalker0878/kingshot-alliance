@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Accounts\Core;
+namespace Tests\Feature\Accounts\Core\V2;
 
 use App\Contexts\Accounts\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
-final class AccountAccessLifecycleTest extends TestCase
+final class AccountAccessLifecycleV2Test extends TestCase
 {
     use RefreshDatabase;
 

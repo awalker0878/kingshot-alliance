@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Tests\Support\V2\ArchitectureCatalogue;
 use Tests\Support\V2\RepositoryInspector;
 
-final class DependencyDirectionTest extends TestCase
+final class DependencyDirectionV2Test extends TestCase
 {
     public function test_context_dependencies_flow_only_toward_foundational_contexts(): void
     {
