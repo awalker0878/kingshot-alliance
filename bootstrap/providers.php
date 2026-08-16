@@ -2,10 +2,30 @@
 
 declare(strict_types=1);
 
-use App\Contexts\Platform\Providers\AppServiceProvider;
-use App\Shared\Providers\SharedServiceProvider;
+use App\Contexts\Accounts\Authentication\Providers\AuthenticationServiceProvider;
+use App\Contexts\Accounts\MultiFactorAuthentication\Providers\MultiFactorAuthenticationServiceProvider;
+use App\Contexts\Accounts\Registration\Providers\RegistrationServiceProvider;
+use App\Contexts\Alliance\Content\Providers\ContentServiceProvider;
+use App\Contexts\Alliance\Lifecycle\Providers\LifecycleServiceProvider;
+use App\Contexts\Alliance\Recruitment\Providers\RecruitmentServiceProvider;
+use App\Contexts\GameWorld\Players\Providers\PlayersServiceProvider;
+use App\Contexts\Operations\KingPerks\Providers\KingPerksServiceProvider;
+use App\Contexts\Operations\Participation\Providers\ParticipationServiceProvider;
+use App\Contexts\Platform\Administration\Providers\AdministrationServiceProvider;
+use App\Contexts\Platform\Integrations\Providers\IntegrationsServiceProvider;
+use App\Shared\Infrastructure\Providers\InfrastructureServiceProvider;
 
 return [
-    SharedServiceProvider::class,
-    AppServiceProvider::class,
+    InfrastructureServiceProvider::class,
+    AuthenticationServiceProvider::class,
+    RegistrationServiceProvider::class,
+    MultiFactorAuthenticationServiceProvider::class,
+    PlayersServiceProvider::class,
+    LifecycleServiceProvider::class,
+    ContentServiceProvider::class,
+    RecruitmentServiceProvider::class,
+    ParticipationServiceProvider::class,
+    KingPerksServiceProvider::class,
+    AdministrationServiceProvider::class,
+    IntegrationsServiceProvider::class,
 ];
