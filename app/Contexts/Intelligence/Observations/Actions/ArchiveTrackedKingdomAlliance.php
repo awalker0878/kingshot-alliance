@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Actions;
+namespace App\Contexts\Intelligence\Observations\Actions;
 
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Core\Models\Alliance;

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Queries;
+namespace App\Contexts\Intelligence\Observations\Queries;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use Illuminate\Database\Eloquent\Collection;
 

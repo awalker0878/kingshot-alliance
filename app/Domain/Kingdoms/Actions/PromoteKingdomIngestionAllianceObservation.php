@@ -6,7 +6,7 @@ namespace App\Domain\Kingdoms\Actions;
 
 use App\Contexts\GameWorld\Enums\KingdomAllianceStatus;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\GameWorld\Models\KingdomIngestionBatch;
 use App\Contexts\GameWorld\Models\KingdomIngestionCandidate;
 use App\Contexts\GameWorld\Models\KingdomIngestionSubscription;

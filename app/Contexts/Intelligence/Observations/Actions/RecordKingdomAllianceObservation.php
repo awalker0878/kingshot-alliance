@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kingdoms\Actions;
+namespace App\Contexts\Intelligence\Observations\Actions;
 
 use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\GameWorld\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
+use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
@@ -313,7 +313,10 @@ final readonly class RecordKingdomAllianceObservation
         return $this->nullableLine($value);
     }
 
-    /** @param array<string,mixed> $provenance @return array<string,string|null> */
+    /**
+     * @param  array<string, mixed>  $provenance
+     * @return array<string, string|null>
+     */
     private function machineProvenance(array $provenance): array
     {
         return [

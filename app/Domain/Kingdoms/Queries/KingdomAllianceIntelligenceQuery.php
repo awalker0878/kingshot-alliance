@@ -6,7 +6,7 @@ namespace App\Domain\Kingdoms\Queries;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyContact;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection;

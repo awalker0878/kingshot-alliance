@@ -6,7 +6,7 @@ namespace App\Domain\Kingdoms\Queries;
 
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\KingdomAllianceObservation;
+use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Sharing\Models\KingdomIntelligenceShareTarget;
 use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareState;
 use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareTargetState;
