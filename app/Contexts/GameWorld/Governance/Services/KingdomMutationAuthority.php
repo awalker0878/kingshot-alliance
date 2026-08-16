@@ -16,20 +16,40 @@ use LogicException;
 
 final readonly class KingdomMutationAuthority
 {
+    /**
+     * Acquire authority for a GameWorld-owned Kingdom mutation.
+     *
+     * Downstream contexts must use acquireActiveScope() and interpret their own
+     * permission vocabulary after the current Player/Kingdom scope is locked.
+     */
     public function require(Player $actor, Kingdom $kingdom, Permission $permission): KingdomMutationContext
     {
-        return $this->acquire($actor, $kingdom, $permission, false);
+        $context = $this->acquire($actor, $kingdom, false);
+        $this->requirePermission($context, $permission);
+
+        return $context;
     }
 
     public function requireExclusive(Player $actor, Kingdom $kingdom, Permission $permission): KingdomMutationContext
     {
-        return $this->acquire($actor, $kingdom, $permission, true);
+        $context = $this->acquire($actor, $kingdom, true);
+        $this->requirePermission($context, $permission);
+
+        return $context;
+    }
+
+    /**
+     * Lock and return the current active Player/Kingdom scope without deciding a
+     * downstream context's permission semantics.
+     */
+    public function acquireActiveScope(Player $actor, Kingdom $kingdom): KingdomMutationContext
+    {
+        return $this->acquire($actor, $kingdom, false);
     }
 
     private function acquire(
         Player $actor,
         Kingdom $kingdom,
-        Permission $permission,
         bool $exclusiveKingdom,
     ): KingdomMutationContext {
         if (DB::transactionLevel() < 1) {
@@ -50,9 +70,14 @@ final readonly class KingdomMutationAuthority
             throw new AuthorizationException;
         }
 
+        return new KingdomMutationContext($currentKingdom, $currentActor);
+    }
+
+    private function requirePermission(KingdomMutationContext $context, Permission $permission): void
+    {
         $allowed = KingdomRoleAssignment::query()
-            ->where('kingdom_id', $currentKingdom->id)
-            ->where('player_id', $currentActor->id)
+            ->where('kingdom_id', $context->kingdom->id)
+            ->where('player_id', $context->actor->id)
             ->whereHas('role.permissions', static function (Builder $query) use ($permission): void {
                 $query->where('permissions.key', $permission->key());
             })
@@ -61,7 +86,5 @@ final readonly class KingdomMutationAuthority
         if (! $allowed) {
             throw new AuthorizationException;
         }
-
-        return new KingdomMutationContext($currentKingdom, $currentActor);
     }
 }
