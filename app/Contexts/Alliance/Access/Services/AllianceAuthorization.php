@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Access\Services;
 
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Access\Contracts\Permission;
 
 final readonly class AllianceAuthorization
 {
@@ -29,7 +29,7 @@ final readonly class AllianceAuthorization
             ->first();
     }
 
-    public function allows(Player $player, Alliance $alliance, Permission $permission): bool
+    public function allows(Player $player, Alliance $alliance, AlliancePermission $permission): bool
     {
         $membership = $this->activeMembership($player, $alliance);
 
