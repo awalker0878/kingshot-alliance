@@ -36,7 +36,7 @@ final class EventRallyController extends Controller
         $actor = $this->player();
         $record = $events->occurrence($actor, $occurrence);
         $validated = $this->validateRecommendedFormation($request);
-        $guidance = isset($validated['guidance_rule_id']) && $validated['guidance_rule_id'] !== null
+        $guidance = isset($validated['guidance_rule_id'])
             ? RallyGuidanceRule::query()->whereKey((string) $validated['guidance_rule_id'])->firstOrFail()
             : null;
         $save->handle(
@@ -47,7 +47,7 @@ final class EventRallyController extends Controller
             name: (string) $validated['name'],
             composition: $this->composition($validated),
             heroes: $validated['heroes'] ?? [],
-            assignmentRole: isset($validated['assignment_role']) && $validated['assignment_role'] !== null ? RallyAssignmentRole::from((string) $validated['assignment_role']) : null,
+            assignmentRole: isset($validated['assignment_role']) ? RallyAssignmentRole::from((string) $validated['assignment_role']) : null,
             guidance: $guidance,
             notes: $validated['notes'] ?? null,
             sortOrder: (int) ($validated['sort_order'] ?? 0),
@@ -63,7 +63,7 @@ final class EventRallyController extends Controller
         $record = $events->occurrence($actor, $occurrence);
         $formationRecord = EventRecommendedFormation::query()->whereKey($formation)->where('occurrence_id', $record->id)->firstOrFail();
         $validated = $this->validateRecommendedFormation($request);
-        $guidance = isset($validated['guidance_rule_id']) && $validated['guidance_rule_id'] !== null
+        $guidance = isset($validated['guidance_rule_id'])
             ? RallyGuidanceRule::query()->whereKey((string) $validated['guidance_rule_id'])->firstOrFail()
             : null;
         $save->handle(
@@ -74,7 +74,7 @@ final class EventRallyController extends Controller
             name: (string) $validated['name'],
             composition: $this->composition($validated),
             heroes: $validated['heroes'] ?? [],
-            assignmentRole: isset($validated['assignment_role']) && $validated['assignment_role'] !== null ? RallyAssignmentRole::from((string) $validated['assignment_role']) : null,
+            assignmentRole: isset($validated['assignment_role']) ? RallyAssignmentRole::from((string) $validated['assignment_role']) : null,
             guidance: $guidance,
             notes: $validated['notes'] ?? null,
             sortOrder: (int) ($validated['sort_order'] ?? 0),
@@ -90,7 +90,7 @@ final class EventRallyController extends Controller
         $actor = $this->player();
         $record = $events->occurrence($actor, $occurrence);
         $validated = $this->validateGroup($request);
-        $recommended = isset($validated['recommended_formation_id']) && $validated['recommended_formation_id'] !== null
+        $recommended = isset($validated['recommended_formation_id'])
             ? EventRecommendedFormation::query()->whereKey((string) $validated['recommended_formation_id'])->firstOrFail()
             : null;
         $save->handle(
@@ -114,7 +114,7 @@ final class EventRallyController extends Controller
         $record = $events->occurrence($actor, $occurrence);
         $groupRecord = RallyGroup::query()->whereKey($group)->where('occurrence_id', $record->id)->firstOrFail();
         $validated = $this->validateGroup($request);
-        $recommended = isset($validated['recommended_formation_id']) && $validated['recommended_formation_id'] !== null
+        $recommended = isset($validated['recommended_formation_id'])
             ? EventRecommendedFormation::query()->whereKey((string) $validated['recommended_formation_id'])->firstOrFail()
             : null;
         $save->handle(

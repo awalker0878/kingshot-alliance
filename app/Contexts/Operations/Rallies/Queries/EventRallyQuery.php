@@ -52,7 +52,7 @@ final readonly class EventRallyQuery
     {
         $eventPlayers = $this->eligiblePlayers->for($event);
 
-        return $event->occurrences()
+        return array_values($event->occurrences()
             ->orderBy('starts_at')
             ->get()
             ->map(function (EventOccurrence $occurrence) use ($event, $eventPlayers): array {
@@ -82,13 +82,13 @@ final readonly class EventRallyQuery
                         return [(string) $alliance->id => $players];
                     })->all(),
                 ];
-            })->all();
+            })->all());
     }
 
     /** @return list<array<string,mixed>> */
     private function savedFormations(Player $player): array
     {
-        return PlayerFormation::query()
+        return array_values(PlayerFormation::query()
             ->where('player_id', $player->id)
             ->orderByDesc('is_default')
             ->orderBy('name')
@@ -102,15 +102,18 @@ final readonly class EventRallyQuery
                 'heroes' => $formation->heroes ?? [],
                 'notes' => $formation->notes,
                 'isDefault' => (bool) $formation->is_default,
-            ])->all();
+            ])->all());
     }
 
-    /** @param Collection<int,Alliance> $alliances @return list<array<string,mixed>> */
+    /**
+     * @param  Collection<int,Alliance>  $alliances
+     * @return list<array<string,mixed>>
+     */
     private function guidance(EventOccurrence $occurrence, Collection $alliances): array
     {
         $date = $occurrence->starts_at->toDateString();
 
-        return RallyGuidanceRule::query()
+        return array_values(RallyGuidanceRule::query()
             ->whereIn('alliance_id', $alliances->pluck('id'))
             ->where('is_active', true)
             ->where(static fn ($query) => $query->whereNull('effective_from')->orWhere('effective_from', '<=', $date))
@@ -135,7 +138,7 @@ final readonly class EventRallyQuery
                 'rationale' => $rule->rationale,
                 'effectiveFrom' => $rule->effective_from?->toDateString(),
                 'effectiveUntil' => $rule->effective_until?->toDateString(),
-            ])->all();
+            ])->all());
     }
 
     /** @return list<array<string,mixed>> */
