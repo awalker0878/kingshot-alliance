@@ -19,8 +19,8 @@ use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Alliance\Membership\Models\Invitation;
+use App\ReadModels\AllianceDashboard\AllianceDashboardCapabilitiesQuery;
 use App\ReadModels\AllianceDashboard\UpcomingAllianceActivitiesQuery;
-use App\Shared\Access\ValueObjects\NamedPermission;
 use App\Shared\Http\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -34,6 +34,7 @@ final class AllianceOverviewController extends Controller
         AllianceAuthorization $authorization,
         ContentQuery $contentQuery,
         ContentPresenter $contentPresenter,
+        AllianceDashboardCapabilitiesQuery $capabilitiesQuery,
         UpcomingAllianceActivitiesQuery $upcomingActivitiesQuery,
     ): Response {
         $user = $request->user();
@@ -46,7 +47,7 @@ final class AllianceOverviewController extends Controller
         $canManageMembers = $authorization->allows($actor, $alliance, AlliancePermission::MembershipManage);
         $canManageRoles = $authorization->allows($actor, $alliance, AlliancePermission::RoleManage);
         $canManageContent = $authorization->allows($actor, $alliance, AlliancePermission::ContentManage);
-        $canManageEvents = $authorization->allows($actor, $alliance, NamedPermission::from('events.alliance.manage'));
+        $dashboardCapabilities = $capabilitiesQuery->for($actor, $alliance);
         $canManageRecruitment = $authorization->allows($actor, $alliance, AlliancePermission::RecruitmentManage);
         $canManageIntegrations = $authorization->allows($actor, $alliance, AlliancePermission::Manage);
 
@@ -190,7 +191,7 @@ final class AllianceOverviewController extends Controller
             ],
             'contentHub' => [
                 'canManage' => $canManageContent,
-                'canManageEvents' => $canManageEvents,
+                'canManageEvents' => $dashboardCapabilities['canManageEvents'],
                 'canManageRecruitment' => $canManageRecruitment,
                 'canManageIntegrations' => $canManageIntegrations,
                 'notices' => $notices,
