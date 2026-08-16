@@ -1,6 +1,6 @@
 # ADR 0011 — Historical Event and contribution ownership
 
-- **Status:** Accepted and implemented
+- **Status:** Accepted
 - **Date:** 2026-08-14
 - **Owners:** Events and Contributions domains
 - **Related scope:** EVENT-CONTRIB-001 / EC-P0–EC-P7 and read surfaces
