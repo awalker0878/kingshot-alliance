@@ -1,5 +1,5 @@
 name: Architecture V2 Verification
-# P7 verification: completed hard cuts remain absent; V2 context-owned tests define acceptance.
+# P8 verification: V1 runtime is gone; contexts, workflows, and read models own their final boundaries.
 
 on:
   pull_request:
@@ -22,6 +22,7 @@ on:
       - 'routes/console.php'
       - 'routes/event-history.php'
       - 'routes/king-perks.php'
+      - 'routes/kingdoms.php'
       - 'routes/platform.php'
       - 'routes/web.php'
       - 'tests/Architecture/**'
@@ -32,6 +33,8 @@ on:
       - 'tests/Feature/Intelligence/**'
       - 'tests/Feature/Communications/**'
       - 'tests/Feature/Platform/**'
+      - 'tests/Feature/Workflows/**'
+      - 'tests/Feature/ReadModels/**'
       - 'tests/Feature/Contributions/AllianceContributionReportQueryTest.php'
       - 'tests/Integration/Platform/OutboxPublisherTest.php'
       - 'tests/RewriteInput/Communications/**'
@@ -54,9 +57,9 @@ concurrency:
 
 jobs:
   architecture-contract:
-    name: V2 architecture through P7 Communications Platform cut
+    name: V2 architecture through P8 workflow hard cut
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 45
 
     services:
       postgres:
@@ -90,18 +93,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
-      - name: Verify completed V1 hard cuts are absent
+      - name: Verify final V1 runtime hard cut
         shell: bash
         run: |
           set -euo pipefail
-          test ! -d app/Domain/Authorization
-          test ! -d app/Domain/Events
-          test ! -d app/Domain/Rallies
-          test ! -d app/Domain/KingPerks
-          test ! -d app/Domain/Contributions
-          test ! -d app/Domain/Notifications
-          test ! -d app/Domain/Integrations
-          test ! -d app/Domain/Platform
+          test ! -d app/Domain
           test ! -d app/Shared/Audit
           test ! -d app/Shared/Messaging
           test ! -d tests/RewriteInput/Communications
@@ -110,18 +106,57 @@ jobs:
           test -d app/Contexts/Platform/Integrations
           test -d app/Shared/Infrastructure/AuditTrail
           test -d app/Shared/Infrastructure/Messaging/Outbox
+          test -d app/Workflows/KingdomTransfer
+          test -d app/Workflows/PlayerContext
+          test -d app/ReadModels/KingdomSettings
           test -d tests/Feature/Communications
           test -d tests/Feature/Platform
+          test -d tests/Feature/Workflows/KingdomTransfer
+          test -d tests/Feature/ReadModels/KingdomSettings
 
-          runtime_matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\(Authorization|Events|Rallies|KingPerks|Contributions|Notifications|Integrations|Platform)\\|App\\Shared\\(Audit|Messaging)\\' app routes bootstrap config database 2>/dev/null || true)
+          runtime_matches=$(grep -R -n --include='*.php' 'App\\Domain\\' app routes bootstrap config database 2>/dev/null || true)
           if [ -n "$runtime_matches" ]; then
             echo "$runtime_matches"
             exit 1
           fi
 
-          p7_test_matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\(Notifications|Integrations|Platform)\\|App\\Shared\\(Audit|Messaging)\\' tests 2>/dev/null || true)
-          if [ -n "$p7_test_matches" ]; then
-            echo "$p7_test_matches"
+          executable_test_matches=$(grep -R -n --include='*.php' 'App\\Domain\\' tests/Feature tests/Integration tests/Unit tests/TenantIsolation 2>/dev/null || true)
+          if [ -n "$executable_test_matches" ]; then
+            echo "$executable_test_matches"
+            exit 1
+          fi
+
+          old_shared_matches=$(grep -R -n -E --include='*.php' 'App\\Shared\\(Audit|Messaging)\\' app routes bootstrap config database tests 2>/dev/null || true)
+          if [ -n "$old_shared_matches" ]; then
+            echo "$old_shared_matches"
+            exit 1
+          fi
+
+      - name: Verify Player persistence ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -R -n --include='*.php' 'PersistPlayerIdentity' app/Contexts/Intelligence/Roster app/Workflows/KingdomTransfer >/dev/null
+          grep -R -n --include='*.php' 'ClaimPlayerAccount' app/Contexts/Alliance/Membership >/dev/null
+
+          if grep -R -n --include='*.php' 'Player::query()->create(' app/Contexts/Intelligence app/Workflows/KingdomTransfer; then
+            exit 1
+          fi
+
+      - name: Verify Kingdom Transfer owns its authorization policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f app/Workflows/KingdomTransfer/Access/Enums/TransferPermission.php
+          test -f app/Workflows/KingdomTransfer/Access/Services/TransferAuthorization.php
+          test -f app/Workflows/KingdomTransfer/Access/Services/TransferMutationAuthority.php
+          grep -R -n --include='*.php' 'TransferPermission::Manage' app/Workflows/KingdomTransfer >/dev/null
+
+          if grep -R -n --include='*.php' 'App\\Contexts\\Intelligence\\Access\\' app/Workflows/KingdomTransfer; then
+            exit 1
+          fi
+
+          if grep -R -n --include='*.php' 'IntelligencePermission::KingdomManage' app/Workflows/KingdomTransfer; then
             exit 1
           fi
 
@@ -149,7 +184,7 @@ jobs:
       - name: Verify PostgreSQL schema
         run: php artisan migrate:fresh --force
 
-      - name: Check V2 through P7 PHP formatting
+      - name: Check V2 through P8 PHP formatting
         shell: bash
         run: |
           set -o pipefail
@@ -163,6 +198,8 @@ jobs:
             tests/Feature/Intelligence \
             tests/Feature/Communications \
             tests/Feature/Platform \
+            tests/Feature/Workflows \
+            tests/Feature/ReadModels \
             tests/Feature/Contributions/AllianceContributionReportQueryTest.php \
             tests/Integration/Platform/OutboxPublisherTest.php \
             tests/TenantIsolation/Alliance \
@@ -174,7 +211,6 @@ jobs:
             app/Shared \
             app/Workflows \
             app/ReadModels \
-            app/Domain/Kingdoms/Models/TransferPlan.php \
             bootstrap/app.php \
             bootstrap/providers.php \
             config/accounts.php \
@@ -187,6 +223,7 @@ jobs:
             routes/console.php \
             routes/event-history.php \
             routes/king-perks.php \
+            routes/kingdoms.php \
             routes/platform.php \
             routes/web.php 2>&1 | tee pint-tests.log
           status=${PIPESTATUS[0]}
@@ -200,24 +237,16 @@ jobs:
             exit "$status"
           fi
 
-      - name: Run V2 architecture tests
+      - name: Run architecture regression suite
         shell: bash
         run: |
           set -o pipefail
           set +e
-          php artisan test \
-            tests/Architecture/ArchitectureV2DependencyTest.php \
-            tests/Architecture/ArchitectureV2AllianceTest.php \
-            tests/Architecture/ArchitectureV2OperationsTest.php \
-            tests/Architecture/ArchitectureV2IntelligenceTest.php \
-            tests/Architecture/ArchitectureV2PlatformTest.php \
-            tests/Architecture/AccountExperienceTest.php \
-            tests/Architecture/UserExperienceLocalizationFoundationTest.php \
-            2>&1 | tee architecture-tests.log
+          php artisan test tests/Architecture 2>&1 | tee architecture-tests.log
           status=${PIPESTATUS[0]}
           set -e
           if [ "$status" -ne 0 ]; then
-            details=$(tail -n 100 architecture-tests.log)
+            details=$(tail -n 120 architecture-tests.log)
             details=${details//'%'/'%25'}
             details=${details//$'\r'/'%0D'}
             details=${details//$'\n'/'%0A'}
@@ -225,7 +254,7 @@ jobs:
             exit "$status"
           fi
 
-      - name: Larastan P2 through P7 contexts
+      - name: Larastan P2 through P8 owners
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1536M
           app/Contexts/Accounts
@@ -238,13 +267,14 @@ jobs:
           app/Shared
           app/Workflows
           app/ReadModels
-          app/Domain/Kingdoms/Models/TransferPlan.php
           bootstrap/app.php
           bootstrap/providers.php
           database/factories/UserFactory.php
+          routes/account.php
           routes/console.php
           routes/event-history.php
           routes/king-perks.php
+          routes/kingdoms.php
           routes/platform.php
 
       - name: Run Accounts and GameWorld foundation tests
@@ -302,8 +332,14 @@ jobs:
       - name: Run V2 Platform and integration tests
         run: php artisan test tests/Feature/Platform
 
-      - name: Run P7 contribution reporting contract
+      - name: Run Kingdom Transfer workflow tests
+        run: php artisan test tests/Feature/Workflows/KingdomTransfer
+
+      - name: Run Kingdom Settings read-model tests
+        run: php artisan test tests/Feature/ReadModels/KingdomSettings
+
+      - name: Run contribution reporting contract
         run: php artisan test tests/Feature/Contributions/AllianceContributionReportQueryTest.php
 
-      - name: Run P7 Shared outbox publisher contract
+      - name: Run Shared outbox publisher contract
         run: php artisan test tests/Integration/Platform/OutboxPublisherTest.php
