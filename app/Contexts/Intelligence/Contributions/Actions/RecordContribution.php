@@ -53,8 +53,8 @@ final class RecordContribution
                 throw new InvalidArgumentException('Self-reported contributions may only be recorded for the active Player.');
             }
 
-            // AllianceAuthorization already stabilized the actor membership. Avoid
-            // re-locking that same actor Player after its membership; target other Players
+            // AllianceWriteState already stabilized the actor membership and Player.
+            // Avoid re-locking that same actor after its membership; target other Players
             // using the normal Player -> target-membership eligibility order.
             $currentPlayer = $isActorTarget
                 ? $context->actor
