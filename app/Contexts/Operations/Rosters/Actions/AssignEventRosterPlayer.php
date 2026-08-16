@@ -119,6 +119,7 @@ final readonly class AssignEventRosterPlayer
                 ->where('player_id', $currentPlayer->id)
                 ->lockForUpdate()
                 ->first();
+            $memberId = $member instanceof EventRosterMember ? $member->id : null;
             $alreadyOccupies = $member instanceof EventRosterMember && $member->status->occupiesSlot();
             $activeCount = EventRosterMember::query()
                 ->where('roster_id', $lockedRoster->id)
@@ -131,7 +132,7 @@ final readonly class AssignEventRosterPlayer
                 ->where('roster_id', $lockedRoster->id)
                 ->where('slot_number', $slotNumber)
                 ->whereIn('status', $occupying)
-                ->when($member instanceof EventRosterMember, static fn ($query) => $query->where('id', '!=', $member->id))
+                ->when($memberId !== null, static fn ($query) => $query->where('id', '!=', $memberId))
                 ->exists()) {
                 throw ValidationException::withMessages(['slot_number' => 'This roster slot is already occupied.']);
             }
