@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\EventCore\Services;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
+use App\Contexts\Operations\Access\Services\KingdomOperationsAuthorization;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -17,7 +17,7 @@ final class EventAuthorization
 {
     public function __construct(
         private AllianceOperationsAuthorization $allianceAuthorization,
-        private KingdomAuthorization $kingdomAuthorization,
+        private KingdomOperationsAuthorization $kingdomAuthorization,
         private PlayerEventAuthorization $playerAuthorization,
     ) {}
 
