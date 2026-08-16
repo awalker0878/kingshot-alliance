@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Platform\Actions;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\AllianceLifecycleMutation;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Platform\Access\Services\PlatformMutationAuthority;
@@ -12,6 +13,7 @@ use App\Contexts\Platform\Models\AlliancePlatformSetting;
 use App\Contexts\Platform\Services\LegalHoldService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -22,6 +24,7 @@ final readonly class ManageAllianceLifecycle
         private OutboxRecorder $outbox,
         private LegalHoldService $legalHolds,
         private PlatformMutationAuthority $mutations,
+        private AllianceLifecycleMutation $allianceLifecycle,
     ) {}
 
     public function suspend(User $actor, Alliance $alliance, string $reason): Alliance
@@ -59,75 +62,45 @@ final readonly class ManageAllianceLifecycle
         return DB::transaction(function () use ($actor, $alliance, $target, $reason, $event): Alliance {
             $context = $this->mutations->require($actor);
 
-            // Alliance lifecycle is a true parent-wide invariant. This exclusive row
-            // lock intentionally serializes every child mutation that takes the normal
-            // shared Alliance lifecycle boundary.
-            $locked = Alliance::query()->whereKey($alliance->id)->lockForUpdate()->first();
-            if (! $locked instanceof Alliance) {
-                throw new InvalidArgumentException('Alliance no longer exists.');
-            }
-
-            $this->assertTransitionAllowed($locked->status, $target);
+            // Alliance Core owns the exclusive lifecycle lock and state transition.
+            // Holding that lock while Platform checks its legal-hold and retention
+            // policy preserves the existing cross-context serialization contract.
+            $locked = $this->allianceLifecycle->acquire($alliance);
 
             if ($target === AllianceStatus::Deleted
                 && $this->legalHolds->active('alliance', (string) $locked->id)) {
                 throw new InvalidArgumentException('This alliance is protected by an active legal hold.');
             }
 
-            if ($target === AllianceStatus::Active
-                && $locked->status === AllianceStatus::Deleted
-                && $locked->retention_until !== null
-                && $locked->retention_until->isPast()) {
-                throw new InvalidArgumentException('The alliance restoration window has expired.');
-            }
-
-            $attributes = $this->transitionAttributes($locked, $target);
+            $retentionUntil = $target === AllianceStatus::Closed
+                ? $this->retentionUntil($locked)
+                : null;
             $previous = $locked->status;
-            $locked->forceFill([
-                ...$attributes,
-                'status' => $target,
-                'lifecycle_reason' => $reason,
-            ])->save();
 
-            $this->audit->record($event, $context->actor, $locked, $locked, [
+            $updated = $this->allianceLifecycle->transitionLocked(
+                alliance: $locked,
+                target: $target,
+                reason: $reason,
+                retentionUntil: $retentionUntil,
+            );
+
+            $this->audit->record($event, $context->actor, $updated, $updated, [
                 'from' => $previous->value,
                 'to' => $target->value,
                 'reason' => $reason,
-                'retention_until' => $locked->retention_until?->toIso8601String(),
+                'retention_until' => $updated->retention_until?->toIso8601String(),
             ]);
-            $this->outbox->record($event, (string) $locked->id, $locked, [
-                'alliance_id' => $locked->id,
+            $this->outbox->record($event, (string) $updated->id, $updated, [
+                'alliance_id' => $updated->id,
                 'from' => $previous->value,
                 'to' => $target->value,
             ]);
 
-            return $locked->refresh();
+            return $updated;
         });
     }
 
-    /** @return array<string, mixed> */
-    private function transitionAttributes(Alliance $alliance, AllianceStatus $target): array
-    {
-        return match ($target) {
-            AllianceStatus::Suspended => [
-                'suspended_at' => now(),
-            ],
-            AllianceStatus::Closed => $this->closeAttributes($alliance),
-            AllianceStatus::Deleted => [
-                'deleted_at' => now(),
-            ],
-            AllianceStatus::Active => [
-                'suspended_at' => null,
-                'closed_at' => null,
-                'deleted_at' => null,
-                'retention_until' => null,
-                'restored_at' => now(),
-            ],
-        };
-    }
-
-    /** @return array<string, mixed> */
-    private function closeAttributes(Alliance $alliance): array
+    private function retentionUntil(Alliance $alliance): CarbonInterface
     {
         $settings = AlliancePlatformSetting::query()
             ->whereKey($alliance->id)
@@ -137,27 +110,6 @@ final readonly class ManageAllianceLifecycle
             ? (int) $settings->retention_days
             : 30;
 
-        return [
-            'closed_at' => now(),
-            'retention_until' => now()->addDays(max(1, min(3650, $retentionDays))),
-        ];
-    }
-
-    private function assertTransitionAllowed(AllianceStatus $from, AllianceStatus $to): void
-    {
-        $allowed = match ($to) {
-            AllianceStatus::Suspended => [AllianceStatus::Active],
-            AllianceStatus::Closed => [AllianceStatus::Active, AllianceStatus::Suspended],
-            AllianceStatus::Deleted => [AllianceStatus::Closed],
-            AllianceStatus::Active => [AllianceStatus::Suspended, AllianceStatus::Closed, AllianceStatus::Deleted],
-        };
-
-        if (! in_array($from, $allowed, true)) {
-            throw new InvalidArgumentException(sprintf(
-                'Alliance lifecycle transition from %s to %s is not allowed.',
-                $from->value,
-                $to->value,
-            ));
-        }
+        return now()->addDays(max(1, min(3650, $retentionDays)));
     }
 }
