@@ -1,4 +1,4 @@
-name: ARCH V2 Authority Migration
+name: ARCH V2 Boundary Cleanup
 
 on:
   push:
@@ -9,71 +9,80 @@ permissions:
   contents: write
 
 jobs:
-  migrate:
+  cleanup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Replace authority dependencies
+      - name: Apply P5 and P9 cleanup
         shell: bash
         run: |
-          if [ -f .arch-v2-p4-refactored ]; then
-            echo 'P4 migration already applied.'
+          if [ -f .arch-v2-p5p9-cleaned ]; then
+            echo 'P5/P9 cleanup already applied.'
             exit 0
           fi
+
+          git mv app/Contexts/Operations/Reminders app/Contexts/Operations/Participation/Reminders
+
           python3 - <<'PY'
           from pathlib import Path
 
-          replacements = {
-              'AllianceMutationAuthority': 'AllianceAuthorization',
-              'KingdomMutationAuthority': 'KingdomAuthorization',
-              'PlayerMutationAuthority': 'PlayerWriteState',
-              'AllianceOperationsMutationAuthority': 'AllianceOperationsAuthorization',
-              'KingdomOperationsMutationAuthority': 'KingdomOperationsAuthorization',
-              'EventCreationMutationAuthority': 'EventAuthorization',
-              'EventMutationAuthority': 'EventAuthorization',
-              'AllianceIntelligenceMutationAuthority': 'AllianceIntelligenceAuthorization',
-              'TransferMutationAuthority': 'TransferAuthorization',
-              'PlatformMutationAuthority': 'PlatformAuthorization',
-          }
-
-          roots = [Path('app'), Path('tests'), Path('routes'), Path('bootstrap')]
-          for root in roots:
+          for root in [Path('app'), Path('tests'), Path('routes'), Path('bootstrap'), Path('docs')]:
               if not root.exists():
                   continue
-              for path in root.rglob('*.php'):
-                  text = path.read_text()
-                  updated = text
-                  for old, new in replacements.items():
-                      updated = updated.replace(old, new)
-                  if updated == text:
+              for path in root.rglob('*'):
+                  if not path.is_file() or path.suffix not in {'.php', '.md'}:
                       continue
-                  lines = updated.splitlines()
-                  seen_uses = set()
-                  result = []
-                  for line in lines:
-                      if line.startswith('use '):
-                          if line in seen_uses:
-                              continue
-                          seen_uses.add(line)
-                      result.append(line)
-                  path.write_text('\n'.join(result) + ('\n' if updated.endswith('\n') else ''))
+                  text = path.read_text()
+                  updated = text.replace(
+                      'App\\Contexts\\Operations\\Reminders',
+                      'App\\Contexts\\Operations\\Participation\\Reminders',
+                  ).replace(
+                      'app/Contexts/Operations/Reminders',
+                      'app/Contexts/Operations/Participation/Reminders',
+                  )
+                  if path.suffix == '.md':
+                      replacements = [
+                          ('transaction-time mutation authorities', 'transaction-time authorization checks'),
+                          ('transaction-time mutation authority', 'transaction-time authorization'),
+                          ('Transactional mutation authority', 'Transactional write authorization'),
+                          ('mutation authority services', 'transaction-time authorization services'),
+                          ('mutation authority', 'transaction-time authorization'),
+                          ('Mutation authority', 'Transaction-time authorization'),
+                          ('capability coverage', 'architecture contract validation'),
+                          ('capability-coverage', 'architecture-contract-validation'),
+                          ('0004-transactional-mutation-authority.md', '0004-transactional-write-authorization.md'),
+                      ]
+                      for old, new in replacements:
+                          updated = updated.replace(old, new)
+                  if updated != text:
+                      path.write_text(updated)
           PY
 
-          git rm -f \
-            app/Contexts/Alliance/Access/Services/AllianceMutationAuthority.php \
-            app/Contexts/GameWorld/Governance/Services/KingdomMutationAuthority.php \
-            app/Contexts/GameWorld/Governance/Services/PlayerMutationAuthority.php \
-            app/Contexts/GameWorld/KingdomTransfers/Access/Services/TransferMutationAuthority.php \
-            app/Contexts/Operations/Access/Services/AllianceOperationsMutationAuthority.php \
-            app/Contexts/Operations/Access/Services/KingdomOperationsMutationAuthority.php \
-            app/Contexts/Operations/EventCore/Services/EventCreationMutationAuthority.php \
-            app/Contexts/Operations/EventCore/Services/EventMutationAuthority.php \
-            app/Contexts/Intelligence/Access/Services/AllianceIntelligenceMutationAuthority.php \
-            app/Contexts/Platform/Access/Services/PlatformMutationAuthority.php
+          cat > docs/architecture/decisions/0004-transactional-write-authorization.md <<'EOF'
+          # ADR 0004: Transactional write authorization
 
-          touch .arch-v2-p4-refactored
+          Status: Accepted
+
+          ## Decision
+
+          For writes whose authorization depends on mutable membership, role, scope, lifecycle, or ownership state, the owning action or service opens the transaction, locks the relevant current state in deterministic order, and then performs the final authorization check against that locked state.
+
+          Authorization services express policy and evaluate the current locked principal/scope. They do not act as cross-context mutation-authority facades. Capability-specific write-state helpers may only acquire or revalidate state; they must not interpret another context's permission vocabulary.
+
+          ## Rationale
+
+          Request-time authorization can become stale before a write commits. Revalidating after locks prevents time-of-check/time-of-use privilege errors while keeping transaction ownership with the context that owns the data being changed.
+
+          ## Consequences
+
+          Controllers remain thin. Owning actions/services define transaction boundaries, lock their aggregates and mutable scope records, enforce invariants, and invoke authorization against the current state. Cross-context Workflows coordinate owner APIs rather than owning persistence or bypassing a context's write contract.
+          EOF
+          sed -i 's/^          //' docs/architecture/decisions/0004-transactional-write-authorization.md
+          git rm docs/architecture/decisions/0004-transactional-mutation-authority.md
+
+          touch .arch-v2-p5p9-cleaned
           git add -A
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'refactor: remove specialized mutation authorities'
+          git commit -m 'refactor: align operations boundaries and architecture governance'
           git push
