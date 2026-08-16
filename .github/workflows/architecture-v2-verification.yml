@@ -1,5 +1,4 @@
 name: Architecture V2 Verification
-# V2 verification: rewritten contracts are isolated under lowercase v2 folders and named *V2Test.
 
 on:
   pull_request:
@@ -10,9 +9,15 @@ on:
       - 'config/**'
       - 'database/**'
       - 'routes/**'
-      - 'tests/Architecture/v2/**'
-      - 'tests/Feature/**/v2/**'
-      - 'tests/Support/V2/**'
+      - 'resources/js/**'
+      - 'scripts/**'
+      - 'tests/v2/**'
+      - 'phpunit.xml'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'composer.json'
+      - 'composer.lock'
       - '.github/workflows/architecture-v2-verification.yml'
   workflow_dispatch:
 
@@ -25,9 +30,9 @@ concurrency:
 
 jobs:
   architecture-contract:
-    name: V2 architecture and rewritten contracts
+    name: Final V2 application contract
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 60
 
     services:
       postgres:
@@ -61,15 +66,27 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
-      - name: Verify final V1 runtime hard cut
+      - name: Verify final V2 hard cut
         shell: bash
         run: |
           set -euo pipefail
           test ! -d app/Domain
           test ! -d app/Shared/Audit
           test ! -d app/Shared/Messaging
-          test ! -d tests/RewriteInput/Communications
-
+          test ! -d tests/Feature
+          test ! -d tests/Architecture
+          test ! -d tests/Integration
+          test ! -d tests/Performance
+          test ! -d tests/TenantIsolation
+          test ! -d tests/Unit
+          test ! -d tests/RewriteInput
+          test -d tests/v2/Architecture
+          test -d tests/v2/Contexts
+          test -d tests/v2/ReadModels
+          test -d tests/v2/Shared
+          test -d tests/v2/Support
+          test -d tests/v2/Visual
+          test -d tests/v2/Workflows
           test -d app/Contexts/Communications/Reminders
           test -d app/Contexts/Platform/Integrations
           test -d app/Shared/Infrastructure/AuditTrail
@@ -77,42 +94,22 @@ jobs:
           test -d app/Workflows/KingdomTransfer
           test -d app/Workflows/PlayerContext
           test -d app/ReadModels/KingdomSettings
+          test ! -e .github/scripts/arch_v2_clean_room_tests.py
+          test ! -e .github/scripts/arch_v2_clean_room_test_fixups.py
+          test ! -e .github/workflows/architecture-v2-clean-room-tests.yml
 
-          runtime_matches=$(grep -R -n --include='*.php' 'App\\Domain\\' app routes bootstrap config database 2>/dev/null || true)
-          if [ -n "$runtime_matches" ]; then
-            echo "$runtime_matches"
-            exit 1
-          fi
+          runtime_matches=$(grep -R -n --include='*.php' 'App\\Domain\\' app routes bootstrap config database tests/v2 2>/dev/null || true)
+          test -z "$runtime_matches" || { echo "$runtime_matches"; exit 1; }
 
-          old_shared_matches=$(grep -R -n -E --include='*.php' 'App\\Shared\\(Audit|Messaging)\\' app routes bootstrap config database 2>/dev/null || true)
-          if [ -n "$old_shared_matches" ]; then
-            echo "$old_shared_matches"
-            exit 1
-          fi
+          old_shared_matches=$(grep -R -n -E --include='*.php' 'App\\Shared\\(Audit|Messaging)\\' app routes bootstrap config database tests/v2 2>/dev/null || true)
+          test -z "$old_shared_matches" || { echo "$old_shared_matches"; exit 1; }
 
-      - name: Verify rewritten test naming boundary
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -d tests/Architecture/v2
-          test -d tests/Feature/Accounts/Core/v2
-          test -d tests/Feature/GameWorld/Core/v2
-          test -d tests/Feature/GameWorld/Governance/v2
-          test -d tests/Feature/Alliance/Core/v2
-          test -d tests/Feature/Alliance/Access/v2
-          test -d tests/Feature/Alliance/Membership/v2
-          test -d tests/Feature/Alliance/Content/v2
-          test -d tests/Feature/Operations/EventCore/v2
-          test -d tests/Feature/Operations/Reminders/v2
-          test -d tests/Feature/Intelligence/Observations/v2
-          test -d tests/Feature/Workflows/Registration/v2
+          bad=$(find tests/v2 -type f -name '*Test.php' ! -name '*V2Test.php' ! -path 'tests/v2/TestCase.php' ! -path 'tests/v2/Support/*' -print)
+          test -z "$bad" || { echo "$bad"; exit 1; }
 
-          while IFS= read -r file; do
-            case "$(basename "$file")" in
-              *V2Test.php) ;;
-              *) echo "Rewritten test must end in V2Test.php: $file"; exit 1 ;;
-            esac
-          done < <(find tests/Architecture/v2 tests/Feature -type f -path '*/v2/*.php' | sort)
+          grep -q '<directory>tests/v2</directory>' phpunit.xml
+          ! grep -q 'tests/Feature' phpunit.xml
+          grep -q "testDir: './tests/v2/Visual'" playwright.config.ts
 
       - name: Verify Player persistence ownership
         shell: bash
@@ -120,12 +117,11 @@ jobs:
           set -euo pipefail
           grep -R -n --include='*.php' 'PersistPlayerIdentity' app/Contexts/Intelligence/Roster app/Workflows/KingdomTransfer >/dev/null
           grep -R -n --include='*.php' 'ClaimPlayerAccount' app/Contexts/Alliance/Membership >/dev/null
-
           if grep -R -n --include='*.php' 'Player::query()->create(' app/Contexts/Intelligence app/Workflows/KingdomTransfer; then
             exit 1
           fi
 
-      - name: Verify Kingdom Transfer owns its authorization policy
+      - name: Verify Kingdom Transfer authorization ownership
         shell: bash
         run: |
           set -euo pipefail
@@ -133,11 +129,9 @@ jobs:
           test -f app/Workflows/KingdomTransfer/Access/Services/TransferAuthorization.php
           test -f app/Workflows/KingdomTransfer/Access/Services/TransferMutationAuthority.php
           grep -R -n --include='*.php' 'TransferPermission::Manage' app/Workflows/KingdomTransfer >/dev/null
-
           if grep -R -n --include='*.php' 'App\\Contexts\\Intelligence\\Access\\' app/Workflows/KingdomTransfer; then
             exit 1
           fi
-
           if grep -R -n --include='*.php' 'IntelligencePermission::KingdomManage' app/Workflows/KingdomTransfer; then
             exit 1
           fi
@@ -147,10 +141,10 @@ jobs:
         run: |
           set -euo pipefail
           matches=$(grep -R -n --include='*.php' -E 'App\\Contexts\\Alliance\\Access\\Services\\Alliance(Authorization|MutationAuthority)' app/Contexts/Operations app/Contexts/Intelligence 2>/dev/null | grep -v '/Access/Services/' || true)
-          if [ -n "$matches" ]; then
-            echo "$matches"
-            exit 1
-          fi
+          test -z "$matches" || { echo "$matches"; exit 1; }
+
+      - name: Create test environment file
+        run: touch .env
 
       - name: Configure PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
@@ -163,96 +157,52 @@ jobs:
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Verify PostgreSQL schema
+      - name: Verify PostgreSQL 18 fresh schema
         run: php artisan migrate:fresh --force
 
-      - name: Check V2 PHP formatting
+      - name: Verify PHP formatting
         run: >-
           vendor/bin/pint --test
-          tests/Architecture/v2
-          tests/Feature/Accounts/Core/v2
-          tests/Feature/GameWorld/Core/v2
-          tests/Feature/GameWorld/Governance/v2
-          tests/Feature/Alliance/Core/v2
-          tests/Feature/Alliance/Access/v2
-          tests/Feature/Alliance/Membership/v2
-          tests/Feature/Alliance/Content/v2
-          tests/Feature/Operations/EventCore/v2
-          tests/Feature/Operations/Reminders/v2
-          tests/Feature/Intelligence/Observations/v2
-          tests/Feature/Workflows/Registration/v2
-          tests/Support/V2
+          tests/v2
           app/Contexts
           app/Shared
           app/Workflows
           app/ReadModels
           bootstrap/app.php
           bootstrap/providers.php
-          config/accounts.php
-          config/alliance.php
-          config/auth.php
-          config/game_world.php
-          config/operations.php
-          database/factories/UserFactory.php
-          routes/account.php
-          routes/console.php
-          routes/event-history.php
-          routes/king-perks.php
-          routes/kingdoms.php
-          routes/platform.php
-          routes/web.php
+          routes
 
-      - name: Run rewritten V2 architecture regression suite
-        run: php artisan test tests/Architecture/v2
+      - name: Run strict clean-room V2 PHPUnit suite
+        run: >-
+          php artisan test tests/v2
+          --display-warnings
+          --display-deprecations
+          --display-phpunit-deprecations
+          --fail-on-warning
+          --fail-on-risky
 
-      - name: Larastan final owners
+      - name: Larastan all final V2 owners
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1536M
-          app/Contexts/Accounts
-          app/Contexts/GameWorld
-          app/Contexts/Alliance
-          app/Contexts/Operations
-          app/Contexts/Intelligence
-          app/Contexts/Communications
-          app/Contexts/Platform
+          app/Contexts
           app/Shared
           app/Workflows
           app/ReadModels
           bootstrap/app.php
           bootstrap/providers.php
-          database/factories/UserFactory.php
-          routes/account.php
-          routes/console.php
-          routes/event-history.php
-          routes/king-perks.php
-          routes/kingdoms.php
-          routes/platform.php
+          routes
 
-      - name: Run rewritten Accounts V2 contracts
-        run: php artisan test tests/Feature/Accounts/Core/v2
+      - name: Configure Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
 
-      - name: Run rewritten GameWorld V2 contracts
-        run: >-
-          php artisan test
-          tests/Feature/GameWorld/Core/v2
-          tests/Feature/GameWorld/Governance/v2
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
 
-      - name: Run rewritten Alliance V2 contracts
-        run: >-
-          php artisan test
-          tests/Feature/Alliance/Core/v2
-          tests/Feature/Alliance/Access/v2
-          tests/Feature/Alliance/Membership/v2
-          tests/Feature/Alliance/Content/v2
+      - name: Verify frontend source
+        run: npm run check
 
-      - name: Run rewritten Registration workflow V2 contracts
-        run: php artisan test tests/Feature/Workflows/Registration/v2
-
-      - name: Run rewritten Operations V2 contracts
-        run: >-
-          php artisan test
-          tests/Feature/Operations/EventCore/v2
-          tests/Feature/Operations/Reminders/v2
-
-      - name: Run rewritten Intelligence V2 contracts
-        run: php artisan test tests/Feature/Intelligence/Observations/v2
+      - name: Verify V2 visual test discovery
+        run: npx playwright test --list
