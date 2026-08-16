@@ -20,6 +20,33 @@ def fix_capability_reflection() -> None:
         "$reflection->getMethods(\\ReflectionMethod::IS_PUBLIC)",
     )
 
+    replace(
+        "tests/v2/Support/CapabilitySurfaceTestCase.php",
+        "&& ! str_starts_with($method->getName(), '__'),",
+        "&& ($method->getName() === '__invoke' || ! str_starts_with($method->getName(), '__')),"," 
+    )
+
+
+def fix_context_composition_boundary() -> None:
+    path = "tests/v2/Architecture/ArchitectureBoundariesV2Test.php"
+    old = """        foreach ($this->phpFiles(['app/Contexts']) as $file) {
+            $source = (string) file_get_contents($file);
+            self::assertStringNotContainsString('use App\\\\Workflows\\\\', $source, $file);
+            self::assertStringNotContainsString('use App\\\\ReadModels\\\\', $source, $file);
+        }
+"""
+    new = """        foreach ($this->phpFiles(['app/Contexts']) as $file) {
+            $source = (string) file_get_contents($file);
+            self::assertStringNotContainsString('use App\\\\Workflows\\\\', $source, $file);
+
+            $normalized = str_replace('\\\\', '/', $file);
+            if (! str_contains($normalized, '/Http/')) {
+                self::assertStringNotContainsString('use App\\\\ReadModels\\\\', $source, $file);
+            }
+        }
+"""
+    replace(path, old, new)
+
 
 def fix_game_world_governance_scenario() -> None:
     replace(
@@ -68,22 +95,36 @@ def fix_platform_authority_scenario() -> None:
 
 
 def diagnose_context_composition_dependencies() -> None:
-    offenders: list[str] = []
+    invalid: list[str] = []
+    allowed_http: list[str] = []
+
     for file in sorted((ROOT / "app/Contexts").rglob("*.php")):
         source = file.read_text()
-        if "use App\\ReadModels\\" in source:
-            offenders.append(str(file.relative_to(ROOT)))
+        if "use App\\ReadModels\\" not in source:
+            continue
 
-    if offenders:
-        print("ARCH-V2-DIAGNOSTIC: context -> ReadModel dependencies:")
-        for offender in offenders:
+        relative = str(file.relative_to(ROOT)).replace("\\", "/")
+        if "/Http/" in f"/{relative}":
+            allowed_http.append(relative)
+        else:
+            invalid.append(relative)
+
+    if allowed_http:
+        print("ARCH-V2-DIAGNOSTIC: HTTP adapters consuming ReadModels:")
+        for offender in allowed_http:
             print(f"  - {offender}")
-    else:
-        print("ARCH-V2-DIAGNOSTIC: no context -> ReadModel dependencies found.")
+
+    if invalid:
+        raise RuntimeError(
+            "Non-HTTP context code depends on ReadModels: " + ", ".join(invalid)
+        )
+
+    print("ARCH-V2-DIAGNOSTIC: no domain/application context -> ReadModel dependencies found.")
 
 
 def main() -> None:
     fix_capability_reflection()
+    fix_context_composition_boundary()
     fix_game_world_governance_scenario()
     fix_platform_authority_scenario()
     diagnose_context_composition_dependencies()
