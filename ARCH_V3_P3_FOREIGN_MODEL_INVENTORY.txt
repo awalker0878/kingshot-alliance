@@ -1,11 +1,11 @@
-TOTAL=570
+TOTAL=571
 
 COUNTS
 Operations->GameWorld=132
 Intelligence->Alliance=97
 Intelligence->GameWorld=78
 Operations->Alliance=66
-Alliance->GameWorld=54
+Alliance->GameWorld=55
 GameWorld->Alliance=40
 Platform->Alliance=24
 Intelligence->Operations=23
@@ -20,6 +20,7 @@ Platform->Accounts=1
 IMPORTS
 Alliance|GameWorld|app/Contexts/Alliance/Access/Actions/AssignMembershipRole.php|use App\Contexts\GameWorld\Players\Models\Player;
 Alliance|GameWorld|app/Contexts/Alliance/Access/Actions/RemoveMembershipRole.php|use App\Contexts\GameWorld\Players\Models\Player;
+Alliance|GameWorld|app/Contexts/Alliance/Access/Queries/AlliancePermissionQuery.php|use App\Contexts\GameWorld\Players\Models\Player;
 Alliance|GameWorld|app/Contexts/Alliance/Access/Services/AllianceAuthorization.php|use App\Contexts\GameWorld\Players\Models\Player;
 Alliance|GameWorld|app/Contexts/Alliance/Access/Services/AllianceWriteState.php|use App\Contexts\GameWorld\Players\Models\Player;
 Alliance|GameWorld|app/Contexts/Alliance/Access/ValueObjects/AllianceMutationContext.php|use App\Contexts\GameWorld\Players\Models\Player;
