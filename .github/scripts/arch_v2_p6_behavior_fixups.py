@@ -21,15 +21,24 @@ for root_name in ('app', 'routes', 'bootstrap', 'config', 'database', 'tests'):
             path.write_text(rewritten, encoding='utf-8')
 
 # Observations were already hard-cut earlier in P6. Recovered ingestion tests
-# must call that V2 action directly instead of resurrecting a Kingdoms alias.
+# must call the V2 observation capability directly instead of resurrecting V1
+# Kingdoms aliases. That includes the tracking model/state used by promotion
+# contracts, not just the StartTracking action.
 ingestion_tests = repo / 'tests/Feature/Intelligence/Ingestion'
 if ingestion_tests.exists():
+    observation_replacements = {
+        'App\\Domain\\Kingdoms\\Actions\\StartTrackingKingdomAlliance':
+            'App\\Contexts\\Intelligence\\Observations\\Actions\\StartTrackingKingdomAlliance',
+        'App\\Domain\\Kingdoms\\Models\\TrackedKingdomAlliance':
+            'App\\Contexts\\Intelligence\\Observations\\Models\\TrackedKingdomAlliance',
+        'App\\Domain\\Kingdoms\\Enums\\TrackedKingdomAllianceState':
+            'App\\Contexts\\Intelligence\\Observations\\Enums\\TrackedKingdomAllianceState',
+    }
     for path in ingestion_tests.rglob('*.php'):
         text = path.read_text(encoding='utf-8')
-        rewritten = text.replace(
-            'App\\Domain\\Kingdoms\\Actions\\StartTrackingKingdomAlliance',
-            'App\\Contexts\\Intelligence\\Observations\\Actions\\StartTrackingKingdomAlliance',
-        )
+        rewritten = text
+        for old, new in observation_replacements.items():
+            rewritten = rewritten.replace(old, new)
         if rewritten != text:
             path.write_text(rewritten, encoding='utf-8')
 
@@ -63,15 +72,20 @@ if roster_test.is_file():
     roster_test.write_text(text, encoding='utf-8')
 
 # Fail the one-shot cut itself if any recovered ingestion test still references
-# the deleted V1 observation action or a split-brain ingestion config key.
+# deleted V1 observation ownership or a split-brain ingestion config key.
 violations = []
 for root in (repo / 'tests/Feature/Intelligence/Ingestion', repo / 'app/Contexts/Intelligence/Ingestion'):
     if not root.exists():
         continue
     for path in root.rglob('*.php'):
         text = path.read_text(encoding='utf-8')
-        if 'App\\Domain\\Kingdoms\\Actions\\StartTrackingKingdomAlliance' in text:
-            violations.append(f'{path}: V1 StartTrackingKingdomAlliance reference')
+        for stale in (
+            'App\\Domain\\Kingdoms\\Actions\\StartTrackingKingdomAlliance',
+            'App\\Domain\\Kingdoms\\Models\\TrackedKingdomAlliance',
+            'App\\Domain\\Kingdoms\\Enums\\TrackedKingdomAllianceState',
+        ):
+            if stale in text:
+                violations.append(f'{path}: V1 observation reference {stale}')
         if 'intelligence.ingestion.' in text:
             violations.append(f'{path}: split-brain Intelligence ingestion config key')
 
