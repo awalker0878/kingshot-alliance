@@ -10,8 +10,7 @@ permissions:
 
 jobs:
   move-kingdom-transfer:
-    if: github.event.head_commit.message == 'chore: run ARCH-V2 mechanical ownership move'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,7 +20,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -d app/Workflows/KingdomTransfer
+
+          if [[ ! -d app/Workflows/KingdomTransfer ]]; then
+            echo 'Kingdom Transfer ownership move already applied; nothing to do.'
+            exit 0
+          fi
+
           mkdir -p app/Contexts/GameWorld
           git mv app/Workflows/KingdomTransfer app/Contexts/GameWorld/KingdomTransfers
 
