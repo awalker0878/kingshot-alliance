@@ -16,7 +16,7 @@ use LogicException;
  */
 final class PlayerWriteState
 {
-    public function require(Player $actor): PlayerMutationContext
+    public function lockActor(Player $actor): PlayerMutationContext
     {
         if (DB::transactionLevel() < 1) {
             throw new LogicException('Player write state must be acquired inside a database transaction.');
