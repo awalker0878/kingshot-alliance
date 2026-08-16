@@ -5,7 +5,7 @@ Configuration: /home/runner/work/kingshot-alliance/kingshot-alliance/phpunit.xml
 
 [41;37mF[0m[41;37mF[0m                                                                  2 / 2 (100%)
 
-Time: 00:00.099, Memory: 24.00 MB
+Time: 00:00.016, Memory: 24.00 MB
 
 There were 2 failures:
 
