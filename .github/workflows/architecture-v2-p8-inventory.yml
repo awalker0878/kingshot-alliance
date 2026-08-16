@@ -1,18 +1,55 @@
-name: Architecture V2 P8 inventory
+name: Architecture V2 P8A workflow hard cut
 
 on:
   push:
     branches: [architecture-v2]
     paths:
+      - '.github/scripts/arch_v2_p8a_workflow_cut.py'
+      - '.github/scripts/arch_v2_p8a_contract_fix.py'
       - '.github/workflows/architecture-v2-p8-inventory.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: architecture-v2-p8a-cut
+  cancel-in-progress: true
 
 jobs:
-  inventory:
+  hard-cut:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+
     steps:
       - name: Check out architecture-v2
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -20,65 +57,105 @@ jobs:
           ref: architecture-v2
           fetch-depth: 0
 
-      - name: Inventory remaining V1 and cross-context write candidates
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install locked PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Apply P8A workflow and read-model ownership cut
+        run: |
+          python3 .github/scripts/arch_v2_p8a_workflow_cut.py
+          python3 .github/scripts/arch_v2_p8a_contract_fix.py
+
+      - name: Format P8A tree
+        run: vendor/bin/pint
+
+      - name: Verify PostgreSQL schema
+        run: php artisan migrate:fresh --force
+
+      - name: Verify final V1 runtime root is gone
         shell: bash
         run: |
           set -euo pipefail
-          echo '=== Remaining app/Domain runtime ==='
-          find app/Domain -type f -print 2>/dev/null | sort || true
+          test ! -d app/Domain
+          test -d app/Workflows/KingdomTransfer
+          test -d app/Workflows/PlayerContext
+          test -d app/ReadModels/KingdomSettings
+          test -d tests/Feature/Workflows/KingdomTransfer
+          test -d tests/Feature/ReadModels/KingdomSettings
 
-          echo '=== Existing Workflows ==='
-          find app/Workflows -type f -print | sort
+          matches=$(grep -R -n --include='*.php' 'App\\Domain\\' app routes bootstrap config database tests/Feature tests/Integration tests/Unit tests/TenantIsolation 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "$matches"
+            exit 1
+          fi
 
-          echo '=== Existing ReadModels ==='
-          find app/ReadModels -type f -print | sort
+      - name: Verify P8A Player persistence boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -R -n --include='*.php' 'PersistPlayerIdentity' app/Contexts/Intelligence/Roster app/Workflows/KingdomTransfer >/dev/null
+          grep -R -n --include='*.php' 'ClaimPlayerAccount' app/Contexts/Alliance/Membership >/dev/null
+          if grep -R -n --include='*.php' 'Player::query()->create(' app/Contexts/Intelligence app/Workflows/KingdomTransfer; then
+            exit 1
+          fi
 
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
+      - name: Larastan P8A owners and affected contexts
+        run: >-
+          vendor/bin/phpstan analyse --memory-limit=1536M
+          app/Contexts/GameWorld
+          app/Contexts/Alliance/Membership
+          app/Contexts/Intelligence/Roster
+          app/Workflows
+          app/ReadModels
+          routes
 
-          roots = [Path('app/Contexts'), Path('app/Workflows'), Path('app/Domain/Kingdoms')]
-          import_re = re.compile(r'^use App\\Contexts\\([^\\]+)\\.*?\\Models\\([^;]+);', re.M)
-          namespace_re = re.compile(r'^namespace App\\(?:Contexts\\([^\\]+)|Workflows\\([^\\]+)|Domain\\Kingdoms)\\', re.M)
-          mutation_markers = (
-              '->save(', '->delete(', '->update(', '->forceDelete(', '->restore(',
-              '::create(', '::query()->create(', 'updateOrCreate(', 'firstOrCreate(',
-              '->increment(', '->decrement(',
-          )
+      - name: Run P8A architecture contracts
+        run: >-
+          php artisan test
+          tests/Architecture/ArchitectureV2DependencyTest.php
+          tests/Architecture/ArchitectureV2AllianceTest.php
+          tests/Architecture/ArchitectureV2IntelligenceTest.php
+          tests/Architecture/ArchitectureV2WorkflowTest.php
 
-          print('=== Files importing another context model and containing mutation syntax ===')
-          candidates = []
-          for root in roots:
-              if not root.exists():
-                  continue
-              for path in sorted(root.rglob('*.php')):
-                  text = path.read_text(encoding='utf-8')
-                  imports = import_re.findall(text)
-                  if not imports or not any(marker in text for marker in mutation_markers):
-                      continue
-                  owner = None
-                  match = namespace_re.search(text)
-                  if match:
-                      owner = match.group(1) or ('Workflow:' + match.group(2) if match.group(2) else 'LegacyKingdoms')
-                  external = sorted({ctx for ctx, _ in imports if owner is None or ctx != owner})
-                  if external:
-                      candidates.append((str(path), owner, external, sorted({m for m in mutation_markers if m in text})))
+      - name: Run GameWorld foundation behavior
+        run: php artisan test tests/Feature/GameWorld tests/Unit/GameWorld
 
-          for path, owner, external, markers in candidates:
-              print(f'{path} | owner={owner} | external={",".join(external)} | markers={",".join(markers)}')
-          print(f'TOTAL_CANDIDATES={len(candidates)}')
+      - name: Run Alliance membership behavior
+        run: php artisan test tests/Feature/Alliance tests/Unit/Alliance
 
-          print('=== Explicit GameWorld Player mutation references outside GameWorld ===')
-          for root in roots:
-              if not root.exists():
-                  continue
-              for path in sorted(root.rglob('*.php')):
-                  text = path.read_text(encoding='utf-8')
-                  if 'App\\Contexts\\GameWorld\\Models\\Player' not in text:
-                      continue
-                  hits = [line.strip() for line in text.splitlines() if ('forceFill' in line or 'Player::query()->create' in line or 'Player::query()->update' in line)]
-                  if hits and not str(path).startswith('app/Contexts/GameWorld/'):
-                      print(path)
-                      for hit in hits:
-                          print('  ' + hit)
-          PY
+      - name: Run Intelligence behavior
+        run: php artisan test tests/Feature/Intelligence
+
+      - name: Run Kingdom Transfer workflow behavior
+        run: php artisan test tests/Feature/Workflows/KingdomTransfer
+
+      - name: Run Kingdom Settings read-model behavior
+        run: php artisan test tests/Feature/ReadModels/KingdomSettings
+
+      - name: Remove P8A one-shot migration machinery
+        run: |
+          rm .github/scripts/arch_v2_p8a_workflow_cut.py
+          rm .github/scripts/arch_v2_p8a_contract_fix.py
+          rm .github/workflows/architecture-v2-p8-inventory.yml
+
+      - name: Commit verified P8A cut
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'No P8A changes to commit.'
+            exit 0
+          fi
+          git commit -m 'ARCH-V2-P8A: extract kingdom transfer workflows and read models'
+          git push origin HEAD:architecture-v2
