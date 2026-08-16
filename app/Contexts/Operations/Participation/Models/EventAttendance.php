@@ -10,7 +10,15 @@ use App\Contexts\Operations\Participation\Enums\EventAttendanceStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property EventAttendanceStatus $status
+ * @property Carbon|null $recorded_at
+ * @property-read EventOccurrence $occurrence
+ * @property-read Player $player
+ * @property-read Player|null $recordedByPlayer
+ */
 final class EventAttendance extends Model
 {
     use HasUlids;
