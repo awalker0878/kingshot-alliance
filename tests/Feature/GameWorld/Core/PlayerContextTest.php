@@ -16,7 +16,7 @@ final class PlayerContextTest extends TestCase
     public function test_one_account_can_own_multiple_players_and_explicitly_activate_each_one(): void
     {
         $user = User::factory()->create();
-        $factory = new ScenarioFactory();
+        $factory = new ScenarioFactory;
         $first = $factory->playerFor($user, 4210, 'Alpha', 'game-4210-a')['player'];
         $second = $factory->playerFor($user, 4210, 'Bravo', 'game-4210-b')['player'];
         $sessionKey = (string) config('game_world.active_player_session_key');
@@ -35,7 +35,7 @@ final class PlayerContextTest extends TestCase
 
     public function test_account_cannot_activate_or_forge_another_accounts_player_context(): void
     {
-        $owner = (new ScenarioFactory())->claimedPlayer(4211, 'Owner Player', 'game-4211-owner');
+        $owner = (new ScenarioFactory)->claimedPlayer(4211, 'Owner Player', 'game-4211-owner');
         $attacker = User::factory()->create();
         $sessionKey = (string) config('game_world.active_player_session_key');
 
@@ -52,7 +52,7 @@ final class PlayerContextTest extends TestCase
 
     public function test_single_owned_player_is_selected_automatically_but_multiple_players_require_choice(): void
     {
-        $single = (new ScenarioFactory())->claimedPlayer(4212, 'Only Player', 'game-4212-only');
+        $single = (new ScenarioFactory)->claimedPlayer(4212, 'Only Player', 'game-4212-only');
         $sessionKey = (string) config('game_world.active_player_session_key');
 
         $this->actingAs($single['user'])
@@ -61,7 +61,7 @@ final class PlayerContextTest extends TestCase
             ->assertSessionHas($sessionKey, $single['player']->id);
 
         $multiUser = User::factory()->create();
-        $factory = new ScenarioFactory();
+        $factory = new ScenarioFactory;
         $factory->playerFor($multiUser, 4213, 'One', 'game-4213-one');
         $factory->playerFor($multiUser, 4213, 'Two', 'game-4213-two');
 
