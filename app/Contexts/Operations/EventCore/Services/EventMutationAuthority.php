@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\EventCore\Services;
 
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
@@ -13,6 +12,7 @@ use App\Contexts\GameWorld\Governance\Services\PlayerMutationAuthority;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use App\Contexts\Operations\Access\Services\AllianceOperationsMutationAuthority;
 use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Models\Event;
 use App\Contexts\Operations\EventCore\Models\EventTypeScope;
@@ -29,7 +29,7 @@ final readonly class EventMutationAuthority
 {
     public function __construct(
         private EventAuthorization $authorization,
-        private AllianceMutationAuthority $allianceAuthority,
+        private AllianceOperationsMutationAuthority $allianceAuthority,
         private KingdomMutationAuthority $kingdomAuthority,
         private PlayerMutationAuthority $playerAuthority,
     ) {}
@@ -66,9 +66,6 @@ final readonly class EventMutationAuthority
                 throw new LogicException('Alliance Event mutation context must resolve an Alliance target.');
             }
 
-            // AllianceMutationAuthority already locks the active membership that makes
-            // this Player authoritative. Do not then lock Player: Kingdom transfer and
-            // account deletion use Player -> membership and would deadlock on an upgrade.
             if ((string) $currentActor->current_kingdom_id !== (string) $target->kingdom_id
                 || ! AllianceRosterEntry::query()
                     ->where('alliance_id', $target->id)
@@ -87,7 +84,6 @@ final readonly class EventMutationAuthority
                 throw new LogicException('Kingdom Event mutation context must resolve a Kingdom target.');
             }
 
-            // KingdomMutationAuthority already holds the actor Player exclusively.
             if ((string) $currentActor->current_kingdom_id !== (string) $target->id) {
                 throw new AuthorizationException;
             }
@@ -117,11 +113,6 @@ final readonly class EventMutationAuthority
         }
     }
 
-    /**
-     * Read current immutable routing values without a lock so authority rows can be
-     * acquired before the Event aggregate. The later Event lock revalidates all route
-     * fields before the caller is allowed to persist anything.
-     */
     private function freshRoute(Event $event): Event
     {
         return Event::query()
@@ -213,8 +204,6 @@ final readonly class EventMutationAuthority
                 continue;
             }
 
-            // Target Player is a distinct principal here, so Player -> roster is the
-            // correct target-identity order and does not upgrade the manager's membership.
             $currentTarget = Player::query()
                 ->whereKey($target->id)
                 ->lockForUpdate()
