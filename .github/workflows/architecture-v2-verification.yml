@@ -1,11 +1,12 @@
 name: Architecture V2 Verification
-# P6 verification: completed hard cuts remain absent; V2 context-owned tests define acceptance.
+# P7 verification: completed hard cuts remain absent; V2 context-owned tests define acceptance.
 
 on:
   pull_request:
     branches: [main]
     paths:
       - 'app/Contexts/**'
+      - 'app/Domain/**'
       - 'app/Shared/**'
       - 'app/Workflows/**'
       - 'app/ReadModels/**'
@@ -29,6 +30,11 @@ on:
       - 'tests/Feature/Alliance/**'
       - 'tests/Feature/Operations/**'
       - 'tests/Feature/Intelligence/**'
+      - 'tests/Feature/Communications/**'
+      - 'tests/Feature/Platform/**'
+      - 'tests/Feature/Contributions/AllianceContributionReportQueryTest.php'
+      - 'tests/Integration/Platform/OutboxPublisherTest.php'
+      - 'tests/RewriteInput/Communications/**'
       - 'tests/TenantIsolation/Alliance/**'
       - 'tests/Unit/Accounts/**'
       - 'tests/Unit/Alliance/**'
@@ -48,9 +54,9 @@ concurrency:
 
 jobs:
   architecture-contract:
-    name: V2 architecture through P6 Intelligence cut
+    name: V2 architecture through P7 Communications Platform cut
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 40
 
     services:
       postgres:
@@ -93,8 +99,37 @@ jobs:
           test ! -d app/Domain/Rallies
           test ! -d app/Domain/KingPerks
           test ! -d app/Domain/Contributions
+          test ! -d app/Domain/Notifications
+          test ! -d app/Domain/Integrations
+          test ! -d app/Domain/Platform
+          test ! -d app/Shared/Audit
+          test ! -d app/Shared/Messaging
+          test ! -d tests/RewriteInput/Communications
 
-          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\(Authorization|Events|Rallies|KingPerks|Contributions)\\' app routes bootstrap config database 2>/dev/null || true)
+          test -d app/Contexts/Communications/Reminders
+          test -d app/Contexts/Platform/Integrations
+          test -d app/Shared/Infrastructure/AuditTrail
+          test -d app/Shared/Infrastructure/Messaging/Outbox
+          test -d tests/Feature/Communications
+          test -d tests/Feature/Platform
+
+          runtime_matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\(Authorization|Events|Rallies|KingPerks|Contributions|Notifications|Integrations|Platform)\\|App\\Shared\\(Audit|Messaging)\\' app routes bootstrap config database 2>/dev/null || true)
+          if [ -n "$runtime_matches" ]; then
+            echo "$runtime_matches"
+            exit 1
+          fi
+
+          p7_test_matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\(Notifications|Integrations|Platform)\\|App\\Shared\\(Audit|Messaging)\\' tests 2>/dev/null || true)
+          if [ -n "$p7_test_matches" ]; then
+            echo "$p7_test_matches"
+            exit 1
+          fi
+
+      - name: Verify downstream contexts own Alliance authorization interpretation
+        shell: bash
+        run: |
+          set -euo pipefail
+          matches=$(grep -R -n --include='*.php' -E 'App\\Contexts\\Alliance\\Access\\Services\\Alliance(Authorization|MutationAuthority)' app/Contexts/Operations app/Contexts/Intelligence 2>/dev/null | grep -v '/Access/Services/' || true)
           if [ -n "$matches" ]; then
             echo "$matches"
             exit 1
@@ -112,9 +147,9 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Verify PostgreSQL schema
-        run: php artisan migrate --force
+        run: php artisan migrate:fresh --force
 
-      - name: Check V2 through P6 PHP formatting
+      - name: Check V2 through P7 PHP formatting
         shell: bash
         run: |
           set -o pipefail
@@ -126,6 +161,10 @@ jobs:
             tests/Feature/Alliance \
             tests/Feature/Operations \
             tests/Feature/Intelligence \
+            tests/Feature/Communications \
+            tests/Feature/Platform \
+            tests/Feature/Contributions/AllianceContributionReportQueryTest.php \
+            tests/Integration/Platform/OutboxPublisherTest.php \
             tests/TenantIsolation/Alliance \
             tests/Unit/Accounts \
             tests/Unit/Alliance \
@@ -135,6 +174,7 @@ jobs:
             app/Shared \
             app/Workflows \
             app/ReadModels \
+            app/Domain/Kingdoms/Models/TransferPlan.php \
             bootstrap/app.php \
             bootstrap/providers.php \
             config/accounts.php \
@@ -170,6 +210,7 @@ jobs:
             tests/Architecture/ArchitectureV2AllianceTest.php \
             tests/Architecture/ArchitectureV2OperationsTest.php \
             tests/Architecture/ArchitectureV2IntelligenceTest.php \
+            tests/Architecture/ArchitectureV2PlatformTest.php \
             tests/Architecture/AccountExperienceTest.php \
             tests/Architecture/UserExperienceLocalizationFoundationTest.php \
             2>&1 | tee architecture-tests.log
@@ -184,7 +225,7 @@ jobs:
             exit "$status"
           fi
 
-      - name: Larastan P2 through P6 contexts
+      - name: Larastan P2 through P7 contexts
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1536M
           app/Contexts/Accounts
@@ -192,9 +233,12 @@ jobs:
           app/Contexts/Alliance
           app/Contexts/Operations
           app/Contexts/Intelligence
+          app/Contexts/Communications
+          app/Contexts/Platform
           app/Shared
           app/Workflows
           app/ReadModels
+          app/Domain/Kingdoms/Models/TransferPlan.php
           bootstrap/app.php
           bootstrap/providers.php
           database/factories/UserFactory.php
@@ -251,3 +295,15 @@ jobs:
             echo "::error title=V2 Intelligence tests failed::$details"
             exit "$status"
           fi
+
+      - name: Run V2 Communications delivery tests
+        run: php artisan test tests/Feature/Communications
+
+      - name: Run V2 Platform and integration tests
+        run: php artisan test tests/Feature/Platform
+
+      - name: Run P7 contribution reporting contract
+        run: php artisan test tests/Feature/Contributions/AllianceContributionReportQueryTest.php
+
+      - name: Run P7 Shared outbox publisher contract
+        run: php artisan test tests/Integration/Platform/OutboxPublisherTest.php
