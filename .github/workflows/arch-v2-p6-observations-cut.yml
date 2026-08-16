@@ -64,6 +64,17 @@ jobs:
                   dst.write_text(text, encoding='utf-8')
                   src.unlink()
 
+          record = Path('app/Contexts/Intelligence/Observations/Actions/RecordKingdomAllianceObservation.php')
+          text = record.read_text(encoding='utf-8')
+          old_doc = '/** @param array<string,mixed> $provenance @return array<string,string|null> */'
+          new_doc = '''/**
+     * @param array<string, mixed> $provenance
+     * @return array<string, string|null>
+     */'''
+          if old_doc not in text:
+              raise SystemExit('Expected machineProvenance PHPDoc was not found after move.')
+          record.write_text(text.replace(old_doc, new_doc, 1), encoding='utf-8')
+
           for root_name in ('app', 'routes', 'bootstrap', 'config', 'database'):
               root = Path(root_name)
               if not root.exists():
