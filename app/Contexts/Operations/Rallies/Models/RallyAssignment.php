@@ -10,10 +10,15 @@ use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property RallyAssignmentRole $role
  * @property RallyAssignmentStatus $status
+ * @property Carbon|null $assigned_at
+ * @property Carbon|null $responded_at
+ * @property Carbon|null $recorded_at
+ * @property Carbon|null $removed_at
  * @property-read RallyGroup $rallyGroup
  * @property-read Player $player
  */
