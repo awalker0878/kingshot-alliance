@@ -4,22 +4,40 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Administration\Http\Middleware;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-final class RequirePlatformAdministrator
+final readonly class RequirePlatformAdministrator
 {
+    public function __construct(private AccountIdentityQuery $accounts) {}
+
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
-        abort_unless($user->hasVerifiedEmail(), 403, 'Platform administrators must have a verified email address.');
-        abort_unless($user->two_factor_confirmed_at !== null, 403, 'Platform administrators must enable multi-factor authentication.');
-        abort_unless(PlatformAdministrator::activeFor($user), 403, 'Platform administrator access is required.');
-        $request->attributes->set('platform_administrator_user_id', $user->id);
+        $principal = $request->user();
+        $identifier = $principal?->getAuthIdentifier();
+        abort_unless(is_numeric($identifier), 401);
+
+        $account = $this->accounts->require((int) $identifier);
+        abort_unless(
+            $account->emailVerified,
+            403,
+            'Platform administrators must have a verified email address.',
+        );
+        abort_unless(
+            $account->multiFactorConfirmed,
+            403,
+            'Platform administrators must enable multi-factor authentication.',
+        );
+        abort_unless(
+            PlatformAdministrator::activeForUserId($account->userId),
+            403,
+            'Platform administrator access is required.',
+        );
+
+        $request->attributes->set('platform_administrator_user_id', $account->userId);
 
         return $next($request);
     }
