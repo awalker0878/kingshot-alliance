@@ -7,6 +7,7 @@ on:
       - '.github/scripts/arch_v2_p7_cut.py'
       - '.github/scripts/arch_v2_p7_static_fixes.py'
       - '.github/scripts/arch_v2_p7_contract_recovery.py'
+      - '.github/scripts/arch_v2_p7_communications_contracts.py'
       - '.github/workflows/architecture-v2-p7-cut.yml'
   workflow_dispatch:
 
@@ -78,6 +79,9 @@ jobs:
       - name: Recover stale P5 P6 contracts exposed by P7
         run: python3 .github/scripts/arch_v2_p7_contract_recovery.py
 
+      - name: Promote Communications delivery contracts
+        run: python3 .github/scripts/arch_v2_p7_communications_contracts.py
+
       - name: Format changed PHP
         run: vendor/bin/pint
 
@@ -93,10 +97,12 @@ jobs:
           test ! -d app/Domain/Platform
           test ! -d app/Shared/Audit
           test ! -d app/Shared/Messaging
+          test ! -d tests/RewriteInput/Communications
           test -d app/Contexts/Communications/Reminders
           test -d app/Contexts/Platform/Integrations
           test -d app/Shared/Infrastructure/AuditTrail
           test -d app/Shared/Infrastructure/Messaging/Outbox
+          test -d tests/Feature/Communications
 
           matches=$(grep -R -n -E --include='*.php' 'App\\(Domain\\(Notifications|Integrations|Platform)|Shared\\(Audit|Messaging))\\' app routes bootstrap config database tests 2>/dev/null || true)
           if [ -n "$matches" ]; then
@@ -125,8 +131,8 @@ jobs:
       - name: Run Platform and integration behavior contracts
         run: php artisan test tests/Feature/Platform
 
-      - name: Run recovered Communications delivery contracts
-        run: php artisan test tests/RewriteInput/Communications
+      - name: Run Communications delivery contracts
+        run: php artisan test tests/Feature/Communications
 
       - name: Run recovered contribution reporting contract
         run: php artisan test tests/Feature/Contributions/AllianceContributionReportQueryTest.php
@@ -142,6 +148,7 @@ jobs:
           rm .github/scripts/arch_v2_p7_cut.py
           rm .github/scripts/arch_v2_p7_static_fixes.py
           rm .github/scripts/arch_v2_p7_contract_recovery.py
+          rm .github/scripts/arch_v2_p7_communications_contracts.py
           rm .github/workflows/architecture-v2-p7-cut.yml
 
       - name: Commit verified P7 cut
