@@ -7,9 +7,9 @@ use App\Contexts\Alliance\Content\Actions\PublishScheduledContent;
 use App\Contexts\Alliance\Recruitment\Actions\PurgeExpiredRecruitmentCandidates;
 use App\Contexts\GameWorld\Models\Kingdom;
 use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Intelligence\Sharing\Actions\EnforceKingdomIntelligenceSharingRetention;
 use App\Domain\Integrations\Actions\QueueDueWebhookDeliveries;
 use App\Domain\Kingdoms\Actions\EnforceKingdomIngestionRetention;
-use App\Contexts\Intelligence\Sharing\Actions\EnforceKingdomIntelligenceSharingRetention;
 use App\Domain\Kingdoms\Actions\QueueDueKingdomIngestionSubscriptions;
 use App\Domain\Kingdoms\Actions\ReconcileKingdomIngestionSources;
 use App\Domain\Kingdoms\Services\KingdomIngestionOperationalHealth;
@@ -51,7 +51,7 @@ Artisan::command('app:launch-check {--json}', function (ProductionLaunchReadines
 
     if ((bool) $this->option('json')) {
         $this->line(json_encode([
-            'passed' => ! collect($checks)->contains(static fn (array $check): bool => ! $check['passed']),
+            'passed' => collect($checks)->every(static fn (array $check): bool => $check['passed']),
             'checks' => $checks,
         ], JSON_THROW_ON_ERROR));
     } else {
