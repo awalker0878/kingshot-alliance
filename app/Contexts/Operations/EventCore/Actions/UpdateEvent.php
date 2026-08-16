@@ -20,6 +20,7 @@ use App\Contexts\Operations\Rosters\Services\EventRosterService;
 use App\Shared\Audit\Services\AuditRecorder;
 use App\Shared\Messaging\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -163,30 +164,7 @@ final class UpdateEvent
             ])->save();
 
             if ($scheduleChanged) {
-                EventOccurrence::query()
-                    ->where('event_id', $locked->id)
-                    ->where('status', EventOccurrenceStatus::Scheduled->value)
-                    ->where('starts_at', '>=', now())
-                    ->update([
-                        'status' => EventOccurrenceStatus::Cancelled->value,
-                        'updated_at' => now(),
-                    ]);
-
-                foreach ($occurrenceStarts as $occurrenceLocalStart) {
-                    if ($occurrenceLocalStart->utc()->lessThan(now())) {
-                        continue;
-                    }
-
-                    $replacement = EventOccurrence::query()->create([
-                        'event_id' => $locked->id,
-                        'starts_at' => $occurrenceLocalStart->utc(),
-                        'ends_at' => $occurrenceLocalStart->addMinutes($duration)->utc(),
-                        'status' => EventOccurrenceStatus::Scheduled,
-                    ]);
-                    $this->phases->materializeDefaults($replacement, $currentActor);
-                    $this->polls->materializeDefaults($replacement, $currentActor);
-                    $this->rosters->materializeDefaults($replacement, $currentActor);
-                }
+                $this->reconcileFutureOccurrences($locked, $occurrenceStarts, $duration, $currentActor);
             }
 
             $alliance = $target instanceof Alliance ? $target : null;
@@ -209,6 +187,70 @@ final class UpdateEvent
 
             return $locked->refresh()->load(['eventType', 'typeScope.capabilities', 'occurrences']);
         });
+    }
+
+    /**
+     * Reconcile future occurrence identities instead of cancelling and recreating
+     * rows whose start time is unchanged. Occurrence-local participation, poll,
+     * roster and result state therefore remains attached to the same occurrence.
+     *
+     * @param Collection<int, CarbonImmutable> $occurrenceStarts
+     */
+    private function reconcileFutureOccurrences(
+        Event $event,
+        Collection $occurrenceStarts,
+        int $durationMinutes,
+        Player $actor,
+    ): void {
+        $now = CarbonImmutable::now('UTC');
+        $desiredStarts = $occurrenceStarts
+            ->map(static fn (CarbonImmutable $start): CarbonImmutable => $start->utc())
+            ->filter(static fn (CarbonImmutable $start): bool => ! $start->lessThan($now))
+            ->values();
+
+        $future = EventOccurrence::query()
+            ->where('event_id', $event->id)
+            ->where('starts_at', '>=', $now)
+            ->orderBy('starts_at')
+            ->lockForUpdate()
+            ->get();
+
+        foreach ($future as $existing) {
+            $matchesDesiredStart = $desiredStarts->contains(
+                static fn (CarbonImmutable $start): bool => CarbonImmutable::instance($existing->starts_at)->utc()->equalTo($start),
+            );
+
+            if (! $matchesDesiredStart && $existing->status === EventOccurrenceStatus::Scheduled) {
+                $existing->forceFill([
+                    'status' => EventOccurrenceStatus::Cancelled,
+                ])->save();
+            }
+        }
+
+        foreach ($desiredStarts as $start) {
+            $existing = $future->first(
+                static fn (EventOccurrence $candidate): bool => CarbonImmutable::instance($candidate->starts_at)->utc()->equalTo($start),
+            );
+
+            if ($existing instanceof EventOccurrence) {
+                $existing->forceFill([
+                    'ends_at' => $start->addMinutes($durationMinutes),
+                    'status' => EventOccurrenceStatus::Scheduled,
+                ])->save();
+
+                continue;
+            }
+
+            $replacement = EventOccurrence::query()->create([
+                'event_id' => $event->id,
+                'starts_at' => $start,
+                'ends_at' => $start->addMinutes($durationMinutes),
+                'status' => EventOccurrenceStatus::Scheduled,
+            ]);
+            $this->phases->materializeDefaults($replacement, $actor);
+            $this->polls->materializeDefaults($replacement, $actor);
+            $this->rosters->materializeDefaults($replacement, $actor);
+        }
     }
 
     private function sameInstant(mixed $stored, ?CarbonImmutable $resolved): bool
