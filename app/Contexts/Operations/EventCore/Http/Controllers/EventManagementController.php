@@ -27,8 +27,10 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use LogicException;
 
 final class EventManagementController extends Controller
 {
@@ -72,11 +74,15 @@ final class EventManagementController extends Controller
             'typesByScope' => $typesByScope,
             'templates' => $templates->available($actor)->map(function (EventTemplate $template) use ($targets): array {
                 $target = $targets->forTemplate($template);
+                $eventType = $template->eventType;
+                if (! $eventType instanceof EventType) {
+                    throw new LogicException('Event template must reference an Event type.');
+                }
 
                 return [
                     'id' => (string) $template->id,
                     'name' => (string) $template->name,
-                    'nameKey' => (string) $template->eventType->name_key,
+                    'nameKey' => (string) $eventType->name_key,
                     'scope' => $template->scope->value,
                     'targetId' => (string) $target->id,
                     'targetLabel' => $targets->label($target),
@@ -107,7 +113,7 @@ final class EventManagementController extends Controller
             actor: $actor,
             configuration: $configuration,
             target: $target,
-            firstLocalStart: CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['first_local_start'], $timezone),
+            firstLocalStart: $this->requiredTime((string) $validated['first_local_start'], $timezone, 'first_local_start'),
             title: $validated['title'] ?? null,
             instructions: $validated['instructions'] ?? null,
             durationMinutes: isset($validated['duration_minutes']) ? (int) $validated['duration_minutes'] : null,
@@ -116,7 +122,7 @@ final class EventManagementController extends Controller
             registrationClosesMinutesBefore: isset($validated['registration_closes_minutes_before']) ? (int) $validated['registration_closes_minutes_before'] : null,
             frequency: isset($validated['recurrence_frequency']) ? RecurrenceFrequency::from((string) $validated['recurrence_frequency']) : null,
             recurrenceInterval: isset($validated['recurrence_interval']) ? (int) $validated['recurrence_interval'] : null,
-            recurrenceUntilLocal: isset($validated['recurrence_until_local']) && $validated['recurrence_until_local'] !== null
+            recurrenceUntilLocal: isset($validated['recurrence_until_local'])
                 ? CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['recurrence_until_local'], $timezone)
                 : null,
             publish: (bool) ($validated['publish'] ?? true),
@@ -157,7 +163,7 @@ final class EventManagementController extends Controller
             registrationClosesMinutesBefore: isset($validated['registration_closes_minutes_before']) ? (int) $validated['registration_closes_minutes_before'] : null,
             frequency: isset($validated['recurrence_frequency']) ? RecurrenceFrequency::from((string) $validated['recurrence_frequency']) : null,
             recurrenceInterval: isset($validated['recurrence_interval']) ? (int) $validated['recurrence_interval'] : null,
-            recurrenceUntilLocal: isset($validated['recurrence_until_local']) && $validated['recurrence_until_local'] !== null
+            recurrenceUntilLocal: isset($validated['recurrence_until_local'])
                 ? CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['recurrence_until_local'], $record->timezone)
                 : null,
         );
@@ -240,7 +246,7 @@ final class EventManagementController extends Controller
         $event = $create->handle(
             actor: $actor,
             template: $record,
-            firstLocalStart: CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['first_local_start'], $record->timezone),
+            firstLocalStart: $this->requiredTime((string) $validated['first_local_start'], $record->timezone, 'first_local_start'),
             recurrenceUntilLocal: isset($validated['recurrence_until_local'])
                 ? CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['recurrence_until_local'], $record->timezone)
                 : null,
@@ -276,6 +282,16 @@ final class EventManagementController extends Controller
             'recurrence_until_local' => ['nullable', 'date_format:Y-m-d\\TH:i'],
             'publish' => ['nullable', 'boolean'],
         ]);
+    }
+
+    private function requiredTime(string $value, string $timezone, string $field): CarbonImmutable
+    {
+        $time = CarbonImmutable::createFromFormat('Y-m-d\\TH:i', $value, $timezone);
+        if (! $time instanceof CarbonImmutable) {
+            throw ValidationException::withMessages([$field => 'A valid local date and time is required.']);
+        }
+
+        return $time;
     }
 
     /** @return array{name:string,email:string} */
