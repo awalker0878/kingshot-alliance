@@ -44,6 +44,21 @@ def fix_capability_reflection() -> None:
 """,
     )
 
+    replace(
+        path,
+        """    public function test_actions_services_queries_and_http_classes_expose_public_contracts(): void
+    {
+        foreach ($this->phpFiles() as $file) {
+""",
+        """    public function test_actions_services_queries_and_http_classes_expose_public_contracts(): void
+    {
+        $files = $this->phpFiles();
+        self::assertNotSame([], $files, static::CAPABILITY.' has no implementation surface to inspect for public contracts.');
+
+        foreach ($files as $file) {
+""",
+    )
+
 
 def fix_context_composition_boundary() -> None:
     path = "tests/v2/Architecture/ArchitectureBoundariesV2Test.php"
