@@ -24,7 +24,7 @@ In scope:
 
 Out of scope: score/result recording, automated in-game command execution, Rally participation state, and Event attendance.
 
-## 3. Identity and model
+## 3. Model and state
 
 `EventObjective` belongs to exactly one `EventOccurrence`. A child objective may reference a parent objective only from the same occurrence.
 
@@ -68,7 +68,7 @@ The Event Show workspace renders the full published battle plan. Assignments mat
 
 Managers remove an assignment without deleting the objective. Historical mutation evidence is retained in audit/outbox records even though the current assignment row is removed.
 
-## 6. Authorization and privacy
+## 6. Authorization, tenancy and privacy
 
 Battle-plan writes require the Event's exact manage permission for its Player, Alliance, or Kingdom target. Player Context is validated from `players.user_id` and is used only for actor persona/audit.
 
@@ -78,37 +78,37 @@ Any authenticated User with exact Event view permission may view the battle plan
 
 Events owns `event_objectives` and `event_objective_assignments`.
 
-Objectives are ordered by priority descending, then explicit sort order. Management queries expose eligible Players and occurrence rosters. Show queries derive `myAssignmentIds` for the active Player from both direct Player assignments and current roster memberships, excluding declined/removed roster assignments.
+Objective rows use occurrence-scoped parent foreign keys so hierarchy cannot cross occurrences. Assignment rows enforce exactly-one-target with a database check constraint and use unique indexes for Player and roster assignments.
 
-## 8. Events, integrations and background processing
+Deleting a Player referenced by assignment history is restricted. Deleting an objective cascades its assignment rows because assignments have no meaning without their objective.
 
-Objective and assignment mutations emit audit evidence and scope-aware outbox messages using `player:{id}`, `alliance:{id}`, or `kingdom:{id}` partitioning inherited from the parent Event target.
+## 8. Events
 
-No background worker executes objectives in game.
+The capability is gated by the Event Type `objectives` capability. Battle-plan persistence does not create a second Event lifecycle or a separate public event stream.
+
+Material mutations emit audit/outbox evidence through the Event mutation boundary; consumers must not infer objective state from stale UI payloads.
 
 ## 9. Failure, idempotency and concurrency
 
-- cross-occurrence parent/roster references fail closed;
-- ineligible Player assignment fails closed;
-- hierarchy cycles are rejected;
-- invalid time windows fail closed;
-- duplicate target assignment updates the existing row;
-- objective mutation serializes the occurrence/objective boundary before write;
-- database constraints enforce target cardinality and same-occurrence references.
+Duplicate Player/roster assignment requests resolve against the existing unique target and update the existing assignment. Objective hierarchy and occurrence-target validation are rechecked at the mutation boundary.
+
+Invalid cross-occurrence parents, ineligible Player targets, foreign rosters, malformed timing, or authorization mismatch fail closed before persistence.
 
 ## 10. Operations and observability
 
-Operational diagnosis uses Event ID, occurrence ID, objective ID, parent ID, priority/status, assignment ID, target Player/roster, actor User, actor Player persona, and Event target partition independently.
+Battle-plan mutations record authoritative actor and Event context in audit/outbox evidence. Operators can trace objective and assignment identifiers without logging private instructions or notes.
+
+No background processing is required for battle-plan persistence. External side effects, if later introduced, must follow the transactional outbox pattern rather than run while Event locks are held.
 
 ## 11. Tests and validation
 
-Tests protect hierarchy, cycle rejection, Player eligibility, same-occurrence roster assignment, duplicate-target uniqueness, multi-Player User isolation, active-Player highlighting, database target cardinality, and absence of membership identity in battle-plan persistence.
+Architecture tests validate durable Player identity, exact-one assignment targets, occurrence-scoped hierarchy, and absence of membership identity. Feature tests cover manager mutations, assignment idempotency, authorization, and Player-facing responsibility highlighting.
+
+PostgreSQL constraints remain the final enforcement layer for target exclusivity and occurrence-safe hierarchy.
 
 ## 12. Related documentation
 
-- [Events domain](README.md)
-- [Event rosters](rosters.md)
-- [Event phases and polls](polls-and-phases.md)
-- [Rallies](../rallies/README.md)
-- [Authorization](../authorization/README.md)
-- [Kingdoms / Player identity](../kingdoms/README.md)
+- [Events](README.md)
+- [Event roster operations](rosters.md)
+- [Event rally operations](rallies.md)
+- [Event participation](registration-and-attendance.md)
