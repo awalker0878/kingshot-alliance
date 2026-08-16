@@ -14,6 +14,7 @@ final readonly class AccountIdentity implements AuditActor
         public string $email,
         public bool $emailVerified,
         public bool $multiFactorConfirmed,
+        public bool $anonymized,
     ) {}
 
     public function auditUserId(): int
