@@ -80,7 +80,7 @@ Events owns `event_objectives` and `event_objective_assignments`.
 
 Objectives are ordered by priority descending, then explicit sort order. Management queries expose eligible Players and occurrence rosters. Show queries derive `myAssignmentIds` for the active Player from both direct Player assignments and current roster memberships, excluding declined/removed roster assignments.
 
-## 8. Events
+## 8. Events, integrations and background processing
 
 Objective and assignment mutations emit audit evidence and scope-aware outbox messages using `player:{id}`, `alliance:{id}`, or `kingdom:{id}` partitioning inherited from the parent Event target.
 
