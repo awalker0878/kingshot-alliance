@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Communications\Reminders\Services;
+namespace App\Contexts\Operations\Reminders\Services;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
@@ -99,7 +99,6 @@ final readonly class EventReminderAudienceResolver
     {
         try {
             $this->authorization->authorizeSelf($player, $event, $player);
-
             return true;
         } catch (AuthorizationException) {
             return false;

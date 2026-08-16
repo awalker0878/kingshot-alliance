@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Communications\Reminders\Actions;
+namespace App\Contexts\Operations\KingPerks\Actions;
 
-use App\Contexts\Communications\Reminders\Enums\EventReminderDeliveryStatus;
-use App\Contexts\Communications\Reminders\Models\KingPerkReminderDelivery;
+use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
@@ -22,7 +21,10 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class QueueDueKingPerkReminders
 {
-    public function __construct(private OutboxRecorder $outbox) {}
+    public function __construct(
+        private NotificationDeliveryService $deliveries,
+        private OutboxRecorder $outbox,
+    ) {}
 
     public function handle(int $limit = 100): int
     {
@@ -31,10 +33,7 @@ final readonly class QueueDueKingPerkReminders
         $queued = 0;
 
         $appointments = KingPerkAppointment::query()
-            ->whereIn('status', [
-                KingPerkAppointmentStatus::Scheduled->value,
-                KingPerkAppointmentStatus::Confirmed->value,
-            ])
+            ->whereIn('status', [KingPerkAppointmentStatus::Scheduled->value, KingPerkAppointmentStatus::Confirmed->value])
             ->where('starts_at', '>', $now)
             ->where('starts_at', '<=', $now->addDay())
             ->with(['plan', 'assignedPlayer'])
@@ -198,6 +197,17 @@ final readonly class QueueDueKingPerkReminders
                 }
             }
 
+            $notificationType = 'king_perks.reminder';
+            $channel = 'in_app';
+            if (! $this->deliveries->isEnabled(
+                (int) $currentPlayer->user_id,
+                (string) $currentPlayer->id,
+                $notificationType,
+                $channel,
+            )) {
+                return false;
+            }
+
             $key = hash('sha256', implode(':', [
                 'king-perk-reminder',
                 $kind->value,
@@ -205,18 +215,18 @@ final readonly class QueueDueKingPerkReminders
                 (string) $currentPlayer->id,
             ]));
 
-            $delivery = KingPerkReminderDelivery::query()->firstOrCreate(
-                ['idempotency_key' => $key],
-                [
-                    'plan_id' => $currentPlan->id,
-                    'appointment_id' => $appointment?->id,
-                    'skill_plan_id' => $skill?->id,
-                    'player_id' => $currentPlayer->id,
-                    'recipient_user_id' => $currentPlayer->user_id,
-                    'kind' => $kind,
-                    'due_at' => $dueAt,
-                    'status' => EventReminderDeliveryStatus::Queued,
-                    'queued_at' => now(),
+            $delivery = $this->deliveries->queue(
+                notificationType: $notificationType,
+                recipientUserId: (int) $currentPlayer->user_id,
+                playerId: (string) $currentPlayer->id,
+                channel: $channel,
+                dueAt: $dueAt,
+                idempotencyKey: $key,
+                subjectType: $appointment instanceof KingPerkAppointment ? 'king_perk_appointment' : 'king_skill_plan',
+                subjectId: (string) $source->id,
+                metadata: [
+                    'plan_id' => (string) $currentPlan->id,
+                    'kind' => $kind->value,
                 ],
             );
 
@@ -232,6 +242,7 @@ final readonly class QueueDueKingPerkReminders
                 'kind' => $kind->value,
                 'recipient_user_id' => (int) $currentPlayer->user_id,
                 'player_id' => (string) $currentPlayer->id,
+                'channel' => $channel,
                 'due_at' => $dueAt->toIso8601String(),
                 'origin' => 'system',
             ];

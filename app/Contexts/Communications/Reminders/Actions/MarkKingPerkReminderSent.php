@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Communications\Reminders\Actions;
 
-use App\Contexts\Communications\Reminders\Enums\EventReminderDeliveryStatus;
-use App\Contexts\Communications\Reminders\Models\KingPerkReminderDelivery;
+use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
 use App\Shared\Infrastructure\Messaging\Outbox\Events\OutboxPublished;
 
-final class MarkKingPerkReminderSent
+final readonly class MarkKingPerkReminderSent
 {
+    public function __construct(private NotificationDeliveryService $deliveries) {}
+
     public function handle(OutboxPublished $event): void
     {
         if ($event->eventType !== 'king_perks.reminder.requested') {
@@ -21,12 +22,6 @@ final class MarkKingPerkReminderSent
             return;
         }
 
-        KingPerkReminderDelivery::query()
-            ->whereKey($deliveryId)
-            ->whereIn('status', [EventReminderDeliveryStatus::Pending->value, EventReminderDeliveryStatus::Queued->value])
-            ->update([
-                'status' => EventReminderDeliveryStatus::Sent->value,
-                'sent_at' => now(),
-            ]);
+        $this->deliveries->markSent($deliveryId);
     }
 }

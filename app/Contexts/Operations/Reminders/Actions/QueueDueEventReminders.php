@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Contexts\Communications\Reminders\Actions;
+namespace App\Contexts\Operations\Reminders\Actions;
 
 use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\Communications\Reminders\Enums\EventReminderDeliveryStatus;
-use App\Contexts\Communications\Reminders\Models\EventReminderDelivery;
-use App\Contexts\Communications\Reminders\Services\EventReminderAudienceResolver;
+use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
 use App\Contexts\GameWorld\Models\Player;
 use App\Contexts\Operations\EventCore\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\EventCore\Models\Event;
@@ -17,6 +15,7 @@ use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Models\EventPoll;
 use App\Contexts\Operations\Reminders\Enums\EventReminderTrigger;
 use App\Contexts\Operations\Reminders\Models\EventReminderRule;
+use App\Contexts\Operations\Reminders\Services\EventReminderAudienceResolver;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -27,6 +26,7 @@ final readonly class QueueDueEventReminders
     public function __construct(
         private EventReminderAudienceResolver $audiences,
         private EventTargetResolver $targets,
+        private NotificationDeliveryService $deliveries,
         private OutboxRecorder $outbox,
     ) {}
 
@@ -59,8 +59,6 @@ final readonly class QueueDueEventReminders
                     }
 
                     $created = DB::transaction(function () use ($rule, $occurrence, $player, $now): bool {
-                        // Human reminder mutations acquire Event authority before the rule.
-                        // System delivery follows the same Event -> occurrence/poll -> rule order.
                         $currentEvent = Event::query()
                             ->whereKey($rule->event_id)
                             ->sharedLock()
@@ -115,25 +113,37 @@ final readonly class QueueDueEventReminders
                             return false;
                         }
 
+                        $notificationType = 'event.reminder';
+                        $channel = (string) $currentRule->channel;
+                        if (! $this->deliveries->isEnabled(
+                            (int) $currentPlayer->user_id,
+                            (string) $currentPlayer->id,
+                            $notificationType,
+                            $channel,
+                        )) {
+                            return false;
+                        }
+
                         $key = hash('sha256', implode(':', [
                             'event-reminder',
                             $currentRule->id,
                             $currentOccurrence->id,
                             $currentPlayer->id,
                         ]));
-                        $delivery = EventReminderDelivery::query()->firstOrCreate(
-                            [
-                                'rule_id' => $currentRule->id,
-                                'occurrence_id' => $currentOccurrence->id,
-                                'player_id' => $currentPlayer->id,
-                            ],
-                            [
-                                'recipient_user_id' => $currentPlayer->user_id,
-                                'due_at' => $currentDueAt,
-                                'status' => EventReminderDeliveryStatus::Queued,
-                                'attempts' => 0,
-                                'idempotency_key' => $key,
-                                'queued_at' => now(),
+                        $delivery = $this->deliveries->queue(
+                            notificationType: $notificationType,
+                            recipientUserId: (int) $currentPlayer->user_id,
+                            playerId: (string) $currentPlayer->id,
+                            channel: $channel,
+                            dueAt: $currentDueAt,
+                            idempotencyKey: $key,
+                            subjectType: 'event_occurrence',
+                            subjectId: (string) $currentOccurrence->id,
+                            metadata: [
+                                'event_id' => (string) $currentEvent->id,
+                                'rule_id' => (string) $currentRule->id,
+                                'poll_id' => $currentRule->poll_id,
+                                'trigger_type' => $currentRule->trigger_type->value,
                             ],
                         );
 
@@ -151,7 +161,7 @@ final readonly class QueueDueEventReminders
                             'trigger_type' => $currentRule->trigger_type->value,
                             'recipient_user_id' => (int) $currentPlayer->user_id,
                             'player_id' => (string) $currentPlayer->id,
-                            'channel' => (string) $currentRule->channel,
+                            'channel' => $channel,
                             'due_at' => $currentDueAt->toIso8601String(),
                             'origin' => 'system',
                         ];
@@ -177,11 +187,8 @@ final readonly class QueueDueEventReminders
         return $queued;
     }
 
-    private function dueAt(
-        EventReminderRule $rule,
-        EventOccurrence $occurrence,
-        ?EventPoll $poll,
-    ): ?CarbonImmutable {
+    private function dueAt(EventReminderRule $rule, EventOccurrence $occurrence, ?EventPoll $poll): ?CarbonImmutable
+    {
         if ($rule->trigger_type === EventReminderTrigger::BeforePollClose) {
             if (! $poll instanceof EventPoll
                 || $poll->status !== EventPollStatus::Open
