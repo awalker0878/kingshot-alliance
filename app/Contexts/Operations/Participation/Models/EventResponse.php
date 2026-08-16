@@ -11,7 +11,18 @@ use App\Contexts\Operations\Participation\Enums\EventResponseSource;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property EventResponseChoice $response
+ * @property EventResponseSource $source
+ * @property Carbon|null $available_from
+ * @property Carbon|null $available_until
+ * @property Carbon|null $responded_at
+ * @property-read EventOccurrence $occurrence
+ * @property-read Player $player
+ * @property-read Player|null $respondedByPlayer
+ */
 final class EventResponse extends Model
 {
     use HasUlids;
@@ -37,16 +48,19 @@ final class EventResponse extends Model
         ];
     }
 
+    /** @return BelongsTo<EventOccurrence, $this> */
     public function occurrence(): BelongsTo
     {
         return $this->belongsTo(EventOccurrence::class);
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class);
     }
 
+    /** @return BelongsTo<Player, $this> */
     public function respondedByPlayer(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'responded_by_player_id');
