@@ -18,7 +18,8 @@ final class RosterExperienceTest extends TestCase
 
         foreach ([$roster, $intelligence, $manage, $import, $history] as $source) {
             self::assertStringContainsString('AppLayout', $source);
-            self::assertMatchesRegularExpression('/:?has-active-alliance\s*=\s*"true"/', $source);
+            self::assertStringContainsString(':player-alliance-name="alliance.name"', $source);
+            self::assertStringContainsString(':has-player-alliance="true"', $source);
             self::assertStringNotContainsString('<main', $source);
             self::assertStringContainsString('<h1', $source);
             self::assertStringNotContainsString('role="button"', $source);
@@ -161,17 +162,21 @@ final class RosterExperienceTest extends TestCase
 
     public function test_roster_controllers_only_add_authenticated_shell_identity(): void
     {
-        $roster = $this->read('app/Domain/Kingdoms/Http/Controllers/RosterController.php');
-        $intelligence = $this->read('app/Domain/Kingdoms/Http/Controllers/RosterIntelligenceController.php');
-        $csv = $this->read('app/Domain/Kingdoms/Http/Controllers/RosterCsvController.php');
-        $snapshots = $this->read('app/Domain/Kingdoms/Http/Controllers/PlayerSnapshotController.php');
+        $root = 'app/Contexts/Intelligence/Roster/Http/Controllers/';
+        $roster = $this->read($root.'RosterController.php');
+        $intelligence = $this->read($root.'RosterIntelligenceController.php');
+        $csv = $this->read($root.'RosterCsvController.php');
+        $snapshots = $this->read($root.'PlayerSnapshotController.php');
 
         foreach ([$roster, $intelligence, $csv, $snapshots] as $source) {
             self::assertStringContainsString("'name' => (string) \$user->name", $source);
             self::assertStringContainsString("'email' => (string) \$user->email", $source);
-            self::assertStringContainsString('AlliancePermission::View', $source);
+            self::assertStringContainsString('IntelligencePermission::', $source);
         }
 
+        self::assertStringContainsString('IntelligencePermission::View', $roster);
+        self::assertStringContainsString('IntelligencePermission::View', $intelligence);
+        self::assertStringContainsString('IntelligencePermission::View', $snapshots);
         self::assertStringContainsString("Rule::in(['linked', 'unlinked'])", $roster);
         self::assertStringContainsString("Rule::in(['current', 'stale', 'missing'])", $roster);
         self::assertStringContainsString('IntelligencePermission::KingdomManage', $roster);
