@@ -81,7 +81,10 @@ jobs:
             exit 1
           fi
 
-      - name: Check promoted test formatting
+      - name: Format promoted tests
+        run: vendor/bin/pint tests/Feature/Intelligence/EventAnalysis
+
+      - name: Verify promoted test formatting
         run: vendor/bin/pint --test tests/Feature/Intelligence/EventAnalysis
 
       - name: Verify PostgreSQL schema
