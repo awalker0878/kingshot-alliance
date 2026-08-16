@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Alliance\Core\v2;
 
 use App\Contexts\Accounts\Models\User;
+use App\Contexts\Alliance\Core\Actions\CreateAlliance;
 use App\Contexts\Alliance\Core\ValueObjects\TenantContextSnapshot;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
@@ -72,8 +73,9 @@ final class ActiveAllianceContextV2Test extends TestCase
         $factory = new ScenarioFactory;
         $firstPlayer = $factory->playerFor($user, 4512, 'Alpha', 'game-4512-a')['player'];
         $secondPlayer = $factory->playerFor($user, 4512, 'Bravo', 'game-4512-b')['player'];
-        $first = $factory->allianceForPlayer($firstPlayer, 'First V2', 'first-v2-4512');
-        $second = $factory->allianceForPlayer($secondPlayer, 'Second V2', 'second-v2-4512');
+        $create = app(CreateAlliance::class);
+        $first = $create->handle($firstPlayer, 'First V2', 'first-v2-4512');
+        $second = $create->handle($secondPlayer, 'Second V2', 'second-v2-4512');
         $sessionKey = (string) config('game_world.active_player_session_key');
 
         $this->actingAs($user)
