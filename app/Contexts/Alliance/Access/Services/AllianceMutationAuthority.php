@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Access\Services;
 
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\ValueObjects\AllianceMutationContext;
 use App\Contexts\Alliance\Core\Enums\AllianceStatus;
 use App\Contexts\Alliance\Core\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Access\Contracts\Permission;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -20,37 +20,55 @@ final readonly class AllianceMutationAuthority
     public function __construct(private AlliancePermissionEvaluator $permissions) {}
 
     /**
-     * Acquire authority for an ordinary Alliance mutation.
+     * Acquire authority for an ordinary Alliance-owned mutation.
      *
-     * The Alliance receives a shared row lock so concurrent ordinary mutations can
-     * proceed together while lifecycle changes (suspend/close/delete) wait. The
-     * actor's active membership is locked exclusively because membership status,
-     * rank, and specialist roles are the mutable Alliance-authority record.
+     * Downstream contexts must use acquireActiveScope() and apply their own
+     * permission policy after the current membership has been locked.
      */
     public function require(
         Player $actor,
         Alliance $alliance,
-        Permission $permission,
+        AlliancePermission $permission,
     ): AllianceMutationContext {
-        return $this->acquire($actor, $alliance, $permission, false);
+        $context = $this->acquire($actor, $alliance, false);
+
+        if (! $this->permissions->allows($context->membership, $context->alliance, $permission)) {
+            throw new AuthorizationException;
+        }
+
+        return $context;
     }
 
     /**
-     * Acquire authority for an Alliance-wide invariant such as capacity/quota,
+     * Acquire authority for an Alliance-owned invariant such as capacity/quota,
      * leadership, or a singleton state transition.
      */
     public function requireExclusive(
         Player $actor,
         Alliance $alliance,
-        Permission $permission,
+        AlliancePermission $permission,
     ): AllianceMutationContext {
-        return $this->acquire($actor, $alliance, $permission, true);
+        $context = $this->acquire($actor, $alliance, true);
+
+        if (! $this->permissions->allows($context->membership, $context->alliance, $permission)) {
+            throw new AuthorizationException;
+        }
+
+        return $context;
+    }
+
+    /**
+     * Lock and return the current active Alliance scope without interpreting a
+     * downstream context's permission vocabulary. The caller owns authorization.
+     */
+    public function acquireActiveScope(Player $actor, Alliance $alliance): AllianceMutationContext
+    {
+        return $this->acquire($actor, $alliance, false);
     }
 
     private function acquire(
         Player $actor,
         Alliance $alliance,
-        Permission $permission,
         bool $exclusiveAlliance,
     ): AllianceMutationContext {
         if (DB::transactionLevel() < 1) {
@@ -78,8 +96,7 @@ final readonly class AllianceMutationAuthority
         }
 
         $currentActor = Player::query()->whereKey($membership->player_id)->firstOrFail();
-        if ((string) $currentActor->current_kingdom_id !== (string) $currentAlliance->kingdom_id
-            || ! $this->permissions->allows($membership, $currentAlliance, $permission)) {
+        if ((string) $currentActor->current_kingdom_id !== (string) $currentAlliance->kingdom_id) {
             throw new AuthorizationException;
         }
 
