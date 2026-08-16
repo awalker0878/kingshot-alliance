@@ -33,6 +33,26 @@ jobs:
           path.write_text(pattern.sub(fix, text))
           PY
 
+      - name: Route remaining membership capacity rules
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          for filename in [
+              'app/Contexts/Alliance/Membership/Actions/UpdateMembershipStatus.php',
+              'app/Contexts/Alliance/Membership/Actions/ResendInvitation.php',
+          ]:
+              path = Path(filename)
+              text = path.read_text()
+              text = text.replace(
+                  'App\\Contexts\\Alliance\\Policies\\AllianceCapacityPolicy',
+                  'App\\Contexts\\Alliance\\Membership\\Policies\\MemberCapacityPolicy',
+              )
+              text = text.replace('AllianceCapacityPolicy $entitlements', 'MemberCapacityPolicy $entitlements')
+              text = text.replace('->assertMemberCapacity(', '->assertCapacity(')
+              path.write_text(text)
+          PY
+
       - name: Apply CA-P1 mechanical rewrite
         run: python3 bin/v3_p1_refactor.py
 
