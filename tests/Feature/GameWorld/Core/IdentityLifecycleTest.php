@@ -59,7 +59,7 @@ final class IdentityLifecycleTest extends TestCase
 
     public function test_claiming_a_player_is_idempotent_for_the_owner_and_fails_closed_for_another_account(): void
     {
-        $scenario = (new ScenarioFactory())->claimedPlayer(4203, 'Claimed Player', 'game-4203-1');
+        $scenario = (new ScenarioFactory)->claimedPlayer(4203, 'Claimed Player', 'game-4203-1');
         $claim = app(ClaimPlayerAccount::class);
 
         $same = $claim->handle($scenario['player'], $scenario['user']);
