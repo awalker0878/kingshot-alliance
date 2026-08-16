@@ -8,10 +8,13 @@ on:
       - 'bootstrap/**'
       - 'config/**'
       - 'database/**'
+      - 'docs/**'
       - 'routes/**'
       - 'resources/js/**'
       - 'scripts/**'
       - 'tests/v2/**'
+      - 'README.md'
+      - 'CONTRIBUTING.md'
       - 'phpunit.xml'
       - 'playwright.config.ts'
       - 'package.json'
@@ -87,6 +90,9 @@ jobs:
           test -d tests/v2/Support
           test -d tests/v2/Visual
           test -d tests/v2/Workflows
+          test -d app/Contexts/Alliance/Policies
+          test -d app/Contexts/Operations/Access
+          test -d app/Contexts/Intelligence/Access
           test -d app/Contexts/Communications/Reminders
           test -d app/Contexts/Platform/Integrations
           test -d app/Shared/Infrastructure/AuditTrail
@@ -103,6 +109,12 @@ jobs:
 
           old_shared_matches=$(grep -R -n -E --include='*.php' 'App\\Shared\\(Audit|Messaging)\\' app routes bootstrap config database tests/v2 2>/dev/null || true)
           test -z "$old_shared_matches" || { echo "$old_shared_matches"; exit 1; }
+
+          compatibility_paths=$(find app -type d \( -iname 'legacy' -o -iname 'compat' -o -iname 'compatibility' -o -iname 'shim' -o -iname 'legacy*' -o -iname 'compat*' -o -iname 'shim*' \) -print)
+          test -z "$compatibility_paths" || { echo "$compatibility_paths"; exit 1; }
+
+          alias_matches=$(grep -R -n --include='*.php' 'class_alias(' app routes bootstrap config database 2>/dev/null || true)
+          test -z "$alias_matches" || { echo "$alias_matches"; exit 1; }
 
           bad=$(find tests/v2 -type f -name '*Test.php' ! -name '*V2Test.php' ! -path 'tests/v2/TestCase.php' ! -path 'tests/v2/Support/*' -print)
           test -z "$bad" || { echo "$bad"; exit 1; }
