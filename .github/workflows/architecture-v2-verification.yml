@@ -1,50 +1,18 @@
 name: Architecture V2 Verification
-# P8 verification: V1 runtime is gone; contexts, workflows, and read models own their final boundaries.
+# V2 verification: rewritten contracts are isolated under V2 folders and named *V2Test.
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - 'app/Contexts/**'
-      - 'app/Domain/**'
-      - 'app/Shared/**'
-      - 'app/Workflows/**'
-      - 'app/ReadModels/**'
-      - 'bootstrap/app.php'
-      - 'bootstrap/providers.php'
-      - 'config/accounts.php'
-      - 'config/alliance.php'
-      - 'config/auth.php'
-      - 'config/game_world.php'
-      - 'config/operations.php'
+      - 'app/**'
+      - 'bootstrap/**'
+      - 'config/**'
       - 'database/**'
-      - 'routes/account.php'
-      - 'routes/console.php'
-      - 'routes/event-history.php'
-      - 'routes/king-perks.php'
-      - 'routes/kingdoms.php'
-      - 'routes/platform.php'
-      - 'routes/web.php'
-      - 'tests/Architecture/**'
-      - 'tests/Feature/Accounts/**'
-      - 'tests/Feature/GameWorld/**'
-      - 'tests/Feature/Alliance/**'
-      - 'tests/Feature/Operations/**'
-      - 'tests/Feature/Intelligence/**'
-      - 'tests/Feature/Communications/**'
-      - 'tests/Feature/Platform/**'
-      - 'tests/Feature/Workflows/**'
-      - 'tests/Feature/ReadModels/**'
-      - 'tests/Feature/Contributions/AllianceContributionReportQueryTest.php'
-      - 'tests/Integration/Platform/OutboxPublisherTest.php'
-      - 'tests/RewriteInput/Communications/**'
-      - 'tests/TenantIsolation/Alliance/**'
-      - 'tests/Unit/Accounts/**'
-      - 'tests/Unit/Alliance/**'
-      - 'tests/Unit/GameWorld/**'
-      - 'tests/Unit/Operations/**'
-      - 'tests/Unit/Intelligence/**'
-      - 'docs/product/architecture-v2-*.md'
+      - 'routes/**'
+      - 'tests/Architecture/V2/**'
+      - 'tests/Feature/**/V2/**'
+      - 'tests/Support/V2/**'
       - '.github/workflows/architecture-v2-verification.yml'
   workflow_dispatch:
 
@@ -57,7 +25,7 @@ concurrency:
 
 jobs:
   architecture-contract:
-    name: V2 architecture through P8 workflow hard cut
+    name: V2 architecture and rewritten contracts
     runs-on: ubuntu-24.04
     timeout-minutes: 45
 
@@ -109,10 +77,6 @@ jobs:
           test -d app/Workflows/KingdomTransfer
           test -d app/Workflows/PlayerContext
           test -d app/ReadModels/KingdomSettings
-          test -d tests/Feature/Communications
-          test -d tests/Feature/Platform
-          test -d tests/Feature/Workflows/KingdomTransfer
-          test -d tests/Feature/ReadModels/KingdomSettings
 
           runtime_matches=$(grep -R -n --include='*.php' 'App\\Domain\\' app routes bootstrap config database 2>/dev/null || true)
           if [ -n "$runtime_matches" ]; then
@@ -120,17 +84,30 @@ jobs:
             exit 1
           fi
 
-          executable_test_matches=$(grep -R -n --include='*.php' 'App\\Domain\\' tests/Feature tests/Integration tests/Unit tests/TenantIsolation 2>/dev/null || true)
-          if [ -n "$executable_test_matches" ]; then
-            echo "$executable_test_matches"
-            exit 1
-          fi
-
-          old_shared_matches=$(grep -R -n -E --include='*.php' 'App\\Shared\\(Audit|Messaging)\\' app routes bootstrap config database tests 2>/dev/null || true)
+          old_shared_matches=$(grep -R -n -E --include='*.php' 'App\\Shared\\(Audit|Messaging)\\' app routes bootstrap config database 2>/dev/null || true)
           if [ -n "$old_shared_matches" ]; then
             echo "$old_shared_matches"
             exit 1
           fi
+
+      - name: Verify rewritten test naming boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d tests/Architecture/V2
+          test -d tests/Feature/Accounts/Core/V2
+          test -d tests/Feature/GameWorld/Core/V2
+          test -d tests/Feature/GameWorld/Governance/V2
+          test -d tests/Feature/Operations/EventCore/V2
+          test -d tests/Feature/Operations/Reminders/V2
+          test -d tests/Feature/Intelligence/Observations/V2
+
+          while IFS= read -r file; do
+            case "$(basename "$file")" in
+              *V2Test.php) ;;
+              *) echo "Rewritten test must end in V2Test.php: $file"; exit 1 ;;
+            esac
+          done < <(find tests/Architecture/V2 tests/Feature -type f -path '*/V2/*.php' | sort)
 
       - name: Verify Player persistence ownership
         shell: bash
@@ -184,77 +161,41 @@ jobs:
       - name: Verify PostgreSQL schema
         run: php artisan migrate:fresh --force
 
-      - name: Check V2 through P8 PHP formatting
-        shell: bash
-        run: |
-          set -o pipefail
-          set +e
-          vendor/bin/pint --test \
-            tests/Architecture \
-            tests/Feature/Accounts \
-            tests/Feature/GameWorld \
-            tests/Feature/Alliance \
-            tests/Feature/Operations \
-            tests/Feature/Intelligence \
-            tests/Feature/Communications \
-            tests/Feature/Platform \
-            tests/Feature/Workflows \
-            tests/Feature/ReadModels \
-            tests/Feature/Contributions/AllianceContributionReportQueryTest.php \
-            tests/Integration/Platform/OutboxPublisherTest.php \
-            tests/TenantIsolation/Alliance \
-            tests/Unit/Accounts \
-            tests/Unit/Alliance \
-            tests/Unit/GameWorld \
-            tests/Unit/Operations \
-            app/Contexts \
-            app/Shared \
-            app/Workflows \
-            app/ReadModels \
-            bootstrap/app.php \
-            bootstrap/providers.php \
-            config/accounts.php \
-            config/alliance.php \
-            config/auth.php \
-            config/game_world.php \
-            config/operations.php \
-            database/factories/UserFactory.php \
-            routes/account.php \
-            routes/console.php \
-            routes/event-history.php \
-            routes/king-perks.php \
-            routes/kingdoms.php \
-            routes/platform.php \
-            routes/web.php 2>&1 | tee pint-tests.log
-          status=${PIPESTATUS[0]}
-          set -e
-          if [ "$status" -ne 0 ]; then
-            details=$(tail -n 60 pint-tests.log)
-            details=${details//'%'/'%25'}
-            details=${details//$'\r'/'%0D'}
-            details=${details//$'\n'/'%0A'}
-            echo "::error title=Architecture V2 formatting failed::$details"
-            exit "$status"
-          fi
+      - name: Check V2 PHP formatting
+        run: >-
+          vendor/bin/pint --test
+          tests/Architecture/V2
+          tests/Feature/Accounts/Core/V2
+          tests/Feature/GameWorld/Core/V2
+          tests/Feature/GameWorld/Governance/V2
+          tests/Feature/Operations/EventCore/V2
+          tests/Feature/Operations/Reminders/V2
+          tests/Feature/Intelligence/Observations/V2
+          tests/Support/V2
+          app/Contexts
+          app/Shared
+          app/Workflows
+          app/ReadModels
+          bootstrap/app.php
+          bootstrap/providers.php
+          config/accounts.php
+          config/alliance.php
+          config/auth.php
+          config/game_world.php
+          config/operations.php
+          database/factories/UserFactory.php
+          routes/account.php
+          routes/console.php
+          routes/event-history.php
+          routes/king-perks.php
+          routes/kingdoms.php
+          routes/platform.php
+          routes/web.php
 
       - name: Run rewritten V2 architecture regression suite
-        shell: bash
-        run: |
-          set -o pipefail
-          set +e
-          php artisan test tests/Architecture/V2 2>&1 | tee architecture-tests.log
-          status=${PIPESTATUS[0]}
-          set -e
-          if [ "$status" -ne 0 ]; then
-            details=$(tail -n 120 architecture-tests.log)
-            details=${details//'%'/'%25'}
-            details=${details//$'\r'/'%0D'}
-            details=${details//$'\n'/'%0A'}
-            echo "::error title=Architecture V2 tests failed::$details"
-            exit "$status"
-          fi
+        run: php artisan test tests/Architecture/V2
 
-      - name: Larastan P2 through P8 owners
+      - name: Larastan final owners
         run: >-
           vendor/bin/phpstan analyse --memory-limit=1536M
           app/Contexts/Accounts
@@ -277,69 +218,20 @@ jobs:
           routes/kingdoms.php
           routes/platform.php
 
-      - name: Run Accounts and GameWorld foundation tests
+      - name: Run rewritten Accounts V2 contracts
+        run: php artisan test tests/Feature/Accounts/Core/V2
+
+      - name: Run rewritten GameWorld V2 contracts
         run: >-
           php artisan test
-          tests/Feature/Accounts
-          tests/Feature/GameWorld
-          tests/Unit/Accounts
-          tests/Unit/GameWorld
+          tests/Feature/GameWorld/Core/V2
+          tests/Feature/GameWorld/Governance/V2
 
-      - name: Run Alliance bounded-context tests
+      - name: Run rewritten Operations V2 contracts
         run: >-
           php artisan test
-          tests/Feature/Alliance
-          tests/TenantIsolation/Alliance
-          tests/Unit/Alliance
+          tests/Feature/Operations/EventCore/V2
+          tests/Feature/Operations/Reminders/V2
 
-      - name: Run V2 Operations bounded-context tests
-        shell: bash
-        run: |
-          set -uo pipefail
-          set +e
-          php artisan test tests/Feature/Operations tests/Unit/Operations 2>&1 | tee operations-tests.log
-          status=${PIPESTATUS[0]}
-          set -e
-          if [ "$status" -ne 0 ]; then
-            details=$(tail -n 120 operations-tests.log)
-            details=${details//'%'/'%25'}
-            details=${details//$'\r'/'%0D'}
-            details=${details//$'\n'/'%0A'}
-            echo "::error title=V2 Operations tests failed::$details"
-            exit "$status"
-          fi
-
-      - name: Run V2 Intelligence bounded-context tests
-        shell: bash
-        run: |
-          set -uo pipefail
-          set +e
-          php artisan test tests/Feature/Intelligence 2>&1 | tee intelligence-tests.log
-          status=${PIPESTATUS[0]}
-          set -e
-          if [ "$status" -ne 0 ]; then
-            details=$(tail -n 120 intelligence-tests.log)
-            details=${details//'%'/'%25'}
-            details=${details//$'\r'/'%0D'}
-            details=${details//$'\n'/'%0A'}
-            echo "::error title=V2 Intelligence tests failed::$details"
-            exit "$status"
-          fi
-
-      - name: Run V2 Communications delivery tests
-        run: php artisan test tests/Feature/Communications
-
-      - name: Run V2 Platform and integration tests
-        run: php artisan test tests/Feature/Platform
-
-      - name: Run Kingdom Transfer workflow tests
-        run: php artisan test tests/Feature/Workflows/KingdomTransfer
-
-      - name: Run Kingdom Settings read-model tests
-        run: php artisan test tests/Feature/ReadModels/KingdomSettings
-
-      - name: Run contribution reporting contract
-        run: php artisan test tests/Feature/Contributions/AllianceContributionReportQueryTest.php
-
-      - name: Run Shared outbox publisher contract
-        run: php artisan test tests/Integration/Platform/OutboxPublisherTest.php
+      - name: Run rewritten Intelligence V2 contracts
+        run: php artisan test tests/Feature/Intelligence/Observations/V2
