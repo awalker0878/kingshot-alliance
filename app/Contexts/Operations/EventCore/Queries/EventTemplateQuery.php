@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\EventCore\Queries;
 
 use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Operations\EventCore\Enums\EventScope;
 use App\Contexts\Operations\EventCore\Models\EventTemplate;
 use App\Contexts\Operations\EventCore\Services\EventCreationContextResolver;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,13 +28,14 @@ final class EventTemplateQuery
             ->where(function (Builder $query) use ($contexts): void {
                 $first = true;
                 foreach ($contexts as $context) {
+                    $scope = EventScope::from((string) $context['scope']);
                     $method = $first ? 'where' : 'orWhere';
-                    $query->{$method}(function (Builder $scopeQuery) use ($context): void {
-                        $scopeQuery->where('scope', $context['scope']);
-                        $column = match ($context['scope']) {
-                            'player' => 'player_id',
-                            'alliance' => 'alliance_id',
-                            'kingdom' => 'kingdom_id',
+                    $query->{$method}(function (Builder $scopeQuery) use ($context, $scope): void {
+                        $scopeQuery->where('scope', $scope->value);
+                        $column = match ($scope) {
+                            EventScope::Player => 'player_id',
+                            EventScope::Alliance => 'alliance_id',
+                            EventScope::Kingdom => 'kingdom_id',
                         };
                         $scopeQuery->where($column, $context['targetId']);
                     });
