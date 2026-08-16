@@ -3,19 +3,13 @@
 Status: Current  
 Implementation: `app/Contexts/Platform`
 
-## Purpose
-
 Platform owns cross-tenant SaaS/application administration rather than in-game authority.
 
-## Owns
+## Capabilities
 
-- Platform Administrator grants/access;
-- Alliance platform lifecycle/entitlement controls;
-- feature/platform configuration orchestration;
-- retention and account-deletion orchestration owned at the platform layer;
-- Event-type administration over Operations configuration;
-- API credentials and webhook administration/delivery coordination;
-- hosted runtime validation and platform health/operational entry points.
+- [Administration and lifecycle](administration-and-lifecycle.md)
+- [Event administration](event-administration.md)
+- [API and webhook integrations](integrations.md)
 
 ## Authority boundary
 

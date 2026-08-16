@@ -3,20 +3,16 @@
 Status: Current  
 Implementation: `app/Contexts/Intelligence`
 
-## Purpose
-
 Intelligence owns observational, historical and analytical state derived from game/alliance activity. It does not duplicate neutral GameWorld identity as writable identity state.
 
 ## Capabilities
 
-- `Observations` — captured Player/Alliance/game observations;
-- `Ingestion` — intake, normalization and reconciliation;
-- `Roster` — roster intelligence;
-- `Contributions` — contribution ledger and reporting facts;
-- `EventAnalysis` — analytical Event history/metrics/trends;
-- `Diplomacy` — relationship/diplomacy analysis;
-- `Sharing` — shared intelligence/grants/history;
-- `Access` — Intelligence-owned authorization semantics.
+- [Observations and ingestion](observations-and-ingestion.md)
+- [Roster and contributions](roster-and-contributions.md)
+- [Event analysis](event-analysis.md)
+- [Diplomacy and sharing](diplomacy-and-sharing.md)
+
+`Access` owns Intelligence-specific authorization semantics.
 
 ## Boundary
 

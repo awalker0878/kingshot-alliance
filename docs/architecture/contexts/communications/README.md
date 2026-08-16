@@ -3,23 +3,12 @@
 Status: Current  
 Implementation: `app/Contexts/Communications`
 
-## Purpose
-
 Communications owns delivery coordination rather than the business fact that caused a message.
 
-## Owns
+## Capabilities
 
-- reminder/notification delivery state;
-- recipient delivery preferences where implemented;
-- channel behavior;
-- delivery retry and idempotency;
-- delivery diagnostics appropriate for operational use.
+- [Reminder and notification delivery](reminder-delivery.md)
 
-## Does not own
+## Boundary
 
-- Event schedules or reminder policy;
-- King Perks appointment timing;
-- Alliance/Kingdom business decisions;
-- source-context state.
-
-Operations may decide that a reminder is due. Communications decides how that reminder is delivered and retried.
+Operations owns Event reminder policy/timing. Other source contexts own the facts that trigger their communications. Communications owns delivery attempts/preferences/channel/retry behavior and does not mutate the source aggregate.

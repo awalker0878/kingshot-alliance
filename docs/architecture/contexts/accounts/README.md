@@ -3,26 +3,14 @@
 Status: Current  
 Implementation: `app/Contexts/Accounts`
 
-## Purpose
+Accounts owns global account identity and security. It answers **which account is operating the application**, not which game persona has authority.
 
-Accounts owns global account identity and account security. It answers **who is operating the application**, not which game persona currently has authority.
+## Capabilities
 
-## Owns
+- [Account security](account-security.md) — registration, authentication, verification, profile, password, MFA/TOTP and recovery.
 
-- User account identity;
-- registration and authentication;
-- sessions;
-- profile and verified email state;
-- password reset/change;
-- MFA/TOTP and recovery.
+## Boundary
 
-## Does not own
+Accounts owns `User` identity. It does not own Player game state, Alliance membership/rank, Kingdom roles or Operations/Intelligence permissions. After authentication, game-domain requests resolve an active Player through GameWorld/PlayerContext behavior.
 
-- Player game identity or current Kingdom;
-- Alliance membership/rank/specialist roles;
-- Kingdom/game permissions;
-- Platform administration policy beyond exposing the authenticated User identity.
-
-## Key invariant
-
-Authentication establishes a User. Game behavior must then resolve an active Player before Player-scoped authority is evaluated.
+Platform Administrator is a User-scoped Platform grant, not an Accounts/game permission.
