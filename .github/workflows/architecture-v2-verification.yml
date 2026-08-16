@@ -2,7 +2,7 @@ name: Architecture V2 Verification
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, '2.1']
     paths:
       - 'app/**'
       - 'bootstrap/**'
@@ -69,7 +69,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
-      - name: Verify final V2 hard cut
+      - name: Verify canonical V2 source shape
         shell: bash
         run: |
           set -euo pipefail
@@ -90,19 +90,34 @@ jobs:
           test -d tests/v2/Support
           test -d tests/v2/Visual
           test -d tests/v2/Workflows
-          test -d app/Contexts/Alliance/Policies
+          test -d app/Contexts/Alliance/Access
           test -d app/Contexts/Operations/Access
           test -d app/Contexts/Intelligence/Access
-          test -d app/Contexts/Communications/Reminders
+          test -d app/Contexts/Communications/Delivery
           test -d app/Contexts/Platform/Integrations
           test -d app/Shared/Infrastructure/AuditTrail
           test -d app/Shared/Infrastructure/Messaging/Outbox
-          test -d app/Workflows/KingdomTransfer
+          test -d app/Contexts/GameWorld/KingdomTransfers
           test -d app/Workflows/PlayerContext
           test -d app/ReadModels/KingdomSettings
+          test ! -d app/Workflows/KingdomTransfer
+          test ! -d tests/v2/Workflows/KingdomTransfer
+          test ! -d app/Contexts/Operations/Reminders
+          test ! -d tests/v2/Contexts/Operations/Reminders
+          test ! -e tests/v2/Architecture/CapabilityCoverageV2Test.php
+          test ! -e docs/architecture/decisions/0004-transactional-mutation-authority.md
+          test -e docs/architecture/decisions/0004-transactional-write-authorization.md
           test ! -e .github/scripts/arch_v2_clean_room_tests.py
           test ! -e .github/scripts/arch_v2_clean_room_test_fixups.py
           test ! -e .github/workflows/architecture-v2-clean-room-tests.yml
+
+          expected_contexts='Accounts Alliance Communications GameWorld Intelligence Operations Platform'
+          actual_contexts="$(find app/Contexts -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | tr '\n' ' ' | sed 's/ $//')"
+          [ "$actual_contexts" = "$expected_contexts" ] || { echo "Unexpected business contexts: $actual_contexts"; exit 1; }
+
+          expected_operations='Access BattlePlans EventCore KingPerks Participation Polls Rallies Results Rosters'
+          actual_operations="$(find app/Contexts/Operations -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | tr '\n' ' ' | sed 's/ $//')"
+          [ "$actual_operations" = "$expected_operations" ] || { echo "Unexpected Operations capabilities: $actual_operations"; exit 1; }
 
           runtime_matches=$(grep -R -n --include='*.php' 'App\\Domain\\' app routes bootstrap config database tests/v2 2>/dev/null || true)
           test -z "$runtime_matches" || { echo "$runtime_matches"; exit 1; }
@@ -123,37 +138,141 @@ jobs:
           ! grep -q 'tests/Feature' phpunit.xml
           grep -q "testDir: './tests/v2/Visual'" playwright.config.ts
 
-      - name: Verify Player persistence ownership
+      - name: Verify Player and Kingdom ownership boundaries
         shell: bash
         run: |
           set -euo pipefail
-          grep -R -n --include='*.php' 'PersistPlayerIdentity' app/Contexts/Intelligence/Roster app/Workflows/KingdomTransfer >/dev/null
-          grep -R -n --include='*.php' 'ClaimPlayerAccount' app/Contexts/Alliance/Membership >/dev/null
-          if grep -R -n --include='*.php' 'Player::query()->create(' app/Contexts/Intelligence app/Workflows/KingdomTransfer; then
+          player='app/Contexts/GameWorld/Models/Player.php'
+          test -f "$player"
+          grep -q 'user_id' "$player"
+          if grep -n -E 'App\\Contexts\\Accounts\\Models\\User|belongsTo\(User::class|function[[:space:]]+user[[:space:]]*\(' "$player"; then
+            echo 'GameWorld Player must not navigate into Accounts.'
+            exit 1
+          fi
+          test -f app/Contexts/GameWorld/Governance/Http/Controllers/KingdomRoleController.php
+          test ! -e app/Contexts/Alliance/Access/Http/Controllers/KingdomRoleController.php
+
+      - name: Verify transactional write ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          if find app -type f -name '*MutationAuthority.php' | grep -q .; then
+            echo 'MutationAuthority files remain:'
+            find app -type f -name '*MutationAuthority.php'
+            exit 1
+          fi
+          if grep -R -n -E 'MutationAuthority' app routes bootstrap --include='*.php'; then
+            echo 'MutationAuthority references remain.'
             exit 1
           fi
 
-      - name: Verify Kingdom Transfer authorization ownership
+          python3 - <<'PY'
+          from pathlib import Path
+
+          authorization_files = sorted(Path('app/Contexts').rglob('*Authorization.php'))
+          assert authorization_files, 'No context authorization services found.'
+          forbidden = ('lockForUpdate', 'sharedLock', 'transactionLevel', 'DB::transaction', 'WriteState', 'MutationAuthority')
+          for path in authorization_files:
+              source = path.read_text()
+              for needle in forbidden:
+                  assert needle not in source, f'{path} contains transactional/write-state concern: {needle}'
+
+          write_states = [
+              Path('app/Contexts/Alliance/Access/Services/AllianceWriteState.php'),
+              Path('app/Contexts/GameWorld/Governance/Services/KingdomWriteState.php'),
+              Path('app/Contexts/GameWorld/Governance/Services/PlayerWriteState.php'),
+              Path('app/Contexts/Operations/EventCore/Services/EventWriteState.php'),
+              Path('app/Contexts/Platform/Access/Services/PlatformWriteState.php'),
+          ]
+          for path in write_states:
+              assert path.is_file(), f'Missing write-state service: {path}'
+              source = path.read_text()
+              assert 'transactionLevel' in source, f'{path} must require an owning transaction.'
+              assert 'lockForUpdate' in source, f'{path} must stabilize mutable state.'
+              assert 'Permission::' not in source, f'{path} must not interpret permission vocabulary.'
+              assert 'MutationAuthority' not in source, f'{path} must not recreate the removed abstraction.'
+          PY
+
+          for owner in \
+            app/Contexts/Alliance/Core/Actions/CreateAlliance.php \
+            app/Contexts/Alliance/Membership/Actions/TransferAllianceLeadership.php \
+            app/Contexts/GameWorld/Governance/Actions/AssignKingdomRole.php \
+            app/Contexts/Operations/EventCore/Actions/CreateEvent.php \
+            app/Contexts/Operations/KingPerks/Services/KingPerkScheduler.php \
+            app/Contexts/GameWorld/KingdomTransfers/Actions/TransitionTransferPlan.php; do
+            grep -q 'DB::transaction' "$owner" || { echo "$owner does not own its transaction boundary"; exit 1; }
+          done
+
+          http_writes=$(grep -R -n --include='*.php' -E '(DB::(insert|update|delete|statement|transaction)|->(save|delete|update|insert|create)\()' app/Contexts/*/*/Http app/Contexts/*/Http app/Workflows/*/Http 2>/dev/null || true)
+          test -z "$http_writes" || { echo "$http_writes"; echo 'HTTP adapters must not own writes.'; exit 1; }
+
+      - name: Verify Communications and reminder ownership
         shell: bash
         run: |
           set -euo pipefail
-          test -f app/Workflows/KingdomTransfer/Access/Enums/TransferPermission.php
-          test -f app/Workflows/KingdomTransfer/Access/Services/TransferAuthorization.php
-          test -f app/Workflows/KingdomTransfer/Access/Services/TransferMutationAuthority.php
-          grep -R -n --include='*.php' 'TransferPermission::Manage' app/Workflows/KingdomTransfer >/dev/null
-          if grep -R -n --include='*.php' 'App\\Contexts\\Intelligence\\Access\\' app/Workflows/KingdomTransfer; then
+          test -f app/Contexts/Communications/Delivery/Models/NotificationDelivery.php
+          test -f app/Contexts/Communications/Delivery/Models/NotificationPreference.php
+          test -f app/Contexts/Communications/Delivery/Services/NotificationDeliveryService.php
+          test -f app/Contexts/Operations/Participation/Reminders/Actions/QueueDueEventReminders.php
+          test -f app/Contexts/Operations/KingPerks/Actions/QueueDueKingPerkReminders.php
+          test -f tests/v2/Contexts/Operations/Participation/Reminders/CapabilitySurfaceV2Test.php
+
+          if grep -R -n -E 'App\\Contexts\\(Operations|Alliance|GameWorld)\\' app/Contexts/Communications --include='*.php'; then
+            echo 'Communications imports a business-owning context.'
             exit 1
           fi
-          if grep -R -n --include='*.php' 'IntelligencePermission::KingdomManage' app/Workflows/KingdomTransfer; then
+          if grep -R -n --include='*.php' -E 'EventReminderDelivery|KingPerkReminderDelivery|ReminderDeliveryStatus' app tests/v2; then
+            echo 'Legacy business-specific reminder delivery types remain.'
+            exit 1
+          fi
+          if grep -R -n --include='*.php' -E "Schema::create\('(event_reminder_deliveries|king_perk_reminder_deliveries)'" database/migrations; then
+            echo 'Fresh schema still creates legacy reminder delivery tables.'
             exit 1
           fi
 
-      - name: Verify downstream contexts own Alliance authorization interpretation
+      - name: Verify Kingdom Transfer ownership
         shell: bash
         run: |
           set -euo pipefail
-          matches=$(grep -R -n --include='*.php' -E 'App\\Contexts\\Alliance\\Access\\Services\\Alliance(Authorization|MutationAuthority)' app/Contexts/Operations app/Contexts/Intelligence 2>/dev/null | grep -v '/Access/Services/' || true)
-          test -z "$matches" || { echo "$matches"; exit 1; }
+          test -f app/Contexts/GameWorld/KingdomTransfers/Access/Enums/TransferPermission.php
+          test -f app/Contexts/GameWorld/KingdomTransfers/Access/Services/TransferAuthorization.php
+          test -f tests/v2/Contexts/GameWorld/KingdomTransfers/CapabilitySurfaceV2Test.php
+          grep -R -n --include='*.php' 'TransferPermission::Manage' app/Contexts/GameWorld/KingdomTransfers >/dev/null
+          if grep -R -n --include='*.php' 'App\\Contexts\\Intelligence\\Access\\' app/Contexts/GameWorld/KingdomTransfers; then
+            echo 'Kingdom Transfer must not depend on Intelligence authorization.'
+            exit 1
+          fi
+          if grep -R -n --include='*.php' 'IntelligencePermission::KingdomManage' app/Contexts/GameWorld/KingdomTransfers; then
+            echo 'Kingdom Transfer must own its permission vocabulary.'
+            exit 1
+          fi
+
+      - name: Verify Workflows and ReadModels are composition-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          workflow_owners=$(find app/Workflows -type f \( -path '*/Models/*' -o -path '*/Migrations/*' -o -path '*/Repositories/*' -o -path '*/Access/*' \) -print)
+          test -z "$workflow_owners" || { echo "$workflow_owners"; exit 1; }
+          workflow_persistence=$(grep -R -n --include='*.php' -E 'extends Model|Schema::' app/Workflows 2>/dev/null || true)
+          test -z "$workflow_persistence" || { echo "$workflow_persistence"; exit 1; }
+          context_to_workflow=$(grep -R -n --include='*.php' 'App\\Workflows\\' app/Contexts 2>/dev/null || true)
+          test -z "$context_to_workflow" || { echo "$context_to_workflow"; exit 1; }
+
+          read_model_writes=$(grep -R -n --include='*.php' -E '(DB::(insert|update|delete|statement|transaction)|->(save|delete|update|insert|create)\()' app/ReadModels 2>/dev/null || true)
+          test -z "$read_model_writes" || { echo "$read_model_writes"; echo 'ReadModels must remain read-only.'; exit 1; }
+
+      - name: Verify architecture governance is current
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -R -n -i -E 'capability coverage|capability-coverage|mutation authority' docs --include='*.md'; then
+            echo 'Superseded architecture governance vocabulary remains.'
+            exit 1
+          fi
+          test -f docs/governance/architecture-compliance.md
+          test -f tests/v2/Architecture/ArchitectureComplianceV2Test.php
+          test -f tests/v2/Architecture/ArchitectureBoundariesV2Test.php
+          test -f tests/v2/Architecture/MutationSafetyV2Test.php
 
       - name: Create test environment file
         run: touch .env
