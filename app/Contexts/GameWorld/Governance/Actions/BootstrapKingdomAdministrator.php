@@ -37,21 +37,38 @@ final readonly class BootstrapKingdomAdministrator
                 ]);
             }
 
-            $administratorExists = KingdomRoleAssignment::query()
-                ->where('kingdom_id', $lockedKingdom->id)
-                ->whereHas('role', static fn ($query) => $query->where('key', DefaultKingdomRole::Administrator->value))
-                ->exists();
-
-            if ($administratorExists) {
-                throw ValidationException::withMessages([
-                    'kingdom' => 'This Kingdom already has an administrator. Use Player-authorized Kingdom role management.',
-                ]);
-            }
-
             $roles = $this->provisioner->provision($lockedKingdom);
             $administrator = $roles[DefaultKingdomRole::Administrator->value] ?? null;
-            if (! $administrator instanceof KingdomRole) {
-                throw new RuntimeException('The Kingdom Administrator role was not provisioned.');
+            $eventCoordinator = $roles[DefaultKingdomRole::EventCoordinator->value] ?? null;
+            $viewer = $roles[DefaultKingdomRole::Viewer->value] ?? null;
+
+            if (! $administrator instanceof KingdomRole || ! $eventCoordinator instanceof KingdomRole || ! $viewer instanceof KingdomRole) {
+                throw new RuntimeException('The default Kingdom roles were not provisioned.');
+            }
+
+            $existingAssignment = KingdomRoleAssignment::query()
+                ->where('kingdom_id', $lockedKingdom->id)
+                ->where('kingdom_role_id', $administrator->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingAssignment instanceof KingdomRoleAssignment) {
+                if ((string) $existingAssignment->player_id !== (string) $lockedTarget->id) {
+                    throw ValidationException::withMessages([
+                        'kingdom' => 'This Kingdom already has an administrator. Use Player-authorized Kingdom role management.',
+                    ]);
+                }
+
+                return new KingdomAdministratorBootstrap(
+                    assignmentId: (string) $existingAssignment->id,
+                    kingdomId: (string) $lockedKingdom->id,
+                    kingdomNumber: (int) $lockedKingdom->number,
+                    playerId: (string) $lockedTarget->id,
+                    roleKey: DefaultKingdomRole::Administrator->value,
+                    administratorRoleId: (string) $administrator->id,
+                    eventCoordinatorRoleId: (string) $eventCoordinator->id,
+                    viewerRoleId: (string) $viewer->id,
+                );
             }
 
             $assignment = KingdomRoleAssignment::query()->create([
@@ -77,6 +94,9 @@ final readonly class BootstrapKingdomAdministrator
                 kingdomNumber: (int) $lockedKingdom->number,
                 playerId: (string) $lockedTarget->id,
                 roleKey: DefaultKingdomRole::Administrator->value,
+                administratorRoleId: (string) $administrator->id,
+                eventCoordinatorRoleId: (string) $eventCoordinator->id,
+                viewerRoleId: (string) $viewer->id,
             );
         });
     }
