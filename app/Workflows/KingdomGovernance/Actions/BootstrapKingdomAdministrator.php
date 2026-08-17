@@ -18,7 +18,12 @@ final readonly class BootstrapKingdomAdministrator
     public function handle(string $kingdomId, string $targetPlayerId): KingdomAdministratorBootstrap
     {
         $assignment = $this->bootstrapGovernance->handle($kingdomId, $targetPlayerId);
-        $this->operationsRoles->provision($kingdomId);
+        $this->operationsRoles->provision(
+            kingdomId: $assignment->kingdomId,
+            administratorRoleId: $assignment->administratorRoleId,
+            eventCoordinatorRoleId: $assignment->eventCoordinatorRoleId,
+            viewerRoleId: $assignment->viewerRoleId,
+        );
 
         return $assignment;
     }
