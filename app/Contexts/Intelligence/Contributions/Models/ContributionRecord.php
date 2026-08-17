@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionDataClass;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordSource;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordStatus;
@@ -76,12 +75,6 @@ final class ContributionRecord extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ContributionCategory::class, 'category_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'player_id');
     }
 
     /** @return BelongsTo<ContributionRecord, $this> */

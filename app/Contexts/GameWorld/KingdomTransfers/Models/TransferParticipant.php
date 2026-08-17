@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferDirection;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferReadinessState;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
@@ -31,10 +29,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $destination_kingdom_id
  * @property string|null $manager_notes
  * @property Carbon|null $withdrawn_at
- * @property-read Alliance $alliance
  * @property-read TransferPlan $plan
  * @property-read TransferGroup|null $group
- * @property-read AllianceRosterEntry|null $rosterEntry
  * @property-read Player $player
  * @property-read Kingdom|null $sourceKingdom
  * @property-read Kingdom|null $destinationKingdom
@@ -73,12 +69,6 @@ final class TransferParticipant extends Model
         ];
     }
 
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
     /** @return BelongsTo<TransferPlan, $this> */
     public function plan(): BelongsTo
     {
@@ -89,12 +79,6 @@ final class TransferParticipant extends Model
     public function group(): BelongsTo
     {
         return $this->belongsTo(TransferGroup::class, 'transfer_group_id');
-    }
-
-    /** @return BelongsTo<AllianceRosterEntry, $this> */
-    public function rosterEntry(): BelongsTo
-    {
-        return $this->belongsTo(AllianceRosterEntry::class, 'roster_entry_id');
     }
 
     /** @return BelongsTo<Player, $this> */

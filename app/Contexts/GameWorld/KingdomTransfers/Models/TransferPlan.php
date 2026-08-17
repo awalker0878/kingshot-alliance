@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -20,7 +19,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $starts_on
  * @property Carbon|null $ends_on
  * @property TransferPlanState $state
- * @property-read Alliance $alliance
  * @property-read Kingdom $homeKingdom
  */
 final class TransferPlan extends Model
@@ -47,12 +45,6 @@ final class TransferPlan extends Model
             'ends_on' => 'date',
             'state' => TransferPlanState::class,
         ];
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
     }
 
     /** @return BelongsTo<Kingdom, $this> */
