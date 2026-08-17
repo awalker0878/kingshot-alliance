@@ -1,5 +1,13 @@
 # Cross-context workflows
 
-This root owns explicit command orchestration that spans multiple bounded contexts, such as Kingdom transfer, governance coordination, registration and Player-context activation.
+Only orchestration that genuinely spans bounded contexts belongs here.
 
-A workflow coordinates supported context application contracts but does not become persistence owner of participating aggregates. Business policy remains with the context that owns the rule.
+Current workflows:
+- `AccountOnboarding`
+- `KingdomGovernance`
+
+Rules:
+- workflows own no business persistence or transactions;
+- workflows import no context Eloquent models, repositories, migrations, or permission enums;
+- workflows coordinate context-owned actions and queries through scalar IDs and immutable values;
+- Player activation belongs to `GameWorld/Players`.
