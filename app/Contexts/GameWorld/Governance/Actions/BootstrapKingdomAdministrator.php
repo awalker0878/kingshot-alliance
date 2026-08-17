@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomRoleProvisioner;
+use App\Contexts\GameWorld\Governance\ValueObjects\KingdomAdministratorBootstrap;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -24,11 +25,11 @@ final readonly class BootstrapKingdomAdministrator
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Kingdom $kingdom, Player $target): KingdomRoleAssignment
+    public function handle(string $kingdomId, string $targetPlayerId): KingdomAdministratorBootstrap
     {
-        return DB::transaction(function () use ($kingdom, $target): KingdomRoleAssignment {
-            $lockedKingdom = Kingdom::query()->whereKey($kingdom->id)->lockForUpdate()->firstOrFail();
-            $lockedTarget = Player::query()->whereKey($target->id)->lockForUpdate()->firstOrFail();
+        return DB::transaction(function () use ($kingdomId, $targetPlayerId): KingdomAdministratorBootstrap {
+            $lockedKingdom = Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail();
+            $lockedTarget = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
 
             if ((string) $lockedTarget->current_kingdom_id !== (string) $lockedKingdom->id) {
                 throw ValidationException::withMessages([
@@ -70,7 +71,13 @@ final readonly class BootstrapKingdomAdministrator
             $this->audit->record('kingdom.role_bootstrapped', null, $assignment, null, $metadata);
             $this->outbox->record('kingdom.role_bootstrapped', null, $assignment, $metadata);
 
-            return $assignment->refresh()->load(['kingdom', 'player', 'role']);
+            return new KingdomAdministratorBootstrap(
+                assignmentId: (string) $assignment->id,
+                kingdomId: (string) $lockedKingdom->id,
+                kingdomNumber: (int) $lockedKingdom->number,
+                playerId: (string) $lockedTarget->id,
+                roleKey: DefaultKingdomRole::Administrator->value,
+            );
         });
     }
 }
