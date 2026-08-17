@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace App\Workflows\KingdomGovernance\Actions;
 
 use App\Contexts\GameWorld\Governance\Actions\BootstrapKingdomAdministrator as BootstrapGameWorldKingdomAdministrator;
-use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Governance\ValueObjects\KingdomAdministratorBootstrap;
 use App\Contexts\Operations\Access\Services\KingdomOperationsRoleProvisioner;
-use Illuminate\Support\Facades\DB;
 
 final readonly class BootstrapKingdomAdministrator
 {
@@ -18,13 +15,11 @@ final readonly class BootstrapKingdomAdministrator
         private KingdomOperationsRoleProvisioner $operationsRoles,
     ) {}
 
-    public function handle(Kingdom $kingdom, Player $target): KingdomRoleAssignment
+    public function handle(string $kingdomId, string $targetPlayerId): KingdomAdministratorBootstrap
     {
-        return DB::transaction(function () use ($kingdom, $target): KingdomRoleAssignment {
-            $assignment = $this->bootstrapGovernance->handle($kingdom, $target);
-            $this->operationsRoles->provision($kingdom);
+        $assignment = $this->bootstrapGovernance->handle($kingdomId, $targetPlayerId);
+        $this->operationsRoles->provision($kingdomId);
 
-            return $assignment;
-        });
+        return $assignment;
     }
 }
