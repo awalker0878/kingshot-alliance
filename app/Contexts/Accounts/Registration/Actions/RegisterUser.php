@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\Registration\Actions;
 
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Registration\Data\RegisteredAccount;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
@@ -14,9 +15,9 @@ final readonly class RegisterUser
 {
     public function __construct(private AuditRecorder $audit) {}
 
-    public function handle(string $name, string $email, string $password, string $timezone = 'UTC'): User
+    public function handle(string $name, string $email, string $password, string $timezone = 'UTC'): RegisteredAccount
     {
-        return DB::transaction(function () use ($name, $email, $password, $timezone): User {
+        $user = DB::transaction(function () use ($name, $email, $password, $timezone): User {
             $user = User::query()->create([
                 'name' => trim($name),
                 'email' => Str::lower(trim($email)),
@@ -45,5 +46,12 @@ final readonly class RegisterUser
 
             return $user;
         });
+
+        $user->sendEmailVerificationNotification();
+
+        return new RegisteredAccount(
+            userId: (int) $user->id,
+            email: (string) $user->email,
+        );
     }
 }

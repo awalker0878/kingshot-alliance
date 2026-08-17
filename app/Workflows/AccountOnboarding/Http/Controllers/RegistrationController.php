@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Workflows\Registration\Http\Controllers;
+namespace App\Workflows\AccountOnboarding\Http\Controllers;
 
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
 use App\Shared\Infrastructure\Http\Controller;
-use App\Workflows\Registration\Actions\RegisterAccount;
+use App\Workflows\AccountOnboarding\Actions\RegisterAccount;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,9 +25,9 @@ final class RegistrationController extends Controller
 
         return Inertia::render('Auth/Register', [
             'registrationMode' => config('accounts.registration_mode'),
-            'invitationToken' => $invitation instanceof Invitation ? $token : null,
+            'invitationToken' => $invitation === null ? null : $token,
             'invitedEmail' => $invitation?->email,
-            'invitedAllianceName' => $invitation?->alliance?->name,
+            'invitedAllianceName' => $invitation?->allianceName,
         ]);
     }
 
@@ -47,16 +45,16 @@ final class RegistrationController extends Controller
         $token = (string) $request->input('invitation_token');
         $invitation = $token === '' ? null : $invitations->byToken($token);
 
-        if ($mode !== 'open' && ! $invitation instanceof Invitation) {
+        if ($mode !== 'open' && $invitation === null) {
             abort(403, 'A valid invitation is required to register.');
         }
 
-        if ($token !== '' && ! $invitation instanceof Invitation) {
+        if ($token !== '' && $invitation === null) {
             abort(404);
         }
 
-        if ($invitation instanceof Invitation && ! hash_equals(
-            Str::lower((string) $invitation->email),
+        if ($invitation !== null && ! hash_equals(
+            Str::lower($invitation->email),
             (string) $request->input('email'),
         )) {
             throw ValidationException::withMessages([
@@ -81,17 +79,16 @@ final class RegistrationController extends Controller
             email: (string) $validated['email'],
             password: (string) $validated['password'],
             timezone: (string) $validated['timezone'],
-            invitation: $invitation,
             invitationToken: $token === '' ? null : $token,
         );
 
-        Auth::login($result['user']);
+        Auth::loginUsingId($result->userId);
         $request->session()->regenerate();
 
-        if ($result['membership'] instanceof AllianceMembership) {
+        if ($result->joinedAlliance() && $result->playerId !== null) {
             $request->session()->put(
                 (string) config('game_world.active_player_session_key'),
-                (string) $result['membership']->player_id,
+                $result->playerId,
             );
 
             return redirect()->route('alliance.overview');

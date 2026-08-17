@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Workflows\PlayerContext\Http\Controllers;
+namespace App\Contexts\GameWorld\Players\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\GameWorld\Players\Actions\ActivatePlayer;
 use App\Shared\Infrastructure\Http\Controller;
-use App\Workflows\PlayerContext\Actions\ActivatePlayer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 final class ActivatePlayerController extends Controller
 {
@@ -17,18 +17,18 @@ final class ActivatePlayerController extends Controller
         string $player,
         ActivatePlayer $activatePlayer,
     ): RedirectResponse {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        $authId = Auth::id();
+        abort_unless(is_numeric($authId), 401);
 
         $sessionKey = (string) config('game_world.active_player_session_key');
         $previousPlayerId = $request->session()->get($sessionKey);
         $target = $activatePlayer->handle(
-            $user,
+            (int) $authId,
             $player,
             is_string($previousPlayerId) ? $previousPlayerId : null,
         );
 
-        $request->session()->put($sessionKey, (string) $target->id);
+        $request->session()->put($sessionKey, $target->playerId);
 
         return back();
     }
