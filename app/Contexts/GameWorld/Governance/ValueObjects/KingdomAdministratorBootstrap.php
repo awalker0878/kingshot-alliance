@@ -12,5 +12,8 @@ final readonly class KingdomAdministratorBootstrap
         public int $kingdomNumber,
         public string $playerId,
         public string $roleKey,
+        public string $administratorRoleId,
+        public string $eventCoordinatorRoleId,
+        public string $viewerRoleId,
     ) {}
 }
