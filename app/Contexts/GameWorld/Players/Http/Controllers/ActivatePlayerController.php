@@ -22,6 +22,9 @@ final class ActivatePlayerController extends Controller
 
         $sessionKey = (string) config('game_world.active_player_session_key');
         $previousPlayerId = $request->session()->get($sessionKey);
+
+        // Ownership and activation are server-authoritative. The browser only requests
+        // a Player id; it never supplies Alliance, Kingdom, rank, or role authority.
         $target = $activatePlayer->handle(
             (int) $authId,
             $player,
@@ -30,6 +33,9 @@ final class ActivatePlayerController extends Controller
 
         $request->session()->put($sessionKey, $target->playerId);
 
-        return back();
+        // Never retain a route rendered for the previous Player. Returning to the
+        // command overview forces all Alliance/Kingdom/capability read models to be
+        // resolved again under the newly active immutable Player reference.
+        return redirect()->route('dashboard');
     }
 }
