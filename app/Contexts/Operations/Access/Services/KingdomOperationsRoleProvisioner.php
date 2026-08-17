@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Access\Services;
 
 use App\Contexts\GameWorld\Governance\Actions\GrantKingdomRolePermissions;
-use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Shared\Infrastructure\Access\Models\Permission;
 use Illuminate\Support\Str;
@@ -16,20 +15,24 @@ final readonly class KingdomOperationsRoleProvisioner
         private GrantKingdomRolePermissions $grantRolePermissions,
     ) {}
 
-    public function provision(string $kingdomId): void
-    {
+    public function provision(
+        string $kingdomId,
+        string $administratorRoleId,
+        string $eventCoordinatorRoleId,
+        string $viewerRoleId,
+    ): void {
         $grants = [
-            DefaultKingdomRole::Administrator->value => [
+            $administratorRoleId => [
                 OperationsPermission::EventKingdomView,
                 OperationsPermission::EventKingdomCreate,
                 OperationsPermission::EventKingdomManage,
             ],
-            DefaultKingdomRole::EventCoordinator->value => [
+            $eventCoordinatorRoleId => [
                 OperationsPermission::EventKingdomView,
                 OperationsPermission::EventKingdomCreate,
                 OperationsPermission::EventKingdomManage,
             ],
-            DefaultKingdomRole::Viewer->value => [
+            $viewerRoleId => [
                 OperationsPermission::EventKingdomView,
             ],
         ];
@@ -51,14 +54,14 @@ final readonly class KingdomOperationsRoleProvisioner
         );
         Permission::query()->upsert($permissionRows, ['key'], ['description']);
 
-        $permissionKeysByRoleKey = [];
-        foreach ($grants as $roleKey => $permissions) {
-            $permissionKeysByRoleKey[$roleKey] = array_map(
+        $permissionKeysByRoleId = [];
+        foreach ($grants as $roleId => $permissions) {
+            $permissionKeysByRoleId[$roleId] = array_map(
                 static fn (OperationsPermission $permission): string => $permission->key(),
                 $permissions,
             );
         }
 
-        $this->grantRolePermissions->handle($kingdomId, $permissionKeysByRoleKey);
+        $this->grantRolePermissions->handle($kingdomId, $permissionKeysByRoleId);
     }
 }
