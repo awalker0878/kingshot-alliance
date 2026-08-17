@@ -39,7 +39,7 @@ final class ArchitectureEnforcementV3Test extends TestCase
                 if (preg_match_all('/^use App\\\\Contexts\\\\([A-Za-z0-9_]+)\\\\[^;]*\\\\Models\\\\([A-Za-z0-9_]+)(?:\s+as\s+([A-Za-z0-9_]+))?;/m', $contents, $matches, PREG_SET_ORDER) === false) continue;
                 foreach ($matches as $match) {
                     if ($match[1] === $context) continue;
-                    $alias = $match[3] !== '' ? $match[3] : $match[2];
+                    $alias = ($match[3] ?? '') !== '' ? $match[3] : $match[2];
                     if (preg_match('/(?:belongsTo|hasOne|hasMany|belongsToMany|morphOne|morphMany)\s*\(\s*'.preg_quote($alias, '/').'::class/', $contents) === 1) {
                         $violations[] = $this->relative($file).' -> '.$match[1].'\\'.$match[2];
                     }
