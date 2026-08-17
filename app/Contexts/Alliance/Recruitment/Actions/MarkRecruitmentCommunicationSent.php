@@ -7,11 +7,9 @@ namespace App\Contexts\Alliance\Recruitment\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentCommunicationStatus;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCommunication;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -26,17 +24,20 @@ final class MarkRecruitmentCommunicationSent
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(
-        Player $actor,
-        Alliance $alliance,
-        RecruitmentCommunication $communication,
-    ): RecruitmentCommunication {
-        return DB::transaction(function () use ($actor, $alliance, $communication): RecruitmentCommunication {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+    public function handle(string $actorPlayerId, string $allianceId, string $communicationId): string
+    {
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $communicationId): string {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
+            $locked = RecruitmentCommunication::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->whereKey($communicationId)
+                ->lockForUpdate()
+                ->firstOrFail();
+
             $candidate = RecruitmentCandidate::query()
-                ->whereKey($communication->candidate_id)
+                ->whereKey($locked->candidate_id)
                 ->where('alliance_id', $context->alliance->id)
                 ->sharedLock()
                 ->firstOrFail();
@@ -47,15 +48,8 @@ final class MarkRecruitmentCommunicationSent
                 ]);
             }
 
-            $locked = RecruitmentCommunication::query()
-                ->where('alliance_id', $context->alliance->id)
-                ->where('candidate_id', $candidate->id)
-                ->whereKey($communication->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-
             if ($locked->status === RecruitmentCommunicationStatus::Sent) {
-                return $locked;
+                return (string) $locked->id;
             }
 
             $locked->forceFill([
@@ -71,7 +65,7 @@ final class MarkRecruitmentCommunicationSent
                 'candidate_id' => $locked->candidate_id,
             ]);
 
-            return $locked->refresh();
+            return (string) $locked->id;
         });
     }
 }

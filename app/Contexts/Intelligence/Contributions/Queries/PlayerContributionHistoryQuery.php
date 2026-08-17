@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
 use App\Contexts\Intelligence\Contributions\Models\ContributionRecord;
 use App\Contexts\Intelligence\EventAnalysis\Queries\EventPlayerHistoryQuery;
 use App\Contexts\Intelligence\EventAnalysis\Queries\EventPlayerHistorySummaryQuery;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
-use Illuminate\Support\Facades\DB;
 
 final readonly class PlayerContributionHistoryQuery
 {
     public function __construct(
         private EventPlayerHistoryQuery $events,
         private EventPlayerHistorySummaryQuery $eventSummary,
+        private AllianceReferenceQuery $alliances,
     ) {}
 
     /**
@@ -37,7 +38,7 @@ final readonly class PlayerContributionHistoryQuery
      * } $filters
      * @return list<array<string,mixed>>
      */
-    public function forPlayer(Player $player, array $filters = []): array
+    public function forPlayer(PlayerReference $player, array $filters = []): array
     {
         $limit = max(1, min(500, (int) ($filters['limit'] ?? 100)));
         $allianceId = isset($filters['alliance_id']) ? trim((string) $filters['alliance_id']) : '';
@@ -72,18 +73,18 @@ final readonly class PlayerContributionHistoryQuery
         // Scope tabs are Event-specific. Non-Event contribution records belong to
         // the All view and are not silently mixed into Player/Alliance/Kingdom tabs.
         if ($eventScope === '') {
+            $kingdomAllianceIds = $kingdomId === ''
+                ? []
+                : array_map(static fn ($alliance): string => $alliance->allianceId, $this->alliances->inKingdom($kingdomId));
             $records = ContributionRecord::query()
-                ->where('player_id', $player->id)
+                ->where('player_id', $player->playerId)
                 ->when(
                     $allianceId !== '',
                     static fn ($query) => $query->where('alliance_id', $allianceId),
                 )
                 ->when(
                     $kingdomId !== '',
-                    static fn ($query) => $query->whereIn(
-                        'alliance_id',
-                        DB::table('alliances')->where('kingdom_id', $kingdomId)->select('id'),
-                    ),
+                    static fn ($query) => $query->whereIn('alliance_id', $kingdomAllianceIds),
                 )
                 ->when(
                     $categorySlug !== '',
@@ -162,12 +163,12 @@ final readonly class PlayerContributionHistoryQuery
      *   contribution_records:int
      * }
      */
-    public function summaryForPlayer(Player $player): array
+    public function summaryForPlayer(PlayerReference $player): array
     {
         return [
             ...$this->eventSummary->forPlayer($player),
             'contribution_records' => ContributionRecord::query()
-                ->where('player_id', $player->id)
+                ->where('player_id', $player->playerId)
                 ->count(),
         ];
     }

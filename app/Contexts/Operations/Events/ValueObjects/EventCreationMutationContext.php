@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\ValueObjects;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
 
+/**
+ * Transaction-time state used while creating an Event.
+ *
+ * EventTypeScope is Operations-owned persistence. Actor, target, and mutable
+ * authority facts are immutable values resolved from their owning contexts.
+ */
 final readonly class EventCreationMutationContext
 {
     public function __construct(
         public EventTypeScope $typeScope,
-        public Player $actor,
-        public Alliance|Kingdom|Player $target,
+        public PlayerReference $actor,
+        public EventTargetReference $target,
+        public EventScopeAuthorityFacts $authority,
     ) {}
 }

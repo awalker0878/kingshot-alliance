@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
@@ -24,49 +22,42 @@ final readonly class RespondToEvent
 {
     public function __construct(
         private EventWriteState $eventWriteState,
-        private EventAuthorization $mutations,
+        private EventAuthorization $authorization,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
-        Player $actor,
-        EventOccurrence $occurrence,
-        Player $player,
+        string $actorPlayerId,
+        string $occurrenceId,
         EventResponseChoice $response,
         ?string $preferredRole = null,
         ?string $preferredTeam = null,
         ?CarbonImmutable $availableFrom = null,
         ?CarbonImmutable $availableUntil = null,
         ?string $note = null,
-    ): EventResponse {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
-
+    ): void {
         if ($availableFrom !== null && $availableUntil !== null && $availableUntil->lessThan($availableFrom)) {
             throw ValidationException::withMessages([
                 'available_until' => 'Availability end must not be before availability start.',
             ]);
         }
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $player, $response, $preferredRole, $preferredTeam, $availableFrom, $availableUntil, $note): EventResponse {
-            $context = $this->eventWriteState->lockSelfScope($actor, $event, $player);
-            $this->mutations->authorizeSelf($context, $player);
+        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $response, $preferredRole, $preferredTeam, $availableFrom, $availableUntil, $note): void {
+            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
+            $context = $this->eventWriteState->lockSelfScope($actorPlayerId, (string) $route->event_id, $actorPlayerId);
+            $this->authorization->authorizeSelf($context, $actorPlayerId);
             $this->capabilities->require($context->event, EventCapability::Responses);
 
-            $lockedOccurrence = EventOccurrence::query()
-                ->whereKey($occurrence->id)
+            $occurrence = EventOccurrence::query()
+                ->whereKey($occurrenceId)
                 ->where('event_id', $context->event->id)
                 ->sharedLock()
                 ->firstOrFail();
-            $currentPlayer = $context->actor;
 
             $record = EventResponse::query()->updateOrCreate(
-                [
-                    'occurrence_id' => $lockedOccurrence->id,
-                    'player_id' => $currentPlayer->id,
-                ],
+                ['occurrence_id' => $occurrence->id, 'player_id' => $actorPlayerId],
                 [
                     'response' => $response,
                     'preferred_role' => $preferredRole === null || trim($preferredRole) === '' ? null : trim($preferredRole),
@@ -75,27 +66,18 @@ final readonly class RespondToEvent
                     'available_until' => $availableUntil?->utc(),
                     'note' => $note === null || trim($note) === '' ? null : trim($note),
                     'source' => EventResponseSource::Self,
-                    'responded_by_player_id' => $currentPlayer->id,
+                    'responded_by_player_id' => $actorPlayerId,
                     'responded_at' => now(),
                 ],
             );
 
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
             $metadata = [
-                'occurrence_id' => (string) $lockedOccurrence->id,
-                'player_id' => (string) $currentPlayer->id,
+                'occurrence_id' => (string) $occurrence->id,
+                'player_id' => $actorPlayerId,
                 'response' => $response->value,
             ];
-            $this->audit->record('event.response.changed', $currentPlayer, $record, $alliance, $metadata);
-            $this->outbox->record(
-                'event.response.changed',
-                $alliance?->id,
-                $record,
-                $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
-            );
-
-            return $record->refresh();
+            $this->audit->record('event.response.changed', $context->actor, $record, $context->target->allianceId, $metadata);
+            $this->outbox->record('event.response.changed', $context->target->allianceId, $record, $metadata, partitionKey: $context->target->partitionKey());
         });
     }
 }

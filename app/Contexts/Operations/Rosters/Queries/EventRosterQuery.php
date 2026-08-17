@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
@@ -20,14 +21,15 @@ final readonly class EventRosterQuery
 {
     public function __construct(
         private EventEligiblePlayerQuery $eligiblePlayers,
+        private PlayerReferenceQuery $players,
         private EventRosterAvailabilityService $availability,
     ) {}
 
     /** @return list<array<string,mixed>> */
-    public function forPlayer(EventOccurrence $occurrence, Player $player): array
+    public function forPlayer(EventOccurrence $occurrence, PlayerReference $player): array
     {
         return array_values(EventRosterMember::query()
-            ->where('player_id', $player->id)
+            ->where('player_id', $player->playerId)
             ->where('status', '!=', EventRosterMemberStatus::Removed->value)
             ->whereHas('roster', static fn ($query) => $query->where('occurrence_id', $occurrence->id))
             ->with(['roster.parent'])
@@ -53,33 +55,34 @@ final readonly class EventRosterQuery
     /** @return list<array<string,mixed>> */
     public function management(Event $event): array
     {
-        $players = $this->eligiblePlayers->for($event)->keyBy(static fn (Player $player): string => (string) $player->id);
+        $eligible = $this->eligiblePlayers->for($event)->keyBy(static fn (PlayerReference $player): string => $player->playerId);
 
         return array_values($event->occurrences
             ->sortBy('starts_at')
             ->values()
-            ->map(function (EventOccurrence $occurrence) use ($players): array {
+            ->map(function (EventOccurrence $occurrence) use ($eligible): array {
                 $rosters = EventRoster::query()
                     ->where('occurrence_id', $occurrence->id)
-                    ->with(['members.player', 'parent'])
-                    ->orderBy('sort_order')
-                    ->orderBy('key')
-                    ->get();
+                    ->with(['members', 'parent'])
+                    ->orderBy('sort_order')->orderBy('key')->get();
+                $memberPlayerIds = $rosters->flatMap(static fn (EventRoster $roster) => $roster->members->pluck('player_id'))
+                    ->map(static fn ($id): string => (string) $id)->all();
+                $memberPlayers = $this->players->byIds($memberPlayerIds);
                 $responses = EventResponse::query()->where('occurrence_id', $occurrence->id)->get()->keyBy('player_id');
                 $registrations = EventRegistration::query()->where('occurrence_id', $occurrence->id)->get()->keyBy('player_id');
 
                 return [
                     'occurrenceId' => (string) $occurrence->id,
                     'startsAt' => $occurrence->starts_at->toIso8601String(),
-                    'rosters' => $rosters->map(fn (EventRoster $roster): array => $this->rosterPayload($occurrence, $roster))->all(),
-                    'candidates' => $players->values()->map(function (Player $player) use ($occurrence, $responses, $registrations): array {
-                        $response = $responses->get($player->id);
-                        $registration = $registrations->get($player->id);
+                    'rosters' => $rosters->map(fn (EventRoster $roster): array => $this->rosterPayload($occurrence, $roster, $memberPlayers))->all(),
+                    'candidates' => $eligible->values()->map(function (PlayerReference $player) use ($occurrence, $responses, $registrations): array {
+                        $response = $responses->get($player->playerId);
+                        $registration = $registrations->get($player->playerId);
 
                         return [
-                            'playerId' => (string) $player->id,
-                            'name' => (string) $player->current_name,
-                            'claimed' => $player->user_id !== null,
+                            'playerId' => $player->playerId,
+                            'name' => $player->currentName,
+                            'claimed' => $player->claimed(),
                             'response' => $response?->response?->value,
                             'preferredRole' => $response?->preferred_role,
                             'preferredTeam' => $response?->preferred_team,
@@ -94,22 +97,22 @@ final readonly class EventRosterQuery
             })->all());
     }
 
-    /** @return array<string,mixed> */
-    private function rosterPayload(EventOccurrence $occurrence, EventRoster $roster): array
+    /** @param array<string,PlayerReference> $players @return array<string,mixed> */
+    private function rosterPayload(EventOccurrence $occurrence, EventRoster $roster, array $players): array
     {
-        $members = $roster->members->map(function (EventRosterMember $member) use ($occurrence): array {
-            $player = $member->player;
+        $members = $roster->members->map(function (EventRosterMember $member) use ($occurrence, $players): array {
+            $player = $players[(string) $member->player_id] ?? null;
 
             return [
                 'id' => (string) $member->id,
                 'playerId' => (string) $member->player_id,
-                'playerName' => (string) $player->current_name,
+                'playerName' => $player?->currentName ?? 'Unknown Player',
                 'allianceId' => $member->alliance_id === null ? null : (string) $member->alliance_id,
                 'role' => $member->role,
                 'slotNumber' => $member->slot_number,
                 'status' => $member->status->value,
                 'assignmentWarnings' => $member->assignment_warnings ?? [],
-                'warnings' => $this->availability->warnings($occurrence, $player),
+                'warnings' => $player instanceof PlayerReference ? $this->availability->warnings($occurrence, $player) : [],
                 'assignedAt' => $member->assigned_at?->toIso8601String(),
                 'respondedAt' => $member->responded_at?->toIso8601String(),
                 'notes' => $member->notes,

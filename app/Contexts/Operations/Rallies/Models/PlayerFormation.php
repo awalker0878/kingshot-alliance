@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 final class PlayerFormation extends Model
 {
@@ -24,9 +22,4 @@ final class PlayerFormation extends Model
         return ['infantry_percent' => 'integer', 'cavalry_percent' => 'integer', 'archer_percent' => 'integer', 'heroes' => 'array', 'is_default' => 'boolean'];
     }
 
-    /** @return BelongsTo<Player,$this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class);
-    }
 }

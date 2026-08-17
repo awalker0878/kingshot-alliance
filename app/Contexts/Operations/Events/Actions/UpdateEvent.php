@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\Events\Models\Event;
@@ -40,8 +38,8 @@ final class UpdateEvent
 
     /** @param array<string, mixed>|null $settings */
     public function handle(
-        Player $actor,
-        Event $event,
+        string $actorPlayerId,
+        string $eventId,
         ?CarbonImmutable $firstLocalStart = null,
         ?string $title = null,
         ?string $instructions = null,
@@ -53,10 +51,10 @@ final class UpdateEvent
         ?int $recurrenceInterval = null,
         ?CarbonImmutable $recurrenceUntilLocal = null,
         ?array $settings = null,
-    ): Event {
-        return DB::transaction(function () use (
-            $actor,
-            $event,
+    ): void {
+        DB::transaction(function () use (
+            $actorPlayerId,
+            $eventId,
             $firstLocalStart,
             $title,
             $instructions,
@@ -68,8 +66,8 @@ final class UpdateEvent
             $recurrenceInterval,
             $recurrenceUntilLocal,
             $settings,
-        ): Event {
-            $context = $this->eventWriteState->lockEventScope($actor, $event, true);
+        ): void {
+            $context = $this->eventWriteState->lockEventScope($actorPlayerId, $eventId, true);
             $this->mutations->authorizeManager($context);
             $locked = $context->event;
             $target = $context->target;
@@ -162,32 +160,30 @@ final class UpdateEvent
                 'recurrence_interval' => $resolvedSchedule['interval'],
                 'recurrence_until' => $localUntil?->utc(),
                 'settings' => $settings === null ? $locked->settings : ($settings === [] ? null : $settings),
-                'updated_by_player_id' => $currentActor->id,
+                'updated_by_player_id' => $currentActor->playerId,
             ])->save();
 
             if ($scheduleChanged) {
-                $this->reconcileFutureOccurrences($locked, $occurrenceStarts, $duration, $currentActor);
+                $this->reconcileFutureOccurrences($locked, $occurrenceStarts, $duration, $currentActor->playerId);
             }
 
-            $alliance = $target instanceof Alliance ? $target : null;
             $metadata = [
                 'scope' => $locked->scope->value,
-                'target_id' => (string) $target->id,
+                'target_id' => $target->targetId,
                 'before' => $before,
                 'schedule_changed' => $scheduleChanged,
-                'actor_player_id' => (string) $currentActor->id,
+                'actor_player_id' => $currentActor->playerId,
             ];
 
-            $this->audit->record('event.updated', $currentActor, $locked, $alliance, $metadata);
+            $this->audit->record('event.updated', $currentActor, $locked, metadata: $metadata);
             $this->outbox->record(
                 'event.updated',
-                $alliance?->id,
+                $target->allianceId,
                 $locked,
                 $metadata,
-                partitionKey: $locked->scope->value.':'.$target->id,
+                partitionKey: $target->partitionKey(),
             );
 
-            return $locked->refresh()->load(['eventType', 'typeScope.capabilities', 'occurrences']);
         });
     }
 
@@ -202,7 +198,7 @@ final class UpdateEvent
         Event $event,
         array $occurrenceStarts,
         int $durationMinutes,
-        Player $actor,
+        string $actorPlayerId,
     ): void {
         $now = CarbonImmutable::now('UTC');
         $desiredStarts = collect($occurrenceStarts)
@@ -249,9 +245,9 @@ final class UpdateEvent
                 'ends_at' => $start->addMinutes($durationMinutes),
                 'status' => EventOccurrenceStatus::Scheduled,
             ]);
-            $this->phases->materializeDefaults($replacement, $actor);
-            $this->polls->materializeDefaults($replacement, $actor);
-            $this->rosters->materializeDefaults($replacement, $actor);
+            $this->phases->materializeDefaults($replacement, $actorPlayerId);
+            $this->polls->materializeDefaults($replacement, $actorPlayerId);
+            $this->rosters->materializeDefaults($replacement, $actorPlayerId);
         }
     }
 

@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\GameWorld\Kingdoms\Enums\KingdomStatus;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
@@ -22,26 +20,21 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreateTransferPlan
 {
     public function __construct(
-        private AllianceWriteState $allianceWriteState,
+        private TransferWriteState $writeState,
         private TransferAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
-    /**
-     * @param  array{label: string, starts_on?: string|null, ends_on?: string|null}  $attributes
-     */
-    public function handle(Alliance $alliance, Player $actor, array $attributes): TransferPlan
+    /** @param array{label: string, starts_on?: string|null, ends_on?: string|null} $attributes */
+    public function handle(string $allianceId, string $actorPlayerId, array $attributes): void
     {
-        return DB::transaction(function () use ($alliance, $actor, $attributes): TransferPlan {
-            // Creating a Draft transfer plan is not an Alliance-wide singleton. The
-            // ordinary mutation boundary protects lifecycle/authority without turning
-            // unrelated Draft creation into an Alliance mutex.
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        DB::transaction(function () use ($allianceId, $actorPlayerId, $attributes): void {
+            $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, TransferPermission::Manage);
 
             $homeKingdom = Kingdom::query()
-                ->whereKey($context->alliance->kingdom_id)
+                ->whereKey($context->kingdomId())
                 ->where('status', KingdomStatus::Active->value)
                 ->sharedLock()
                 ->first();
@@ -66,7 +59,7 @@ final readonly class CreateTransferPlan
             }
 
             $plan = TransferPlan::query()->create([
-                'alliance_id' => $context->alliance->id,
+                'alliance_id' => $allianceId,
                 'home_kingdom_id' => $homeKingdom->id,
                 'label' => $label,
                 'starts_on' => $startsOn?->toDateString(),
@@ -75,6 +68,7 @@ final readonly class CreateTransferPlan
             ]);
 
             $metadata = [
+                'alliance_id' => $allianceId,
                 'transfer_plan_id' => (string) $plan->id,
                 'home_kingdom_id' => (string) $plan->home_kingdom_id,
                 'state' => TransferPlanState::Draft->value,
@@ -82,10 +76,8 @@ final readonly class CreateTransferPlan
                 'ends_on' => $plan->ends_on?->toDateString(),
             ];
 
-            $this->audit->record('kingdoms.transfer_plan_created', $context->actor, $plan, $context->alliance, $metadata);
-            $this->outbox->record('kingdoms.transfer_plan_created', (string) $context->alliance->id, $plan, $metadata);
-
-            return $plan->refresh()->load('homeKingdom');
+            $this->audit->record('kingdoms.transfer_plan_created', $context->actor, $plan, null, $metadata);
+            $this->outbox->record('kingdoms.transfer_plan_created', $allianceId, $plan, $metadata);
         });
     }
 

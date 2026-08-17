@@ -4,64 +4,41 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Access\Services;
 
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\ValueObjects\AllianceMutationContext;
-use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Access\Queries\AllianceAuthorityFactsQuery;
+use App\Contexts\Alliance\Access\ValueObjects\AllianceAuthorityFacts;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use Illuminate\Auth\Access\AuthorizationException;
 
-final class AllianceIntelligenceAuthorization
+final readonly class AllianceIntelligenceAuthorization
 {
-    public function allows(Player $actor, Alliance $alliance, IntelligencePermission $permission): bool
+    public function __construct(private AllianceAuthorityFactsQuery $authorityFacts) {}
+
+    /** Read-time authorization only. Protected writes must pass locked facts to authorizeFacts(). */
+    public function allows(string $actorPlayerId, string $allianceId, IntelligencePermission $permission): bool
     {
-        if ($alliance->status !== AllianceStatus::Active
-            || (string) $actor->current_kingdom_id !== (string) $alliance->kingdom_id) {
-            return false;
-        }
+        $facts = $this->authorityFacts->findCurrent($actorPlayerId, $allianceId);
 
-        $membership = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('player_id', $actor->id)
-            ->where('status', MembershipStatus::Active->value)
-            ->first();
-
-        return $membership instanceof AllianceMembership
-            && $this->allowsMembership($membership, $alliance, $permission);
+        return $facts instanceof AllianceAuthorityFacts && $this->allowsFacts($facts, $permission);
     }
 
-    public function authorizeContext(
-        AllianceMutationContext $context,
-        IntelligencePermission|AlliancePermission $permission,
-    ): void {
-        if ($permission instanceof AlliancePermission) {
-            if ($permission !== AlliancePermission::View) {
-                throw new AuthorizationException;
-            }
-
-            return;
-        }
-
-        if (! $this->allowsMembership($context->membership, $context->alliance, $permission)) {
+    public function authorizeFacts(AllianceAuthorityFacts $facts, IntelligencePermission $permission): void
+    {
+        if (! $this->allowsFacts($facts, $permission)) {
             throw new AuthorizationException;
         }
     }
 
-    public function allowsMembership(AllianceMembership $membership, Alliance $alliance, IntelligencePermission $permission): bool
+    public function allowsFacts(AllianceAuthorityFacts $facts, IntelligencePermission $permission): bool
     {
-        if ($membership->status !== MembershipStatus::Active
-            || (string) $membership->alliance_id !== (string) $alliance->id) {
-            return false;
-        }
-
         return match ($permission) {
             IntelligencePermission::View => true,
-            IntelligencePermission::KingdomManage => in_array($membership->rank, [AllianceRank::R4, AllianceRank::R5], true),
-            IntelligencePermission::ContributionManage => $membership->rank === AllianceRank::R5,
+            IntelligencePermission::KingdomManage => in_array(
+                $facts->rankObservedAtRead,
+                [AllianceRank::R4, AllianceRank::R5],
+                true,
+            ),
+            IntelligencePermission::ContributionManage => $facts->rankObservedAtRead === AllianceRank::R5,
         };
     }
 }

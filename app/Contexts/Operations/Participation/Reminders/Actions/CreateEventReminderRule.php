@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Reminders\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventScope;
-use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\Contexts\Operations\Events\Services\EventCapabilityResolver;
 use App\Contexts\Operations\Events\Services\EventWriteState;
@@ -25,21 +22,21 @@ final readonly class CreateEventReminderRule
 {
     public function __construct(
         private EventWriteState $eventWriteState,
-        private EventAuthorization $mutations,
+        private EventAuthorization $authorization,
         private EventCapabilityResolver $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
-        Player $actor,
-        Event $event,
+        string $actorPlayerId,
+        string $eventId,
         int $minutesBefore,
         EventReminderAudience $audience,
         string $channel = 'in_app',
         EventReminderTrigger $trigger = EventReminderTrigger::BeforeStart,
-        ?EventPoll $poll = null,
-    ): EventReminderRule {
+        ?string $pollId = null,
+    ): void {
         if ($minutesBefore < 1 || $minutesBefore > 10080) {
             throw ValidationException::withMessages(['minutes_before' => 'Reminder lead time must be between 1 minute and 7 days.']);
         }
@@ -47,12 +44,12 @@ final readonly class CreateEventReminderRule
             throw ValidationException::withMessages(['channel' => 'Only in-app Event reminders are currently supported.']);
         }
 
-        return DB::transaction(function () use ($actor, $event, $minutesBefore, $audience, $channel, $trigger, $poll): EventReminderRule {
-            $context = $this->eventWriteState->lockEventScope($actor, $event);
-            $this->mutations->authorizeManager($context);
-            $currentEvent = $context->event;
+        DB::transaction(function () use ($actorPlayerId, $eventId, $minutesBefore, $audience, $channel, $trigger, $pollId): void {
+            $context = $this->eventWriteState->lockEventScope($actorPlayerId, $eventId);
+            $this->authorization->authorizeManager($context);
+            $event = $context->event;
 
-            if ($audience === EventReminderAudience::Target && $currentEvent->scope !== EventScope::Player) {
+            if ($audience === EventReminderAudience::Target && $event->scopeEnum() !== EventScope::Player) {
                 throw ValidationException::withMessages(['audience' => 'Target reminders are available only for Player-scoped Events.']);
             }
             if ($audience === EventReminderAudience::Responded
@@ -68,32 +65,30 @@ final readonly class CreateEventReminderRule
                 throw ValidationException::withMessages(['audience' => 'This Event does not use rosters.']);
             }
 
-            $currentPoll = null;
+            $poll = null;
             if ($trigger === EventReminderTrigger::BeforeStart) {
-                if ($poll !== null) {
+                if ($pollId !== null) {
                     throw ValidationException::withMessages(['poll' => 'Event-start reminders cannot reference a poll.']);
                 }
             } else {
-                if (! $poll instanceof EventPoll) {
+                if ($pollId === null || $pollId === '') {
                     throw ValidationException::withMessages(['poll' => 'Poll-close reminders require a poll.']);
                 }
 
-                $currentPoll = EventPoll::query()
-                    ->whereKey($poll->id)
-                    ->whereHas('occurrence', static fn ($query) => $query->where('event_id', $currentEvent->id))
+                $poll = EventPoll::query()
+                    ->whereKey($pollId)
+                    ->whereHas('occurrence', static fn ($query) => $query->where('event_id', $event->id))
                     ->sharedLock()
                     ->firstOrFail();
-                if ($currentPoll->closes_at === null) {
+                if ($poll->closes_at === null) {
                     throw ValidationException::withMessages(['poll' => 'Poll-close reminders require a closing poll from this Event.']);
                 }
             }
 
-            // Rule-definition uniqueness is enforced by partial unique indexes for Event
-            // and Poll reminder definitions. The rule row is the Notifications aggregate.
             $rule = EventReminderRule::query()->firstOrCreate(
                 [
-                    'event_id' => $currentEvent->id,
-                    'poll_id' => $currentPoll?->id,
+                    'event_id' => $event->id,
+                    'poll_id' => $poll?->id,
                     'trigger_type' => $trigger->value,
                     'minutes_before' => $minutesBefore,
                     'audience' => $audience->value,
@@ -101,8 +96,8 @@ final readonly class CreateEventReminderRule
                 ],
                 [
                     'is_enabled' => true,
-                    'created_by_player_id' => $context->actor->id,
-                    'updated_by_player_id' => $context->actor->id,
+                    'created_by_player_id' => $actorPlayerId,
+                    'updated_by_player_id' => $actorPlayerId,
                 ],
             );
 
@@ -110,36 +105,24 @@ final readonly class CreateEventReminderRule
             if (! $rule->wasRecentlyCreated) {
                 $rule = EventReminderRule::query()->whereKey($rule->id)->lockForUpdate()->firstOrFail();
                 if ($rule->is_enabled) {
-                    return $rule;
+                    return;
                 }
 
-                $rule->forceFill([
-                    'is_enabled' => true,
-                    'updated_by_player_id' => $context->actor->id,
-                ])->save();
+                $rule->forceFill(['is_enabled' => true, 'updated_by_player_id' => $actorPlayerId])->save();
                 $eventName = 'event.reminder.rule.enabled';
             }
 
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
             $metadata = [
-                'event_id' => (string) $currentEvent->id,
-                'poll_id' => $currentPoll?->id,
+                'event_id' => (string) $event->id,
+                'poll_id' => $poll?->id,
                 'trigger_type' => $trigger->value,
                 'minutes_before' => $minutesBefore,
                 'audience' => $audience->value,
                 'channel' => $channel,
-                'actor_player_id' => (string) $context->actor->id,
+                'actor_player_id' => $actorPlayerId,
             ];
-            $this->audit->record($eventName, $context->actor, $rule, $alliance, $metadata);
-            $this->outbox->record(
-                $eventName,
-                $alliance?->id,
-                $rule,
-                $metadata,
-                partitionKey: $currentEvent->scope->value.':'.$context->target->id,
-            );
-
-            return $rule->refresh();
+            $this->audit->record($eventName, $context->actor, $rule, $context->target->allianceId, $metadata);
+            $this->outbox->record($eventName, $context->target->allianceId, $rule, $metadata, partitionKey: $context->target->partitionKey());
         });
     }
 }

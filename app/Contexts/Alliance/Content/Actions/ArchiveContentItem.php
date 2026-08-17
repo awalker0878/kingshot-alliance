@@ -24,10 +24,10 @@ final readonly class ArchiveContentItem
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $alliance, Player $actor, string $contentItemId): ContentItem
+    public function handle(string $allianceId, string $actorPlayerId, string $contentItemId): ContentItem
     {
-        return DB::transaction(function () use ($alliance, $actor, $contentItemId): ContentItem {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $contentItemId): ContentItem {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
             $item = ContentItem::query()
@@ -40,7 +40,7 @@ final readonly class ArchiveContentItem
                 'status' => ContentStatus::Archived,
                 'scheduled_for' => null,
                 'archived_at' => now(),
-                'updated_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $context->actor->playerId,
             ])->save();
 
             $this->audit->record('content.archived', $context->actor, $item, $context->alliance, [

@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Queries;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferGroupState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferGroup;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
 use Illuminate\Database\Eloquent\Collection;
 
 final class TransferGroupQuery
 {
     /** @return Collection<int, TransferGroup> */
-    public function forPlan(Alliance $alliance, TransferPlan $plan, bool $includeArchived = false): Collection
+    public function forPlan(string $allianceId, string $planId, bool $includeArchived = false): Collection
     {
         $query = TransferGroup::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('transfer_plan_id', $plan->id)
+            ->where('alliance_id', $allianceId)
+            ->where('transfer_plan_id', $planId)
             ->with([
                 'coordinator:id,current_name',
                 'destinationKingdom:id,number',

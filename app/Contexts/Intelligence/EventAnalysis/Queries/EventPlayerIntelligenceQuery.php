@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\EventAnalysis\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Enums\EventAttendanceStatus;
@@ -33,17 +33,17 @@ final readonly class EventPlayerIntelligenceQuery
             $this->historicalOccurrenceIds($event, comparableScoresOnly: true),
         );
 
-        return array_values($players->map(fn (Player $player): array => $metrics[(string) $player->id])->all());
+        return array_values($players->map(fn (PlayerReference $player): array => $metrics[$player->playerId])->all());
     }
 
     /** @return array<string,mixed> */
-    public function forPlayer(Event $event, Player $player): array
+    public function forPlayer(Event $event, PlayerReference $player): array
     {
         return $this->calculate(
             collect([$player]),
             $this->historicalOccurrenceIds($event),
             $this->historicalOccurrenceIds($event, comparableScoresOnly: true),
-        )[(string) $player->id];
+        )[$player->playerId];
     }
 
     /** @return Collection<int,string> */
@@ -65,7 +65,7 @@ final readonly class EventPlayerIntelligenceQuery
     }
 
     /**
-     * @param  Collection<int,Player>  $players
+     * @param  Collection<int,PlayerReference>  $players
      * @param  Collection<int,string>  $occurrenceIds
      * @param  Collection<int,string>  $scoreOccurrenceIds
      * @return array<string,array<string,mixed>>
@@ -74,13 +74,13 @@ final readonly class EventPlayerIntelligenceQuery
     {
         $result = [];
         foreach ($players as $player) {
-            $result[(string) $player->id] = $this->empty($player);
+            $result[$player->playerId] = $this->empty($player);
         }
         if ($players->isEmpty() || $occurrenceIds->isEmpty()) {
             return $result;
         }
 
-        $playerIds = $players->pluck('id')->map(static fn ($id): string => (string) $id);
+        $playerIds = $players->pluck('playerId')->map(static fn ($id): string => (string) $id);
         $registrations = EventRegistration::query()
             ->whereIn('player_id', $playerIds)
             ->whereIn('occurrence_id', $occurrenceIds)
@@ -115,7 +115,7 @@ final readonly class EventPlayerIntelligenceQuery
             ->groupBy('player_id');
 
         foreach ($players as $player) {
-            $id = (string) $player->id;
+            $id = $player->playerId;
             $playerRegistrations = $registrations->get($id, collect());
             $playerRosters = $rosters->get($id, collect());
             $playerRallies = $rallies->get($id, collect());
@@ -142,7 +142,7 @@ final readonly class EventPlayerIntelligenceQuery
 
             $result[$id] = [
                 'playerId' => $id,
-                'playerName' => (string) $player->current_name,
+                'playerName' => $player->currentName,
                 'commitments' => $committed->count(),
                 'completed' => $completed->count(),
                 'absent' => $missed->count(),
@@ -160,11 +160,11 @@ final readonly class EventPlayerIntelligenceQuery
     }
 
     /** @return array<string,mixed> */
-    private function empty(Player $player): array
+    private function empty(PlayerReference $player): array
     {
         return [
-            'playerId' => (string) $player->id,
-            'playerName' => (string) $player->current_name,
+            'playerId' => $player->playerId,
+            'playerName' => $player->currentName,
             'commitments' => 0,
             'completed' => 0,
             'absent' => 0,

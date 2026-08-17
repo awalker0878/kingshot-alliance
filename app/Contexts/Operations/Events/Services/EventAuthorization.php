@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Services;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Access\ValueObjects\AllianceAuthorityFacts;
+use App\Contexts\GameWorld\Governance\ValueObjects\KingdomAuthorityFacts;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
 use App\Contexts\Operations\Access\Services\KingdomOperationsAuthorization;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\ValueObjects\EventCreationMutationContext;
 use App\Contexts\Operations\Events\ValueObjects\EventMutationContext;
+use App\Contexts\Operations\Events\ValueObjects\EventScopeAuthorityFacts;
+use App\Contexts\Operations\Events\ValueObjects\EventTargetReference;
 use Illuminate\Auth\Access\AuthorizationException;
 
-final class EventAuthorization
+final readonly class EventAuthorization
 {
     public function __construct(
         private AllianceOperationsAuthorization $allianceAuthorization,
@@ -24,33 +25,39 @@ final class EventAuthorization
         private EventTargetResolver $targets,
     ) {}
 
+    /**
+     * Read-time authorization. Protected writes must use the mutation-context
+     * methods so current authority is reacquired inside the transaction.
+     */
     public function allows(
-        Player $actor,
+        string $actorPlayerId,
         EventScope $scope,
-        Alliance|Kingdom|Player $target,
+        string $targetId,
         OperationsPermission $permission,
     ): bool {
         if (! $this->supports($scope, $permission)) {
             return false;
         }
 
+        $target = $this->targets->resolve($scope, $targetId);
+
         return match ($scope) {
-            EventScope::Player => $target instanceof Player
-                && $this->playerAuthorization->allows($actor, $target, $permission),
-            EventScope::Alliance => $target instanceof Alliance
-                && $this->allianceAuthorization->allows($actor, $target, $permission),
-            EventScope::Kingdom => $target instanceof Kingdom
-                && $this->kingdomAuthorization->allows($actor, $target, $permission),
+            EventScope::Player => $target->playerId !== null
+                && $this->playerAuthorization->allows($actorPlayerId, $target->playerId, $permission),
+            EventScope::Alliance => $target->allianceId !== null
+                && $this->allianceAuthorization->allows($actorPlayerId, $target->allianceId, $permission),
+            EventScope::Kingdom => $target->kingdomId !== null
+                && $this->kingdomAuthorization->allows($actorPlayerId, $target->kingdomId, $permission),
         };
     }
 
     public function authorize(
-        Player $actor,
+        string $actorPlayerId,
         EventScope $scope,
-        Alliance|Kingdom|Player $target,
+        string $targetId,
         OperationsPermission $permission,
     ): void {
-        if (! $this->allows($actor, $scope, $target, $permission)) {
+        if (! $this->allows($actorPlayerId, $scope, $targetId, $permission)) {
             throw new AuthorizationException;
         }
     }
@@ -58,30 +65,34 @@ final class EventAuthorization
     public function authorizeManager(EventMutationContext $context): void
     {
         $permission = OperationsPermission::from((string) $context->typeScope->manage_permission_key);
-        $this->authorize($context->actor, $context->event->scope, $context->target, $permission);
+        if (! $this->allowsCurrentFacts($context->actor->playerId, $context->target, $context->authority, $permission)) {
+            throw new AuthorizationException;
+        }
     }
 
-    public function authorizeSelf(EventMutationContext $context, Player $participant): void
+    public function authorizeSelf(EventMutationContext $context, string $participantPlayerId): void
     {
-        if ((string) $context->actor->id !== (string) $participant->id
-            || ($context->event->scope === EventScope::Player
-                && (! $context->target instanceof Player
-                    || (string) $context->target->id !== (string) $participant->id))) {
+        if ($context->actor->playerId !== $participantPlayerId
+            || ($context->target->scope === EventScope::Player
+                && $context->target->playerId !== $participantPlayerId)) {
             throw new AuthorizationException;
         }
 
         $permission = OperationsPermission::from((string) $context->typeScope->view_permission_key);
-        $this->authorize($context->actor, $context->event->scope, $context->target, $permission);
+        if (! $this->allowsCurrentFacts($context->actor->playerId, $context->target, $context->authority, $permission)) {
+            throw new AuthorizationException;
+        }
     }
 
     public function authorizeCreation(EventCreationMutationContext $context, bool $manage = false): void
     {
-        $scope = $this->targets->scopeFor($context->target);
         $permission = OperationsPermission::from((string) ($manage
             ? $context->typeScope->manage_permission_key
             : $context->typeScope->create_permission_key));
 
-        $this->authorize($context->actor, $scope, $context->target, $permission);
+        if (! $this->allowsCurrentFacts($context->actor->playerId, $context->target, $context->authority, $permission)) {
+            throw new AuthorizationException;
+        }
     }
 
     public function supports(EventScope $scope, OperationsPermission $permission): bool
@@ -102,6 +113,37 @@ final class EventAuthorization
                 OperationsPermission::EventKingdomCreate,
                 OperationsPermission::EventKingdomManage,
             ], true),
+        };
+    }
+
+    private function allowsCurrentFacts(
+        string $actorPlayerId,
+        EventTargetReference $target,
+        EventScopeAuthorityFacts $authority,
+        OperationsPermission $permission,
+    ): bool {
+        if (! $this->supports($target->scope, $permission)) {
+            return false;
+        }
+
+        return match ($target->scope) {
+            EventScope::Alliance => $target->allianceId !== null
+                && $authority->allianceFacts instanceof AllianceAuthorityFacts
+                && $authority->allianceFacts->playerId === $actorPlayerId
+                && $authority->allianceFacts->allianceId === $target->allianceId
+                && $this->allianceAuthorization->allowsFacts($authority->allianceFacts, $permission),
+            EventScope::Kingdom => $target->kingdomId !== null
+                && $authority->kingdomFacts instanceof KingdomAuthorityFacts
+                && $authority->kingdomFacts->playerId === $actorPlayerId
+                && $authority->kingdomFacts->kingdomId === $target->kingdomId
+                && $this->kingdomAuthorization->allowsFacts($authority->kingdomFacts, $permission),
+            EventScope::Player => $target->playerId !== null
+                && $this->playerAuthorization->allowsFacts(
+                    $actorPlayerId,
+                    $target->playerId,
+                    $authority->playerManagerAllianceFacts,
+                    $permission,
+                ),
         };
     }
 }

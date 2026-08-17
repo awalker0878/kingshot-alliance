@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Models;
 
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPlanStatus;
@@ -22,8 +20,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $published_at
  * @property-read Event|null $event
  * @property-read EventOccurrence|null $occurrence
- * @property-read Kingdom|null $kingdom
- * @property-read Player|null $createdByPlayer
  */
 final class KingPerkPlan extends Model
 {
@@ -58,18 +54,6 @@ final class KingPerkPlan extends Model
     public function occurrence(): BelongsTo
     {
         return $this->belongsTo(EventOccurrence::class);
-    }
-
-    /** @return BelongsTo<Kingdom, $this> */
-    public function kingdom(): BelongsTo
-    {
-        return $this->belongsTo(Kingdom::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function createdByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'created_by_player_id');
     }
 
     /** @return HasMany<KingPerkAppointment, $this> */

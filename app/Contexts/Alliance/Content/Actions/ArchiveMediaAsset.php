@@ -26,10 +26,10 @@ final readonly class ArchiveMediaAsset
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $alliance, Player $actor, string $mediaId): MediaAsset
+    public function handle(string $allianceId, string $actorPlayerId, string $mediaId): MediaAsset
     {
-        return DB::transaction(function () use ($alliance, $actor, $mediaId): MediaAsset {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $mediaId): MediaAsset {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
             $asset = MediaAsset::query()

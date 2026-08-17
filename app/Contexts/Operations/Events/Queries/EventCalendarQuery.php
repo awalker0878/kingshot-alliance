@@ -4,49 +4,45 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Queries;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventTargetResolver;
 use App\Contexts\Operations\Events\Services\EventVisibilityResolver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use LogicException;
 
-final class EventCalendarQuery
+final readonly class EventCalendarQuery
 {
     public function __construct(
         private EventVisibilityResolver $visibility,
         private EventAuthorization $authorization,
-        private EventTargetResolver $targets,
     ) {}
 
     /** @return Collection<int, EventOccurrence> */
-    public function forAlliance(Player $actor, Alliance $alliance, int $pastDays = 0, int $futureDays = 30): Collection
+    public function forAlliance(PlayerReference $actor, string $allianceId, int $pastDays = 0, int $futureDays = 30): Collection
     {
         $pastDays = max(0, min($pastDays, 31));
         $futureDays = max(1, min($futureDays, 366));
 
         $this->authorization->authorize(
-            $actor,
+            $actor->playerId,
             EventScope::Alliance,
-            $alliance,
+            $allianceId,
             OperationsPermission::EventAllianceView,
         );
 
         return EventOccurrence::query()
             ->where('status', EventOccurrenceStatus::Scheduled->value)
             ->whereBetween('starts_at', [now()->subDays($pastDays), now()->addDays($futureDays)])
-            ->whereHas('event', static function (Builder $query) use ($alliance): void {
-                $query
-                    ->where('scope', EventScope::Alliance->value)
-                    ->where('alliance_id', $alliance->id);
-            })
+            ->whereHas('event', static fn (Builder $query) => $query
+                ->where('scope', EventScope::Alliance->value)
+                ->where('alliance_id', $allianceId))
             ->with(['event.eventType'])
             ->orderBy('starts_at')
             ->limit(100)
@@ -54,7 +50,7 @@ final class EventCalendarQuery
     }
 
     /** @return Collection<int, EventOccurrence> */
-    public function calendar(Player $actor, int $pastDays = 7, int $futureDays = 90): Collection
+    public function calendar(PlayerReference $actor, int $pastDays = 7, int $futureDays = 90): Collection
     {
         $pastDays = max(0, min($pastDays, 31));
         $futureDays = max(1, min($futureDays, 366));
@@ -66,24 +62,18 @@ final class EventCalendarQuery
             ->whereHas('event', function (Builder $query) use ($targets): void {
                 $query->where(function (Builder $scopeQuery) use ($targets): void {
                     $hasTargets = false;
-                    if ($targets['alliance'] !== []) {
-                        $scopeQuery->where(function (Builder $q) use ($targets): void {
-                            $q->where('scope', 'alliance')->whereIn('alliance_id', $targets['alliance']);
-                        });
-                        $hasTargets = true;
-                    }
-                    if ($targets['player'] !== []) {
+                    foreach ([
+                        EventScope::Alliance->value => ['ids' => $targets['alliance'], 'column' => 'alliance_id'],
+                        EventScope::Player->value => ['ids' => $targets['player'], 'column' => 'player_id'],
+                        EventScope::Kingdom->value => ['ids' => $targets['kingdom'], 'column' => 'kingdom_id'],
+                    ] as $scope => $selection) {
+                        if ($selection['ids'] === []) {
+                            continue;
+                        }
                         $method = $hasTargets ? 'orWhere' : 'where';
-                        $scopeQuery->{$method}(function (Builder $q) use ($targets): void {
-                            $q->where('scope', 'player')->whereIn('player_id', $targets['player']);
-                        });
-                        $hasTargets = true;
-                    }
-                    if ($targets['kingdom'] !== []) {
-                        $method = $hasTargets ? 'orWhere' : 'where';
-                        $scopeQuery->{$method}(function (Builder $q) use ($targets): void {
-                            $q->where('scope', 'kingdom')->whereIn('kingdom_id', $targets['kingdom']);
-                        });
+                        $scopeQuery->{$method}(static fn (Builder $q) => $q
+                            ->where('scope', $scope)
+                            ->whereIn($selection['column'], $selection['ids']));
                         $hasTargets = true;
                     }
                     if (! $hasTargets) {
@@ -91,31 +81,18 @@ final class EventCalendarQuery
                     }
                 });
             })
-            ->with([
-                'event.eventType',
-                'event.typeScope.capabilities',
-                'event.alliance',
-                'event.kingdom',
-                'event.player',
-            ])
+            ->with(['event.eventType', 'event.typeScope.capabilities'])
             ->orderBy('starts_at')
             ->limit(500)
             ->get();
     }
 
-    public function occurrence(Player $actor, string $occurrenceId): EventOccurrence
+    public function occurrence(PlayerReference $actor, string $occurrenceId): EventOccurrence
     {
         $occurrence = EventOccurrence::query()
             ->whereKey($occurrenceId)
-            ->with([
-                'event.eventType',
-                'event.typeScope.capabilities',
-                'event.alliance',
-                'event.kingdom',
-                'event.player',
-            ])
+            ->with(['event.eventType', 'event.typeScope.capabilities'])
             ->firstOrFail();
-
         $event = $occurrence->event;
         if (! $event instanceof Event) {
             throw (new ModelNotFoundException)->setModel(Event::class);
@@ -126,33 +103,40 @@ final class EventCalendarQuery
         return $occurrence;
     }
 
-    public function eventForManage(Player $actor, string $eventId): Event
+    public function eventForManage(PlayerReference $actor, string $eventId): Event
     {
         $event = Event::query()
             ->whereKey($eventId)
-            ->with([
-                'eventType',
-                'typeScope.capabilities',
-                'alliance',
-                'kingdom',
-                'player',
-                'occurrences',
-            ])
+            ->with(['eventType', 'typeScope.capabilities', 'occurrences'])
             ->firstOrFail();
-
         $this->authorize($actor, $event, (string) $event->typeScope->manage_permission_key);
 
         return $event;
     }
 
-    private function authorize(Player $actor, Event $event, string $permissionKey): void
+    private function authorize(PlayerReference $actor, Event $event, string $permissionKey): void
     {
-        $target = $this->targets->forEvent($event);
+        $scope = $event->scopeEnum();
         $this->authorization->authorize(
-            $actor,
-            $event->scope,
-            $target,
+            $actor->playerId,
+            $scope,
+            $this->targetId($event, $scope),
             OperationsPermission::from($permissionKey),
         );
+    }
+
+    private function targetId(Event $event, EventScope $scope): string
+    {
+        $targetId = match ($scope) {
+            EventScope::Alliance => $event->alliance_id,
+            EventScope::Kingdom => $event->kingdom_id,
+            EventScope::Player => $event->player_id,
+        };
+
+        if (! is_string($targetId) || $targetId === '') {
+            throw new LogicException('Event target identity is missing.');
+        }
+
+        return $targetId;
     }
 }

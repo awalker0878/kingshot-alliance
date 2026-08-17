@@ -7,11 +7,9 @@ namespace App\Contexts\Alliance\Membership\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -27,19 +25,19 @@ final readonly class UpdateAllianceRank
     ) {}
 
     public function handle(
-        Alliance $alliance,
-        Player $actor,
+        string $allianceId,
+        string $actorPlayerId,
         string $membershipId,
         AllianceRank $rank,
-    ): AllianceMembership {
+    ): string {
         if ($rank === AllianceRank::R5) {
             throw ValidationException::withMessages([
                 'rank' => 'Use Alliance leadership transfer to assign R5.',
             ]);
         }
 
-        return DB::transaction(function () use ($alliance, $actor, $membershipId, $rank): AllianceMembership {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $membershipId, $rank): string {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RoleManage);
 
             $locked = AllianceMembership::query()
@@ -49,7 +47,7 @@ final readonly class UpdateAllianceRank
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ((string) $locked->player_id === (string) $context->actor->id) {
+            if ((string) $locked->player_id === (string) $context->actor->playerId) {
                 throw ValidationException::withMessages([
                     'rank' => 'The active Player cannot change its own rank through rank administration.',
                 ]);
@@ -64,7 +62,7 @@ final readonly class UpdateAllianceRank
             $previousRank = $locked->rank;
 
             if ($previousRank === $rank) {
-                return $locked;
+                return (string) $locked->id;
             }
 
             $locked->forceFill(['rank' => $rank])->save();
@@ -79,7 +77,7 @@ final readonly class UpdateAllianceRank
             $this->audit->record('membership.rank_changed', $context->actor, $locked, $context->alliance, $metadata);
             $this->outbox->record('membership.rank_changed', (string) $context->alliance->id, $locked, $metadata);
 
-            return $locked->refresh();
+            return (string) $locked->id;
         });
     }
 }

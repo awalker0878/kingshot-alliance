@@ -21,9 +21,10 @@ final class TransferParticipantController extends Controller
         SaveTransferParticipant $save,
         string $plan,
     ): RedirectResponse {
+        $scope = $context->scope();
         $save->handle(
-            $context->alliance(),
-            $context->player(),
+            $scope->allianceId,
+            $scope->playerId,
             $plan,
             $this->validated($request),
         );
@@ -38,9 +39,10 @@ final class TransferParticipantController extends Controller
         string $plan,
         string $participant,
     ): RedirectResponse {
+        $scope = $context->scope();
         $save->handle(
-            $context->alliance(),
-            $context->player(),
+            $scope->allianceId,
+            $scope->playerId,
             $plan,
             $this->validated($request),
             $participant,
@@ -56,12 +58,8 @@ final class TransferParticipantController extends Controller
         string $plan,
         string $participant,
     ): RedirectResponse {
-        $withdraw->handle(
-            $context->alliance(),
-            $context->player(),
-            $plan,
-            $participant,
-        );
+        $scope = $context->scope();
+        $withdraw->handle($scope->allianceId, $scope->playerId, $plan, $participant);
 
         return back()->with('status', 'transfer-participant-withdrawn');
     }

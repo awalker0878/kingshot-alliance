@@ -17,7 +17,7 @@ use App\Contexts\Alliance\Content\Http\Controllers\MemberContentController;
 use App\Contexts\Alliance\Content\Http\Controllers\PublicAllianceController;
 use App\Contexts\Alliance\Content\Http\Controllers\PublicBrandingMediaController;
 use App\Contexts\Alliance\Content\Http\Controllers\PublicContentController;
-use App\Contexts\Alliance\Lifecycle\Http\Controllers\AllianceOverviewController;
+use App\ReadModels\AllianceDashboard\Http\Controllers\AllianceOverviewController;
 use App\Contexts\Alliance\Lifecycle\Http\Controllers\CreateAllianceController;
 use App\Contexts\Alliance\Lifecycle\Http\Controllers\DashboardController;
 use App\Contexts\Alliance\Membership\Http\Controllers\InvitationController;

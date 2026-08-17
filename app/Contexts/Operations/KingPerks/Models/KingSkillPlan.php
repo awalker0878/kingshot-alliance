@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\KingPerks\Enums\KingSkill;
 use App\Contexts\Operations\KingPerks\Enums\KingSkillStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -21,7 +20,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $scheduled_in_game_at
  * @property Carbon|null $activated_at
  * @property-read KingPerkPlan $plan
- * @property-read Player|null $plannedByPlayer
  */
 final class KingSkillPlan extends Model
 {
@@ -56,9 +54,4 @@ final class KingSkillPlan extends Model
         return $this->belongsTo(KingPerkPlan::class, 'plan_id');
     }
 
-    /** @return BelongsTo<Player, $this> */
-    public function plannedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'planned_by_player_id');
-    }
 }

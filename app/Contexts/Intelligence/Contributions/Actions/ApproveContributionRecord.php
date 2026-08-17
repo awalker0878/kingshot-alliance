@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordStatus;
 use App\Contexts\Intelligence\Contributions\Models\ContributionRecord;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -19,42 +16,38 @@ use InvalidArgumentException;
 final class ApproveContributionRecord
 {
     public function __construct(
-        private readonly AllianceWriteState $allianceWriteState,
-        private readonly AllianceIntelligenceAuthorization $authority,
+        private readonly AllianceIntelligenceWriteState $writeState,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Player $actor, Alliance $alliance, ContributionRecord $record): ContributionRecord
+    public function handle(string $actorPlayerId, string $allianceId, string $recordId): void
     {
-        return DB::transaction(function () use ($actor, $alliance, $record): ContributionRecord {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
-            $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
-            $locked = ContributionRecord::query()
-                ->where('alliance_id', $context->alliance->id)
-                ->whereKey($record->id)
+        DB::transaction(function () use ($actorPlayerId, $allianceId, $recordId): void {
+            [, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::ContributionManage);
+            $record = ContributionRecord::query()
+                ->where('alliance_id', $allianceId)
+                ->whereKey($recordId)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($locked->status === ContributionRecordStatus::Approved) {
-                return $locked;
+            if ($record->status === ContributionRecordStatus::Approved) {
+                return;
             }
-            if ($locked->status !== ContributionRecordStatus::Pending) {
+            if ($record->status !== ContributionRecordStatus::Pending) {
                 throw new InvalidArgumentException('Only pending contribution records can be approved.');
             }
 
-            $locked->forceFill([
+            $record->forceFill([
                 'status' => ContributionRecordStatus::Approved,
                 'approved_at' => now(),
-                'approved_by_player_id' => $context->actor->id,
+                'approved_by_player_id' => $actor->playerId,
             ])->save();
 
-            $this->audit->record('contribution.record.approved', $context->actor, $locked, $context->alliance);
-            $this->outbox->record('contribution.record.approved', $context->alliance->id, $locked, [
-                'record_id' => $locked->id,
+            $this->audit->record('contribution.record.approved', $actor, $record, $allianceId);
+            $this->outbox->record('contribution.record.approved', $allianceId, $record, [
+                'record_id' => $record->id,
             ]);
-
-            return $locked->refresh();
         });
     }
 }

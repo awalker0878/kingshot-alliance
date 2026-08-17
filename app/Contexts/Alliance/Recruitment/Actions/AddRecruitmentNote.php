@@ -7,10 +7,8 @@ namespace App\Contexts\Alliance\Recruitment\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentNote;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -25,21 +23,19 @@ final class AddRecruitmentNote
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Player $actor, Alliance $alliance, RecruitmentCandidate $candidate, string $body): RecruitmentNote
+    public function handle(string $actorPlayerId, string $allianceId, string $candidateId, string $body): string
     {
         $cleanBody = trim($body);
         if ($cleanBody === '') {
             throw ValidationException::withMessages(['note' => 'Recruitment note text is required.']);
         }
 
-        return DB::transaction(function () use ($actor, $alliance, $candidate, $cleanBody): RecruitmentNote {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $candidateId, $cleanBody): string {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
-            // Notes are independent children, so they share-lock the candidate while
-            // candidate-wide transitions/merges take an exclusive candidate lock.
             $currentCandidate = RecruitmentCandidate::query()
-                ->whereKey($candidate->id)
+                ->whereKey($candidateId)
                 ->where('alliance_id', $context->alliance->id)
                 ->sharedLock()
                 ->firstOrFail();
@@ -53,7 +49,7 @@ final class AddRecruitmentNote
             $note = RecruitmentNote::query()->create([
                 'alliance_id' => $context->alliance->id,
                 'candidate_id' => $currentCandidate->id,
-                'author_player_id' => $context->actor->id,
+                'author_player_id' => $context->actor->playerId,
                 'body' => $cleanBody,
             ]);
 
@@ -64,7 +60,7 @@ final class AddRecruitmentNote
                 'candidate_id' => $currentCandidate->id,
             ]);
 
-            return $note;
+            return (string) $note->id;
         });
     }
 }

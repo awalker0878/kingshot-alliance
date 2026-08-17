@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -17,16 +16,12 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $registered_at
  * @property Carbon|null $cancelled_at
  * @property-read EventOccurrence $occurrence
- * @property-read Player $player
- * @property-read Player|null $registeredByPlayer
- * @property-read Player|null $cancelledByPlayer
  */
 final class EventRegistration extends Model
 {
     use HasUlids;
 
     public $incrementing = false;
-
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -54,23 +49,5 @@ final class EventRegistration extends Model
     public function occurrence(): BelongsTo
     {
         return $this->belongsTo(EventOccurrence::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function registeredByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'registered_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function cancelledByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'cancelled_by_player_id');
     }
 }

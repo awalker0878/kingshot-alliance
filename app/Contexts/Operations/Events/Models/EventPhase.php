@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventPhaseStatus;
 use App\Contexts\Operations\Events\Enums\EventPhaseType;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -51,15 +50,4 @@ final class EventPhase extends Model
         return $this->belongsTo(EventOccurrence::class, 'occurrence_id');
     }
 
-    /** @return BelongsTo<Player, $this> */
-    public function createdByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'created_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function updatedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'updated_by_player_id');
-    }
 }

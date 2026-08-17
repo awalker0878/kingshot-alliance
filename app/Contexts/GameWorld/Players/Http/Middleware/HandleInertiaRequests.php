@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Players\Http\Middleware;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -14,7 +15,10 @@ final class HandleInertiaRequests extends Middleware
 {
     protected $rootView = 'app';
 
-    public function __construct(private readonly PlayerContext $playerContext) {}
+    public function __construct(
+        private readonly PlayerContext $playerContext,
+        private readonly PlayerReferenceQuery $players,
+    ) {}
 
     public function version(Request $request): ?string
     {
@@ -39,21 +43,16 @@ final class HandleInertiaRequests extends Middleware
             return ['activePlayerId' => null, 'players' => []];
         }
 
-        $players = Player::query()
-            ->where('user_id', $user->id)
-            ->with('currentKingdom:id,number')
-            ->orderBy('current_name')
-            ->orderBy('id')
-            ->get();
+        $players = $this->players->ownedByUser((int) $user->id);
 
         return [
-            'activePlayerId' => $this->playerContext->playerOrNull()?->id,
-            'players' => array_values($players->map(static fn (Player $player): array => [
-                'id' => (string) $player->id,
-                'name' => (string) $player->current_name,
-                'gamePlayerId' => $player->game_player_id === null ? null : (string) $player->game_player_id,
-                'kingdomNumber' => $player->currentKingdom?->number === null ? null : (int) $player->currentKingdom->number,
-            ])->all()),
+            'activePlayerId' => $this->playerContext->playerOrNull()?->playerId,
+            'players' => array_map(static fn (PlayerReference $player): array => [
+                'id' => $player->playerId,
+                'name' => $player->currentName,
+                'gamePlayerId' => $player->gamePlayerId,
+                'kingdomNumber' => $player->kingdomNumber,
+            ], $players),
         ];
     }
 }

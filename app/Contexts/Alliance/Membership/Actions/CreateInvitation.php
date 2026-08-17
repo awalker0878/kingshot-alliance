@@ -7,10 +7,8 @@ namespace App\Contexts\Alliance\Membership\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Services\IssueAllianceInvitation;
 use App\Contexts\Alliance\Membership\ValueObjects\IssuedInvitation;
-use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -22,16 +20,15 @@ final readonly class CreateInvitation
         private IssueAllianceInvitation $issuer,
     ) {}
 
-    public function handle(Alliance $alliance, Player $actor, Player $target, string $email): IssuedInvitation
+    public function handle(string $allianceId, string $actorPlayerId, string $targetPlayerId, string $email): IssuedInvitation
     {
         $email = Str::lower(trim($email));
 
-        return DB::transaction(function () use ($alliance, $actor, $target, $email): IssuedInvitation {
-            // Invitation creation reserves Alliance-wide member capacity.
-            $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $targetPlayerId, $email): IssuedInvitation {
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::InvitationManage);
 
-            return $this->issuer->handle($context, (string) $target->id, $email);
+            return $this->issuer->handle($context, $targetPlayerId, $email);
         });
     }
 }

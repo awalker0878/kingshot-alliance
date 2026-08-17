@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPushCategory;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkRequestStatus;
@@ -23,9 +22,7 @@ use Illuminate\Support\Carbon;
  * @property KingPerkRequestStatus $status
  * @property Carbon|null $reviewed_at
  * @property-read KingPerkPlan|null $plan
- * @property-read Player|null $player
  * @property-read KingPerkAppointment|null $scheduledAppointment
- * @property-read Player|null $reviewedByPlayer
  */
 final class KingPerkRequest extends Model
 {
@@ -71,21 +68,10 @@ final class KingPerkRequest extends Model
         return $this->belongsTo(KingPerkPlan::class, 'plan_id');
     }
 
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class);
-    }
-
     /** @return BelongsTo<KingPerkAppointment, $this> */
     public function scheduledAppointment(): BelongsTo
     {
         return $this->belongsTo(KingPerkAppointment::class, 'scheduled_appointment_id');
     }
 
-    /** @return BelongsTo<Player, $this> */
-    public function reviewedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'reviewed_by_player_id');
-    }
 }

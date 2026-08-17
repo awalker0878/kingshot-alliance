@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -47,11 +46,5 @@ final class EventAllianceResultMetric extends Model
     public function definition(): BelongsTo
     {
         return $this->belongsTo(EventMetricDefinition::class, 'metric_definition_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function recordedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'recorded_by_player_id');
     }
 }

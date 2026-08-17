@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventTemplate;
 use App\Contexts\Operations\Events\Services\EventCreationContextResolver;
@@ -16,7 +16,7 @@ final class EventTemplateQuery
     public function __construct(private EventCreationContextResolver $contexts) {}
 
     /** @return Collection<int, EventTemplate> */
-    public function available(Player $actor): Collection
+    public function available(PlayerReference $actor): Collection
     {
         $contexts = $this->contexts->forPlayer($actor);
         if ($contexts === []) {
@@ -42,7 +42,7 @@ final class EventTemplateQuery
                     $first = false;
                 }
             })
-            ->with(['eventType', 'typeScope', 'alliance', 'kingdom', 'player'])
+            ->with(['eventType', 'typeScope'])
             ->orderBy('name')
             ->get();
     }

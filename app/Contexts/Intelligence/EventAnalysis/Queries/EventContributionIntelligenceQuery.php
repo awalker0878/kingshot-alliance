@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\EventAnalysis\Queries;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
+use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
@@ -34,16 +34,16 @@ final readonly class EventContributionIntelligenceQuery
      * @param  array{event_type_slug?:string|null,metric_key?:string|null,from?:DateTimeInterface|null,until?:DateTimeInterface|null,max_samples?:int|null}  $filters
      * @return array<string,mixed>
      */
-    public function forPlayer(Player $player, array $filters = []): array
+    public function forPlayer(PlayerReference $player, array $filters = []): array
     {
         $samples = $this->samples(
-            static fn (Builder $query): Builder => $query->where('context.player_id', $player->id),
+            static fn (Builder $query): Builder => $query->where('context.player_id', $player->playerId),
             $filters,
         );
 
         return [
             'scope' => 'player',
-            'targetId' => (string) $player->id,
+            'targetId' => (string) $player->playerId,
             'participation' => $this->playerSummary->forPlayer($player),
             ...$this->summarize($samples, includeLeaderboards: false),
         ];
@@ -53,25 +53,25 @@ final readonly class EventContributionIntelligenceQuery
      * @param  array{event_type_slug?:string|null,metric_key?:string|null,from?:DateTimeInterface|null,until?:DateTimeInterface|null,max_samples?:int|null}  $filters
      * @return array<string,mixed>
      */
-    public function forAlliance(Player $actor, Alliance $alliance, array $filters = []): array
+    public function forAlliance(PlayerReference $actor, AllianceReference $alliance, array $filters = []): array
     {
         $this->authorization->authorize(
-            $actor,
+            $actor->playerId,
             EventScope::Alliance,
-            $alliance,
+            $alliance->allianceId,
             OperationsPermission::EventAllianceView,
         );
 
         $samples = $this->samples(
             static fn (Builder $query): Builder => $query
                 ->where('event.scope', EventScope::Alliance->value)
-                ->where('event.alliance_id', $alliance->id),
+                ->where('event.alliance_id', $alliance->allianceId),
             $filters,
         );
 
         return [
             'scope' => EventScope::Alliance->value,
-            'targetId' => (string) $alliance->id,
+            'targetId' => (string) $alliance->allianceId,
             ...$this->summarize($samples, includeLeaderboards: true),
         ];
     }
@@ -80,25 +80,25 @@ final readonly class EventContributionIntelligenceQuery
      * @param  array{event_type_slug?:string|null,metric_key?:string|null,from?:DateTimeInterface|null,until?:DateTimeInterface|null,max_samples?:int|null}  $filters
      * @return array<string,mixed>
      */
-    public function forKingdom(Player $actor, Kingdom $kingdom, array $filters = []): array
+    public function forKingdom(PlayerReference $actor, KingdomReference $kingdom, array $filters = []): array
     {
         $this->authorization->authorize(
-            $actor,
+            $actor->playerId,
             EventScope::Kingdom,
-            $kingdom,
+            $kingdom->kingdomId,
             OperationsPermission::EventKingdomView,
         );
 
         $samples = $this->samples(
             static fn (Builder $query): Builder => $query
                 ->where('event.scope', EventScope::Kingdom->value)
-                ->where('event.kingdom_id', $kingdom->id),
+                ->where('event.kingdom_id', $kingdom->kingdomId),
             $filters,
         );
 
         return [
             'scope' => EventScope::Kingdom->value,
-            'targetId' => (string) $kingdom->id,
+            'targetId' => (string) $kingdom->kingdomId,
             ...$this->summarize($samples, includeLeaderboards: true),
         ];
     }

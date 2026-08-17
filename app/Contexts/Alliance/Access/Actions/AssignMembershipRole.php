@@ -8,10 +8,8 @@ use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Models\Role;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
@@ -26,68 +24,46 @@ final readonly class AssignMembershipRole
         private AuditRecorder $audit,
     ) {}
 
-    public function handle(
-        Alliance $alliance,
-        Player $actor,
-        string $membershipId,
-        string $roleId,
-    ): AllianceMembership {
-        return DB::transaction(function () use ($alliance, $actor, $membershipId, $roleId): AllianceMembership {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+    public function handle(string $allianceId, string $actorPlayerId, string $membershipId, string $roleId): string
+    {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $membershipId, $roleId): string {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RoleManage);
 
             $membership = AllianceMembership::query()
-                ->where('id', $membershipId)
+                ->whereKey($membershipId)
                 ->where('alliance_id', $context->alliance->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
             if ($membership->status !== MembershipStatus::Active) {
-                throw ValidationException::withMessages([
-                    'membership' => 'Only active memberships can receive specialist roles.',
-                ]);
+                throw ValidationException::withMessages(['membership' => 'Only active memberships can receive specialist roles.']);
             }
 
             $role = Role::query()
-                ->where('id', $roleId)
+                ->whereKey($roleId)
                 ->where('alliance_id', $context->alliance->id)
                 ->sharedLock()
                 ->firstOrFail();
 
-            if ($membership->roles()->where('roles.id', $role->id)->exists()) {
-                return $membership->refresh();
+            if (! $membership->roles()->where('roles.id', $role->id)->exists()) {
+                $membership->roles()->attach($role->id, ['alliance_id' => $context->alliance->id]);
+
+                $metadata = ['role_id' => $role->id, 'role_key' => $role->key, 'player_id' => $membership->player_id];
+                $this->audit->record('membership.role_assigned', $context->actor, $membership, $context->alliance, $metadata);
+                OutboxMessage::query()->create([
+                    'alliance_id' => $context->alliance->id,
+                    'partition_key' => 'alliance:'.$context->alliance->id,
+                    'event_type' => 'membership.role_assigned',
+                    'aggregate_type' => AllianceMembership::class,
+                    'aggregate_id' => $membership->id,
+                    'idempotency_key' => 'membership.role_assigned:'.$membership->id.':'.$role->id.':'.Str::ulid(),
+                    'payload' => ['alliance_id' => $context->alliance->id, 'membership_id' => $membership->id, 'player_id' => $membership->player_id, 'role_id' => $role->id, 'role_key' => $role->key],
+                    'occurred_at' => now(), 'available_at' => now(), 'attempts' => 0,
+                ]);
             }
 
-            $membership->roles()->attach($role->id, ['alliance_id' => $context->alliance->id]);
-
-            $metadata = [
-                'role_id' => $role->id,
-                'role_key' => $role->key,
-                'player_id' => $membership->player_id,
-            ];
-
-            $this->audit->record('membership.role_assigned', $context->actor, $membership, $context->alliance, $metadata);
-
-            OutboxMessage::query()->create([
-                'alliance_id' => $context->alliance->id,
-                'partition_key' => 'alliance:'.$context->alliance->id,
-                'event_type' => 'membership.role_assigned',
-                'aggregate_type' => AllianceMembership::class,
-                'aggregate_id' => $membership->id,
-                'idempotency_key' => 'membership.role_assigned:'.$membership->id.':'.$role->id.':'.Str::ulid(),
-                'payload' => [
-                    'alliance_id' => $context->alliance->id,
-                    'membership_id' => $membership->id,
-                    'player_id' => $membership->player_id,
-                    'role_id' => $role->id,
-                    'role_key' => $role->key,
-                ],
-                'occurred_at' => now(),
-                'available_at' => now(),
-                'attempts' => 0,
-            ]);
-
-            return $membership->refresh();
+            return (string) $membership->id;
         });
     }
 }

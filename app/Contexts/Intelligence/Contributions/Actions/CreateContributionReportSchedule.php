@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Contributions\Models\ContributionReportSchedule;
 use App\Contexts\Intelligence\Contributions\Services\ContributionReportExporter;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -22,72 +19,61 @@ use InvalidArgumentException;
 final class CreateContributionReportSchedule
 {
     public function __construct(
-        private readonly AllianceWriteState $allianceWriteState,
-        private readonly AllianceIntelligenceAuthorization $authority,
+        private readonly AllianceIntelligenceWriteState $writeState,
+        private readonly PlayerReferenceQuery $players,
+        private readonly PlayerMembershipQuery $memberships,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
     ) {}
 
     public function handle(
-        Player $actor,
-        Alliance $alliance,
-        Player $recipient,
+        string $actorPlayerId,
+        string $allianceId,
+        string $recipientPlayerId,
         string $name,
         string $cadence,
         string $timezone,
         CarbonImmutable $nextDueAt,
-    ): ContributionReportSchedule {
+    ): void {
         if (! in_array($cadence, ['daily', 'weekly', 'monthly'], true)) {
             throw new InvalidArgumentException('Unsupported scheduled report cadence.');
         }
 
-        return DB::transaction(function () use ($actor, $alliance, $recipient, $name, $cadence, $timezone, $nextDueAt): ContributionReportSchedule {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
-            $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
+        DB::transaction(function () use ($actorPlayerId, $allianceId, $recipientPlayerId, $name, $cadence, $timezone, $nextDueAt): void {
+            [$facts, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::ContributionManage);
+            $recipient = $recipientPlayerId === $actor->playerId
+                ? $actor
+                : $this->players->lockCurrent($recipientPlayerId);
 
-            $currentRecipient = (string) $recipient->id === (string) $context->actor->id
-                ? $context->actor
-                : Player::query()->whereKey($recipient->id)->firstOrFail();
-            if ((string) $currentRecipient->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
+            if ($recipient->kingdomId !== $facts->kingdomId) {
                 throw new InvalidArgumentException('Scheduled report recipient must belong to the Alliance Kingdom.');
             }
-
-            $recipientMembership = (string) $currentRecipient->id === (string) $context->actor->id
-                ? $context->membership
-                : AllianceMembership::query()
-                    ->where('alliance_id', $context->alliance->id)
-                    ->where('player_id', $currentRecipient->id)
-                    ->where('status', MembershipStatus::Active->value)
-                    
-                    ->first();
-            if (! $recipientMembership instanceof AllianceMembership) {
+            if ($recipient->playerId !== $actor->playerId && ! $this->memberships->lockActiveMember($allianceId, $recipient->playerId)) {
                 throw new InvalidArgumentException('Scheduled report recipient must be an active Alliance Player.');
             }
 
             $schedule = ContributionReportSchedule::query()->create([
-                'alliance_id' => $context->alliance->id,
-                'recipient_player_id' => $currentRecipient->id,
+                'alliance_id' => $allianceId,
+                'recipient_player_id' => $recipient->playerId,
                 'name' => $name,
                 'cadence' => $cadence,
                 'timezone' => $timezone,
                 'next_due_at' => $nextDueAt->utc(),
                 'report_version' => ContributionReportExporter::REPORT_VERSION,
                 'is_enabled' => true,
-                'created_by_player_id' => $context->actor->id,
+                'created_by_player_id' => $actor->playerId,
             ]);
 
-            $this->audit->record('contribution.report-schedule.created', $context->actor, $schedule, $context->alliance, [
+            $this->audit->record('contribution.report-schedule.created', $actor, $schedule, $allianceId, [
                 'cadence' => $cadence,
-                'recipient_player_id' => $currentRecipient->id,
+                'recipient_player_id' => $recipient->playerId,
                 'report_version' => ContributionReportExporter::REPORT_VERSION,
             ]);
-            $this->outbox->record('contribution.report-schedule.created', $context->alliance->id, $schedule, [
+            $this->outbox->record('contribution.report-schedule.created', $allianceId, $schedule, [
                 'schedule_id' => $schedule->id,
-                'recipient_player_id' => $currentRecipient->id,
+                'recipient_player_id' => $recipient->playerId,
                 'report_version' => ContributionReportExporter::REPORT_VERSION,
             ]);
-
-            return $schedule;
         });
     }
 }

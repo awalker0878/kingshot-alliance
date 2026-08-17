@@ -67,8 +67,8 @@ final class UpdateEventTypeScope
         ): EventTypeScope {
             $writeContext = $this->platformWriteState->lock($actor);
             $context = $this->platformMutations->authorizeContext($writeContext);
-            $updated = $this->persistConfiguration->handle(
-                configuration: $configuration,
+            $this->persistConfiguration->handle(
+                configurationId: (string) $configuration->id,
                 isActive: $isActive,
                 defaultDurationMinutes: $defaultDurationMinutes,
                 defaultCapacity: $defaultCapacity,
@@ -83,6 +83,10 @@ final class UpdateEventTypeScope
                 defaultSettings: $defaultSettings,
                 capabilities: $capabilities,
             );
+            $updated = EventTypeScope::query()
+                ->whereKey($configuration->id)
+                ->with(['eventType', 'capabilities'])
+                ->firstOrFail();
 
             $wanted = array_values(array_unique(array_map(
                 static fn (EventCapability $capability): string => $capability->value,

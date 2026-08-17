@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Services;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventPhaseStatus;
 use App\Contexts\Operations\Events\Enums\EventPhaseType;
@@ -16,7 +15,7 @@ final readonly class EventPhaseService
 {
     public function __construct(private EventCapabilityResolver $capabilities) {}
 
-    public function materializeDefaults(EventOccurrence $occurrence, ?Player $actor = null): void
+    public function materializeDefaults(EventOccurrence $occurrence, ?string $actorPlayerId = null): void
     {
         $occurrence->loadMissing('event.typeScope.capabilities');
         $event = $occurrence->event;
@@ -66,7 +65,7 @@ final readonly class EventPhaseService
                     'start_offset_minutes' => $offset,
                     'duration_minutes' => $duration,
                 ],
-                'updated_by_player_id' => $actor?->id,
+                'updated_by_player_id' => $actorPlayerId,
             ];
 
             if ($existing instanceof EventPhase) {
@@ -76,7 +75,7 @@ final readonly class EventPhaseService
                     'occurrence_id' => $occurrence->id,
                     'key' => $key,
                     ...$values,
-                    'created_by_player_id' => $actor?->id,
+                    'created_by_player_id' => $actorPlayerId,
                 ]);
             }
         }

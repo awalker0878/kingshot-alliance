@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\EventAnalysis\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -24,14 +24,14 @@ final readonly class EventTrendQuery
      * @return array{completed:int,absent:int,excused:int,unresolved:int,reliability_percent:?float}
      */
     public function playerParticipation(
-        Player $player,
+        PlayerReference $player,
         ?CarbonImmutable $from = null,
         ?CarbonImmutable $until = null,
     ): array {
         [$from, $until] = $this->window($from, $until);
         $occurrenceIds = DB::table('event_player_contexts as context')
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'context.occurrence_id')
-            ->where('context.player_id', $player->id)
+            ->where('context.player_id', $player->playerId)
             ->whereBetween('occurrence.starts_at', [$from, $until])
             ->orderByDesc('occurrence.starts_at')
             ->limit(self::MAX_OCCURRENCES)
@@ -63,7 +63,7 @@ final readonly class EventTrendQuery
      * @return list<array{occurrence_id:string,starts_at:string,score:?int,rank:?int,outcome:?string}>
      */
     public function playerScoreSeries(
-        Player $player,
+        PlayerReference $player,
         string $eventTypeSlug,
         EventScope $scope,
         ?CarbonImmutable $from = null,
@@ -74,7 +74,7 @@ final readonly class EventTrendQuery
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'result.occurrence_id')
             ->join('events as event', 'event.id', '=', 'occurrence.event_id')
             ->join('event_types as event_type', 'event_type.id', '=', 'event.event_type_id')
-            ->where('result.player_id', $player->id)
+            ->where('result.player_id', $player->playerId)
             ->where('event.scope', $scope->value)
             ->where('event_type.slug', $eventTypeSlug)
             ->whereBetween('occurrence.starts_at', [$from, $until])
@@ -99,7 +99,7 @@ final readonly class EventTrendQuery
      * @return list<array{occurrence_id:string,starts_at:string,dimension_key:?string,value:float,unit:?string}>
      */
     public function playerMetricSeries(
-        Player $player,
+        PlayerReference $player,
         string $eventTypeSlug,
         EventScope $scope,
         string $metricKey,
@@ -113,7 +113,7 @@ final readonly class EventTrendQuery
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'result.occurrence_id')
             ->join('events as event', 'event.id', '=', 'occurrence.event_id')
             ->join('event_types as event_type', 'event_type.id', '=', 'event.event_type_id')
-            ->where('result.player_id', $player->id)
+            ->where('result.player_id', $player->playerId)
             ->where('event.scope', $scope->value)
             ->where('event_type.slug', $eventTypeSlug)
             ->where('definition.key', $metricKey)

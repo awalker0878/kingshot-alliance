@@ -4,33 +4,25 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Services;
 
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
-use App\Contexts\Operations\Events\Enums\EventCapability;
-use App\Contexts\Operations\Events\Models\Event;
-use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
-use App\Contexts\Operations\Events\Services\EventWriteState;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkAppointmentStatus;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPlanStatus;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPushCategory;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkRequestStatus;
 use App\Contexts\Operations\KingPerks\Models\KingPerkAppointment;
-use App\Contexts\Operations\KingPerks\Models\KingPerkPlan;
 use App\Contexts\Operations\KingPerks\Models\KingPerkPositionBlock;
 use App\Contexts\Operations\KingPerks\Models\KingPerkRequest;
+use App\Contexts\Operations\KingPerks\Services\Internal\KingPerkWriteState;
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class KingPerkAutoScheduler
 {
     public function __construct(
-        private EventWriteState $eventWriteState,
-        private EventAuthorization $mutations,
-        private EventCapabilityGuard $capabilities,
+        private KingPerkWriteState $writeState,
+        private PlayerReferenceQuery $players,
         private KingPerkScheduler $scheduler,
         private KingPerkRequestService $requests,
     ) {}
@@ -41,37 +33,25 @@ final readonly class KingPerkAutoScheduler
      * @return array{assigned:int,appointment_ids:list<string>,request_ids:list<string>}
      */
     public function handle(
-        Player $actor,
-        KingPerkPlan $plan,
+        string $actorPlayerId,
+        string $planId,
         KingPerkPushCategory $category,
         CarbonImmutable $from,
         CarbonImmutable $until,
         int $limit = 200,
     ): array {
-        $authorizedPlan = DB::transaction(function () use ($actor, $plan): KingPerkPlan {
-            $route = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($plan->id)->firstOrFail();
-            $event = Event::query()->whereKey($route->event_id)->firstOrFail();
-            $context = $this->eventWriteState->lockEventScope($actor, $event);
-            $this->mutations->authorizeManager($context);
-            $this->capabilities->require($context->event, EventCapability::KingPerks);
-
-            if (! $context->target instanceof Kingdom
-                || (string) $context->target->id !== (string) $route->kingdom_id) {
-                throw new AuthorizationException;
-            }
-
-            $current = KingPerkPlan::query()
-                ->whereKey($route->id)
-                ->where('event_id', $context->event->id)
-                ->where('kingdom_id', $context->target->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-
+        $plan = DB::transaction(function () use ($actorPlayerId, $planId): array {
+            [$current] = $this->writeState->managerPlan($actorPlayerId, $planId);
             if (! in_array($current->status, [KingPerkPlanStatus::Draft, KingPerkPlanStatus::Published, KingPerkPlanStatus::Active], true)) {
                 throw ValidationException::withMessages(['plan' => 'This King Perks plan can no longer be scheduled.']);
             }
 
-            return $current->refresh();
+            return [
+                'id' => (string) $current->id,
+                'kingdom_id' => (string) $current->kingdom_id,
+                'window_starts_at' => CarbonImmutable::instance($current->window_starts_at),
+                'window_ends_at' => CarbonImmutable::instance($current->window_ends_at),
+            ];
         });
 
         $start = $from->utc();
@@ -79,7 +59,7 @@ final readonly class KingPerkAutoScheduler
         if (! $end->greaterThan($start)) {
             throw ValidationException::withMessages(['until' => 'Auto-schedule end must be after its start.']);
         }
-        if ($start->lt($authorizedPlan->window_starts_at) || $end->gt($authorizedPlan->window_ends_at)) {
+        if ($start->lt($plan['window_starts_at']) || $end->gt($plan['window_ends_at'])) {
             throw ValidationException::withMessages(['from' => 'Auto-schedule window must fit inside Kingdom of Power preparation.']);
         }
 
@@ -94,15 +74,13 @@ final readonly class KingPerkAutoScheduler
                 if ($slotEnd->gt($end)) {
                     break;
                 }
-
-                if ($this->positionBlocked($authorizedPlan, $type, $cursor, $slotEnd)) {
+                if ($this->positionBlocked($plan['id'], $type, $cursor, $slotEnd)) {
                     $cursor = $slotEnd;
-
                     continue;
                 }
 
                 $candidates = KingPerkRequest::query()
-                    ->where('plan_id', $authorizedPlan->id)
+                    ->where('plan_id', $plan['id'])
                     ->where('push_category', $category->value)
                     ->where('status', KingPerkRequestStatus::Submitted->value)
                     ->where('availability_starts_at', '<=', $cursor)
@@ -111,41 +89,38 @@ final readonly class KingPerkAutoScheduler
                         $query->whereNull('preferred_appointment_type')
                             ->orWhere('preferred_appointment_type', $type->value);
                     })
-                    ->whereHas('player', static function ($query) use ($authorizedPlan): void {
-                        $query->where('current_kingdom_id', $authorizedPlan->kingdom_id);
-                    })
-                    ->with('player')
                     ->orderByDesc('planned_speedup_minutes')
                     ->orderByDesc('planned_resource_amount')
                     ->orderBy('created_at')
                     ->limit(100)
                     ->get();
+                $players = $this->players->byIds($candidates->pluck('player_id')->map(static fn ($id): string => (string) $id)->all());
 
                 foreach ($candidates as $request) {
-                    $target = $request->player;
-                    if (! $target instanceof Player) {
+                    $target = $players[(string) $request->player_id] ?? null;
+                    if ($target === null || $target->kingdomId !== $plan['kingdom_id']) {
                         continue;
                     }
 
                     try {
-                        $appointment = DB::transaction(function () use ($actor, $authorizedPlan, $type, $request, $target, $cursor, $category): KingPerkAppointment {
-                            $appointment = $this->scheduler->assignAppointment(
-                                actor: $actor,
-                                plan: $authorizedPlan,
+                        $appointmentId = DB::transaction(function () use ($actorPlayerId, $plan, $type, $request, $target, $cursor, $category): string {
+                            $appointmentId = $this->scheduler->assignAppointment(
+                                actorPlayerId: $actorPlayerId,
+                                planId: $plan['id'],
                                 type: $type,
-                                target: $target,
+                                targetPlayerId: $target->playerId,
                                 startsAt: $cursor,
                                 notes: sprintf('Auto-scheduled from %s request.', $category->label()),
                             );
-                            $this->requests->markScheduled($actor, $request, $appointment);
+                            $this->requests->markScheduled($actorPlayerId, (string) $request->id, $appointmentId);
 
-                            return $appointment;
+                            return $appointmentId;
                         });
                     } catch (ValidationException) {
                         continue;
                     }
 
-                    $appointmentIds[] = (string) $appointment->id;
+                    $appointmentIds[] = $appointmentId;
                     $requestIds[] = (string) $request->id;
                     break;
                 }
@@ -165,26 +140,20 @@ final readonly class KingPerkAutoScheduler
         ];
     }
 
-    private function positionBlocked(
-        KingPerkPlan $plan,
-        KingAppointmentType $type,
-        CarbonImmutable $start,
-        CarbonImmutable $end,
-    ): bool {
-        $occupied = KingPerkAppointment::query()
-            ->where('plan_id', $plan->id)
+    private function positionBlocked(string $planId, KingAppointmentType $type, CarbonImmutable $start, CarbonImmutable $end): bool
+    {
+        if (KingPerkAppointment::query()
+            ->where('plan_id', $planId)
             ->where('appointment_type', $type->value)
             ->whereNotIn('status', [KingPerkAppointmentStatus::Cancelled->value, KingPerkAppointmentStatus::NoShow->value])
             ->where('starts_at', '<', $end)
             ->where('ends_at', '>', $start)
-            ->exists();
-
-        if ($occupied) {
+            ->exists()) {
             return true;
         }
 
         return KingPerkPositionBlock::query()
-            ->where('plan_id', $plan->id)
+            ->where('plan_id', $planId)
             ->where('appointment_type', $type->value)
             ->where('starts_at', '<', $end)
             ->where('ends_at', '>', $start)

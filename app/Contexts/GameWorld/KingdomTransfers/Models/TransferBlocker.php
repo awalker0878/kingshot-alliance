@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferBlockerState;
 use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -24,7 +23,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $resolved_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Alliance $alliance
  * @property-read TransferPlan $plan
  * @property-read TransferParticipant $participant
  * @property-read Player|null $createdBy
@@ -56,12 +54,6 @@ final class TransferBlocker extends Model
             'state' => TransferBlockerState::class,
             'resolved_at' => 'datetime',
         ];
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
     }
 
     /** @return BelongsTo<TransferPlan, $this> */

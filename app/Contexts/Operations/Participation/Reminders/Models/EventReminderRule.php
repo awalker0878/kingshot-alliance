@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Reminders\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderAudience;
 use App\Contexts\Operations\Participation\Reminders\Enums\EventReminderTrigger;
@@ -18,15 +17,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property EventReminderAudience $audience
  * @property-read Event $event
  * @property-read EventPoll|null $poll
- * @property-read Player|null $createdByPlayer
- * @property-read Player|null $updatedByPlayer
  */
 final class EventReminderRule extends Model
 {
     use HasUlids;
 
     public $incrementing = false;
-
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -54,17 +50,5 @@ final class EventReminderRule extends Model
     public function poll(): BelongsTo
     {
         return $this->belongsTo(EventPoll::class, 'poll_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function createdByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'created_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function updatedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'updated_by_player_id');
     }
 }

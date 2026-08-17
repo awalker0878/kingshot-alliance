@@ -10,33 +10,48 @@ use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use Illuminate\Auth\Access\AuthorizationException;
 
 final readonly class AllianceAuthorization
 {
-    public function __construct(private AlliancePermissionEvaluator $permissions) {}
+    public function __construct(
+        private AlliancePermissionEvaluator $permissions,
+        private PlayerReferenceQuery $players,
+    ) {}
 
-    public function activeMembership(Player $player, Alliance $alliance): ?AllianceMembership
+    /**
+     * Fresh read authorization. This is suitable for presentation/read gating.
+     * Protected writes should authorize their locked AllianceMutationContext.
+     */
+    public function allows(string $playerId, string $allianceId, AlliancePermission $permission): bool
     {
-        if ($alliance->status !== AllianceStatus::Active
-            || (string) $player->current_kingdom_id !== (string) $alliance->kingdom_id) {
-            return null;
+        $player = $this->players->find($playerId);
+        $alliance = Alliance::query()->find($allianceId);
+
+        if ($player === null || ! $alliance instanceof Alliance || $alliance->status !== AllianceStatus::Active) {
+            return false;
         }
 
-        return AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('player_id', $player->id)
+        if ($player->kingdomId !== (string) $alliance->kingdom_id) {
+            return false;
+        }
+
+        $membership = AllianceMembership::query()
+            ->where('alliance_id', $allianceId)
+            ->where('player_id', $playerId)
             ->where('status', MembershipStatus::Active->value)
             ->first();
-    }
-
-    public function allows(Player $player, Alliance $alliance, AlliancePermission $permission): bool
-    {
-        $membership = $this->activeMembership($player, $alliance);
 
         return $membership instanceof AllianceMembership
             && $this->permissions->allows($membership, $alliance, $permission);
+    }
+
+    public function authorize(string $playerId, string $allianceId, AlliancePermission $permission): void
+    {
+        if (! $this->allows($playerId, $allianceId, $permission)) {
+            throw new AuthorizationException;
+        }
     }
 
     public function allowsContext(AllianceMutationContext $context, AlliancePermission $permission): bool

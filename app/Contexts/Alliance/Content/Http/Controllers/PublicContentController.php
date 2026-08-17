@@ -26,7 +26,7 @@ final class PublicContentController extends Controller
             ->where('slug', $slug)
             ->where('status', AllianceStatus::Active->value)
             ->firstOrFail();
-        $item = $content->publicBySlug($alliance, $contentSlug);
+        $item = $content->publicBySlug((string) $alliance->id, $contentSlug);
         abort_unless($item !== null, 404);
 
         return Inertia::render('Public/Content', [

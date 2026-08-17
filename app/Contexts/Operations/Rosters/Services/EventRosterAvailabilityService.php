@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Services;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventCapabilityResolver;
@@ -19,13 +19,13 @@ final readonly class EventRosterAvailabilityService
     public function __construct(private EventCapabilityResolver $capabilities) {}
 
     /** @return list<string> */
-    public function warnings(EventOccurrence $occurrence, Player $player): array
+    public function warnings(EventOccurrence $occurrence, PlayerReference $player): array
     {
         $occurrence->loadMissing('event.typeScope');
         $warnings = [];
         $response = EventResponse::query()
             ->where('occurrence_id', $occurrence->id)
-            ->where('player_id', $player->id)
+            ->where('player_id', $player->playerId)
             ->first();
 
         if (! $response instanceof EventResponse) {
@@ -50,7 +50,7 @@ final readonly class EventRosterAvailabilityService
         if ($this->capabilities->supports($occurrence->event->typeScope, EventCapability::Registration)) {
             $registration = EventRegistration::query()
                 ->where('occurrence_id', $occurrence->id)
-                ->where('player_id', $player->id)
+                ->where('player_id', $player->playerId)
                 ->first();
             if (! $registration instanceof EventRegistration || $registration->status === EventRegistrationStatus::Cancelled) {
                 $warnings[] = 'not_registered';

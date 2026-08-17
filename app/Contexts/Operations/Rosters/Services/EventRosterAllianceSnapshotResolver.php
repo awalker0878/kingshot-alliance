@@ -4,36 +4,38 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Services;
 
-use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
-use App\Contexts\Alliance\Membership\Enums\RosterState;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
-use App\Contexts\Operations\Events\Models\Event;
+use App\Contexts\Operations\Events\ValueObjects\EventTargetReference;
 
-final class EventRosterAllianceSnapshotResolver
+final readonly class EventRosterAllianceSnapshotResolver
 {
-    public function resolve(Event $event, Player $player): ?string
+    public function __construct(
+        private PlayerMembershipQuery $memberships,
+        private AllianceReferenceQuery $alliances,
+    ) {}
+
+    public function resolve(EventTargetReference $target, PlayerReference $player): ?string
     {
-        if ($event->scope === EventScope::Alliance) {
-            return $event->alliance_id === null ? null : (string) $event->alliance_id;
+        if ($target->scope === EventScope::Alliance) {
+            return $target->allianceId;
         }
 
-        $query = AllianceRosterEntry::query()
-            ->where('player_id', $player->id)
-            ->where('state', RosterState::Active->value)
-            ->whereHas('alliance', static fn ($builder) => $builder
-                ->where('kingdom_id', $player->current_kingdom_id)
-                ->where('status', AllianceStatus::Active->value));
-
-        if ($event->scope === EventScope::Kingdom) {
-            $query->whereHas('alliance', static fn ($builder) => $builder
-                ->where('kingdom_id', $event->kingdom_id)
-                ->where('status', AllianceStatus::Active->value));
+        $kingdomId = $target->scope === EventScope::Kingdom
+            ? $target->kingdomId
+            : $player->kingdomId;
+        if ($kingdomId === null || $player->kingdomId !== $kingdomId) {
+            return null;
         }
 
-        $ids = $query->pluck('alliance_id')->unique()->values();
+        $allianceIds = $this->memberships->activeAllianceIdsForPlayerInKingdom($player->playerId, $kingdomId);
+        $activeAllianceIds = array_values(array_filter(
+            $allianceIds,
+            fn (string $allianceId): bool => $this->alliances->find($allianceId)?->active() === true,
+        ));
 
-        return $ids->count() === 1 ? (string) $ids->first() : null;
+        return count($activeAllianceIds) === 1 ? $activeAllianceIds[0] : null;
     }
 }

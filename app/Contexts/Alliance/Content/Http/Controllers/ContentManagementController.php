@@ -26,7 +26,9 @@ use App\Contexts\Alliance\Content\Models\ContentRevision;
 use App\Contexts\Alliance\Content\Models\MediaAsset;
 use App\Contexts\Alliance\Content\Queries\ContentQuery;
 use App\Contexts\Alliance\Content\Services\ContentPresenter;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -46,28 +48,31 @@ final class ContentManagementController extends Controller
         AllianceAuthorization $authorization,
         ContentQuery $content,
         ContentPresenter $presenter,
+        AllianceReferenceQuery $alliances,
+        KingdomReferenceQuery $kingdoms,
     ): Response {
         $user = $this->user($request);
-        $actor = $context->player();
-        $alliance = $context->alliance()->load('kingdom');
+        $scope = $context->scope();
+        $alliance = $alliances->require($scope->allianceId);
+        $kingdom = $kingdoms->find($alliance->kingdomId);
 
-        if (! $authorization->allows($actor, $alliance, AlliancePermission::ContentManage)) {
+        if (! $authorization->allows($scope->playerId, $scope->allianceId, AlliancePermission::ContentManage)) {
             throw new AuthorizationException;
         }
 
-        $profile = AllianceProfile::query()->where('alliance_id', $alliance->id)->first();
+        $profile = AllianceProfile::query()->where('alliance_id', $scope->allianceId)->first();
         $branding = AllianceBrandingMedia::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->pluck('media_id', 'slot');
         $categories = ContentCategory::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
-        $items = $content->managerList($alliance);
+        $items = $content->managerList($scope->allianceId);
         $items->load('revisions');
         $media = MediaAsset::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->orderByDesc('created_at')
             ->get();
 
@@ -126,10 +131,10 @@ final class ContentManagementController extends Controller
                 'email' => (string) $user->email,
             ],
             'alliance' => [
-                'id' => $alliance->id,
+                'id' => $alliance->allianceId,
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,
-                'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
+                'kingdom' => $kingdom?->number,
                 'language' => $alliance->language,
                 'timezone' => $alliance->timezone,
                 'description' => $profile?->description,
@@ -157,8 +162,7 @@ final class ContentManagementController extends Controller
         AllianceContext $context,
         UpdateAlliancePublicProfile $updateProfile,
     ): RedirectResponse {
-        $actor = $context->player();
-        $alliance = $context->alliance();
+        $scope = $context->scope();
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'language' => ['required', 'string', 'max:16', 'regex:/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/'],
@@ -169,7 +173,7 @@ final class ContentManagementController extends Controller
             'banner_media_id' => ['nullable', 'string', 'ulid'],
         ]);
 
-        $updateProfile->handle($alliance, $actor, $validated);
+        $updateProfile->handle($scope->allianceId, $scope->playerId, $validated);
 
         return back()->with('status', 'public-profile-updated');
     }
@@ -179,8 +183,7 @@ final class ContentManagementController extends Controller
         AllianceContext $context,
         SaveContentCategory $saveCategory,
     ): RedirectResponse {
-        $actor = $context->player();
-        $alliance = $context->alliance();
+        $scope = $context->scope();
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'slug' => [
@@ -188,14 +191,14 @@ final class ContentManagementController extends Controller
                 'string',
                 'max:100',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('content_categories', 'slug')->where('alliance_id', $alliance->id),
+                Rule::unique('content_categories', 'slug')->where('alliance_id', $scope->allianceId),
             ],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
         ]);
 
         $saveCategory->handle(
-            $alliance,
-            $actor,
+            $scope->allianceId,
+            $scope->playerId,
             (string) $validated['name'],
             (string) $validated['slug'],
             (int) ($validated['sort_order'] ?? 0),
@@ -210,11 +213,10 @@ final class ContentManagementController extends Controller
         SaveContentCategory $saveCategory,
         string $category,
     ): RedirectResponse {
-        $actor = $context->player();
-        $alliance = $context->alliance();
+        $scope = $context->scope();
         $existing = ContentCategory::query()
             ->where('id', $category)
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->firstOrFail();
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
@@ -224,15 +226,15 @@ final class ContentManagementController extends Controller
                 'max:100',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 Rule::unique('content_categories', 'slug')
-                    ->where('alliance_id', $alliance->id)
+                    ->where('alliance_id', $scope->allianceId)
                     ->ignore($existing->id),
             ],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
         ]);
 
         $saveCategory->handle(
-            $alliance,
-            $actor,
+            $scope->allianceId,
+            $scope->playerId,
             (string) $validated['name'],
             (string) $validated['slug'],
             (int) ($validated['sort_order'] ?? 0),
@@ -248,7 +250,8 @@ final class ContentManagementController extends Controller
         DeleteContentCategory $deleteCategory,
         string $category,
     ): RedirectResponse {
-        $deleteCategory->handle($context->alliance(), $context->player(), $category);
+        $scope = $context->scope();
+        $deleteCategory->handle($scope->allianceId, $scope->playerId, $category);
 
         return back()->with('status', 'content-category-deleted');
     }
@@ -258,10 +261,10 @@ final class ContentManagementController extends Controller
         AllianceContext $context,
         SaveContentItem $saveContent,
     ): RedirectResponse {
-        $alliance = $context->alliance();
-        $validated = $this->validateContent($request, $alliance->id);
+        $scope = $context->scope();
+        $validated = $this->validateContent($request, $scope->allianceId);
 
-        $saveContent->handle($alliance, $context->player(), $validated);
+        $saveContent->handle($scope->allianceId, $scope->playerId, $validated);
 
         return back()->with('status', 'content-saved');
     }
@@ -272,14 +275,14 @@ final class ContentManagementController extends Controller
         SaveContentItem $saveContent,
         string $content,
     ): RedirectResponse {
-        $alliance = $context->alliance();
+        $scope = $context->scope();
         $existing = ContentItem::query()
             ->where('id', $content)
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->firstOrFail();
-        $validated = $this->validateContent($request, $alliance->id, $existing);
+        $validated = $this->validateContent($request, $scope->allianceId, $existing);
 
-        $saveContent->handle($alliance, $context->player(), $validated, (string) $existing->id);
+        $saveContent->handle($scope->allianceId, $scope->playerId, $validated, (string) $existing->id);
 
         return back()->with('status', 'content-saved');
     }
@@ -297,7 +300,8 @@ final class ContentManagementController extends Controller
             ? Carbon::parse((string) $validated['scheduled_for'])->utc()
             : null;
 
-        $publish->handle($context->alliance(), $context->player(), $content, $scheduledFor);
+        $scope = $context->scope();
+        $publish->handle($scope->allianceId, $scope->playerId, $content, $scheduledFor);
 
         return back()->with('status', $scheduledFor?->isFuture() ? 'content-scheduled' : 'content-published');
     }
@@ -308,7 +312,8 @@ final class ContentManagementController extends Controller
         ArchiveContentItem $archive,
         string $content,
     ): RedirectResponse {
-        $archive->handle($context->alliance(), $context->player(), $content);
+        $scope = $context->scope();
+        $archive->handle($scope->allianceId, $scope->playerId, $content);
 
         return back()->with('status', 'content-archived');
     }
@@ -320,7 +325,8 @@ final class ContentManagementController extends Controller
         string $content,
         string $revision,
     ): RedirectResponse {
-        $restore->handle($context->alliance(), $context->player(), $content, $revision);
+        $scope = $context->scope();
+        $restore->handle($scope->allianceId, $scope->playerId, $content, $revision);
 
         return back()->with('status', 'content-revision-restored');
     }
@@ -338,7 +344,8 @@ final class ContentManagementController extends Controller
         $file = $validated['media'] ?? null;
         abort_unless($file instanceof UploadedFile, 422);
 
-        $upload->handle($context->alliance(), $context->player(), $file);
+        $scope = $context->scope();
+        $upload->handle($scope->allianceId, $scope->playerId, $file);
 
         return back()->with('status', 'media-uploaded');
     }
@@ -349,7 +356,8 @@ final class ContentManagementController extends Controller
         ArchiveMediaAsset $archive,
         string $media,
     ): RedirectResponse {
-        $archive->handle($context->alliance(), $context->player(), $media);
+        $scope = $context->scope();
+        $archive->handle($scope->allianceId, $scope->playerId, $media);
 
         return back()->with('status', 'media-archived');
     }

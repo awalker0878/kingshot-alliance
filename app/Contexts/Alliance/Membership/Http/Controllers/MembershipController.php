@@ -23,7 +23,8 @@ final class MembershipController extends Controller
     public function updateStatus(Request $request, AllianceContext $context, UpdateMembershipStatus $updateStatus, string $membership): RedirectResponse
     {
         $validated = $request->validate(['status' => ['required', Rule::enum(MembershipStatus::class)]]);
-        $updateStatus->handle($context->alliance(), $context->player(), $membership, MembershipStatus::from($validated['status']));
+        $scope = $context->scope();
+        $updateStatus->handle($scope->allianceId, $scope->playerId, $membership, MembershipStatus::from($validated['status']));
 
         return redirect()->route('alliance.overview');
     }
@@ -31,21 +32,24 @@ final class MembershipController extends Controller
     public function updateRank(Request $request, AllianceContext $context, UpdateAllianceRank $updateRank, string $membership): RedirectResponse
     {
         $validated = $request->validate(['rank' => ['required', Rule::enum(AllianceRank::class)]]);
-        $updateRank->handle($context->alliance(), $context->player(), $membership, AllianceRank::from($validated['rank']));
+        $scope = $context->scope();
+        $updateRank->handle($scope->allianceId, $scope->playerId, $membership, AllianceRank::from($validated['rank']));
 
         return redirect()->route('alliance.overview');
     }
 
     public function assignRole(Request $request, AllianceContext $context, AssignMembershipRole $assignRole, string $membership, string $role): RedirectResponse
     {
-        $assignRole->handle($context->alliance(), $context->player(), $membership, $role);
+        $scope = $context->scope();
+        $assignRole->handle($scope->allianceId, $scope->playerId, $membership, $role);
 
         return redirect()->route('alliance.overview');
     }
 
     public function removeRole(Request $request, AllianceContext $context, RemoveMembershipRole $removeRole, string $membership, string $role): RedirectResponse
     {
-        $removeRole->handle($context->alliance(), $context->player(), $membership, $role);
+        $scope = $context->scope();
+        $removeRole->handle($scope->allianceId, $scope->playerId, $membership, $role);
 
         return redirect()->route('alliance.overview');
     }
@@ -60,8 +64,8 @@ final class MembershipController extends Controller
         ]);
 
         $transfer->handle(
-            $context->alliance(),
-            $context->player(),
+            $context->scope()->allianceId,
+            $context->scope()->playerId,
             (string) $validated['player_id'],
         );
 
@@ -70,7 +74,8 @@ final class MembershipController extends Controller
 
     public function leave(Request $request, AllianceContext $context, LeaveAlliance $leaveAlliance): RedirectResponse
     {
-        $leaveAlliance->handle($context->alliance(), $context->player());
+        $scope = $context->scope();
+        $leaveAlliance->handle($scope->allianceId, $scope->playerId);
 
         return redirect()->route('dashboard');
     }

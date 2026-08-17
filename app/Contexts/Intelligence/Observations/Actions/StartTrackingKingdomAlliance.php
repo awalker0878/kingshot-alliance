@@ -51,19 +51,19 @@ final readonly class StartTrackingKingdomAlliance
             }
 
             $reference = $this->alliances->handle(
-                $lockedAlliance->kingdom()->firstOrFail(),
+                (string) $lockedAlliance->kingdom_id,
                 $attributes['current_name'],
                 $attributes['current_tag'] ?? null,
                 $attributes['game_alliance_id'] ?? null,
             );
 
-            if ($reference->kingdom_id !== $lockedAlliance->kingdom_id) {
+            if ($reference->kingdomId !== $lockedAlliance->kingdom_id) {
                 throw ValidationException::withMessages([
                     'tracking' => 'The game-side alliance must belong to the active alliance current Kingdom.',
                 ]);
             }
 
-            if ($reference->status !== KingdomAllianceStatus::Active) {
+            if ($reference->statusObservedAtRead !== KingdomAllianceStatus::Active) {
                 throw ValidationException::withMessages([
                     'tracking' => 'Archived game-side alliance references cannot be newly tracked.',
                 ]);
@@ -71,7 +71,7 @@ final readonly class StartTrackingKingdomAlliance
 
             $alreadyTracked = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $lockedAlliance->id)
-                ->where('kingdom_alliance_id', $reference->id)
+                ->where('kingdom_alliance_id', $reference->kingdomAllianceId)
                 ->where('state', TrackedKingdomAllianceState::Active->value)
                 ->lockForUpdate()
                 ->first();
@@ -84,7 +84,7 @@ final readonly class StartTrackingKingdomAlliance
 
             $tracking = TrackedKingdomAlliance::query()->create([
                 'alliance_id' => $lockedAlliance->id,
-                'kingdom_alliance_id' => $reference->id,
+                'kingdom_alliance_id' => $reference->kingdomAllianceId,
                 'kingdom_id' => $lockedAlliance->kingdom_id,
                 'state' => TrackedKingdomAllianceState::Active,
                 'manager_notes' => $this->nullableText($attributes['manager_notes'] ?? null),
@@ -92,10 +92,10 @@ final readonly class StartTrackingKingdomAlliance
 
             $metadata = [
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
-                'kingdom_alliance_id' => (string) $reference->id,
+                'kingdom_alliance_id' => (string) $reference->kingdomAllianceId,
                 'kingdom_id' => (string) $tracking->kingdom_id,
                 'state' => $tracking->state->value,
-                'stable_identity' => $reference->game_alliance_id !== null,
+                'stable_identity' => $reference->gameAllianceId !== null,
             ];
 
             $this->audit->record(

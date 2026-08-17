@@ -4,21 +4,24 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Models\EventAttendance;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\Participation\Models\EventResponse;
 
-final class EventParticipationQuery
+final readonly class EventParticipationQuery
 {
+    public function __construct(private PlayerReferenceQuery $players) {}
+
     /** @return array{response:?array<string,mixed>,registration:?array<string,mixed>,attendance:?array<string,mixed>} */
-    public function forPlayer(EventOccurrence $occurrence, Player $player): array
+    public function forPlayer(EventOccurrence $occurrence, PlayerReference $player): array
     {
-        $response = EventResponse::query()->where('occurrence_id', $occurrence->id)->where('player_id', $player->id)->first();
-        $registration = EventRegistration::query()->where('occurrence_id', $occurrence->id)->where('player_id', $player->id)->first();
-        $attendance = EventAttendance::query()->where('occurrence_id', $occurrence->id)->where('player_id', $player->id)->first();
+        $response = EventResponse::query()->where('occurrence_id', $occurrence->id)->where('player_id', $player->playerId)->first();
+        $registration = EventRegistration::query()->where('occurrence_id', $occurrence->id)->where('player_id', $player->playerId)->first();
+        $attendance = EventAttendance::query()->where('occurrence_id', $occurrence->id)->where('player_id', $player->playerId)->first();
 
         return [
             'response' => $response === null ? null : [
@@ -50,27 +53,24 @@ final class EventParticipationQuery
             return [];
         }
 
-        $responses = EventResponse::query()->whereIn('occurrence_id', $occurrenceIds)->with('player')->get()->keyBy(fn ($row): string => $row->occurrence_id.':'.$row->player_id);
-        $registrations = EventRegistration::query()->whereIn('occurrence_id', $occurrenceIds)->with('player')->get()->keyBy(fn ($row): string => $row->occurrence_id.':'.$row->player_id);
-        $attendance = EventAttendance::query()->whereIn('occurrence_id', $occurrenceIds)->with('player')->get()->keyBy(fn ($row): string => $row->occurrence_id.':'.$row->player_id);
+        $responses = EventResponse::query()->whereIn('occurrence_id', $occurrenceIds)->get()->keyBy(fn ($row): string => $row->occurrence_id.':'.$row->player_id);
+        $registrations = EventRegistration::query()->whereIn('occurrence_id', $occurrenceIds)->get()->keyBy(fn ($row): string => $row->occurrence_id.':'.$row->player_id);
+        $attendance = EventAttendance::query()->whereIn('occurrence_id', $occurrenceIds)->get()->keyBy(fn ($row): string => $row->occurrence_id.':'.$row->player_id);
         $keys = $responses->keys()->merge($registrations->keys())->merge($attendance->keys())->unique()->sort()->values();
+        $playerIds = $keys->map(static fn (string $key): string => explode(':', $key, 2)[1])->unique()->values()->all();
+        $players = $this->players->byIds($playerIds);
 
-        return array_values($keys->map(function (string $key) use ($responses, $registrations, $attendance): array {
+        return array_values($keys->map(function (string $key) use ($responses, $registrations, $attendance, $players): array {
             [$occurrenceId, $playerId] = explode(':', $key, 2);
             $response = $responses->get($key);
             $registration = $registrations->get($key);
             $attendanceRecord = $attendance->get($key);
-
-            $player = $response instanceof EventResponse
-                ? $response->player
-                : ($registration instanceof EventRegistration
-                    ? $registration->player
-                    : ($attendanceRecord instanceof EventAttendance ? $attendanceRecord->player : null));
+            $player = $players[$playerId] ?? null;
 
             return [
                 'occurrenceId' => $occurrenceId,
                 'playerId' => $playerId,
-                'playerName' => $player instanceof Player ? (string) $player->current_name : 'Unknown Player',
+                'playerName' => $player instanceof PlayerReference ? $player->currentName : 'Unknown Player',
                 'response' => $response instanceof EventResponse ? $response->response->value : null,
                 'registration' => $registration instanceof EventRegistration ? $registration->status->value : null,
                 'waitlistPosition' => $registration instanceof EventRegistration ? $registration->waitlist_position : null,

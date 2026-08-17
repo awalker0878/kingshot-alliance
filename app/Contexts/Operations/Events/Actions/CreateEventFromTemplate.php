@@ -4,46 +4,58 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Actions;
 
-use App\Contexts\GameWorld\Players\Models\Player;
-use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventTemplate;
-use App\Contexts\Operations\Events\Models\EventTypeScope;
-use App\Contexts\Operations\Events\Services\EventTargetResolver;
+use App\Contexts\Operations\Events\ValueObjects\CreatedEvent;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use LogicException;
 
-final class CreateEventFromTemplate
+final readonly class CreateEventFromTemplate
 {
-    public function __construct(
-        private CreateEvent $create,
-        private EventTargetResolver $targets,
-    ) {}
+    public function __construct(private CreateEvent $create) {}
 
     public function handle(
-        Player $actor,
-        EventTemplate $template,
+        string $actorPlayerId,
+        string $templateId,
         CarbonImmutable $firstLocalStart,
         ?CarbonImmutable $recurrenceUntilLocal = null,
         ?string $title = null,
         bool $publish = true,
-    ): Event {
-        $template->loadMissing('typeScope');
-        $configuration = $template->typeScope;
-        if (! $configuration instanceof EventTypeScope) {
-            throw new LogicException('Event template must reference an Event type scope configuration.');
-        }
+    ): CreatedEvent {
+        return DB::transaction(function () use (
+            $actorPlayerId,
+            $templateId,
+            $firstLocalStart,
+            $recurrenceUntilLocal,
+            $title,
+            $publish,
+        ): CreatedEvent {
+            $template = EventTemplate::query()
+                ->whereKey($templateId)
+                ->where('is_active', true)
+                ->sharedLock()
+                ->firstOrFail();
+            $scope = $template->scopeEnum();
+            $targetId = match ($scope) {
+                \App\Contexts\Operations\Events\Enums\EventScope::Alliance => $template->alliance_id,
+                \App\Contexts\Operations\Events\Enums\EventScope::Kingdom => $template->kingdom_id,
+                \App\Contexts\Operations\Events\Enums\EventScope::Player => $template->player_id,
+            };
+            if (! is_string($targetId) || $targetId === '') {
+                throw new LogicException('Event template must contain a valid target identity.');
+            }
 
-        // The template object is only routing input here. CreateEvent re-resolves and
-        // shared-locks the current template row before reading any mutable defaults.
-        return $this->create->handle(
-            actor: $actor,
-            configuration: $configuration,
-            target: $this->targets->forTemplate($template),
-            firstLocalStart: $firstLocalStart,
-            title: $title,
-            recurrenceUntilLocal: $recurrenceUntilLocal,
-            publish: $publish,
-            template: $template,
-        );
+            return $this->create->handle(
+                actorPlayerId: $actorPlayerId,
+                configurationId: (string) $template->event_type_scope_id,
+                scope: $scope,
+                targetId: $targetId,
+                firstLocalStart: $firstLocalStart,
+                title: $title,
+                recurrenceUntilLocal: $recurrenceUntilLocal,
+                publish: $publish,
+                templateId: (string) $template->id,
+            );
+        });
     }
 }

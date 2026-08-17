@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferGroupState;
@@ -13,7 +11,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferGroup;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -22,45 +20,33 @@ use Illuminate\Validation\ValidationException;
 final readonly class ArchiveTransferGroup
 {
     public function __construct(
-        private AllianceWriteState $allianceWriteState,
+        private TransferWriteState $writeState,
         private TransferAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(
-        Alliance $alliance,
-        Player $actor,
-        string $planId,
-        string $groupId,
-    ): TransferGroup {
-        return DB::transaction(function () use ($alliance, $actor, $planId, $groupId): TransferGroup {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+    public function handle(string $allianceId, string $actorPlayerId, string $planId, string $groupId): void
+    {
+        DB::transaction(function () use ($allianceId, $actorPlayerId, $planId, $groupId): void {
+            $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, TransferPermission::Manage);
 
-            $plan = TransferPlan::query()
-                ->where('alliance_id', $context->alliance->id)
-                ->whereKey($planId)
-                ->sharedLock()
-                ->firstOrFail();
-
-            $this->assertMutable($context->alliance, $plan);
-
+            $plan = TransferPlan::query()->where('alliance_id', $allianceId)->whereKey($planId)->sharedLock()->firstOrFail();
+            $this->assertMutable($context->kingdomId(), $plan);
             $group = TransferGroup::query()
-                ->where('alliance_id', $context->alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->where('transfer_plan_id', $plan->id)
                 ->whereKey($groupId)
                 ->lockForUpdate()
                 ->firstOrFail();
 
             if ($group->state === TransferGroupState::Archived) {
-                return $group->load(['coordinator:id,current_name', 'destinationKingdom:id,number']);
+                return;
             }
 
-            // Participant writers take exclusive participant locks; shared locks here
-            // are enough to keep the membership of this group stable during the empty check.
             $activeParticipants = TransferParticipant::query()
-                ->where('alliance_id', $context->alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->where('transfer_plan_id', $plan->id)
                 ->where('transfer_group_id', $group->id)
                 ->whereNull('withdrawn_at')
@@ -75,36 +61,25 @@ final readonly class ArchiveTransferGroup
             }
 
             $group->forceFill(['state' => TransferGroupState::Archived])->save();
-
             $metadata = [
+                'alliance_id' => $allianceId,
                 'transfer_plan_id' => (string) $plan->id,
                 'transfer_group_id' => (string) $group->id,
                 'direction' => $group->direction->value,
                 'destination_kingdom_id' => $group->destination_kingdom_id,
             ];
-
-            $this->audit->record('kingdoms.transfer_group_archived', $context->actor, $group, $context->alliance, $metadata);
-            $this->outbox->record('kingdoms.transfer_group_archived', (string) $context->alliance->id, $group, $metadata);
-
-            return $group->refresh()->load([
-                'coordinator:id,current_name',
-                'destinationKingdom:id,number',
-            ]);
+            $this->audit->record('kingdoms.transfer_group_archived', $context->actor, $group, null, $metadata);
+            $this->outbox->record('kingdoms.transfer_group_archived', $allianceId, $group, $metadata);
         });
     }
 
-    private function assertMutable(Alliance $alliance, TransferPlan $plan): void
+    private function assertMutable(string $allianceKingdomId, TransferPlan $plan): void
     {
         if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
-            throw ValidationException::withMessages([
-                'group' => 'Transfer groups can only be archived while the transfer cycle is Draft or Open.',
-            ]);
+            throw ValidationException::withMessages(['group' => 'Transfer groups can only be archived while the transfer cycle is Draft or Open.']);
         }
-
-        if ($alliance->kingdom_id !== $plan->home_kingdom_id) {
-            throw ValidationException::withMessages([
-                'group' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.',
-            ]);
+        if ($allianceKingdomId !== (string) $plan->home_kingdom_id) {
+            throw ValidationException::withMessages(['group' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.']);
         }
     }
 }

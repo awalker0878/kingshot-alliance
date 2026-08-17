@@ -25,8 +25,8 @@ final class CreateRecruitmentOnboardingItem
     ) {}
 
     public function handle(
-        Player $actor,
-        Alliance $alliance,
+        string $actorPlayerId,
+        string $allianceId,
         string $name,
         ?string $description = null,
         int $position = 0,
@@ -42,8 +42,8 @@ final class CreateRecruitmentOnboardingItem
             throw ValidationException::withMessages(['position' => 'The onboarding item position is invalid.']);
         }
 
-        return DB::transaction(function () use ($actor, $alliance, $cleanName, $description, $position, $isRequired, $isActive): RecruitmentOnboardingItem {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $cleanName, $description, $position, $isRequired, $isActive): RecruitmentOnboardingItem {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             $item = RecruitmentOnboardingItem::query()->create([
@@ -53,8 +53,8 @@ final class CreateRecruitmentOnboardingItem
                 'position' => $position,
                 'is_required' => $isRequired,
                 'is_active' => $isActive,
-                'created_by_player_id' => $context->actor->id,
-                'updated_by_player_id' => $context->actor->id,
+                'created_by_player_id' => $context->actor->playerId,
+                'updated_by_player_id' => $context->actor->playerId,
             ]);
 
             $this->audit->record('recruitment.onboarding_item.created', $context->actor, $item, $context->alliance, [

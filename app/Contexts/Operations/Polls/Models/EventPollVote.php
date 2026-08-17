@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Polls\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -38,15 +37,4 @@ final class EventPollVote extends Model
         return $this->belongsTo(EventPollOption::class, 'option_id');
     }
 
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function castByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'cast_by_player_id');
-    }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Polls\Services;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventCapabilityResolver;
@@ -17,7 +16,7 @@ final readonly class EventPollTemplateMaterializer
 {
     public function __construct(private EventCapabilityResolver $capabilities) {}
 
-    public function materializeDefaults(EventOccurrence $occurrence, Player $actor): void
+    public function materializeDefaults(EventOccurrence $occurrence, string $actorPlayerId): void
     {
         $occurrence->loadMissing('event.typeScope.capabilities');
         $event = $occurrence->event;
@@ -58,8 +57,8 @@ final readonly class EventPollTemplateMaterializer
                     'manager_supplied_options' => (bool) ($definition['manager_supplied_options'] ?? false),
                     'deadline_reminder_minutes' => isset($definition['deadline_reminder_minutes']) ? (int) $definition['deadline_reminder_minutes'] : null,
                 ],
-                'created_by_player_id' => $actor->id,
-                'updated_by_player_id' => $actor->id,
+                'created_by_player_id' => $actorPlayerId,
+                'updated_by_player_id' => $actorPlayerId,
             ]);
         }
     }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkAppointmentStatus;
 use Carbon\CarbonImmutable;
@@ -26,8 +25,6 @@ use LogicException;
  * @property Carbon|null $actual_ended_at
  * @property Carbon|null $completed_at
  * @property-read KingPerkPlan $plan
- * @property-read Player $assignedPlayer
- * @property-read Player|null $assignedByPlayer
  */
 final class KingPerkAppointment extends Model
 {
@@ -98,18 +95,6 @@ final class KingPerkAppointment extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(KingPerkPlan::class, 'plan_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function assignedPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'assigned_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function assignedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'assigned_by_player_id');
     }
 
     private function immutableDate(string $attribute): CarbonImmutable

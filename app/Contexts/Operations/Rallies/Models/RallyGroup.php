@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property-read EventOccurrence $occurrence
- * @property-read Alliance $alliance
  * @property-read EventRecommendedFormation|null $recommendedFormation
  */
 final class RallyGroup extends Model
@@ -35,12 +33,6 @@ final class RallyGroup extends Model
     public function occurrence(): BelongsTo
     {
         return $this->belongsTo(EventOccurrence::class);
-    }
-
-    /** @return BelongsTo<Alliance,$this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
     }
 
     /** @return BelongsTo<EventRecommendedFormation,$this> */

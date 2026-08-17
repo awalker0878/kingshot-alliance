@@ -22,9 +22,10 @@ final class TransferGroupController extends Controller
         SaveTransferGroup $save,
         string $plan,
     ): RedirectResponse {
+        $scope = $context->scope();
         $save->handle(
-            $context->alliance(),
-            $context->player(),
+            $scope->allianceId,
+            $scope->playerId,
             $plan,
             $this->validatedGroup($request),
         );
@@ -39,9 +40,10 @@ final class TransferGroupController extends Controller
         string $plan,
         string $group,
     ): RedirectResponse {
+        $scope = $context->scope();
         $save->handle(
-            $context->alliance(),
-            $context->player(),
+            $scope->allianceId,
+            $scope->playerId,
             $plan,
             $this->validatedGroup($request),
             $group,
@@ -57,12 +59,8 @@ final class TransferGroupController extends Controller
         string $plan,
         string $group,
     ): RedirectResponse {
-        $archive->handle(
-            $context->alliance(),
-            $context->player(),
-            $plan,
-            $group,
-        );
+        $scope = $context->scope();
+        $archive->handle($scope->allianceId, $scope->playerId, $plan, $group);
 
         return back()->with('status', 'transfer-group-archived');
     }
@@ -82,10 +80,11 @@ final class TransferGroupController extends Controller
         $groupId = isset($validated['transfer_group_id'])
             ? trim((string) $validated['transfer_group_id'])
             : null;
+        $scope = $context->scope();
 
         $assign->handle(
-            $context->alliance(),
-            $context->player(),
+            $scope->allianceId,
+            $scope->playerId,
             $plan,
             $participant,
             $groupId === '' ? null : $groupId,

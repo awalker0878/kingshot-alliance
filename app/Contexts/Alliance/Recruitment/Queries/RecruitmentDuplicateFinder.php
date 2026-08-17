@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Queries;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
@@ -12,9 +11,9 @@ use Illuminate\Support\Str;
 final class RecruitmentDuplicateFinder
 {
     /** @return Collection<int, RecruitmentCandidate> */
-    public function forCandidate(Alliance $alliance, RecruitmentCandidate $candidate): Collection
+    public function forCandidate(string $allianceId, RecruitmentCandidate $candidate): Collection
     {
-        if ($candidate->alliance_id !== $alliance->id) {
+        if ((string) $candidate->alliance_id !== $allianceId) {
             return new Collection;
         }
 
@@ -24,7 +23,7 @@ final class RecruitmentDuplicateFinder
             : Str::lower(trim((string) $candidate->contact_handle));
 
         return RecruitmentCandidate::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->where('id', '!=', $candidate->id)
             ->whereNull('merged_into_id')
             ->where(function ($query) use ($email, $contactHandle): void {

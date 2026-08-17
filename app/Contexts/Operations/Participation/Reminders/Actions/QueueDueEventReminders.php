@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Reminders\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
@@ -26,6 +26,7 @@ final readonly class QueueDueEventReminders
     public function __construct(
         private EventReminderAudienceResolver $audiences,
         private EventTargetResolver $targets,
+        private PlayerReferenceQuery $players,
         private NotificationDeliveryService $deliveries,
         private OutboxRecorder $outbox,
     ) {}
@@ -103,12 +104,8 @@ final readonly class QueueDueEventReminders
                             return false;
                         }
 
-                        $currentPlayer = Player::query()
-                            ->whereKey($player->id)
-                            ->whereNotNull('user_id')
-                            
-                            ->first();
-                        if (! $currentPlayer instanceof Player
+                        $currentPlayer = $this->players->lockCurrent($player->playerId);
+                        if ($currentPlayer->userId === null
                             || ! $this->audiences->includes($currentOccurrence, $currentRule->audience, $currentPlayer)) {
                             return false;
                         }
@@ -116,8 +113,8 @@ final readonly class QueueDueEventReminders
                         $notificationType = 'event.reminder';
                         $channel = (string) $currentRule->channel;
                         if (! $this->deliveries->isEnabled(
-                            (int) $currentPlayer->user_id,
-                            (string) $currentPlayer->id,
+                            $currentPlayer->userId,
+                            $currentPlayer->playerId,
                             $notificationType,
                             $channel,
                         )) {
@@ -128,12 +125,12 @@ final readonly class QueueDueEventReminders
                             'event-reminder',
                             $currentRule->id,
                             $currentOccurrence->id,
-                            $currentPlayer->id,
+                            $currentPlayer->playerId,
                         ]));
                         $delivery = $this->deliveries->queue(
                             notificationType: $notificationType,
-                            recipientUserId: (int) $currentPlayer->user_id,
-                            playerId: (string) $currentPlayer->id,
+                            recipientUserId: $currentPlayer->userId,
+                            playerId: $currentPlayer->playerId,
                             channel: $channel,
                             dueAt: $currentDueAt,
                             idempotencyKey: $key,
@@ -152,26 +149,25 @@ final readonly class QueueDueEventReminders
                         }
 
                         $target = $this->targets->forEvent($currentEvent);
-                        $alliance = $target instanceof Alliance ? $target : null;
                         $payload = [
                             'delivery_id' => (string) $delivery->id,
                             'occurrence_id' => (string) $currentOccurrence->id,
                             'event_id' => (string) $currentEvent->id,
                             'poll_id' => $currentRule->poll_id,
                             'trigger_type' => $currentRule->trigger_type->value,
-                            'recipient_user_id' => (int) $currentPlayer->user_id,
-                            'player_id' => (string) $currentPlayer->id,
+                            'recipient_user_id' => $currentPlayer->userId,
+                            'player_id' => $currentPlayer->playerId,
                             'channel' => $channel,
                             'due_at' => $currentDueAt->toIso8601String(),
                             'origin' => 'system',
                         ];
                         $this->outbox->record(
                             'event.reminder.requested',
-                            $alliance?->id,
+                            $target->allianceId,
                             $delivery,
                             $payload,
                             idempotencyKey: 'event.reminder.requested:'.$delivery->id,
-                            partitionKey: $currentEvent->scope->value.':'.$target->id,
+                            partitionKey: $target->partitionKey(),
                         );
 
                         return true;

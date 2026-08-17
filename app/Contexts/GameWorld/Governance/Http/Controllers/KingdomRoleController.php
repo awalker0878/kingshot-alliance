@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Governance\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\GameWorld\Governance\Actions\AssignKingdomRole;
 use App\Contexts\GameWorld\Governance\Actions\RemoveKingdomRole;
@@ -13,8 +13,8 @@ use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -25,78 +25,84 @@ use Inertia\Response;
 
 final class KingdomRoleController extends Controller
 {
-    public function index(Request $request, AllianceContext $context, KingdomAuthorization $authorization): Response
-    {
+    public function index(
+        Request $request,
+        AllianceContext $context,
+        AllianceReferenceQuery $alliances,
+        KingdomReferenceQuery $kingdoms,
+        PlayerReferenceQuery $players,
+        KingdomAuthorization $authorization,
+    ): Response {
         $user = $this->user($request);
-        $actor = $context->player();
-        [$alliance, $kingdom] = $this->context($context);
+        $scope = $context->scope();
+        $alliance = $alliances->require($scope->allianceId);
+        $kingdom = $kingdoms->require($scope->kingdomId);
 
-        if (! $authorization->allows($actor, $kingdom, KingdomPermission::RoleManage)) {
+        if (! $authorization->allows($scope->playerId, $scope->kingdomId, KingdomPermission::RoleManage)) {
             throw new AuthorizationException;
         }
 
-        $assignments = KingdomRoleAssignment::query()
-            ->where('kingdom_id', $kingdom->id)
-            ->with(['player:id,current_name,game_player_id', 'role:id,key,name'])
+        $assignmentRows = KingdomRoleAssignment::query()
+            ->where('kingdom_id', $scope->kingdomId)
+            ->with('role:id,key,name')
             ->orderBy('created_at')
-            ->get()
-            ->map(static function (KingdomRoleAssignment $assignment): array {
-                return [
-                    'id' => (string) $assignment->id,
-                    'player' => [
-                        'id' => (string) $assignment->player_id,
-                        'name' => (string) $assignment->player->current_name,
-                        'gamePlayerId' => $assignment->player->game_player_id,
-                    ],
-                    'role' => [
-                        'key' => (string) $assignment->role->key,
-                        'name' => (string) $assignment->role->name,
-                    ],
-                    'assignedAt' => $assignment->created_at?->toIso8601String(),
-                ];
-            })
-            ->values()
-            ->all();
+            ->get();
+        $playerReferences = $players->byIds(
+            $assignmentRows->pluck('player_id')->map(static fn ($id): string => (string) $id)->all(),
+        );
 
-        $players = Player::query()
-            ->where('current_kingdom_id', $kingdom->id)
-            ->orderBy('current_name')
-            ->get(['id', 'current_name', 'game_player_id'])
-            ->map(static fn (Player $player): array => [
-                'id' => (string) $player->id,
-                'name' => (string) $player->current_name,
-                'gamePlayerId' => $player->game_player_id,
-            ])
-            ->all();
+        $assignments = $assignmentRows->map(static function (KingdomRoleAssignment $assignment) use ($playerReferences): array {
+            $player = $playerReferences[(string) $assignment->player_id] ?? null;
+
+            return [
+                'id' => (string) $assignment->id,
+                'player' => [
+                    'id' => (string) $assignment->player_id,
+                    'name' => $player?->currentName ?? 'Unknown player',
+                    'gamePlayerId' => $player?->gamePlayerId,
+                ],
+                'role' => [
+                    'key' => (string) $assignment->role->key,
+                    'name' => (string) $assignment->role->name,
+                ],
+                'assignedAt' => $assignment->created_at?->toIso8601String(),
+            ];
+        })->values()->all();
+
+        $kingdomPlayers = array_map(
+            static fn ($player): array => [
+                'id' => $player->playerId,
+                'name' => $player->currentName,
+                'gamePlayerId' => $player->gamePlayerId,
+            ],
+            $players->inKingdom($scope->kingdomId),
+        );
 
         return Inertia::render('Alliance/KingdomRoles', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
-            'alliance' => ['id' => (string) $alliance->id, 'name' => (string) $alliance->name],
-            'kingdom' => ['id' => (string) $kingdom->id, 'number' => (int) $kingdom->number],
+            'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
+            'kingdom' => ['id' => $kingdom->kingdomId, 'number' => $kingdom->number],
             'roles' => array_map(
                 static fn (DefaultKingdomRole $role): array => ['key' => $role->value, 'name' => $role->name()],
                 DefaultKingdomRole::cases(),
             ),
-            'players' => $players,
+            'players' => $kingdomPlayers,
             'assignments' => $assignments,
         ]);
     }
 
     public function store(Request $request, AllianceContext $context, AssignKingdomRole $assign): RedirectResponse
     {
-        $actor = $context->player();
-        [, $kingdom] = $this->context($context);
-
+        $scope = $context->scope();
         $validated = $request->validate([
-            'player_id' => ['required', 'string', 'size:26', Rule::exists('players', 'id')->where('current_kingdom_id', $kingdom->id)],
+            'player_id' => ['required', 'string', 'size:26', Rule::exists('players', 'id')->where('current_kingdom_id', $scope->kingdomId)],
             'role' => ['required', Rule::enum(DefaultKingdomRole::class)],
         ]);
 
-        $target = Player::query()->findOrFail((string) $validated['player_id']);
         $assign->handle(
-            actor: $actor,
-            kingdom: $kingdom,
-            target: $target,
+            actorPlayerId: $scope->playerId,
+            kingdomId: $scope->kingdomId,
+            targetPlayerId: (string) $validated['player_id'],
             roleTemplate: DefaultKingdomRole::from((string) $validated['role']),
         );
 
@@ -105,9 +111,8 @@ final class KingdomRoleController extends Controller
 
     public function destroy(AllianceContext $context, KingdomRoleAssignment $assignment, RemoveKingdomRole $remove): RedirectResponse
     {
-        $actor = $context->player();
-        [, $kingdom] = $this->context($context);
-        $remove->handle($actor, $kingdom, $assignment);
+        $scope = $context->scope();
+        $remove->handle($scope->playerId, $scope->kingdomId, (string) $assignment->id);
 
         return back()->with('status', 'kingdom-role-removed');
     }
@@ -118,15 +123,5 @@ final class KingdomRoleController extends Controller
         abort_unless($user instanceof User, 401);
 
         return $user;
-    }
-
-    /** @return array{Alliance, Kingdom} */
-    private function context(AllianceContext $context): array
-    {
-        $alliance = $context->alliance()->load('kingdom');
-        $kingdom = $alliance->kingdom;
-        abort_unless($kingdom instanceof Kingdom, 404, 'The active Alliance has no Kingdom association.');
-
-        return [$alliance, $kingdom];
     }
 }

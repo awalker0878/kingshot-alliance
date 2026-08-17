@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
@@ -25,7 +23,7 @@ final readonly class RegisterForEvent
 {
     public function __construct(
         private EventWriteState $eventWriteState,
-        private EventAuthorization $mutations,
+        private EventAuthorization $authorization,
         private EventCapabilityGuard $capabilities,
         private EventCapabilityResolver $capabilityResolver,
         private EventRegistrationWindow $window,
@@ -34,23 +32,21 @@ final readonly class RegisterForEvent
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Player $actor, EventOccurrence $occurrence, Player $player): EventRegistration
+    public function handle(string $actorPlayerId, string $occurrenceId): void
     {
-        $event = $occurrence->event()->firstOrFail();
-
-        return DB::transaction(function () use ($actor, $occurrence, $event, $player): EventRegistration {
-            $context = $this->eventWriteState->lockSelfScope($actor, $event, $player);
-            $this->mutations->authorizeSelf($context, $player);
+        DB::transaction(function () use ($actorPlayerId, $occurrenceId): void {
+            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
+            $context = $this->eventWriteState->lockSelfScope($actorPlayerId, (string) $route->event_id, $actorPlayerId);
+            $this->authorization->authorizeSelf($context, $actorPlayerId);
             $this->capabilities->require($context->event, EventCapability::Registration);
 
-            $currentPlayer = $context->actor;
-            $lockedOccurrence = EventOccurrence::query()
-                ->whereKey($occurrence->id)
+            $occurrence = EventOccurrence::query()
+                ->whereKey($occurrenceId)
                 ->where('event_id', $context->event->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $window = $this->window->for($context->event, $lockedOccurrence);
+            $window = $this->window->for($context->event, $occurrence);
             if (! $window['is_open']) {
                 throw ValidationException::withMessages([
                     'registration' => 'Registration is not currently open for this occurrence.',
@@ -58,25 +54,24 @@ final readonly class RegisterForEvent
             }
 
             $existing = EventRegistration::query()
-                ->where('occurrence_id', $lockedOccurrence->id)
-                ->where('player_id', $currentPlayer->id)
+                ->where('occurrence_id', $occurrence->id)
+                ->where('player_id', $actorPlayerId)
                 ->lockForUpdate()
                 ->first();
 
             if ($existing instanceof EventRegistration && $existing->statusEnum() !== EventRegistrationStatus::Cancelled) {
                 if ($existing->statusEnum() === EventRegistrationStatus::Registered) {
-                    $this->contexts->freeze($lockedOccurrence, $currentPlayer);
+                    $this->contexts->freeze($occurrence, $context->actor);
                 }
 
-                return $existing;
+                return;
             }
 
             $registeredCount = EventRegistration::query()
-                ->where('occurrence_id', $lockedOccurrence->id)
+                ->where('occurrence_id', $occurrence->id)
                 ->where('status', EventRegistrationStatus::Registered->value)
                 ->count();
-            $hasSeat = $context->event->capacity === null
-                || $registeredCount < (int) $context->event->capacity;
+            $hasSeat = $context->event->capacity === null || $registeredCount < (int) $context->event->capacity;
             $status = EventRegistrationStatus::Registered;
             $waitlistPosition = null;
 
@@ -87,7 +82,7 @@ final readonly class RegisterForEvent
 
                 $status = EventRegistrationStatus::Waitlisted;
                 $waitlistPosition = ((int) EventRegistration::query()
-                    ->where('occurrence_id', $lockedOccurrence->id)
+                    ->where('occurrence_id', $occurrence->id)
                     ->where('status', EventRegistrationStatus::Waitlisted->value)
                     ->max('waitlist_position')) + 1;
             }
@@ -95,7 +90,7 @@ final readonly class RegisterForEvent
             $values = [
                 'status' => $status,
                 'waitlist_position' => $waitlistPosition,
-                'registered_by_player_id' => $currentPlayer->id,
+                'registered_by_player_id' => $actorPlayerId,
                 'registered_at' => now(),
                 'cancelled_by_player_id' => null,
                 'cancelled_at' => null,
@@ -106,33 +101,30 @@ final readonly class RegisterForEvent
                 $registration = $existing;
             } else {
                 $registration = EventRegistration::query()->create([
-                    'occurrence_id' => $lockedOccurrence->id,
-                    'player_id' => $currentPlayer->id,
+                    'occurrence_id' => $occurrence->id,
+                    'player_id' => $actorPlayerId,
                     ...$values,
                 ]);
             }
 
             if ($status === EventRegistrationStatus::Registered) {
-                $this->contexts->freeze($lockedOccurrence, $currentPlayer);
+                $this->contexts->freeze($occurrence, $context->actor);
             }
 
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
             $metadata = [
-                'occurrence_id' => (string) $lockedOccurrence->id,
-                'player_id' => (string) $currentPlayer->id,
+                'occurrence_id' => (string) $occurrence->id,
+                'player_id' => $actorPlayerId,
                 'status' => $status->value,
                 'waitlist_position' => $waitlistPosition,
             ];
-            $this->audit->record('event.registration.created', $currentPlayer, $registration, $alliance, $metadata);
+            $this->audit->record('event.registration.created', $context->actor, $registration, $context->target->allianceId, $metadata);
             $this->outbox->record(
                 'event.registration.created',
-                $alliance?->id,
+                $context->target->allianceId,
                 $registration,
                 $metadata,
-                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
+                partitionKey: $context->target->partitionKey(),
             );
-
-            return $registration->refresh();
         });
     }
 }

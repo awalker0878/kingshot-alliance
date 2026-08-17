@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Http\Controllers;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\Rallies\Actions\SaveRallyGuidanceRule;
-use App\Contexts\Operations\Rallies\Models\RallyGuidanceRule;
 use App\Contexts\Operations\Rallies\ValueObjects\FormationComposition;
 use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
@@ -19,21 +16,16 @@ final class RallyGuidanceController extends Controller
 {
     public function store(Request $request, string $alliance, PlayerContext $context, SaveRallyGuidanceRule $save): RedirectResponse
     {
-        $actor = $context->player();
-        $allianceRecord = Alliance::query()->whereKey($alliance)->firstOrFail();
         $validated = $this->validateRule($request);
-        $this->save($save, $actor, $allianceRecord, $validated);
+        $this->applyRule($save, $context->player()->playerId, $alliance, $validated);
 
         return back()->with('status', 'rally-guidance-saved');
     }
 
     public function update(Request $request, string $alliance, string $rule, PlayerContext $context, SaveRallyGuidanceRule $save): RedirectResponse
     {
-        $actor = $context->player();
-        $allianceRecord = Alliance::query()->whereKey($alliance)->firstOrFail();
-        $record = RallyGuidanceRule::query()->whereKey($rule)->where('alliance_id', $allianceRecord->id)->firstOrFail();
         $validated = $this->validateRule($request);
-        $this->save($save, $actor, $allianceRecord, $validated, $record);
+        $this->applyRule($save, $context->player()->playerId, $alliance, $validated, $rule);
 
         return back()->with('status', 'rally-guidance-saved');
     }
@@ -59,11 +51,16 @@ final class RallyGuidanceController extends Controller
     }
 
     /** @param array<string,mixed> $validated */
-    private function save(SaveRallyGuidanceRule $save, Player $actor, Alliance $alliance, array $validated, ?RallyGuidanceRule $rule = null): void
-    {
+    private function applyRule(
+        SaveRallyGuidanceRule $save,
+        string $actorPlayerId,
+        string $allianceId,
+        array $validated,
+        ?string $ruleId = null,
+    ): void {
         $save->handle(
-            actor: $actor,
-            alliance: $alliance,
+            actorPlayerId: $actorPlayerId,
+            allianceId: $allianceId,
             name: (string) $validated['name'],
             composition: new FormationComposition((int) $validated['infantry_percent'], (int) $validated['cavalry_percent'], (int) $validated['archer_percent']),
             heroes: $validated['hero_recommendations'] ?? [],
@@ -74,7 +71,7 @@ final class RallyGuidanceController extends Controller
             effectiveFrom: isset($validated['effective_from']) ? CarbonImmutable::createFromFormat('Y-m-d', (string) $validated['effective_from']) : null,
             effectiveUntil: isset($validated['effective_until']) ? CarbonImmutable::createFromFormat('Y-m-d', (string) $validated['effective_until']) : null,
             isActive: (bool) ($validated['is_active'] ?? true),
-            rule: $rule,
+            ruleId: $ruleId,
         );
     }
 }

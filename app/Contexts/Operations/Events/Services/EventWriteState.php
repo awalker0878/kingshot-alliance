@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Services;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Membership\Enums\RosterState;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
-use App\Contexts\GameWorld\Governance\Services\PlayerWriteState;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Access\Queries\AllianceAuthorityFactsQuery;
+use App\Contexts\Alliance\Access\ValueObjects\AllianceAuthorityFacts;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
 use App\Contexts\Operations\Events\ValueObjects\EventCreationMutationContext;
 use App\Contexts\Operations\Events\ValueObjects\EventMutationContext;
+use App\Contexts\Operations\Events\ValueObjects\EventScopeAuthorityFacts;
+use App\Contexts\Operations\Events\ValueObjects\EventTargetReference;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -24,49 +24,50 @@ use LogicException;
 /**
  * Policy-free transaction-time state acquisition for Event write paths.
  *
- * This service stabilizes the Event route, configured scope, active actor, and
- * target records. Permission vocabulary remains entirely in EventAuthorization
- * and the scope-specific authorization services.
+ * Cross-context models never enter this service. Current identity and mutable
+ * authority are reacquired from their owning contexts while the protected
+ * transaction is active; only Operations-owned Eloquent rows are returned as
+ * mutation state.
  */
-final class EventWriteState
+final readonly class EventWriteState
 {
     public function __construct(
         private EventTargetResolver $targets,
-        private AllianceWriteState $allianceWriteState,
-        private KingdomWriteState $kingdomWriteState,
-        private PlayerWriteState $playerWriteState,
+        private PlayerReferenceQuery $players,
+        private AllianceAuthorityFactsQuery $allianceAuthority,
+        private KingdomAuthorityFactsQuery $kingdomAuthority,
+        private RosterEntryQuery $roster,
     ) {}
 
     public function lockEventScope(
-        Player $actor,
-        Event $event,
+        string $actorPlayerId,
+        string $eventId,
         bool $exclusiveEvent = false,
     ): EventMutationContext {
         $this->assertTransaction();
 
         $route = Event::query()
             ->select(['id', 'event_type_scope_id', 'scope', 'alliance_id', 'kingdom_id', 'player_id'])
-            ->whereKey($event->id)
+            ->whereKey($eventId)
             ->firstOrFail();
+        $scope = $route->scopeEnum();
 
         $typeScope = EventTypeScope::query()
             ->whereKey($route->event_type_scope_id)
-            ->where('scope', $route->scope->value)
+            ->where('scope', $scope->value)
             ->sharedLock()
             ->firstOrFail();
 
-        [$currentActor, $target] = match ($route->scope) {
-            EventScope::Alliance => $this->lockAllianceTarget($actor, $route),
-            EventScope::Kingdom => $this->lockKingdomTarget($actor, $route),
-            EventScope::Player => $this->lockPlayerTarget($actor, $route),
-        };
+        $actor = $this->players->lockCurrent($actorPlayerId);
+        $target = $this->targets->lockCurrent($scope, $this->targetId($route, $scope));
+        $authority = $this->lockAuthority($actor, $target);
 
         $query = Event::query()->whereKey($route->id);
         $lockedEvent = $exclusiveEvent
             ? $query->lockForUpdate()->firstOrFail()
             : $query->sharedLock()->firstOrFail();
 
-        if ($lockedEvent->scope !== $route->scope
+        if ($lockedEvent->scopeEnum() !== $scope
             || (string) $lockedEvent->event_type_scope_id !== (string) $route->event_type_scope_id
             || (string) ($lockedEvent->alliance_id ?? '') !== (string) ($route->alliance_id ?? '')
             || (string) ($lockedEvent->kingdom_id ?? '') !== (string) ($route->kingdom_id ?? '')
@@ -74,143 +75,106 @@ final class EventWriteState
             throw new AuthorizationException('The Event target changed while the write was being prepared.');
         }
 
-        return new EventMutationContext($lockedEvent, $typeScope, $currentActor, $target);
+        return new EventMutationContext($lockedEvent, $typeScope, $actor, $target, $authority);
     }
 
-    public function lockSelfScope(Player $actor, Event $event, Player $participant): EventMutationContext
-    {
-        $context = $this->lockEventScope($actor, $event);
+    public function lockSelfScope(
+        string $actorPlayerId,
+        string $eventId,
+        string $participantPlayerId,
+    ): EventMutationContext {
+        $context = $this->lockEventScope($actorPlayerId, $eventId);
 
-        if ($context->event->scope === EventScope::Alliance) {
-            if (! $context->target instanceof Alliance
-                || ! AllianceRosterEntry::query()
-                    ->where('alliance_id', $context->target->id)
-                    ->where('player_id', $participant->id)
-                    ->where('state', RosterState::Active->value)
-                    
-                    ->exists()) {
+        if ($context->actor->playerId !== $participantPlayerId) {
+            throw new AuthorizationException;
+        }
+
+        if ($context->event->scopeEnum() === EventScope::Alliance) {
+            if ($context->target->allianceId === null
+                || ! $this->roster->lockActiveRosterPresence($context->target->allianceId, $participantPlayerId)) {
                 throw new AuthorizationException;
             }
+        }
+
+        if ($context->event->scopeEnum() === EventScope::Player
+            && $context->target->playerId !== $participantPlayerId) {
+            throw new AuthorizationException;
         }
 
         return $context;
     }
 
     public function lockCreationScope(
-        Player $actor,
-        EventTypeScope $configuration,
-        Alliance|Kingdom|Player $target,
+        string $actorPlayerId,
+        string $configurationId,
+        EventScope $scope,
+        string $targetId,
     ): EventCreationMutationContext {
         $this->assertTransaction();
 
-        $scope = $this->targets->scopeFor($target);
-        $currentConfiguration = EventTypeScope::query()
-            ->whereKey($configuration->id)
+        $configuration = EventTypeScope::query()
+            ->whereKey($configurationId)
             ->where('scope', $scope->value)
-            
+            ->sharedLock()
             ->firstOrFail();
 
-        [$currentActor, $currentTarget] = match ($scope) {
-            EventScope::Alliance => $this->lockAllianceCreationTarget($actor, $target),
-            EventScope::Kingdom => $this->lockKingdomCreationTarget($actor, $target),
-            EventScope::Player => $this->lockPlayerCreationTarget($actor, $target),
+        $actor = $this->players->lockCurrent($actorPlayerId);
+        $target = $this->targets->lockCurrent($scope, $targetId);
+        $authority = $this->lockAuthority($actor, $target);
+
+        return new EventCreationMutationContext($configuration, $actor, $target, $authority);
+    }
+
+    private function lockAuthority(PlayerReference $actor, EventTargetReference $target): EventScopeAuthorityFacts
+    {
+        return match ($target->scope) {
+            EventScope::Alliance => new EventScopeAuthorityFacts(
+                allianceFacts: $target->allianceId === null
+                    ? null
+                    : $this->allianceAuthority->lockCurrent($actor->playerId, $target->allianceId),
+            ),
+            EventScope::Kingdom => new EventScopeAuthorityFacts(
+                kingdomFacts: $target->kingdomId === null
+                    ? null
+                    : $this->kingdomAuthority->lockCurrent($actor->playerId, $target->kingdomId),
+            ),
+            EventScope::Player => new EventScopeAuthorityFacts(
+                playerManagerAllianceFacts: $this->lockPlayerManagerAllianceFacts($actor, $target),
+            ),
         };
-
-        return new EventCreationMutationContext($currentConfiguration, $currentActor, $currentTarget);
     }
 
-    /** @return array{Player,Alliance} */
-    private function lockAllianceTarget(Player $actor, Event $event): array
+    /** @return list<AllianceAuthorityFacts> */
+    private function lockPlayerManagerAllianceFacts(PlayerReference $actor, EventTargetReference $target): array
     {
-        $alliance = Alliance::query()->whereKey($event->alliance_id)->firstOrFail();
-        $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        if ($target->playerId === null || $target->kingdomId === null || $actor->playerId === $target->playerId) {
+            return [];
+        }
 
-        return [$context->actor, $context->alliance];
-    }
-
-    /** @return array{Player,Kingdom} */
-    private function lockKingdomTarget(Player $actor, Event $event): array
-    {
-        $kingdom = Kingdom::query()->whereKey($event->kingdom_id)->firstOrFail();
-        $context = $this->kingdomWriteState->lockActiveScope($actor, $kingdom);
-
-        return [$context->actor, $context->kingdom];
-    }
-
-    /** @return array{Player,Player} */
-    private function lockPlayerTarget(Player $actor, Event $event): array
-    {
-        $actorContext = $this->playerWriteState->lockActor($actor);
-        $currentActor = $actorContext->actor;
-        $currentTarget = Player::query()
-            ->whereKey($event->player_id)
-            
-            ->firstOrFail();
-
-        if ((string) $currentActor->id !== (string) $currentTarget->id) {
-            $entries = AllianceRosterEntry::query()
-                ->where('player_id', $currentTarget->id)
-                ->where('state', RosterState::Active->value)
-                ->orderBy('alliance_id')
-                
-                ->get();
-
-            foreach ($entries as $entry) {
-                $alliance = Alliance::query()->whereKey($entry->alliance_id)->first();
-                if (! $alliance instanceof Alliance
-                    || (string) $alliance->kingdom_id !== (string) $currentTarget->current_kingdom_id) {
-                    continue;
-                }
-
-                try {
-                    $this->allianceWriteState->lockActiveScope($currentActor, $alliance);
-                } catch (AuthorizationException) {
-                    // No active actor scope in this candidate Alliance. Permission
-                    // evaluation later may only succeed through stabilized scopes.
-                }
+        $facts = [];
+        foreach ($this->roster->lockActiveAllianceIdsForPlayerInKingdom($target->playerId, $target->kingdomId) as $allianceId) {
+            $authority = $this->allianceAuthority->lockCurrent($actor->playerId, $allianceId);
+            if ($authority instanceof AllianceAuthorityFacts) {
+                $facts[] = $authority;
             }
         }
 
-        return [$currentActor, $currentTarget];
+        return $facts;
     }
 
-    /** @return array{Player,Alliance} */
-    private function lockAllianceCreationTarget(Player $actor, Alliance|Kingdom|Player $target): array
+    private function targetId(Event $event, EventScope $scope): string
     {
-        if (! $target instanceof Alliance) {
-            throw new LogicException('Alliance Event scope requires an Alliance target.');
+        $targetId = match ($scope) {
+            EventScope::Alliance => $event->alliance_id,
+            EventScope::Kingdom => $event->kingdom_id,
+            EventScope::Player => $event->player_id,
+        };
+
+        if (! is_string($targetId) || $targetId === '') {
+            throw new LogicException('An Event must contain exactly one valid target identity.');
         }
 
-        $context = $this->allianceWriteState->lockActiveScope($actor, $target);
-
-        return [$context->actor, $context->alliance];
-    }
-
-    /** @return array{Player,Kingdom} */
-    private function lockKingdomCreationTarget(Player $actor, Alliance|Kingdom|Player $target): array
-    {
-        if (! $target instanceof Kingdom) {
-            throw new LogicException('Kingdom Event scope requires a Kingdom target.');
-        }
-
-        $context = $this->kingdomWriteState->lockActiveScope($actor, $target);
-
-        return [$context->actor, $context->kingdom];
-    }
-
-    /** @return array{Player,Player} */
-    private function lockPlayerCreationTarget(Player $actor, Alliance|Kingdom|Player $target): array
-    {
-        if (! $target instanceof Player) {
-            throw new LogicException('Player Event scope requires a Player target.');
-        }
-
-        $actorContext = $this->playerWriteState->lockActor($actor);
-        $currentTarget = (string) $target->id === (string) $actorContext->actor->id
-            ? $actorContext->actor
-            : Player::query()->whereKey($target->id)->firstOrFail();
-
-        return [$actorContext->actor, $currentTarget];
+        return $targetId;
     }
 
     private function assertTransaction(): void

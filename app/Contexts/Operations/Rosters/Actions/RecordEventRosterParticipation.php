@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
@@ -30,94 +31,60 @@ final readonly class RecordEventRosterParticipation
         private EventParticipantAuthorization $participants,
         private EventCapabilityGuard $capabilities,
         private EventPlayerContextFreezer $contexts,
+        private PlayerReferenceQuery $players,
+        private RosterEntryQuery $rosterEntries,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
-        Player $actor,
-        EventRosterMember $member,
+        string $actorPlayerId,
+        string $occurrenceId,
+        string $memberId,
         EventRosterMemberStatus $status,
-    ): EventRosterMember {
+    ): void {
         if (! in_array($status, [EventRosterMemberStatus::Participated, EventRosterMemberStatus::Absent], true)) {
-            throw ValidationException::withMessages([
-                'status' => 'Roster participation must be recorded as participated or absent.',
-            ]);
+            throw ValidationException::withMessages(['status' => 'Roster participation must be recorded as participated or absent.']);
         }
 
-        $roster = $member->roster()->firstOrFail();
-        $occurrence = $roster->occurrence()->firstOrFail();
-        $event = $occurrence->event()->firstOrFail();
-
-        return DB::transaction(function () use ($actor, $member, $status, $roster, $occurrence, $event): EventRosterMember {
-            $context = $this->eventWriteState->lockEventScope($actor, $event);
+        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $memberId, $status): void {
+            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
+            $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Rosters);
 
-            $lockedOccurrence = EventOccurrence::query()
-                ->whereKey($occurrence->id)
-                ->where('event_id', $context->event->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-            $lockedRoster = EventRoster::query()
-                ->whereKey($roster->id)
-                ->where('occurrence_id', $lockedOccurrence->id)
-                ->sharedLock()
-                ->firstOrFail();
-            $locked = EventRosterMember::query()
-                ->whereKey($member->id)
-                ->where('roster_id', $lockedRoster->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->lockForUpdate()->firstOrFail();
+            $member = EventRosterMember::query()->whereKey($memberId)->lockForUpdate()->firstOrFail();
+            $roster = EventRoster::query()->whereKey($member->roster_id)->where('occurrence_id', $occurrence->id)->sharedLock()->firstOrFail();
 
-            if (in_array($locked->statusEnum(), [EventRosterMemberStatus::Declined, EventRosterMemberStatus::Removed], true)) {
-                throw ValidationException::withMessages([
-                    'status' => 'Declined or removed roster assignments cannot receive participation.',
-                ]);
+            if (in_array($member->statusEnum(), [EventRosterMemberStatus::Declined, EventRosterMemberStatus::Removed], true)) {
+                throw ValidationException::withMessages(['status' => 'Declined or removed roster assignments cannot receive participation.']);
             }
 
-            $player = (string) $context->actor->id === (string) $locked->player_id
-                ? $context->actor
-                : Player::query()->whereKey($locked->player_id)->firstOrFail();
-            $frozenContext = $this->contexts->existing($lockedOccurrence, $player);
-
-            if (! $frozenContext instanceof EventPlayerContext) {
-                if ((string) $context->actor->id !== (string) $player->id) {
-                    $player = Player::query()->whereKey($player->id)->firstOrFail();
+            $playerId = (string) $member->player_id;
+            $player = $context->actor->playerId === $playerId ? $context->actor : $this->players->lockCurrent($playerId);
+            $frozen = $this->contexts->existing((string) $occurrence->id, $playerId);
+            if (! $frozen instanceof EventPlayerContext) {
+                $activeRosterPresence = $context->target->scope === EventScope::Alliance
+                    && $context->target->allianceId !== null
+                    && $this->rosterEntries->lockActiveRosterPresence($context->target->allianceId, $playerId);
+                if (! $this->participants->eligibleAgainstTarget($context->target, $player, $activeRosterPresence)) {
+                    throw ValidationException::withMessages(['player' => 'This Player is not eligible for the Event target.']);
                 }
-                if (! $this->participants->eligible($context->event, $player)) {
-                    throw ValidationException::withMessages([
-                        'player' => 'This Player is not eligible for the Event target.',
-                    ]);
-                }
-
-                $representedAlliance = $locked->alliance_id === null
-                    ? null
-                    : Alliance::query()->whereKey($locked->alliance_id)->first();
-                $this->contexts->freeze($lockedOccurrence, $player, $representedAlliance);
+                $this->contexts->freeze($occurrence, $player, $member->alliance_id === null ? null : (string) $member->alliance_id);
             }
 
-            $locked->forceFill(['status' => $status])->save();
-
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
+            $member->forceFill(['status' => $status])->save();
             $metadata = [
                 'event_id' => (string) $context->event->id,
-                'occurrence_id' => (string) $lockedOccurrence->id,
-                'roster_id' => (string) $lockedRoster->id,
-                'player_id' => (string) $locked->player_id,
+                'occurrence_id' => (string) $occurrence->id,
+                'roster_id' => (string) $roster->id,
+                'player_id' => $playerId,
                 'status' => $status->value,
-                'actor_player_id' => (string) $context->actor->id,
+                'actor_player_id' => $actorPlayerId,
             ];
-            $this->audit->record('event.roster.participation.recorded', $context->actor, $locked, $alliance, $metadata);
-            $this->outbox->record(
-                'event.roster.participation.recorded',
-                $alliance?->id,
-                $locked,
-                $metadata,
-                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
-            );
-
-            return $locked->refresh()->load(['player', 'roster']);
+            $this->audit->record('event.roster.participation.recorded', $context->actor, $member, $context->target->allianceId, $metadata);
+            $this->outbox->record('event.roster.participation.recorded', $context->target->allianceId, $member, $metadata, partitionKey: $context->target->partitionKey());
         });
     }
 }

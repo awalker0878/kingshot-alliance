@@ -4,40 +4,32 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Services;
 
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
-use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Models\Event;
-use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
-use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPlanStatus;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPushCategory;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkRequestStatus;
 use App\Contexts\Operations\KingPerks\Models\KingPerkAppointment;
-use App\Contexts\Operations\KingPerks\Models\KingPerkPlan;
 use App\Contexts\Operations\KingPerks\Models\KingPerkRequest;
+use App\Contexts\Operations\KingPerks\Services\Internal\KingPerkWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class KingPerkRequestService
 {
     public function __construct(
-        private EventWriteState $eventWriteState,
-        private EventAuthorization $mutations,
-        private EventCapabilityGuard $capabilities,
+        private KingPerkWriteState $writeState,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function submit(
-        Player $actor,
-        KingPerkPlan $plan,
+        string $actorPlayerId,
+        string $planId,
         KingPerkPushCategory $category,
         CarbonImmutable $availableFrom,
         CarbonImmutable $availableUntil,
@@ -45,11 +37,10 @@ final readonly class KingPerkRequestService
         ?int $plannedSpeedupMinutes = null,
         ?int $plannedResourceAmount = null,
         ?string $notes = null,
-    ): KingPerkRequest {
-        return DB::transaction(function () use ($actor, $plan, $category, $availableFrom, $availableUntil, $preferredType, $plannedSpeedupMinutes, $plannedResourceAmount, $notes): KingPerkRequest {
-            [$locked, $event, $currentActor] = $this->selfPlan($actor, $plan);
-
-            if (! in_array($locked->status, [KingPerkPlanStatus::Published, KingPerkPlanStatus::Active], true)) {
+    ): void {
+        DB::transaction(function () use ($actorPlayerId, $planId, $category, $availableFrom, $availableUntil, $preferredType, $plannedSpeedupMinutes, $plannedResourceAmount, $notes): void {
+            [$plan, $event, $actor] = $this->writeState->selfPlan($actorPlayerId, $planId);
+            if (! in_array($plan->status, [KingPerkPlanStatus::Published, KingPerkPlanStatus::Active], true)) {
                 throw ValidationException::withMessages(['plan' => 'Appointment requests open after the King Perks schedule is published.']);
             }
 
@@ -58,7 +49,7 @@ final readonly class KingPerkRequestService
             if (! $end->greaterThan($start)) {
                 throw ValidationException::withMessages(['availability_ends_at' => 'Availability end must be after the start.']);
             }
-            if ($start->lt($locked->window_starts_at) || $end->gt($locked->window_ends_at)) {
+            if ($start->lt($plan->window_starts_at) || $end->gt($plan->window_ends_at)) {
                 throw ValidationException::withMessages(['availability_starts_at' => 'Availability must fit inside the preparation window.']);
             }
             if ($preferredType !== null && ! in_array($preferredType, $category->preferredAppointments(), true)) {
@@ -72,8 +63,8 @@ final readonly class KingPerkRequestService
             }
 
             $request = KingPerkRequest::query()->create([
-                'plan_id' => $locked->id,
-                'player_id' => $currentActor->id,
+                'plan_id' => $plan->id,
+                'player_id' => $actor->playerId,
                 'push_category' => $category,
                 'preferred_appointment_type' => $preferredType,
                 'availability_starts_at' => $start,
@@ -84,174 +75,83 @@ final readonly class KingPerkRequestService
                 'status' => KingPerkRequestStatus::Submitted,
             ]);
 
-            $this->record('king_perks.request_submitted', $currentActor, $request, $event, [
+            $this->record('king_perks.request_submitted', $actor, $request, $event, [
                 'push_category' => $category->value,
                 'availability_starts_at' => $start->toIso8601String(),
                 'availability_ends_at' => $end->toIso8601String(),
             ]);
-
-            return $request->refresh();
         });
     }
 
-    public function withdraw(Player $actor, KingPerkRequest $request): KingPerkRequest
+    public function withdraw(string $actorPlayerId, string $requestId): void
     {
-        return DB::transaction(function () use ($actor, $request): KingPerkRequest {
-            [$record, , $event, $currentActor] = $this->selfRequest($actor, $request);
-
-            if ($record->status === KingPerkRequestStatus::Scheduled) {
+        DB::transaction(function () use ($actorPlayerId, $requestId): void {
+            [$request, , $event, $actor] = $this->writeState->selfRequest($actorPlayerId, $requestId);
+            if ($request->status === KingPerkRequestStatus::Scheduled) {
                 throw ValidationException::withMessages(['request' => 'A scheduled request must be released by Kingdom leadership.']);
             }
 
-            $record->forceFill(['status' => KingPerkRequestStatus::Withdrawn])->save();
-            $this->record('king_perks.request_withdrawn', $currentActor, $record, $event);
-
-            return $record->refresh();
+            $request->forceFill(['status' => KingPerkRequestStatus::Withdrawn])->save();
+            $this->record('king_perks.request_withdrawn', $actor, $request, $event);
         });
     }
 
-    public function decline(Player $actor, KingPerkRequest $request): KingPerkRequest
+    public function decline(string $actorPlayerId, string $requestId): void
     {
-        return DB::transaction(function () use ($actor, $request): KingPerkRequest {
-            [$record, , $event, $currentActor] = $this->managerRequest($actor, $request);
-
-            if ($record->status !== KingPerkRequestStatus::Submitted) {
+        DB::transaction(function () use ($actorPlayerId, $requestId): void {
+            [$request, , $event, $actor] = $this->writeState->managerRequest($actorPlayerId, $requestId);
+            if ($request->status !== KingPerkRequestStatus::Submitted) {
                 throw ValidationException::withMessages(['request' => 'Only a submitted appointment request can be declined.']);
             }
 
-            $record->forceFill([
+            $request->forceFill([
                 'status' => KingPerkRequestStatus::Declined,
-                'reviewed_by_player_id' => $currentActor->id,
+                'reviewed_by_player_id' => $actor->playerId,
                 'reviewed_at' => now(),
             ])->save();
-            $this->record('king_perks.request_declined', $currentActor, $record, $event);
-
-            return $record->refresh();
+            $this->record('king_perks.request_declined', $actor, $request, $event);
         });
     }
 
-    public function markScheduled(
-        Player $actor,
-        KingPerkRequest $request,
-        KingPerkAppointment $appointment,
-    ): KingPerkRequest {
-        return DB::transaction(function () use ($actor, $request, $appointment): KingPerkRequest {
-            [$record, $plan, $event, $currentActor] = $this->managerRequest($actor, $request);
-            $linked = KingPerkAppointment::query()
-                ->whereKey($appointment->id)
+    public function markScheduled(string $actorPlayerId, string $requestId, string $appointmentId): void
+    {
+        DB::transaction(function () use ($actorPlayerId, $requestId, $appointmentId): void {
+            [$request, $plan, $event, $actor] = $this->writeState->managerRequest($actorPlayerId, $requestId);
+            $appointment = KingPerkAppointment::query()
+                ->whereKey($appointmentId)
                 ->where('plan_id', $plan->id)
-                ->where('assigned_player_id', $record->player_id)
+                ->where('assigned_player_id', $request->player_id)
                 ->sharedLock()
                 ->firstOrFail();
 
-            if ($record->status !== KingPerkRequestStatus::Submitted) {
+            if ($request->status !== KingPerkRequestStatus::Submitted) {
                 throw ValidationException::withMessages(['request' => 'Only a submitted appointment request can be scheduled.']);
             }
 
-            $record->forceFill([
+            $request->forceFill([
                 'status' => KingPerkRequestStatus::Scheduled,
-                'scheduled_appointment_id' => $linked->id,
-                'reviewed_by_player_id' => $currentActor->id,
+                'scheduled_appointment_id' => $appointment->id,
+                'reviewed_by_player_id' => $actor->playerId,
                 'reviewed_at' => now(),
             ])->save();
-            $this->record('king_perks.request_scheduled', $currentActor, $record, $event, [
-                'appointment_id' => (string) $linked->id,
+            $this->record('king_perks.request_scheduled', $actor, $request, $event, [
+                'appointment_id' => (string) $appointment->id,
             ]);
-
-            return $record->refresh();
         });
     }
 
-    /** @return array{KingPerkPlan,Event,Player} */
-    private function selfPlan(Player $actor, KingPerkPlan $plan): array
-    {
-        $route = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($plan->id)->firstOrFail();
-        $event = Event::query()->whereKey($route->event_id)->firstOrFail();
-        $context = $this->eventWriteState->lockSelfScope($actor, $event, $actor);
-        $this->mutations->authorizeSelf($context, $actor);
-        $this->capabilities->require($context->event, EventCapability::KingPerks);
-
-        if ((string) $context->actor->current_kingdom_id !== (string) $route->kingdom_id) {
-            throw new AuthorizationException;
-        }
-
-        $locked = KingPerkPlan::query()
-            ->whereKey($route->id)
-            ->where('event_id', $context->event->id)
-            ->where('kingdom_id', $route->kingdom_id)
-            ->lockForUpdate()
-            ->firstOrFail();
-
-        return [$locked, $context->event, $context->actor];
-    }
-
-    /** @return array{KingPerkRequest,KingPerkPlan,Event,Player} */
-    private function selfRequest(Player $actor, KingPerkRequest $request): array
-    {
-        $route = KingPerkRequest::query()->select(['id', 'plan_id', 'player_id'])->whereKey($request->id)->firstOrFail();
-        $planRoute = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($route->plan_id)->firstOrFail();
-        $event = Event::query()->whereKey($planRoute->event_id)->firstOrFail();
-        $context = $this->eventWriteState->lockSelfScope($actor, $event, $actor);
-        $this->mutations->authorizeSelf($context, $actor);
-        $this->capabilities->require($context->event, EventCapability::KingPerks);
-
-        if ((string) $route->player_id !== (string) $context->actor->id
-            || (string) $context->actor->current_kingdom_id !== (string) $planRoute->kingdom_id) {
-            throw new AuthorizationException;
-        }
-
-        $plan = KingPerkPlan::query()
-            ->whereKey($planRoute->id)
-            ->where('event_id', $context->event->id)
-            ->sharedLock()
-            ->firstOrFail();
-        $record = KingPerkRequest::query()
-            ->whereKey($route->id)
-            ->where('plan_id', $plan->id)
-            ->where('player_id', $context->actor->id)
-            ->lockForUpdate()
-            ->firstOrFail();
-
-        return [$record, $plan, $context->event, $context->actor];
-    }
-
-    /** @return array{KingPerkRequest,KingPerkPlan,Event,Player} */
-    private function managerRequest(Player $actor, KingPerkRequest $request): array
-    {
-        $route = KingPerkRequest::query()->select(['id', 'plan_id'])->whereKey($request->id)->firstOrFail();
-        $planRoute = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($route->plan_id)->firstOrFail();
-        $event = Event::query()->whereKey($planRoute->event_id)->firstOrFail();
-        $context = $this->eventWriteState->lockEventScope($actor, $event);
-        $this->mutations->authorizeManager($context);
-        $this->capabilities->require($context->event, EventCapability::KingPerks);
-
-        if (! $context->target instanceof Kingdom
-            || (string) $context->target->id !== (string) $planRoute->kingdom_id) {
-            throw new AuthorizationException;
-        }
-
-        $plan = KingPerkPlan::query()
-            ->whereKey($planRoute->id)
-            ->where('event_id', $context->event->id)
-            ->where('kingdom_id', $context->target->id)
-            ->lockForUpdate()
-            ->firstOrFail();
-        $record = KingPerkRequest::query()
-            ->whereKey($route->id)
-            ->where('plan_id', $plan->id)
-            ->lockForUpdate()
-            ->firstOrFail();
-
-        return [$record, $plan, $context->event, $context->actor];
-    }
-
     /** @param array<string, mixed> $metadata */
-    private function record(string $name, Player $actor, KingPerkRequest $subject, Event $event, array $metadata = []): void
-    {
+    private function record(
+        string $name,
+        PlayerReference $actor,
+        KingPerkRequest $subject,
+        Event $event,
+        array $metadata = [],
+    ): void {
         $metadata = [
             'event_id' => (string) $event->id,
             'kingdom_id' => (string) $event->kingdom_id,
-            'actor_player_id' => (string) $actor->id,
+            'actor_player_id' => $actor->playerId,
             'request_player_id' => (string) $subject->player_id,
         ] + $metadata;
 

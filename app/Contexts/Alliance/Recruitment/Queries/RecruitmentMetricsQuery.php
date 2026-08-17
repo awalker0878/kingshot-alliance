@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Queries;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
@@ -12,6 +11,22 @@ use Illuminate\Support\Carbon;
 
 final class RecruitmentMetricsQuery
 {
+    /** @return array{total:int, joined:int} */
+    public function contributionStatistics(string $allianceId): array
+    {
+        return [
+            'total' => RecruitmentCandidate::query()
+                ->where('alliance_id', $allianceId)
+                ->whereNull('merged_into_id')
+                ->count(),
+            'joined' => RecruitmentCandidate::query()
+                ->where('alliance_id', $allianceId)
+                ->whereNull('merged_into_id')
+                ->where('stage', RecruitmentStage::Joined->value)
+                ->count(),
+        ];
+    }
+
     /**
      * @return array{
      *   total: int,
@@ -23,10 +38,10 @@ final class RecruitmentMetricsQuery
      *   averageStageAgeDays: array<string, float>
      * }
      */
-    public function summary(Alliance $alliance): array
+    public function summary(string $allianceId): array
     {
         $candidates = RecruitmentCandidate::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->whereNull('merged_into_id')
             ->get();
 
@@ -63,7 +78,7 @@ final class RecruitmentMetricsQuery
         ksort($bySource);
 
         $latestChanges = RecruitmentStageHistory::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->whereIn('candidate_id', $candidates->pluck('id'))
             ->selectRaw('candidate_id, MAX(changed_at) AS latest_changed_at')
             ->groupBy('candidate_id')

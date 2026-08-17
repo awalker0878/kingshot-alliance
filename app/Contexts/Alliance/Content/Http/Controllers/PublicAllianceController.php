@@ -15,6 +15,7 @@ use App\Contexts\Alliance\Content\Services\ContentPresenter;
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Queries\PublicRecruitmentQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,18 +28,19 @@ final class PublicAllianceController extends Controller
         ContentQuery $content,
         ContentPresenter $presenter,
         PublicRecruitmentQuery $recruitment,
+        KingdomReferenceQuery $kingdoms,
         string $slug,
     ): Response {
         $alliance = Alliance::query()
-            ->with('kingdom')
             ->where('slug', $slug)
             ->where('status', AllianceStatus::Active->value)
             ->firstOrFail();
 
         $profile = AllianceProfile::query()->where('alliance_id', $alliance->id)->first();
-        $publicRecruitment = $recruitment->forAlliance($alliance);
+        $publicRecruitment = $recruitment->forAlliance((string) $alliance->id, (string) $alliance->slug);
+        $kingdom = $kingdoms->find((string) $alliance->kingdom_id);
         $items = $content->publicList(
-            $alliance,
+            (string) $alliance->id,
             $request->string('q')->toString(),
             $request->string('type')->toString(),
             $request->string('category')->toString(),
@@ -82,7 +84,7 @@ final class PublicAllianceController extends Controller
             'alliance' => [
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,
-                'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
+                'kingdom' => $kingdom?->number,
                 'language' => $alliance->language,
                 'timezone' => $alliance->timezone,
                 'description' => $profile?->description,

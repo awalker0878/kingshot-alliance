@@ -7,6 +7,7 @@ namespace App\Contexts\Accounts\Profile\Actions;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -16,10 +17,10 @@ final readonly class ChangePassword
 {
     public function __construct(private AuditRecorder $audit) {}
 
-    public function handle(User $user, string $currentPassword, string $newPassword): User
+    public function handle(int $userId, string $currentPassword, string $newPassword): void
     {
-        return DB::transaction(function () use ($user, $currentPassword, $newPassword): User {
-            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+        DB::transaction(function () use ($userId, $currentPassword, $newPassword): void {
+            $locked = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
 
             if (! Hash::check($currentPassword, (string) $locked->password)) {
                 throw ValidationException::withMessages([
@@ -51,7 +52,10 @@ final readonly class ChangePassword
                 'attempts' => 0,
             ]);
 
-            return $locked->refresh();
         });
+
+        $current = User::query()->findOrFail($userId);
+        Auth::setUser($current);
+        Auth::logoutOtherDevices($newPassword);
     }
 }

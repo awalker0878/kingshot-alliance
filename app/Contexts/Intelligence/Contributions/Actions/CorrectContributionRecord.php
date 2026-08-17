@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordStatus;
 use App\Contexts\Intelligence\Contributions\Models\ContributionRecord;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -19,31 +16,29 @@ use InvalidArgumentException;
 final class CorrectContributionRecord
 {
     public function __construct(
-        private readonly AllianceWriteState $allianceWriteState,
-        private readonly AllianceIntelligenceAuthorization $authority,
+        private readonly AllianceIntelligenceWriteState $writeState,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
     ) {}
 
     public function handle(
-        Player $actor,
-        Alliance $alliance,
-        ContributionRecord $record,
+        string $actorPlayerId,
+        string $allianceId,
+        string $recordId,
         float $replacementValue,
         string $reason,
         ?string $replacementEvidence = null,
-    ): ContributionRecord {
+    ): void {
         $reason = trim($reason);
         if ($reason === '') {
             throw new InvalidArgumentException('A correction reason is required.');
         }
 
-        return DB::transaction(function () use ($actor, $alliance, $record, $replacementValue, $replacementEvidence, $reason): ContributionRecord {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
-            $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
+        DB::transaction(function () use ($actorPlayerId, $allianceId, $recordId, $replacementValue, $replacementEvidence, $reason): void {
+            [, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::ContributionManage);
             $original = ContributionRecord::query()
-                ->where('alliance_id', $context->alliance->id)
-                ->whereKey($record->id)
+                ->where('alliance_id', $allianceId)
+                ->whereKey($recordId)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -55,12 +50,12 @@ final class CorrectContributionRecord
             $original->forceFill([
                 'status' => ContributionRecordStatus::Reversed,
                 'reversed_at' => now(),
-                'reversed_by_player_id' => $context->actor->id,
+                'reversed_by_player_id' => $actor->playerId,
                 'reversal_reason' => 'Corrected: '.$reason,
             ])->save();
 
             $replacement = ContributionRecord::query()->create([
-                'alliance_id' => $context->alliance->id,
+                'alliance_id' => $allianceId,
                 'category_id' => $original->category_id,
                 'player_id' => $original->player_id,
                 'source' => $original->source,
@@ -75,24 +70,22 @@ final class CorrectContributionRecord
                 'calculation_version' => $original->calculation_version,
                 'calculation_inputs' => $original->calculation_inputs,
                 'recorded_at' => now(),
-                'recorded_by_player_id' => $context->actor->id,
+                'recorded_by_player_id' => $actor->playerId,
                 'approved_at' => $replacementStatus === ContributionRecordStatus::Approved ? now() : null,
-                'approved_by_player_id' => $replacementStatus === ContributionRecordStatus::Approved ? $context->actor->id : null,
+                'approved_by_player_id' => $replacementStatus === ContributionRecordStatus::Approved ? $actor->playerId : null,
                 'correction_reason' => $reason,
             ]);
 
-            $this->audit->record('contribution.record.corrected', $context->actor, $replacement, $context->alliance, [
+            $this->audit->record('contribution.record.corrected', $actor, $replacement, $allianceId, [
                 'original_record_id' => $original->id,
                 'player_id' => $original->player_id,
                 'reason' => $reason,
             ]);
-            $this->outbox->record('contribution.record.corrected', $context->alliance->id, $replacement, [
+            $this->outbox->record('contribution.record.corrected', $allianceId, $replacement, [
                 'record_id' => $replacement->id,
                 'original_record_id' => $original->id,
                 'player_id' => $original->player_id,
             ]);
-
-            return $replacement;
         });
     }
 }

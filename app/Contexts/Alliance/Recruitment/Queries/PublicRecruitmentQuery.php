@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Queries;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 
 final class PublicRecruitmentQuery
 {
     /** @return array{status: 'closed'|'open'|'invitation_only', application_url: string|null} */
-    public function forAlliance(Alliance $alliance): array
+    public function forAlliance(string $allianceId, string $allianceSlug): array
     {
         $settings = RecruitmentSetting::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->first();
 
         if (! $settings instanceof RecruitmentSetting || ! $settings->is_open) {
@@ -33,7 +32,7 @@ final class PublicRecruitmentQuery
 
         return [
             'status' => 'open',
-            'application_url' => route('public.alliances.recruitment.show', $alliance->slug),
+            'application_url' => route('public.alliances.recruitment.show', $allianceSlug),
         ];
     }
 }

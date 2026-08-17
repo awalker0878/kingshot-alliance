@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\ReadModels\EventCalendar\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Intelligence\EventAnalysis\Queries\EventPlayerIntelligenceQuery;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
@@ -95,9 +95,9 @@ final class EventCalendarController extends Controller
 
         $target = $targets->forEvent($event);
         $canManage = $authorization->allows(
-            $actor,
-            $event->scope,
-            $target,
+            $actor->playerId,
+            $event->scopeEnum(),
+            $target->targetId,
             OperationsPermission::from((string) $event->typeScope->manage_permission_key),
         );
 
@@ -105,11 +105,11 @@ final class EventCalendarController extends Controller
             ? $actor
             : null;
         $playerParticipation = null;
-        if ($eligibleActivePlayer instanceof Player) {
+        if ($eligibleActivePlayer instanceof PlayerReference) {
             $window = $registrationWindow->for($event, $eventOccurrence);
             $playerParticipation = [
-                'playerId' => (string) $eligibleActivePlayer->id,
-                'playerName' => (string) $eligibleActivePlayer->current_name,
+                'playerId' => $eligibleActivePlayer->playerId,
+                'playerName' => $eligibleActivePlayer->currentName,
                 ...$participation->forPlayer($eventOccurrence, $eligibleActivePlayer),
                 'registrationWindow' => [
                     'opensAt' => $window['opens_at']?->toIso8601String(),
@@ -137,8 +137,8 @@ final class EventCalendarController extends Controller
                 'operations' => $phasePolls->forOccurrence($eventOccurrence, $eligibleActivePlayer),
                 'battlePlan' => $objectives->forOccurrence($eventOccurrence, $eligibleActivePlayer),
                 'results' => $results->forOccurrence($eventOccurrence, $eligibleActivePlayer),
-                'playerIntelligence' => $eligibleActivePlayer instanceof Player ? $intelligence->forPlayer($event, $eligibleActivePlayer) : null,
-                'rosters' => $eligibleActivePlayer instanceof Player ? $rosters->forPlayer($eventOccurrence, $eligibleActivePlayer) : [],
+                'playerIntelligence' => $eligibleActivePlayer instanceof PlayerReference ? $intelligence->forPlayer($event, $eligibleActivePlayer) : null,
+                'rosters' => $eligibleActivePlayer instanceof PlayerReference ? $rosters->forPlayer($eventOccurrence, $eligibleActivePlayer) : [],
                 'rallies' => $rallies->forOccurrence($eventOccurrence, $eligibleActivePlayer),
             ],
         ]);
@@ -236,7 +236,7 @@ final class EventCalendarController extends Controller
             'nameKey' => (string) $event->eventType->name_key,
             'title' => $event->title,
             'scope' => $event->scope->value,
-            'targetId' => (string) $target->id,
+            'targetId' => $target->targetId,
             'targetLabel' => $targets->label($target),
             'startsAt' => $occurrence->starts_at->toIso8601String(),
             'endsAt' => $occurrence->ends_at->toIso8601String(),
@@ -272,10 +272,10 @@ final class EventCalendarController extends Controller
         return str_replace(['\\', ';', ',', "\r\n", "\r", "\n"], ['\\\\', '\\;', '\\,', '\\n', '\\n', '\\n'], $value);
     }
 
-    private function player(): Player
+    private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof Player, 409, 'Select a Player before opening Events.');
+        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before opening Events.');
 
         return $player;
     }

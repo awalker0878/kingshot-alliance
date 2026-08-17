@@ -4,19 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
-use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\KingPerks\Actions\ReplaceNoShowAppointment;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkAppointmentStatus;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPushCategory;
 use App\Contexts\Operations\KingPerks\Enums\KingSkill;
-use App\Contexts\Operations\KingPerks\Models\KingPerkAppointment;
-use App\Contexts\Operations\KingPerks\Models\KingPerkPlan;
-use App\Contexts\Operations\KingPerks\Models\KingPerkRequest;
-use App\Contexts\Operations\KingPerks\Models\KingSkillPlan;
 use App\Contexts\Operations\KingPerks\Queries\KingPerkScheduleQuery;
 use App\Contexts\Operations\KingPerks\Services\KingPerkAutoScheduler;
 use App\Contexts\Operations\KingPerks\Services\KingPerkRequestService;
@@ -35,12 +29,8 @@ final class KingPerkController extends Controller
 
     public function index(Request $request, string $event, KingPerkScheduleQuery $query): Response
     {
-        $user = $this->user($request);
-        $payload = $query->management(
-            $this->player(),
-            $event,
-            $request->string('occurrence')->toString() ?: null,
-        );
+        $user = $this->authenticated($request);
+        $payload = $query->management($this->player(), $event, $request->string('occurrence')->toString() ?: null);
 
         return Inertia::render('KingPerks/Manage', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
@@ -50,12 +40,8 @@ final class KingPerkController extends Controller
 
     public function my(Request $request, string $event, KingPerkScheduleQuery $query): Response
     {
-        $user = $this->user($request);
-        $payload = $query->player(
-            $this->player(),
-            $event,
-            $request->string('occurrence')->toString() ?: null,
-        );
+        $user = $this->authenticated($request);
+        $payload = $query->player($this->player(), $event, $request->string('occurrence')->toString() ?: null);
 
         return Inertia::render('KingPerks/My', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
@@ -63,34 +49,25 @@ final class KingPerkController extends Controller
         ]);
     }
 
-    public function createPlan(
-        Request $request,
-        string $event,
-        string $occurrence,
-        KingPerkScheduler $scheduler,
-    ): RedirectResponse {
-        $this->user($request);
-        $record = EventOccurrence::query()
-            ->whereKey($occurrence)
-            ->where('event_id', $event)
-            ->firstOrFail();
-        $scheduler->createPlan($this->player(), $record);
+    public function createPlan(Request $request, string $event, string $occurrence, KingPerkScheduler $scheduler): RedirectResponse
+    {
+        $this->authenticated($request);
+        $scheduler->createPlan($this->player()->playerId, $event, $occurrence);
 
         return back()->with('status', 'king-perks-plan-created');
     }
 
     public function publish(Request $request, string $plan, KingPerkScheduler $scheduler): RedirectResponse
     {
-        $this->user($request);
-        $record = KingPerkPlan::query()->whereKey($plan)->firstOrFail();
-        $scheduler->publishPlan($this->player(), $record);
+        $this->authenticated($request);
+        $scheduler->publishPlan($this->player()->playerId, $plan);
 
         return back()->with('status', 'king-perks-plan-published');
     }
 
     public function assign(Request $request, string $plan, KingPerkScheduler $scheduler): RedirectResponse
     {
-        $this->user($request);
+        $this->authenticated($request);
         $validated = $request->validate([
             'appointment_type' => ['required', Rule::enum(KingAppointmentType::class)],
             'player_id' => ['required', 'string'],
@@ -98,117 +75,86 @@ final class KingPerkController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
             'appointment_id' => ['nullable', 'string'],
         ]);
-
-        $record = KingPerkPlan::query()->whereKey($plan)->firstOrFail();
-        $target = Player::query()->whereKey((string) $validated['player_id'])->firstOrFail();
-        $appointment = isset($validated['appointment_id'])
-            ? KingPerkAppointment::query()->whereKey((string) $validated['appointment_id'])->firstOrFail()
-            : null;
-
+        $appointmentId = isset($validated['appointment_id']) ? (string) $validated['appointment_id'] : null;
         $scheduler->assignAppointment(
-            actor: $this->player(),
-            plan: $record,
+            actorPlayerId: $this->player()->playerId,
+            planId: $plan,
             type: KingAppointmentType::from((string) $validated['appointment_type']),
-            target: $target,
+            targetPlayerId: (string) $validated['player_id'],
             startsAt: CarbonImmutable::parse((string) $validated['starts_at'], 'UTC'),
             notes: $validated['notes'] ?? null,
-            appointment: $appointment,
+            appointmentId: $appointmentId,
         );
 
-        return back()->with('status', $appointment === null ? 'king-perk-appointed' : 'king-perk-reassigned');
+        return back()->with('status', $appointmentId === null ? 'king-perk-appointed' : 'king-perk-reassigned');
     }
 
     public function confirm(Request $request, string $appointment, KingPerkScheduler $scheduler): RedirectResponse
     {
-        $this->user($request);
-        $record = KingPerkAppointment::query()->whereKey($appointment)->firstOrFail();
-        $scheduler->confirmAppointment($this->player(), $record);
+        $this->authenticated($request);
+        $scheduler->confirmAppointment($this->player()->playerId, $appointment);
 
         return back()->with('status', 'king-perk-appointment-confirmed');
     }
 
     public function declineAppointment(Request $request, string $appointment, KingPerkScheduler $scheduler): RedirectResponse
     {
-        $this->user($request);
-        $record = KingPerkAppointment::query()->whereKey($appointment)->firstOrFail();
-        $scheduler->declineAppointment($this->player(), $record);
+        $this->authenticated($request);
+        $scheduler->declineAppointment($this->player()->playerId, $appointment);
 
         return back()->with('status', 'king-perk-appointment-declined');
     }
 
     public function activateAppointment(Request $request, string $appointment, KingPerkScheduler $scheduler): RedirectResponse
     {
-        $this->user($request);
-        $record = KingPerkAppointment::query()->whereKey($appointment)->firstOrFail();
-        $scheduler->markAppointmentActive($this->player(), $record);
+        $this->authenticated($request);
+        $scheduler->markAppointmentActive($this->player()->playerId, $appointment);
 
         return back()->with('status', 'king-perk-appointment-active');
     }
 
-    public function outcome(
-        Request $request,
-        string $appointment,
-        ReplaceNoShowAppointment $replace,
-    ): RedirectResponse {
-        $this->user($request);
+    public function outcome(Request $request, string $appointment, KingPerkScheduler $scheduler): RedirectResponse
+    {
+        $this->authenticated($request);
         $validated = $request->validate([
             'status' => ['required', Rule::in([
                 KingPerkAppointmentStatus::Completed->value,
                 KingPerkAppointmentStatus::NoShow->value,
             ])],
         ]);
-        $record = KingPerkAppointment::query()->whereKey($appointment)->firstOrFail();
         $scheduler->markAppointment(
-            $this->player(),
-            $record,
+            $this->player()->playerId,
+            $appointment,
             KingPerkAppointmentStatus::from((string) $validated['status']),
         );
 
         return back()->with('status', 'king-perk-appointment-updated');
     }
 
-    public function replace(
-        Request $request,
-        string $appointment,
-        KingPerkScheduler $scheduler,
-    ): RedirectResponse {
-        $this->user($request);
-        $validated = $request->validate([
-            'player_id' => ['required', 'string'],
-        ]);
-        $actor = $this->player();
-        $original = KingPerkAppointment::query()->whereKey($appointment)->firstOrFail();
-        $target = Player::query()->whereKey((string) $validated['player_id'])->firstOrFail();
-
-        $replace->handle($actor, $original, $target);
+    public function replace(Request $request, string $appointment, ReplaceNoShowAppointment $replace): RedirectResponse
+    {
+        $this->authenticated($request);
+        $validated = $request->validate(['player_id' => ['required', 'string']]);
+        $replace->handle($this->player()->playerId, $appointment, (string) $validated['player_id']);
 
         return back()->with('status', 'king-perk-appointment-replaced');
     }
 
-    public function cancelledCooldown(
-        Request $request,
-        string $appointment,
-        KingPerkScheduler $scheduler,
-    ): RedirectResponse {
-        $this->user($request);
-        $validated = $request->validate([
-            'cancelled_at' => ['nullable', 'date_format:Y-m-d\\TH:i'],
-        ]);
-        $record = KingPerkAppointment::query()->whereKey($appointment)->firstOrFail();
+    public function cancelledCooldown(Request $request, string $appointment, KingPerkScheduler $scheduler): RedirectResponse
+    {
+        $this->authenticated($request);
+        $validated = $request->validate(['cancelled_at' => ['nullable', 'date_format:Y-m-d\\TH:i']]);
         $at = isset($validated['cancelled_at'])
             ? CarbonImmutable::parse((string) $validated['cancelled_at'], 'UTC')
             : CarbonImmutable::now('UTC');
-        $scheduler->recordCancelledPositionCooldown($this->player(), $record, $at);
+        $scheduler->recordCancelledPositionCooldown($this->player()->playerId, $appointment, $at);
 
         return back()->with('status', 'king-perk-position-cooldown-recorded');
     }
 
-    public function submitRequest(
-        Request $request,
-        string $plan,
-        KingPerkRequestService $requests,
-    ): RedirectResponse {
-        $this->user($request);
+    public function submitRequest(Request $request, string $plan, KingPerkRequestService $requests): RedirectResponse
+    {
+        $this->authenticated($request);
         $validated = $request->validate([
             'push_category' => ['required', Rule::enum(KingPerkPushCategory::class)],
             'preferred_appointment_type' => ['nullable', Rule::enum(KingAppointmentType::class)],
@@ -218,14 +164,12 @@ final class KingPerkController extends Controller
             'planned_resource_amount' => ['nullable', 'integer', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
-
-        $record = KingPerkPlan::query()->whereKey($plan)->firstOrFail();
         $preferred = isset($validated['preferred_appointment_type'])
             ? KingAppointmentType::from((string) $validated['preferred_appointment_type'])
             : null;
         $requests->submit(
-            actor: $this->player(),
-            plan: $record,
+            actorPlayerId: $this->player()->playerId,
+            planId: $plan,
             category: KingPerkPushCategory::from((string) $validated['push_category']),
             availableFrom: CarbonImmutable::parse((string) $validated['availability_starts_at'], 'UTC'),
             availableUntil: CarbonImmutable::parse((string) $validated['availability_ends_at'], 'UTC'),
@@ -238,46 +182,34 @@ final class KingPerkController extends Controller
         return back()->with('status', 'king-perk-request-submitted');
     }
 
-    public function withdrawRequest(
-        Request $request,
-        string $perkRequest,
-        KingPerkRequestService $requests,
-    ): RedirectResponse {
-        $this->user($request);
-        $record = KingPerkRequest::query()->whereKey($perkRequest)->firstOrFail();
-        $requests->withdraw($this->player(), $record);
+    public function withdrawRequest(Request $request, string $perkRequest, KingPerkRequestService $requests): RedirectResponse
+    {
+        $this->authenticated($request);
+        $requests->withdraw($this->player()->playerId, $perkRequest);
 
         return back()->with('status', 'king-perk-request-withdrawn');
     }
 
-    public function declineRequest(
-        Request $request,
-        string $perkRequest,
-        KingPerkRequestService $requests,
-    ): RedirectResponse {
-        $this->user($request);
-        $record = KingPerkRequest::query()->whereKey($perkRequest)->firstOrFail();
-        $requests->decline($this->player(), $record);
+    public function declineRequest(Request $request, string $perkRequest, KingPerkRequestService $requests): RedirectResponse
+    {
+        $this->authenticated($request);
+        $requests->decline($this->player()->playerId, $perkRequest);
 
         return back()->with('status', 'king-perk-request-declined');
     }
 
-    public function autoSchedule(
-        Request $request,
-        string $plan,
-        KingPerkAutoScheduler $scheduler,
-    ): RedirectResponse {
-        $this->user($request);
+    public function autoSchedule(Request $request, string $plan, KingPerkAutoScheduler $scheduler): RedirectResponse
+    {
+        $this->authenticated($request);
         $validated = $request->validate([
             'push_category' => ['required', Rule::enum(KingPerkPushCategory::class)],
             'from' => ['required', 'date_format:Y-m-d\\TH:i'],
             'until' => ['required', 'date_format:Y-m-d\\TH:i'],
             'limit' => ['nullable', 'integer', 'between:1,500'],
         ]);
-        $record = KingPerkPlan::query()->whereKey($plan)->firstOrFail();
         $result = $scheduler->handle(
-            actor: $this->player(),
-            plan: $record,
+            actorPlayerId: $this->player()->playerId,
+            planId: $plan,
             category: KingPerkPushCategory::from((string) $validated['push_category']),
             from: CarbonImmutable::parse((string) $validated['from'], 'UTC'),
             until: CarbonImmutable::parse((string) $validated['until'], 'UTC'),
@@ -289,17 +221,16 @@ final class KingPerkController extends Controller
 
     public function planSkill(Request $request, string $plan, KingPerkScheduler $scheduler): RedirectResponse
     {
-        $this->user($request);
+        $this->authenticated($request);
         $validated = $request->validate([
             'skill_key' => ['required', Rule::enum(KingSkill::class)],
             'planned_activation_at' => ['required', 'date_format:Y-m-d\\TH:i'],
             'effect_duration_minutes' => ['required', 'integer', 'between:1,10080'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
-        $record = KingPerkPlan::query()->whereKey($plan)->firstOrFail();
         $scheduler->planSkill(
-            actor: $this->player(),
-            plan: $record,
+            actorPlayerId: $this->player()->playerId,
+            planId: $plan,
             skill: KingSkill::from((string) $validated['skill_key']),
             activationAt: CarbonImmutable::parse((string) $validated['planned_activation_at'], 'UTC'),
             effectDurationMinutes: (int) $validated['effect_duration_minutes'],
@@ -311,32 +242,33 @@ final class KingPerkController extends Controller
 
     public function skillScheduled(Request $request, string $skill, KingPerkScheduler $scheduler): RedirectResponse
     {
-        $this->user($request);
-        $record = KingSkillPlan::query()->whereKey($skill)->firstOrFail();
-        $scheduler->markSkillScheduled($this->player(), $record);
+        $this->authenticated($request);
+        $scheduler->markSkillScheduled($this->player()->playerId, $skill);
 
         return back()->with('status', 'king-perk-skill-scheduled');
     }
 
     public function skillActivated(Request $request, string $skill, KingPerkScheduler $scheduler): RedirectResponse
     {
-        $this->user($request);
-        $record = KingSkillPlan::query()->whereKey($skill)->firstOrFail();
-        $scheduler->markSkillActivated($this->player(), $record);
+        $this->authenticated($request);
+        $scheduler->markSkillActivated($this->player()->playerId, $skill);
 
         return back()->with('status', 'king-perk-skill-activated');
     }
 
-    private function user(Request $request): User
+    private function authenticated(Request $request): object
     {
         $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        abort_unless($user !== null, 401);
 
         return $user;
     }
 
-    private function player(): Player
+    private function player(): PlayerReference
     {
-        return $this->playerContext->player();
+        $player = $this->playerContext->playerOrNull();
+        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before managing King Perks.');
+
+        return $player;
     }
 }

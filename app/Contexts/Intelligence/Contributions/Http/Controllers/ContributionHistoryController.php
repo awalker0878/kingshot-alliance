@@ -61,8 +61,8 @@ final class ContributionHistoryController extends Controller
                 'email' => (string) $user->email,
             ],
             'player' => [
-                'id' => (string) $player->id,
-                'name' => (string) $player->current_name,
+                'id' => $player->playerId,
+                'name' => $player->currentName,
             ],
             'summary' => $history->summaryForPlayer($player),
             'filters' => [

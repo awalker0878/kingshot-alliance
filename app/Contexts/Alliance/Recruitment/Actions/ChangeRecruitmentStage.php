@@ -7,12 +7,10 @@ namespace App\Contexts\Alliance\Recruitment\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
@@ -29,20 +27,20 @@ final class ChangeRecruitmentStage
     ) {}
 
     public function handle(
-        Player $actor,
-        Alliance $alliance,
-        RecruitmentCandidate $candidate,
+        string $actorPlayerId,
+        string $allianceId,
+        string $candidateId,
         RecruitmentStage $target,
         ?string $reason = null,
         ?CarbonImmutable $nextActionAt = null,
-    ): RecruitmentCandidate {
-        return DB::transaction(function () use ($actor, $alliance, $candidate, $target, $reason, $nextActionAt): RecruitmentCandidate {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+    ): string {
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $candidateId, $target, $reason, $nextActionAt): string {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             $locked = RecruitmentCandidate::query()
                 ->where('alliance_id', $context->alliance->id)
-                ->whereKey($candidate->id)
+                ->whereKey($candidateId)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -54,7 +52,7 @@ final class ChangeRecruitmentStage
 
             $from = $locked->stage;
             if ($from === $target) {
-                return $locked;
+                return (string) $locked->id;
             }
 
             if (! $from->canTransitionTo($target)) {
@@ -84,7 +82,7 @@ final class ChangeRecruitmentStage
             $updates = [
                 'stage' => $target,
                 'next_action_at' => $nextActionAt?->utc(),
-                'updated_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $context->actor->playerId,
                 'retention_due_at' => $target->isUnsuccessful() ? $now->copy()->addDays($retentionDays) : null,
             ];
 
@@ -140,7 +138,7 @@ final class ChangeRecruitmentStage
                 'from_stage' => $from,
                 'to_stage' => $target,
                 'reason' => $reason === null ? null : trim($reason),
-                'changed_by_player_id' => $context->actor->id,
+                'changed_by_player_id' => $context->actor->playerId,
                 'changed_at' => $now,
             ]);
 
@@ -154,7 +152,7 @@ final class ChangeRecruitmentStage
                 'to_stage' => $target->value,
             ]);
 
-            return $locked->refresh();
+            return (string) $locked->id;
         });
     }
 }

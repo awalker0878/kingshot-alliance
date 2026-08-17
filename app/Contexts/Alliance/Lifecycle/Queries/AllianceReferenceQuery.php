@@ -21,9 +21,55 @@ final class AllianceReferenceQuery
         return $this->snapshot(Alliance::query()->findOrFail($allianceId));
     }
 
+    public function lockCurrent(string $allianceId): AllianceReference
+    {
+        return $this->snapshot(Alliance::query()->whereKey($allianceId)->lockForUpdate()->firstOrFail());
+    }
+
     public function exists(string $allianceId): bool
     {
         return Alliance::query()->whereKey($allianceId)->exists();
+    }
+
+    /** @return list<AllianceReference> */
+    public function inKingdom(string $kingdomId, bool $activeOnly = false): array
+    {
+        $query = Alliance::query()
+            ->where('kingdom_id', $kingdomId)
+            ->orderBy('name');
+
+        if ($activeOnly) {
+            $query->where('status', 'active');
+        }
+
+        return $query->get()
+            ->map(fn (Alliance $alliance): AllianceReference => $this->snapshot($alliance))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param list<string> $allianceIds
+     * @return array<string, AllianceReference>
+     */
+    public function byIds(array $allianceIds): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map(
+            static fn (string $id): string => trim($id),
+            $allianceIds,
+        ), static fn (string $id): bool => $id !== '')));
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $references = [];
+        foreach (Alliance::query()->whereIn('id', $ids)->get() as $alliance) {
+            $reference = $this->snapshot($alliance);
+            $references[$reference->allianceId] = $reference;
+        }
+
+        return $references;
     }
 
     private function snapshot(Alliance $alliance): AllianceReference

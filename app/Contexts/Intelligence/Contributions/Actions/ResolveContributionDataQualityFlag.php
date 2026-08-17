@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Contributions\Models\ContributionDataQualityFlag;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
@@ -16,41 +13,34 @@ use Illuminate\Support\Facades\DB;
 final class ResolveContributionDataQualityFlag
 {
     public function __construct(
-        private readonly AllianceWriteState $allianceWriteState,
-        private readonly AllianceIntelligenceAuthorization $authority,
+        private readonly AllianceIntelligenceWriteState $writeState,
         private readonly AuditRecorder $audit,
     ) {}
 
-    public function handle(
-        Player $actor,
-        Alliance $alliance,
-        ContributionDataQualityFlag $flag,
-    ): ContributionDataQualityFlag {
-        return DB::transaction(function () use ($actor, $alliance, $flag): ContributionDataQualityFlag {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
-            $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
-            $locked = ContributionDataQualityFlag::query()
-                ->where('alliance_id', $context->alliance->id)
-                ->whereKey($flag->id)
+    public function handle(string $actorPlayerId, string $allianceId, string $flagId): void
+    {
+        DB::transaction(function () use ($actorPlayerId, $allianceId, $flagId): void {
+            [, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::ContributionManage);
+            $flag = ContributionDataQualityFlag::query()
+                ->where('alliance_id', $allianceId)
+                ->whereKey($flagId)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($locked->status === 'resolved') {
-                return $locked;
+            if ($flag->status === 'resolved') {
+                return;
             }
 
-            $locked->forceFill([
+            $flag->forceFill([
                 'status' => 'resolved',
                 'resolved_at' => now(),
-                'resolved_by_player_id' => $context->actor->id,
+                'resolved_by_player_id' => $actor->playerId,
             ])->save();
 
-            $this->audit->record('contribution.data-quality.resolved', $context->actor, $locked, $context->alliance, [
-                'code' => $locked->code,
-                'player_id' => $locked->player_id,
+            $this->audit->record('contribution.data-quality.resolved', $actor, $flag, $allianceId, [
+                'code' => $flag->code,
+                'player_id' => $flag->player_id,
             ]);
-
-            return $locked->refresh();
         });
     }
 }

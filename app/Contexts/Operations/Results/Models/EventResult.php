@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -44,12 +43,6 @@ final class EventResult extends Model
     public function occurrence(): BelongsTo
     {
         return $this->belongsTo(EventOccurrence::class, 'occurrence_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function recordedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'recorded_by_player_id');
     }
 
     /** @return HasMany<EventResultMetric, $this> */

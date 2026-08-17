@@ -6,6 +6,7 @@ namespace App\Contexts\Accounts\Profile\Actions;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -14,10 +15,10 @@ final readonly class AuthorizeOtherSessionRevocation
 {
     public function __construct(private AuditRecorder $audit) {}
 
-    public function handle(User $user, string $password): User
+    public function handle(int $userId, string $password): void
     {
-        return DB::transaction(function () use ($user, $password): User {
-            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+        DB::transaction(function () use ($userId, $password): void {
+            $locked = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
 
             if (! Hash::check($password, (string) $locked->password)) {
                 throw ValidationException::withMessages([
@@ -31,7 +32,10 @@ final readonly class AuthorizeOtherSessionRevocation
                 subject: $locked,
             );
 
-            return $locked;
         });
+
+        $current = User::query()->findOrFail($userId);
+        Auth::setUser($current);
+        Auth::logoutOtherDevices($password);
     }
 }

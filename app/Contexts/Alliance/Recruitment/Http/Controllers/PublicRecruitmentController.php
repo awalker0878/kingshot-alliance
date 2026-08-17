@@ -13,6 +13,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentApplicationInvite;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentApplicationTokenService;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,9 +25,11 @@ final class PublicRecruitmentController extends Controller
     public function show(
         Request $request,
         RecruitmentApplicationTokenService $tokens,
+        KingdomReferenceQuery $kingdoms,
         string $slug,
     ): Response {
         $alliance = $this->alliance($slug);
+        $kingdom = $kingdoms->find((string) $alliance->kingdom_id);
         $settings = RecruitmentSetting::query()->where('alliance_id', $alliance->id)->first();
         $applicationToken = $request->string('token')->toString();
         $tokenValid = false;
@@ -73,7 +76,7 @@ final class PublicRecruitmentController extends Controller
             'alliance' => [
                 'name' => (string) $alliance->name,
                 'slug' => (string) $alliance->slug,
-                'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
+                'kingdom' => $kingdom?->number,
             ],
             'application' => [
                 'open' => $isOpen,
@@ -109,14 +112,14 @@ final class PublicRecruitmentController extends Controller
         $user = $request->user();
 
         $submit->handle(
-            alliance: $alliance,
+            allianceId: (string) $alliance->id,
             fullName: $validated['full_name'],
             email: $validated['email'],
             answers: $validated['answers'] ?? [],
             contactHandle: $validated['contact_handle'] ?? null,
             source: $validated['source'] ?? null,
             applicationToken: $validated['application_token'] ?? null,
-            applicant: $user instanceof User ? $user : null,
+            applicantUserId: $user instanceof User ? (int) $user->id : null,
         );
 
         $request->session()->flash('recruitmentApplicationSubmitted', true);
@@ -130,7 +133,6 @@ final class PublicRecruitmentController extends Controller
     private function alliance(string $slug): Alliance
     {
         return Alliance::query()
-            ->with('kingdom')
             ->where('slug', $slug)
             ->where('status', AllianceStatus::Active->value)
             ->firstOrFail();

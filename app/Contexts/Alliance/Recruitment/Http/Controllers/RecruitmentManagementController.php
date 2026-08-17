@@ -7,7 +7,7 @@ namespace App\Contexts\Alliance\Recruitment\Http\Controllers;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
@@ -26,7 +26,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentOnboardingItem;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 use App\Contexts\Alliance\Recruitment\Queries\RecruitmentMetricsQuery;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -42,36 +42,38 @@ final class RecruitmentManagementController extends Controller
         AllianceContext $context,
         AllianceAuthorization $authorization,
         RecruitmentMetricsQuery $metrics,
+        AllianceReferenceQuery $alliances,
+        PlayerReferenceQuery $players,
     ): Response {
         $user = $this->user($request);
-        $alliance = $context->alliance();
-        $this->authorize($authorization, $context->player(), $alliance);
+        $scope = $context->scope();
+        $alliance = $alliances->require($scope->allianceId);
+        $this->authorize($authorization, $scope->playerId, $scope->allianceId);
 
-        $settings = RecruitmentSetting::query()->where('alliance_id', $alliance->id)->first();
+        $settings = RecruitmentSetting::query()->where('alliance_id', $scope->allianceId)->first();
         $questions = RecruitmentQuestion::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->orderBy('position')
             ->orderBy('id')
             ->get();
         $candidates = RecruitmentCandidate::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->whereNull('merged_into_id')
             ->whereNull('anonymized_at')
             ->orderByDesc('submitted_at')
             ->limit(250)
             ->get();
         $memberships = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->where('status', MembershipStatus::Active->value)
-            ->with('player:id,current_name')
             ->orderBy('created_at')
             ->get();
         $templates = RecruitmentDecisionTemplate::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->orderBy('name')
             ->get();
         $onboardingItems = RecruitmentOnboardingItem::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->orderBy('position')
             ->orderBy('name')
             ->get();
@@ -105,16 +107,20 @@ final class RecruitmentManagementController extends Controller
             ];
         }
 
+        $playerReferences = $players->byIds(
+            $memberships->pluck('player_id')->map(static fn ($id): string => (string) $id)->all(),
+        );
+
         $memberData = [];
         foreach ($memberships as $membership) {
-            $player = $membership->player;
-            if (! $player instanceof Player) {
+            $player = $playerReferences[(string) $membership->player_id] ?? null;
+            if ($player === null) {
                 continue;
             }
 
             $memberData[] = [
-                'id' => (string) $player->id,
-                'name' => (string) $player->current_name,
+                'id' => $player->playerId,
+                'name' => $player->currentName,
                 'rank' => $membership->rank->value,
             ];
         }
@@ -149,9 +155,9 @@ final class RecruitmentManagementController extends Controller
                 'email' => (string) $user->email,
             ],
             'alliance' => [
-                'id' => (string) $alliance->id,
-                'name' => (string) $alliance->name,
-                'slug' => (string) $alliance->slug,
+                'id' => (string) $alliance->allianceId,
+                'name' => $alliance->name,
+                'slug' => $alliance->slug,
             ],
             'settings' => $settings instanceof RecruitmentSetting ? [
                 'mode' => $settings->application_mode->value,
@@ -177,7 +183,7 @@ final class RecruitmentManagementController extends Controller
             'members' => $memberData,
             'decisionTemplates' => $templateData,
             'onboardingItems' => $onboardingData,
-            'metrics' => $metrics->summary($alliance),
+            'metrics' => $metrics->summary($scope->allianceId),
             'issuedApplicationLink' => $request->session()->pull('recruitmentApplicationLink'),
         ]);
     }
@@ -195,9 +201,10 @@ final class RecruitmentManagementController extends Controller
             'open' => ['required', 'boolean'],
         ]);
 
+        $scope = $context->scope();
         $configure->handle(
-            $context->player(),
-            $context->alliance(),
+            $scope->playerId,
+            $scope->allianceId,
             RecruitmentApplicationMode::from($validated['mode']),
             $validated['title'],
             $validated['introduction'] ?? null,
@@ -226,21 +233,15 @@ final class RecruitmentManagementController extends Controller
             'active' => ['required', 'boolean'],
         ]);
 
-        $actor = $context->player();
-        $alliance = $context->alliance();
+        $scope = $context->scope();
         $type = RecruitmentQuestionType::from($validated['type']);
         $options = $validated['options'] ?? [];
 
         if (isset($validated['question_id'])) {
-            $question = RecruitmentQuestion::query()
-                ->where('alliance_id', $alliance->id)
-                ->whereKey($validated['question_id'])
-                ->firstOrFail();
-
             $update->handle(
-                $actor,
-                $alliance,
-                $question,
+                $scope->playerId,
+                $scope->allianceId,
+                (string) $validated['question_id'],
                 $validated['prompt'],
                 $type,
                 (bool) $validated['required'],
@@ -254,8 +255,8 @@ final class RecruitmentManagementController extends Controller
         }
 
         $create->handle(
-            $actor,
-            $alliance,
+            $scope->playerId,
+            $scope->allianceId,
             $validated['prompt'],
             $type,
             (bool) $validated['required'],
@@ -272,15 +273,17 @@ final class RecruitmentManagementController extends Controller
         Request $request,
         AllianceContext $context,
         IssueRecruitmentApplicationInvite $issue,
+        AllianceReferenceQuery $alliances,
     ): RedirectResponse {
         $validated = $request->validate([
             'email' => ['nullable', 'email:rfc', 'max:320'],
             'ttl_hours' => ['required', 'integer', 'min:1', 'max:720'],
         ]);
-        $alliance = $context->alliance();
+        $scope = $context->scope();
+        $alliance = $alliances->require($scope->allianceId);
         $issued = $issue->handle(
-            $context->player(),
-            $alliance,
+            $scope->playerId,
+            $scope->allianceId,
             $validated['email'] ?? null,
             (int) $validated['ttl_hours'],
         );
@@ -306,9 +309,10 @@ final class RecruitmentManagementController extends Controller
             'active' => ['required', 'boolean'],
         ]);
 
+        $scope = $context->scope();
         $create->handle(
-            $context->player(),
-            $context->alliance(),
+            $scope->playerId,
+            $scope->allianceId,
             $validated['name'],
             RecruitmentStage::from($validated['decision_stage']),
             $validated['subject'],
@@ -332,9 +336,10 @@ final class RecruitmentManagementController extends Controller
             'active' => ['required', 'boolean'],
         ]);
 
+        $scope = $context->scope();
         $create->handle(
-            $context->player(),
-            $context->alliance(),
+            $scope->playerId,
+            $scope->allianceId,
             $validated['name'],
             $validated['description'] ?? null,
             (int) $validated['position'],
@@ -355,10 +360,10 @@ final class RecruitmentManagementController extends Controller
 
     private function authorize(
         AllianceAuthorization $authorization,
-        Player $actor,
-        Alliance $alliance,
+        string $actorPlayerId,
+        string $allianceId,
     ): void {
-        if (! $authorization->allows($actor, $alliance, AlliancePermission::RecruitmentManage)) {
+        if (! $authorization->allows($actorPlayerId, $allianceId, AlliancePermission::RecruitmentManage)) {
             throw new AuthorizationException;
         }
     }

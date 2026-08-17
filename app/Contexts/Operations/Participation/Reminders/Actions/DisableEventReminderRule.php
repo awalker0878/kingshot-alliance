@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Reminders\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
-use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Reminders\Models\EventReminderRule;
@@ -18,46 +15,30 @@ final readonly class DisableEventReminderRule
 {
     public function __construct(
         private EventWriteState $eventWriteState,
-        private EventAuthorization $mutations,
+        private EventAuthorization $authorization,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Player $actor, Event $event, EventReminderRule $rule): EventReminderRule
+    public function handle(string $actorPlayerId, string $eventId, string $ruleId): void
     {
-        return DB::transaction(function () use ($actor, $event, $rule): EventReminderRule {
-            $context = $this->eventWriteState->lockEventScope($actor, $event);
-            $this->mutations->authorizeManager($context);
-            $locked = EventReminderRule::query()
-                ->whereKey($rule->id)
+        DB::transaction(function () use ($actorPlayerId, $eventId, $ruleId): void {
+            $context = $this->eventWriteState->lockEventScope($actorPlayerId, $eventId);
+            $this->authorization->authorizeManager($context);
+            $rule = EventReminderRule::query()
+                ->whereKey($ruleId)
                 ->where('event_id', $context->event->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (! $locked->is_enabled) {
-                return $locked;
+            if (! $rule->is_enabled) {
+                return;
             }
 
-            $locked->forceFill([
-                'is_enabled' => false,
-                'updated_by_player_id' => $context->actor->id,
-            ])->save();
-
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
-            $metadata = [
-                'event_id' => (string) $context->event->id,
-                'actor_player_id' => (string) $context->actor->id,
-            ];
-            $this->audit->record('event.reminder.rule.disabled', $context->actor, $locked, $alliance, $metadata);
-            $this->outbox->record(
-                'event.reminder.rule.disabled',
-                $alliance?->id,
-                $locked,
-                $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
-            );
-
-            return $locked->refresh();
+            $rule->forceFill(['is_enabled' => false, 'updated_by_player_id' => $actorPlayerId])->save();
+            $metadata = ['event_id' => (string) $context->event->id, 'actor_player_id' => $actorPlayerId];
+            $this->audit->record('event.reminder.rule.disabled', $context->actor, $rule, $context->target->allianceId, $metadata);
+            $this->outbox->record('event.reminder.rule.disabled', $context->target->allianceId, $rule, $metadata, partitionKey: $context->target->partitionKey());
         });
     }
 }

@@ -7,10 +7,8 @@ namespace App\Contexts\Alliance\Recruitment\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentTag;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +24,7 @@ final class TagRecruitmentCandidate
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Player $actor, Alliance $alliance, RecruitmentCandidate $candidate, string $name): RecruitmentTag
+    public function handle(string $actorPlayerId, string $allianceId, string $candidateId, string $name): string
     {
         $normalizedName = Str::lower(trim($name));
         if ($normalizedName === '') {
@@ -37,12 +35,12 @@ final class TagRecruitmentCandidate
             throw ValidationException::withMessages(['tag' => 'Recruitment tags may not exceed 80 characters.']);
         }
 
-        return DB::transaction(function () use ($actor, $alliance, $candidate, $normalizedName): RecruitmentTag {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $candidateId, $normalizedName): string {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             $currentCandidate = RecruitmentCandidate::query()
-                ->whereKey($candidate->id)
+                ->whereKey($candidateId)
                 ->where('alliance_id', $context->alliance->id)
                 ->sharedLock()
                 ->firstOrFail();
@@ -58,8 +56,6 @@ final class TagRecruitmentCandidate
                 'name' => $normalizedName,
             ]);
 
-            // The pivot uniqueness constraint is the concurrency primitive here;
-            // insertOrIgnore is an atomic compare-and-set for duplicate attachment.
             $inserted = DB::table('recruitment_candidate_tags')->insertOrIgnore([
                 'alliance_id' => $context->alliance->id,
                 'candidate_id' => $currentCandidate->id,
@@ -79,7 +75,7 @@ final class TagRecruitmentCandidate
                 ]);
             }
 
-            return $tag;
+            return (string) $tag->id;
         });
     }
 }

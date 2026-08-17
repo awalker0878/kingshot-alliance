@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Services;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\BattlePlans\Models\EventObjective;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventPhase;
@@ -31,14 +30,14 @@ final class EventMetricCapture
         EventResult $result,
         array $metrics,
         EventMetricSource $source,
-        ?Player $recorder,
+        ?string $recorderPlayerId,
     ): void {
         if ($metrics === []) {
             return;
         }
 
         $locked = EventResult::query()->whereKey($result->id)->lockForUpdate()->firstOrFail();
-        $values = $this->validatedValues($locked->occurrence_id, EventMetricSubject::Event, $metrics, $source, $recorder);
+        $values = $this->validatedValues($locked->occurrence_id, EventMetricSubject::Event, $metrics, $source, $recorderPlayerId);
 
         foreach ($values as $value) {
             EventResultMetric::query()->updateOrCreate(
@@ -50,7 +49,7 @@ final class EventMetricCapture
                 [
                     'value' => $value['value'],
                     'source' => $source,
-                    'recorded_by_player_id' => $recorder?->id,
+                    'recorded_by_player_id' => $recorderPlayerId,
                     'recorded_at' => now(),
                 ],
             );
@@ -64,14 +63,14 @@ final class EventMetricCapture
         EventAllianceResult $result,
         array $metrics,
         EventMetricSource $source,
-        ?Player $recorder,
+        ?string $recorderPlayerId,
     ): void {
         if ($metrics === []) {
             return;
         }
 
         $locked = EventAllianceResult::query()->whereKey($result->id)->lockForUpdate()->firstOrFail();
-        $values = $this->validatedValues($locked->occurrence_id, EventMetricSubject::Alliance, $metrics, $source, $recorder);
+        $values = $this->validatedValues($locked->occurrence_id, EventMetricSubject::Alliance, $metrics, $source, $recorderPlayerId);
 
         foreach ($values as $value) {
             EventAllianceResultMetric::query()->updateOrCreate(
@@ -83,7 +82,7 @@ final class EventMetricCapture
                 [
                     'value' => $value['value'],
                     'source' => $source,
-                    'recorded_by_player_id' => $recorder?->id,
+                    'recorded_by_player_id' => $recorderPlayerId,
                     'recorded_at' => now(),
                 ],
             );
@@ -97,14 +96,14 @@ final class EventMetricCapture
         EventPlayerResult $result,
         array $metrics,
         EventMetricSource $source,
-        ?Player $recorder,
+        ?string $recorderPlayerId,
     ): void {
         if ($metrics === []) {
             return;
         }
 
         $locked = EventPlayerResult::query()->whereKey($result->id)->lockForUpdate()->firstOrFail();
-        $values = $this->validatedValues($locked->occurrence_id, EventMetricSubject::Player, $metrics, $source, $recorder);
+        $values = $this->validatedValues($locked->occurrence_id, EventMetricSubject::Player, $metrics, $source, $recorderPlayerId);
 
         foreach ($values as $value) {
             EventPlayerResultMetric::query()->updateOrCreate(
@@ -116,7 +115,7 @@ final class EventMetricCapture
                 [
                     'value' => $value['value'],
                     'source' => $source,
-                    'recorded_by_player_id' => $recorder?->id,
+                    'recorded_by_player_id' => $recorderPlayerId,
                     'recorded_at' => now(),
                 ],
             );
@@ -132,12 +131,12 @@ final class EventMetricCapture
         EventMetricSubject $subject,
         array $metrics,
         EventMetricSource $source,
-        ?Player $recorder,
+        ?string $recorderPlayerId,
     ): array {
         if (DB::transactionLevel() < 1) {
             throw new LogicException('Event metrics must be captured inside a database transaction.');
         }
-        if ($source === EventMetricSource::Manual && ! ($recorder instanceof Player)) {
+        if ($source === EventMetricSource::Manual && ($recorderPlayerId === null || $recorderPlayerId === '')) {
             throw ValidationException::withMessages([
                 'metrics' => 'Manual Event metrics require a recording Player.',
             ]);

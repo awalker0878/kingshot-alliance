@@ -24,10 +24,10 @@ final readonly class DeleteContentCategory
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $alliance, Player $actor, string $categoryId): void
+    public function handle(string $allianceId, string $actorPlayerId, string $categoryId): void
     {
-        DB::transaction(function () use ($alliance, $actor, $categoryId): void {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        DB::transaction(function () use ($allianceId, $actorPlayerId, $categoryId): void {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
             $category = ContentCategory::query()

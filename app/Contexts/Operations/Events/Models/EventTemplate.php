@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventRecurrencePolicy;
 use App\Contexts\Operations\Events\Enums\EventScheduleSource;
 use App\Contexts\Operations\Events\Enums\EventScope;
@@ -88,36 +85,6 @@ final class EventTemplate extends Model
     public function typeScope(): BelongsTo
     {
         return $this->belongsTo(EventTypeScope::class, 'event_type_scope_id');
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
-    /** @return BelongsTo<Kingdom, $this> */
-    public function kingdom(): BelongsTo
-    {
-        return $this->belongsTo(Kingdom::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function createdByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'created_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function updatedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'updated_by_player_id');
     }
 
     public function scopeEnum(): EventScope

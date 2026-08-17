@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Events\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\Events\Actions\CancelEvent;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
@@ -84,7 +84,7 @@ final class EventManagementController extends Controller
                     'name' => (string) $template->name,
                     'nameKey' => (string) $eventType->name_key,
                     'scope' => $template->scope->value,
-                    'targetId' => (string) $target->id,
+                    'targetId' => $target->targetId,
                     'targetLabel' => $targets->label($target),
                     'timezone' => (string) $template->timezone,
                     'recurrenceFrequency' => $template->recurrence_frequency->value,
@@ -107,12 +107,13 @@ final class EventManagementController extends Controller
         $target = $targets->resolve($scope, (string) $validated['target_id']);
         $eventType = EventType::query()->whereKey((string) $validated['event_type_id'])->firstOrFail();
         $configuration = $types->scope($eventType, $scope);
-        $timezone = $targets->defaultTimezone($actor, $target);
+        $timezone = $target->timezone;
 
-        $event = $create->handle(
-            actor: $actor,
-            configuration: $configuration,
-            target: $target,
+        $created = $create->handle(
+            actorPlayerId: $actor->playerId,
+            configurationId: (string) $configuration->id,
+            scope: $scope,
+            targetId: $target->targetId,
             firstLocalStart: $this->requiredTime((string) $validated['first_local_start'], $timezone, 'first_local_start'),
             title: $validated['title'] ?? null,
             instructions: $validated['instructions'] ?? null,
@@ -128,13 +129,11 @@ final class EventManagementController extends Controller
             publish: (bool) ($validated['publish'] ?? true),
         );
 
-        $occurrence = $event->occurrences->sortBy('starts_at')->first();
-
-        if ($occurrence === null) {
+        if ($created->firstOccurrenceId === null) {
             return redirect()->route('events.index')->with('status', 'event-created');
         }
 
-        return redirect()->route('events.show', ['occurrence' => $occurrence->id])
+        return redirect()->route('events.show', ['occurrence' => $created->firstOccurrenceId])
             ->with('status', 'event-created');
     }
 
@@ -150,8 +149,8 @@ final class EventManagementController extends Controller
         $validated = $this->validateEvent($request, creating: false);
 
         $update->handle(
-            actor: $actor,
-            event: $record,
+            actorPlayerId: $actor->playerId,
+            eventId: (string) $record->id,
             firstLocalStart: isset($validated['first_local_start'])
                 ? CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['first_local_start'], $record->timezone)
                 : null,
@@ -180,7 +179,7 @@ final class EventManagementController extends Controller
         $this->user($request);
         $actor = $this->player();
         $record = $query->eventForManage($actor, $event);
-        $cancel->handle($actor, $record);
+        $cancel->handle($actor->playerId, (string) $record->id);
 
         return redirect()->route('events.index')->with('status', 'event-cancelled');
     }
@@ -212,9 +211,10 @@ final class EventManagementController extends Controller
         $type = EventType::query()->whereKey((string) $validated['event_type_id'])->firstOrFail();
 
         $create->handle(
-            actor: $actor,
-            configuration: $types->scope($type, $scope),
-            target: $target,
+            actorPlayerId: $actor->playerId,
+            configurationId: (string) $types->scope($type, $scope)->id,
+            scope: $scope,
+            targetId: $target->targetId,
             name: (string) $validated['name'],
             instructions: $validated['instructions'] ?? null,
             durationMinutes: isset($validated['duration_minutes']) ? (int) $validated['duration_minutes'] : null,
@@ -243,9 +243,9 @@ final class EventManagementController extends Controller
             'title' => ['nullable', 'string', 'max:160'],
         ]);
 
-        $event = $create->handle(
-            actor: $actor,
-            template: $record,
+        $created = $create->handle(
+            actorPlayerId: $actor->playerId,
+            templateId: (string) $record->id,
             firstLocalStart: $this->requiredTime((string) $validated['first_local_start'], $record->timezone, 'first_local_start'),
             recurrenceUntilLocal: isset($validated['recurrence_until_local'])
                 ? CarbonImmutable::createFromFormat('Y-m-d\\TH:i', (string) $validated['recurrence_until_local'], $record->timezone)
@@ -253,13 +253,11 @@ final class EventManagementController extends Controller
             title: $validated['title'] ?? null,
         );
 
-        $occurrence = $event->occurrences->sortBy('starts_at')->first();
-
-        if ($occurrence === null) {
+        if ($created->firstOccurrenceId === null) {
             return redirect()->route('events.index')->with('status', 'event-created');
         }
 
-        return redirect()->route('events.show', ['occurrence' => $occurrence->id])
+        return redirect()->route('events.show', ['occurrence' => $created->firstOccurrenceId])
             ->with('status', 'event-created');
     }
 
@@ -300,10 +298,10 @@ final class EventManagementController extends Controller
         return ['name' => (string) $user->name, 'email' => (string) $user->email];
     }
 
-    private function player(): Player
+    private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof Player, 409, 'Select a Player before performing Event operations.');
+        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Event operations.');
 
         return $player;
     }

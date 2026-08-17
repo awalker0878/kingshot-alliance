@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\CreateTransferBlocker;
@@ -19,6 +21,8 @@ use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferReadinessTransition;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -32,25 +36,27 @@ final class TransferReadinessController extends Controller
     public function index(
         Request $request,
         AllianceContext $context,
+        AccountIdentityQuery $accounts,
+        AllianceReferenceQuery $alliances,
+        KingdomReferenceQuery $kingdoms,
         TransferAuthorization $authorization,
         TransferPlanQuery $plans,
         TransferParticipantQuery $participants,
     ): Response {
-        $user = $this->user($request);
-        $alliance = $context->alliance()->load('kingdom');
+        $scope = $context->scope();
+        $account = $this->account($request, $accounts);
+        $alliance = $alliances->require($scope->allianceId);
+        $kingdom = $kingdoms->require($alliance->kingdomId);
 
-        if (! $authorization->allows($context->player(), $alliance, TransferPermission::Manage)) {
+        if (! $authorization->allows($scope->playerId, $scope->allianceId, TransferPermission::Manage)) {
             throw new AuthorizationException;
         }
 
-        $plan = $plans->currentForAlliance($alliance);
+        $plan = $plans->currentForAlliance($scope->allianceId);
 
         return Inertia::render('Alliance/TransferReadinessManage', [
-            'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
-            ],
-            'alliance' => $this->alliance($alliance),
+            'user' => ['name' => $account->name, 'email' => $account->email],
+            'alliance' => $this->alliance($alliance, $kingdom),
             'plan' => $plan === null ? null : [
                 'id' => (string) $plan->id,
                 'label' => (string) $plan->label,
@@ -60,7 +66,7 @@ final class TransferReadinessController extends Controller
             ],
             'participants' => $plan === null
                 ? []
-                : $participants->forPlan($alliance, $plan, true)
+                : $participants->forPlan($scope->allianceId, (string) $plan->id, true)
                     ->map(fn (TransferParticipant $participant): array => $this->participant($participant))
                     ->all(),
         ]);
@@ -77,10 +83,11 @@ final class TransferReadinessController extends Controller
         $validated = $request->validate([
             'readiness' => ['required', Rule::in(array_column(TransferReadinessState::cases(), 'value'))],
         ]);
+        $scope = $context->scope();
 
         $transition->handle(
-            $context->alliance(),
-            $context->player(),
+            $scope->allianceId,
+            $scope->playerId,
             $plan,
             $participant,
             TransferReadinessState::from($validated['readiness']),
@@ -101,10 +108,11 @@ final class TransferReadinessController extends Controller
             'summary' => ['required', 'string', 'max:255'],
             'details' => ['nullable', 'string', 'max:5000'],
         ]);
+        $scope = $context->scope();
 
         $create->handle(
-            $context->alliance(),
-            $context->player(),
+            $scope->allianceId,
+            $scope->playerId,
             $plan,
             $participant,
             $validated['summary'],
@@ -122,25 +130,16 @@ final class TransferReadinessController extends Controller
         string $participant,
         string $blocker,
     ): RedirectResponse {
-        $resolve->handle(
-            $context->alliance(),
-            $context->player(),
-            $plan,
-            $participant,
-            $blocker,
-        );
+        $scope = $context->scope();
+        $resolve->handle($scope->allianceId, $scope->playerId, $plan, $participant, $blocker);
 
         return back()->with('status', 'transfer-blocker-resolved');
     }
 
-    /** @return array{id: string, name: string, kingdom: string|null} */
-    private function alliance(Alliance $alliance): array
+    /** @return array{id: string, name: string, kingdom: string} */
+    private function alliance(AllianceReference $alliance, KingdomReference $kingdom): array
     {
-        return [
-            'id' => (string) $alliance->id,
-            'name' => (string) $alliance->name,
-            'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
-        ];
+        return ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $kingdom->number];
     }
 
     /** @return array<string, mixed> */
@@ -190,11 +189,11 @@ final class TransferReadinessController extends Controller
         ];
     }
 
-    private function user(Request $request): User
+    private function account(Request $request, AccountIdentityQuery $accounts): AccountIdentity
     {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        $userId = $request->user()?->getAuthIdentifier();
+        abort_unless(is_numeric($userId), 401);
 
-        return $user;
+        return $accounts->require((int) $userId);
     }
 }

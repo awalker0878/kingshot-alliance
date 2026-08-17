@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Services;
 
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\Alliance\Membership\Queries\ActiveAllianceScopeQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Events\Enums\EventScope;
-use Illuminate\Database\Eloquent\Builder;
 
-final class EventCreationContextResolver
+final readonly class EventCreationContextResolver
 {
-    public function __construct(private EventAuthorization $eventAuthorization) {}
+    public function __construct(
+        private EventAuthorization $eventAuthorization,
+        private ActiveAllianceScopeQuery $allianceScope,
+        private AllianceReferenceQuery $alliances,
+        private KingdomReferenceQuery $kingdoms,
+    ) {}
 
     /**
      * @return list<array{
@@ -27,84 +30,56 @@ final class EventCreationContextResolver
      *   kingdomNumber?: int
      * }>
      */
-    public function forPlayer(Player $actor): array
+    public function forPlayer(PlayerReference $actor): array
     {
         $contexts = [];
 
         if ($this->eventAuthorization->allows(
-            $actor,
+            $actor->playerId,
             EventScope::Player,
-            $actor,
+            $actor->playerId,
             OperationsPermission::EventPlayerCreate,
         )) {
-            $kingdom = $actor->currentKingdom;
-            if ($kingdom instanceof Kingdom) {
-                $contexts[] = [
-                    'scope' => EventScope::Player->value,
-                    'targetId' => (string) $actor->id,
-                    'label' => (string) $actor->current_name,
-                    'kingdomId' => (string) $actor->current_kingdom_id,
-                    'kingdomNumber' => (int) $kingdom->number,
-                ];
-            }
-        }
-
-        $membership = AllianceMembership::query()
-            ->where('player_id', $actor->id)
-            ->where('status', MembershipStatus::Active->value)
-            ->with('alliance')
-            ->first();
-
-        $alliance = $membership?->alliance;
-        if ($alliance !== null && $this->eventAuthorization->allows(
-            $actor,
-            EventScope::Alliance,
-            $alliance,
-            OperationsPermission::EventAllianceCreate,
-        )) {
-            $context = [
-                'scope' => EventScope::Alliance->value,
-                'targetId' => (string) $alliance->id,
-                'label' => (string) $alliance->name,
-                'allianceId' => (string) $alliance->id,
+            $contexts[] = [
+                'scope' => EventScope::Player->value,
+                'targetId' => $actor->playerId,
+                'label' => $actor->currentName,
+                'kingdomId' => $actor->kingdomId,
+                'kingdomNumber' => $actor->kingdomNumber,
             ];
-            if ($alliance->kingdom_id !== null) {
-                $context['kingdomId'] = (string) $alliance->kingdom_id;
-            }
-            $contexts[] = $context;
         }
 
-        $kingdomAssignments = KingdomRoleAssignment::query()
-            ->where('player_id', $actor->id)
-            ->where('kingdom_id', $actor->current_kingdom_id)
-            ->whereHas('role.permissions', static function (Builder $query): void {
-                $query->where('permissions.key', OperationsPermission::EventKingdomCreate->value);
-            })
-            ->with('kingdom')
-            ->get();
+        $activeAlliance = $this->allianceScope->findForPlayer($actor->playerId, $actor->kingdomId);
+        if ($activeAlliance !== null
+            && $this->eventAuthorization->allows(
+                $actor->playerId,
+                EventScope::Alliance,
+                $activeAlliance->allianceId,
+                OperationsPermission::EventAllianceCreate,
+            )) {
+            $alliance = $this->alliances->require($activeAlliance->allianceId);
+            $contexts[] = [
+                'scope' => EventScope::Alliance->value,
+                'targetId' => $alliance->allianceId,
+                'label' => $alliance->name,
+                'allianceId' => $alliance->allianceId,
+                'kingdomId' => $alliance->kingdomId,
+            ];
+        }
 
-        /** @var array<string, true> $seenKingdoms */
-        $seenKingdoms = [];
-        foreach ($kingdomAssignments as $assignment) {
-            $kingdom = $assignment->kingdom;
-            if (! $kingdom instanceof Kingdom
-                || isset($seenKingdoms[(string) $kingdom->id])
-                || ! $this->eventAuthorization->allows(
-                    $actor,
-                    EventScope::Kingdom,
-                    $kingdom,
-                    OperationsPermission::EventKingdomCreate,
-                )) {
-                continue;
-            }
-
-            $seenKingdoms[(string) $kingdom->id] = true;
+        if ($this->eventAuthorization->allows(
+            $actor->playerId,
+            EventScope::Kingdom,
+            $actor->kingdomId,
+            OperationsPermission::EventKingdomCreate,
+        )) {
+            $kingdom = $this->kingdoms->require($actor->kingdomId);
             $contexts[] = [
                 'scope' => EventScope::Kingdom->value,
-                'targetId' => (string) $kingdom->id,
-                'label' => '#'.(int) $kingdom->number,
-                'kingdomId' => (string) $kingdom->id,
-                'kingdomNumber' => (int) $kingdom->number,
+                'targetId' => $kingdom->kingdomId,
+                'label' => '#'.$kingdom->number,
+                'kingdomId' => $kingdom->kingdomId,
+                'kingdomNumber' => $kingdom->number,
             ];
         }
 

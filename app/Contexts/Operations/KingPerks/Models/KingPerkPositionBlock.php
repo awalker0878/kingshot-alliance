@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +16,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon $ends_at
  * @property-read KingPerkPlan|null $plan
  * @property-read KingPerkAppointment|null $sourceAppointment
- * @property-read Player|null $recordedByPlayer
  */
 final class KingPerkPositionBlock extends Model
 {
@@ -53,9 +51,4 @@ final class KingPerkPositionBlock extends Model
         return $this->belongsTo(KingPerkAppointment::class, 'source_appointment_id');
     }
 
-    /** @return BelongsTo<Player, $this> */
-    public function recordedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'recorded_by_player_id');
-    }
 }

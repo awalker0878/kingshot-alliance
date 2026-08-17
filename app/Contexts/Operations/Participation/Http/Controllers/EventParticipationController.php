@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Participation\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
-use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Participation\Actions\CancelEventRegistration;
 use App\Contexts\Operations\Participation\Actions\RecordEventAttendance;
 use App\Contexts\Operations\Participation\Actions\RegisterForEvent;
@@ -25,13 +24,11 @@ final class EventParticipationController extends Controller
     public function respond(
         Request $request,
         string $occurrence,
-        EventCalendarQuery $events,
         PlayerContext $context,
         RespondToEvent $respond,
     ): RedirectResponse {
         $this->user($request);
-        $player = $this->activePlayer($context);
-        $record = $events->occurrence($player, $occurrence);
+        $actor = $this->activePlayer($context);
         $validated = $request->validate([
             'response' => ['required', Rule::enum(EventResponseChoice::class)],
             'preferred_role' => ['nullable', 'string', 'max:64'],
@@ -42,9 +39,8 @@ final class EventParticipationController extends Controller
         ]);
 
         $respond->handle(
-            actor: $player,
-            occurrence: $record,
-            player: $player,
+            actorPlayerId: $actor->playerId,
+            occurrenceId: $occurrence,
             response: EventResponseChoice::from((string) $validated['response']),
             preferredRole: $validated['preferred_role'] ?? null,
             preferredTeam: $validated['preferred_team'] ?? null,
@@ -59,13 +55,11 @@ final class EventParticipationController extends Controller
     public function register(
         Request $request,
         string $occurrence,
-        EventCalendarQuery $events,
         PlayerContext $context,
         RegisterForEvent $register,
     ): RedirectResponse {
         $this->user($request);
-        $actor = $this->activePlayer($context);
-        $register->handle($actor, $events->occurrence($actor, $occurrence), $actor);
+        $register->handle($this->activePlayer($context)->playerId, $occurrence);
 
         return back()->with('status', 'event-registration-updated');
     }
@@ -73,13 +67,11 @@ final class EventParticipationController extends Controller
     public function cancelRegistration(
         Request $request,
         string $occurrence,
-        EventCalendarQuery $events,
         PlayerContext $context,
         CancelEventRegistration $cancel,
     ): RedirectResponse {
         $this->user($request);
-        $actor = $this->activePlayer($context);
-        $cancel->handle($actor, $events->occurrence($actor, $occurrence), $actor);
+        $cancel->handle($this->activePlayer($context)->playerId, $occurrence);
 
         return back()->with('status', 'event-registration-cancelled');
     }
@@ -88,21 +80,19 @@ final class EventParticipationController extends Controller
         Request $request,
         string $occurrence,
         string $player,
-        EventCalendarQuery $events,
         PlayerContext $context,
         RecordEventAttendance $attendance,
     ): RedirectResponse {
         $this->user($request);
         $actor = $this->activePlayer($context);
-        $participant = Player::query()->whereKey($player)->firstOrFail();
         $validated = $request->validate([
             'status' => ['required', Rule::enum(EventAttendanceStatus::class)],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
         $attendance->handle(
-            actor: $actor,
-            occurrence: $events->occurrence($actor, $occurrence),
-            player: $participant,
+            actorPlayerId: $actor->playerId,
+            occurrenceId: $occurrence,
+            playerId: $player,
             status: EventAttendanceStatus::from((string) $validated['status']),
             notes: $validated['notes'] ?? null,
         );
@@ -110,10 +100,10 @@ final class EventParticipationController extends Controller
         return back()->with('status', 'event-attendance-updated');
     }
 
-    private function activePlayer(PlayerContext $context): Player
+    private function activePlayer(PlayerContext $context): PlayerReference
     {
         $player = $context->playerOrNull();
-        abort_unless($player instanceof Player, 409, 'Select a Player before performing Event operations.');
+        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Event operations.');
 
         return $player;
     }

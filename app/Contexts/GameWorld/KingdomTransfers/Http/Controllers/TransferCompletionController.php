@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\CompleteTransferParticipant;
@@ -15,6 +19,10 @@ use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCompletion;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -27,25 +35,44 @@ final class TransferCompletionController extends Controller
     public function index(
         Request $request,
         AllianceContext $context,
+        AccountIdentityQuery $accounts,
+        AllianceReferenceQuery $alliances,
+        KingdomReferenceQuery $kingdoms,
         TransferAuthorization $authorization,
         TransferPlanQuery $plans,
         TransferParticipantQuery $participants,
+        RosterEntryQuery $roster,
+        PlayerReferenceQuery $players,
     ): Response {
-        $user = $this->user($request);
-        $alliance = $context->alliance()->load('kingdom');
+        $scope = $context->scope();
+        $account = $this->account($request, $accounts);
+        $alliance = $alliances->require($scope->allianceId);
+        $kingdom = $kingdoms->require($alliance->kingdomId);
 
-        if (! $authorization->allows($context->player(), $alliance, TransferPermission::Manage)) {
+        if (! $authorization->allows($scope->playerId, $scope->allianceId, TransferPermission::Manage)) {
             throw new AuthorizationException;
         }
 
-        $plan = $plans->currentForAlliance($alliance);
+        $plan = $plans->currentForAlliance($scope->allianceId);
+        $participantRows = $plan === null
+            ? collect()
+            : $participants->forPlan($scope->allianceId, (string) $plan->id, true);
+        $rosterIds = $participantRows
+            ->map(static fn (TransferParticipant $participant): ?string => $participant->completion?->roster_entry_id === null
+                ? null
+                : (string) $participant->completion->roster_entry_id)
+            ->filter()
+            ->values()
+            ->all();
+        $rosterById = $roster->byIds($scope->allianceId, $rosterIds);
+        $playersById = $players->byIds(array_values(array_unique(array_map(
+            static fn (RosterEntryReference $entry): string => $entry->playerId,
+            array_values($rosterById),
+        ))));
 
         return Inertia::render('Alliance/TransferCompletionManage', [
-            'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
-            ],
-            'alliance' => $this->alliance($alliance),
+            'user' => ['name' => $account->name, 'email' => $account->email],
+            'alliance' => $this->alliance($alliance, $kingdom),
             'plan' => $plan === null ? null : [
                 'id' => (string) $plan->id,
                 'label' => (string) $plan->label,
@@ -53,11 +80,9 @@ final class TransferCompletionController extends Controller
                 'state' => $plan->state->value,
                 'completable' => $plan->state === TransferPlanState::Locked,
             ],
-            'participants' => $plan === null
-                ? []
-                : $participants->forPlan($alliance, $plan, true)
-                    ->map(fn (TransferParticipant $participant): array => $this->participant($participant))
-                    ->all(),
+            'participants' => $participantRows
+                ->map(fn (TransferParticipant $participant): array => $this->participant($participant, $rosterById, $playersById))
+                ->all(),
         ]);
     }
 
@@ -68,30 +93,32 @@ final class TransferCompletionController extends Controller
         string $plan,
         string $participant,
     ): RedirectResponse {
-        $complete->handle(
-            $context->alliance(),
-            $context->player(),
-            $plan,
-            $participant,
-        );
+        $scope = $context->scope();
+        $complete->handle($scope->allianceId, $scope->playerId, $plan, $participant);
 
         return back()->with('status', 'transfer-participant-completed');
     }
 
-    /** @return array{id: string, name: string, kingdom: string|null} */
-    private function alliance(Alliance $alliance): array
+    /** @return array{id: string, name: string, kingdom: string} */
+    private function alliance(AllianceReference $alliance, KingdomReference $kingdom): array
     {
-        return [
-            'id' => (string) $alliance->id,
-            'name' => (string) $alliance->name,
-            'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
-        ];
+        return ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $kingdom->number];
     }
 
-    /** @return array<string, mixed> */
-    private function participant(TransferParticipant $participant): array
+    /**
+     * @param array<string, RosterEntryReference> $rosterById
+     * @param array<string, PlayerReference> $playersById
+     * @return array<string, mixed>
+     */
+    private function participant(TransferParticipant $participant, array $rosterById, array $playersById): array
     {
         $completion = $participant->completion;
+        $rosterEntry = $completion?->roster_entry_id === null
+            ? null
+            : ($rosterById[(string) $completion->roster_entry_id] ?? null);
+        $rosterPlayer = $rosterEntry instanceof RosterEntryReference
+            ? ($playersById[$rosterEntry->playerId] ?? null)
+            : null;
 
         return [
             'id' => (string) $participant->id,
@@ -103,30 +130,30 @@ final class TransferCompletionController extends Controller
                 ? null
                 : (string) $participant->destinationKingdom->number,
             'withdrawnAt' => $participant->withdrawn_at?->toIso8601String(),
-            'completion' => $completion instanceof TransferCompletion
-                ? [
+            'completion' => ! $completion instanceof TransferCompletion
+                ? null
+                : [
                     'completedAt' => $completion->completed_at->toIso8601String(),
                     'completedBy' => $completion->completedBy === null
                         ? null
                         : ['name' => (string) $completion->completedBy->current_name],
-                    'rosterEntry' => $completion->rosterEntry === null
+                    'rosterEntry' => ! $rosterEntry instanceof RosterEntryReference
                         ? null
                         : [
-                            'id' => (string) $completion->rosterEntry->id,
-                            'name' => (string) $completion->rosterEntry->observed_name,
-                            'state' => $completion->rosterEntry->state->value,
-                            'gamePlayerId' => $completion->rosterEntry->player->game_player_id,
+                            'id' => $rosterEntry->rosterEntryId,
+                            'name' => $rosterEntry->observedName,
+                            'state' => $rosterEntry->stateObservedAtRead->value,
+                            'gamePlayerId' => $rosterPlayer?->gamePlayerId,
                         ],
-                ]
-                : null,
+                ],
         ];
     }
 
-    private function user(Request $request): User
+    private function account(Request $request, AccountIdentityQuery $accounts): AccountIdentity
     {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        $userId = $request->user()?->getAuthIdentifier();
+        abort_unless(is_numeric($userId), 401);
 
-        return $user;
+        return $accounts->require((int) $userId);
     }
 }

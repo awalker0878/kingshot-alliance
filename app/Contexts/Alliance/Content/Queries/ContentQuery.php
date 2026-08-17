@@ -7,7 +7,6 @@ namespace App\Contexts\Alliance\Content\Queries;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
 use App\Contexts\Alliance\Content\Enums\ContentVisibility;
 use App\Contexts\Alliance\Content\Models\ContentItem;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -15,13 +14,13 @@ final class ContentQuery
 {
     /** @return Collection<int, ContentItem> */
     public function publicList(
-        Alliance $alliance,
+        string $allianceId,
         ?string $search = null,
         ?string $type = null,
         ?string $category = null,
         ?string $locale = null,
     ): Collection {
-        $query = $this->publishedBase($alliance)
+        $query = $this->publishedBase($allianceId)
             ->where('visibility', ContentVisibility::Public->value);
 
         $this->applyFilters($query, $search, $type, $category, $locale);
@@ -33,9 +32,9 @@ final class ContentQuery
             ->get();
     }
 
-    public function publicBySlug(Alliance $alliance, string $slug): ?ContentItem
+    public function publicBySlug(string $allianceId, string $slug): ?ContentItem
     {
-        return $this->publishedBase($alliance)
+        return $this->publishedBase($allianceId)
             ->where('visibility', ContentVisibility::Public->value)
             ->where('slug', $slug)
             ->first();
@@ -43,13 +42,13 @@ final class ContentQuery
 
     /** @return Collection<int, ContentItem> */
     public function memberList(
-        Alliance $alliance,
+        string $allianceId,
         ?string $search = null,
         ?string $type = null,
         ?string $category = null,
         ?string $locale = null,
     ): Collection {
-        $query = $this->memberPublishedBase($alliance);
+        $query = $this->memberPublishedBase($allianceId);
         $this->applyFilters($query, $search, $type, $category, $locale);
 
         return $query
@@ -59,18 +58,18 @@ final class ContentQuery
             ->get();
     }
 
-    public function memberBySlug(Alliance $alliance, string $slug): ?ContentItem
+    public function memberBySlug(string $allianceId, string $slug): ?ContentItem
     {
-        return $this->memberPublishedBase($alliance)
+        return $this->memberPublishedBase($allianceId)
             ->where('slug', $slug)
             ->first();
     }
 
     /** @return Collection<int, ContentItem> */
-    public function managerList(Alliance $alliance): Collection
+    public function managerList(string $allianceId): Collection
     {
         return ContentItem::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->with('category:id,alliance_id,name,slug')
             ->orderByRaw("CASE status WHEN 'draft' THEN 0 WHEN 'scheduled' THEN 1 WHEN 'published' THEN 2 ELSE 3 END")
             ->orderBy('sort_order')
@@ -79,10 +78,10 @@ final class ContentQuery
     }
 
     /** @return Builder<ContentItem> */
-    private function publishedBase(Alliance $alliance): Builder
+    private function publishedBase(string $allianceId): Builder
     {
         return ContentItem::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->where('status', ContentStatus::Published->value)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
@@ -91,9 +90,9 @@ final class ContentQuery
     }
 
     /** @return Builder<ContentItem> */
-    private function memberPublishedBase(Alliance $alliance): Builder
+    private function memberPublishedBase(string $allianceId): Builder
     {
-        return $this->publishedBase($alliance)
+        return $this->publishedBase($allianceId)
             ->whereIn('visibility', [ContentVisibility::Public->value, ContentVisibility::Members->value]);
     }
 

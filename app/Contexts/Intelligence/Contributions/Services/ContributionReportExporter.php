@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Services;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Contributions\Models\ContributionReportRun;
 use App\Contexts\Intelligence\Contributions\Queries\AllianceContributionReportQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -24,14 +22,14 @@ final class ContributionReportExporter
     public const REPORT_VERSION = 'event-history.v2';
 
     public function __construct(
-        private readonly AllianceWriteState $allianceWriteState,
-        private readonly AllianceIntelligenceAuthorization $authority,
+        private readonly AllianceIntelligenceWriteState $writeState,
+        private readonly AllianceReferenceQuery $alliances,
         private readonly AllianceContributionReportQuery $reports,
         private readonly AuditRecorder $audit,
     ) {}
 
-    /** @return array{content: string, mime: string, filename: string, run: ContributionReportRun} */
-    public function export(Alliance $alliance, Player $actor, string $format): array
+    /** @return array{content:string,mime:string,filename:string,reportVersion:string,checksum:string} */
+    public function export(string $allianceId, string $actorPlayerId, string $format): array
     {
         if (! in_array($format, ['csv', 'spreadsheet'], true)) {
             throw new InvalidArgumentException('Unsupported contribution report format.');
@@ -39,39 +37,36 @@ final class ContributionReportExporter
 
         $connection = DB::connection();
         if ($connection->transactionLevel() > 0) {
-            return $this->exportWithinTransaction($alliance, $actor, $format);
+            return $this->exportWithinTransaction($allianceId, $actorPlayerId, $format);
         }
 
         $connection->beginTransaction();
-
         try {
             $this->setRepeatableReadBeforeFirstQuery($connection);
-            $export = $this->exportWithinTransaction($alliance, $actor, $format);
+            $export = $this->exportWithinTransaction($allianceId, $actorPlayerId, $format);
             $connection->commit();
-
             return $export;
         } catch (Throwable $exception) {
             $connection->rollBack();
-
             throw $exception;
         }
     }
 
-    /** @return array{content: string, mime: string, filename: string, run: ContributionReportRun} */
-    private function exportWithinTransaction(Alliance $alliance, Player $actor, string $format): array
+    /** @return array{content:string,mime:string,filename:string,reportVersion:string,checksum:string} */
+    private function exportWithinTransaction(string $allianceId, string $actorPlayerId, string $format): array
     {
-        $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
-        $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
-        $rows = $this->reports->rows($context->alliance);
+        [, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::ContributionManage);
+        $alliance = $this->alliances->require($allianceId);
+        $rows = $this->reports->rows($allianceId);
         $content = $format === 'csv'
-            ? $this->csv($context->alliance, $rows)
-            : $this->spreadsheet($context->alliance, $rows);
+            ? $this->csv($allianceId, $rows)
+            : $this->spreadsheet($allianceId, $rows);
         $checksum = hash('sha256', $content);
-        $idempotencyKey = hash('sha256', $context->alliance->id.'|'.$context->actor->id.'|'.$format.'|'.Str::ulid());
+        $idempotencyKey = hash('sha256', $allianceId.'|'.$actor->playerId.'|'.$format.'|'.Str::ulid());
 
         $run = ContributionReportRun::query()->create([
-            'alliance_id' => $context->alliance->id,
-            'requested_by_player_id' => $context->actor->id,
+            'alliance_id' => $allianceId,
+            'requested_by_player_id' => $actor->playerId,
             'format' => $format,
             'status' => 'completed',
             'report_version' => self::REPORT_VERSION,
@@ -82,7 +77,7 @@ final class ContributionReportExporter
             'completed_at' => now(),
         ]);
 
-        $this->audit->record('contribution.report.exported', $context->actor, $run, $context->alliance, [
+        $this->audit->record('contribution.report.exported', $actor, $run, $allianceId, [
             'format' => $format,
             'report_version' => self::REPORT_VERSION,
             'row_count' => count($rows),
@@ -92,8 +87,9 @@ final class ContributionReportExporter
         return [
             'content' => $content,
             'mime' => $format === 'csv' ? 'text/csv; charset=UTF-8' : 'application/vnd.ms-excel; charset=UTF-8',
-            'filename' => sprintf('%s-contributions.%s', $context->alliance->slug, $format === 'csv' ? 'csv' : 'xls'),
-            'run' => $run,
+            'filename' => sprintf('%s-contributions.%s', $alliance->slug, $format === 'csv' ? 'csv' : 'xls'),
+            'reportVersion' => self::REPORT_VERSION,
+            'checksum' => $checksum,
         ];
     }
 
@@ -105,7 +101,7 @@ final class ContributionReportExporter
     }
 
     /** @param list<array<string, scalar|null>> $rows */
-    private function csv(Alliance $alliance, array $rows): string
+    private function csv(string $allianceId, array $rows): string
     {
         $handle = fopen('php://temp', 'w+');
         if ($handle === false) {
@@ -115,7 +111,7 @@ final class ContributionReportExporter
         $headers = $this->headers();
         fputcsv($handle, $headers);
         foreach ($rows as $row) {
-            $normalized = ['report_version' => self::REPORT_VERSION, 'alliance_id' => $alliance->id] + $row;
+            $normalized = ['report_version' => self::REPORT_VERSION, 'alliance_id' => $allianceId] + $row;
             fputcsv($handle, array_map(static fn (string $key): string => (string) ($normalized[$key] ?? ''), $headers));
         }
 
@@ -125,12 +121,11 @@ final class ContributionReportExporter
         if ($content === false) {
             throw new RuntimeException('Unable to read CSV export buffer.');
         }
-
         return $content;
     }
 
     /** @param list<array<string, scalar|null>> $rows */
-    private function spreadsheet(Alliance $alliance, array $rows): string
+    private function spreadsheet(string $allianceId, array $rows): string
     {
         $xml = '<?xml version="1.0" encoding="UTF-8"?>';
         $xml .= '<?mso-application progid="Excel.Sheet"?>';
@@ -138,15 +133,10 @@ final class ContributionReportExporter
         $xml .= '<Worksheet ss:Name="Contributions"><Table>';
         $headers = $this->headers();
         $xml .= $this->spreadsheetRow($headers);
-
         foreach ($rows as $row) {
-            $normalized = ['report_version' => self::REPORT_VERSION, 'alliance_id' => $alliance->id] + $row;
-            $xml .= $this->spreadsheetRow(array_map(
-                static fn (string $key): string => (string) ($normalized[$key] ?? ''),
-                $headers,
-            ));
+            $normalized = ['report_version' => self::REPORT_VERSION, 'alliance_id' => $allianceId] + $row;
+            $xml .= $this->spreadsheetRow(array_map(static fn (string $key): string => (string) ($normalized[$key] ?? ''), $headers));
         }
-
         return $xml.'</Table></Worksheet></Workbook>';
     }
 
@@ -157,7 +147,6 @@ final class ContributionReportExporter
         foreach ($values as $value) {
             $cells .= '<Cell><Data ss:Type="String">'.htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8').'</Data></Cell>';
         }
-
         return '<Row>'.$cells.'</Row>';
     }
 
@@ -165,45 +154,13 @@ final class ContributionReportExporter
     private function headers(): array
     {
         return [
-            'report_version',
-            'alliance_id',
-            'record_kind',
-            'record_id',
-            'event_id',
-            'occurrence_id',
-            'event_scope',
-            'event_type',
-            'event_started_at',
-            'historical_alliance_id',
-            'historical_alliance_name',
-            'historical_kingdom_id',
-            'player_id',
-            'player',
-            'event_outcome',
-            'event_rank',
-            'event_score',
-            'metric_key',
-            'metric_label',
-            'metric_dimension',
-            'metric_unit',
-            'metric_value',
-            'category',
-            'unit',
-            'value',
-            'period_start',
-            'period_end',
-            'status',
-            'source',
-            'data_class',
-            'evidence',
-            'calculation_key',
-            'calculation_version',
-            'correction_of_record_id',
-            'recorded_at',
-            'approved_at',
-            'reversed_at',
-            'reversal_reason',
-            'correction_reason',
+            'report_version', 'alliance_id', 'record_kind', 'record_id', 'event_id', 'occurrence_id',
+            'event_scope', 'event_type', 'event_started_at', 'historical_alliance_id', 'historical_alliance_name',
+            'historical_kingdom_id', 'player_id', 'player', 'event_outcome', 'event_rank', 'event_score',
+            'metric_key', 'metric_label', 'metric_dimension', 'metric_unit', 'metric_value', 'category', 'unit',
+            'value', 'period_start', 'period_end', 'status', 'source', 'data_class', 'evidence', 'calculation_key',
+            'calculation_version', 'correction_of_record_id', 'recorded_at', 'approved_at', 'reversed_at',
+            'reversal_reason', 'correction_reason',
         ];
     }
 }

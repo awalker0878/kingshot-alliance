@@ -29,10 +29,10 @@ final readonly class RestoreContentRevision
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $alliance, Player $actor, string $contentItemId, string $revisionId): ContentItem
+    public function handle(string $allianceId, string $actorPlayerId, string $contentItemId, string $revisionId): ContentItem
     {
-        return DB::transaction(function () use ($alliance, $actor, $contentItemId, $revisionId): ContentItem {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $contentItemId, $revisionId): ContentItem {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
             $item = ContentItem::query()
@@ -76,7 +76,7 @@ final readonly class RestoreContentRevision
                 'scheduled_for' => null,
                 'published_at' => null,
                 'archived_at' => null,
-                'updated_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $context->actor->playerId,
             ])->save();
 
             $newRevision = $this->revisions->write($item, $context->actor);

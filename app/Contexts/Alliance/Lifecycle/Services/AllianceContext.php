@@ -4,27 +4,41 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Lifecycle\Services;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Membership\ValueObjects\AllianceScopeReference;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use LogicException;
 
+/**
+ * Request-scoped Alliance identity only.
+ *
+ * Rank, roles and permissions are intentionally excluded. This object is not an
+ * authorization cache; protected writes re-read current Alliance authority.
+ */
 final class AllianceContext
 {
-    private ?Alliance $alliance = null;
-    private ?AllianceMembership $membership = null;
-    private ?Player $player = null;
+    private ?AllianceScopeReference $scope = null;
 
-    public function activate(Player $player, AllianceMembership $membership, Alliance $alliance): void
+    public function activate(PlayerReference $player, AllianceScopeReference $scope): void
     {
-        if ((string) $membership->player_id !== (string) $player->id || (string) $membership->alliance_id !== (string) $alliance->id || (string) $player->current_kingdom_id !== (string) $alliance->kingdom_id) {
-            throw new LogicException('Alliance context must match the active Player membership and Kingdom.');
+        if ($scope->playerId !== $player->playerId || $scope->kingdomId !== $player->kingdomId) {
+            throw new LogicException('Alliance context must match the active Player and Kingdom.');
         }
-        $this->player = $player; $this->membership = $membership; $this->alliance = $alliance;
+
+        $this->scope = $scope;
     }
 
-    public function player(): Player { return $this->player ?? throw new LogicException('Alliance Player context has not been resolved.'); }
-    public function alliance(): Alliance { return $this->alliance ?? throw new LogicException('Alliance context has not been resolved.'); }
-    public function membership(): AllianceMembership { return $this->membership ?? throw new LogicException('Alliance membership context has not been resolved.'); }
-    public function clear(): void { $this->player = null; $this->alliance = null; $this->membership = null; }
+    public function scope(): AllianceScopeReference
+    {
+        return $this->scope ?? throw new LogicException('Alliance context has not been resolved.');
+    }
+
+    public function scopeOrNull(): ?AllianceScopeReference
+    {
+        return $this->scope;
+    }
+
+    public function clear(): void
+    {
+        $this->scope = null;
+    }
 }

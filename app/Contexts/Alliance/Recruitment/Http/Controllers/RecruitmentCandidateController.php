@@ -7,7 +7,7 @@ namespace App\Contexts\Alliance\Recruitment\Http\Controllers;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
@@ -31,12 +31,13 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentDecisionTemplate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentTag;
 use App\Contexts\Alliance\Recruitment\Queries\RecruitmentDuplicateFinder;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -48,17 +49,18 @@ final class RecruitmentCandidateController extends Controller
         AllianceContext $context,
         AllianceAuthorization $authorization,
         RecruitmentDuplicateFinder $duplicates,
+        AllianceReferenceQuery $alliances,
+        PlayerReferenceQuery $players,
         string $candidate,
     ): Response {
         $user = $this->user($request);
-        $alliance = $context->alliance();
-        $this->authorize($authorization, $context->player(), $alliance);
-        $record = $this->candidate($alliance, $candidate);
+        $scope = $context->scope();
+        $alliance = $alliances->require($scope->allianceId);
+        $this->authorize($authorization, $scope->playerId, $scope->allianceId);
+        $record = $this->candidate($scope->allianceId, $candidate);
         $record->load([
             'answers',
-            'player:id,current_name',
-            'reviewers:id,current_name',
-            'notes.author:id,current_name',
+            'notes',
             'tags',
             'stageHistory',
             'communications',
@@ -66,22 +68,20 @@ final class RecruitmentCandidateController extends Controller
         ]);
 
         $memberships = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->where('status', MembershipStatus::Active->value)
-            ->with('player:id,current_name')
             ->orderBy('created_at')
             ->get();
         $activeMemberPlayerIds = $memberships->pluck('player_id')->map(static fn ($id): string => (string) $id)->all();
         $conversionPlayers = AllianceRosterEntry::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->where('state', RosterState::Active->value)
             ->when($activeMemberPlayerIds !== [], static fn ($query) => $query->whereNotIn('player_id', $activeMemberPlayerIds))
-            ->with('player:id,current_name,user_id,current_kingdom_id')
             ->orderBy('observed_name')
             ->get();
 
         $templates = RecruitmentDecisionTemplate::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->where('is_active', true)
             ->where('decision_stage', $record->recruitmentStage()->value)
             ->orderBy('name')
@@ -97,25 +97,42 @@ final class RecruitmentCandidateController extends Controller
             ];
         }
 
+        $reviewerIds = DB::table('recruitment_candidate_reviewers')
+            ->where('candidate_id', $record->id)
+            ->orderBy('reviewer_player_id')
+            ->pluck('reviewer_player_id')
+            ->map(static fn ($id): string => (string) $id)
+            ->all();
+        $playerIds = array_values(array_unique(array_merge(
+            $reviewerIds,
+            $record->notes->pluck('author_player_id')->filter()->map(static fn ($id): string => (string) $id)->all(),
+            $memberships->pluck('player_id')->map(static fn ($id): string => (string) $id)->all(),
+            $conversionPlayers->pluck('player_id')->map(static fn ($id): string => (string) $id)->all(),
+        )));
+        $playerReferences = $players->byIds($playerIds);
+
         $reviewerData = [];
-        foreach ($record->reviewers as $reviewer) {
-            if (! $reviewer instanceof Player) {
+        foreach ($reviewerIds as $reviewerPlayerId) {
+            $reviewer = $playerReferences[$reviewerPlayerId] ?? null;
+            if ($reviewer === null) {
                 continue;
             }
 
             $reviewerData[] = [
-                'id' => (string) $reviewer->id,
-                'name' => (string) $reviewer->current_name,
+                'id' => $reviewer->playerId,
+                'name' => $reviewer->currentName,
             ];
         }
 
         $noteData = [];
         foreach ($record->notes->sortByDesc('created_at') as $note) {
-            $author = $note->author;
+            $author = $note->author_player_id === null
+                ? null
+                : ($playerReferences[(string) $note->author_player_id] ?? null);
             $noteData[] = [
                 'id' => (string) $note->id,
                 'body' => (string) $note->body,
-                'author' => $author instanceof Player ? (string) $author->current_name : '—',
+                'author' => $author?->currentName ?? '—',
                 'createdAt' => $note->created_at?->toIso8601String(),
             ];
         }
@@ -182,7 +199,7 @@ final class RecruitmentCandidateController extends Controller
         }
 
         $duplicateData = [];
-        foreach ($duplicates->forCandidate($alliance, $record) as $duplicate) {
+        foreach ($duplicates->forCandidate($scope->allianceId, $record) as $duplicate) {
             $duplicateData[] = [
                 'id' => (string) $duplicate->id,
                 'name' => (string) $duplicate->full_name,
@@ -195,29 +212,29 @@ final class RecruitmentCandidateController extends Controller
 
         $memberData = [];
         foreach ($memberships as $membership) {
-            $player = $membership->player;
-            if (! $player instanceof Player) {
+            $player = $playerReferences[(string) $membership->player_id] ?? null;
+            if ($player === null) {
                 continue;
             }
 
             $memberData[] = [
-                'id' => (string) $player->id,
-                'name' => (string) $player->current_name,
+                'id' => $player->playerId,
+                'name' => $player->currentName,
                 'rank' => $membership->rank->value,
             ];
         }
 
         $conversionPlayerData = [];
         foreach ($conversionPlayers as $entry) {
-            $player = $entry->player;
-            if (! $player instanceof Player) {
+            $player = $playerReferences[(string) $entry->player_id] ?? null;
+            if ($player === null) {
                 continue;
             }
 
             $conversionPlayerData[] = [
-                'id' => (string) $player->id,
-                'name' => (string) $player->current_name,
-                'claimed' => $player->user_id !== null,
+                'id' => $player->playerId,
+                'name' => $player->currentName,
+                'claimed' => $player->claimed(),
             ];
         }
 
@@ -237,8 +254,8 @@ final class RecruitmentCandidateController extends Controller
                 'email' => (string) $user->email,
             ],
             'alliance' => [
-                'id' => (string) $alliance->id,
-                'name' => (string) $alliance->name,
+                'id' => $alliance->allianceId,
+                'name' => $alliance->name,
             ],
             'candidate' => [
                 'id' => (string) $record->id,
@@ -282,6 +299,7 @@ final class RecruitmentCandidateController extends Controller
         Request $request,
         AllianceContext $context,
         ChangeRecruitmentStage $change,
+        AllianceReferenceQuery $alliances,
         string $candidate,
     ): RedirectResponse {
         $validated = $request->validate([
@@ -289,16 +307,16 @@ final class RecruitmentCandidateController extends Controller
             'reason' => ['nullable', 'string', 'max:5000'],
             'next_action_at' => ['nullable', 'date'],
         ]);
-        $alliance = $context->alliance();
-        $record = $this->candidate($alliance, $candidate);
+        $scope = $context->scope();
+        $alliance = $alliances->require($scope->allianceId);
 
         $change->handle(
-            $context->player(),
-            $alliance,
-            $record,
+            $scope->playerId,
+            $scope->allianceId,
+            $candidate,
             RecruitmentStage::from($validated['stage']),
             $validated['reason'] ?? null,
-            isset($validated['next_action_at']) && is_string($validated['next_action_at']) ? CarbonImmutable::parse($validated['next_action_at'], (string) $alliance->timezone) : null,
+            isset($validated['next_action_at']) && is_string($validated['next_action_at']) ? CarbonImmutable::parse($validated['next_action_at'], $alliance->timezone) : null,
         );
 
         return back();
@@ -311,11 +329,8 @@ final class RecruitmentCandidateController extends Controller
         string $candidate,
         string $player,
     ): RedirectResponse {
-        $alliance = $context->alliance();
-        $record = $this->candidate($alliance, $candidate);
-        $reviewer = Player::query()->whereKey($player)->firstOrFail();
-
-        $assign->handle($context->player(), $alliance, $record, $reviewer);
+        $scope = $context->scope();
+        $assign->handle($scope->playerId, $scope->allianceId, $candidate, $player);
 
         return back();
     }
@@ -327,13 +342,8 @@ final class RecruitmentCandidateController extends Controller
         string $candidate,
     ): RedirectResponse {
         $validated = $request->validate(['body' => ['required', 'string', 'max:10000']]);
-        $alliance = $context->alliance();
-        $add->handle(
-            $context->player(),
-            $alliance,
-            $this->candidate($alliance, $candidate),
-            $validated['body'],
-        );
+        $scope = $context->scope();
+        $add->handle($scope->playerId, $scope->allianceId, $candidate, $validated['body']);
 
         return back();
     }
@@ -345,13 +355,8 @@ final class RecruitmentCandidateController extends Controller
         string $candidate,
     ): RedirectResponse {
         $validated = $request->validate(['name' => ['required', 'string', 'max:80']]);
-        $alliance = $context->alliance();
-        $tag->handle(
-            $context->player(),
-            $alliance,
-            $this->candidate($alliance, $candidate),
-            $validated['name'],
-        );
+        $scope = $context->scope();
+        $tag->handle($scope->playerId, $scope->allianceId, $candidate, $validated['name']);
 
         return back();
     }
@@ -364,18 +369,16 @@ final class RecruitmentCandidateController extends Controller
         string $target,
     ): RedirectResponse {
         $validated = $request->validate(['reason' => ['nullable', 'string', 'max:5000']]);
-        $alliance = $context->alliance();
-        $sourceRecord = $this->candidate($alliance, $candidate);
-        $targetRecord = $this->candidate($alliance, $target);
-        $merged = $merge->handle(
-            $context->player(),
-            $alliance,
-            $sourceRecord,
-            $targetRecord,
+        $scope = $context->scope();
+        $mergedCandidateId = $merge->handle(
+            $scope->playerId,
+            $scope->allianceId,
+            $candidate,
+            $target,
             $validated['reason'] ?? null,
         );
 
-        return redirect()->route('alliance.recruitment.candidates.show', $merged->id);
+        return redirect()->route('alliance.recruitment.candidates.show', $mergedCandidateId);
     }
 
     public function prepareCommunication(
@@ -385,14 +388,8 @@ final class RecruitmentCandidateController extends Controller
         string $candidate,
         string $template,
     ): RedirectResponse {
-        $alliance = $context->alliance();
-        $record = $this->candidate($alliance, $candidate);
-        $decisionTemplate = RecruitmentDecisionTemplate::query()
-            ->where('alliance_id', $alliance->id)
-            ->whereKey($template)
-            ->firstOrFail();
-
-        $prepare->handle($context->player(), $alliance, $record, $decisionTemplate);
+        $scope = $context->scope();
+        $prepare->handle($scope->playerId, $scope->allianceId, $candidate, $template);
 
         return back();
     }
@@ -403,12 +400,8 @@ final class RecruitmentCandidateController extends Controller
         MarkRecruitmentCommunicationSent $mark,
         string $communication,
     ): RedirectResponse {
-        $alliance = $context->alliance();
-        $record = RecruitmentCommunication::query()
-            ->where('alliance_id', $alliance->id)
-            ->whereKey($communication)
-            ->firstOrFail();
-        $mark->handle($context->player(), $alliance, $record);
+        $scope = $context->scope();
+        $mark->handle($scope->playerId, $scope->allianceId, $communication);
 
         return back();
     }
@@ -422,15 +415,12 @@ final class RecruitmentCandidateController extends Controller
         $validated = $request->validate([
             'player_id' => ['required', 'string', 'ulid'],
         ]);
-        $alliance = $context->alliance();
-        $target = Player::query()
-            ->whereKey((string) $validated['player_id'])
-            ->firstOrFail();
+        $scope = $context->scope();
         $converted = $convert->handle(
-            $context->player(),
-            $alliance,
-            $this->candidate($alliance, $candidate),
-            $target,
+            $scope->playerId,
+            $scope->allianceId,
+            $candidate,
+            (string) $validated['player_id'],
         );
 
         if ($converted->token !== null) {
@@ -452,25 +442,21 @@ final class RecruitmentCandidateController extends Controller
         $validated = $request->validate([
             'status' => ['required', Rule::enum(RecruitmentOnboardingStatus::class)],
         ]);
-        $alliance = $context->alliance();
-        $record = RecruitmentCandidateOnboarding::query()
-            ->where('alliance_id', $alliance->id)
-            ->whereKey($onboarding)
-            ->firstOrFail();
+        $scope = $context->scope();
         $update->handle(
-            $context->player(),
-            $alliance,
-            $record,
+            $scope->playerId,
+            $scope->allianceId,
+            $onboarding,
             RecruitmentOnboardingStatus::from($validated['status']),
         );
 
         return back();
     }
 
-    private function candidate(Alliance $alliance, string $candidate): RecruitmentCandidate
+    private function candidate(string $allianceId, string $candidate): RecruitmentCandidate
     {
         return RecruitmentCandidate::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->whereKey($candidate)
             ->firstOrFail();
     }
@@ -483,9 +469,9 @@ final class RecruitmentCandidateController extends Controller
         return $user;
     }
 
-    private function authorize(AllianceAuthorization $authorization, Player $actor, Alliance $alliance): void
+    private function authorize(AllianceAuthorization $authorization, string $actorPlayerId, string $allianceId): void
     {
-        if (! $authorization->allows($actor, $alliance, AlliancePermission::RecruitmentManage)) {
+        if (! $authorization->allows($actorPlayerId, $allianceId, AlliancePermission::RecruitmentManage)) {
             throw new AuthorizationException;
         }
     }

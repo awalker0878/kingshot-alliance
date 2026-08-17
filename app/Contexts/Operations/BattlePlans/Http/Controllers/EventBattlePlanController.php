@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\BattlePlans\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\BattlePlans\Actions\AssignEventObjectiveTarget;
 use App\Contexts\Operations\BattlePlans\Actions\RemoveEventObjectiveAssignment;
 use App\Contexts\Operations\BattlePlans\Actions\SaveEventObjective;
 use App\Contexts\Operations\BattlePlans\Enums\EventObjectiveStatus;
-use App\Contexts\Operations\BattlePlans\Models\EventObjective;
-use App\Contexts\Operations\BattlePlans\Models\EventObjectiveAssignment;
 use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
-use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -31,22 +28,19 @@ final class EventBattlePlanController extends Controller
         $actor = $this->player();
         $record = $events->occurrence($actor, $occurrence);
         $validated = $this->validateObjective($request);
-        $parent = isset($validated['parent_id'])
-            ? EventObjective::query()->whereKey((string) $validated['parent_id'])->where('occurrence_id', $record->id)->firstOrFail()
-            : null;
 
         $save->handle(
-            actor: $actor,
-            occurrence: $record,
+            actorPlayerId: $actor->playerId,
+            occurrenceId: (string) $record->id,
             name: (string) $validated['name'],
             objectiveType: (string) ($validated['objective_type'] ?? 'custom'),
             description: isset($validated['description']) ? (string) $validated['description'] : null,
             priority: (int) ($validated['priority'] ?? 50),
-            startsAt: $this->time($validated['starts_at'] ?? null, $record->event->timezone),
-            endsAt: $this->time($validated['ends_at'] ?? null, $record->event->timezone),
+            startsAt: $this->time($validated['starts_at'] ?? null, (string) $record->event->timezone),
+            endsAt: $this->time($validated['ends_at'] ?? null, (string) $record->event->timezone),
             status: EventObjectiveStatus::from((string) ($validated['status'] ?? EventObjectiveStatus::Planned->value)),
             sortOrder: (int) ($validated['sort_order'] ?? 0),
-            parent: $parent,
+            parentId: isset($validated['parent_id']) ? (string) $validated['parent_id'] : null,
         );
 
         return back()->with('status', 'event-objective-saved');
@@ -57,66 +51,63 @@ final class EventBattlePlanController extends Controller
         $this->user($request);
         $actor = $this->player();
         $record = $events->occurrence($actor, $occurrence);
-        $objectiveRecord = EventObjective::query()->whereKey($objective)->where('occurrence_id', $record->id)->firstOrFail();
         $validated = $this->validateObjective($request);
-        $parent = isset($validated['parent_id'])
-            ? EventObjective::query()->whereKey((string) $validated['parent_id'])->where('occurrence_id', $record->id)->firstOrFail()
-            : null;
 
         $save->handle(
-            actor: $actor,
-            occurrence: $record,
+            actorPlayerId: $actor->playerId,
+            occurrenceId: (string) $record->id,
             name: (string) $validated['name'],
             objectiveType: (string) ($validated['objective_type'] ?? 'custom'),
             description: isset($validated['description']) ? (string) $validated['description'] : null,
             priority: (int) ($validated['priority'] ?? 50),
-            startsAt: $this->time($validated['starts_at'] ?? null, $record->event->timezone),
-            endsAt: $this->time($validated['ends_at'] ?? null, $record->event->timezone),
+            startsAt: $this->time($validated['starts_at'] ?? null, (string) $record->event->timezone),
+            endsAt: $this->time($validated['ends_at'] ?? null, (string) $record->event->timezone),
             status: EventObjectiveStatus::from((string) ($validated['status'] ?? EventObjectiveStatus::Planned->value)),
             sortOrder: (int) ($validated['sort_order'] ?? 0),
-            parent: $parent,
-            objective: $objectiveRecord,
+            parentId: isset($validated['parent_id']) ? (string) $validated['parent_id'] : null,
+            objectiveId: $objective,
         );
 
         return back()->with('status', 'event-objective-saved');
     }
 
-    public function assignPlayer(Request $request, string $occurrence, string $objective, string $player, EventCalendarQuery $events, AssignEventObjectiveTarget $assign): RedirectResponse
+    public function assignPlayer(Request $request, string $occurrence, string $objective, string $player, AssignEventObjectiveTarget $assign): RedirectResponse
     {
         $this->user($request);
         $actor = $this->player();
-        $record = $events->occurrence($actor, $occurrence);
-        $objectiveRecord = EventObjective::query()->whereKey($objective)->where('occurrence_id', $record->id)->firstOrFail();
-        $playerRecord = Player::query()->whereKey($player)->firstOrFail();
         $validated = $request->validate(['notes' => ['nullable', 'string', 'max:10000']]);
-        $assign->handle($actor, $objectiveRecord, $playerRecord, $validated['notes'] ?? null);
+        $assign->handle(
+            actorPlayerId: $actor->playerId,
+            occurrenceId: $occurrence,
+            objectiveId: $objective,
+            playerId: $player,
+            notes: isset($validated['notes']) ? (string) $validated['notes'] : null,
+        );
 
         return back()->with('status', 'event-objective-assigned');
     }
 
-    public function assignRoster(Request $request, string $occurrence, string $objective, string $roster, EventCalendarQuery $events, AssignEventObjectiveTarget $assign): RedirectResponse
+    public function assignRoster(Request $request, string $occurrence, string $objective, string $roster, AssignEventObjectiveTarget $assign): RedirectResponse
     {
         $this->user($request);
         $actor = $this->player();
-        $record = $events->occurrence($actor, $occurrence);
-        $objectiveRecord = EventObjective::query()->whereKey($objective)->where('occurrence_id', $record->id)->firstOrFail();
-        $rosterRecord = EventRoster::query()->whereKey($roster)->where('occurrence_id', $record->id)->firstOrFail();
         $validated = $request->validate(['notes' => ['nullable', 'string', 'max:10000']]);
-        $assign->handle($actor, $objectiveRecord, $rosterRecord, $validated['notes'] ?? null);
+        $assign->handle(
+            actorPlayerId: $actor->playerId,
+            occurrenceId: $occurrence,
+            objectiveId: $objective,
+            rosterId: $roster,
+            notes: isset($validated['notes']) ? (string) $validated['notes'] : null,
+        );
 
         return back()->with('status', 'event-objective-assigned');
     }
 
-    public function removeAssignment(Request $request, string $occurrence, string $assignment, EventCalendarQuery $events, RemoveEventObjectiveAssignment $remove): RedirectResponse
+    public function removeAssignment(Request $request, string $occurrence, string $assignment, RemoveEventObjectiveAssignment $remove): RedirectResponse
     {
         $this->user($request);
         $actor = $this->player();
-        $record = $events->occurrence($actor, $occurrence);
-        $assignmentRecord = EventObjectiveAssignment::query()
-            ->whereKey($assignment)
-            ->where('occurrence_id', $record->id)
-            ->firstOrFail();
-        $remove->handle($actor, $assignmentRecord);
+        $remove->handle($actor->playerId, $occurrence, $assignment);
 
         return back()->with('status', 'event-objective-assignment-removed');
     }
@@ -146,10 +137,10 @@ final class EventBattlePlanController extends Controller
         return CarbonImmutable::createFromFormat('Y-m-d\\TH:i', $value, $timezone);
     }
 
-    private function player(): Player
+    private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof Player, 409, 'Select a Player before performing Event operations.');
+        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Event operations.');
 
         return $player;
     }

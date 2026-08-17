@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionDataClass;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionPeriod;
 use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
@@ -22,15 +19,14 @@ use InvalidArgumentException;
 final class CreateContributionCategory
 {
     public function __construct(
-        private readonly AllianceWriteState $allianceWriteState,
-        private readonly AllianceIntelligenceAuthorization $authority,
+        private readonly AllianceIntelligenceWriteState $writeState,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
     ) {}
 
     public function handle(
-        Player $actor,
-        Alliance $alliance,
+        string $actorPlayerId,
+        string $allianceId,
         string $name,
         string $unit,
         ContributionPeriod $period,
@@ -45,7 +41,7 @@ final class CreateContributionCategory
         ?string $calculationKey = null,
         ?string $calculationVersion = null,
         ?string $calculationDescription = null,
-    ): ContributionCategory {
+    ): void {
         if (in_array($period, [ContributionPeriod::Season, ContributionPeriod::Custom], true)
             && ($periodStart === null || $periodEnd === null)) {
             throw new InvalidArgumentException('Season and custom periods require explicit dates.');
@@ -60,20 +56,16 @@ final class CreateContributionCategory
             throw new InvalidArgumentException('Contribution category name must be unique within the alliance.');
         }
 
-        return DB::transaction(function () use ($actor, $alliance, $name, $slug, $unit, $period, $dataClass, $goalValue, $evidenceRequired, $allowSelfReport, $leaderboardEnabled, $description, $periodStart, $periodEnd, $calculationKey, $calculationVersion, $calculationDescription): ContributionCategory {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
-            $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
+        DB::transaction(function () use ($actorPlayerId, $allianceId, $name, $slug, $unit, $period, $dataClass, $goalValue, $evidenceRequired, $allowSelfReport, $leaderboardEnabled, $description, $periodStart, $periodEnd, $calculationKey, $calculationVersion, $calculationDescription): void {
+            [, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::ContributionManage);
 
-            if (ContributionCategory::query()
-                ->where('alliance_id', $context->alliance->id)
-                ->where('slug', $slug)
-                ->exists()) {
+            if (ContributionCategory::query()->where('alliance_id', $allianceId)->where('slug', $slug)->exists()) {
                 throw new InvalidArgumentException('Contribution category name must be unique within the alliance.');
             }
 
             try {
                 $category = ContributionCategory::query()->create([
-                    'alliance_id' => $context->alliance->id,
+                    'alliance_id' => $allianceId,
                     'name' => $name,
                     'slug' => $slug,
                     'description' => $description,
@@ -90,27 +82,24 @@ final class CreateContributionCategory
                     'calculation_version' => $calculationVersion,
                     'calculation_description' => $calculationDescription,
                     'is_active' => true,
-                    'created_by_player_id' => $context->actor->id,
-                    'updated_by_player_id' => $context->actor->id,
+                    'created_by_player_id' => $actor->playerId,
+                    'updated_by_player_id' => $actor->playerId,
                 ]);
             } catch (QueryException $exception) {
                 if ((string) $exception->getCode() === '23505') {
                     throw new InvalidArgumentException('Contribution category name must be unique within the alliance.');
                 }
-
                 throw $exception;
             }
 
-            $this->audit->record('contribution.category.created', $context->actor, $category, $context->alliance, [
+            $this->audit->record('contribution.category.created', $actor, $category, $allianceId, [
                 'data_class' => $dataClass->value,
                 'period' => $period->value,
                 'calculation_version' => $calculationVersion,
             ]);
-            $this->outbox->record('contribution.category.created', $context->alliance->id, $category, [
+            $this->outbox->record('contribution.category.created', $allianceId, $category, [
                 'category_id' => $category->id,
             ]);
-
-            return $category;
         });
     }
 }

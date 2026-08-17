@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Results\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
-use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Results\Actions\SaveEventAllianceResult;
 use App\Contexts\Operations\Results\Actions\SaveEventPlayerResult;
 use App\Contexts\Operations\Results\Actions\SaveEventResult;
@@ -20,72 +18,57 @@ final class EventResultController extends Controller
 {
     public function __construct(private readonly PlayerContext $playerContext) {}
 
-    public function saveOccurrence(Request $request, string $occurrence, EventCalendarQuery $events, SaveEventResult $save): RedirectResponse
+    public function saveOccurrence(Request $request, string $occurrence, SaveEventResult $save): RedirectResponse
     {
         $this->user($request);
         $actor = $this->player();
-        $record = $events->occurrence($actor, $occurrence);
         $validated = $this->validateResult($request, opponentScore: true);
         $save->handle(
-            $actor,
-            $record,
-            outcome: $validated['outcome'] ?? null,
+            $actor->playerId,
+            $occurrence,
+            outcome: isset($validated['outcome']) ? (string) $validated['outcome'] : null,
             score: isset($validated['score']) ? (int) $validated['score'] : null,
             opponentScore: isset($validated['opponent_score']) ? (int) $validated['opponent_score'] : null,
             rank: isset($validated['rank']) ? (int) $validated['rank'] : null,
-            notes: $validated['notes'] ?? null,
+            notes: isset($validated['notes']) ? (string) $validated['notes'] : null,
             metrics: $this->metrics($validated['metrics'] ?? []),
         );
 
         return back()->with('status', 'event-result-saved');
     }
 
-    public function saveAlliance(
-        Request $request,
-        string $occurrence,
-        string $alliance,
-        EventCalendarQuery $events,
-        SaveEventAllianceResult $save,
-    ): RedirectResponse {
+    public function saveAlliance(Request $request, string $occurrence, string $alliance, SaveEventAllianceResult $save): RedirectResponse
+    {
         $this->user($request);
         $actor = $this->player();
-        $record = $events->occurrence($actor, $occurrence);
-        $allianceRecord = Alliance::query()->whereKey($alliance)->firstOrFail();
         $validated = $this->validateResult($request);
         $save->handle(
-            $actor,
-            $record,
-            $allianceRecord,
-            outcome: $validated['outcome'] ?? null,
+            $actor->playerId,
+            $occurrence,
+            $alliance,
+            outcome: isset($validated['outcome']) ? (string) $validated['outcome'] : null,
             score: isset($validated['score']) ? (int) $validated['score'] : null,
             rank: isset($validated['rank']) ? (int) $validated['rank'] : null,
-            notes: $validated['notes'] ?? null,
+            notes: isset($validated['notes']) ? (string) $validated['notes'] : null,
             metrics: $this->metrics($validated['metrics'] ?? []),
         );
 
         return back()->with('status', 'event-alliance-result-saved');
     }
 
-    public function savePlayer(
-        Request $request,
-        string $occurrence,
-        string $player,
-        EventCalendarQuery $events,
-        SaveEventPlayerResult $save,
-    ): RedirectResponse {
+    public function savePlayer(Request $request, string $occurrence, string $player, SaveEventPlayerResult $save): RedirectResponse
+    {
         $this->user($request);
         $actor = $this->player();
-        $record = $events->occurrence($actor, $occurrence);
-        $playerRecord = Player::query()->whereKey($player)->firstOrFail();
         $validated = $this->validateResult($request);
         $save->handle(
-            $actor,
-            $record,
-            $playerRecord,
-            outcome: $validated['outcome'] ?? null,
+            $actor->playerId,
+            $occurrence,
+            $player,
+            outcome: isset($validated['outcome']) ? (string) $validated['outcome'] : null,
             score: isset($validated['score']) ? (int) $validated['score'] : null,
             rank: isset($validated['rank']) ? (int) $validated['rank'] : null,
-            notes: $validated['notes'] ?? null,
+            notes: isset($validated['notes']) ? (string) $validated['notes'] : null,
             metrics: $this->metrics($validated['metrics'] ?? []),
         );
 
@@ -105,42 +88,27 @@ final class EventResultController extends Controller
             'metrics.*.dimension_key' => ['nullable', 'string', 'max:96'],
             'metrics.*.value' => ['required_with:metrics', 'numeric'],
         ];
-
-        if ($opponentScore) {
-            $rules['opponent_score'] = ['nullable', 'integer', 'min:0'];
-        }
-
+        if ($opponentScore) $rules['opponent_score'] = ['nullable', 'integer', 'min:0'];
         return $request->validate($rules);
     }
 
     /** @return list<array{key:string,value:int|float|string,dimension_key?:string|null}> */
     private function metrics(mixed $value): array
     {
-        if (! is_array($value)) {
-            return [];
-        }
-
+        if (! is_array($value)) return [];
         return array_values(array_map(static function (array $metric): array {
-            $normalized = [
-                'key' => (string) $metric['key'],
-                'value' => $metric['value'],
-            ];
-
+            $normalized = ['key' => (string) $metric['key'], 'value' => $metric['value']];
             if (array_key_exists('dimension_key', $metric)) {
-                $normalized['dimension_key'] = $metric['dimension_key'] === null
-                    ? null
-                    : (string) $metric['dimension_key'];
+                $normalized['dimension_key'] = $metric['dimension_key'] === null ? null : (string) $metric['dimension_key'];
             }
-
             return $normalized;
         }, $value));
     }
 
-    private function player(): Player
+    private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof Player, 409, 'Select a Player before performing Event operations.');
-
+        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Event operations.');
         return $player;
     }
 
@@ -148,7 +116,6 @@ final class EventResultController extends Controller
     {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
-
         return $user;
     }
 }

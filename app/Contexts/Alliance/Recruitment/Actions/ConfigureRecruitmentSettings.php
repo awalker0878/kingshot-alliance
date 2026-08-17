@@ -7,10 +7,8 @@ namespace App\Contexts\Alliance\Recruitment\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -26,8 +24,8 @@ final class ConfigureRecruitmentSettings
     ) {}
 
     public function handle(
-        Player $actor,
-        Alliance $alliance,
+        string $actorPlayerId,
+        string $allianceId,
         RecruitmentApplicationMode $mode,
         string $title,
         ?string $introduction,
@@ -44,8 +42,8 @@ final class ConfigureRecruitmentSettings
         }
 
         return DB::transaction(function () use (
-            $actor,
-            $alliance,
+            $actorPlayerId,
+            $allianceId,
             $mode,
             $cleanTitle,
             $introduction,
@@ -54,7 +52,7 @@ final class ConfigureRecruitmentSettings
         ): RecruitmentSetting {
             // Recruitment settings are one singleton row per Alliance. Exclusive
             // parent coordination prevents concurrent first-create races.
-            $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             $settings = RecruitmentSetting::query()
@@ -66,7 +64,7 @@ final class ConfigureRecruitmentSettings
             if ($created) {
                 $settings = new RecruitmentSetting([
                     'alliance_id' => $context->alliance->id,
-                    'created_by_player_id' => $context->actor->id,
+                    'created_by_player_id' => $context->actor->playerId,
                 ]);
             }
 
@@ -76,7 +74,7 @@ final class ConfigureRecruitmentSettings
                 'introduction' => $introduction === null ? null : trim($introduction),
                 'retention_unsuccessful_days' => $retentionUnsuccessfulDays,
                 'is_open' => $isOpen,
-                'updated_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $context->actor->playerId,
             ]);
             $settings->save();
 

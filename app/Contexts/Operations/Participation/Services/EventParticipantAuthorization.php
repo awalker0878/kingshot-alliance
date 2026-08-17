@@ -4,71 +4,54 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Services;
 
-use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Membership\Enums\RosterState;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Players\Models\Player;
-use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\Event;
-use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventTargetResolver;
-use Illuminate\Auth\Access\AuthorizationException;
+use App\Contexts\Operations\Events\ValueObjects\EventTargetReference;
 
 final readonly class EventParticipantAuthorization
 {
     public function __construct(
-        private EventAuthorization $eventAuthorization,
-        private EventTargetResolver $targets,
+        private AllianceReferenceQuery $alliances,
+        private RosterEntryQuery $roster,
     ) {}
 
-    public function eligible(Event $event, Player $player): bool
+    public function eligible(Event $event, PlayerReference $player): bool
     {
-        return match ($event->scope) {
-            EventScope::Player => (string) $event->player_id === (string) $player->id,
-            EventScope::Alliance => $this->eligibleForAlliance($event, $player),
-            EventScope::Kingdom => (string) $player->current_kingdom_id === (string) $event->kingdom_id,
+        return match ($event->scopeEnum()) {
+            EventScope::Player => (string) $event->player_id === $player->playerId,
+            EventScope::Kingdom => (string) $event->kingdom_id === $player->kingdomId,
+            EventScope::Alliance => $this->eligibleForAlliance((string) $event->alliance_id, $player),
         };
     }
 
-    public function authorizeSelf(Player $actor, Event $event, Player $player): void
-    {
-        if ((string) $actor->id !== (string) $player->id || ! $this->eligible($event, $player)) {
-            throw new AuthorizationException;
-        }
-
-        $event->loadMissing('typeScope');
-        $target = $this->targets->forEvent($event);
-        $this->eventAuthorization->authorize(
-            $actor,
-            $event->scope,
-            $target,
-            OperationsPermission::from((string) $event->typeScope->view_permission_key),
-        );
+    public function eligibleAgainstTarget(
+        EventTargetReference $target,
+        PlayerReference $player,
+        bool $activeRosterPresence = false,
+    ): bool {
+        return match ($target->scope) {
+            EventScope::Player => $target->playerId === $player->playerId,
+            EventScope::Kingdom => $target->kingdomId === $player->kingdomId,
+            EventScope::Alliance => $target->allianceId !== null
+                && $target->kingdomId === $player->kingdomId
+                && $activeRosterPresence,
+        };
     }
 
-    public function authorizeManager(Player $actor, Event $event): void
+    private function eligibleForAlliance(string $allianceId, PlayerReference $player): bool
     {
-        $event->loadMissing('typeScope');
-        $target = $this->targets->forEvent($event);
-        $permission = OperationsPermission::from((string) $event->typeScope->manage_permission_key);
-        $this->eventAuthorization->authorize($actor, $event->scope, $target, $permission);
-    }
-
-    private function eligibleForAlliance(Event $event, Player $player): bool
-    {
-        $alliance = Alliance::query()->whereKey($event->alliance_id)->first();
-        if (! $alliance instanceof Alliance
-            || $alliance->status !== AllianceStatus::Active
-            || (string) $alliance->kingdom_id !== (string) $player->current_kingdom_id) {
+        if ($allianceId === '') {
             return false;
         }
 
-        return AllianceRosterEntry::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('player_id', $player->id)
-            ->where('state', RosterState::Active->value)
-            ->exists();
+        $alliance = $this->alliances->find($allianceId);
+
+        return $alliance !== null
+            && $alliance->active()
+            && $alliance->kingdomId === $player->kingdomId
+            && $this->roster->hasActiveRosterPresence($allianceId, $player->playerId);
     }
 }

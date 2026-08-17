@@ -7,10 +7,8 @@ namespace App\Contexts\Alliance\Membership\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\InvitationStatus;
 use App\Contexts\Alliance\Membership\Models\Invitation;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
@@ -24,10 +22,10 @@ final readonly class RevokeInvitation
         private AuditRecorder $audit,
     ) {}
 
-    public function handle(Alliance $alliance, Player $actor, string $invitationId): Invitation
+    public function handle(string $allianceId, string $actorPlayerId, string $invitationId): string
     {
-        return DB::transaction(function () use ($alliance, $actor, $invitationId): Invitation {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $invitationId): string {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::InvitationManage);
 
             $invitation = Invitation::query()
@@ -68,7 +66,7 @@ final readonly class RevokeInvitation
                 'attempts' => 0,
             ]);
 
-            return $invitation->refresh();
+            return (string) $invitation->id;
         });
     }
 }

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\BattlePlans\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\BattlePlans\Enums\EventObjectiveStatus;
 use App\Contexts\Operations\BattlePlans\Models\EventObjective;
 use App\Contexts\Operations\Events\Enums\EventCapability;
@@ -23,7 +21,7 @@ final readonly class SaveEventObjective
 {
     public function __construct(
         private EventWriteState $eventWriteState,
-        private EventAuthorization $mutations,
+        private EventAuthorization $authorization,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -31,8 +29,8 @@ final readonly class SaveEventObjective
 
     /** @param array<string,mixed> $metadata */
     public function handle(
-        Player $actor,
-        EventOccurrence $occurrence,
+        string $actorPlayerId,
+        string $occurrenceId,
         string $name,
         string $objectiveType = 'custom',
         ?string $description = null,
@@ -42,12 +40,9 @@ final readonly class SaveEventObjective
         EventObjectiveStatus $status = EventObjectiveStatus::Planned,
         int $sortOrder = 0,
         array $metadata = [],
-        ?EventObjective $parent = null,
-        ?EventObjective $objective = null,
-    ): EventObjective {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
-
+        ?string $parentId = null,
+        ?string $objectiveId = null,
+    ): void {
         $name = trim($name);
         $objectiveType = trim($objectiveType);
         if ($name === '' || mb_strlen($name) > 160) {
@@ -68,66 +63,43 @@ final readonly class SaveEventObjective
         if ($startsAt !== null && $endsAt !== null && ! $endsAt->greaterThan($startsAt)) {
             throw ValidationException::withMessages(['ends_at' => 'Objective end must be after objective start.']);
         }
-        if ($parent instanceof EventObjective && (string) $parent->occurrence_id !== (string) $occurrence->id) {
-            abort(404);
-        }
-        if ($objective instanceof EventObjective && (string) $objective->occurrence_id !== (string) $occurrence->id) {
-            abort(404);
-        }
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $name, $objectiveType, $description, $priority, $startsAt, $endsAt, $status, $sortOrder, $metadata, $parent, $objective): EventObjective {
-            $context = $this->eventWriteState->lockEventScope($actor, $event);
-            $this->mutations->authorizeManager($context);
+        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $name, $objectiveType, $description, $priority, $startsAt, $endsAt, $status, $sortOrder, $metadata, $parentId, $objectiveId): void {
+            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
+            $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
+            $this->authorization->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Objectives);
 
-            // Objective hierarchy/timing is occurrence-owned. Serializing structure on
-            // the occurrence keeps parent-cycle and timing checks stable across rows.
-            $lockedOccurrence = EventOccurrence::query()
-                ->whereKey($occurrence->id)
+            $occurrence = EventOccurrence::query()
+                ->whereKey($occurrenceId)
                 ->where('event_id', $context->event->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
             if ($startsAt !== null && $endsAt !== null
-                && ($startsAt->lessThan($lockedOccurrence->starts_at)
-                    || $endsAt->greaterThan($lockedOccurrence->ends_at))) {
-                throw ValidationException::withMessages([
-                    'starts_at' => 'Objective timing must stay within the Event occurrence.',
-                ]);
+                && ($startsAt->lessThan($occurrence->starts_at) || $endsAt->greaterThan($occurrence->ends_at))) {
+                throw ValidationException::withMessages(['starts_at' => 'Objective timing must stay within the Event occurrence.']);
             }
 
-            $record = $objective instanceof EventObjective
-                ? EventObjective::query()
-                    ->whereKey($objective->id)
-                    ->where('occurrence_id', $lockedOccurrence->id)
-                    ->lockForUpdate()
-                    ->firstOrFail()
-                : new EventObjective(['occurrence_id' => $lockedOccurrence->id]);
+            $record = $objectiveId !== null
+                ? EventObjective::query()->whereKey($objectiveId)->where('occurrence_id', $occurrence->id)->lockForUpdate()->firstOrFail()
+                : new EventObjective(['occurrence_id' => $occurrence->id]);
 
-            $lockedParent = null;
-            if ($parent instanceof EventObjective) {
-                $lockedParent = EventObjective::query()
-                    ->whereKey($parent->id)
-                    ->where('occurrence_id', $lockedOccurrence->id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
+            $parent = null;
+            if ($parentId !== null) {
+                $parent = EventObjective::query()->whereKey($parentId)->where('occurrence_id', $occurrence->id)->lockForUpdate()->firstOrFail();
                 if ($record->exists
-                    && ((string) $record->id === (string) $lockedParent->id
-                        || $this->isDescendant($lockedParent, $record))) {
-                    throw ValidationException::withMessages([
-                        'parent_id' => 'An objective cannot be nested beneath itself or one of its descendants.',
-                    ]);
+                    && ((string) $record->id === (string) $parent->id || $this->isDescendant($parent, $record))) {
+                    throw ValidationException::withMessages(['parent_id' => 'An objective cannot be nested beneath itself or one of its descendants.']);
                 }
             }
 
             $created = ! $record->exists;
             if ($created) {
-                $record->created_by_player_id = $context->actor->id;
+                $record->created_by_player_id = $actorPlayerId;
             }
-
             $record->forceFill([
-                'parent_id' => $lockedParent?->id,
+                'parent_id' => $parent?->id,
                 'objective_type' => $objectiveType,
                 'name' => $name,
                 'description' => $description === null || trim($description) === '' ? null : trim($description),
@@ -137,30 +109,21 @@ final readonly class SaveEventObjective
                 'status' => $status,
                 'sort_order' => max(0, $sortOrder),
                 'metadata' => $metadata,
-                'updated_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $actorPlayerId,
             ])->save();
 
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
             $eventName = $created ? 'event.objective.created' : 'event.objective.updated';
             $auditMetadata = [
                 'event_id' => (string) $context->event->id,
-                'occurrence_id' => (string) $lockedOccurrence->id,
+                'occurrence_id' => (string) $occurrence->id,
                 'objective_id' => (string) $record->id,
                 'parent_id' => $record->parent_id === null ? null : (string) $record->parent_id,
                 'status' => $record->status->value,
                 'priority' => (int) $record->priority,
-                'actor_player_id' => (string) $context->actor->id,
+                'actor_player_id' => $actorPlayerId,
             ];
-            $this->audit->record($eventName, $context->actor, $record, $alliance, $auditMetadata);
-            $this->outbox->record(
-                $eventName,
-                $alliance?->id,
-                $record,
-                $auditMetadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
-            );
-
-            return $record->refresh();
+            $this->audit->record($eventName, $context->actor, $record, $context->target->allianceId, $auditMetadata);
+            $this->outbox->record($eventName, $context->target->allianceId, $record, $auditMetadata, partitionKey: $context->target->partitionKey());
         });
     }
 
@@ -174,7 +137,6 @@ final readonly class SaveEventObjective
                 return true;
             }
             $visited[$cursorId] = true;
-
             if ((string) $cursor->parent_id === (string) $objective->id) {
                 return true;
             }

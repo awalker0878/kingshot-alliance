@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Access\Queries\AllianceAuthorityFactsQuery;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
 use App\Contexts\Operations\Rallies\Models\RallyGuidanceRule;
@@ -21,7 +21,9 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveRallyGuidanceRule
 {
     public function __construct(
-        private AllianceWriteState $allianceWriteState,
+        private PlayerReferenceQuery $players,
+        private AllianceReferenceQuery $alliances,
+        private AllianceAuthorityFactsQuery $authorityFacts,
         private AllianceOperationsAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -29,8 +31,8 @@ final readonly class SaveRallyGuidanceRule
 
     /** @param list<string> $heroes */
     public function handle(
-        Player $actor,
-        Alliance $alliance,
+        string $actorPlayerId,
+        string $allianceId,
         string $name,
         FormationComposition $composition,
         array $heroes = [],
@@ -41,42 +43,28 @@ final readonly class SaveRallyGuidanceRule
         ?CarbonImmutable $effectiveFrom = null,
         ?CarbonImmutable $effectiveUntil = null,
         bool $isActive = true,
-        ?RallyGuidanceRule $rule = null,
-    ): RallyGuidanceRule {
-        if ($rule instanceof RallyGuidanceRule && (string) $rule->alliance_id !== (string) $alliance->id) {
-            throw new AuthorizationException;
-        }
-
+        ?string $ruleId = null,
+    ): void {
         $name = trim($name);
-        if ($name === '' || mb_strlen($name) > 120) {
-            throw ValidationException::withMessages(['name' => 'Guidance name is required and must be 120 characters or fewer.']);
-        }
-
-        if ($effectiveFrom instanceof CarbonImmutable
-            && $effectiveUntil instanceof CarbonImmutable
-            && $effectiveUntil->lessThan($effectiveFrom)) {
+        if ($name === '' || mb_strlen($name) > 120) throw ValidationException::withMessages(['name' => 'Guidance name is required and must be 120 characters or fewer.']);
+        if ($effectiveFrom instanceof CarbonImmutable && $effectiveUntil instanceof CarbonImmutable && $effectiveUntil->lessThan($effectiveFrom)) {
             throw ValidationException::withMessages(['effective_until' => 'Effective until must be on or after effective from.']);
         }
-
         $heroes = $this->normalizeHeroes($heroes);
 
-        return DB::transaction(function () use ($actor, $alliance, $name, $composition, $heroes, $leadRequirements, $joinerGuidance, $source, $rationale, $effectiveFrom, $effectiveUntil, $isActive, $rule): RallyGuidanceRule {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
-            $this->authority->authorizeContext($context, OperationsPermission::EventAllianceManage);
-
-            $record = $rule instanceof RallyGuidanceRule
-                ? RallyGuidanceRule::query()
-                    ->whereKey($rule->id)
-                    ->where('alliance_id', $context->alliance->id)
-                    ->lockForUpdate()
-                    ->firstOrFail()
-                : new RallyGuidanceRule(['alliance_id' => $context->alliance->id]);
-
-            $created = ! $record->exists;
-            if ($created) {
-                $record->created_by_player_id = $context->actor->id;
+        DB::transaction(function () use ($actorPlayerId, $allianceId, $name, $composition, $heroes, $leadRequirements, $joinerGuidance, $source, $rationale, $effectiveFrom, $effectiveUntil, $isActive, $ruleId): void {
+            $actor = $this->players->lockCurrent($actorPlayerId);
+            $alliance = $this->alliances->lockCurrent($allianceId);
+            $facts = $this->authorityFacts->lockCurrent($actorPlayerId, $allianceId);
+            if ($facts === null || ! $this->authority->allowsFacts($facts, OperationsPermission::EventAllianceManage)) {
+                throw new AuthorizationException;
             }
 
+            $record = $ruleId !== null
+                ? RallyGuidanceRule::query()->whereKey($ruleId)->where('alliance_id', $allianceId)->lockForUpdate()->firstOrFail()
+                : new RallyGuidanceRule(['alliance_id' => $allianceId]);
+            $created = ! $record->exists;
+            if ($created) $record->created_by_player_id = $actorPlayerId;
             $record->forceFill([
                 'name' => $name,
                 ...$composition->toArray(),
@@ -88,40 +76,24 @@ final readonly class SaveRallyGuidanceRule
                 'effective_from' => $effectiveFrom?->toDateString(),
                 'effective_until' => $effectiveUntil?->toDateString(),
                 'is_active' => $isActive,
-                'updated_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $actorPlayerId,
             ])->save();
 
-            $event = $created ? 'rally.guidance.created' : 'rally.guidance.updated';
-            $metadata = [
-                'alliance_id' => (string) $context->alliance->id,
-                'guidance_rule_id' => (string) $record->id,
-                'actor_player_id' => $context->actor->id,
-            ];
-            $this->audit->record($event, $context->actor, $record, $context->alliance, $metadata);
-            $this->outbox->record($event, (string) $context->alliance->id, $record, $metadata);
-
-            return $record->refresh();
+            $eventName = $created ? 'rally.guidance.created' : 'rally.guidance.updated';
+            $metadata = ['alliance_id' => $allianceId, 'guidance_rule_id' => (string) $record->id, 'actor_player_id' => $actorPlayerId];
+            $this->audit->record($eventName, $actor, $record, $allianceId, $metadata);
+            $this->outbox->record($eventName, $allianceId, $record, $metadata, partitionKey: 'alliance:'.$allianceId);
         });
     }
 
-    /**
-     * @param  list<string>  $heroes
-     * @return list<string>
-     */
+    /** @param list<string> $heroes @return list<string> */
     private function normalizeHeroes(array $heroes): array
     {
-        return array_values(array_slice(array_filter(
-            array_map(static fn ($hero): string => trim((string) $hero), $heroes),
-            static fn (string $hero): bool => $hero !== '',
-        ), 0, 5));
+        return array_values(array_slice(array_filter(array_map(static fn ($hero): string => trim((string) $hero), $heroes), static fn (string $hero): bool => $hero !== ''), 0, 5));
     }
 
     private function text(?string $value): ?string
     {
-        if ($value === null || trim($value) === '') {
-            return null;
-        }
-
-        return trim($value);
+        return $value === null || trim($value) === '' ? null : trim($value);
     }
 }

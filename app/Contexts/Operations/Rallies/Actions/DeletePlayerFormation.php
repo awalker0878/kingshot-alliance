@@ -4,44 +4,34 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
-use App\Contexts\GameWorld\Governance\Services\PlayerWriteState;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\Rallies\Models\PlayerFormation;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 
 final readonly class DeletePlayerFormation
 {
     public function __construct(
-        private PlayerWriteState $authority,
+        private PlayerReferenceQuery $players,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Player $actor, PlayerFormation $formation): void
+    public function handle(string $actorPlayerId, string $formationId): void
     {
-        if ((string) $formation->player_id !== (string) $actor->id) {
-            throw new AuthorizationException;
-        }
-
-        DB::transaction(function () use ($actor, $formation): void {
-            $context = $this->authority->lockActor($actor);
-
-            $locked = PlayerFormation::query()
-                ->whereKey($formation->id)
-                ->where('player_id', $context->actor->id)
+        DB::transaction(function () use ($actorPlayerId, $formationId): void {
+            $actor = $this->players->lockCurrent($actorPlayerId);
+            $formation = PlayerFormation::query()
+                ->whereKey($formationId)
+                ->where('player_id', $actor->playerId)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $metadata = [
-                'player_id' => (string) $context->actor->id,
-                'formation_id' => (string) $locked->id,
-            ];
-            $this->audit->record('rally.player_formation.deleted', $context->actor, $locked, null, $metadata);
-            $this->outbox->record('rally.player_formation.deleted', null, $locked, $metadata, partitionKey: 'player:'.$context->actor->id);
-            $locked->delete();
+            $metadata = ['player_id' => $actor->playerId, 'formation_id' => (string) $formation->id];
+            $this->audit->record('rally.player_formation.deleted', $actor, $formation, null, $metadata);
+            $this->outbox->record('rally.player_formation.deleted', null, $formation, $metadata, partitionKey: 'player:'.$actor->playerId);
+            $formation->delete();
         });
     }
 }

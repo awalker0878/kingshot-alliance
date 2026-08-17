@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * @property Carbon|null $effective_from
  * @property Carbon|null $effective_until
- * @property-read Alliance $alliance
  */
 final class RallyGuidanceRule extends Model
 {
@@ -30,9 +27,4 @@ final class RallyGuidanceRule extends Model
         return ['infantry_percent' => 'integer', 'cavalry_percent' => 'integer', 'archer_percent' => 'integer', 'hero_recommendations' => 'array', 'effective_from' => 'date', 'effective_until' => 'date', 'is_active' => 'boolean'];
     }
 
-    /** @return BelongsTo<Alliance,$this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
 }

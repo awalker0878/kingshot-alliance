@@ -16,13 +16,21 @@ final class AuditRecorder
         string $event,
         ?AuditActor $actor = null,
         ?Model $subject = null,
-        ?Model $alliance = null,
+        Model|string|null $alliance = null,
         array $metadata = [],
     ): AuditEvent {
         $request = app()->bound('request') ? request() : null;
 
+        $allianceId = match (true) {
+            is_string($alliance) => $alliance,
+            $alliance instanceof Model => (string) $alliance->getKey(),
+            default => $subject?->getAttribute('alliance_id') === null
+                ? null
+                : (string) $subject->getAttribute('alliance_id'),
+        };
+
         return AuditEvent::query()->create([
-            'alliance_id' => $alliance === null ? null : (string) $alliance->getKey(),
+            'alliance_id' => $allianceId,
             'actor_user_id' => $actor?->auditUserId(),
             'actor_player_id' => $actor?->auditPlayerId(),
             'event' => $event,

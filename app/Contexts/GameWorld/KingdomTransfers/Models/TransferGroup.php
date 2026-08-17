@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferDirection;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferGroupState;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
@@ -23,7 +22,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property TransferGroupState $state
  * @property string|null $coordinator_player_id
  * @property string|null $manager_notes
- * @property-read Alliance $alliance
  * @property-read TransferPlan $plan
  * @property-read Kingdom|null $destinationKingdom
  * @property-read Player|null $coordinator
@@ -53,12 +51,6 @@ final class TransferGroup extends Model
             'direction' => TransferDirection::class,
             'state' => TransferGroupState::class,
         ];
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
     }
 
     /** @return BelongsTo<TransferPlan, $this> */

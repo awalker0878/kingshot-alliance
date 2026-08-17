@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -18,10 +16,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $responded_at
  * @property Carbon|null $removed_at
  * @property-read EventRoster $roster
- * @property-read Player $player
- * @property-read Alliance|null $alliance
- * @property-read Player|null $assignedByPlayer
- * @property-read Player|null $respondedByPlayer
  */
 final class EventRosterMember extends Model
 {
@@ -59,29 +53,5 @@ final class EventRosterMember extends Model
     public function roster(): BelongsTo
     {
         return $this->belongsTo(EventRoster::class, 'roster_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'player_id');
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function assignedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'assigned_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function respondedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'responded_by_player_id');
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Services;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventCapabilityResolver;
@@ -15,7 +14,7 @@ final readonly class EventRosterService
 {
     public function __construct(private EventCapabilityResolver $capabilities) {}
 
-    public function materializeDefaults(EventOccurrence $occurrence, ?Player $actor = null): void
+    public function materializeDefaults(EventOccurrence $occurrence, ?string $actorPlayerId = null): void
     {
         $occurrence->loadMissing('event.typeScope.capabilities');
         $event = $occurrence->event;
@@ -58,7 +57,7 @@ final readonly class EventRosterService
                     'source' => 'catalogue',
                     'parent_key' => isset($definition['parent_key']) ? (string) $definition['parent_key'] : null,
                 ],
-                'updated_by_player_id' => $actor?->id,
+                'updated_by_player_id' => $actorPlayerId,
             ];
 
             if ($existing instanceof EventRoster) {
@@ -69,7 +68,7 @@ final readonly class EventRosterService
                     'occurrence_id' => $occurrence->id,
                     'key' => $key,
                     ...$values,
-                    'created_by_player_id' => $actor?->id,
+                    'created_by_player_id' => $actorPlayerId,
                 ]);
             }
         }

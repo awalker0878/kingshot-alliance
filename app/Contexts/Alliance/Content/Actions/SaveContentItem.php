@@ -14,8 +14,6 @@ use App\Contexts\Alliance\Content\Models\ContentCategory;
 use App\Contexts\Alliance\Content\Models\ContentItem;
 use App\Contexts\Alliance\Content\Services\ContentRevisionWriter;
 use App\Contexts\Alliance\Content\Services\ContentSanitizer;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -45,18 +43,18 @@ final readonly class SaveContentItem
      *   sort_order?: int
      * } $attributes
      */
-    public function handle(Alliance $alliance, Player $actor, array $attributes, ?string $contentItemId = null): ContentItem
+    public function handle(string $allianceId, string $actorPlayerId, array $attributes, ?string $contentItemId = null): ContentItem
     {
-        return DB::transaction(function () use ($alliance, $actor, $attributes, $contentItemId): ContentItem {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $attributes, $contentItemId): ContentItem {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
             $categoryId = $attributes['category_id'] ?? null;
-            $this->assertCategory($context->alliance, $categoryId);
+            $this->assertCategory((string) $context->alliance->id, $categoryId);
 
             $item = $contentItemId === null
                 ? new ContentItem([
                     'alliance_id' => $context->alliance->id,
-                    'created_by_player_id' => $context->actor->id,
+                    'created_by_player_id' => $context->actor->playerId,
                     'current_revision_number' => 1,
                 ])
                 : ContentItem::query()
@@ -83,7 +81,7 @@ final readonly class SaveContentItem
                 'scheduled_for' => null,
                 'published_at' => null,
                 'archived_at' => null,
-                'updated_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $context->actor->playerId,
             ])->save();
 
             $revision = $this->revisions->write($item, $context->actor);
@@ -105,7 +103,7 @@ final readonly class SaveContentItem
         });
     }
 
-    private function assertCategory(Alliance $alliance, ?string $categoryId): void
+    private function assertCategory(string $allianceId, ?string $categoryId): void
     {
         if ($categoryId === null || $categoryId === '') {
             return;
@@ -113,7 +111,7 @@ final readonly class SaveContentItem
 
         $category = ContentCategory::query()
             ->where('id', $categoryId)
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->sharedLock()
             ->first();
 

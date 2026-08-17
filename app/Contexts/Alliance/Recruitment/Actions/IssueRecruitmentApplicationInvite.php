@@ -29,8 +29,8 @@ final class IssueRecruitmentApplicationInvite
     ) {}
 
     public function handle(
-        Player $actor,
-        Alliance $alliance,
+        string $actorPlayerId,
+        string $allianceId,
         ?string $email = null,
         int $ttlHours = 72,
     ): IssuedRecruitmentApplicationInvite {
@@ -40,8 +40,8 @@ final class IssueRecruitmentApplicationInvite
 
         $normalizedEmail = $email === null || trim($email) === '' ? null : Str::lower(trim($email));
 
-        return DB::transaction(function () use ($actor, $alliance, $normalizedEmail, $ttlHours): IssuedRecruitmentApplicationInvite {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $normalizedEmail, $ttlHours): IssuedRecruitmentApplicationInvite {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             $token = $this->tokens->issue();
@@ -50,7 +50,7 @@ final class IssueRecruitmentApplicationInvite
                 'email' => $normalizedEmail,
                 'token_hash' => $this->tokens->hash($token),
                 'expires_at' => now()->addHours($ttlHours),
-                'created_by_player_id' => $context->actor->id,
+                'created_by_player_id' => $context->actor->playerId,
             ]);
 
             $this->audit->record('recruitment.application_invite.created', $context->actor, $invite, $context->alliance, [

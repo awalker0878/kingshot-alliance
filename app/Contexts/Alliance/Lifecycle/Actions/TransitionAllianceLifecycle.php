@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Lifecycle\Actions;
 
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
@@ -31,8 +30,7 @@ final readonly class TransitionAllianceLifecycle
         ?CarbonInterface $retentionUntil = null,
     ): AllianceReference {
         DB::transaction(function () use ($actor, $allianceId, $target, $reason, $retentionUntil): void {
-            $route = Alliance::query()->whereKey($allianceId)->firstOrFail();
-            $locked = $this->mutation->acquire($route);
+            $locked = $this->mutation->acquire($allianceId);
             $previous = $locked->status;
             $updated = $this->mutation->transitionLocked($locked, $target, $reason, $retentionUntil);
 

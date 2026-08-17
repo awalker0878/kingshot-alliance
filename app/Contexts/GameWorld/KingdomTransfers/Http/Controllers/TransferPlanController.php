@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Enums\RosterState;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
+use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\CancelTransferPlan;
@@ -28,7 +29,10 @@ use App\Contexts\GameWorld\KingdomTransfers\Models\TransferReadinessTransition;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferGroupQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
-use App\Contexts\Intelligence\Roster\Queries\RosterQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -41,37 +45,43 @@ final class TransferPlanController extends Controller
     public function index(
         Request $request,
         AllianceContext $context,
+        AccountIdentityQuery $accounts,
+        AllianceReferenceQuery $alliances,
+        KingdomReferenceQuery $kingdoms,
         AllianceAuthorization $authorization,
         TransferAuthorization $transferAuthorization,
         TransferPlanQuery $plans,
         TransferParticipantQuery $participants,
         TransferGroupQuery $groups,
     ): Response {
-        $user = $this->user($request);
-        $alliance = $context->alliance()->load('kingdom');
+        $scope = $context->scope();
+        $account = $this->account($request, $accounts);
+        $alliance = $alliances->require($scope->allianceId);
+        $kingdom = $kingdoms->require($alliance->kingdomId);
 
-        if (! $authorization->allows($context->player(), $alliance, AlliancePermission::View)) {
+        if (! $authorization->allows($scope->playerId, $scope->allianceId, AlliancePermission::View)) {
             throw new AuthorizationException;
         }
 
-        $current = $plans->currentForAlliance($alliance);
+        $current = $plans->currentForAlliance($scope->allianceId);
 
         return Inertia::render('Alliance/TransferPlans', [
-            'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
-            ],
-            'alliance' => $this->alliance($alliance),
-            'canManage' => $transferAuthorization->allows($context->player(), $alliance, TransferPermission::Manage),
+            'user' => $this->user($account),
+            'alliance' => $this->alliance($alliance, $kingdom),
+            'canManage' => $transferAuthorization->allows(
+                $scope->playerId,
+                $scope->allianceId,
+                TransferPermission::Manage,
+            ),
             'plan' => $current === null ? null : $this->plan($current),
             'groups' => $current === null
                 ? []
-                : $groups->forPlan($alliance, $current)
+                : $groups->forPlan($scope->allianceId, (string) $current->id)
                     ->map(fn (TransferGroup $group): array => $this->group($group, false))
                     ->all(),
             'participants' => $current === null
                 ? []
-                : $participants->forPlan($alliance, $current)
+                : $participants->forPlan($scope->allianceId, (string) $current->id)
                     ->map(fn (TransferParticipant $participant): array => $this->participant($participant, false))
                     ->all(),
         ]);
@@ -80,70 +90,82 @@ final class TransferPlanController extends Controller
     public function manage(
         Request $request,
         AllianceContext $context,
-        AllianceAuthorization $authorization,
+        AccountIdentityQuery $accounts,
+        AllianceReferenceQuery $alliances,
+        KingdomReferenceQuery $kingdoms,
         TransferAuthorization $transferAuthorization,
         TransferPlanQuery $plans,
         TransferParticipantQuery $participants,
         TransferGroupQuery $groups,
-        RosterQuery $roster,
+        RosterEntryQuery $roster,
+        PlayerMembershipQuery $memberships,
+        PlayerReferenceQuery $players,
     ): Response {
-        $user = $this->user($request);
-        $alliance = $context->alliance()->load('kingdom');
+        $scope = $context->scope();
+        $account = $this->account($request, $accounts);
+        $alliance = $alliances->require($scope->allianceId);
+        $kingdom = $kingdoms->require($alliance->kingdomId);
 
-        if (! $transferAuthorization->allows($context->player(), $alliance, TransferPermission::Manage)) {
+        if (! $transferAuthorization->allows($scope->playerId, $scope->allianceId, TransferPermission::Manage)) {
             throw new AuthorizationException;
         }
 
-        $mutable = $plans->mutableForAlliance($alliance);
-        $rosterOptions = $roster->forAlliance($alliance)
-            ->filter(static fn (AllianceRosterEntry $entry): bool => in_array(
-                $entry->state,
-                [RosterState::Active, RosterState::Tracked],
-                true,
-            ))
-            ->map(static fn (AllianceRosterEntry $entry): array => [
-                'id' => (string) $entry->id,
-                'name' => (string) $entry->observed_name,
-                'gamePlayerId' => $entry->player->game_player_id,
-                'playerId' => (string) $entry->player_id,
-            ])
+        $mutable = $plans->mutableForAlliance($scope->allianceId);
+        $participantRows = $mutable === null
+            ? collect()
+            : $participants->forPlan($scope->allianceId, (string) $mutable->id, true);
+        $rosterOptions = $roster->activeOrTracked($scope->allianceId);
+        $completionRosterIds = $participantRows
+            ->map(static fn (TransferParticipant $participant): ?string => $participant->completion?->roster_entry_id === null
+                ? null
+                : (string) $participant->completion->roster_entry_id)
+            ->filter()
             ->values()
             ->all();
-
-        $players = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('status', MembershipStatus::Active->value)
-            ->with('player:id,current_name')
-            ->get()
-            ->map(static fn (AllianceMembership $membership): array => [
-                'id' => (string) $membership->player_id,
-                'name' => (string) $membership->player->current_name,
-            ])
-            ->values()
-            ->all();
+        $completionRoster = $roster->byIds($scope->allianceId, $completionRosterIds);
+        $memberPlayerIds = $memberships->activePlayerIds($scope->allianceId);
+        $playerReferences = $players->byIds(array_values(array_unique(array_merge(
+            $memberPlayerIds,
+            array_map(static fn (RosterEntryReference $entry): string => $entry->playerId, $rosterOptions),
+            array_map(static fn (RosterEntryReference $entry): string => $entry->playerId, array_values($completionRoster)),
+        ))));
 
         return Inertia::render('Alliance/TransferPlansManage', [
-            'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
-            ],
-            'alliance' => $this->alliance($alliance),
-            'plans' => $plans->forAlliance($alliance)
+            'user' => $this->user($account),
+            'alliance' => $this->alliance($alliance, $kingdom),
+            'plans' => $plans->forAlliance($scope->allianceId)
                 ->map(fn (TransferPlan $plan): array => $this->plan($plan))
                 ->all(),
             'mutablePlan' => $mutable === null ? null : $this->plan($mutable),
             'groups' => $mutable === null
                 ? []
-                : $groups->forPlan($alliance, $mutable, true)
+                : $groups->forPlan($scope->allianceId, (string) $mutable->id, true)
                     ->map(fn (TransferGroup $group): array => $this->group($group, true))
                     ->all(),
-            'participants' => $mutable === null
-                ? []
-                : $participants->forPlan($alliance, $mutable, true)
-                    ->map(fn (TransferParticipant $participant): array => $this->participant($participant, true))
-                    ->all(),
-            'rosterOptions' => $rosterOptions,
-            'players' => $players,
+            'participants' => $participantRows
+                ->map(fn (TransferParticipant $participant): array => $this->participant(
+                    $participant,
+                    true,
+                    $completionRoster,
+                    $playerReferences,
+                ))
+                ->all(),
+            'rosterOptions' => array_values(array_map(
+                fn (RosterEntryReference $entry): array => [
+                    'id' => $entry->rosterEntryId,
+                    'name' => $entry->observedName,
+                    'gamePlayerId' => $playerReferences[$entry->playerId]->gamePlayerId ?? null,
+                    'playerId' => $entry->playerId,
+                ],
+                $rosterOptions,
+            )),
+            'players' => array_values(array_map(
+                static fn (string $playerId): array => [
+                    'id' => $playerId,
+                    'name' => $playerReferences[$playerId]->currentName ?? $playerId,
+                ],
+                $memberPlayerIds,
+            )),
         ]);
     }
 
@@ -158,8 +180,9 @@ final class TransferPlanController extends Controller
             'starts_on' => ['nullable', 'date'],
             'ends_on' => ['nullable', 'date'],
         ]);
+        $scope = $context->scope();
 
-        $create->handle($context->alliance(), $context->player(), $validated);
+        $create->handle($scope->allianceId, $scope->playerId, $validated);
 
         return back()->with('status', 'transfer-plan-created');
     }
@@ -170,7 +193,8 @@ final class TransferPlanController extends Controller
         OpenTransferPlan $open,
         string $plan,
     ): RedirectResponse {
-        $open->handle($context->alliance(), $context->player(), $plan);
+        $scope = $context->scope();
+        $open->handle($scope->allianceId, $scope->playerId, $plan);
 
         return back()->with('status', 'transfer-plan-opened');
     }
@@ -181,7 +205,8 @@ final class TransferPlanController extends Controller
         LockTransferPlan $lock,
         string $plan,
     ): RedirectResponse {
-        $lock->handle($context->alliance(), $context->player(), $plan);
+        $scope = $context->scope();
+        $lock->handle($scope->allianceId, $scope->playerId, $plan);
 
         return back()->with('status', 'transfer-plan-locked');
     }
@@ -192,7 +217,8 @@ final class TransferPlanController extends Controller
         CloseTransferPlan $close,
         string $plan,
     ): RedirectResponse {
-        $close->handle($context->alliance(), $context->player(), $plan);
+        $scope = $context->scope();
+        $close->handle($scope->allianceId, $scope->playerId, $plan);
 
         return back()->with('status', 'transfer-plan-closed');
     }
@@ -203,18 +229,25 @@ final class TransferPlanController extends Controller
         CancelTransferPlan $cancel,
         string $plan,
     ): RedirectResponse {
-        $cancel->handle($context->alliance(), $context->player(), $plan);
+        $scope = $context->scope();
+        $cancel->handle($scope->allianceId, $scope->playerId, $plan);
 
         return back()->with('status', 'transfer-plan-cancelled');
     }
 
-    /** @return array{id: string, name: string, kingdom: string|null} */
-    private function alliance(Alliance $alliance): array
+    /** @return array{name: string, email: string} */
+    private function user(AccountIdentity $account): array
+    {
+        return ['name' => $account->name, 'email' => $account->email];
+    }
+
+    /** @return array{id: string, name: string, kingdom: string} */
+    private function alliance(AllianceReference $alliance, KingdomReference $kingdom): array
     {
         return [
-            'id' => (string) $alliance->id,
-            'name' => (string) $alliance->name,
-            'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
+            'id' => $alliance->allianceId,
+            'name' => $alliance->name,
+            'kingdom' => (string) $kingdom->number,
         ];
     }
 
@@ -232,9 +265,17 @@ final class TransferPlanController extends Controller
         ];
     }
 
-    /** @return array<string, mixed> */
-    private function participant(TransferParticipant $participant, bool $includePrivate): array
-    {
+    /**
+     * @param array<string, RosterEntryReference> $rosterById
+     * @param array<string, PlayerReference> $playersById
+     * @return array<string, mixed>
+     */
+    private function participant(
+        TransferParticipant $participant,
+        bool $includePrivate,
+        array $rosterById = [],
+        array $playersById = [],
+    ): array {
         $row = [
             'id' => (string) $participant->id,
             'direction' => $participant->direction->value,
@@ -258,58 +299,67 @@ final class TransferPlanController extends Controller
             'completedAt' => $participant->completion?->completed_at->toIso8601String(),
         ];
 
-        if ($includePrivate) {
-            $row['rosterEntryId'] = $participant->roster_entry_id;
-            $row['transferGroupId'] = $participant->transfer_group_id;
-            $row['managerNotes'] = $participant->manager_notes;
-            $row['blockers'] = $participant->blockers
-                ->sortByDesc(static fn (TransferBlocker $blocker): string => $blocker->created_at?->toIso8601String() ?? '')
-                ->values()
-                ->map(static fn (TransferBlocker $blocker): array => [
-                    'id' => (string) $blocker->id,
-                    'state' => $blocker->state->value,
-                    'summary' => (string) $blocker->summary,
-                    'details' => $blocker->details,
-                    'createdAt' => $blocker->created_at?->toIso8601String(),
-                    'resolvedAt' => $blocker->resolved_at?->toIso8601String(),
-                    'createdBy' => $blocker->createdBy === null
-                        ? null
-                        : ['name' => (string) $blocker->createdBy->current_name],
-                    'resolvedBy' => $blocker->resolvedBy === null
-                        ? null
-                        : ['name' => (string) $blocker->resolvedBy->current_name],
-                ])
-                ->all();
-            $row['readinessHistory'] = $participant->readinessTransitions
-                ->sortByDesc(static fn (TransferReadinessTransition $transition): string => $transition->created_at->toIso8601String())
-                ->values()
-                ->map(static fn (TransferReadinessTransition $transition): array => [
-                    'from' => $transition->from_state?->value,
-                    'to' => $transition->to_state->value,
-                    'changedAt' => $transition->created_at->toIso8601String(),
-                    'actor' => $transition->actor === null
-                        ? null
-                        : ['name' => (string) $transition->actor->current_name],
-                ])
-                ->all();
-            $completion = $participant->completion;
-            $row['completion'] = $completion === null
-                ? null
-                : [
-                    'completedAt' => $completion->completed_at->toIso8601String(),
-                    'completedBy' => $completion->completedBy === null
-                        ? null
-                        : ['name' => (string) $completion->completedBy->current_name],
-                    'rosterEntry' => $completion->rosterEntry === null
-                        ? null
-                        : [
-                            'id' => (string) $completion->rosterEntry->id,
-                            'name' => (string) $completion->rosterEntry->observed_name,
-                            'state' => $completion->rosterEntry->state->value,
-                            'gamePlayerId' => $completion->rosterEntry->player->game_player_id,
-                        ],
-                ];
+        if (! $includePrivate) {
+            return $row;
         }
+
+        $row['rosterEntryId'] = $participant->roster_entry_id;
+        $row['transferGroupId'] = $participant->transfer_group_id;
+        $row['managerNotes'] = $participant->manager_notes;
+        $row['blockers'] = $participant->blockers
+            ->sortByDesc(static fn (TransferBlocker $blocker): string => $blocker->created_at?->toIso8601String() ?? '')
+            ->values()
+            ->map(static fn (TransferBlocker $blocker): array => [
+                'id' => (string) $blocker->id,
+                'state' => $blocker->state->value,
+                'summary' => (string) $blocker->summary,
+                'details' => $blocker->details,
+                'createdAt' => $blocker->created_at?->toIso8601String(),
+                'resolvedAt' => $blocker->resolved_at?->toIso8601String(),
+                'createdBy' => $blocker->createdBy === null
+                    ? null
+                    : ['name' => (string) $blocker->createdBy->current_name],
+                'resolvedBy' => $blocker->resolvedBy === null
+                    ? null
+                    : ['name' => (string) $blocker->resolvedBy->current_name],
+            ])
+            ->all();
+        $row['readinessHistory'] = $participant->readinessTransitions
+            ->sortByDesc(static fn (TransferReadinessTransition $transition): string => $transition->created_at->toIso8601String())
+            ->values()
+            ->map(static fn (TransferReadinessTransition $transition): array => [
+                'from' => $transition->from_state?->value,
+                'to' => $transition->to_state->value,
+                'changedAt' => $transition->created_at->toIso8601String(),
+                'actor' => $transition->actor === null
+                    ? null
+                    : ['name' => (string) $transition->actor->current_name],
+            ])
+            ->all();
+
+        $completion = $participant->completion;
+        $completionRoster = $completion?->roster_entry_id === null
+            ? null
+            : ($rosterById[(string) $completion->roster_entry_id] ?? null);
+        $completionRosterPlayer = $completionRoster instanceof RosterEntryReference
+            ? ($playersById[$completionRoster->playerId] ?? null)
+            : null;
+        $row['completion'] = $completion === null
+            ? null
+            : [
+                'completedAt' => $completion->completed_at->toIso8601String(),
+                'completedBy' => $completion->completedBy === null
+                    ? null
+                    : ['name' => (string) $completion->completedBy->current_name],
+                'rosterEntry' => ! $completionRoster instanceof RosterEntryReference
+                    ? null
+                    : [
+                        'id' => $completionRoster->rosterEntryId,
+                        'name' => $completionRoster->observedName,
+                        'state' => $completionRoster->stateObservedAtRead->value,
+                        'gamePlayerId' => $completionRosterPlayer?->gamePlayerId,
+                    ],
+            ];
 
         return $row;
     }
@@ -338,11 +388,11 @@ final class TransferPlanController extends Controller
         return $row;
     }
 
-    private function user(Request $request): User
+    private function account(Request $request, AccountIdentityQuery $accounts): AccountIdentity
     {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        $userId = $request->user()?->getAuthIdentifier();
+        abort_unless(is_numeric($userId), 401);
 
-        return $user;
+        return $accounts->require((int) $userId);
     }
 }

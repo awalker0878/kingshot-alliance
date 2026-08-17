@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferReadinessState;
 use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -18,9 +17,8 @@ use Illuminate\Support\Carbon;
  * @property string $transfer_participant_id
  * @property TransferReadinessState|null $from_state
  * @property TransferReadinessState $to_state
- * @property int|null $actor_player_id
+ * @property string|null $actor_player_id
  * @property Carbon $created_at
- * @property-read Alliance $alliance
  * @property-read TransferPlan $plan
  * @property-read TransferParticipant $participant
  * @property-read Player|null $actor
@@ -52,12 +50,6 @@ final class TransferReadinessTransition extends Model
             'to_state' => TransferReadinessState::class,
             'created_at' => 'datetime',
         ];
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
     }
 
     /** @return BelongsTo<TransferPlan, $this> */

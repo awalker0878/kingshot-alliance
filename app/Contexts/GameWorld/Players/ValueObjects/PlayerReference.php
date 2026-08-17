@@ -14,6 +14,7 @@ final readonly class PlayerReference implements AuditActor
         public string $kingdomId,
         public string $currentName,
         public ?string $gamePlayerId,
+        public ?int $kingdomNumber = null,
     ) {}
 
     public function claimed(): bool

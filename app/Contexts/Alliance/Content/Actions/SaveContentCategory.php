@@ -26,15 +26,15 @@ final readonly class SaveContentCategory
     ) {}
 
     public function handle(
-        Alliance $alliance,
-        Player $actor,
+        string $allianceId,
+        string $actorPlayerId,
         string $name,
         string $slug,
         int $sortOrder = 0,
         ?string $categoryId = null,
     ): ContentCategory {
-        return DB::transaction(function () use ($alliance, $actor, $name, $slug, $sortOrder, $categoryId): ContentCategory {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $name, $slug, $sortOrder, $categoryId): ContentCategory {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
             $category = $categoryId === null

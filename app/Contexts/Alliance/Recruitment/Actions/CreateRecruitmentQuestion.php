@@ -7,10 +7,8 @@ namespace App\Contexts\Alliance\Recruitment\Actions;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentQuestionType;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -27,8 +25,8 @@ final class CreateRecruitmentQuestion
 
     /** @param list<string> $options */
     public function handle(
-        Player $actor,
-        Alliance $alliance,
+        string $actorPlayerId,
+        string $allianceId,
         string $prompt,
         RecruitmentQuestionType $type,
         bool $isRequired,
@@ -56,8 +54,8 @@ final class CreateRecruitmentQuestion
         }
 
         return DB::transaction(function () use (
-            $actor,
-            $alliance,
+            $actorPlayerId,
+            $allianceId,
             $cleanPrompt,
             $type,
             $isRequired,
@@ -66,7 +64,7 @@ final class CreateRecruitmentQuestion
             $cleanOptions,
             $isActive,
         ): RecruitmentQuestion {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             $question = RecruitmentQuestion::query()->create([
@@ -78,8 +76,8 @@ final class CreateRecruitmentQuestion
                 'is_required' => $isRequired,
                 'position' => $position,
                 'is_active' => $isActive,
-                'created_by_player_id' => $context->actor->id,
-                'updated_by_player_id' => $context->actor->id,
+                'created_by_player_id' => $context->actor->playerId,
+                'updated_by_player_id' => $context->actor->playerId,
             ]);
 
             $this->audit->record('recruitment.question.created', $context->actor, $question, $context->alliance, [

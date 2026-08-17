@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\BattlePlans\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\BattlePlans\Models\EventObjective;
 use App\Contexts\Operations\BattlePlans\Models\EventObjectiveAssignment;
 use App\Contexts\Operations\Events\Models\Event;
@@ -17,18 +18,21 @@ use Carbon\CarbonImmutable;
 
 final readonly class EventObjectiveQuery
 {
-    public function __construct(private EventEligiblePlayerQuery $eligiblePlayers) {}
+    public function __construct(
+        private EventEligiblePlayerQuery $eligiblePlayers,
+        private PlayerReferenceQuery $players,
+    ) {}
 
     /** @return array{objectives:list<array<string,mixed>>,myAssignmentIds:list<string>} */
-    public function forOccurrence(EventOccurrence $occurrence, ?Player $player): array
+    public function forOccurrence(EventOccurrence $occurrence, ?PlayerReference $player): array
     {
         $objectives = $this->objectives($occurrence);
-        if (! $player instanceof Player) {
+        if (! $player instanceof PlayerReference) {
             return ['objectives' => $objectives, 'myAssignmentIds' => []];
         }
 
         $rosterIds = EventRosterMember::query()
-            ->where('player_id', $player->id)
+            ->where('player_id', $player->playerId)
             ->whereNotIn('status', [EventRosterMemberStatus::Declined->value, EventRosterMemberStatus::Removed->value])
             ->whereHas('roster', static fn ($query) => $query->where('occurrence_id', $occurrence->id))
             ->pluck('roster_id');
@@ -37,7 +41,7 @@ final readonly class EventObjectiveQuery
         foreach (EventObjectiveAssignment::query()
             ->where('occurrence_id', $occurrence->id)
             ->where(static fn ($query) => $query
-                ->where('player_id', $player->id)
+                ->where('player_id', $player->playerId)
                 ->orWhereIn('roster_id', $rosterIds))
             ->pluck('id') as $id) {
             $assignmentIds[] = (string) $id;
@@ -49,13 +53,12 @@ final readonly class EventObjectiveQuery
     /** @return list<array<string,mixed>> */
     public function management(Event $event): array
     {
-        $players = $this->eligiblePlayers->for($event);
         $playerOptions = [];
-        foreach ($players as $player) {
+        foreach ($this->eligiblePlayers->for($event) as $player) {
             $playerOptions[] = [
-                'id' => (string) $player->id,
-                'name' => (string) $player->current_name,
-                'claimed' => $player->user_id !== null,
+                'id' => $player->playerId,
+                'name' => $player->currentName,
+                'claimed' => $player->claimed(),
             ];
         }
 
@@ -103,15 +106,25 @@ final readonly class EventObjectiveQuery
     /** @return list<array<string,mixed>> */
     private function objectives(EventOccurrence $occurrence): array
     {
-        $rows = [];
         $objectives = EventObjective::query()
             ->where('occurrence_id', $occurrence->id)
-            ->with(['assignments.player', 'assignments.roster'])
+            ->with(['assignments.roster'])
             ->orderByDesc('priority')
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
 
+        $playerIds = [];
+        foreach ($objectives as $objective) {
+            foreach ($objective->assignments as $assignment) {
+                if ($assignment instanceof EventObjectiveAssignment && is_string($assignment->player_id) && $assignment->player_id !== '') {
+                    $playerIds[] = $assignment->player_id;
+                }
+            }
+        }
+        $playerReferences = $this->players->byIds($playerIds);
+
+        $rows = [];
         foreach ($objectives as $objective) {
             if (! $objective instanceof EventObjective) {
                 continue;
@@ -123,6 +136,7 @@ final readonly class EventObjectiveQuery
                     continue;
                 }
 
+                $player = $assignment->player_id === null ? null : ($playerReferences[(string) $assignment->player_id] ?? null);
                 $assignments[] = [
                     'id' => (string) $assignment->id,
                     'rosterId' => $assignment->roster_id === null ? null : (string) $assignment->roster_id,
@@ -130,7 +144,7 @@ final readonly class EventObjectiveQuery
                     'rosterNameKey' => $assignment->roster?->name_key,
                     'rosterKey' => $assignment->roster?->key,
                     'playerId' => $assignment->player_id === null ? null : (string) $assignment->player_id,
-                    'playerName' => $assignment->player?->current_name,
+                    'playerName' => $player?->currentName,
                     'notes' => $assignment->notes,
                     'assignedAt' => $assignment->assigned_at?->toIso8601String(),
                 ];

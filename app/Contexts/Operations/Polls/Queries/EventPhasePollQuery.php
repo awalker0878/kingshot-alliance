@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Polls\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventPhase;
@@ -19,7 +19,7 @@ final readonly class EventPhasePollQuery
     public function __construct(private EventPhaseService $phases) {}
 
     /** @return array{phases:list<array<string,mixed>>,polls:list<array<string,mixed>>} */
-    public function forOccurrence(EventOccurrence $occurrence, ?Player $player = null, bool $manager = false): array
+    public function forOccurrence(EventOccurrence $occurrence, ?PlayerReference $player = null, bool $manager = false): array
     {
         $occurrence->loadMissing('event');
         $timezone = (string) $occurrence->event->timezone;
@@ -51,8 +51,8 @@ final readonly class EventPhasePollQuery
         }
 
         $pollRows = array_values($pollQuery->orderBy('created_at')->get()->map(function (EventPoll $poll) use ($player, $manager, $timezone): array {
-            $selected = $player instanceof Player
-                ? EventPollVote::query()->where('poll_id', $poll->id)->where('player_id', $player->id)->pluck('option_id')->map(static fn ($id): string => (string) $id)->all()
+            $selected = $player instanceof PlayerReference
+                ? EventPollVote::query()->where('poll_id', $poll->id)->where('player_id', $player->playerId)->pluck('option_id')->map(static fn ($id): string => (string) $id)->all()
                 : [];
             $counts = $poll->votes->groupBy('option_id')->map->count();
             $votingOpen = $poll->status === EventPollStatus::Open

@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordSource;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordStatus;
 use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
@@ -25,103 +22,92 @@ use InvalidArgumentException;
 final class RecordContribution
 {
     public function __construct(
-        private readonly AllianceWriteState $allianceWriteState,
-        private readonly AllianceIntelligenceAuthorization $authority,
+        private readonly AllianceIntelligenceWriteState $writeState,
+        private readonly AllianceReferenceQuery $alliances,
+        private readonly PlayerReferenceQuery $players,
+        private readonly PlayerMembershipQuery $memberships,
         private readonly ContributionPeriodResolver $periods,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
     ) {}
 
     public function handle(
-        Player $actor,
-        Alliance $alliance,
-        Player $player,
-        ContributionCategory $category,
+        string $actorPlayerId,
+        string $allianceId,
+        string $targetPlayerId,
+        string $categoryId,
         float $value,
         ContributionRecordSource $source,
         ?string $evidence = null,
-    ): ContributionRecord {
-        return DB::transaction(function () use ($actor, $alliance, $player, $category, $value, $source, $evidence): ContributionRecord {
+    ): void {
+        DB::transaction(function () use ($actorPlayerId, $allianceId, $targetPlayerId, $categoryId, $value, $source, $evidence): void {
             $permission = $source === ContributionRecordSource::SelfReported
-                ? AlliancePermission::View
+                ? IntelligencePermission::View
                 : IntelligencePermission::ContributionManage;
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
-            $this->authority->authorizeContext($context, $permission);
+            [$facts, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, $permission);
 
-            $isActorTarget = (string) $player->id === (string) $context->actor->id;
+            $isActorTarget = $targetPlayerId === $actor->playerId;
             if ($source === ContributionRecordSource::SelfReported && ! $isActorTarget) {
                 throw new InvalidArgumentException('Self-reported contributions may only be recorded for the active Player.');
             }
 
-            // AllianceWriteState already stabilized the actor membership and Player.
-            // Avoid re-locking that same actor after its membership; target other Players
-            // using the normal Player -> target-membership eligibility order.
-            $currentPlayer = $isActorTarget
-                ? $context->actor
-                : Player::query()->whereKey($player->id)->firstOrFail();
-            if ((string) $currentPlayer->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
+            $target = $isActorTarget ? $actor : $this->players->lockCurrent($targetPlayerId);
+            if ($target->kingdomId !== $facts->kingdomId) {
                 throw new InvalidArgumentException('Contribution Player must belong to the active Alliance Kingdom.');
             }
 
-            if ($source !== ContributionRecordSource::SelfReported) {
-                $membership = $isActorTarget
-                    ? $context->membership
-                    : AllianceMembership::query()
-                        ->where('alliance_id', $context->alliance->id)
-                        ->where('player_id', $currentPlayer->id)
-                        ->where('status', MembershipStatus::Active->value)
-                        
-                        ->first();
-                if (! $membership instanceof AllianceMembership || $membership->status !== MembershipStatus::Active) {
-                    throw new InvalidArgumentException('Manual contributions may only target a current active Alliance Player.');
-                }
+            if ($source !== ContributionRecordSource::SelfReported
+                && ! $isActorTarget
+                && ! $this->memberships->lockActiveMember($allianceId, $target->playerId)) {
+                throw new InvalidArgumentException('Manual contributions may only target a current active Alliance Player.');
             }
 
-            $currentCategory = ContributionCategory::query()
-                ->where('alliance_id', $context->alliance->id)
-                ->whereKey($category->id)
-                
+            $category = ContributionCategory::query()
+                ->where('alliance_id', $allianceId)
+                ->whereKey($categoryId)
+                ->lockForUpdate()
                 ->firstOrFail();
-            if (! $currentCategory->is_active) {
+            if (! $category->is_active) {
                 throw new InvalidArgumentException('Contribution category is inactive.');
             }
-            if ($source === ContributionRecordSource::SelfReported && ! $currentCategory->allow_self_report) {
+            if ($source === ContributionRecordSource::SelfReported && ! $category->allow_self_report) {
                 throw new InvalidArgumentException('This contribution category does not allow member self-reporting.');
             }
-            if ($currentCategory->evidence_required && trim((string) $evidence) === '') {
+            if ($category->evidence_required && trim((string) $evidence) === '') {
                 throw new InvalidArgumentException('Evidence is required for this contribution category.');
             }
 
-            $period = $this->periods->current($currentCategory, $context->alliance->timezone);
+            // Alliance row is already locked by AllianceAuthorityFactsQuery; this owner projection
+            // supplies non-authority presentation/configuration data needed for period calculation.
+            $alliance = $this->alliances->require($allianceId);
+            $period = $this->periods->current($category, $alliance->timezone);
             $record = ContributionRecord::query()->create([
-                'alliance_id' => $context->alliance->id,
-                'category_id' => $currentCategory->id,
-                'player_id' => $currentPlayer->id,
+                'alliance_id' => $allianceId,
+                'category_id' => $category->id,
+                'player_id' => $target->playerId,
                 'source' => $source,
-                'data_class' => $currentCategory->data_class,
+                'data_class' => $category->data_class,
                 'value' => $value,
                 'period_start' => $period['start']->toDateString(),
                 'period_end' => $period['end']->toDateString(),
                 'status' => ContributionRecordStatus::Pending,
                 'evidence' => $evidence,
-                'calculation_key' => $currentCategory->calculation_key,
-                'calculation_version' => $currentCategory->calculation_version,
+                'calculation_key' => $category->calculation_key,
+                'calculation_version' => $category->calculation_version,
                 'recorded_at' => now(),
-                'recorded_by_player_id' => $context->actor->id,
+                'recorded_by_player_id' => $actor->playerId,
             ]);
 
-            $this->audit->record('contribution.record.created', $context->actor, $record, $context->alliance, [
+            $this->audit->record('contribution.record.created', $actor, $record, $allianceId, [
                 'source' => $source->value,
-                'player_id' => $currentPlayer->id,
-                'category_id' => $currentCategory->id,
+                'player_id' => $target->playerId,
+                'category_id' => $category->id,
             ]);
-            $this->outbox->record('contribution.record.created', $context->alliance->id, $record, [
+            $this->outbox->record('contribution.record.created', $allianceId, $record, [
                 'record_id' => $record->id,
-                'player_id' => $currentPlayer->id,
+                'player_id' => $target->playerId,
                 'status' => $record->status->value,
             ]);
-
-            return $record;
         });
     }
 }

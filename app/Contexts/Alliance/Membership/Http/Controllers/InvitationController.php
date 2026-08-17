@@ -8,7 +8,6 @@ use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Actions\CreateInvitation;
 use App\Contexts\Alliance\Membership\Actions\ResendInvitation;
 use App\Contexts\Alliance\Membership\Actions\RevokeInvitation;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,13 +24,11 @@ final class InvitationController extends Controller
             'email' => ['required', 'string', 'email', 'max:254'],
         ]);
 
-        $target = Player::query()
-            ->whereKey((string) $validated['player_id'])
-            ->firstOrFail();
+        $scope = $context->scope();
         $issued = $createInvitation->handle(
-            $context->alliance(),
-            $context->player(),
-            $target,
+            $scope->allianceId,
+            $scope->playerId,
+            (string) $validated['player_id'],
             $validated['email'],
         );
 
@@ -47,7 +44,7 @@ final class InvitationController extends Controller
         ResendInvitation $resendInvitation,
         string $invitation,
     ): RedirectResponse {
-        $issued = $resendInvitation->handle($context->alliance(), $context->player(), $invitation);
+        $issued = $resendInvitation->handle($context->scope()->allianceId, $context->scope()->playerId, $invitation);
 
         return redirect()->route('alliance.overview')->with(
             'invitationLink',
@@ -61,7 +58,7 @@ final class InvitationController extends Controller
         RevokeInvitation $revokeInvitation,
         string $invitation,
     ): RedirectResponse {
-        $revokeInvitation->handle($context->alliance(), $context->player(), $invitation);
+        $revokeInvitation->handle($context->scope()->allianceId, $context->scope()->playerId, $invitation);
 
         return redirect()->route('alliance.overview');
     }

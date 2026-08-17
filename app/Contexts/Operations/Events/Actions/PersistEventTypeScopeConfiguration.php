@@ -12,14 +12,14 @@ use App\Contexts\Operations\Events\Models\EventTypeScope;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
-final class PersistEventTypeScopeConfiguration
+final readonly class PersistEventTypeScopeConfiguration
 {
     /**
-     * @param  list<EventCapability>  $capabilities
-     * @param  array<string, mixed>  $defaultSettings
+     * @param list<EventCapability> $capabilities
+     * @param array<string, mixed> $defaultSettings
      */
     public function handle(
-        EventTypeScope $configuration,
+        string $configurationId,
         bool $isActive,
         ?int $defaultDurationMinutes,
         ?int $defaultCapacity,
@@ -33,7 +33,7 @@ final class PersistEventTypeScopeConfiguration
         ?string $defaultInstructionsKey,
         array $defaultSettings,
         array $capabilities,
-    ): EventTypeScope {
+    ): void {
         if ($recurrencePolicy === EventRecurrencePolicy::Disabled) {
             $defaultRecurrenceFrequency = RecurrenceFrequency::None;
             $defaultRecurrenceInterval = 1;
@@ -42,7 +42,6 @@ final class PersistEventTypeScopeConfiguration
             if ($defaultRecurrenceFrequency === RecurrenceFrequency::None) {
                 throw new InvalidArgumentException('Fixed recurrence requires a recurrence frequency.');
             }
-
             if ($minimumRepeatIntervalMinutes === null || $minimumRepeatIntervalMinutes < 1) {
                 throw new InvalidArgumentException('Fixed recurrence requires a minimum repeat interval.');
             }
@@ -52,8 +51,8 @@ final class PersistEventTypeScopeConfiguration
             throw new InvalidArgumentException('Recurrence interval must be at least one.');
         }
 
-        return DB::transaction(function () use (
-            $configuration,
+        DB::transaction(function () use (
+            $configurationId,
             $isActive,
             $defaultDurationMinutes,
             $defaultCapacity,
@@ -67,12 +66,8 @@ final class PersistEventTypeScopeConfiguration
             $defaultInstructionsKey,
             $defaultSettings,
             $capabilities,
-        ): EventTypeScope {
-            $locked = EventTypeScope::query()
-                ->whereKey($configuration->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-
+        ): void {
+            $locked = EventTypeScope::query()->whereKey($configurationId)->lockForUpdate()->firstOrFail();
             $locked->forceFill([
                 'is_active' => $isActive,
                 'default_duration_minutes' => $defaultDurationMinutes,
@@ -84,9 +79,7 @@ final class PersistEventTypeScopeConfiguration
                 'minimum_repeat_interval_minutes' => $minimumRepeatIntervalMinutes,
                 'default_registration_opens_minutes_before' => $defaultRegistrationOpensMinutesBefore,
                 'default_registration_closes_minutes_before' => $defaultRegistrationClosesMinutesBefore,
-                'default_instructions_key' => $defaultInstructionsKey === null || trim($defaultInstructionsKey) === ''
-                    ? null
-                    : trim($defaultInstructionsKey),
+                'default_instructions_key' => $defaultInstructionsKey === null || trim($defaultInstructionsKey) === '' ? null : trim($defaultInstructionsKey),
                 'default_settings' => $defaultSettings === [] ? null : $defaultSettings,
             ])->save();
 
@@ -94,17 +87,10 @@ final class PersistEventTypeScopeConfiguration
                 static fn (EventCapability $capability): string => $capability->value,
                 $capabilities,
             )));
-
             $locked->capabilities()->whereNotIn('capability', $wanted)->delete();
             foreach ($wanted as $capability) {
-                $locked->capabilities()->firstOrCreate([
-                    'capability' => $capability,
-                ], [
-                    'configuration' => null,
-                ]);
+                $locked->capabilities()->firstOrCreate(['capability' => $capability], ['configuration' => null]);
             }
-
-            return $locked->refresh()->load(['eventType', 'capabilities']);
         });
     }
 }

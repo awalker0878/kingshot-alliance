@@ -12,6 +12,7 @@ use App\Contexts\Alliance\Content\Enums\ContentVisibility;
 use App\Contexts\Alliance\Content\Models\ContentCategory;
 use App\Contexts\Alliance\Content\Queries\ContentQuery;
 use App\Contexts\Alliance\Content\Services\ContentPresenter;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
@@ -26,14 +27,15 @@ final class MemberContentController extends Controller
         AllianceAuthorization $authorization,
         ContentQuery $content,
         ContentPresenter $presenter,
+        AllianceReferenceQuery $alliances,
     ): Response {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
-        $actor = $context->player();
-        $alliance = $context->alliance();
+        $scope = $context->scope();
+        $alliance = $alliances->require($scope->allianceId);
 
         $items = $content->memberList(
-            $alliance,
+            $scope->allianceId,
             $request->string('q')->toString(),
             $request->string('type')->toString(),
             $request->string('category')->toString(),
@@ -41,7 +43,7 @@ final class MemberContentController extends Controller
         );
 
         $categories = ContentCategory::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $scope->allianceId)
             ->whereHas('items', static fn ($query) => $query
                 ->where('status', ContentStatus::Published->value)
                 ->whereIn('visibility', [ContentVisibility::Public->value, ContentVisibility::Members->value])
@@ -63,7 +65,7 @@ final class MemberContentController extends Controller
                 'timezone' => $alliance->timezone,
             ],
             'viewerTimezone' => $user->timezone,
-            'canManageContent' => $authorization->allows($actor, $alliance, AlliancePermission::ContentManage),
+            'canManageContent' => $authorization->allows($scope->playerId, $scope->allianceId, AlliancePermission::ContentManage),
             'filters' => [
                 'q' => $request->string('q')->toString(),
                 'type' => $request->string('type')->toString(),
@@ -83,12 +85,14 @@ final class MemberContentController extends Controller
         AllianceContext $context,
         ContentQuery $content,
         ContentPresenter $presenter,
+        AllianceReferenceQuery $alliances,
         string $contentSlug,
     ): Response {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
-        $alliance = $context->alliance();
-        $item = $content->memberBySlug($alliance, $contentSlug);
+        $scope = $context->scope();
+        $alliance = $alliances->require($scope->allianceId);
+        $item = $content->memberBySlug($scope->allianceId, $contentSlug);
         abort_unless($item !== null, 404);
 
         return Inertia::render('Alliance/ContentDetail', [

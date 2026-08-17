@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Queries\EventEligiblePlayerQuery;
@@ -21,60 +23,53 @@ use LogicException;
 
 final readonly class EventResultQuery
 {
-    public function __construct(private EventEligiblePlayerQuery $eligiblePlayers) {}
+    public function __construct(
+        private EventEligiblePlayerQuery $eligiblePlayers,
+        private PlayerReferenceQuery $players,
+        private AllianceReferenceQuery $alliances,
+    ) {}
 
     /** @return array{summary:?array<string,mixed>,player:?array<string,mixed>} */
-    public function forOccurrence(EventOccurrence $occurrence, ?Player $player): array
+    public function forOccurrence(EventOccurrence $occurrence, ?PlayerReference $player): array
     {
-        $summary = EventResult::query()
-            ->where('occurrence_id', $occurrence->id)
-            ->with('metrics.definition')
-            ->first();
-        $playerResult = $player instanceof Player
+        $summary = EventResult::query()->where('occurrence_id', $occurrence->id)->with('metrics.definition')->first();
+        $playerResult = $player instanceof PlayerReference
             ? EventPlayerResult::query()
                 ->where('occurrence_id', $occurrence->id)
-                ->where('player_id', $player->id)
-                ->with(['player', 'metrics.definition'])
+                ->where('player_id', $player->playerId)
+                ->with('metrics.definition')
                 ->first()
             : null;
 
         return [
             'summary' => $summary instanceof EventResult ? $this->summary($summary) : null,
-            'player' => $playerResult instanceof EventPlayerResult ? $this->playerResult($playerResult) : null,
+            'player' => $playerResult instanceof EventPlayerResult ? $this->playerResult($playerResult, $player) : null,
         ];
     }
 
     /** @return list<array<string,mixed>> */
     public function management(Event $event): array
     {
-        $players = $this->eligiblePlayers->for($event)->keyBy(static fn (Player $player): string => (string) $player->id);
+        $eligible = $this->eligiblePlayers->for($event)->keyBy(static fn (PlayerReference $player): string => $player->playerId);
         $occurrences = $event->occurrences->sortBy('starts_at')->values();
         $occurrenceIds = $occurrences->pluck('id');
-        $summaries = EventResult::query()
-            ->whereIn('occurrence_id', $occurrenceIds)
-            ->with('metrics.definition')
-            ->get()
+        $summaries = EventResult::query()->whereIn('occurrence_id', $occurrenceIds)->with('metrics.definition')->get()
             ->keyBy(static fn (EventResult $result): string => (string) $result->occurrence_id);
-        $allianceResults = EventAllianceResult::query()
-            ->whereIn('occurrence_id', $occurrenceIds)
-            ->with(['alliance', 'metrics.definition'])
-            ->orderByDesc('score')
-            ->orderBy('rank')
-            ->get()
+        $allianceResults = EventAllianceResult::query()->whereIn('occurrence_id', $occurrenceIds)->with('metrics.definition')
+            ->orderByDesc('score')->orderBy('rank')->get()
             ->groupBy(static fn (EventAllianceResult $result): string => (string) $result->occurrence_id);
-        $playerResults = EventPlayerResult::query()
-            ->whereIn('occurrence_id', $occurrenceIds)
-            ->with(['player', 'metrics.definition'])
-            ->orderByDesc('score')
-            ->orderBy('rank')
-            ->get()
+        $playerResults = EventPlayerResult::query()->whereIn('occurrence_id', $occurrenceIds)->with('metrics.definition')
+            ->orderByDesc('score')->orderBy('rank')->get()
             ->groupBy(static fn (EventPlayerResult $result): string => (string) $result->occurrence_id);
-        $playerOptions = $players->values()->map(static fn (Player $player): array => [
-            'id' => (string) $player->id,
-            'name' => (string) $player->current_name,
+
+        $resultPlayerIds = $playerResults->flatten(1)->pluck('player_id')->map(static fn ($id): string => (string) $id)->all();
+        $playerReferences = $this->players->byIds(array_merge($eligible->keys()->all(), $resultPlayerIds));
+        $playerOptions = $eligible->values()->map(static fn (PlayerReference $player): array => [
+            'id' => $player->playerId,
+            'name' => $player->currentName,
         ])->values()->all();
 
-        $rows = $occurrences->map(function (EventOccurrence $occurrence) use ($summaries, $allianceResults, $playerResults, $playerOptions): array {
+        $rows = $occurrences->map(function (EventOccurrence $occurrence) use ($summaries, $allianceResults, $playerResults, $playerOptions, $playerReferences): array {
             $occurrenceId = (string) $occurrence->id;
             $summary = $summaries->get($occurrenceId);
             $allianceRows = $allianceResults->get($occurrenceId, collect());
@@ -84,14 +79,11 @@ final readonly class EventResultQuery
                 'occurrenceId' => $occurrenceId,
                 'startsAt' => $this->dateTime($occurrence->getAttribute('starts_at')),
                 'summary' => $summary instanceof EventResult ? $this->summary($summary) : null,
-                'allianceResults' => $allianceRows
-                    ->map(fn (EventAllianceResult $result): array => $this->allianceResult($result))
-                    ->values()
-                    ->all(),
-                'playerResults' => $playerRows
-                    ->map(fn (EventPlayerResult $result): array => $this->playerResult($result))
-                    ->values()
-                    ->all(),
+                'allianceResults' => $allianceRows->map(fn (EventAllianceResult $result): array => $this->allianceResult($result))->values()->all(),
+                'playerResults' => $playerRows->map(fn (EventPlayerResult $result): array => $this->playerResult(
+                    $result,
+                    $playerReferences[(string) $result->player_id] ?? null,
+                ))->values()->all(),
                 'players' => $playerOptions,
             ];
         })->all();
@@ -117,12 +109,14 @@ final readonly class EventResultQuery
     /** @return array<string,mixed> */
     private function allianceResult(EventAllianceResult $result): array
     {
+        $current = $this->alliances->find((string) $result->alliance_id);
+
         return [
             'id' => (string) $result->id,
             'allianceId' => (string) $result->alliance_id,
             'allianceName' => (string) $result->alliance_name_snapshot,
             'allianceTag' => $result->alliance_tag_snapshot,
-            'currentAllianceName' => $result->alliance?->name,
+            'currentAllianceName' => $current?->name,
             'outcome' => $result->outcome,
             'score' => $result->score,
             'rank' => $result->rank,
@@ -133,12 +127,12 @@ final readonly class EventResultQuery
     }
 
     /** @return array<string,mixed> */
-    private function playerResult(EventPlayerResult $result): array
+    private function playerResult(EventPlayerResult $result, ?PlayerReference $player): array
     {
         return [
             'id' => (string) $result->id,
             'playerId' => (string) $result->player_id,
-            'playerName' => $result->player?->current_name,
+            'playerName' => $player?->currentName,
             'outcome' => $result->outcome,
             'score' => $result->score,
             'rank' => $result->rank,
@@ -149,25 +143,20 @@ final readonly class EventResultQuery
     }
 
     /**
-     * @param  iterable<EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric>  $metrics
+     * @param iterable<EventResultMetric|EventAllianceResultMetric|EventPlayerResultMetric> $metrics
      * @return list<array<string,mixed>>
      */
     private function metrics(iterable $metrics): array
     {
         $rows = [];
-
         foreach ($metrics as $metric) {
             $definition = $metric->getRelation('definition');
             if (! $definition instanceof EventMetricDefinition) {
                 throw new LogicException('Event metric values require a loaded metric definition.');
             }
-
             $source = $metric->getAttribute('source');
-            $sourceEnum = $source instanceof EventMetricSource
-                ? $source
-                : EventMetricSource::from((string) $source);
+            $sourceEnum = $source instanceof EventMetricSource ? $source : EventMetricSource::from((string) $source);
             $dimensionKey = (string) $metric->getAttribute('dimension_key');
-
             $rows[] = [
                 'subject' => $definition->subject->value,
                 'key' => (string) $definition->key,
@@ -185,7 +174,6 @@ final readonly class EventResultQuery
                 'recordedAt' => $this->nullableDateTime($metric->getAttribute('recorded_at')),
             ];
         }
-
         return $rows;
     }
 

@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Events\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Actions\SaveEventPhase;
 use App\Contexts\Operations\Events\Enums\EventPhaseStatus;
 use App\Contexts\Operations\Events\Enums\EventPhaseType;
-use App\Contexts\Operations\Events\Models\EventPhase;
 use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
 use App\Contexts\Operations\Participation\Reminders\Actions\SyncEventPollDeadlineReminder;
 use App\Contexts\Operations\Polls\Actions\CastEventPollVote;
@@ -35,8 +34,8 @@ final class EventOperationsController extends Controller
         $record = $events->occurrence($actor, $occurrence);
         $validated = $this->validatePhase($request);
         $save->handle(
-            actor: $actor,
-            occurrence: $record,
+            actorPlayerId: $actor->playerId,
+            occurrenceId: $occurrence,
             key: (string) $validated['key'],
             type: EventPhaseType::from((string) $validated['phase_type']),
             name: (string) $validated['name'],
@@ -54,11 +53,10 @@ final class EventOperationsController extends Controller
         $this->user($request);
         $actor = $this->player();
         $record = $events->occurrence($actor, $occurrence);
-        $phaseRecord = EventPhase::query()->whereKey($phase)->where('occurrence_id', $record->id)->firstOrFail();
         $validated = $this->validatePhase($request);
         $save->handle(
-            actor: $actor,
-            occurrence: $record,
+            actorPlayerId: $actor->playerId,
+            occurrenceId: $occurrence,
             key: (string) $validated['key'],
             type: EventPhaseType::from((string) $validated['phase_type']),
             name: (string) $validated['name'],
@@ -66,7 +64,7 @@ final class EventOperationsController extends Controller
             endsAt: $this->time($validated['ends_at'] ?? null, $record->event->timezone),
             status: EventPhaseStatus::from((string) $validated['status']),
             sortOrder: (int) ($validated['sort_order'] ?? 0),
-            phase: $phaseRecord,
+            phaseId: $phase,
         );
 
         return back()->with('status', 'event-phase-saved');
@@ -78,9 +76,9 @@ final class EventOperationsController extends Controller
         $actor = $this->player();
         $record = $events->occurrence($actor, $occurrence);
         $validated = $this->validatePoll($request, creating: true);
-        $poll = $save->handle(
-            actor: $actor,
-            occurrence: $record,
+        $pollId = $save->handle(
+            actorPlayerId: $actor->playerId,
+            occurrenceId: $occurrence,
             key: (string) $validated['key'],
             type: EventPollType::from((string) $validated['poll_type']),
             question: (string) $validated['question'],
@@ -91,7 +89,7 @@ final class EventOperationsController extends Controller
             options: $this->options($validated['options'] ?? []),
             settings: ['deadline_reminder_minutes' => $validated['deadline_reminder_minutes'] ?? null],
         );
-        $reminders->handle($actor, $poll);
+        $reminders->handle($actor->playerId, $pollId);
 
         return back()->with('status', 'event-poll-saved');
     }
@@ -101,11 +99,11 @@ final class EventOperationsController extends Controller
         $this->user($request);
         $actor = $this->player();
         $record = $events->occurrence($actor, $occurrence);
-        $pollRecord = EventPoll::query()->whereKey($poll)->where('occurrence_id', $record->id)->with('options')->firstOrFail();
+        $pollRecord = EventPoll::query()->whereKey($poll)->where('occurrence_id', $occurrence)->firstOrFail();
         $validated = $this->validatePoll($request, creating: false);
-        $saved = $save->handle(
-            actor: $actor,
-            occurrence: $record,
+        $pollId = $save->handle(
+            actorPlayerId: $actor->playerId,
+            occurrenceId: $occurrence,
             key: (string) $validated['key'],
             type: EventPollType::from((string) $validated['poll_type']),
             question: isset($validated['question']) ? (string) $validated['question'] : null,
@@ -116,24 +114,22 @@ final class EventOperationsController extends Controller
             maxChoices: (int) $validated['max_choices'],
             options: array_key_exists('options', $validated) ? $this->options($validated['options']) : null,
             settings: array_replace($pollRecord->settings ?? [], ['deadline_reminder_minutes' => $validated['deadline_reminder_minutes'] ?? null]),
-            poll: $pollRecord,
+            pollId: $poll,
         );
-        $reminders->handle($actor, $saved);
+        $reminders->handle($actor->playerId, $pollId);
 
         return back()->with('status', 'event-poll-saved');
     }
 
-    public function vote(Request $request, string $occurrence, string $poll, EventCalendarQuery $events, CastEventPollVote $vote): RedirectResponse
+    public function vote(Request $request, string $occurrence, string $poll, CastEventPollVote $vote): RedirectResponse
     {
         $this->user($request);
         $actor = $this->player();
-        $record = $events->occurrence($actor, $occurrence);
-        $pollRecord = EventPoll::query()->whereKey($poll)->where('occurrence_id', $record->id)->firstOrFail();
         $validated = $request->validate([
             'option_ids' => ['required', 'array', 'min:1', 'max:20'],
             'option_ids.*' => ['required', 'string'],
         ]);
-        $vote->handle($actor, $pollRecord, $actor, $this->optionIds($validated['option_ids']));
+        $vote->handle($actor->playerId, $occurrence, $poll, $this->optionIds($validated['option_ids']));
 
         return back()->with('status', 'event-poll-vote-saved');
     }
@@ -191,11 +187,7 @@ final class EventOperationsController extends Controller
             if (! is_array($option)) {
                 continue;
             }
-
-            $options[] = [
-                'label' => (string) ($option['label'] ?? ''),
-                'value' => (string) ($option['value'] ?? ''),
-            ];
+            $options[] = ['label' => (string) ($option['label'] ?? ''), 'value' => (string) ($option['value'] ?? '')];
         }
 
         return $options;
@@ -218,10 +210,10 @@ final class EventOperationsController extends Controller
         return $ids;
     }
 
-    private function player(): Player
+    private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof Player, 409, 'Select a Player before performing Event operations.');
+        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Event operations.');
 
         return $player;
     }

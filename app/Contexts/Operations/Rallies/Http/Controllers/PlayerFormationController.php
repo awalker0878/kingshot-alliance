@@ -7,7 +7,6 @@ namespace App\Contexts\Operations\Rallies\Http\Controllers;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\Rallies\Actions\DeletePlayerFormation;
 use App\Contexts\Operations\Rallies\Actions\SavePlayerFormation;
-use App\Contexts\Operations\Rallies\Models\PlayerFormation;
 use App\Contexts\Operations\Rallies\ValueObjects\FormationComposition;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -20,8 +19,7 @@ final class PlayerFormationController extends Controller
         $player = $context->player();
         $validated = $this->validateFormation($request);
         $save->handle(
-            actor: $player,
-            player: $player,
+            actorPlayerId: $player->playerId,
             name: (string) $validated['name'],
             composition: $this->composition($validated),
             heroes: $validated['heroes'] ?? [],
@@ -35,17 +33,15 @@ final class PlayerFormationController extends Controller
     public function update(Request $request, string $formation, PlayerContext $context, SavePlayerFormation $save): RedirectResponse
     {
         $player = $context->player();
-        $record = PlayerFormation::query()->whereKey($formation)->where('player_id', $player->id)->firstOrFail();
         $validated = $this->validateFormation($request);
         $save->handle(
-            actor: $player,
-            player: $player,
+            actorPlayerId: $player->playerId,
             name: (string) $validated['name'],
             composition: $this->composition($validated),
             heroes: $validated['heroes'] ?? [],
             notes: $validated['notes'] ?? null,
             isDefault: (bool) ($validated['is_default'] ?? false),
-            formation: $record,
+            formationId: $formation,
         );
 
         return back()->with('status', 'player-formation-saved');
@@ -53,9 +49,7 @@ final class PlayerFormationController extends Controller
 
     public function destroy(Request $request, string $formation, PlayerContext $context, DeletePlayerFormation $delete): RedirectResponse
     {
-        $player = $context->player();
-        $record = PlayerFormation::query()->whereKey($formation)->where('player_id', $player->id)->firstOrFail();
-        $delete->handle($player, $record);
+        $delete->handle($context->player()->playerId, $formation);
 
         return back()->with('status', 'player-formation-deleted');
     }

@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace App\ReadModels\AllianceDashboard;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 final class UpcomingAllianceActivitiesQuery
 {
     /** @return list<array{id: string, title: string, startsAt: string, allianceTimezone: string}> */
-    public function handle(Alliance $alliance, int $limit = 5): array
+    public function handle(string $allianceId, int $limit = 5): array
     {
         return array_values(DB::table('event_occurrences')
             ->join('events', 'events.id', '=', 'event_occurrences.event_id')
             ->where('events.scope', 'alliance')
-            ->where('events.alliance_id', $alliance->id)
+            ->where('events.alliance_id', $allianceId)
             ->where('event_occurrences.status', 'scheduled')
             ->whereBetween('event_occurrences.starts_at', [now(), now()->addDays(30)])
             ->orderBy('event_occurrences.starts_at')

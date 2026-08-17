@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
@@ -32,105 +30,70 @@ final readonly class RespondToEventRosterAssignment
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Player $actor, EventRosterMember $member, Player $player, EventRosterMemberStatus $status): EventRosterMember
-    {
+    public function handle(
+        string $actorPlayerId,
+        string $occurrenceId,
+        string $memberId,
+        EventRosterMemberStatus $status,
+    ): void {
         if (! in_array($status, [EventRosterMemberStatus::Confirmed, EventRosterMemberStatus::Declined], true)) {
             throw ValidationException::withMessages(['status' => 'Roster assignment response must be confirmed or declined.']);
         }
 
-        $roster = $member->roster()->firstOrFail();
-        $occurrence = $roster->occurrence()->firstOrFail();
-        $event = $occurrence->event()->firstOrFail();
-
-        return DB::transaction(function () use ($actor, $member, $player, $status, $roster, $occurrence, $event): EventRosterMember {
-            $context = $this->eventWriteState->lockSelfScope($actor, $event, $player);
-            $this->mutations->authorizeSelf($context, $player);
+        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $memberId, $status): void {
+            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
+            $context = $this->eventWriteState->lockSelfScope($actorPlayerId, (string) $route->event_id, $actorPlayerId);
+            $this->mutations->authorizeSelf($context, $actorPlayerId);
             $this->capabilities->require($context->event, EventCapability::Rosters);
 
-            $lockedOccurrence = EventOccurrence::query()
-                ->whereKey($occurrence->id)
-                ->where('event_id', $context->event->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-            $lockedRoster = EventRoster::query()
-                ->whereKey($roster->id)
-                ->where('occurrence_id', $lockedOccurrence->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-            $locked = EventRosterMember::query()
-                ->whereKey($member->id)
-                ->where('roster_id', $lockedRoster->id)
-                ->where('player_id', $context->actor->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->lockForUpdate()->firstOrFail();
+            $member = EventRosterMember::query()->whereKey($memberId)->where('player_id', $actorPlayerId)->lockForUpdate()->firstOrFail();
+            $roster = EventRoster::query()->whereKey($member->roster_id)->where('occurrence_id', $occurrence->id)->lockForUpdate()->firstOrFail();
 
-            if ((string) $locked->player_id !== (string) $context->actor->id) {
+            if ((string) $member->player_id !== $actorPlayerId) {
                 throw new AuthorizationException;
             }
-            if (in_array($locked->statusEnum(), [EventRosterMemberStatus::Removed, EventRosterMemberStatus::Participated, EventRosterMemberStatus::Absent], true)) {
+            if (in_array($member->statusEnum(), [EventRosterMemberStatus::Removed, EventRosterMemberStatus::Participated, EventRosterMemberStatus::Absent], true)) {
                 throw ValidationException::withMessages(['status' => 'This roster assignment can no longer be confirmed or declined.']);
             }
 
-            if ($status === EventRosterMemberStatus::Confirmed && ! $locked->statusEnum()->occupiesSlot()) {
+            if ($status === EventRosterMemberStatus::Confirmed && ! $member->statusEnum()->occupiesSlot()) {
                 $occupying = $this->occupyingStatuses();
-                $activeCount = EventRosterMember::query()
-                    ->where('roster_id', $lockedRoster->id)
-                    ->whereIn('status', $occupying)
-                    ->count();
-                if ($lockedRoster->capacity !== null && $activeCount >= (int) $lockedRoster->capacity) {
+                $activeCount = EventRosterMember::query()->where('roster_id', $roster->id)->whereIn('status', $occupying)->count();
+                if ($roster->capacity !== null && $activeCount >= (int) $roster->capacity) {
                     throw ValidationException::withMessages(['status' => 'This roster is now at capacity.']);
                 }
-                if ($locked->slot_number !== null && EventRosterMember::query()
-                    ->where('roster_id', $lockedRoster->id)
-                    ->where('slot_number', $locked->slot_number)
-                    ->whereIn('status', $occupying)
-                    ->where('id', '!=', $locked->id)
-                    ->exists()) {
+                if ($member->slot_number !== null && EventRosterMember::query()
+                    ->where('roster_id', $roster->id)->where('slot_number', $member->slot_number)->whereIn('status', $occupying)
+                    ->where('id', '!=', $member->id)->exists()) {
                     throw ValidationException::withMessages(['status' => 'This roster slot has been reassigned.']);
                 }
                 if (EventRosterMember::query()
-                    ->where('player_id', $context->actor->id)
-                    ->whereIn('status', $occupying)
-                    ->where('id', '!=', $locked->id)
+                    ->where('player_id', $actorPlayerId)->whereIn('status', $occupying)->where('id', '!=', $member->id)
                     ->whereHas('roster', static fn ($query) => $query
-                        ->where('occurrence_id', $lockedOccurrence->id)
-                        ->where('assignment_group', $lockedRoster->assignment_group))
-                    ->exists()) {
+                        ->where('occurrence_id', $occurrence->id)
+                        ->where('assignment_group', $roster->assignment_group))->exists()) {
                     throw ValidationException::withMessages(['status' => 'This Player has another active assignment in the same roster group.']);
                 }
+
+                $this->contexts->freeze($occurrence, $context->actor, $member->alliance_id === null ? null : (string) $member->alliance_id);
             }
 
-            if ($status === EventRosterMemberStatus::Confirmed) {
-                $representedAlliance = $locked->alliance_id === null
-                    ? null
-                    : Alliance::query()->whereKey($locked->alliance_id)->first();
-                $this->contexts->freeze($lockedOccurrence, $context->actor, $representedAlliance);
-            }
-
-            $locked->forceFill([
+            $member->forceFill([
                 'status' => $status,
-                'responded_by_player_id' => $context->actor->id,
+                'responded_by_player_id' => $actorPlayerId,
                 'responded_at' => now(),
             ])->save();
 
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
             $metadata = [
                 'event_id' => (string) $context->event->id,
-                'occurrence_id' => (string) $lockedOccurrence->id,
-                'roster_id' => (string) $lockedRoster->id,
-                'player_id' => (string) $context->actor->id,
+                'occurrence_id' => (string) $occurrence->id,
+                'roster_id' => (string) $roster->id,
+                'player_id' => $actorPlayerId,
                 'status' => $status->value,
             ];
-            $this->audit->record('event.roster.assignment_responded', $context->actor, $locked, $alliance, $metadata);
-            $this->outbox->record(
-                'event.roster.assignment_responded',
-                $alliance?->id,
-                $locked,
-                $metadata,
-                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
-            );
-
-            return $locked->refresh()->load(['player', 'roster']);
+            $this->audit->record('event.roster.assignment_responded', $context->actor, $member, $context->target->allianceId, $metadata);
+            $this->outbox->record('event.roster.assignment_responded', $context->target->allianceId, $member, $metadata, partitionKey: $context->target->partitionKey());
         });
     }
 

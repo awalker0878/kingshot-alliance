@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
@@ -25,86 +26,66 @@ final readonly class RecordEventAttendance
 {
     public function __construct(
         private EventWriteState $eventWriteState,
-        private EventAuthorization $mutations,
+        private EventAuthorization $authorization,
         private EventParticipantAuthorization $participants,
         private EventCapabilityGuard $capabilities,
         private EventPlayerContextFreezer $contexts,
+        private PlayerReferenceQuery $players,
+        private RosterEntryQuery $roster,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
-        Player $actor,
-        EventOccurrence $occurrence,
-        Player $player,
+        string $actorPlayerId,
+        string $occurrenceId,
+        string $playerId,
         EventAttendanceStatus $status,
         ?string $notes = null,
-    ): EventAttendance {
-        $event = $occurrence->event()->firstOrFail();
-
-        return DB::transaction(function () use ($actor, $occurrence, $event, $player, $status, $notes): EventAttendance {
-            $context = $this->eventWriteState->lockEventScope($actor, $event);
-            $this->mutations->authorizeManager($context);
+    ): void {
+        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $playerId, $status, $notes): void {
+            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
+            $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
+            $this->authorization->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Attendance);
 
-            $lockedOccurrence = EventOccurrence::query()
-                ->whereKey($occurrence->id)
+            $occurrence = EventOccurrence::query()
+                ->whereKey($occurrenceId)
                 ->where('event_id', $context->event->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+            $player = $this->players->lockCurrent($playerId);
+            $activeRosterPresence = $context->target->scope === EventScope::Alliance
+                && $context->target->allianceId !== null
+                && $this->roster->lockActiveRosterPresence($context->target->allianceId, $playerId);
 
-            $currentPlayer = (string) $context->actor->id === (string) $player->id
-                ? $context->actor
-                : Player::query()->whereKey($player->id)->firstOrFail();
-            $frozenContext = $this->contexts->existing($lockedOccurrence, $currentPlayer);
+            if (! $this->participants->eligibleAgainstTarget($context->target, $player, $activeRosterPresence)) {
+                throw new AuthorizationException;
+            }
 
-            if (! $frozenContext instanceof EventPlayerContext) {
-                if ((string) $context->actor->id !== (string) $currentPlayer->id) {
-                    $currentPlayer = Player::query()
-                        ->whereKey($currentPlayer->id)
-                        
-                        ->firstOrFail();
-                }
-
-                if (! $this->participants->eligible($context->event, $currentPlayer)) {
-                    throw new AuthorizationException;
-                }
-
-                if ($status !== EventAttendanceStatus::Unknown) {
-                    $this->contexts->freeze($lockedOccurrence, $currentPlayer);
-                }
+            $frozenContext = $this->contexts->existing((string) $occurrence->id, $playerId);
+            if (! $frozenContext instanceof EventPlayerContext && $status !== EventAttendanceStatus::Unknown) {
+                $this->contexts->freeze($occurrence, $player);
             }
 
             $record = EventAttendance::query()->updateOrCreate(
-                [
-                    'occurrence_id' => $lockedOccurrence->id,
-                    'player_id' => $currentPlayer->id,
-                ],
+                ['occurrence_id' => $occurrence->id, 'player_id' => $playerId],
                 [
                     'status' => $status,
                     'notes' => $notes === null || trim($notes) === '' ? null : trim($notes),
-                    'recorded_by_player_id' => $context->actor->id,
+                    'recorded_by_player_id' => $actorPlayerId,
                     'recorded_at' => now(),
                 ],
             );
 
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
             $metadata = [
-                'occurrence_id' => (string) $lockedOccurrence->id,
-                'player_id' => (string) $currentPlayer->id,
+                'occurrence_id' => (string) $occurrence->id,
+                'player_id' => $playerId,
                 'status' => $status->value,
-                'actor_player_id' => (string) $context->actor->id,
+                'actor_player_id' => $actorPlayerId,
             ];
-            $this->audit->record('event.attendance.recorded', $context->actor, $record, $alliance, $metadata);
-            $this->outbox->record(
-                'event.attendance.recorded',
-                $alliance?->id,
-                $record,
-                $metadata,
-                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
-            );
-
-            return $record->refresh();
+            $this->audit->record('event.attendance.recorded', $context->actor, $record, $context->target->allianceId, $metadata);
+            $this->outbox->record('event.attendance.recorded', $context->target->allianceId, $record, $metadata, partitionKey: $context->target->partitionKey());
         });
     }
 }

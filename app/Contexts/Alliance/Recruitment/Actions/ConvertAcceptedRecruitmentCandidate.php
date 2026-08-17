@@ -8,7 +8,6 @@ use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AlliancePermissionEvaluator;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Services\IssueAllianceInvitation;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentOnboardingStatus;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
@@ -16,7 +15,6 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidateOnboarding;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentOnboardingItem;
 use App\Contexts\Alliance\Recruitment\ValueObjects\ConvertedRecruitmentCandidate;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -35,15 +33,15 @@ final class ConvertAcceptedRecruitmentCandidate
     ) {}
 
     public function handle(
-        Player $actor,
-        Alliance $alliance,
-        RecruitmentCandidate $candidate,
-        Player $target,
+        string $actorPlayerId,
+        string $allianceId,
+        string $candidateId,
+        string $targetPlayerId,
     ): ConvertedRecruitmentCandidate {
-        return DB::transaction(function () use ($actor, $alliance, $candidate, $target): ConvertedRecruitmentCandidate {
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $candidateId, $targetPlayerId): ConvertedRecruitmentCandidate {
             // Conversion creates a member-capacity reservation, so acquire the
             // Alliance-wide boundary before candidate/Player child state.
-            $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             // Conversion composes Recruitment and Memberships. Both permissions must
@@ -58,7 +56,7 @@ final class ConvertAcceptedRecruitmentCandidate
 
             $locked = RecruitmentCandidate::query()
                 ->where('alliance_id', $context->alliance->id)
-                ->whereKey($candidate->id)
+                ->whereKey($candidateId)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -71,26 +69,26 @@ final class ConvertAcceptedRecruitmentCandidate
             }
 
             if ($locked->membership_invitation_id !== null) {
-                if ($locked->player_id !== null && (string) $locked->player_id !== (string) $target->id) {
+                if ($locked->player_id !== null && (string) $locked->player_id !== $targetPlayerId) {
                     throw ValidationException::withMessages([
                         'player_id' => 'This candidate was already converted for a different Player.',
                     ]);
                 }
 
                 return new ConvertedRecruitmentCandidate(
-                    $locked,
+                    (string) $locked->id,
                     (string) $locked->membership_invitation_id,
                     null,
                     false,
                 );
             }
 
-            $issued = $this->invitationIssuer->handle($context, $target, (string) $locked->email);
+            $issued = $this->invitationIssuer->handle($context, $targetPlayerId, (string) $locked->email);
 
             $locked->forceFill([
-                'player_id' => $target->id,
+                'player_id' => $targetPlayerId,
                 'membership_invitation_id' => $issued->invitationId,
-                'updated_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $context->actor->playerId,
             ])->save();
 
             $items = RecruitmentOnboardingItem::query()
@@ -115,19 +113,19 @@ final class ConvertAcceptedRecruitmentCandidate
             }
 
             $this->audit->record('recruitment.candidate.converted', $context->actor, $locked, $context->alliance, [
-                'player_id' => $target->id,
+                'player_id' => $targetPlayerId,
                 'membership_invitation_id' => $issued->invitationId,
                 'onboarding_item_count' => $items->count(),
             ]);
             $this->outbox->record('recruitment.candidate.converted', (string) $context->alliance->id, $locked, [
                 'candidate_id' => $locked->id,
-                'player_id' => $target->id,
+                'player_id' => $targetPlayerId,
                 'membership_invitation_id' => $issued->invitationId,
                 'onboarding_item_count' => $items->count(),
             ]);
 
             return new ConvertedRecruitmentCandidate(
-                $locked->refresh(),
+                (string) $locked->id,
                 $issued->invitationId,
                 $issued->token,
                 true,

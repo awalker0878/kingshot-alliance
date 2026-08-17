@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Polls\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
@@ -25,19 +23,19 @@ final readonly class SaveEventPoll
 {
     public function __construct(
         private EventWriteState $eventWriteState,
-        private EventAuthorization $mutations,
+        private EventAuthorization $authorization,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     /**
-     * @param  list<array{label:string,value:string,metadata?:array<string,mixed>}>|null  $options
-     * @param  array<string, mixed>|null  $settings
+     * @param list<array{label:string,value:string,metadata?:array<string,mixed>}>|null $options
+     * @param array<string, mixed>|null $settings
      */
     public function handle(
-        Player $actor,
-        EventOccurrence $occurrence,
+        string $actorPlayerId,
+        string $occurrenceId,
         string $key,
         EventPollType $type,
         ?string $question = null,
@@ -48,14 +46,8 @@ final readonly class SaveEventPoll
         int $maxChoices = 1,
         ?array $options = null,
         ?array $settings = null,
-        ?EventPoll $poll = null,
-    ): EventPoll {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
-
-        if ($poll instanceof EventPoll && (string) $poll->occurrence_id !== (string) $occurrence->id) {
-            abort(404);
-        }
+        ?string $pollId = null,
+    ): string {
         if (! preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $key)) {
             throw ValidationException::withMessages(['key' => 'Poll key must use lowercase letters, numbers, and hyphens.']);
         }
@@ -72,25 +64,21 @@ final readonly class SaveEventPoll
             throw ValidationException::withMessages(['max_choices' => 'Time voting allows one choice per Player.']);
         }
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $poll, $key, $type, $question, $questionKey, $opensAt, $closesAt, $status, $maxChoices, $options, $settings): EventPoll {
-            $context = $this->eventWriteState->lockEventScope($actor, $event);
-            $this->mutations->authorizeManager($context);
+        return DB::transaction(function () use ($actorPlayerId, $occurrenceId, $pollId, $key, $type, $question, $questionKey, $opensAt, $closesAt, $status, $maxChoices, $options, $settings): string {
+            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
+            $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
+            $this->authorization->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Polls);
 
-            $lockedOccurrence = EventOccurrence::query()
-                ->whereKey($occurrence->id)
+            $occurrence = EventOccurrence::query()
+                ->whereKey($occurrenceId)
                 ->where('event_id', $context->event->id)
                 ->sharedLock()
                 ->firstOrFail();
 
-            $record = $poll instanceof EventPoll
-                ? EventPoll::query()
-                    ->whereKey($poll->id)
-                    ->where('occurrence_id', $lockedOccurrence->id)
-                    ->lockForUpdate()
-                    ->firstOrFail()
-                : new EventPoll(['occurrence_id' => $lockedOccurrence->id]);
-
+            $record = $pollId !== null
+                ? EventPoll::query()->whereKey($pollId)->where('occurrence_id', $occurrence->id)->lockForUpdate()->firstOrFail()
+                : new EventPoll(['occurrence_id' => $occurrence->id]);
             $created = ! $record->exists;
             $hasVotes = $record->exists && $record->votes()->exists();
             if ($hasVotes && $options !== null) {
@@ -112,7 +100,7 @@ final readonly class SaveEventPoll
             }
 
             if ($created) {
-                $record->created_by_player_id = $context->actor->id;
+                $record->created_by_player_id = $actorPlayerId;
             }
             $record->forceFill([
                 'key' => $key,
@@ -124,7 +112,7 @@ final readonly class SaveEventPoll
                 'status' => $status,
                 'max_choices' => $maxChoices,
                 'settings' => $settings ?? ($record->settings ?? null),
-                'updated_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $actorPlayerId,
             ])->save();
 
             if ($normalizedOptions !== null) {
@@ -140,32 +128,25 @@ final readonly class SaveEventPoll
                 }
             }
 
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
             $metadata = [
                 'event_id' => (string) $context->event->id,
-                'occurrence_id' => (string) $lockedOccurrence->id,
+                'occurrence_id' => (string) $occurrence->id,
                 'poll_key' => $key,
                 'poll_type' => $type->value,
                 'status' => $status->value,
                 'option_count' => $optionCount,
-                'actor_player_id' => (string) $context->actor->id,
+                'actor_player_id' => $actorPlayerId,
             ];
             $eventName = $created ? 'event.poll.created' : 'event.poll.updated';
-            $this->audit->record($eventName, $context->actor, $record, $alliance, $metadata);
-            $this->outbox->record(
-                $eventName,
-                $alliance?->id,
-                $record,
-                $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
-            );
+            $this->audit->record($eventName, $context->actor, $record, $context->target->allianceId, $metadata);
+            $this->outbox->record($eventName, $context->target->allianceId, $record, $metadata, partitionKey: $context->target->partitionKey());
 
-            return $record->refresh()->load(['options', 'votes']);
+            return (string) $record->id;
         });
     }
 
     /**
-     * @param  list<array{label:string,value:string,metadata?:array<string,mixed>}>  $options
+     * @param list<array{label:string,value:string,metadata?:array<string,mixed>}> $options
      * @return list<array{label:string,value:string,metadata?:array<string,mixed>}>
      */
     private function normalizeOptions(EventPollType $type, array $options): array
@@ -189,11 +170,7 @@ final readonly class SaveEventPoll
                 }
             }
             $seen[$value] = true;
-            $normalized[] = [
-                'label' => $label,
-                'value' => $value,
-                'metadata' => $option['metadata'] ?? [],
-            ];
+            $normalized[] = ['label' => $label, 'value' => $value, 'metadata' => $option['metadata'] ?? []];
         }
 
         return $normalized;

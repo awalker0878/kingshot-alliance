@@ -4,32 +4,25 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Access\Services;
 
-use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
-use App\Contexts\GameWorld\Governance\ValueObjects\KingdomMutationContext;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
+use App\Contexts\GameWorld\Governance\ValueObjects\KingdomAuthorityFacts;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
-use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Database\Eloquent\Builder;
 
-final class KingdomOperationsAuthorization
+final readonly class KingdomOperationsAuthorization
 {
-    public function allows(Player $actor, Kingdom $kingdom, OperationsPermission $permission): bool
-    {
-        if (! $this->supports($permission)
-            || (string) $actor->current_kingdom_id !== (string) $kingdom->id) {
-            return false;
-        }
+    public function __construct(private KingdomAuthorityFactsQuery $authorityFacts) {}
 
-        return $this->hasPermission($actor, $kingdom, $permission);
+    public function allows(string $actorPlayerId, string $kingdomId, OperationsPermission $permission): bool
+    {
+        $facts = $this->authorityFacts->findCurrent($actorPlayerId, $kingdomId);
+
+        return $facts instanceof KingdomAuthorityFacts && $this->allowsFacts($facts, $permission);
     }
 
-    public function authorizeContext(KingdomMutationContext $context, OperationsPermission $permission): void
+    public function allowsFacts(KingdomAuthorityFacts $facts, OperationsPermission $permission): bool
     {
-        if (! $this->supports($permission)
-            || ! $this->hasPermission($context->actor, $context->kingdom, $permission)) {
-            throw new AuthorizationException;
-        }
+        return $this->supports($permission)
+            && $facts->hasPermissionObservedAtRead($permission->key());
     }
 
     private function supports(OperationsPermission $permission): bool
@@ -39,16 +32,5 @@ final class KingdomOperationsAuthorization
             OperationsPermission::EventKingdomCreate,
             OperationsPermission::EventKingdomManage,
         ], true);
-    }
-
-    private function hasPermission(Player $actor, Kingdom $kingdom, OperationsPermission $permission): bool
-    {
-        return KingdomRoleAssignment::query()
-            ->where('kingdom_id', $kingdom->id)
-            ->where('player_id', $actor->id)
-            ->whereHas('role.permissions', static function (Builder $query) use ($permission): void {
-                $query->where('permissions.key', $permission->key());
-            })
-            ->exists();
     }
 }

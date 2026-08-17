@@ -10,11 +10,9 @@ use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -28,20 +26,16 @@ final readonly class RemoveKingdomRole
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Player $actor, Kingdom $kingdom, KingdomRoleAssignment $assignment): void
+    public function handle(string $actorPlayerId, string $kingdomId, string $assignmentId): void
     {
-        if ((string) $assignment->kingdom_id !== (string) $kingdom->id) {
-            throw new AuthorizationException;
-        }
-
-        DB::transaction(function () use ($actor, $kingdom, $assignment): void {
-            $authority = $this->kingdomWriteState->lockActiveScope($actor, $kingdom);
+        DB::transaction(function () use ($actorPlayerId, $kingdomId, $assignmentId): void {
+            $authority = $this->kingdomWriteState->lockActiveScope($actorPlayerId, $kingdomId);
             $this->mutations->authorizeContext($authority, KingdomPermission::RoleManage);
             $currentKingdom = $authority->kingdom;
             $currentActor = $authority->actor;
 
             $locked = KingdomRoleAssignment::query()
-                ->whereKey($assignment->id)
+                ->whereKey($assignmentId)
                 ->where('kingdom_id', $currentKingdom->id)
                 ->with('role:id,key')
                 ->lockForUpdate()

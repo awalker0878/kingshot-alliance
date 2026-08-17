@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\BattlePlans\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -20,7 +19,6 @@ use Illuminate\Support\Carbon;
  * @property-read EventObjective $objective
  * @property-read EventOccurrence $occurrence
  * @property-read EventRoster|null $roster
- * @property-read Player|null $player
  */
 final class EventObjectiveAssignment extends Model
 {
@@ -53,11 +51,5 @@ final class EventObjectiveAssignment extends Model
     public function roster(): BelongsTo
     {
         return $this->belongsTo(EventRoster::class, 'roster_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'player_id');
     }
 }

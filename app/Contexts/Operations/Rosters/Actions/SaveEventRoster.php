@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
@@ -31,8 +29,8 @@ final readonly class SaveEventRoster
 
     /** @param array<string,mixed> $settings */
     public function handle(
-        Player $actor,
-        EventOccurrence $occurrence,
+        string $actorPlayerId,
+        string $occurrenceId,
         string $key,
         EventRosterType $type,
         string $assignmentGroup,
@@ -41,12 +39,9 @@ final readonly class SaveEventRoster
         ?int $capacity = null,
         int $sortOrder = 0,
         array $settings = [],
-        ?EventRoster $parent = null,
-        ?EventRoster $roster = null,
-    ): EventRoster {
-        $occurrence->loadMissing('event');
-        $event = $occurrence->event;
-
+        ?string $parentId = null,
+        ?string $rosterId = null,
+    ): void {
         if (! preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $key)) {
             throw ValidationException::withMessages(['key' => 'Roster key must use lowercase letters, numbers, and hyphens.']);
         }
@@ -59,72 +54,54 @@ final readonly class SaveEventRoster
         if ($capacity !== null && $capacity < 1) {
             throw ValidationException::withMessages(['capacity' => 'Roster capacity must be at least one.']);
         }
-        if ($parent instanceof EventRoster
-            && ((string) $parent->occurrence_id !== (string) $occurrence->id
-                || (string) $parent->assignment_group !== $assignmentGroup)) {
-            throw ValidationException::withMessages(['parent_id' => 'A parent roster must belong to the same occurrence and assignment group.']);
-        }
-        if ($roster instanceof EventRoster && (string) $roster->occurrence_id !== (string) $occurrence->id) {
-            abort(404);
-        }
 
         $occupying = array_map(
             static fn (EventRosterMemberStatus $status): string => $status->value,
             array_filter(EventRosterMemberStatus::cases(), static fn (EventRosterMemberStatus $status): bool => $status->occupiesSlot()),
         );
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $key, $type, $assignmentGroup, $name, $nameKey, $capacity, $sortOrder, $settings, $parent, $roster, $occupying): EventRoster {
-            $context = $this->eventWriteState->lockEventScope($actor, $event);
+        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $key, $type, $assignmentGroup, $name, $nameKey, $capacity, $sortOrder, $settings, $parentId, $rosterId, $occupying): void {
+            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
+            $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Rosters);
 
-            // The occurrence is the Roster subdomain coordination boundary: hierarchy,
-            // assignment-group placement and capacity span multiple roster/member rows.
-            $lockedOccurrence = EventOccurrence::query()
-                ->whereKey($occurrence->id)
+            $occurrence = EventOccurrence::query()
+                ->whereKey($occurrenceId)
                 ->where('event_id', $context->event->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $record = $roster instanceof EventRoster
-                ? EventRoster::query()
-                    ->whereKey($roster->id)
-                    ->where('occurrence_id', $lockedOccurrence->id)
-                    ->lockForUpdate()
-                    ->firstOrFail()
-                : new EventRoster(['occurrence_id' => $lockedOccurrence->id]);
+            $record = $rosterId !== null
+                ? EventRoster::query()->whereKey($rosterId)->where('occurrence_id', $occurrence->id)->lockForUpdate()->firstOrFail()
+                : new EventRoster(['occurrence_id' => $occurrence->id]);
             $created = ! $record->exists;
 
-            if ($parent instanceof EventRoster) {
-                $lockedParent = EventRoster::query()
-                    ->whereKey($parent->id)
-                    ->where('occurrence_id', $lockedOccurrence->id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-                if ($record->exists && $this->isDescendant($lockedParent, $record)) {
-                    throw ValidationException::withMessages([
-                        'parent_id' => 'A roster cannot be nested beneath itself or one of its descendants.',
-                    ]);
+            $parent = null;
+            if ($parentId !== null) {
+                $parent = EventRoster::query()->whereKey($parentId)->where('occurrence_id', $occurrence->id)->lockForUpdate()->firstOrFail();
+                if ((string) $parent->assignment_group !== $assignmentGroup) {
+                    throw ValidationException::withMessages(['parent_id' => 'A parent roster must belong to the same assignment group.']);
+                }
+                if ($record->exists && $this->isDescendant($parent, $record)) {
+                    throw ValidationException::withMessages(['parent_id' => 'A roster cannot be nested beneath itself or one of its descendants.']);
                 }
             }
 
-            if ($record->exists && (string) $record->assignment_group !== $assignmentGroup) {
-                if ($record->children()->exists() || $record->members()->whereIn('status', $occupying)->exists()) {
-                    throw ValidationException::withMessages([
-                        'assignment_group' => 'Assignment group cannot change while the roster has child rosters or active assignments.',
-                    ]);
-                }
+            if ($record->exists && (string) $record->assignment_group !== $assignmentGroup
+                && ($record->children()->exists() || $record->members()->whereIn('status', $occupying)->exists())) {
+                throw ValidationException::withMessages([
+                    'assignment_group' => 'Assignment group cannot change while the roster has child rosters or active assignments.',
+                ]);
             }
 
             $activeCount = $record->exists ? $record->members()->whereIn('status', $occupying)->count() : 0;
             if ($capacity !== null && $activeCount > $capacity) {
-                throw ValidationException::withMessages([
-                    'capacity' => 'Roster capacity cannot be lower than its current active assignments.',
-                ]);
+                throw ValidationException::withMessages(['capacity' => 'Roster capacity cannot be lower than its current active assignments.']);
             }
 
             if ($created) {
-                $record->created_by_player_id = $context->actor->id;
+                $record->created_by_player_id = $actorPlayerId;
             }
             $record->forceFill([
                 'parent_id' => $parent?->id,
@@ -136,30 +113,21 @@ final readonly class SaveEventRoster
                 'capacity' => $capacity,
                 'sort_order' => max(0, $sortOrder),
                 'settings' => ['source' => 'manual'] + $settings,
-                'updated_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $actorPlayerId,
             ])->save();
 
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
             $metadata = [
                 'event_id' => (string) $context->event->id,
-                'occurrence_id' => (string) $lockedOccurrence->id,
+                'occurrence_id' => (string) $occurrence->id,
                 'roster_key' => $key,
                 'roster_type' => $type->value,
                 'assignment_group' => $assignmentGroup,
                 'capacity' => $capacity,
-                'actor_player_id' => (string) $context->actor->id,
+                'actor_player_id' => $actorPlayerId,
             ];
             $eventName = $created ? 'event.roster.created' : 'event.roster.updated';
-            $this->audit->record($eventName, $context->actor, $record, $alliance, $metadata);
-            $this->outbox->record(
-                $eventName,
-                $alliance?->id,
-                $record,
-                $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
-            );
-
-            return $record->refresh();
+            $this->audit->record($eventName, $context->actor, $record, $context->target->allianceId, $metadata);
+            $this->outbox->record($eventName, $context->target->allianceId, $record, $metadata, partitionKey: $context->target->partitionKey());
         });
     }
 

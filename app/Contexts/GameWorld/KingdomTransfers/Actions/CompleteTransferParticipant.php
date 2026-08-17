@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Membership\Actions\LeaveAlliance;
-use App\Contexts\Alliance\Membership\Enums\AllianceRank;
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Enums\RosterState;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Players\Actions\PersistPlayerIdentity;
+use App\Contexts\Alliance\Membership\Actions\ActivateRosterEntryForTransfer;
+use App\Contexts\Alliance\Membership\Actions\EndMembershipForTransfer;
+use App\Contexts\Alliance\Membership\Actions\MarkRosterEntryLeftForTransfer;
+use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
@@ -22,10 +19,10 @@ use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferReadinessState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCompletion;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\KingdomTransfers\Services\TransferWriteState;
+use App\Contexts\GameWorld\Players\Actions\PersistPlayerIdentity;
 use App\Contexts\GameWorld\Players\Models\Player;
-use App\Contexts\Intelligence\Roster\Actions\MarkRosterEntryLeft;
-use App\Contexts\Intelligence\Roster\Actions\SaveRosterEntry;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -34,36 +31,37 @@ use Illuminate\Validation\ValidationException;
 final readonly class CompleteTransferParticipant
 {
     public function __construct(
-        private AllianceWriteState $allianceWriteState,
+        private TransferWriteState $writeState,
         private TransferAuthorization $authority,
-        private SaveRosterEntry $saveRoster,
-        private MarkRosterEntryLeft $markRosterLeft,
-        private LeaveAlliance $leaveAlliance,
+        private PlayerMembershipQuery $memberships,
+        private RosterEntryQuery $roster,
+        private ActivateRosterEntryForTransfer $activateRoster,
+        private MarkRosterEntryLeftForTransfer $markRosterLeft,
+        private EndMembershipForTransfer $endMembership,
         private PersistPlayerIdentity $playerIdentity,
+        private PlayerReferenceQuery $players,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
-        Alliance $alliance,
-        Player $actor,
+        string $allianceId,
+        string $actorPlayerId,
         string $planId,
         string $participantId,
-    ): TransferCompletion {
-        return DB::transaction(function () use ($alliance, $actor, $planId, $participantId): TransferCompletion {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+    ): void {
+        DB::transaction(function () use ($allianceId, $actorPlayerId, $planId, $participantId): void {
+            $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, TransferPermission::Manage);
 
-            // Completion is child work after a plan is Locked. Shared plan lifecycle
-            // permits independent participant completions while close/other plan state
-            // transitions retain an exclusive plan lock.
+            // Completion is child work after a plan is Locked. A shared plan lock
+            // prevents a concurrent lifecycle transition while independent participant
+            // completions continue to serialize on their participant rows.
             $plan = TransferPlan::query()
-                ->where('alliance_id', $context->alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->whereKey($planId)
                 ->sharedLock()
                 ->firstOrFail();
-
-            Kingdom::query()->whereKey($plan->home_kingdom_id)->sharedLock()->firstOrFail();
 
             if ($plan->state !== TransferPlanState::Locked) {
                 throw ValidationException::withMessages([
@@ -71,92 +69,97 @@ final readonly class CompleteTransferParticipant
                 ]);
             }
 
-            if ($context->alliance->kingdom_id !== $plan->home_kingdom_id) {
+            if ($context->kingdomId() !== (string) $plan->home_kingdom_id) {
                 throw ValidationException::withMessages([
                     'completion' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.',
                 ]);
             }
 
             $participant = TransferParticipant::query()
-                ->where('alliance_id', $context->alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->where('transfer_plan_id', $plan->id)
                 ->whereKey($participantId)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $existing = TransferCompletion::query()
-                ->where('alliance_id', $context->alliance->id)
+            if (TransferCompletion::query()
+                ->where('alliance_id', $allianceId)
                 ->where('transfer_plan_id', $plan->id)
                 ->where('transfer_participant_id', $participant->id)
-                ->first();
-
-            if ($existing instanceof TransferCompletion) {
-                return $existing->load(['rosterEntry.player', 'completedBy']);
+                ->exists()) {
+                return;
             }
 
-            if ($participant->withdrawn_at !== null || $participant->readiness_state === TransferReadinessState::Withdrawn) {
-                throw ValidationException::withMessages([
-                    'completion' => 'Withdrawn transfer participants cannot be completed.',
-                ]);
-            }
+            $this->assertCompletable($participant);
 
-            if ($participant->readiness_state !== TransferReadinessState::Confirmed) {
-                throw ValidationException::withMessages([
-                    'completion' => 'The participant must be explicitly Confirmed before actual completion is recorded.',
-                ]);
-            }
-
-            if ($participant->direction === TransferDirection::Outgoing && $participant->destination_kingdom_id === null) {
-                throw ValidationException::withMessages([
-                    'completion' => 'Set an outgoing destination Kingdom before completing the transfer.',
-                ]);
-            }
-
-            // Player is the durable Kingdom-movement anchor. All membership/role/
-            // roster compatibility checks occur while this Player row is locked.
-            $participantPlayer = Player::query()
+            // Player is GameWorld-owned current state and is intentionally loaded
+            // locally under this protected operation. It never crosses the Action API.
+            $player = Player::query()
                 ->whereKey($participant->player_id)
                 ->lockForUpdate()
                 ->firstOrFail();
-            $this->assertPlayerCanMoveKingdom($context->alliance, $participantPlayer, $participant->direction);
+
+            $this->assertPlayerCanMoveKingdom(
+                allianceId: $allianceId,
+                allianceKingdomId: $context->kingdomId(),
+                player: $player,
+                direction: $participant->direction,
+            );
 
             if ($participant->direction === TransferDirection::Incoming) {
-                $participantPlayer = $this->playerIdentity->handle(
+                $player = $this->playerIdentity->handle(
                     (string) $plan->home_kingdom_id,
                     (string) $participant->observed_name,
-                    $participantPlayer->game_player_id,
-                    (string) $participantPlayer->id,
-                );
-            }
-
-            $rosterEntry = match ($participant->direction) {
-                TransferDirection::Incoming => $this->completeIncoming(
-                    $context->alliance,
-                    $context->actor,
-                    $participant,
-                ),
-                TransferDirection::Outgoing => $this->completeOutgoing($context->alliance, $context->actor, $participant),
-                TransferDirection::Staying => $this->completeStaying($context->alliance, $participant),
-            };
-
-            $player = $rosterEntry->player()->lockForUpdate()->firstOrFail();
-            if ($participant->direction === TransferDirection::Outgoing) {
-                $this->endTargetAllianceMembership($context->alliance, $player);
-                $player = $this->playerIdentity->handle(
-                    (string) $participant->destination_kingdom_id,
-                    (string) $rosterEntry->observed_name,
                     $player->game_player_id,
                     (string) $player->id,
                 );
             }
 
+            $rosterEntry = match ($participant->direction) {
+                TransferDirection::Incoming => $this->activateRoster->handle(
+                    allianceId: $allianceId,
+                    actorPlayerId: $actorPlayerId,
+                    targetPlayerId: (string) $participant->player_id,
+                    observedName: (string) $participant->observed_name,
+                ),
+                TransferDirection::Outgoing => $this->completeOutgoing(
+                    $allianceId,
+                    $actorPlayerId,
+                    $participant,
+                ),
+                TransferDirection::Staying => $this->rosterBoundEntry(
+                    $allianceId,
+                    $participant,
+                    true,
+                ),
+            };
+
+            if ($participant->direction === TransferDirection::Outgoing) {
+                $this->endMembership->handle(
+                    allianceId: $allianceId,
+                    actorPlayerId: $actorPlayerId,
+                    targetPlayerId: (string) $participant->player_id,
+                );
+
+                $player = $this->playerIdentity->handle(
+                    (string) $participant->destination_kingdom_id,
+                    $rosterEntry->observedName,
+                    $player->game_player_id,
+                    (string) $player->id,
+                );
+            }
+
+            $playerReference = $player instanceof \App\Contexts\GameWorld\Players\ValueObjects\PlayerReference
+                ? $player
+                : $this->players->require((string) $player->id);
+
             $completion = TransferCompletion::query()->create([
-                'alliance_id' => $context->alliance->id,
+                'alliance_id' => $allianceId,
                 'transfer_plan_id' => $plan->id,
                 'transfer_participant_id' => $participant->id,
-                'roster_entry_id' => $rosterEntry->id,
+                'roster_entry_id' => $rosterEntry->rosterEntryId,
                 'direction' => $participant->direction,
-                'completed_by_player_id' => $context->actor->id,
+                'completed_by_player_id' => $context->actor->playerId,
                 'completed_at' => now(),
             ]);
 
@@ -165,94 +168,117 @@ final readonly class CompleteTransferParticipant
                 'transfer_participant_id' => (string) $participant->id,
                 'transfer_completion_id' => (string) $completion->id,
                 'direction' => $participant->direction->value,
-                'roster_entry_id' => (string) $rosterEntry->id,
-                'player_id' => (string) $player->id,
-                'player_current_kingdom_id' => (string) $player->current_kingdom_id,
+                'roster_entry_id' => $rosterEntry->rosterEntryId,
+                'player_id' => $playerReference->playerId,
+                'player_current_kingdom_id' => $playerReference->kingdomId,
             ];
 
-            $this->audit->record('kingdoms.transfer_participant_completed', $context->actor, $completion, $context->alliance, $metadata);
-            $this->outbox->record('kingdoms.transfer_participant_completed', (string) $context->alliance->id, $completion, $metadata);
-
-            return $completion->load(['rosterEntry.player', 'completedBy']);
+            $this->audit->record(
+                'kingdoms.transfer_participant_completed',
+                $context->actor,
+                $completion,
+                null,
+                $metadata,
+            );
+            $this->outbox->record(
+                'kingdoms.transfer_participant_completed',
+                $allianceId,
+                $completion,
+                $metadata,
+            );
         });
     }
 
-    private function completeIncoming(
-        Alliance $alliance,
-        Player $actor,
-        TransferParticipant $participant,
-    ): AllianceRosterEntry {
-        $existing = AllianceRosterEntry::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('player_id', $participant->player_id)
-            
-            ->first();
-
-        if ($existing instanceof AllianceRosterEntry) {
-            return $this->saveRoster->handle($alliance, $actor, [
-                'name' => (string) $participant->observed_name,
-                'game_player_id' => $existing->player->game_player_id,
-                'game_role' => $existing->game_role,
-                'state' => RosterState::Active,
-                'joined_at' => $existing->joined_at?->toDateString(),
-                'manager_notes' => $existing->manager_notes,
-            ], (string) $existing->id, (string) $existing->source);
+    private function assertCompletable(TransferParticipant $participant): void
+    {
+        if ($participant->withdrawn_at !== null || $participant->readiness_state === TransferReadinessState::Withdrawn) {
+            throw ValidationException::withMessages([
+                'completion' => 'Withdrawn transfer participants cannot be completed.',
+            ]);
         }
 
-        return $this->saveRoster->handle(
-            $alliance,
-            $actor,
-            [
-                'name' => (string) $participant->observed_name,
-                'game_player_id' => $participant->game_player_id,
-                'state' => RosterState::Active,
-            ],
+        if ($participant->readiness_state !== TransferReadinessState::Confirmed) {
+            throw ValidationException::withMessages([
+                'completion' => 'The participant must be explicitly Confirmed before actual completion is recorded.',
+            ]);
+        }
+
+        if ($participant->direction === TransferDirection::Outgoing && $participant->destination_kingdom_id === null) {
+            throw ValidationException::withMessages([
+                'completion' => 'Set an outgoing destination Kingdom before completing the transfer.',
+            ]);
+        }
+    }
+
+    private function completeOutgoing(
+        string $allianceId,
+        string $actorPlayerId,
+        TransferParticipant $participant,
+    ): RosterEntryReference {
+        $entry = $this->rosterBoundEntry($allianceId, $participant, false);
+
+        return $this->markRosterLeft->handle(
+            allianceId: $allianceId,
+            actorPlayerId: $actorPlayerId,
+            rosterEntryId: $entry->rosterEntryId,
             expectedPlayerId: (string) $participant->player_id,
         );
     }
 
-    private function completeOutgoing(
-        Alliance $alliance,
-        Player $actor,
+    private function rosterBoundEntry(
+        string $allianceId,
         TransferParticipant $participant,
-    ): AllianceRosterEntry {
-        $entry = $this->rosterBoundEntry($alliance, $participant, false);
-
-        return $this->markRosterLeft->handle($alliance, $actor, (string) $entry->id);
-    }
-
-    private function completeStaying(
-        Alliance $alliance,
-        TransferParticipant $participant,
-    ): AllianceRosterEntry {
-        return $this->rosterBoundEntry($alliance, $participant, true);
-    }
-
-    private function assertPlayerCanMoveKingdom(Alliance $alliance, Player $player, TransferDirection $direction): void
-    {
-        $activeMembership = AllianceMembership::query()
-            ->where('player_id', $player->id)
-            ->where('status', MembershipStatus::Active->value)
-            ->orderBy('id')
-            
-            ->first();
-
-        if ($activeMembership instanceof AllianceMembership) {
-            if ($direction === TransferDirection::Outgoing && (string) $activeMembership->alliance_id === (string) $alliance->id) {
-                if ($activeMembership->rank === AllianceRank::R5) {
-                    throw ValidationException::withMessages([
-                        'completion' => 'Transfer Alliance leadership before completing an outgoing R5 Player.',
-                    ]);
-                }
-            } elseif ($direction !== TransferDirection::Staying || (string) $activeMembership->alliance_id !== (string) $alliance->id) {
-                throw ValidationException::withMessages([
-                    'completion' => 'The Player still has an active Alliance membership that must be ended before changing Kingdoms.',
-                ]);
-            }
+        bool $mustStillBePresent,
+    ): RosterEntryReference {
+        if ($participant->roster_entry_id === null) {
+            throw ValidationException::withMessages([
+                'completion' => 'This roster-bound participant no longer has a roster entry to hand off.',
+            ]);
         }
 
+        $entry = $mustStillBePresent
+            ? $this->roster->requireActiveOrTracked($allianceId, (string) $participant->roster_entry_id)
+            : $this->roster->find($allianceId, (string) $participant->roster_entry_id);
+
+        if (! $entry instanceof RosterEntryReference) {
+            throw ValidationException::withMessages([
+                'completion' => 'This roster-bound participant no longer has a roster entry to hand off.',
+            ]);
+        }
+
+        if ($entry->playerId !== (string) $participant->player_id) {
+            throw ValidationException::withMessages([
+                'completion' => 'The participant roster binding no longer matches its captured game identity.',
+            ]);
+        }
+
+        return $entry;
+    }
+
+    private function assertPlayerCanMoveKingdom(
+        string $allianceId,
+        string $allianceKingdomId,
+        Player $player,
+        TransferDirection $direction,
+    ): void {
         if ($direction === TransferDirection::Staying) {
             return;
+        }
+
+        $activeAllianceIds = $this->memberships->activeAllianceIds([(string) $player->id]);
+        $disallowedMemberships = match ($direction) {
+            TransferDirection::Outgoing => array_values(array_filter(
+                $activeAllianceIds,
+                static fn (string $activeAllianceId): bool => $activeAllianceId !== $allianceId,
+            )),
+            TransferDirection::Incoming => $activeAllianceIds,
+            TransferDirection::Staying => [],
+        };
+
+        if ($disallowedMemberships !== []) {
+            throw ValidationException::withMessages([
+                'completion' => 'The Player still has an active Alliance membership that must be ended before changing Kingdoms.',
+            ]);
         }
 
         if (KingdomRoleAssignment::query()
@@ -264,67 +290,14 @@ final readonly class CompleteTransferParticipant
             ]);
         }
 
-        $rosterQuery = AllianceRosterEntry::query()
-            ->where('player_id', $player->id)
-            ->whereIn('state', [RosterState::Active->value, RosterState::Tracked->value]);
+        $hasConflictingRoster = $direction === TransferDirection::Outgoing
+            ? $this->roster->hasActiveOrTrackedOutsideAlliance((string) $player->id, $allianceId)
+            : $this->roster->hasActiveOrTrackedOutsideKingdom((string) $player->id, $allianceKingdomId);
 
-        if ($direction === TransferDirection::Outgoing) {
-            $rosterQuery->where('alliance_id', '!=', $alliance->id);
-        } else {
-            $rosterQuery->whereHas('alliance', fn ($query) => $query->where('kingdom_id', '!=', $alliance->kingdom_id));
-        }
-
-        if ($rosterQuery->exists()) {
+        if ($hasConflictingRoster) {
             throw ValidationException::withMessages([
                 'completion' => "Resolve the Player's other active or tracked Alliance roster entries before changing Kingdoms.",
             ]);
         }
-    }
-
-    private function endTargetAllianceMembership(Alliance $alliance, Player $player): void
-    {
-        $hasActiveMembership = AllianceMembership::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('player_id', $player->id)
-            ->where('status', MembershipStatus::Active->value)
-            ->exists();
-
-        if (! $hasActiveMembership) {
-            return;
-        }
-
-        $this->leaveAlliance->handle($alliance, $player);
-    }
-
-    private function rosterBoundEntry(
-        Alliance $alliance,
-        TransferParticipant $participant,
-        bool $mustStillBePresent,
-    ): AllianceRosterEntry {
-        if ($participant->roster_entry_id === null) {
-            throw ValidationException::withMessages([
-                'completion' => 'This roster-bound participant no longer has a roster entry to hand off.',
-            ]);
-        }
-
-        $query = AllianceRosterEntry::query()
-            ->where('alliance_id', $alliance->id)
-            ->with('player')
-            ;
-
-        if ($mustStillBePresent) {
-            $query->whereIn('state', [RosterState::Active->value, RosterState::Tracked->value]);
-        }
-
-        $entry = $query->findOrFail($participant->roster_entry_id);
-
-        if ($participant->player_id !== null
-            && (string) $entry->player_id !== (string) $participant->player_id) {
-            throw ValidationException::withMessages([
-                'completion' => 'The participant roster binding no longer matches its captured game identity.',
-            ]);
-        }
-
-        return $entry;
     }
 }

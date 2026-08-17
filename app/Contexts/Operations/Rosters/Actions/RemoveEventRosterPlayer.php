@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
+use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -27,59 +26,38 @@ final readonly class RemoveEventRosterPlayer
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Player $actor, EventRosterMember $member): EventRosterMember
+    public function handle(string $actorPlayerId, string $occurrenceId, string $memberId): void
     {
-        $member->loadMissing('roster.occurrence.event');
-        $roster = $member->roster;
-        $occurrence = $roster->occurrence;
-        $event = $occurrence->event;
-
-        return DB::transaction(function () use ($actor, $member, $roster, $occurrence, $event): EventRosterMember {
-            $context = $this->eventWriteState->lockEventScope($actor, $event);
+        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $memberId): void {
+            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
+            $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Rosters);
 
-            $lockedOccurrence = EventOccurrence::query()
-                ->whereKey($occurrence->id)
-                ->where('event_id', $context->event->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->lockForUpdate()->firstOrFail();
+            $member = EventRosterMember::query()->whereKey($memberId)->lockForUpdate()->firstOrFail();
+            EventRoster::query()->whereKey($member->roster_id)->where('occurrence_id', $occurrence->id)->sharedLock()->firstOrFail();
 
-            $locked = EventRosterMember::query()
-                ->whereKey($member->id)
-                ->where('roster_id', $roster->id)
-                ->whereHas('roster', static fn ($query) => $query->where('occurrence_id', $lockedOccurrence->id))
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            if ($locked->status === EventRosterMemberStatus::Removed) {
-                return $locked;
+            if ($member->statusEnum() === EventRosterMemberStatus::Removed) {
+                return;
             }
 
-            $locked->forceFill([
+            $member->forceFill([
                 'status' => EventRosterMemberStatus::Removed,
                 'slot_number' => null,
-                'removed_by_player_id' => $context->actor->id,
+                'removed_by_player_id' => $actorPlayerId,
                 'removed_at' => now(),
             ])->save();
 
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
             $metadata = [
                 'event_id' => (string) $context->event->id,
-                'roster_id' => (string) $locked->roster_id,
-                'player_id' => (string) $locked->player_id,
-                'actor_player_id' => (string) $context->actor->id,
+                'occurrence_id' => (string) $occurrence->id,
+                'roster_id' => (string) $member->roster_id,
+                'player_id' => (string) $member->player_id,
+                'actor_player_id' => $actorPlayerId,
             ];
-            $this->audit->record('event.roster.player_removed', $context->actor, $locked, $alliance, $metadata);
-            $this->outbox->record(
-                'event.roster.player_removed',
-                $alliance?->id,
-                $locked,
-                $metadata,
-                partitionKey: $context->event->scope->value.':'.$context->target->id,
-            );
-
-            return $locked->refresh();
+            $this->audit->record('event.roster.player_removed', $context->actor, $member, $context->target->allianceId, $metadata);
+            $this->outbox->record('event.roster.player_removed', $context->target->allianceId, $member, $metadata, partitionKey: $context->target->partitionKey());
         });
     }
 }

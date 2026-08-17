@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentRole;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -20,7 +19,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $recorded_at
  * @property Carbon|null $removed_at
  * @property-read RallyGroup $rallyGroup
- * @property-read Player $player
  */
 final class RallyAssignment extends Model
 {
@@ -61,9 +59,4 @@ final class RallyAssignment extends Model
         return $this->belongsTo(RallyGroup::class);
     }
 
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class);
-    }
 }

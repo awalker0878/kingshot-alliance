@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Polls\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Enums\EventPollType;
@@ -66,15 +65,4 @@ final class EventPoll extends Model
         return $this->hasMany(EventPollVote::class, 'poll_id');
     }
 
-    /** @return BelongsTo<Player, $this> */
-    public function createdByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'created_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function updatedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'updated_by_player_id');
-    }
 }

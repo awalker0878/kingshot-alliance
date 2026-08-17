@@ -6,8 +6,6 @@ namespace App\Contexts\Alliance\Access\Queries;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 
 final readonly class AlliancePermissionQuery
 {
@@ -18,13 +16,6 @@ final readonly class AlliancePermissionQuery
         string $allianceId,
         AlliancePermission $permission,
     ): bool {
-        $player = Player::query()->find($playerId);
-        $alliance = Alliance::query()->find($allianceId);
-
-        if (! $player instanceof Player || ! $alliance instanceof Alliance) {
-            return false;
-        }
-
-        return $this->authorization->allows($player, $alliance, $permission);
+        return $this->authorization->allows($playerId, $allianceId, $permission);
     }
 }

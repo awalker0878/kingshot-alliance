@@ -21,6 +21,11 @@ final class KingdomReferenceQuery
         return $this->snapshot(Kingdom::query()->findOrFail($kingdomId));
     }
 
+    public function lockCurrent(string $kingdomId): KingdomReference
+    {
+        return $this->snapshot(Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail());
+    }
+
     public function findByNumber(int $number): ?KingdomReference
     {
         $kingdom = Kingdom::query()->where('number', $number)->first();

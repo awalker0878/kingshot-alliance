@@ -11,7 +11,6 @@ use App\Contexts\Accounts\Profile\Actions\UpdateProfile;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -63,7 +62,7 @@ final class ProfileController extends Controller
         ]);
 
         $emailChanged = $updateProfile->handle(
-            $user,
+            (int) $user->id,
             (string) $validated['name'],
             (string) $validated['email'],
             (string) $validated['timezone'],
@@ -89,14 +88,11 @@ final class ProfileController extends Controller
         ]);
 
         $newPassword = (string) $validated['password'];
-        $currentUser = $changePassword->handle(
-            $user,
+        $changePassword->handle(
+            (int) $user->id,
             (string) $validated['current_password'],
             $newPassword,
         );
-
-        Auth::setUser($currentUser);
-        Auth::logoutOtherDevices($newPassword);
 
         return redirect()->route('profile.show')->with('status', 'password-updated');
     }
@@ -112,10 +108,7 @@ final class ProfileController extends Controller
             'password' => ['required', 'string'],
         ]);
         $password = (string) $validated['password'];
-        $currentUser = $authorizeRevocation->handle($user, $password);
-
-        Auth::setUser($currentUser);
-        Auth::logoutOtherDevices($password);
+        $authorizeRevocation->handle((int) $user->id, $password);
 
         return redirect()->route('profile.show')->with('status', 'other-sessions-revoked');
     }

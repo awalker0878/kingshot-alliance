@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Membership\Actions\UpsertRosterEntry;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Roster\Models\RosterImport;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
@@ -21,34 +20,26 @@ use RuntimeException;
 final readonly class CommitRosterCsvImport
 {
     public function __construct(
-        private AllianceIntelligenceAuthorization $authorization,
-        private SaveRosterEntry $saveRosterEntry,
+        private AllianceIntelligenceWriteState $writeState,
+        private RosterEntryQuery $roster,
+        private PlayerReferenceQuery $players,
+        private UpsertRosterEntry $upsertRosterEntry,
         private RecordPlayerSnapshot $recordSnapshot,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     /** @param array<int|string, string> $resolutions */
-    public function handle(Alliance $alliance, Player $actor, string $importId, array $resolutions): RosterImport
+    public function handle(string $allianceId, string $actorPlayerId, string $importId, array $resolutions): string
     {
-        if (! $this->authorization->allows($actor, $alliance, IntelligencePermission::KingdomManage)) {
-            throw new AuthorizationException;
-        }
-
-        return DB::transaction(function () use ($alliance, $actor, $importId, $resolutions): RosterImport {
-            $import = RosterImport::query()
-                ->where('alliance_id', $alliance->id)
-                ->lockForUpdate()
-                ->findOrFail($importId);
-
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $importId, $resolutions): string {
+            [, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
+            $import = RosterImport::query()->where('alliance_id', $allianceId)->lockForUpdate()->findOrFail($importId);
             if ($import->status === RosterImport::STATUS_COMMITTED) {
-                return $import->refresh();
+                return (string) $import->id;
             }
-
             if ($import->rejected_count > 0) {
-                throw ValidationException::withMessages([
-                    'file' => 'Fix every rejected CSV row and create a new preview before committing.',
-                ]);
+                throw ValidationException::withMessages(['file' => 'Fix every rejected CSV row and create a new preview before committing.']);
             }
 
             $rows = $import->preview_payload['rows'] ?? null;
@@ -57,15 +48,11 @@ final readonly class CommitRosterCsvImport
             }
 
             $normalizedResolutions = [];
-            $created = 0;
-            $updated = 0;
-            $snapshotsCreated = 0;
-
+            $created = $updated = $snapshotsCreated = 0;
             foreach ($rows as $storedRow) {
                 if (! is_array($storedRow)) {
                     throw new RuntimeException('Stored roster import row is invalid.');
                 }
-
                 $rowNumber = (int) ($storedRow['row'] ?? 0);
                 $outcome = (string) ($storedRow['outcome'] ?? '');
                 $data = $storedRow['data'] ?? null;
@@ -74,63 +61,45 @@ final readonly class CommitRosterCsvImport
                 }
 
                 $entryId = null;
-
                 if ($outcome === 'update') {
                     $entryId = (string) ($storedRow['target_entry_id'] ?? '');
                     if ($entryId === '') {
                         throw new RuntimeException('Stored roster update target is missing.');
                     }
-                } elseif ($outcome === 'create') {
-                    $this->assertCreateStillValid($alliance, $this->nullableString($data['game_player_id'] ?? null));
                 } elseif ($outcome === 'ambiguous') {
                     $resolution = $resolutions[$rowNumber] ?? $resolutions[(string) $rowNumber] ?? null;
                     if (! is_string($resolution) || trim($resolution) === '') {
-                        throw ValidationException::withMessages([
-                            'resolutions.'.$rowNumber => 'Choose whether this row creates a new player or updates one previewed candidate.',
-                        ]);
+                        throw ValidationException::withMessages(['resolutions.'.$rowNumber => 'Choose whether this row creates a new player or updates one previewed candidate.']);
                     }
-
                     $resolution = trim($resolution);
                     if ($resolution === 'create') {
                         $normalizedResolutions[(string) $rowNumber] = 'create';
                     } else {
-                        $candidateIds = $this->candidateIds($storedRow['candidates'] ?? null);
-                        if (! in_array($resolution, $candidateIds, true)) {
-                            throw ValidationException::withMessages([
-                                'resolutions.'.$rowNumber => 'The selected roster match is not one of the previewed candidates.',
-                            ]);
+                        if (! in_array($resolution, $this->candidateIds($storedRow['candidates'] ?? null), true)) {
+                            throw ValidationException::withMessages(['resolutions.'.$rowNumber => 'The selected roster match is not one of the previewed candidates.']);
                         }
-
                         $entryId = $resolution;
                         $normalizedResolutions[(string) $rowNumber] = $resolution;
                     }
                 } elseif ($outcome === 'rejected') {
-                    throw ValidationException::withMessages([
-                        'file' => 'Rejected rows cannot be committed.',
-                    ]);
-                } else {
+                    throw ValidationException::withMessages(['file' => 'Rejected rows cannot be committed.']);
+                } elseif ($outcome !== 'create') {
                     throw new RuntimeException('Stored roster import outcome is invalid.');
                 }
 
-                $existing = null;
+                $expectedPlayerId = null;
+                $managerNotes = null;
                 if ($entryId !== null) {
-                    $existing = AllianceRosterEntry::query()
-                        ->where('alliance_id', $alliance->id)
-                        ->with('player:id,current_kingdom_id,game_player_id,current_name')
-                        
-                        ->find($entryId);
-
-                    if (! $existing instanceof AllianceRosterEntry) {
-                        throw ValidationException::withMessages([
-                            'file' => sprintf('Roster row %d changed after preview. Preview the CSV again.', $rowNumber),
-                        ]);
+                    $existing = $this->roster->find($allianceId, $entryId);
+                    if ($existing === null) {
+                        throw ValidationException::withMessages(['file' => sprintf('Roster row %d changed after preview. Preview the CSV again.', $rowNumber)]);
                     }
-
+                    $expectedPlayerId = $existing->playerId;
+                    $managerNotes = $existing->managerNotes;
                     $stableId = $this->nullableString($data['game_player_id'] ?? null);
-                    if ($stableId !== null && $existing->player->game_player_id !== $stableId) {
-                        throw ValidationException::withMessages([
-                            'file' => sprintf('Roster row %d no longer matches the previewed stable game ID.', $rowNumber),
-                        ]);
+                    $player = $this->players->lockCurrent($existing->playerId);
+                    if ($stableId !== null && $player->gamePlayerId !== $stableId) {
+                        throw ValidationException::withMessages(['file' => sprintf('Roster row %d no longer matches the previewed stable game ID.', $rowNumber)]);
                     }
                 }
 
@@ -138,38 +107,24 @@ final readonly class CommitRosterCsvImport
                 if (! $state instanceof RosterState) {
                     throw new RuntimeException('Stored roster import state is invalid.');
                 }
-
                 $attributes = [
                     'name' => (string) ($data['name'] ?? ''),
                     'game_role' => $this->nullableString($data['game_role'] ?? null),
                     'state' => $state,
                     'joined_at' => $this->nullableString($data['joined_at'] ?? null),
-                    'manager_notes' => $existing?->manager_notes,
+                    'manager_notes' => $managerNotes,
                 ];
-
                 if ($entryId === null) {
                     $attributes['game_player_id'] = $this->nullableString($data['game_player_id'] ?? null);
                 }
 
-                $entry = $this->saveRosterEntry->handle(
-                    $alliance,
-                    $actor,
-                    $attributes,
-                    $entryId,
-                    'csv',
-                    (string) $import->id,
+                $entry = $this->upsertRosterEntry->handle(
+                    $actorPlayerId, $allianceId, $attributes, $entryId, 'csv', (string) $import->id, $expectedPlayerId,
                 );
+                $entryId === null ? $created++ : $updated++;
 
-                if ($entryId === null) {
-                    $created++;
-                } else {
-                    $updated++;
-                }
-
-                $snapshot = $this->recordSnapshot->handle(
-                    $alliance,
-                    $actor,
-                    (string) $entry->id,
+                if ($this->recordSnapshot->handle(
+                    $allianceId, $actorPlayerId, $entry->rosterEntryId,
                     [
                         'observed_name' => (string) ($data['name'] ?? ''),
                         'power' => (string) ($data['power'] ?? ''),
@@ -177,69 +132,28 @@ final readonly class CommitRosterCsvImport
                         'observed_alliance_tag' => $this->nullableString($data['alliance_tag'] ?? null),
                         'captured_at' => (string) ($data['captured_at'] ?? ''),
                     ],
-                    'csv',
-                    (string) $import->id,
-                );
-
-                if ($snapshot->wasRecentlyCreated) {
+                    'csv', (string) $import->id,
+                )) {
                     $snapshotsCreated++;
                 }
             }
 
-            $summary = [
-                'rows_committed' => count($rows),
-                'roster_entries_created' => $created,
-                'roster_entries_updated' => $updated,
-                'snapshots_created' => $snapshotsCreated,
-            ];
-
+            $summary = ['rows_committed' => count($rows), 'roster_entries_created' => $created, 'roster_entries_updated' => $updated, 'snapshots_created' => $snapshotsCreated];
             $import->forceFill([
                 'status' => RosterImport::STATUS_COMMITTED,
-                'committed_by_player_id' => $actor->id,
+                'committed_by_player_id' => $actorPlayerId,
                 'resolution_payload' => $normalizedResolutions,
                 'committed_summary' => $summary,
                 'committed_at' => now(),
             ])->save();
 
-            $metadata = [
-                'import_id' => (string) $import->id,
-                'schema_version' => (string) $import->schema_version,
-                'checksum' => (string) $import->checksum,
-            ] + $summary;
-
+            $metadata = ['import_id' => (string) $import->id, 'schema_version' => (string) $import->schema_version, 'checksum' => (string) $import->checksum] + $summary;
             $event = 'intelligence.roster_import_committed';
-            $this->audit->record($event, $actor, $import, $alliance, $metadata);
-            $this->outbox->record(
-                $event,
-                (string) $alliance->id,
-                $import,
-                $metadata,
-                $event.':'.$import->id,
-            );
+            $this->audit->record($event, $actor, $import, $allianceId, $metadata);
+            $this->outbox->record($event, $allianceId, $import, $metadata, $event.':'.$import->id);
 
-            return $import->refresh();
+            return (string) $import->id;
         });
-    }
-
-    private function assertCreateStillValid(Alliance $alliance, ?string $stableId): void
-    {
-        if ($stableId === null || $alliance->kingdom_id === null) {
-            return;
-        }
-
-        $player = Player::query()
-            ->where('current_kingdom_id', $alliance->kingdom_id)
-            ->where('game_player_id', $stableId)
-            ->first();
-
-        if ($player instanceof Player && AllianceRosterEntry::query()
-            ->where('alliance_id', $alliance->id)
-            ->where('player_id', $player->id)
-            ->exists()) {
-            throw ValidationException::withMessages([
-                'file' => 'The roster changed after preview. Preview the CSV again before committing.',
-            ]);
-        }
     }
 
     /** @return list<string> */
@@ -248,14 +162,12 @@ final readonly class CommitRosterCsvImport
         if (! is_array($candidates)) {
             return [];
         }
-
         $ids = [];
         foreach ($candidates as $candidate) {
             if (is_array($candidate) && isset($candidate['entry_id']) && is_string($candidate['entry_id'])) {
                 $ids[] = $candidate['entry_id'];
             }
         }
-
         return $ids;
     }
 
@@ -264,9 +176,7 @@ final readonly class CommitRosterCsvImport
         if (! is_string($value)) {
             return null;
         }
-
         $value = trim($value);
-
         return $value === '' ? null : $value;
     }
 }

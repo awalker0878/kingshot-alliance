@@ -16,13 +16,13 @@ final readonly class UpdateProfile
 {
     public function __construct(private AuditRecorder $audit) {}
 
-    public function handle(User $user, string $name, string $email, string $timezone): bool
+    public function handle(int $userId, string $name, string $email, string $timezone): bool
     {
         $email = Str::lower(trim($email));
 
         try {
-            $emailChanged = DB::transaction(function () use ($user, $name, $email, $timezone): bool {
-                $currentUser = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            $emailChanged = DB::transaction(function () use ($userId, $name, $email, $timezone): bool {
+                $currentUser = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
                 $emailChanged = ! hash_equals(Str::lower((string) $currentUser->email), $email);
                 $values = [
                     'name' => $name,
@@ -73,7 +73,7 @@ final readonly class UpdateProfile
         } catch (QueryException $exception) {
             if (User::query()
                 ->where('email', $email)
-                ->where('id', '<>', $user->id)
+                ->where('id', '<>', $userId)
                 ->exists()) {
                 throw ValidationException::withMessages([
                     'email' => 'The email has already been taken.',
@@ -84,7 +84,7 @@ final readonly class UpdateProfile
         }
 
         if ($emailChanged) {
-            User::query()->findOrFail($user->id)->sendEmailVerificationNotification();
+            User::query()->findOrFail($userId)->sendEmailVerificationNotification();
         }
 
         return $emailChanged;

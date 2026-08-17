@@ -26,8 +26,8 @@ final class CreateRecruitmentDecisionTemplate
     ) {}
 
     public function handle(
-        Player $actor,
-        Alliance $alliance,
+        string $actorPlayerId,
+        string $allianceId,
         string $name,
         RecruitmentStage $decisionStage,
         string $subject,
@@ -45,8 +45,8 @@ final class CreateRecruitmentDecisionTemplate
             throw ValidationException::withMessages(['template' => 'Template name, subject, and body are required.']);
         }
 
-        return DB::transaction(function () use ($actor, $alliance, $cleanName, $decisionStage, $cleanSubject, $cleanBody, $isActive): RecruitmentDecisionTemplate {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $cleanName, $decisionStage, $cleanSubject, $cleanBody, $isActive): RecruitmentDecisionTemplate {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             $template = RecruitmentDecisionTemplate::query()->create([
@@ -56,8 +56,8 @@ final class CreateRecruitmentDecisionTemplate
                 'subject' => $cleanSubject,
                 'body' => $cleanBody,
                 'is_active' => $isActive,
-                'created_by_player_id' => $context->actor->id,
-                'updated_by_player_id' => $context->actor->id,
+                'created_by_player_id' => $context->actor->playerId,
+                'updated_by_player_id' => $context->actor->playerId,
             ]);
 
             $this->audit->record('recruitment.decision_template.created', $context->actor, $template, $context->alliance, [

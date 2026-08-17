@@ -22,7 +22,7 @@ final readonly class MembershipAdministrationGuard
             throw new AuthorizationException;
         }
 
-        if ((string) $target->player_id === (string) $context->actor->id) {
+        if ((string) $target->player_id === (string) $context->actor->playerId) {
             throw ValidationException::withMessages([
                 'membership' => 'Use the leave-alliance action to change the active Player membership.',
             ]);

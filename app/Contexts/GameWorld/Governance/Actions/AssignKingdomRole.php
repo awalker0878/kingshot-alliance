@@ -10,7 +10,6 @@ use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -27,18 +26,18 @@ final readonly class AssignKingdomRole
     ) {}
 
     public function handle(
-        Player $actor,
-        Kingdom $kingdom,
-        Player $target,
+        string $actorPlayerId,
+        string $kingdomId,
+        string $targetPlayerId,
         DefaultKingdomRole $roleTemplate,
-    ): KingdomRoleAssignment {
-        return DB::transaction(function () use ($actor, $kingdom, $target, $roleTemplate): KingdomRoleAssignment {
-            $authority = $this->kingdomWriteState->lockActiveScope($actor, $kingdom);
+    ): void {
+        DB::transaction(function () use ($actorPlayerId, $kingdomId, $targetPlayerId, $roleTemplate): void {
+            $authority = $this->kingdomWriteState->lockActiveScope($actorPlayerId, $kingdomId);
             $this->mutations->authorizeContext($authority, KingdomPermission::RoleManage);
             $currentKingdom = $authority->kingdom;
             $currentActor = $authority->actor;
 
-            $lockedTarget = Player::query()->whereKey($target->id)->lockForUpdate()->firstOrFail();
+            $lockedTarget = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
             if ((string) $lockedTarget->current_kingdom_id !== (string) $currentKingdom->id) {
                 throw ValidationException::withMessages([
                     'player_id' => 'The selected Player is not currently in this Kingdom.',
@@ -57,7 +56,7 @@ final readonly class AssignKingdomRole
             ]);
 
             if (! $assignment->wasRecentlyCreated) {
-                return $assignment;
+                return;
             }
 
             $metadata = [
@@ -69,8 +68,6 @@ final readonly class AssignKingdomRole
 
             $this->audit->record('kingdom.role_assigned', $currentActor, $assignment, null, $metadata);
             $this->outbox->record('kingdom.role_assigned', null, $assignment, $metadata);
-
-            return $assignment;
         });
     }
 }

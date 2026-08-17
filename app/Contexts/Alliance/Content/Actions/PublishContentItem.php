@@ -25,10 +25,10 @@ final readonly class PublishContentItem
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Alliance $alliance, Player $actor, string $contentItemId, ?Carbon $scheduledFor = null): ContentItem
+    public function handle(string $allianceId, string $actorPlayerId, string $contentItemId, ?Carbon $scheduledFor = null): ContentItem
     {
-        return DB::transaction(function () use ($alliance, $actor, $contentItemId, $scheduledFor): ContentItem {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $contentItemId, $scheduledFor): ContentItem {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
             $item = ContentItem::query()
@@ -45,7 +45,7 @@ final readonly class PublishContentItem
                 'scheduled_for' => $isScheduled ? $scheduledFor->utc() : null,
                 'published_at' => $isScheduled ? null : now(),
                 'archived_at' => null,
-                'updated_by_player_id' => $context->actor->id,
+                'updated_by_player_id' => $context->actor->playerId,
             ])->save();
 
             $event = $isScheduled ? 'content.scheduled' : 'content.published';

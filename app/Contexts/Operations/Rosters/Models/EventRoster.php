@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Rosters\Enums\EventRosterType;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -65,17 +64,5 @@ final class EventRoster extends Model
     public function members(): HasMany
     {
         return $this->hasMany(EventRosterMember::class, 'roster_id')->orderBy('slot_number')->orderBy('assigned_at');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function createdByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'created_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function updatedByPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'updated_by_player_id');
     }
 }

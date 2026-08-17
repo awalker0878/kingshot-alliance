@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\EventAnalysis\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -32,12 +32,12 @@ final readonly class EventPlayerHistorySummaryQuery
      *   reliability_percent:?float
      * }
      */
-    public function forPlayer(Player $player): array
+    public function forPlayer(PlayerReference $player): array
     {
         $base = DB::table('event_player_contexts as context')
             ->join('event_occurrences as occurrence', 'occurrence.id', '=', 'context.occurrence_id')
             ->join('events as event', 'event.id', '=', 'occurrence.event_id')
-            ->where('context.player_id', $player->id);
+            ->where('context.player_id', $player->playerId);
 
         $scopes = (clone $base)
             ->select('event.scope', DB::raw('COUNT(*) AS aggregate'))
@@ -65,7 +65,7 @@ final readonly class EventPlayerHistorySummaryQuery
         ];
     }
 
-    private function outcomeCount(Builder $base, Player $player, string $outcome): int
+    private function outcomeCount(Builder $base, PlayerReference $player, string $outcome): int
     {
         $query = clone $base;
         $this->evidence->applyOutcomeFilter($query, $player, $outcome);

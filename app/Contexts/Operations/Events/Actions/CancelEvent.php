@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Enums\EventStatus;
-use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 
-final class CancelEvent
+final readonly class CancelEvent
 {
     public function __construct(
         private EventWriteState $eventWriteState,
@@ -24,44 +21,38 @@ final class CancelEvent
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(Player $actor, Event $event): Event
+    public function handle(string $actorPlayerId, string $eventId): void
     {
-        return DB::transaction(function () use ($actor, $event): Event {
-            $context = $this->eventWriteState->lockEventScope($actor, $event, true);
+        DB::transaction(function () use ($actorPlayerId, $eventId): void {
+            $context = $this->eventWriteState->lockEventScope($actorPlayerId, $eventId, true);
             $this->mutations->authorizeManager($context);
-            $locked = $context->event;
-            $target = $context->target;
-            $currentActor = $context->actor;
 
-            $locked->forceFill([
+            $context->event->forceFill([
                 'status' => EventStatus::Cancelled,
-                'updated_by_player_id' => $currentActor->id,
+                'updated_by_player_id' => $context->actor->playerId,
             ])->save();
 
-            $locked->occurrences()
+            $context->event->occurrences()
                 ->where('starts_at', '>=', now())
                 ->update([
                     'status' => EventOccurrenceStatus::Cancelled->value,
                     'updated_at' => now(),
                 ]);
 
-            $alliance = $target instanceof Alliance ? $target : null;
             $metadata = [
-                'scope' => $locked->scope->value,
-                'target_id' => (string) $target->id,
-                'actor_player_id' => (string) $currentActor->id,
+                'scope' => $context->target->scope->value,
+                'target_id' => $context->target->targetId,
+                'actor_player_id' => $context->actor->playerId,
             ];
 
-            $this->audit->record('event.cancelled', $currentActor, $locked, $alliance, $metadata);
+            $this->audit->record('event.cancelled', $context->actor, $context->event, metadata: $metadata);
             $this->outbox->record(
                 'event.cancelled',
-                $alliance?->id,
-                $locked,
+                $context->target->allianceId,
+                $context->event,
                 $metadata,
-                partitionKey: $locked->scope->value.':'.$target->id,
+                partitionKey: $context->target->partitionKey(),
             );
-
-            return $locked->refresh()->load('occurrences');
         });
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\EventAnalysis\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use App\Contexts\Operations\Results\Models\EventMetricDefinition;
@@ -36,7 +36,7 @@ final readonly class EventPlayerHistoryQuery
      * } $filters
      * @return list<array<string,mixed>>
      */
-    public function forPlayer(Player $player, array $filters = []): array
+    public function forPlayer(PlayerReference $player, array $filters = []): array
     {
         $scope = isset($filters['scope']) ? trim((string) $filters['scope']) : null;
         $validScopes = array_map(static fn (EventScope $case): string => $case->value, EventScope::cases());
@@ -61,7 +61,7 @@ final readonly class EventPlayerHistoryQuery
             ->join('events as event', 'event.id', '=', 'occurrence.event_id')
             ->join('event_types as event_type', 'event_type.id', '=', 'event.event_type_id')
             ->join('event_type_scopes as type_scope', 'type_scope.id', '=', 'event.event_type_scope_id')
-            ->where('context.player_id', $player->id)
+            ->where('context.player_id', $player->playerId)
             ->when(
                 $scope !== null && $scope !== '',
                 static fn (Builder $q) => $q->where('event.scope', $scope),
@@ -99,7 +99,7 @@ final readonly class EventPlayerHistoryQuery
                     ->join('event_player_result_metrics as player_metric', 'player_metric.event_player_result_id', '=', 'player_result.id')
                     ->join('event_metric_definitions as metric_definition', 'metric_definition.id', '=', 'player_metric.metric_definition_id')
                     ->whereColumn('player_result.occurrence_id', 'context.occurrence_id')
-                    ->where('player_result.player_id', $player->id)
+                    ->where('player_result.player_id', $player->playerId)
                     ->where('metric_definition.key', $metricKey);
             });
         }
@@ -206,14 +206,14 @@ final readonly class EventPlayerHistoryQuery
      * @param  Collection<int,string>  $occurrenceIds
      * @return Collection<string,EventPlayerResult>
      */
-    private function results(Player $player, Collection $occurrenceIds): Collection
+    private function results(PlayerReference $player, Collection $occurrenceIds): Collection
     {
         if ($occurrenceIds->isEmpty()) {
             return collect();
         }
 
         return EventPlayerResult::query()
-            ->where('player_id', $player->id)
+            ->where('player_id', $player->playerId)
             ->whereIn('occurrence_id', $occurrenceIds)
             ->with('metrics.definition')
             ->get()

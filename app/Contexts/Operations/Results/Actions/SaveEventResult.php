@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
@@ -30,12 +28,10 @@ final readonly class SaveEventResult
         private OutboxRecorder $outbox,
     ) {}
 
-    /**
-     * @param  list<array{key:string,value:int|float|string,dimension_key?:string|null}>  $metrics
-     */
+    /** @param list<array{key:string,value:int|float|string,dimension_key?:string|null}> $metrics */
     public function handle(
-        Player $actor,
-        EventOccurrence $occurrence,
+        string $actorPlayerId,
+        string $occurrenceId,
         ?string $outcome = null,
         ?int $score = null,
         ?int $opponentScore = null,
@@ -43,81 +39,53 @@ final readonly class SaveEventResult
         ?string $notes = null,
         array $metrics = [],
         EventMetricSource $metricSource = EventMetricSource::Manual,
-    ): EventResult {
-        $event = $occurrence->event()->firstOrFail();
+    ): void {
         $this->validate($outcome, $score, $opponentScore, $rank, $notes);
 
-        return DB::transaction(function () use ($actor, $occurrence, $event, $outcome, $score, $opponentScore, $rank, $notes, $metrics, $metricSource): EventResult {
-            $context = $this->eventWriteState->lockEventScope($actor, $event);
+        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $outcome, $score, $opponentScore, $rank, $notes, $metrics, $metricSource): void {
+            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
+            $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Results);
 
-            $lockedOccurrence = EventOccurrence::query()
-                ->whereKey($occurrence->id)
-                ->where('event_id', $context->event->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-            $record = EventResult::query()
-                ->where('occurrence_id', $lockedOccurrence->id)
-                ->lockForUpdate()
-                ->first()
-                ?? new EventResult(['occurrence_id' => $lockedOccurrence->id]);
+            $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->lockForUpdate()->firstOrFail();
+            $record = EventResult::query()->where('occurrence_id', $occurrence->id)->lockForUpdate()->first()
+                ?? new EventResult(['occurrence_id' => $occurrence->id]);
             $created = ! $record->exists;
-
             $record->forceFill([
                 'outcome' => $outcome === null || trim($outcome) === '' ? null : trim($outcome),
                 'score' => $score,
                 'opponent_score' => $opponentScore,
                 'rank' => $rank,
                 'notes' => $notes === null || trim($notes) === '' ? null : trim($notes),
-                'recorded_by_player_id' => $context->actor->id,
+                'recorded_by_player_id' => $actorPlayerId,
                 'recorded_at' => now(),
             ])->save();
 
-            $this->metrics->forEventResult($record, $metrics, $metricSource, $context->actor);
-
-            $alliance = $context->target instanceof Alliance ? $context->target : null;
+            $this->metrics->forEventResult($record, $metrics, $metricSource, $actorPlayerId);
             $eventName = $created ? 'event.result.recorded' : 'event.result.updated';
             $metadata = [
                 'event_id' => (string) $context->event->id,
-                'occurrence_id' => (string) $lockedOccurrence->id,
-                'result_id' => (string) $record->id,
+                'occurrence_id' => (string) $occurrence->id,
+                'event_result_id' => (string) $record->id,
                 'score' => $score,
                 'opponent_score' => $opponentScore,
                 'rank' => $rank,
                 'metric_count' => count($metrics),
                 'metric_source' => $metricSource->value,
-                'actor_player_id' => (string) $context->actor->id,
+                'actor_player_id' => $actorPlayerId,
             ];
-            $this->audit->record($eventName, $context->actor, $record, $alliance, $metadata);
-            $this->outbox->record(
-                $eventName,
-                $alliance?->id,
-                $record,
-                $metadata,
-                partitionKey: $context->event->scopeEnum()->value.':'.$context->target->id,
-            );
-
-            return $record->refresh()->load('metrics.definition');
+            $this->audit->record($eventName, $context->actor, $record, $context->target->allianceId, $metadata);
+            $this->outbox->record($eventName, $context->target->allianceId, $record, $metadata, partitionKey: $context->target->partitionKey());
         });
     }
 
     private function validate(?string $outcome, ?int $score, ?int $opponentScore, ?int $rank, ?string $notes): void
     {
-        if ($outcome !== null && mb_strlen(trim($outcome)) > 80) {
-            throw ValidationException::withMessages(['outcome' => 'Outcome must be 80 characters or fewer.']);
-        }
-        if ($score !== null && $score < 0) {
-            throw ValidationException::withMessages(['score' => 'Score cannot be negative.']);
-        }
-        if ($opponentScore !== null && $opponentScore < 0) {
-            throw ValidationException::withMessages(['opponent_score' => 'Opponent score cannot be negative.']);
-        }
-        if ($rank !== null && $rank < 1) {
-            throw ValidationException::withMessages(['rank' => 'Rank must be at least one.']);
-        }
-        if ($notes !== null && mb_strlen(trim($notes)) > 10000) {
-            throw ValidationException::withMessages(['notes' => 'Result notes must be 10000 characters or fewer.']);
-        }
+        if ($outcome !== null && mb_strlen(trim($outcome)) > 80) throw ValidationException::withMessages(['outcome' => 'Outcome must be 80 characters or fewer.']);
+        if ($score !== null && $score < 0) throw ValidationException::withMessages(['score' => 'Score cannot be negative.']);
+        if ($opponentScore !== null && $opponentScore < 0) throw ValidationException::withMessages(['opponent_score' => 'Opponent score cannot be negative.']);
+        if ($rank !== null && $rank < 1) throw ValidationException::withMessages(['rank' => 'Rank must be at least one.']);
+        if ($notes !== null && mb_strlen(trim($notes)) > 10000) throw ValidationException::withMessages(['notes' => 'Result notes must be 10000 characters or fewer.']);
     }
 }

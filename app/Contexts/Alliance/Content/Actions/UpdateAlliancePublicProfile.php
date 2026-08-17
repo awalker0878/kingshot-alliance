@@ -14,7 +14,6 @@ use App\Contexts\Alliance\Content\Models\AllianceProfile;
 use App\Contexts\Alliance\Content\Models\MediaAsset;
 use App\Contexts\Alliance\Content\Services\ContentSanitizer;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -41,12 +40,12 @@ final readonly class UpdateAlliancePublicProfile
      *   banner_media_id?: string|null
      * } $attributes
      */
-    public function handle(Alliance $alliance, Player $actor, array $attributes): Alliance
+    public function handle(string $allianceId, string $actorPlayerId, array $attributes): Alliance
     {
-        return DB::transaction(function () use ($alliance, $actor, $attributes): Alliance {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $attributes): Alliance {
             // This workflow changes the Alliance aggregate itself, so the exclusive
             // parent boundary is intentional rather than an ordinary child lock.
-            $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
             $locked = $context->alliance;
 
@@ -66,8 +65,8 @@ final readonly class UpdateAlliancePublicProfile
                 ],
             );
 
-            $this->setBrandingSlot($locked, 'logo', $attributes['logo_media_id'] ?? null);
-            $this->setBrandingSlot($locked, 'banner', $attributes['banner_media_id'] ?? null);
+            $this->setBrandingSlot((string) $locked->id, 'logo', $attributes['logo_media_id'] ?? null);
+            $this->setBrandingSlot((string) $locked->id, 'banner', $attributes['banner_media_id'] ?? null);
 
             $this->audit->record(
                 event: 'alliance.public_profile_updated',
@@ -89,11 +88,11 @@ final readonly class UpdateAlliancePublicProfile
         });
     }
 
-    private function setBrandingSlot(Alliance $alliance, string $slot, ?string $mediaId): void
+    private function setBrandingSlot(string $allianceId, string $slot, ?string $mediaId): void
     {
         if ($mediaId === null || trim($mediaId) === '') {
             AllianceBrandingMedia::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->where('slot', $slot)
                 ->delete();
 
@@ -102,7 +101,7 @@ final readonly class UpdateAlliancePublicProfile
 
         $media = MediaAsset::query()
             ->where('id', $mediaId)
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->where('scan_status', MediaScanStatus::Clean->value)
             ->where('lifecycle_status', MediaLifecycleStatus::Active->value)
             ->lockForUpdate()
@@ -115,7 +114,7 @@ final readonly class UpdateAlliancePublicProfile
         }
 
         AllianceBrandingMedia::query()->updateOrCreate(
-            ['alliance_id' => $alliance->id, 'slot' => $slot],
+            ['alliance_id' => $allianceId, 'slot' => $slot],
             ['media_id' => $media->id],
         );
     }
