@@ -36,4 +36,17 @@ jobs:
         run: php artisan route:list --no-ansi
 
       - name: Architecture V3 tests
-        run: vendor/bin/phpunit tests/v3/Architecture
+        shell: bash
+        run: |
+          set +e
+          vendor/bin/phpunit tests/v3/Architecture 2>&1 | tee /tmp/architecture-v3-tests.txt
+          status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$status" -ne 0 ]; then
+            while IFS= read -r line; do
+              [ -n "$line" ] && printf '::error title=Architecture V3::%s\n' "$line"
+            done < /tmp/architecture-v3-tests.txt
+          fi
+
+          exit "$status"
