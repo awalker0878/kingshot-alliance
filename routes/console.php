@@ -150,11 +150,11 @@ Artisan::command('kingdoms:bootstrap-admin {kingdom} {player}', function (Bootst
         return 1;
     }
 
-    $assignment = $bootstrap->handle($kingdom, $player);
+    $assignment = $bootstrap->handle((string) $kingdom->id, (string) $player->id);
     $this->info(sprintf(
         'Bootstrapped Kingdom #%d administrator to Player %s.',
-        (int) $kingdom->number,
-        (string) $assignment->player_id,
+        $assignment->kingdomNumber,
+        $assignment->playerId,
     ));
 
     return 0;
