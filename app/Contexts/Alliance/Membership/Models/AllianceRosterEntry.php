@@ -6,7 +6,6 @@ namespace App\Contexts\Alliance\Membership\Models;
 
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
-use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,7 +22,6 @@ use Illuminate\Support\Carbon;
  * @property string|null $manager_notes
  * @property Carbon|null $last_observed_at
  * @property string $source
- * @property-read Player $player
  */
 final class AllianceRosterEntry extends Model
 {
@@ -60,11 +58,5 @@ final class AllianceRosterEntry extends Model
     public function alliance(): BelongsTo
     {
         return $this->belongsTo(Alliance::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'player_id');
     }
 }
