@@ -12,25 +12,25 @@ use RuntimeException;
 final readonly class GrantKingdomRolePermissions
 {
     /**
-     * @param array<string, list<string>> $permissionKeysByRoleKey
+     * @param array<string, list<string>> $permissionKeysByRoleId
      */
-    public function handle(string $kingdomId, array $permissionKeysByRoleKey): void
+    public function handle(string $kingdomId, array $permissionKeysByRoleId): void
     {
-        if ($permissionKeysByRoleKey === []) {
+        if ($permissionKeysByRoleId === []) {
             return;
         }
 
-        DB::transaction(function () use ($kingdomId, $permissionKeysByRoleKey): void {
-            $roleKeys = array_keys($permissionKeysByRoleKey);
+        DB::transaction(function () use ($kingdomId, $permissionKeysByRoleId): void {
+            $roleIds = array_keys($permissionKeysByRoleId);
             $roles = KingdomRole::query()
                 ->where('kingdom_id', $kingdomId)
-                ->whereIn('key', $roleKeys)
+                ->whereIn('id', $roleIds)
                 ->lockForUpdate()
                 ->get()
-                ->keyBy('key');
+                ->keyBy('id');
 
             $permissionKeys = [];
-            foreach ($permissionKeysByRoleKey as $keys) {
+            foreach ($permissionKeysByRoleId as $keys) {
                 foreach ($keys as $key) {
                     $permissionKeys[$key] = true;
                 }
@@ -40,10 +40,10 @@ final readonly class GrantKingdomRolePermissions
                 ->whereIn('key', array_keys($permissionKeys))
                 ->pluck('id', 'key');
 
-            foreach ($permissionKeysByRoleKey as $roleKey => $keys) {
-                $role = $roles->get($roleKey);
+            foreach ($permissionKeysByRoleId as $roleId => $keys) {
+                $role = $roles->get($roleId);
                 if (! $role instanceof KingdomRole) {
-                    throw new RuntimeException('The requested GameWorld Kingdom role is not provisioned.');
+                    throw new RuntimeException('The requested GameWorld Kingdom role is not provisioned in this Kingdom.');
                 }
 
                 $permissionIds = [];
