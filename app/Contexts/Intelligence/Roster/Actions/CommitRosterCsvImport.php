@@ -123,7 +123,7 @@ final readonly class CommitRosterCsvImport
                 );
                 $entryId === null ? $created++ : $updated++;
 
-                if ($this->recordSnapshot->handle(
+                $snapshot = $this->recordSnapshot->handle(
                     $allianceId, $actorPlayerId, $entry->rosterEntryId,
                     [
                         'observed_name' => (string) ($data['name'] ?? ''),
@@ -133,7 +133,8 @@ final readonly class CommitRosterCsvImport
                         'captured_at' => (string) ($data['captured_at'] ?? ''),
                     ],
                     'csv', (string) $import->id,
-                )) {
+                );
+                if ($snapshot->created) {
                     $snapshotsCreated++;
                 }
             }

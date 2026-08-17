@@ -8,7 +8,7 @@ use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Events\OutboxPublished;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 final class MarkRecruitmentCandidateJoined
 {
     public function __construct(
+        private PlayerReferenceQuery $players,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -63,8 +64,8 @@ final class MarkRecruitmentCandidateJoined
                 return;
             }
 
-            $actor = Player::query()->whereKey($playerId)->first();
-            if (! $actor instanceof Player) {
+            $actor = $this->players->find($playerId);
+            if ($actor === null) {
                 return;
             }
 
@@ -73,7 +74,7 @@ final class MarkRecruitmentCandidateJoined
                 'stage' => RecruitmentStage::Joined,
                 'joined_at' => $now,
                 'retention_due_at' => null,
-                'updated_by_player_id' => $actor->id,
+                'updated_by_player_id' => $actor->playerId,
             ])->save();
 
             RecruitmentStageHistory::query()->create([
@@ -82,7 +83,7 @@ final class MarkRecruitmentCandidateJoined
                 'from_stage' => RecruitmentStage::Accepted,
                 'to_stage' => RecruitmentStage::Joined,
                 'reason' => 'Alliance invitation accepted',
-                'changed_by_player_id' => $actor->id,
+                'changed_by_player_id' => $actor->playerId,
                 'changed_at' => $now,
             ]);
 

@@ -7,7 +7,7 @@ namespace App\ReadModels\EventCalendar\Http\Controllers;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
-use App\Contexts\Intelligence\EventAnalysis\Queries\EventPlayerIntelligenceQuery;
+use App\ReadModels\EventAnalysis\Queries\EventPlayerIntelligenceQuery;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\BattlePlans\Queries\EventObjectiveQuery;
 use App\Contexts\Operations\Events\Enums\EventCapability;

@@ -9,6 +9,7 @@ use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
+use App\Contexts\Intelligence\Roster\ValueObjects\PlayerSnapshotRecordResult;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
@@ -40,7 +41,7 @@ final readonly class RecordPlayerSnapshot
         string $source = 'manual',
         ?string $importId = null,
         ?array $machineProvenance = null,
-    ): bool {
+    ): PlayerSnapshotRecordResult {
         if (! in_array($source, ['manual', 'csv', 'ingestion'], true)) {
             throw new InvalidArgumentException('Unsupported snapshot source.');
         }
@@ -54,7 +55,7 @@ final readonly class RecordPlayerSnapshot
 
         $provenance = $source === 'ingestion' ? $this->machineProvenance($machineProvenance) : $this->emptyMachineProvenance();
 
-        return DB::transaction(function () use ($allianceId, $actorPlayerId, $entryId, $attributes, $source, $importId, $provenance): bool {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $entryId, $attributes, $source, $importId, $provenance): PlayerSnapshotRecordResult {
             /** @var PlayerReference|null $actor */
             $actor = null;
             if ($source !== 'ingestion') {
@@ -110,7 +111,7 @@ final readonly class RecordPlayerSnapshot
                 $this->outbox->record($event, $allianceId, $snapshot, $metadata, $event.':'.$snapshot->id);
             }
 
-            return $snapshot->wasRecentlyCreated;
+            return new PlayerSnapshotRecordResult((string) $snapshot->id, $snapshot->wasRecentlyCreated);
         });
     }
 

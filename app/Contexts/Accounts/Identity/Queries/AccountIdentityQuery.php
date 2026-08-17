@@ -22,6 +22,11 @@ final class AccountIdentityQuery
         return $this->snapshot(User::query()->findOrFail($userId));
     }
 
+    public function lockCurrent(int $userId): AccountIdentity
+    {
+        return $this->snapshot(User::query()->whereKey($userId)->lockForUpdate()->firstOrFail());
+    }
+
     public function findIdByEmail(string $email): ?int
     {
         $id = User::query()

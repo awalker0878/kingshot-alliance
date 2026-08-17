@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Http\Middleware;
 
-use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\TenantContextSnapshot;
 use App\Contexts\Platform\Integrations\Actions\RecordApiCredentialUse;
 use App\Contexts\Platform\Integrations\Models\ApiCredential;
@@ -15,7 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 final readonly class AuthenticateApiCredential
 {
-    public function __construct(private RecordApiCredentialUse $recordUse) {}
+    public function __construct(
+        private RecordApiCredentialUse $recordUse,
+        private AllianceReferenceQuery $alliances,
+    ) {}
 
     public function handle(Request $request, Closure $next, string $requiredScope = 'alliance:read'): Response
     {
@@ -35,14 +37,14 @@ final readonly class AuthenticateApiCredential
             abort(401, 'The API credential is invalid, expired, revoked, or missing the required scope.');
         }
 
-        $alliance = Alliance::query()->find($credential->alliance_id);
-        if (! $alliance instanceof Alliance || $alliance->status !== AllianceStatus::Active) {
+        $alliance = $this->alliances->find((string) $credential->alliance_id);
+        if ($alliance === null || ! $alliance->active()) {
             abort(403, 'The alliance is not available for API access.');
         }
 
-        $this->recordUse->handle($credential);
+        $this->recordUse->handle((string) $credential->id);
 
-        $request->attributes->set('alliance_id', (string) $alliance->id);
+        $request->attributes->set('alliance_id', $alliance->allianceId);
         $request->attributes->set('api_credential_id', (string) $credential->id);
         $request->attributes->set('tenant_context', TenantContextSnapshot::fromRequest($request));
 

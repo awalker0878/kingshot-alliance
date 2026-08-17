@@ -11,7 +11,6 @@ use App\Contexts\Alliance\Content\Enums\MediaLifecycleStatus;
 use App\Contexts\Alliance\Content\Models\AllianceBrandingMedia;
 use App\Contexts\Alliance\Content\Models\MediaAsset;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -26,9 +25,9 @@ final readonly class ArchiveMediaAsset
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(string $allianceId, string $actorPlayerId, string $mediaId): MediaAsset
+    public function handle(string $allianceId, string $actorPlayerId, string $mediaId): string
     {
-        return DB::transaction(function () use ($allianceId, $actorPlayerId, $mediaId): MediaAsset {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $mediaId): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
@@ -57,7 +56,7 @@ final readonly class ArchiveMediaAsset
                 'sha256' => $asset->sha256,
             ]);
 
-            return $asset->refresh();
+            return (string) $asset->id;
         });
     }
 }

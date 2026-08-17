@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Sharing\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
-use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Sharing\Actions\AcceptKingdomIntelligenceShareInvitation;
 use App\Contexts\Intelligence\Sharing\Actions\AddKingdomIntelligenceShareTarget;
 use App\Contexts\Intelligence\Sharing\Actions\CreateKingdomIntelligenceShareInvitation;
@@ -16,92 +12,20 @@ use App\Contexts\Intelligence\Sharing\Actions\DeclineKingdomIntelligenceShareInv
 use App\Contexts\Intelligence\Sharing\Actions\LeaveKingdomIntelligenceShare;
 use App\Contexts\Intelligence\Sharing\Actions\RemoveKingdomIntelligenceShareTarget;
 use App\Contexts\Intelligence\Sharing\Actions\RevokeKingdomIntelligenceShare;
-use App\Contexts\Intelligence\Sharing\Queries\KingdomIntelligenceSharingManageQuery;
-use App\ReadModels\SharedKingdomIntelligence\SharedKingdomIntelligenceCurrentQuery;
-use App\ReadModels\SharedKingdomIntelligence\SharedKingdomIntelligenceHistoryQuery;
 use App\Shared\Infrastructure\Http\Controller;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
-use Inertia\Inertia;
-use Inertia\Response;
 
 final class KingdomIntelligenceSharingController extends Controller
 {
-    public function index(
-        Request $request,
-        AllianceContext $context,
-        AllianceIntelligenceAuthorization $intelligenceAuthorization,
-        SharedKingdomIntelligenceCurrentQuery $current,
-        SharedKingdomIntelligenceHistoryQuery $history,
-    ): Response {
-        $user = $this->user($request);
-        $alliance = $context->alliance()->load('kingdom');
-
-        if (! $intelligenceAuthorization->allows($context->player(), $alliance, IntelligencePermission::View)) {
-            throw new AuthorizationException;
-        }
-
-        /** @var array{target?: string|null, cursor?: string|null} $validated */
-        $validated = $request->validate([
-            'target' => ['sometimes', 'nullable', 'ulid'],
-            'cursor' => ['sometimes', 'nullable', 'string', 'max:4096'],
-        ]);
-
-        $target = $validated['target'] ?? null;
-        $cursor = $validated['cursor'] ?? null;
-        if ($cursor !== null && $target === null) {
-            throw ValidationException::withMessages([
-                'cursor' => 'A shared history cursor requires its target.',
-            ]);
-        }
-
-        return Inertia::render('Alliance/KingdomSharing', [
-            'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
-            ],
-            'alliance' => $this->allianceSummary($alliance),
-            'canManage' => $intelligenceAuthorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage),
-            'current' => $current->forRecipient($alliance),
-            'selectedHistory' => $target === null
-                ? null
-                : $history->forRecipientTarget($alliance, $target, $cursor),
-        ]);
-    }
-
-    public function manage(
-        Request $request,
-        AllianceContext $context,
-        AllianceIntelligenceAuthorization $intelligenceAuthorization,
-        KingdomIntelligenceSharingManageQuery $sharing,
-    ): Response {
-        $user = $this->user($request);
-        $alliance = $context->alliance()->load('kingdom');
-
-        if (! $intelligenceAuthorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage)) {
-            throw new AuthorizationException;
-        }
-
-        return Inertia::render('Alliance/KingdomSharingManage', [
-            'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
-            ],
-            'alliance' => $this->allianceSummary($alliance),
-            'passwordConfirmUrl' => route('password.confirm'),
-            'sharing' => $sharing->forAlliance($alliance),
-        ]);
-    }
-
     public function createInvitation(
         Request $request,
         AllianceContext $context,
         CreateKingdomIntelligenceShareInvitation $create,
     ): JsonResponse {
-        $issued = $create->handle($context->alliance(), $context->player());
+        $scope = $context->scope();
+        $issued = $create->handle($scope->allianceId, $scope->playerId);
 
         return response()->json([
             'shareId' => $issued->shareId,
@@ -114,12 +38,11 @@ final class KingdomIntelligenceSharingController extends Controller
         AllianceContext $context,
         AcceptKingdomIntelligenceShareInvitation $accept,
     ): RedirectResponse {
-        /** @var array{token: string} $validated */
         $validated = $request->validate([
             'token' => ['required', 'string', 'size:64', 'regex:/\A[a-f0-9]{64}\z/'],
         ]);
-
-        $accept->handle($context->alliance(), $context->player(), $validated['token']);
+        $scope = $context->scope();
+        $accept->handle($scope->allianceId, $scope->playerId, (string) $validated['token']);
 
         return back()->with('status', 'kingdom-shared-intelligence-accepted');
     }
@@ -129,12 +52,11 @@ final class KingdomIntelligenceSharingController extends Controller
         AllianceContext $context,
         DeclineKingdomIntelligenceShareInvitation $decline,
     ): RedirectResponse {
-        /** @var array{token: string} $validated */
         $validated = $request->validate([
             'token' => ['required', 'string', 'size:64', 'regex:/\A[a-f0-9]{64}\z/'],
         ]);
-
-        $decline->handle($context->alliance(), $context->player(), $validated['token']);
+        $scope = $context->scope();
+        $decline->handle($scope->allianceId, $scope->playerId, (string) $validated['token']);
 
         return back()->with('status', 'kingdom-shared-intelligence-declined');
     }
@@ -145,7 +67,8 @@ final class KingdomIntelligenceSharingController extends Controller
         RevokeKingdomIntelligenceShare $revoke,
         string $share,
     ): RedirectResponse {
-        $revoke->handle($context->alliance(), $context->player(), $share);
+        $scope = $context->scope();
+        $revoke->handle($scope->allianceId, $scope->playerId, $share);
 
         return back()->with('status', 'kingdom-shared-intelligence-revoked');
     }
@@ -156,7 +79,8 @@ final class KingdomIntelligenceSharingController extends Controller
         LeaveKingdomIntelligenceShare $leave,
         string $share,
     ): RedirectResponse {
-        $leave->handle($context->alliance(), $context->player(), $share);
+        $scope = $context->scope();
+        $leave->handle($scope->allianceId, $scope->playerId, $share);
 
         return back()->with('status', 'kingdom-shared-intelligence-left');
     }
@@ -168,7 +92,8 @@ final class KingdomIntelligenceSharingController extends Controller
         string $share,
         string $tracking,
     ): RedirectResponse {
-        $add->handle($context->alliance(), $context->player(), $share, $tracking);
+        $scope = $context->scope();
+        $add->handle($scope->allianceId, $scope->playerId, $share, $tracking);
 
         return back()->with('status', 'kingdom-shared-intelligence-target-shared');
     }
@@ -180,26 +105,9 @@ final class KingdomIntelligenceSharingController extends Controller
         string $share,
         string $target,
     ): RedirectResponse {
-        $remove->handle($context->alliance(), $context->player(), $share, $target);
+        $scope = $context->scope();
+        $remove->handle($scope->allianceId, $scope->playerId, $share, $target);
 
         return back()->with('status', 'kingdom-shared-intelligence-target-removed');
-    }
-
-    /** @return array{id: string, name: string, kingdom: string|null} */
-    private function allianceSummary(Alliance $alliance): array
-    {
-        return [
-            'id' => (string) $alliance->id,
-            'name' => (string) $alliance->name,
-            'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
-        ];
-    }
-
-    private function user(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
-
-        return $user;
     }
 }

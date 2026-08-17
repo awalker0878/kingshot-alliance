@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\ReadModels\KingdomIntelligence;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
@@ -28,19 +28,19 @@ final readonly class KingdomAllianceIntelligence
      * @return array<string, mixed>
      */
     public function forAlliance(
-        Alliance $alliance,
+        AllianceReference $alliance,
         bool $includePrivate,
         array $filters,
         ?Carbon $asOf = null,
     ): array {
         $asOf ??= now();
-        $tracking = $this->query->tracking($alliance);
-        $latest = $this->query->latestAccepted($alliance, $tracking, $asOf);
-        $previous = $this->query->previousAccepted($alliance, $tracking, $asOf);
-        $sevenDay = $this->query->baselines($alliance, $tracking, self::SEVEN_DAY_WINDOW, $asOf);
-        $thirtyDay = $this->query->baselines($alliance, $tracking, self::THIRTY_DAY_WINDOW, $asOf);
+        $tracking = $this->query->tracking($alliance->allianceId);
+        $latest = $this->query->latestAccepted($alliance->allianceId, $tracking, $asOf);
+        $previous = $this->query->previousAccepted($alliance->allianceId, $tracking, $asOf);
+        $sevenDay = $this->query->baselines($alliance->allianceId, $tracking, self::SEVEN_DAY_WINDOW, $asOf);
+        $thirtyDay = $this->query->baselines($alliance->allianceId, $tracking, self::THIRTY_DAY_WINDOW, $asOf);
         $contactDiagnostics = $includePrivate
-            ? $this->query->contactDiagnostics($alliance, $tracking, $asOf)
+            ? $this->query->contactDiagnostics($alliance->allianceId, $tracking, $asOf)
             : [];
         $freshCutoff = $asOf->copy()->subDays(KingdomAllianceObservationQuery::FRESH_DAYS);
         $activeTracked = 0;
@@ -57,18 +57,16 @@ final readonly class KingdomAllianceIntelligence
             $entryId = (string) $entry->id;
             $currentObservation = $latest[$entryId] ?? null;
             $freshness = $this->freshness($currentObservation, $freshCutoff);
-            $relationship = $entry->diplomacy;
-            $diplomacyState = $relationship?->current_state->value ?? KingdomAllianceDiplomacyState::Unknown->value;
-            $needsReview = $relationship !== null
-                && (($relationship->review_at !== null && $relationship->review_at->lte($asOf))
-                    || ($relationship->expires_at !== null && $relationship->expires_at->lte($asOf)));
+            $diplomacyState = $entry->diplomacyState ?? KingdomAllianceDiplomacyState::Unknown->value;
+            $needsReview = ($entry->diplomacyReviewAt !== null && $entry->diplomacyReviewAt->lte($asOf))
+                || ($entry->diplomacyExpiresAt !== null && $entry->diplomacyExpiresAt->lte($asOf));
             $diagnostics = $contactDiagnostics[$entryId] ?? [
                 'active' => 0,
                 'verificationDue' => 0,
                 'latestVerifiedAt' => null,
             ];
 
-            if ($entry->state === TrackedKingdomAllianceState::Active) {
+            if ($entry->state === TrackedKingdomAllianceState::Active->value) {
                 $activeTracked++;
 
                 match ($freshness) {
@@ -95,11 +93,11 @@ final readonly class KingdomAllianceIntelligence
             }
 
             $row = [
-                'name' => (string) $entry->kingdomAlliance->current_name,
-                'tag' => $entry->kingdomAlliance->current_tag,
-                'trackingState' => $entry->state->value,
-                'kingdom' => (string) $entry->kingdom->number,
-                'contextCurrent' => $alliance->kingdom_id !== null && $alliance->kingdom_id === $entry->kingdom_id,
+                'name' => (string) $entry->currentName,
+                'tag' => $entry->currentTag,
+                'trackingState' => $entry->state,
+                'kingdom' => (string) $entry->kingdomNumber,
+                'contextCurrent' => $alliance->kingdomId === $entry->kingdomId,
                 'historyUrl' => route('alliance.kingdom-alliances.history', ['tracking' => $entry->id], false),
                 'freshness' => $freshness,
                 'observationAgeDays' => $currentObservation === null
@@ -112,9 +110,9 @@ final readonly class KingdomAllianceIntelligence
                 'diplomacy' => [
                     'state' => $diplomacyState,
                     'needsReview' => $needsReview,
-                    'effectiveAt' => $relationship?->effective_at->toIso8601String(),
-                    'reviewAt' => $relationship?->review_at?->toIso8601String(),
-                    'expiresAt' => $relationship?->expires_at?->toIso8601String(),
+                    'effectiveAt' => $entry->diplomacyEffectiveAt?->toIso8601String(),
+                    'reviewAt' => $entry->diplomacyReviewAt?->toIso8601String(),
+                    'expiresAt' => $entry->diplomacyExpiresAt?->toIso8601String(),
                 ],
             ];
 

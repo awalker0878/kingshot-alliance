@@ -46,7 +46,6 @@ app/
 │   │   ├── Ingestion/
 │   │   ├── Roster/
 │   │   ├── Contributions/
-│   │   ├── EventAnalysis/
 │   │   ├── Diplomacy/
 │   │   └── Sharing/
 │   │

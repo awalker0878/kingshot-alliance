@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Events\Queries;
 
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventOccurrenceStatus;
 use App\Contexts\Operations\Events\Enums\EventScope;
@@ -34,7 +34,7 @@ final readonly class EventAttentionQuery
     ) {}
 
     /** @return list<array<string, mixed>> */
-    public function for(Player $actor, int $days = 14): array
+    public function for(PlayerReference $actor, int $days = 14): array
     {
         $player = $actor;
         $eligibleTargets = $this->visibility->targetIds($actor);
@@ -147,17 +147,17 @@ final readonly class EventAttentionQuery
      *   roster_assignments:array<string,string>
      * }
      */
-    private function participationFacts(array $occurrenceIds, Player $player): array
+    private function participationFacts(array $occurrenceIds, PlayerReference $player): array
     {
         $responses = EventResponse::query()
-            ->where('player_id', $player->id)
+            ->where('player_id', $player->playerId)
             ->whereIn('occurrence_id', $occurrenceIds)
             ->pluck('occurrence_id')
             ->mapWithKeys(static fn ($id): array => [(string) $id => true])
             ->all();
 
         $registrations = EventRegistration::query()
-            ->where('player_id', $player->id)
+            ->where('player_id', $player->playerId)
             ->whereIn('occurrence_id', $occurrenceIds)
             ->whereIn('status', [EventRegistrationStatus::Registered->value, EventRegistrationStatus::Waitlisted->value])
             ->pluck('occurrence_id')
@@ -185,7 +185,7 @@ final readonly class EventAttentionQuery
         $votes = $pollIds === []
             ? []
             : EventPollVote::query()
-                ->where('player_id', $player->id)
+                ->where('player_id', $player->playerId)
                 ->whereIn('poll_id', $pollIds)
                 ->pluck('poll_id')
                 ->mapWithKeys(static fn ($id): array => [(string) $id => true])
@@ -194,7 +194,7 @@ final readonly class EventAttentionQuery
         /** @var array<string,string> $rosterAssignments */
         $rosterAssignments = [];
         $members = EventRosterMember::query()
-            ->where('player_id', $player->id)
+            ->where('player_id', $player->playerId)
             ->where('status', EventRosterMemberStatus::Assigned->value)
             ->whereHas('roster', static fn (Builder $query) => $query->whereIn('occurrence_id', $occurrenceIds))
             ->with('roster:id,occurrence_id')
@@ -221,7 +221,7 @@ final readonly class EventAttentionQuery
     }
 
     /** @return array<string, mixed> */
-    private function item(EventOccurrence $occurrence, Player $player, string $action, ?string $pollId = null, ?string $rosterMemberId = null): array
+    private function item(EventOccurrence $occurrence, PlayerReference $player, string $action, ?string $pollId = null, ?string $rosterMemberId = null): array
     {
         return [
             'occurrenceId' => (string) $occurrence->id,
@@ -232,7 +232,7 @@ final readonly class EventAttentionQuery
             'action' => $action,
             'pollId' => $pollId,
             'rosterMemberId' => $rosterMemberId,
-            'playerId' => (string) $player->id,
+            'playerId' => (string) $player->playerId,
             'startsAt' => $occurrence->starts_at->toIso8601String(),
         ];
     }

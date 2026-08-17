@@ -43,9 +43,9 @@ final readonly class SaveContentItem
      *   sort_order?: int
      * } $attributes
      */
-    public function handle(string $allianceId, string $actorPlayerId, array $attributes, ?string $contentItemId = null): ContentItem
+    public function handle(string $allianceId, string $actorPlayerId, array $attributes, ?string $contentItemId = null): string
     {
-        return DB::transaction(function () use ($allianceId, $actorPlayerId, $attributes, $contentItemId): ContentItem {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $attributes, $contentItemId): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
             $categoryId = $attributes['category_id'] ?? null;
@@ -99,7 +99,7 @@ final readonly class SaveContentItem
                 'type' => $item->type->value,
             ]);
 
-            return $item->refresh();
+            return (string) $item->id;
         });
     }
 

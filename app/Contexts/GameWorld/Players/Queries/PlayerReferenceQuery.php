@@ -97,6 +97,21 @@ final class PlayerReferenceQuery
     }
 
     /** @return list<PlayerReference> */
+    public function matchingGamePlayerIdInKingdom(string $kingdomId, string $gamePlayerId, int $limit = 2): array
+    {
+        return Player::query()
+            ->where('current_kingdom_id', $kingdomId)
+            ->where('game_player_id', $gamePlayerId)
+            ->with('currentKingdom:id,number')
+            ->orderBy('id')
+            ->limit(max(1, $limit))
+            ->get()
+            ->map(fn (Player $player): PlayerReference => $this->snapshot($player))
+            ->values()
+            ->all();
+    }
+
+    /** @return list<PlayerReference> */
     public function inKingdom(string $kingdomId): array
     {
         return Player::query()

@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 final class RecordApiCredentialUse
 {
-    public function handle(ApiCredential $credential): void
+    public function handle(string $credentialId): void
     {
+        $credential = ApiCredential::query()->whereKey($credentialId)->firstOrFail();
+
         if ($credential->last_used_at !== null && $credential->last_used_at->gte(now()->subMinutes(5))) {
             return;
         }

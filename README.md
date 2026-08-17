@@ -1,6 +1,6 @@
 # Kingshot Alliance
 
-Enterprise-ready coordination platform for the KingShot community, organized around the Architecture V2 bounded-context model.
+Enterprise-ready coordination platform for the KingShot community, organized around the Architecture V3 capability-first bounded-context model.
 
 ## Technology baseline
 
@@ -10,7 +10,7 @@ Enterprise-ready coordination platform for the KingShot community, organized aro
 - Redis 8 with Laravel Horizon
 - Laravel Pulse, Pennant and Sanctum foundations
 - Docker Compose for local development
-- GitHub Actions for quality, security and Architecture V2 verification
+- GitHub Actions for quality and security; Architecture V3 workflow wiring is tracked separately
 
 ## Local setup
 
@@ -31,7 +31,7 @@ make backup
 CONFIRM_RESTORE=YES make restore FILE=backups/database-....sql.gz
 ```
 
-## Architecture V2
+## Architecture V3
 
 Business behavior is organized into bounded contexts under `app/Contexts`:
 
@@ -47,7 +47,7 @@ Capabilities live inside those contexts. Cross-context commands are coordinated 
 
 A User is the account principal; the active Player is the game-domain principal. Platform Administrator is User-scoped platform authority and is not a game-domain bypass.
 
-See the [architecture overview](docs/architecture/README.md), [Architecture V2 compliance](docs/governance/architecture-compliance.md) and [codebase module map](docs/codebase/module-map.md).
+See the [architecture overview](docs/architecture/README.md), [Architecture V3 compliance](docs/governance/architecture-compliance.md) and [codebase module map](docs/codebase/module-map.md).
 
 ## Health endpoints
 

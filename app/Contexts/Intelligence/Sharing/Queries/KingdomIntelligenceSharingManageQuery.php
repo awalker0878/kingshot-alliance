@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Sharing\Queries;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use Illuminate\Support\Facades\DB;
 
@@ -21,11 +21,11 @@ final class KingdomIntelligenceSharingManageQuery
      *   trackableTargets: list<array{id: string, name: string, tag: string|null}>
      * }
      */
-    public function forAlliance(Alliance $alliance): array
+    public function forAlliance(AllianceReference $alliance): array
     {
         $outbound = DB::table('kingdom_intelligence_shares as shares')
             ->leftJoin('alliances as recipient', 'recipient.id', '=', 'shares.recipient_alliance_id')
-            ->where('shares.source_alliance_id', $alliance->id)
+            ->where('shares.source_alliance_id', $alliance->allianceId)
             ->select([
                 'shares.id',
                 'shares.state',
@@ -123,7 +123,7 @@ final class KingdomIntelligenceSharingManageQuery
 
         $inbound = DB::table('kingdom_intelligence_shares as shares')
             ->join('alliances as source', 'source.id', '=', 'shares.source_alliance_id')
-            ->where('shares.recipient_alliance_id', $alliance->id)
+            ->where('shares.recipient_alliance_id', $alliance->allianceId)
             ->select([
                 'shares.id',
                 'shares.state',
@@ -157,11 +157,11 @@ final class KingdomIntelligenceSharingManageQuery
 
         /** @var list<array{id: string, name: string, tag: string|null}> $trackableTargets */
         $trackableTargets = [];
-        if ($alliance->kingdom_id !== null) {
+        if ($alliance->kingdomId !== '') {
             $trackableTargets = DB::table('tracked_kingdom_alliances as tracking')
                 ->join('kingdom_alliances as game_alliances', 'game_alliances.id', '=', 'tracking.kingdom_alliance_id')
-                ->where('tracking.alliance_id', $alliance->id)
-                ->where('tracking.kingdom_id', $alliance->kingdom_id)
+                ->where('tracking.alliance_id', $alliance->allianceId)
+                ->where('tracking.kingdom_id', $alliance->kingdomId)
                 ->where('tracking.state', TrackedKingdomAllianceState::Active->value)
                 ->select([
                     'tracking.id',

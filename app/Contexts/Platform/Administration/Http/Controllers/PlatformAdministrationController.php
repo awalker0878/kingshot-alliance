@@ -6,15 +6,10 @@ namespace App\Contexts\Platform\Administration\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
-use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
-use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
-use App\Contexts\Platform\Administration\Queries\PlatformAdministrationQuery;
 use App\Contexts\Platform\AllianceAdministration\Actions\ConfigureAlliancePlatform;
 use App\Contexts\Platform\AllianceAdministration\Actions\ManageAllianceLifecycle;
-use App\Contexts\Platform\AllianceAdministration\Services\AllianceFeatureService;
 use App\Contexts\Platform\AllianceAdministration\Services\PlatformUsageService;
-use App\Contexts\Platform\DataGovernance\Models\LegalHold;
 use App\Contexts\Platform\DataGovernance\Services\AllianceDataExportService;
 use App\Contexts\Platform\DataGovernance\Services\LegalHoldService;
 use Illuminate\Http\RedirectResponse;
@@ -22,49 +17,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Inertia\Inertia;
-use Inertia\Response;
 use InvalidArgumentException;
 
 final class PlatformAdministrationController
 {
-    public function __construct(
-        private readonly AccountIdentityQuery $accounts,
-        private readonly AllianceReferenceQuery $alliances,
-    ) {}
-
-    public function index(
-        Request $request,
-        PlatformAdministrationQuery $query,
-        AllianceFeatureService $features,
-    ): Response {
-        $account = $this->account($request);
-        $dashboard = $query->dashboard();
-        $selectedAllianceId = $request->query('alliance');
-        $selectedAlliance = null;
-
-        if (is_string($selectedAllianceId) && $selectedAllianceId !== '') {
-            $alliance = $this->alliances->find($selectedAllianceId);
-            if ($alliance !== null) {
-                $selectedAlliance = [
-                    'id' => $alliance->allianceId,
-                    'name' => $alliance->name,
-                    'features' => $features->all($alliance->allianceId),
-                ];
-            }
-        }
-
-        return Inertia::render('Platform/Administration/Index', [
-            'user' => [
-                'name' => $account->name,
-                'email' => $account->email,
-            ],
-            'platform' => $dashboard,
-            'selectedAlliance' => $selectedAlliance,
-            'currentUserId' => $account->userId,
-            'status' => $request->session()->get('status'),
-        ]);
-    }
+    public function __construct(private readonly AccountIdentityQuery $accounts) {}
 
     public function grantAdministrator(Request $request, ManagePlatformAdministrator $manage): RedirectResponse
     {
@@ -87,10 +44,8 @@ final class PlatformAdministrationController
         ManagePlatformAdministrator $manage,
     ): RedirectResponse {
         $actor = $this->account($request);
-        $grant = PlatformAdministrator::query()->findOrFail($administrator);
-
         try {
-            $manage->revoke($actor, $grant);
+            $manage->revoke($actor, $administrator);
         } catch (InvalidArgumentException $exception) {
             throw ValidationException::withMessages(['administrator' => $exception->getMessage()]);
         }
@@ -111,7 +66,7 @@ final class PlatformAdministrationController
             match ($operation) {
                 'suspend' => $lifecycle->suspend($actor, $alliance, (string) $validated['reason']),
                 'close' => $lifecycle->close($actor, $alliance, (string) $validated['reason']),
-                'delete' => $lifecycle->delete($actor, $alliance, (string) $validated['reason']),
+                'delete' => $lifecycle->markDeleted($actor, $alliance, (string) $validated['reason']),
                 'restore' => $lifecycle->restore($actor, $alliance, (string) $validated['reason']),
                 default => throw new InvalidArgumentException('Unsupported alliance lifecycle operation.'),
             };
@@ -206,7 +161,7 @@ final class PlatformAdministrationController
     public function releaseLegalHold(Request $request, string $hold, LegalHoldService $legalHolds): RedirectResponse
     {
         $actor = $this->account($request);
-        $legalHolds->release($actor, LegalHold::query()->findOrFail($hold));
+        $legalHolds->release($actor, $hold);
 
         return back()->with('status', 'legal-hold-released');
     }
@@ -222,7 +177,7 @@ final class PlatformAdministrationController
     public function export(Request $request, string $alliance, AllianceDataExportService $exports): HttpResponse
     {
         $actor = $this->account($request);
-        $export = $exports->generate($actor, $target);
+        $export = $exports->generate($actor, $alliance);
 
         return response($export['contents'], 200, [
             'Content-Type' => 'application/json; charset=UTF-8',

@@ -34,7 +34,7 @@ final class CreateRecruitmentQuestion
         ?string $helpText = null,
         array $options = [],
         bool $isActive = true,
-    ): RecruitmentQuestion {
+    ): string {
         $cleanPrompt = trim($prompt);
         if ($cleanPrompt === '') {
             throw new InvalidArgumentException('Recruitment question prompt is required.');
@@ -63,7 +63,7 @@ final class CreateRecruitmentQuestion
             $helpText,
             $cleanOptions,
             $isActive,
-        ): RecruitmentQuestion {
+        ): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
@@ -90,7 +90,7 @@ final class CreateRecruitmentQuestion
                 'is_required' => $isRequired,
             ]);
 
-            return $question;
+            return (string) $question->id;
         });
     }
 }

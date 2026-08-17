@@ -6,7 +6,7 @@ namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\GameWorld\Kingdoms\Actions\ResolveKingdom;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferDirection;
@@ -171,7 +171,7 @@ final readonly class SaveTransferParticipant
         $destination = null;
         if ($direction === TransferDirection::Outgoing) {
             $destination = $this->kingdom($attributes['destination_kingdom'] ?? null, 'destination_kingdom');
-            if ($destination !== null && (string) $destination->id === (string) $plan->home_kingdom_id) {
+            if ($destination !== null && $destination->kingdomId === (string) $plan->home_kingdom_id) {
                 throw ValidationException::withMessages(['destination_kingdom' => 'An outgoing destination must be a different Kingdom.']);
             }
         }
@@ -182,7 +182,7 @@ final readonly class SaveTransferParticipant
             'observed_name' => $roster->observedName,
             'game_player_id' => $rosterPlayer->gamePlayerId,
             'source_kingdom_id' => (string) $plan->home_kingdom_id,
-            'destination_kingdom_id' => $destination === null ? null : (string) $destination->id,
+            'destination_kingdom_id' => $destination === null ? null : $destination->kingdomId,
         ];
     }
 
@@ -197,12 +197,12 @@ final readonly class SaveTransferParticipant
         if ($source === null) {
             throw ValidationException::withMessages(['source_kingdom' => 'An incoming source Kingdom is required.']);
         }
-        if ((string) $source->id === (string) $plan->home_kingdom_id) {
+        if ($source->kingdomId === (string) $plan->home_kingdom_id) {
             throw ValidationException::withMessages(['source_kingdom' => 'An incoming source Kingdom must differ from the plan home Kingdom.']);
         }
 
         $player = $this->players->handle(
-            (string) $source->id,
+            $source->kingdomId,
             $name,
             $this->nullableLine($attributes['game_player_id'] ?? null),
             $participant->exists ? (string) $participant->player_id : null,
@@ -216,12 +216,12 @@ final readonly class SaveTransferParticipant
             'player_id' => $player->playerId,
             'observed_name' => $name,
             'game_player_id' => $player->gamePlayerId,
-            'source_kingdom_id' => (string) $source->id,
+            'source_kingdom_id' => $source->kingdomId,
             'destination_kingdom_id' => (string) $plan->home_kingdom_id,
         ];
     }
 
-    private function kingdom(mixed $number, string $field): ?Kingdom
+    private function kingdom(mixed $number, string $field): ?KingdomReference
     {
         try {
             return $this->kingdoms->handle(is_int($number) || is_string($number) ? $number : null);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -45,12 +44,6 @@ final class ApiCredential extends Model
             'last_used_at' => 'datetime',
             'revoked_at' => 'datetime',
         ];
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function creator(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'created_by_player_id');
     }
 
     public function active(): bool

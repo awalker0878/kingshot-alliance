@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Observations\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\GameWorld\Kingdoms\Actions\UpdateKingdomAllianceIdentity;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomAllianceReferenceQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
@@ -25,8 +24,10 @@ final readonly class RecordKingdomAllianceObservation
     private const MAX_POWER = '9223372036854775807';
 
     public function __construct(
-        private AllianceWriteState $allianceWriteState,
-        private AllianceIntelligenceAuthorization $authority,
+        private AllianceIntelligenceWriteState $writeState,
+        private AllianceReferenceQuery $alliances,
+        private KingdomAllianceReferenceQuery $kingdomAlliances,
+        private UpdateKingdomAllianceIdentity $updateIdentity,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -36,26 +37,26 @@ final readonly class RecordKingdomAllianceObservation
      * @param  array{subscription_id:string,batch_id:string,adapter_key:string,adapter_version:string,source_record_id?:string|null,identity_hash:string,payload_hash:string}|null  $machineProvenance
      */
     public function handle(
-        Alliance $alliance,
-        ?Player $actor,
+        string $allianceId,
+        ?string $actorPlayerId,
         string $trackingId,
         array $attributes,
         string $source = 'manual',
         ?array $machineProvenance = null,
-    ): KingdomAllianceObservation {
+    ): string {
         if (! in_array($source, ['manual', 'ingestion'], true)) {
             throw new InvalidArgumentException('Unsupported game-alliance observation source.');
         }
 
         if ($source === 'ingestion') {
-            if ($actor !== null || $machineProvenance === null) {
+            if ($actorPlayerId !== null || $machineProvenance === null) {
                 throw new InvalidArgumentException('Automated observations require machine provenance and no Player actor.');
             }
             if (($attributes['corrects_observation_id'] ?? null) !== null
                 || ($attributes['correction_reason'] ?? null) !== null) {
                 throw new InvalidArgumentException('Automated observations cannot correct or invalidate existing history.');
             }
-        } elseif (! $actor instanceof Player || $machineProvenance !== null) {
+        } elseif ($actorPlayerId === null || $machineProvenance !== null) {
             throw new InvalidArgumentException('Manual observations require a Player actor and no machine provenance.');
         }
 
@@ -63,24 +64,25 @@ final readonly class RecordKingdomAllianceObservation
             ? $this->machineProvenance($machineProvenance)
             : $this->emptyMachineProvenance();
 
-        return DB::transaction(function () use ($alliance, $actor, $trackingId, $attributes, $source, $provenance): KingdomAllianceObservation {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $trackingId, $attributes, $source, $provenance): string {
             if ($source === 'ingestion') {
-                // Automated promotion has no human authority principal. It still uses
-                // the same Alliance lifecycle boundary as manual intelligence writes.
-                $currentAlliance = Alliance::query()->whereKey($alliance->id)->firstOrFail();
+                $alliance = $this->alliances->lockCurrent($allianceId);
                 $currentActor = null;
+                $kingdomId = $alliance->kingdomId;
             } else {
-                /** @var Player $actor */
-                $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
-                $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
-                $currentAlliance = $context->alliance;
-                $currentActor = $context->actor;
+                /** @var string $actorPlayerId */
+                [$scope, $currentActor] = $this->writeState->authorize(
+                    $actorPlayerId,
+                    $allianceId,
+                    IntelligencePermission::KingdomManage,
+                );
+                $kingdomId = $scope->kingdomId;
             }
 
             $tracking = TrackedKingdomAlliance::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $allianceId)
                 ->whereKey($trackingId)
-                
+                ->lockForUpdate()
                 ->firstOrFail();
 
             if ($tracking->state !== TrackedKingdomAllianceState::Active) {
@@ -88,8 +90,7 @@ final readonly class RecordKingdomAllianceObservation
                     'observation' => 'Observations can only be recorded for actively tracked game-side alliances.',
                 ]);
             }
-            if ($currentAlliance->kingdom_id === null
-                || (string) $tracking->kingdom_id !== (string) $currentAlliance->kingdom_id) {
+            if ((string) $tracking->kingdom_id !== $kingdomId) {
                 throw ValidationException::withMessages([
                     'observation' => 'The tracked alliance belongs to historical Kingdom context. Archive it or restore the matching Kingdom context before recording observations.',
                 ]);
@@ -97,11 +98,8 @@ final readonly class RecordKingdomAllianceObservation
 
             // Observation-family order is tracking -> neutral reference -> history row.
             // The reference is also the current-name/tag synchronization anchor.
-            $reference = KingdomAlliance::query()
-                ->whereKey($tracking->kingdom_alliance_id)
-                
-                ->firstOrFail();
-            if ((string) $reference->kingdom_id !== (string) $tracking->kingdom_id) {
+            $reference = $this->kingdomAlliances->require((string) $tracking->kingdom_alliance_id);
+            if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
                     'observation' => 'The tracked alliance reference no longer matches its captured Kingdom context.',
                 ]);
@@ -131,9 +129,9 @@ final readonly class RecordKingdomAllianceObservation
                 : null;
 
             $idempotencyPayload = [
-                'alliance_id' => (string) $currentAlliance->id,
+                'alliance_id' => $allianceId,
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
-                'kingdom_alliance_id' => (string) $reference->id,
+                'kingdom_alliance_id' => $reference->kingdomAllianceId,
                 'observed_name' => $observedName,
                 'observed_tag' => $observedTag,
                 'power' => $power,
@@ -148,17 +146,17 @@ final readonly class RecordKingdomAllianceObservation
             $idempotencyKey = hash('sha256', json_encode($idempotencyPayload, JSON_THROW_ON_ERROR));
 
             $existing = KingdomAllianceObservation::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $allianceId)
                 ->where('idempotency_key', $idempotencyKey)
                 ->first();
             if ($existing instanceof KingdomAllianceObservation) {
-                return $existing->load(['actor:id,current_name', 'invalidatedBy:id,current_name']);
+                return (string) $existing->id;
             }
 
             $corrects = null;
             if ($correctsId !== null) {
                 $corrects = KingdomAllianceObservation::query()
-                    ->where('alliance_id', $currentAlliance->id)
+                    ->where('alliance_id', $allianceId)
                     ->where('tracked_kingdom_alliance_id', $tracking->id)
                     ->whereKey($correctsId)
                     ->lockForUpdate()
@@ -172,10 +170,10 @@ final readonly class RecordKingdomAllianceObservation
             }
 
             $observation = KingdomAllianceObservation::query()->create([
-                'alliance_id' => $currentAlliance->id,
+                'alliance_id' => $allianceId,
                 'tracked_kingdom_alliance_id' => $tracking->id,
-                'kingdom_alliance_id' => $reference->id,
-                'actor_player_id' => $currentActor?->id,
+                'kingdom_alliance_id' => $reference->kingdomAllianceId,
+                'actor_player_id' => $currentActor?->playerId,
                 'observed_name' => $observedName,
                 'observed_tag' => $observedTag,
                 'power' => $power,
@@ -196,17 +194,17 @@ final readonly class RecordKingdomAllianceObservation
             if ($corrects instanceof KingdomAllianceObservation) {
                 $corrects->forceFill([
                     'invalidated_at' => now(),
-                    'invalidated_by_player_id' => $currentActor?->id,
+                    'invalidated_by_player_id' => $currentActor?->playerId,
                     'invalidation_reason' => $correctionReason,
                 ])->save();
             }
 
-            $this->syncNeutralIdentity($reference);
+            $this->syncNeutralIdentity($reference->kingdomAllianceId, $reference->kingdomId, $reference->gameAllianceId);
 
             $metadata = [
                 'observation_id' => (string) $observation->id,
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
-                'kingdom_alliance_id' => (string) $reference->id,
+                'kingdom_alliance_id' => $reference->kingdomAllianceId,
                 'captured_at' => $capturedAt->toIso8601String(),
                 'source' => $source,
                 'corrects_observation_id' => $corrects?->id === null ? null : (string) $corrects->id,
@@ -220,10 +218,10 @@ final readonly class RecordKingdomAllianceObservation
                 'origin' => $source === 'ingestion' ? 'system' : 'player',
             ];
             $event = 'kingdoms.alliance_intelligence_observation_recorded';
-            $this->audit->record($event, $currentActor, $observation, $currentAlliance, $metadata);
+            $this->audit->record($event, $currentActor, $observation, $allianceId, $metadata);
             $this->outbox->record(
                 $event,
-                (string) $currentAlliance->id,
+                $allianceId,
                 $observation,
                 $metadata,
                 $event.':'.$observation->id,
@@ -237,34 +235,37 @@ final readonly class RecordKingdomAllianceObservation
                     'origin' => 'player',
                 ];
                 $correctionEvent = 'kingdoms.alliance_intelligence_observation_corrected';
-                $this->audit->record($correctionEvent, $currentActor, $corrects, $currentAlliance, $correctionMetadata);
+                $this->audit->record($correctionEvent, $currentActor, $corrects, $allianceId, $correctionMetadata);
                 $this->outbox->record(
                     $correctionEvent,
-                    (string) $currentAlliance->id,
+                    $allianceId,
                     $corrects,
                     $correctionMetadata,
                     $correctionEvent.':'.$corrects->id.':'.$observation->id,
                 );
             }
 
-            return $observation->load(['actor:id,current_name', 'invalidatedBy:id,current_name']);
+            return (string) $observation->id;
         });
     }
 
-    private function syncNeutralIdentity(KingdomAlliance $reference): void
+    private function syncNeutralIdentity(string $kingdomAllianceId, string $kingdomId, ?string $gameAllianceId): void
     {
         $latest = KingdomAllianceObservation::query()
-            ->where('kingdom_alliance_id', $reference->id)
+            ->where('kingdom_alliance_id', $kingdomAllianceId)
             ->whereNull('invalidated_at')
             ->orderByDesc('captured_at')
             ->orderByDesc('id')
             ->first();
 
         if ($latest instanceof KingdomAllianceObservation) {
-            $reference->forceFill([
-                'current_name' => $latest->observed_name,
-                'current_tag' => $latest->observed_tag,
-            ])->save();
+            $this->updateIdentity->handle(
+                $kingdomAllianceId,
+                $kingdomId,
+                (string) $latest->observed_name,
+                $latest->observed_tag === null ? null : (string) $latest->observed_tag,
+                $gameAllianceId,
+            );
         }
     }
 

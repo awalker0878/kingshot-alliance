@@ -31,7 +31,7 @@ final class ConfigureRecruitmentSettings
         ?string $introduction,
         int $retentionUnsuccessfulDays,
         bool $isOpen,
-    ): RecruitmentSetting {
+    ): string {
         if ($retentionUnsuccessfulDays < 1 || $retentionUnsuccessfulDays > 3650) {
             throw new InvalidArgumentException('Recruitment retention must be between 1 and 3650 days.');
         }
@@ -49,7 +49,7 @@ final class ConfigureRecruitmentSettings
             $introduction,
             $retentionUnsuccessfulDays,
             $isOpen,
-        ): RecruitmentSetting {
+        ): string {
             // Recruitment settings are one singleton row per Alliance. Exclusive
             // parent coordination prevents concurrent first-create races.
             $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
@@ -89,7 +89,7 @@ final class ConfigureRecruitmentSettings
                 'is_open' => $isOpen,
             ]);
 
-            return $settings->refresh();
+            return (string) $settings->id;
         });
     }
 }

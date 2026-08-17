@@ -21,13 +21,13 @@ final readonly class ManagePlatformAdministrator
         private AccountIdentityQuery $accounts,
     ) {}
 
-    public function grant(int $targetUserId, ?AccountIdentity $actor = null): PlatformAdministrator
+    public function grant(int $targetUserId, ?AccountIdentity $actor = null): string
     {
         if (! $this->accounts->exists($targetUserId)) {
             throw new InvalidArgumentException('The target account does not exist.');
         }
 
-        return DB::transaction(function () use ($targetUserId, $actor): PlatformAdministrator {
+        return DB::transaction(function () use ($targetUserId, $actor): string {
             if ($actor instanceof AccountIdentity) {
                 $actorGrant = PlatformAdministrator::query()
                     ->where('user_id', $actor->userId)
@@ -54,7 +54,7 @@ final readonly class ManagePlatformAdministrator
                 ->first();
 
             if ($grant instanceof PlatformAdministrator && $grant->revoked_at === null) {
-                return $grant;
+                return (string) $grant->id;
             }
 
             $grant ??= new PlatformAdministrator(['user_id' => $targetUserId]);
@@ -75,17 +75,13 @@ final readonly class ManagePlatformAdministrator
                 ],
             );
 
-            return $grant->refresh();
+            return (string) $grant->id;
         });
     }
 
-    public function revoke(AccountIdentity $actor, PlatformAdministrator $grant): PlatformAdministrator
+    public function revoke(AccountIdentity $actor, string $grantId): string
     {
-        if ((int) $grant->user_id === $actor->userId) {
-            throw new InvalidArgumentException('Platform administrators cannot revoke their own access.');
-        }
-
-        return DB::transaction(function () use ($actor, $grant): PlatformAdministrator {
+        return DB::transaction(function () use ($actor, $grantId): string {
             $actorGrantId = PlatformAdministrator::query()
                 ->where('user_id', $actor->userId)
                 ->whereNull('revoked_at')
@@ -95,7 +91,7 @@ final readonly class ManagePlatformAdministrator
                 throw new AuthorizationException('Platform administrator access is required.');
             }
 
-            $grantIds = array_values(array_unique([(string) $actorGrantId, (string) $grant->id]));
+            $grantIds = array_values(array_unique([(string) $actorGrantId, $grantId]));
             sort($grantIds, SORT_STRING);
 
             $locked = PlatformAdministrator::query()
@@ -106,7 +102,7 @@ final readonly class ManagePlatformAdministrator
                 ->keyBy('id');
 
             $actorGrant = $locked->get($actorGrantId);
-            $targetGrant = $locked->get($grant->id);
+            $targetGrant = $locked->get($grantId);
 
             if (! $actorGrant instanceof PlatformAdministrator
                 || $actorGrant->revoked_at !== null
@@ -118,8 +114,12 @@ final readonly class ManagePlatformAdministrator
                 throw new InvalidArgumentException('The Platform Administrator grant no longer exists.');
             }
 
+            if ((int) $targetGrant->user_id === $actor->userId) {
+                throw new InvalidArgumentException('Platform administrators cannot revoke their own access.');
+            }
+
             if ($targetGrant->revoked_at !== null) {
-                return $targetGrant;
+                return (string) $targetGrant->id;
             }
 
             $targetGrant->forceFill(['revoked_at' => now()])->save();
@@ -132,7 +132,7 @@ final readonly class ManagePlatformAdministrator
                 ['target_user_id' => $targetGrant->user_id],
             );
 
-            return $targetGrant->refresh();
+            return (string) $targetGrant->id;
         });
     }
 }

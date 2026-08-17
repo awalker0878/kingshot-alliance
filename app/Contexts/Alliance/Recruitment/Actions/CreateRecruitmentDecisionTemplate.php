@@ -10,7 +10,6 @@ use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentDecisionTemplate;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +32,7 @@ final class CreateRecruitmentDecisionTemplate
         string $subject,
         string $body,
         bool $isActive = true,
-    ): RecruitmentDecisionTemplate {
+    ): string {
         if (! in_array($decisionStage, [RecruitmentStage::Accepted, RecruitmentStage::Declined], true)) {
             throw ValidationException::withMessages(['decision_stage' => 'Decision templates must be for accepted or declined candidates.']);
         }
@@ -45,7 +44,7 @@ final class CreateRecruitmentDecisionTemplate
             throw ValidationException::withMessages(['template' => 'Template name, subject, and body are required.']);
         }
 
-        return DB::transaction(function () use ($actorPlayerId, $allianceId, $cleanName, $decisionStage, $cleanSubject, $cleanBody, $isActive): RecruitmentDecisionTemplate {
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $cleanName, $decisionStage, $cleanSubject, $cleanBody, $isActive): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
@@ -67,7 +66,7 @@ final class CreateRecruitmentDecisionTemplate
                 'decision_stage' => $decisionStage->value,
             ]);
 
-            return $template;
+            return (string) $template->id;
         });
     }
 }

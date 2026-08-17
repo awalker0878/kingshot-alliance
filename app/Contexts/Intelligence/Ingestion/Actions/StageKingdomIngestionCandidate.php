@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\Intelligence\Ingestion\Contracts\KingdomIngestionAdapter;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionBatchState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionCandidateState;
@@ -32,9 +32,9 @@ final readonly class StageKingdomIngestionCandidate
     ) {}
 
     /** @param array<string, mixed> $record */
-    public function handle(string $subscriptionId, string $batchId, array $record): KingdomIngestionCandidate
+    public function handle(string $subscriptionId, string $batchId, array $record): string
     {
-        return DB::transaction(function () use ($subscriptionId, $batchId, $record): KingdomIngestionCandidate {
+        return DB::transaction(function () use ($subscriptionId, $batchId, $record): string {
             $context = $this->mutations->lockSubscription($subscriptionId);
             $subscription = $context->subscription;
             $batch = KingdomIngestionBatch::query()
@@ -123,21 +123,21 @@ final readonly class StageKingdomIngestionCandidate
                     : 'intelligence.ingestion_candidate_staged';
                 $this->outbox->record(
                     $event,
-                    (string) $context->alliance->id,
+                    (string) $context->alliance->allianceId,
                     $candidate,
                     $metadata,
                     $event.':'.$candidate->id,
                 );
             }
 
-            return $candidate->refresh();
+            return (string) $candidate->id;
         });
     }
 
     private function assertRunnable(
         KingdomIngestionSubscription $subscription,
         KingdomIngestionBatch $batch,
-        Alliance $alliance,
+        AllianceReference $alliance,
     ): void {
         if ($subscription->state !== KingdomIngestionSubscriptionState::Active) {
             throw ValidationException::withMessages(['subscription' => 'The ingestion subscription is not active.']);
@@ -147,7 +147,7 @@ final readonly class StageKingdomIngestionCandidate
             throw ValidationException::withMessages(['batch' => 'Candidates can only be staged into a pending ingestion batch.']);
         }
 
-        if ($alliance->kingdom_id === null || (string) $alliance->kingdom_id !== (string) $subscription->kingdom_id) {
+        if ($alliance->kingdomId !== (string) $subscription->kingdom_id) {
             throw ValidationException::withMessages([
                 'subscription' => 'Ingestion is blocked because the alliance Kingdom no longer matches the subscription context.',
             ]);

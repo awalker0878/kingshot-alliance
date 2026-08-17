@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Diplomacy\Queries;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacy;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyTransition;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
@@ -14,34 +13,27 @@ final class KingdomAllianceDiplomacyQuery
 {
     public const HISTORY_LIMIT = 250;
 
-    public function tracking(Alliance $alliance, string $trackingId): TrackedKingdomAlliance
+    public function tracking(string $allianceId, string $trackingId): TrackedKingdomAlliance
     {
         return TrackedKingdomAlliance::query()
-            ->where('alliance_id', $alliance->id)
-            ->with([
-                'kingdomAlliance:id,kingdom_id,current_name,current_tag,status',
-                'kingdom:id,number,status',
-                'diplomacy.lastTransitionPlayer:id,current_name',
-            ])
+            ->where('alliance_id', $allianceId)
             ->findOrFail($trackingId);
     }
 
-    public function relationship(Alliance $alliance, string $trackingId): ?KingdomAllianceDiplomacy
+    public function relationship(string $allianceId, string $trackingId): ?KingdomAllianceDiplomacy
     {
         return KingdomAllianceDiplomacy::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->where('tracked_kingdom_alliance_id', $trackingId)
-            ->with('lastTransitionPlayer:id,current_name')
             ->first();
     }
 
     /** @return Collection<int, KingdomAllianceDiplomacyTransition> */
-    public function history(Alliance $alliance, string $trackingId): Collection
+    public function history(string $allianceId, string $trackingId): Collection
     {
         return KingdomAllianceDiplomacyTransition::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->where('tracked_kingdom_alliance_id', $trackingId)
-            ->with('actor:id,current_name')
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->limit(self::HISTORY_LIMIT)

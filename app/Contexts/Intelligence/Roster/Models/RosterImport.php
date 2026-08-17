@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,9 +26,6 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $resolution_payload
  * @property array<string, mixed>|null $committed_summary
  * @property Carbon|null $committed_at
- * @property-read Alliance $alliance
- * @property-read Player $createdBy
- * @property-read Player|null $committedBy
  */
 final class RosterImport extends Model
 {
@@ -73,23 +68,5 @@ final class RosterImport extends Model
             'committed_summary' => 'array',
             'committed_at' => 'datetime',
         ];
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function createdBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'created_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function committedBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'committed_by_player_id');
     }
 }

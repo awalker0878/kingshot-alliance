@@ -33,6 +33,22 @@ final class KingdomReferenceQuery
         return $kingdom instanceof Kingdom ? $this->snapshot($kingdom) : null;
     }
 
+    /** @param list<string> $kingdomIds @return array<string,KingdomReference> */
+    public function byIds(array $kingdomIds): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('strval', $kingdomIds))));
+        if ($ids === []) {
+            return [];
+        }
+        $references = [];
+        foreach (Kingdom::query()->whereIn('id', $ids)->get() as $kingdom) {
+            $reference = $this->snapshot($kingdom);
+            $references[$reference->kingdomId] = $reference;
+        }
+
+        return $references;
+    }
+
     private function snapshot(Kingdom $kingdom): KingdomReference
     {
         return new KingdomReference(

@@ -24,6 +24,6 @@ final class PlatformWriteState
             ->lockForUpdate()
             ->first();
 
-        return new PlatformWriteContext($actor, $grant);
+        return new PlatformWriteContext($actor, $grant instanceof PlatformAdministrator ? (string) $grant->id : null);
     }
 }

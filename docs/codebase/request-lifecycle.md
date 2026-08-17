@@ -18,6 +18,8 @@ Route
 
 Authentication resolves the User account. Game-domain requests that require game authority resolve a concrete active Player owned by that User.
 
+The authentication/request boundary may load Eloquent `User`, `Player`, Alliance, Kingdom, or membership rows while proving identity and scope. Those live models stop at the boundary. Downstream application code receives immutable references/snapshots, scalar IDs, enums, or value objects.
+
 Request context may provide current identifiers and coarse prerequisites, but it is not the final authority for mutable writes.
 
 ## Write request

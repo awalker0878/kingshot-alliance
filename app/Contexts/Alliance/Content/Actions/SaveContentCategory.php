@@ -10,7 +10,6 @@ use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Content\Models\ContentCategory;
 use App\Contexts\Alliance\Content\Services\ContentSanitizer;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -32,8 +31,8 @@ final readonly class SaveContentCategory
         string $slug,
         int $sortOrder = 0,
         ?string $categoryId = null,
-    ): ContentCategory {
-        return DB::transaction(function () use ($allianceId, $actorPlayerId, $name, $slug, $sortOrder, $categoryId): ContentCategory {
+    ): string {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $name, $slug, $sortOrder, $categoryId): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
@@ -58,7 +57,7 @@ final readonly class SaveContentCategory
                 'slug' => $category->slug,
             ]);
 
-            return $category->refresh();
+            return (string) $category->id;
         });
     }
 }

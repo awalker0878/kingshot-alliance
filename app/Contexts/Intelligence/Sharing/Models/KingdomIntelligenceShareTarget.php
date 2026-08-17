@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Sharing\Models;
 
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareTargetState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -60,17 +59,5 @@ final class KingdomIntelligenceShareTarget extends Model
     public function tracking(): BelongsTo
     {
         return $this->belongsTo(TrackedKingdomAlliance::class, 'tracked_kingdom_alliance_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function sharedBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'shared_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function removedBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'removed_by_player_id');
     }
 }

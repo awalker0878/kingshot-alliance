@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionCandidateState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionTargetKind;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -33,8 +31,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $promoted_at
  * @property-read KingdomIngestionSubscription $subscription
  * @property-read KingdomIngestionBatch $batch
- * @property-read Alliance $alliance
- * @property-read Kingdom $kingdom
  */
 final class KingdomIngestionCandidate extends Model
 {
@@ -85,17 +81,5 @@ final class KingdomIngestionCandidate extends Model
     public function batch(): BelongsTo
     {
         return $this->belongsTo(KingdomIngestionBatch::class, 'batch_id');
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
-    /** @return BelongsTo<Kingdom, $this> */
-    public function kingdom(): BelongsTo
-    {
-        return $this->belongsTo(Kingdom::class);
     }
 }

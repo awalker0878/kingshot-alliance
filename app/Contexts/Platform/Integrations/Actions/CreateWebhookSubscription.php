@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Actions;
 
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Access\Services\AllianceWriteAuthorization;
 use App\Contexts\Platform\Integrations\Contracts\WebhookEventCatalog;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
 use App\Contexts\Platform\Integrations\Services\WebhookEndpointPolicy;
+use App\Contexts\Platform\Integrations\ValueObjects\IssuedWebhookSubscription;
 use App\Contexts\Platform\AllianceAdministration\Models\AlliancePlatformSetting;
 use App\Contexts\Platform\AllianceAdministration\Services\PlanEntitlementService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -22,8 +19,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreateWebhookSubscription
 {
     public function __construct(
-        private AllianceWriteState $allianceWriteState,
-        private AllianceAuthorization $mutations,
+        private AllianceWriteAuthorization $allianceAuthority,
         private PlanEntitlementService $entitlements,
         private WebhookEndpointPolicy $endpointPolicy,
         private AuditRecorder $audit,
@@ -31,7 +27,7 @@ final readonly class CreateWebhookSubscription
     ) {}
 
     /** @param list<string> $events */
-    public function handle(Alliance $alliance, Player $actor, string $name, string $url, array $events): WebhookSubscription
+    public function handle(string $allianceId, string $actorPlayerId, string $name, string $url, array $events): IssuedWebhookSubscription
     {
         $name = trim($name);
         if ($name === '') {
@@ -50,41 +46,41 @@ final readonly class CreateWebhookSubscription
 
         $this->endpointPolicy->assertAllowed($url);
 
-        return DB::transaction(function () use ($alliance, $actor, $name, $url, $events): WebhookSubscription {
-            // Webhook capacity is Alliance-wide, so serialize this quota-sensitive mutation.
-            $authority = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
-            $this->mutations->authorizeContext($authority, AlliancePermission::Manage);
-            $currentAlliance = $authority->alliance;
-            $currentActor = $authority->actor;
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $name, $url, $events): IssuedWebhookSubscription {
+            [$currentAlliance, $currentActor] = $this->allianceAuthority->authorizeManagerExclusive($actorPlayerId, $allianceId);
 
-            $settings = AlliancePlatformSetting::query()->lockForUpdate()->find($currentAlliance->id);
+            $settings = AlliancePlatformSetting::query()->lockForUpdate()->find($currentAlliance->allianceId);
             if ($settings !== null && ! $settings->webhooks_enabled) {
                 throw ValidationException::withMessages(['webhooks' => 'Webhooks are disabled for this alliance.']);
             }
 
-            $this->entitlements->assertWebhookCapacity($currentAlliance);
+            $this->entitlements->assertWebhookCapacity((string) $currentAlliance->allianceId);
 
             $subscription = WebhookSubscription::query()->create([
-                'alliance_id' => $currentAlliance->id,
+                'alliance_id' => $currentAlliance->allianceId,
                 'name' => $name,
                 'url' => $url,
                 'events' => $events,
                 'signing_secret' => bin2hex(random_bytes(32)),
                 'is_active' => true,
-                'created_by_player_id' => $currentActor->id,
+                'created_by_player_id' => $currentActor->playerId,
             ]);
 
-            $this->audit->record('integration.webhook.created', $currentActor, $subscription, $currentAlliance, [
+            $this->audit->record('integration.webhook.created', $currentActor, $subscription, $currentAlliance->allianceId, [
                 'subscription_id' => $subscription->id,
                 'url_host' => parse_url($url, PHP_URL_HOST),
                 'events' => $events,
             ]);
-            $this->outbox->record('integration.webhook.created', $currentAlliance->id, $subscription, [
+            $this->outbox->record('integration.webhook.created', $currentAlliance->allianceId, $subscription, [
                 'subscription_id' => $subscription->id,
                 'events' => $events,
             ]);
 
-            return $subscription;
+            return new IssuedWebhookSubscription(
+                subscriptionId: (string) $subscription->id,
+                name: (string) $subscription->name,
+                signingSecret: (string) $subscription->signing_secret,
+            );
         });
     }
 }

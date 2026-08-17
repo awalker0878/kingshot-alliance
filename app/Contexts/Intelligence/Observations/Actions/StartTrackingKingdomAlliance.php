@@ -4,65 +4,50 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Observations\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\GameWorld\Kingdoms\Actions\ResolveKingdomAlliance;
 use App\Contexts\GameWorld\Kingdoms\Enums\KingdomAllianceStatus;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class StartTrackingKingdomAlliance
 {
     public function __construct(
-        private AllianceIntelligenceAuthorization $authorization,
+        private AllianceIntelligenceWriteState $writeState,
         private ResolveKingdomAlliance $alliances,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     /**
-     * @param array{
-     *   current_name: string,
-     *   current_tag?: string|null,
-     *   game_alliance_id?: string|null,
-     *   manager_notes?: string|null
-     * } $attributes
+     * @param array{current_name:string,current_tag?:string|null,game_alliance_id?:string|null,manager_notes?:string|null} $attributes
      */
-    public function handle(Alliance $alliance, Player $actor, array $attributes): TrackedKingdomAlliance
+    public function handle(string $allianceId, string $actorPlayerId, array $attributes): string
     {
-        if (! $this->authorization->allows($actor, $alliance, IntelligencePermission::KingdomManage)) {
-            throw new AuthorizationException;
-        }
-
-        return DB::transaction(function () use ($alliance, $actor, $attributes): TrackedKingdomAlliance {
-            $lockedAlliance = Alliance::query()->findOrFail($alliance->id);
-
-            if ($lockedAlliance->kingdom_id === null) {
-                throw ValidationException::withMessages([
-                    'tracking' => 'The alliance must have a current Kingdom before game-side alliances can be tracked.',
-                ]);
-            }
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $attributes): string {
+            [$scope, $actor] = $this->writeState->authorize(
+                $actorPlayerId,
+                $allianceId,
+                IntelligencePermission::KingdomManage,
+            );
 
             $reference = $this->alliances->handle(
-                (string) $lockedAlliance->kingdom_id,
+                $scope->kingdomId,
                 $attributes['current_name'],
                 $attributes['current_tag'] ?? null,
                 $attributes['game_alliance_id'] ?? null,
             );
 
-            if ($reference->kingdomId !== $lockedAlliance->kingdom_id) {
+            if ($reference->kingdomId !== $scope->kingdomId) {
                 throw ValidationException::withMessages([
                     'tracking' => 'The game-side alliance must belong to the active alliance current Kingdom.',
                 ]);
             }
-
             if ($reference->statusObservedAtRead !== KingdomAllianceStatus::Active) {
                 throw ValidationException::withMessages([
                     'tracking' => 'Archived game-side alliance references cannot be newly tracked.',
@@ -70,56 +55,40 @@ final readonly class StartTrackingKingdomAlliance
             }
 
             $alreadyTracked = TrackedKingdomAlliance::query()
-                ->where('alliance_id', $lockedAlliance->id)
+                ->where('alliance_id', $allianceId)
                 ->where('kingdom_alliance_id', $reference->kingdomAllianceId)
                 ->where('state', TrackedKingdomAllianceState::Active->value)
                 ->lockForUpdate()
                 ->first();
-
             if ($alreadyTracked instanceof TrackedKingdomAlliance) {
-                throw ValidationException::withMessages([
-                    'tracking' => 'That game-side alliance is already actively tracked.',
-                ]);
+                throw ValidationException::withMessages(['tracking' => 'That game-side alliance is already actively tracked.']);
             }
 
             $tracking = TrackedKingdomAlliance::query()->create([
-                'alliance_id' => $lockedAlliance->id,
+                'alliance_id' => $allianceId,
                 'kingdom_alliance_id' => $reference->kingdomAllianceId,
-                'kingdom_id' => $lockedAlliance->kingdom_id,
+                'kingdom_id' => $scope->kingdomId,
                 'state' => TrackedKingdomAllianceState::Active,
                 'manager_notes' => $this->nullableText($attributes['manager_notes'] ?? null),
             ]);
 
             $metadata = [
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
-                'kingdom_alliance_id' => (string) $reference->kingdomAllianceId,
-                'kingdom_id' => (string) $tracking->kingdom_id,
+                'kingdom_alliance_id' => $reference->kingdomAllianceId,
+                'kingdom_id' => $scope->kingdomId,
                 'state' => $tracking->state->value,
                 'stable_identity' => $reference->gameAllianceId !== null,
             ];
+            $this->audit->record('kingdoms.alliance_intelligence_tracking_started', $actor, $tracking, $allianceId, $metadata);
+            $this->outbox->record('kingdoms.alliance_intelligence_tracking_started', $allianceId, $tracking, $metadata);
 
-            $this->audit->record(
-                'kingdoms.alliance_intelligence_tracking_started',
-                $actor,
-                $tracking,
-                $lockedAlliance,
-                $metadata,
-            );
-            $this->outbox->record(
-                'kingdoms.alliance_intelligence_tracking_started',
-                (string) $lockedAlliance->id,
-                $tracking,
-                $metadata,
-            );
-
-            return $tracking->refresh()->load(['kingdomAlliance', 'kingdom']);
+            return (string) $tracking->id;
         });
     }
 
     private function nullableText(?string $value): ?string
     {
         $value = $value === null ? null : trim($value);
-
         return $value === '' ? null : $value;
     }
 }

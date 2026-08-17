@@ -19,7 +19,7 @@ final readonly class QuarantineKingdomIngestionCandidate
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(string $subscriptionId, string $candidateId, string $reasonCode): KingdomIngestionCandidate
+    public function handle(string $subscriptionId, string $candidateId, string $reasonCode): string
     {
         $reasonCode = trim($reasonCode);
         if (preg_match('/^[a-z0-9][a-z0-9._-]{0,79}$/', $reasonCode) !== 1) {
@@ -28,7 +28,7 @@ final readonly class QuarantineKingdomIngestionCandidate
             ]);
         }
 
-        return DB::transaction(function () use ($subscriptionId, $candidateId, $reasonCode): KingdomIngestionCandidate {
+        return DB::transaction(function () use ($subscriptionId, $candidateId, $reasonCode): string {
             $context = $this->mutations->lockSubscription($subscriptionId);
             $route = KingdomIngestionCandidate::query()
                 ->select(['id', 'batch_id'])
@@ -54,7 +54,7 @@ final readonly class QuarantineKingdomIngestionCandidate
                     ]);
                 }
 
-                return $candidate;
+                return (string) $candidate->id;
             }
             if ($candidate->state !== KingdomIngestionCandidateState::Pending) {
                 throw ValidationException::withMessages([
@@ -71,7 +71,7 @@ final readonly class QuarantineKingdomIngestionCandidate
             $event = 'intelligence.ingestion_candidate_quarantined';
             $this->outbox->record(
                 $event,
-                (string) $context->alliance->id,
+                (string) $context->alliance->allianceId,
                 $candidate,
                 [
                     'subscription_id' => (string) $context->subscription->id,
@@ -84,7 +84,7 @@ final readonly class QuarantineKingdomIngestionCandidate
                 $event.':'.$candidate->id.':'.$reasonCode,
             );
 
-            return $candidate->refresh();
+            return (string) $candidate->id;
         });
     }
 }

@@ -4,45 +4,74 @@ declare(strict_types=1);
 
 namespace App\ReadModels\KingdomIntelligence;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyContact;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
-use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use DateTimeInterface;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 final class KingdomAllianceIntelligenceQuery
 {
     public const CONTACT_VERIFICATION_STALE_DAYS = 30;
 
-    /** @return Collection<int, TrackedKingdomAlliance> */
-    public function tracking(Alliance $alliance): Collection
+    /** @return Collection<int, KingdomAllianceTrackingRow> */
+    public function tracking(string $allianceId): Collection
     {
-        return TrackedKingdomAlliance::query()
-            ->where('alliance_id', $alliance->id)
-            ->with([
-                'kingdomAlliance:id,kingdom_id,current_name,current_tag,status',
-                'kingdom:id,number,status',
-                'diplomacy:id,alliance_id,tracked_kingdom_alliance_id,current_state,effective_at,review_at,expires_at',
+        return DB::table('tracked_kingdom_alliances as tracking')
+            ->join('kingdom_alliances as game_alliances', 'game_alliances.id', '=', 'tracking.kingdom_alliance_id')
+            ->join('kingdoms', 'kingdoms.id', '=', 'tracking.kingdom_id')
+            ->leftJoin(
+                'kingdom_alliance_diplomacy_relationships as diplomacy',
+                'diplomacy.tracked_kingdom_alliance_id',
+                '=',
+                'tracking.id',
+            )
+            ->where('tracking.alliance_id', $allianceId)
+            ->select([
+                'tracking.id',
+                'tracking.kingdom_alliance_id',
+                'tracking.kingdom_id',
+                'tracking.state',
+                'game_alliances.current_name',
+                'game_alliances.current_tag',
+                'kingdoms.number as kingdom_number',
+                'diplomacy.current_state as diplomacy_state',
+                'diplomacy.effective_at as diplomacy_effective_at',
+                'diplomacy.review_at as diplomacy_review_at',
+                'diplomacy.expires_at as diplomacy_expires_at',
             ])
-            ->get();
+            ->orderBy('game_alliances.current_name')
+            ->orderBy('tracking.id')
+            ->get()
+            ->map(static fn (object $row): KingdomAllianceTrackingRow => new KingdomAllianceTrackingRow(
+                id: (string) $row->id,
+                kingdomAllianceId: (string) $row->kingdom_alliance_id,
+                kingdomId: (string) $row->kingdom_id,
+                state: (string) $row->state,
+                currentName: (string) $row->current_name,
+                currentTag: $row->current_tag === null ? null : (string) $row->current_tag,
+                kingdomNumber: (int) $row->kingdom_number,
+                diplomacyState: $row->diplomacy_state === null ? null : (string) $row->diplomacy_state,
+                diplomacyEffectiveAt: self::carbon($row->diplomacy_effective_at),
+                diplomacyReviewAt: self::carbon($row->diplomacy_review_at),
+                diplomacyExpiresAt: self::carbon($row->diplomacy_expires_at),
+            ));
     }
 
     /**
-     * @param  iterable<int, TrackedKingdomAlliance>  $tracking
+     * @param iterable<int, KingdomAllianceTrackingRow> $tracking
      * @return array<string, KingdomAllianceObservation>
      */
-    public function latestAccepted(Alliance $alliance, iterable $tracking, Carbon $asOf): array
+    public function latestAccepted(string $allianceId, iterable $tracking, Carbon $asOf): array
     {
         $trackingIds = $this->trackingIds($tracking);
-
         if ($trackingIds === []) {
             return [];
         }
 
         $observations = KingdomAllianceObservation::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->whereIn('tracked_kingdom_alliance_id', $trackingIds)
             ->whereNull('invalidated_at')
             ->where('captured_at', '<=', $asOf)
@@ -60,19 +89,18 @@ final class KingdomAllianceIntelligenceQuery
     }
 
     /**
-     * @param  iterable<int, TrackedKingdomAlliance>  $tracking
+     * @param iterable<int, KingdomAllianceTrackingRow> $tracking
      * @return array<string, KingdomAllianceObservation>
      */
-    public function previousAccepted(Alliance $alliance, iterable $tracking, Carbon $asOf): array
+    public function previousAccepted(string $allianceId, iterable $tracking, Carbon $asOf): array
     {
         $trackingIds = $this->trackingIds($tracking);
-
         if ($trackingIds === []) {
             return [];
         }
 
         $observations = KingdomAllianceObservation::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->whereIn('tracked_kingdom_alliance_id', $trackingIds)
             ->whereNull('invalidated_at')
             ->where('captured_at', '<=', $asOf)
@@ -90,21 +118,16 @@ final class KingdomAllianceIntelligenceQuery
     }
 
     /**
-     * For an N-day comparison, select the closest accepted observation at or before asOf-N days,
-     * but not older than asOf-2N days. Newer observations are not substituted and older history is
-     * intentionally excluded rather than interpolated.
-     *
-     * @param  iterable<int, TrackedKingdomAlliance>  $tracking
+     * @param iterable<int, KingdomAllianceTrackingRow> $tracking
      * @return array<string, KingdomAllianceObservation>
      */
     public function baselines(
-        Alliance $alliance,
+        string $allianceId,
         iterable $tracking,
         int $days,
         Carbon $asOf,
     ): array {
         $trackingIds = $this->trackingIds($tracking);
-
         if ($trackingIds === []) {
             return [];
         }
@@ -112,7 +135,7 @@ final class KingdomAllianceIntelligenceQuery
         $target = $asOf->copy()->subDays($days);
         $oldest = $asOf->copy()->subDays($days * 2);
         $observations = KingdomAllianceObservation::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->whereIn('tracked_kingdom_alliance_id', $trackingIds)
             ->whereNull('invalidated_at')
             ->whereBetween('captured_at', [$oldest, $target])
@@ -130,13 +153,12 @@ final class KingdomAllianceIntelligenceQuery
     }
 
     /**
-     * @param  iterable<int, TrackedKingdomAlliance>  $tracking
-     * @return array<string, array{active: int, verificationDue: int, latestVerifiedAt: string|null}>
+     * @param iterable<int, KingdomAllianceTrackingRow> $tracking
+     * @return array<string, array{active:int,verificationDue:int,latestVerifiedAt:string|null}>
      */
-    public function contactDiagnostics(Alliance $alliance, iterable $tracking, Carbon $asOf): array
+    public function contactDiagnostics(string $allianceId, iterable $tracking, Carbon $asOf): array
     {
         $trackingIds = $this->trackingIds($tracking);
-
         if ($trackingIds === []) {
             return [];
         }
@@ -150,12 +172,12 @@ final class KingdomAllianceIntelligenceQuery
                 [$cutoff],
             )
             ->selectRaw("max(last_verified_at) filter (where state = 'active') as latest_verified_at")
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->whereIn('tracked_kingdom_alliance_id', $trackingIds)
             ->groupBy('tracked_kingdom_alliance_id')
             ->get();
-        $diagnostics = [];
 
+        $diagnostics = [];
         foreach ($rows as $row) {
             $trackingId = (string) $row->getAttribute('tracked_kingdom_alliance_id');
             $latestVerifiedAt = $row->getAttribute('latest_verified_at');
@@ -175,33 +197,43 @@ final class KingdomAllianceIntelligenceQuery
         return $diagnostics;
     }
 
-    /**
-     * @param  iterable<int, TrackedKingdomAlliance>  $tracking
-     * @return list<string>
-     */
+    /** @param iterable<int, KingdomAllianceTrackingRow> $tracking @return list<string> */
     private function trackingIds(iterable $tracking): array
     {
         $ids = [];
-
         foreach ($tracking as $entry) {
-            $ids[] = (string) $entry->id;
+            $ids[] = $entry->id;
         }
 
         return $ids;
     }
 
     /**
-     * @param  iterable<int, KingdomAllianceObservation>  $observations
+     * @param iterable<int, KingdomAllianceObservation> $observations
      * @return array<string, KingdomAllianceObservation>
      */
     private function byTracking(iterable $observations): array
     {
         $byTracking = [];
-
         foreach ($observations as $observation) {
             $byTracking[(string) $observation->tracked_kingdom_alliance_id] = $observation;
         }
 
         return $byTracking;
+    }
+
+    private static function carbon(mixed $value): ?Carbon
+    {
+        if ($value === null) {
+            return null;
+        }
+        if ($value instanceof DateTimeInterface) {
+            return Carbon::instance($value);
+        }
+        if (is_string($value) && $value !== '') {
+            return Carbon::parse($value);
+        }
+
+        return null;
     }
 }

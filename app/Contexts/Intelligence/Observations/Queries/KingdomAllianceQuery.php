@@ -4,20 +4,17 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Observations\Queries;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use Illuminate\Database\Eloquent\Collection;
 
 final class KingdomAllianceQuery
 {
     /** @return Collection<int, TrackedKingdomAlliance> */
-    public function forAlliance(Alliance $alliance): Collection
+    public function forAlliance(string $allianceId): Collection
     {
         return TrackedKingdomAlliance::query()
-            ->where('alliance_id', $alliance->id)
+            ->where('alliance_id', $allianceId)
             ->with([
-                'kingdomAlliance:id,kingdom_id,game_alliance_id,current_name,current_tag,status',
-                'kingdom:id,number,status',
                 'observations' => fn ($query) => $query
                     ->whereNull('invalidated_at')
                     ->orderByDesc('captured_at')

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Sharing\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -28,9 +25,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $accepted_at
  * @property Carbon|null $declined_at
  * @property Carbon|null $revoked_at
- * @property-read Alliance $sourceAlliance
- * @property-read Alliance|null $recipientAlliance
- * @property-read Kingdom $kingdom
  */
 final class KingdomIntelligenceShare extends Model
 {
@@ -71,47 +65,5 @@ final class KingdomIntelligenceShare extends Model
             'declined_at' => 'datetime',
             'revoked_at' => 'datetime',
         ];
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function sourceAlliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class, 'source_alliance_id');
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function recipientAlliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class, 'recipient_alliance_id');
-    }
-
-    /** @return BelongsTo<Kingdom, $this> */
-    public function kingdom(): BelongsTo
-    {
-        return $this->belongsTo(Kingdom::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function invitedBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'invited_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function acceptedBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'accepted_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function declinedBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'declined_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function revokedBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'revoked_by_player_id');
     }
 }

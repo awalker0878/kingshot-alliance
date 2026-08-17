@@ -19,7 +19,7 @@ use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
 use App\Contexts\Platform\DataGovernance\Actions\ProcessAccountDeletionRequests;
 use App\Contexts\Platform\Integrations\Actions\QueueDueWebhookDeliveries;
 use App\Contexts\Platform\AllianceAdministration\Services\PlatformUsageService;
-use App\Contexts\Platform\Administration\Services\ProductionLaunchReadiness;
+use App\ReadModels\ProductionLaunch\ProductionLaunchReadiness;
 use App\Shared\Infrastructure\Runtime\Services\RuntimeConfigurationValidator;
 use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
 use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
@@ -80,7 +80,7 @@ Artisan::command('platform:admin:grant {email}', function (ManagePlatformAdminis
         return 1;
     }
 
-    $manage->grant($user);
+    $manage->grant((int) $user->id);
     $this->info('Platform administrator grant created. Web access still requires verified email and MFA.');
 
     return 0;

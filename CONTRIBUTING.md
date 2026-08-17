@@ -2,7 +2,7 @@
 
 ## Start with ownership
 
-Before writing code, identify the owning bounded context and capability in [Architecture](docs/architecture/README.md). Architecture V2 uses Accounts, GameWorld, Alliance, Operations, Intelligence, Communications and Platform.
+Before writing code, identify the owning bounded context and capability in [Architecture](docs/architecture/README.md). Architecture V3 uses Accounts, GameWorld, Alliance, Operations, Intelligence, Communications and Platform.
 
 Do not create a new bounded context merely because a feature has its own model, route, table, controller or folder.
 
@@ -54,13 +54,13 @@ Use the checks relevant to the change, including:
 - Composer validation and dependency audit
 - Laravel Pint
 - Larastan
-- PHPUnit and Architecture V2 suites
+- PHPUnit and Architecture V3 suites
 - ESLint and Prettier
 - Vue TypeScript checks
 - Vite production build
 - Docker/container validation where affected
 - CodeQL and dependency review through repository CI
 
-The nine permanent architecture contracts are defined in [Architecture V2 compliance](docs/governance/architecture-compliance.md).
+The nine permanent architecture contracts are defined in [Architecture V3 compliance](docs/governance/architecture-compliance.md).
 
 A green repository does not by itself approve real production. Production status is controlled by [Production approval](docs/governance/production-approval.md).

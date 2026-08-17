@@ -36,7 +36,6 @@ This map connects the V3 physical source tree to architectural ownership. Capabi
 | `app/Contexts/Intelligence/Ingestion` | Intelligence | Ingestion/reconciliation |
 | `app/Contexts/Intelligence/Roster` | Intelligence | Roster intelligence/history |
 | `app/Contexts/Intelligence/Contributions` | Intelligence | Contributions/history/reporting |
-| `app/Contexts/Intelligence/EventAnalysis` | Intelligence | Event analysis/history |
 | `app/Contexts/Intelligence/Diplomacy` | Intelligence | Diplomacy intelligence |
 | `app/Contexts/Intelligence/Sharing` | Intelligence | Intelligence sharing/grants |
 | `app/Contexts/Communications/Delivery` | Communications | Generic notification delivery |
@@ -47,7 +46,10 @@ This map connects the V3 physical source tree to architectural ownership. Capabi
 | `app/Contexts/Platform/Integrations` | Platform | API credentials/webhooks/integrations |
 | `app/Workflows/AccountOnboarding` | Composition | Cross-context onboarding command process |
 | `app/Workflows/KingdomGovernance` | Composition | Cross-context Kingdom governance process |
-| `app/ReadModels/*` | Composition | Read-only cross-context projections |
+| `app/ReadModels/EventAnalysis` | Composition | Cross-context Event history/analytics projections |
+| `app/ReadModels/ContributionHistory` | Composition | Cross-context contribution-history views over Intelligence-owned facts |
+| `app/ReadModels/Roster` | Composition | Cross-context roster/history/intelligence presentation |
+| `app/ReadModels/*` | Composition | Other read-only cross-context projections |
 | `app/Shared/Infrastructure/*` | Shared | Business-neutral infrastructure |
 
 ## Structural rule

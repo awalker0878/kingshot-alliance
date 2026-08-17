@@ -15,7 +15,6 @@ use App\Contexts\Alliance\Content\Services\MediaScanner;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\TenantContextSnapshot;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -36,9 +35,12 @@ final readonly class UploadMediaAsset
 
     public function handle(string $allianceId, string $actorPlayerId, UploadedFile $file): string
     {
-        if (! $this->authority->allows($actorPlayerId, $allianceId, AlliancePermission::ContentManage)) {
-            throw new AuthorizationException;
-        }
+        // Early gate protects the expensive scan/storage path, but is never trusted for the write.
+        // The mutation transaction below reacquires and re-authorizes current authority.
+        DB::transaction(function () use ($actorPlayerId, $allianceId): void {
+            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
+            $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
+        });
 
         $disk = (string) config('content.media_disk', 'local');
         if ($disk === 'public') {

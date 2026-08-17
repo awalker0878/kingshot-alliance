@@ -6,11 +6,11 @@ namespace App\Contexts\Alliance\Content\Services;
 
 use App\Contexts\Alliance\Content\Models\ContentItem;
 use App\Contexts\Alliance\Content\Models\ContentRevision;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 
 final class ContentRevisionWriter
 {
-    public function write(ContentItem $item, Player $actor): ContentRevision
+    public function write(ContentItem $item, PlayerReference $actor): ContentRevision
     {
         return ContentRevision::query()->create([
             'alliance_id' => $item->alliance_id,
@@ -24,7 +24,7 @@ final class ContentRevisionWriter
             'body' => $item->body,
             'locale' => $item->locale,
             'sort_order' => $item->sort_order,
-            'created_by_player_id' => $actor->id,
+            'created_by_player_id' => $actor->playerId,
             'created_at' => now(),
         ]);
     }

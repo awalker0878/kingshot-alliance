@@ -97,6 +97,20 @@ final class RosterEntryQuery
         return $query->exists();
     }
 
+    /** @return list<RosterEntryReference> */
+    public function forPlayer(string $allianceId, string $playerId, int $limit = 2): array
+    {
+        return AllianceRosterEntry::query()
+            ->where('alliance_id', $allianceId)
+            ->where('player_id', $playerId)
+            ->orderBy('id')
+            ->limit(max(1, $limit))
+            ->get()
+            ->map(fn (AllianceRosterEntry $entry): RosterEntryReference => $this->snapshot($entry))
+            ->values()
+            ->all();
+    }
+
     public function hasActiveRosterPresence(string $allianceId, string $playerId): bool
     {
         return AllianceRosterEntry::query()

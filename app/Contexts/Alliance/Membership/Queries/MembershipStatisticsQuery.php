@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Membership\Queries;
 
+use App\Contexts\Alliance\Membership\Enums\InvitationStatus;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Models\Invitation;
 
 final class MembershipStatisticsQuery
 {
@@ -14,6 +16,15 @@ final class MembershipStatisticsQuery
         return AllianceMembership::query()
             ->where('alliance_id', $allianceId)
             ->where('status', MembershipStatus::Active->value)
+            ->count();
+    }
+
+    public function pendingInvitationCount(string $allianceId): int
+    {
+        return Invitation::query()
+            ->where('alliance_id', $allianceId)
+            ->where('status', InvitationStatus::Pending->value)
+            ->where('expires_at', '>', now())
             ->count();
     }
 

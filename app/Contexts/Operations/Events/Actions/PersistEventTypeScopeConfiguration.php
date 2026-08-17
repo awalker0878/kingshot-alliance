@@ -9,16 +9,25 @@ use App\Contexts\Operations\Events\Enums\EventRecurrencePolicy;
 use App\Contexts\Operations\Events\Enums\EventScheduleSource;
 use App\Contexts\Operations\Events\Enums\RecurrenceFrequency;
 use App\Contexts\Operations\Events\Models\EventTypeScope;
+use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
+use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 final readonly class PersistEventTypeScopeConfiguration
 {
+    public function __construct(
+        private AuditRecorder $audit,
+        private OutboxRecorder $outbox,
+    ) {}
+
     /**
      * @param list<EventCapability> $capabilities
      * @param array<string, mixed> $defaultSettings
      */
     public function handle(
+        AuditActor $actor,
         string $configurationId,
         bool $isActive,
         ?int $defaultDurationMinutes,
@@ -52,6 +61,7 @@ final readonly class PersistEventTypeScopeConfiguration
         }
 
         DB::transaction(function () use (
+            $actor,
             $configurationId,
             $isActive,
             $defaultDurationMinutes,
@@ -91,6 +101,24 @@ final readonly class PersistEventTypeScopeConfiguration
             foreach ($wanted as $capability) {
                 $locked->capabilities()->firstOrCreate(['capability' => $capability], ['configuration' => null]);
             }
+
+            $locked->loadMissing('eventType');
+            $metadata = [
+                'event_type_id' => (string) $locked->event_type_id,
+                'scope' => $locked->scopeEnum()->value,
+                'is_active' => (bool) $locked->is_active,
+                'schedule_source' => $locked->scheduleSourceEnum()->value,
+                'recurrence_policy' => $locked->recurrencePolicyEnum()->value,
+                'capabilities' => $wanted,
+            ];
+
+            $this->audit->record(
+                event: 'event-type.scope.updated',
+                actor: $actor,
+                subject: $locked,
+                metadata: $metadata,
+            );
+            $this->outbox->record('event-type.scope.updated', null, $locked, $metadata);
         });
     }
 }

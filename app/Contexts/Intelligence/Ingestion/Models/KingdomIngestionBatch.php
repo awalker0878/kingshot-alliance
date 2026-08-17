@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionBatchState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -31,8 +29,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $completed_at
  * @property string|null $failure_code
  * @property-read KingdomIngestionSubscription $subscription
- * @property-read Alliance $alliance
- * @property-read Kingdom $kingdom
  */
 final class KingdomIngestionBatch extends Model
 {
@@ -78,18 +74,6 @@ final class KingdomIngestionBatch extends Model
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(KingdomIngestionSubscription::class, 'subscription_id');
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
-    /** @return BelongsTo<Kingdom, $this> */
-    public function kingdom(): BelongsTo
-    {
-        return $this->belongsTo(Kingdom::class);
     }
 
     /** @return HasMany<KingdomIngestionCandidate, $this> */

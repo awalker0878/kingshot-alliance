@@ -1,0 +1,110 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\ReadModels\Roster\Http\Controllers;
+
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
+use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
+use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
+use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
+use App\ReadModels\Roster\Queries\PlayerSnapshotQuery;
+use App\Shared\Infrastructure\Http\Controller;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+final class PlayerSnapshotHistoryController extends Controller
+{
+    public function show(
+        Request $request,
+        AllianceContext $context,
+        AllianceIntelligenceAuthorization $authorization,
+        AllianceReferenceQuery $alliances,
+        KingdomReferenceQuery $kingdoms,
+        AccountIdentityQuery $accounts,
+        PlayerReferenceQuery $players,
+        PlayerSnapshotQuery $snapshots,
+        string $entry,
+    ): Response {
+        $scope = $context->scope();
+        if (! $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::View)) {
+            throw new AuthorizationException;
+        }
+
+        $account = $accounts->require((int) $request->user()?->getAuthIdentifier());
+        $alliance = $alliances->require($scope->allianceId);
+        $kingdom = $kingdoms->require($alliance->kingdomId);
+        $rosterEntry = AllianceRosterEntry::query()->where('alliance_id', $alliance->allianceId)->findOrFail($entry);
+        $player = $players->require((string) $rosterEntry->player_id);
+        $membership = AllianceMembership::query()
+            ->where('alliance_id', $alliance->allianceId)
+            ->where('player_id', $rosterEntry->player_id)
+            ->where('status', MembershipStatus::Active->value)
+            ->first();
+        $canManage = $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage);
+        $history = $snapshots->historyForEntry($alliance->allianceId, $rosterEntry);
+        $actorIds = $history->pluck('actor_player_id')->filter()->map(static fn ($id): string => (string) $id)->values()->all();
+        $actorRefs = $players->byIds($actorIds);
+        $latest = $history->first();
+
+        return Inertia::render('Alliance/RosterHistory', [
+            'user' => ['name' => $account->name, 'email' => $account->email],
+            'alliance' => [
+                'id' => $alliance->allianceId,
+                'name' => $alliance->name,
+                'kingdom' => (string) $kingdom->number,
+            ],
+            'entry' => [
+                'id' => (string) $rosterEntry->id,
+                'gamePlayerId' => $player->gamePlayerId,
+                'name' => (string) $rosterEntry->observed_name,
+                'gameRole' => $rosterEntry->game_role,
+                'state' => $rosterEntry->state->value,
+                'membership' => $membership instanceof AllianceMembership ? ['name' => $player->currentName] : null,
+            ],
+            'canManage' => $canManage,
+            'latest' => $latest instanceof PlayerSnapshot ? $this->snapshot($latest, $canManage, $actorRefs) : null,
+            'snapshots' => $history->map(fn (PlayerSnapshot $snapshot): array => $this->snapshot($snapshot, $canManage, $actorRefs))->values()->all(),
+            'staleAfterDays' => PlayerSnapshotQuery::STALE_AFTER_DAYS,
+        ]);
+    }
+
+    /** @param array<string,PlayerReference> $actors @return array<string,mixed> */
+    private function snapshot(PlayerSnapshot $snapshot, bool $includeActor, array $actors): array
+    {
+        $row = [
+            'id' => (string) $snapshot->id,
+            'observedName' => (string) $snapshot->observed_name,
+            'power' => (string) $snapshot->power,
+            'progressionLevel' => $snapshot->progression_level,
+            'observedAllianceTag' => $snapshot->observed_alliance_tag,
+            'capturedAt' => $snapshot->captured_at->toIso8601String(),
+            'source' => (string) $snapshot->source,
+        ];
+        if ($includeActor) {
+            $actor = $snapshot->actor_player_id === null ? null : ($actors[(string) $snapshot->actor_player_id] ?? null);
+            $row += [
+                'actorName' => $actor?->currentName,
+                'sourceSubscriptionId' => $snapshot->source_subscription_id,
+                'sourceBatchId' => $snapshot->source_batch_id,
+                'sourceAdapterKey' => $snapshot->source_adapter_key,
+                'sourceAdapterVersion' => $snapshot->source_adapter_version,
+                'sourceRecordId' => $snapshot->source_record_id,
+                'sourceIdentityHash' => $snapshot->source_identity_hash,
+                'sourcePayloadHash' => $snapshot->source_payload_hash,
+            ];
+        }
+
+        return $row;
+    }
+}

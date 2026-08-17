@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,10 +29,6 @@ use Illuminate\Support\Carbon;
  * @property string|null $source_identity_hash
  * @property string|null $source_payload_hash
  * @property string $idempotency_key
- * @property-read Alliance $alliance
- * @property-read AllianceRosterEntry $rosterEntry
- * @property-read Player $player
- * @property-read Player|null $actor
  * @property-read RosterImport|null $rosterImport
  */
 final class PlayerSnapshot extends Model
@@ -74,30 +67,6 @@ final class PlayerSnapshot extends Model
             'power' => 'integer',
             'captured_at' => 'datetime',
         ];
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
-    /** @return BelongsTo<AllianceRosterEntry, $this> */
-    public function rosterEntry(): BelongsTo
-    {
-        return $this->belongsTo(AllianceRosterEntry::class, 'roster_entry_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function actor(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'actor_player_id');
     }
 
     /** @return BelongsTo<RosterImport, $this> */

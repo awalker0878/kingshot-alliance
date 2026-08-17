@@ -10,11 +10,8 @@ use App\Contexts\Operations\Events\Enums\EventCapability;
 use App\Contexts\Operations\Events\Enums\EventRecurrencePolicy;
 use App\Contexts\Operations\Events\Enums\EventScheduleSource;
 use App\Contexts\Operations\Events\Enums\RecurrenceFrequency;
-use App\Contexts\Operations\Events\Models\EventTypeScope;
 use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use App\Contexts\Platform\Administration\Services\PlatformWriteState;
-use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
-use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
 
 final class UpdateEventTypeScope
@@ -23,17 +20,15 @@ final class UpdateEventTypeScope
         private PlatformWriteState $platformWriteState,
         private PlatformAuthorization $platformMutations,
         private PersistEventTypeScopeConfiguration $persistConfiguration,
-        private AuditRecorder $audit,
-        private OutboxRecorder $outbox,
     ) {}
 
     /**
-     * @param  list<EventCapability>  $capabilities
-     * @param  array<string, mixed>  $defaultSettings
+     * @param list<EventCapability> $capabilities
+     * @param array<string, mixed> $defaultSettings
      */
     public function handle(
         AccountIdentity $actor,
-        EventTypeScope $configuration,
+        string $configurationId,
         bool $isActive,
         ?int $defaultDurationMinutes,
         ?int $defaultCapacity,
@@ -47,10 +42,10 @@ final class UpdateEventTypeScope
         ?string $defaultInstructionsKey,
         array $defaultSettings,
         array $capabilities,
-    ): EventTypeScope {
-        return DB::transaction(function () use (
+    ): void {
+        DB::transaction(function () use (
             $actor,
-            $configuration,
+            $configurationId,
             $isActive,
             $defaultDurationMinutes,
             $defaultCapacity,
@@ -64,11 +59,12 @@ final class UpdateEventTypeScope
             $defaultInstructionsKey,
             $defaultSettings,
             $capabilities,
-        ): EventTypeScope {
-            $writeContext = $this->platformWriteState->lock($actor);
-            $context = $this->platformMutations->authorizeContext($writeContext);
+        ): void {
+            $context = $this->platformMutations->authorizeContext($this->platformWriteState->lock($actor));
+
             $this->persistConfiguration->handle(
-                configurationId: (string) $configuration->id,
+                actor: $context->actor,
+                configurationId: $configurationId,
                 isActive: $isActive,
                 defaultDurationMinutes: $defaultDurationMinutes,
                 defaultCapacity: $defaultCapacity,
@@ -83,34 +79,6 @@ final class UpdateEventTypeScope
                 defaultSettings: $defaultSettings,
                 capabilities: $capabilities,
             );
-            $updated = EventTypeScope::query()
-                ->whereKey($configuration->id)
-                ->with(['eventType', 'capabilities'])
-                ->firstOrFail();
-
-            $wanted = array_values(array_unique(array_map(
-                static fn (EventCapability $capability): string => $capability->value,
-                $capabilities,
-            )));
-            $eventType = $updated->eventType;
-            $metadata = [
-                'event_type_id' => $eventType->id,
-                'scope' => $updated->scopeEnum()->value,
-                'is_active' => $updated->is_active,
-                'schedule_source' => $updated->scheduleSourceEnum()->value,
-                'recurrence_policy' => $updated->recurrencePolicyEnum()->value,
-                'capabilities' => $wanted,
-            ];
-
-            $this->audit->record(
-                event: 'event-type.scope.updated',
-                actor: $context->actor,
-                subject: $updated,
-                metadata: $metadata,
-            );
-            $this->outbox->record('event-type.scope.updated', null, $updated, $metadata);
-
-            return $updated;
         });
     }
 }

@@ -17,4 +17,4 @@ Score and component metrics remain distinct concepts; the metric catalogue does 
 
 ## Boundary
 
-Operations owns captured operational result facts. `Intelligence/EventAnalysis` may consume those facts for history, trend and reporting without becoming a second canonical result ledger.
+Operations owns captured operational result facts. `ReadModels/EventAnalysis` may compose those facts for history, trend and reporting without becoming a second canonical result ledger.

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Observations\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,12 +32,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $invalidated_at
  * @property int|null $invalidated_by_player_id
  * @property string|null $invalidation_reason
- * @property-read Alliance $alliance
  * @property-read TrackedKingdomAlliance $tracking
- * @property-read KingdomAlliance $kingdomAlliance
- * @property-read Player|null $actor
  * @property-read KingdomAllianceObservation|null $correctsObservation
- * @property-read Player|null $invalidatedBy
  */
 final class KingdomAllianceObservation extends Model
 {
@@ -85,39 +78,15 @@ final class KingdomAllianceObservation extends Model
         ];
     }
 
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
     /** @return BelongsTo<TrackedKingdomAlliance, $this> */
     public function tracking(): BelongsTo
     {
         return $this->belongsTo(TrackedKingdomAlliance::class, 'tracked_kingdom_alliance_id');
     }
 
-    /** @return BelongsTo<KingdomAlliance, $this> */
-    public function kingdomAlliance(): BelongsTo
-    {
-        return $this->belongsTo(KingdomAlliance::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function actor(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'actor_player_id');
-    }
-
     /** @return BelongsTo<KingdomAllianceObservation, $this> */
     public function correctsObservation(): BelongsTo
     {
         return $this->belongsTo(self::class, 'corrects_observation_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function invalidatedBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'invalidated_by_player_id');
     }
 }

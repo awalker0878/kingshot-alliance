@@ -16,8 +16,10 @@ final readonly class DeliverWebhook
 {
     public function __construct(private WebhookEndpointPolicy $endpointPolicy) {}
 
-    public function handle(WebhookDelivery $delivery): void
+    public function handle(string $deliveryId): void
     {
+        $delivery = WebhookDelivery::query()->whereKey($deliveryId)->firstOrFail();
+
         $claim = DB::transaction(function () use ($delivery): ?array {
             $locked = WebhookDelivery::query()->lockForUpdate()->findOrFail($delivery->id);
             if ($locked->status !== WebhookDeliveryStatus::Pending) {

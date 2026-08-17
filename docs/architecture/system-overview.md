@@ -36,7 +36,7 @@ Context capability Actions
 | GameWorld | Player/Kingdom identity, placement/reference facts, Kingdom governance and Kingdom transfers. |
 | Alliance | Alliance lifecycle, membership/leadership, Alliance access, recruitment and content. |
 | Operations | Event execution, participation, polls, rosters, battle plans, rallies, King Perks and results. |
-| Intelligence | Observed/ingested facts, roster/contribution intelligence, event analysis, diplomacy and sharing. |
+| Intelligence | Observed/ingested facts, roster/contribution intelligence, diplomacy and sharing. Cross-context Event analysis is a ReadModel composition concern. |
 | Communications | Generic notification delivery, preferences, channels, retries and idempotency. |
 | Platform | Platform administration, Alliance platform administration, data governance, Event administration and integrations. |
 

@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 use App\Contexts\Platform\EventAdministration\Http\Controllers\EventTypeAdministrationController;
 use App\Contexts\Platform\Administration\Http\Controllers\PlatformAdministrationController;
+use App\ReadModels\EventTypeAdministration\Http\Controllers\EventTypeAdministrationReadController;
+use App\ReadModels\PlatformAdministration\Http\Controllers\PlatformAdministrationReadController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'platform.admin', 'password.confirm'])
     ->prefix('platform')
     ->name('platform.')
     ->group(function (): void {
-        Route::get('/', [PlatformAdministrationController::class, 'index'])
+        Route::get('/', PlatformAdministrationReadController::class)
             ->name('administration.index');
-        Route::get('/event-types', [EventTypeAdministrationController::class, 'index'])
+        Route::get('/event-types', EventTypeAdministrationReadController::class)
             ->name('event-types.index');
         Route::patch('/event-types/{eventType}/scopes/{scope}', [EventTypeAdministrationController::class, 'update'])
             ->whereUlid('eventType')

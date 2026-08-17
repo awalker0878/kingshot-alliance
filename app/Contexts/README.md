@@ -14,4 +14,4 @@ Capabilities remain inside their owning context. A model, route, table, controll
 
 Cross-context commands are coordinated through `app/Workflows`, cross-context reads through `app/ReadModels`, and business-neutral technical concerns through `app/Shared`.
 
-Architecture boundaries are enforced by the tests under `tests/v2/Architecture`.
+Architecture boundaries are enforced by the tests under `tests/v3/Architecture`.

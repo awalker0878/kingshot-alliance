@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\ValueObjects;
 
-use App\Contexts\Platform\Integrations\Models\ApiCredential;
-
 final readonly class IssuedApiCredential
 {
+    /** @param list<string> $scopes */
     public function __construct(
-        public ApiCredential $credential,
+        public string $credentialId,
+        public string $name,
         public string $token,
+        public array $scopes,
+        public ?string $expiresAt,
     ) {}
 }

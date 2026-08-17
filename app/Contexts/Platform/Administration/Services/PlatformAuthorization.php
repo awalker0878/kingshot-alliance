@@ -19,10 +19,10 @@ final class PlatformAuthorization
 
     public function authorizeContext(PlatformWriteContext $context): PlatformMutationContext
     {
-        if (! $context->grant instanceof PlatformAdministrator) {
+        if ($context->grantId === null) {
             throw new AuthorizationException('Platform administrator access is required.');
         }
 
-        return new PlatformMutationContext($context->actor, $context->grant);
+        return new PlatformMutationContext($context->actor, $context->grantId);
     }
 }

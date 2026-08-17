@@ -40,9 +40,9 @@ final readonly class UpdateAlliancePublicProfile
      *   banner_media_id?: string|null
      * } $attributes
      */
-    public function handle(string $allianceId, string $actorPlayerId, array $attributes): Alliance
+    public function handle(string $allianceId, string $actorPlayerId, array $attributes): string
     {
-        return DB::transaction(function () use ($allianceId, $actorPlayerId, $attributes): Alliance {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $attributes): string {
             // This workflow changes the Alliance aggregate itself, so the exclusive
             // parent boundary is intentional rather than an ordinary child lock.
             $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
@@ -84,7 +84,7 @@ final readonly class UpdateAlliancePublicProfile
                 'timezone' => $locked->timezone,
             ]);
 
-            return $locked->refresh();
+            return (string) $locked->id;
         });
     }
 

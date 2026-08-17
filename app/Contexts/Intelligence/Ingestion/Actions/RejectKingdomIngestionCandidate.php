@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionCandidateState;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionBatch;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionCandidate;
@@ -21,30 +18,28 @@ use Illuminate\Validation\ValidationException;
 final readonly class RejectKingdomIngestionCandidate
 {
     public function __construct(
-        private AllianceWriteState $allianceWriteState,
-        private AllianceIntelligenceAuthorization $authority,
+        private AllianceIntelligenceWriteState $writeState,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
-        Alliance $alliance,
-        Player $actor,
+        string $allianceId,
+        string $actorPlayerId,
         string $subscriptionId,
         string $candidateId,
-    ): KingdomIngestionCandidate {
-        return DB::transaction(function () use ($alliance, $actor, $subscriptionId, $candidateId): KingdomIngestionCandidate {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
-            $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
+    ): string {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $subscriptionId, $candidateId): string {
+            [$scope, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
             $subscription = KingdomIngestionSubscription::query()
-                ->where('alliance_id', $context->alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->whereKey($subscriptionId)
                 ->lockForUpdate()
                 ->firstOrFail();
 
             $route = KingdomIngestionCandidate::query()
                 ->select(['id', 'batch_id'])
-                ->where('alliance_id', $context->alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->where('subscription_id', $subscription->id)
                 ->whereKey($candidateId)
                 ->firstOrFail();
@@ -54,7 +49,7 @@ final readonly class RejectKingdomIngestionCandidate
                 ->lockForUpdate()
                 ->firstOrFail();
             $candidate = KingdomIngestionCandidate::query()
-                ->where('alliance_id', $context->alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->where('subscription_id', $subscription->id)
                 ->where('batch_id', $batch->id)
                 ->whereKey($route->id)
@@ -62,7 +57,7 @@ final readonly class RejectKingdomIngestionCandidate
                 ->firstOrFail();
 
             if ($candidate->state === KingdomIngestionCandidateState::Rejected) {
-                return $candidate;
+                return (string) $candidate->id;
             }
             if ($candidate->state !== KingdomIngestionCandidateState::Quarantined) {
                 throw ValidationException::withMessages([
@@ -86,10 +81,10 @@ final readonly class RejectKingdomIngestionCandidate
                 'origin' => 'player',
             ];
             $event = 'intelligence.ingestion_candidate_rejected';
-            $this->audit->record($event, $context->actor, $candidate, $context->alliance, $metadata);
-            $this->outbox->record($event, (string) $context->alliance->id, $candidate, $metadata);
+            $this->audit->record($event, $actor, $candidate, $allianceId, $metadata);
+            $this->outbox->record($event, (string) $allianceId, $candidate, $metadata);
 
-            return $candidate->refresh();
+            return (string) $candidate->id;
         });
     }
 }

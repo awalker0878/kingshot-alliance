@@ -22,11 +22,11 @@ final readonly class StartKingdomIngestionBatch
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(string $subscriptionId, ?string $sourceWindowId = null): KingdomIngestionBatch
+    public function handle(string $subscriptionId, ?string $sourceWindowId = null): string
     {
         $sourceWindowId = $this->nullableIdentifier($sourceWindowId, 191, 'source_window_id');
 
-        return DB::transaction(function () use ($subscriptionId, $sourceWindowId): KingdomIngestionBatch {
+        return DB::transaction(function () use ($subscriptionId, $sourceWindowId): string {
             $context = $this->mutations->lockSubscription($subscriptionId);
             $subscription = $context->subscription;
 
@@ -36,8 +36,8 @@ final readonly class StartKingdomIngestionBatch
                 ]);
             }
 
-            if ($context->alliance->kingdom_id === null
-                || (string) $context->alliance->kingdom_id !== (string) $subscription->kingdom_id) {
+            if ($context->alliance->kingdomId === null
+                || (string) $context->alliance->kingdomId !== (string) $subscription->kingdom_id) {
                 throw ValidationException::withMessages([
                     'subscription' => 'Ingestion is blocked because the alliance Kingdom no longer matches the subscription context.',
                 ]);
@@ -58,7 +58,7 @@ final readonly class StartKingdomIngestionBatch
                     ->first();
 
                 if ($existing instanceof KingdomIngestionBatch) {
-                    return $existing;
+                    return (string) $existing->id;
                 }
             }
 
@@ -81,7 +81,7 @@ final readonly class StartKingdomIngestionBatch
                         ->where('source_window_id', $sourceWindowId)
                         ->first();
                     if ($existing instanceof KingdomIngestionBatch) {
-                        return $existing;
+                        return (string) $existing->id;
                     }
                 }
 
@@ -105,7 +105,7 @@ final readonly class StartKingdomIngestionBatch
                 'intelligence.ingestion_batch_started:'.$batch->id,
             );
 
-            return $batch;
+            return (string) $batch->id;
         });
     }
 

@@ -7,6 +7,7 @@ namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\GameWorld\Kingdoms\Actions\ResolveKingdom;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomReference;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferDirection;
@@ -86,13 +87,15 @@ final readonly class SaveTransferGroup
             $destination = $direction === TransferDirection::Incoming
                 ? Kingdom::query()->findOrFail($plan->home_kingdom_id)
                 : $this->kingdom($attributes['destination_kingdom'] ?? null);
-            if ($direction === TransferDirection::Outgoing && $destination?->id === $plan->home_kingdom_id) {
+            if ($direction === TransferDirection::Outgoing && $destination?->kingdomId === $plan->home_kingdom_id) {
                 throw ValidationException::withMessages(['destination_kingdom' => 'An outgoing group destination must differ from the plan home Kingdom.']);
             }
 
             $coordinatorId = $this->coordinatorId($allianceId, $attributes['coordinator_player_id'] ?? null);
             $managerNotes = $this->nullableText($attributes['manager_notes'] ?? null);
-            $destinationId = $destination === null ? null : (string) $destination->id;
+            $destinationId = $destination === null
+                ? null
+                : ($destination instanceof Kingdom ? (string) $destination->id : $destination->kingdomId);
             $this->assertAssignedParticipantsCompatible($allianceId, $plan, $group, $direction, $destinationId);
 
             $isNew = ! $group->exists;
@@ -165,7 +168,7 @@ final readonly class SaveTransferGroup
         return $playerId;
     }
 
-    private function kingdom(mixed $number): ?Kingdom
+    private function kingdom(mixed $number): ?KingdomReference
     {
         try {
             return $this->kingdoms->handle(is_int($number) || is_string($number) ? $number : null);

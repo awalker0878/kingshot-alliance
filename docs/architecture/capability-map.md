@@ -10,7 +10,7 @@ Capabilities are first-class modules inside the seven bounded contexts. This map
 | GameWorld | Players, Kingdoms, Governance, KingdomTransfers |
 | Alliance | Lifecycle, Membership, Access, Recruitment, Content |
 | Operations | Access, Events, Participation, Polls, Rosters, BattlePlans, Rallies, KingPerks, Results |
-| Intelligence | Access, Observations, Ingestion, Roster, Contributions, EventAnalysis, Diplomacy, Sharing |
+| Intelligence | Access, Observations, Ingestion, Roster, Contributions, Diplomacy, Sharing |
 | Communications | Delivery |
 | Platform | Administration, AllianceAdministration, DataGovernance, EventAdministration, Integrations |
 
@@ -60,7 +60,6 @@ Alliance policies belong to the capability that owns the rule; `Alliance/Policie
 - **Ingestion** — import and reconciliation of external observations.
 - **Roster** — roster intelligence/history projections, not authoritative Alliance membership.
 - **Contributions** — contribution facts, history and reporting.
-- **EventAnalysis** — Event history, analytics and projections.
 - **Diplomacy** — diplomacy intelligence.
 - **Sharing** — Intelligence grants and distribution.
 
@@ -88,5 +87,7 @@ The following are implementation/composition mechanisms, not business capabiliti
 - `app/Workflows`;
 - `app/ReadModels`;
 - `app/Shared`.
+
+Cross-context analytical views such as Event analysis are composition surfaces under `app/ReadModels`, not Intelligence capabilities unless they acquire durable owner state of their own.
 
 The capability map is documentation, not an executable hardcoded registry. Architecture tests enforce structural invariants instead of duplicating this list in production/test code.

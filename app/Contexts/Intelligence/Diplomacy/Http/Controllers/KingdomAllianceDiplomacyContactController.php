@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Diplomacy\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomAllianceReferenceQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Diplomacy\Actions\DeactivateKingdomAllianceDiplomacyContact;
@@ -14,7 +18,6 @@ use App\Contexts\Intelligence\Diplomacy\Actions\SaveKingdomAllianceDiplomacyCont
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceContactChannel;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyContact;
 use App\Contexts\Intelligence\Diplomacy\Queries\KingdomAllianceDiplomacyContactQuery;
-use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -30,83 +33,81 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         AllianceContext $context,
         AllianceIntelligenceAuthorization $authorization,
         KingdomAllianceDiplomacyContactQuery $contacts,
+        AllianceReferenceQuery $alliances,
+        KingdomReferenceQuery $kingdoms,
+        KingdomAllianceReferenceQuery $kingdomAlliances,
+        PlayerReferenceQuery $players,
+        AccountIdentityQuery $accounts,
         string $tracking,
     ): Response {
-        $user = $this->user($request);
-        $alliance = $context->alliance()->load('kingdom');
-        if (! $authorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage)) {
+        $scope = $context->scope();
+        if (! $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
-
-        $tracked = $contacts->tracking($alliance, $tracking);
+        $account = $accounts->require((int) $request->user()?->getAuthIdentifier());
+        $alliance = $alliances->require($scope->allianceId);
+        $allianceKingdom = $kingdoms->require($alliance->kingdomId);
+        $tracked = $contacts->tracking($alliance->allianceId, $tracking);
+        $trackedKingdom = $kingdoms->require((string) $tracked->kingdom_id);
+        $trackedAlliance = $kingdomAlliances->require((string) $tracked->kingdom_alliance_id);
+        $records = $contacts->contacts($alliance->allianceId, $tracking);
+        $actorIds = [];
+        foreach ($records as $contact) {
+            foreach ([$contact->created_by_player_id, $contact->updated_by_player_id, $contact->deactivated_by_player_id] as $id) {
+                if ($id !== null) $actorIds[] = (string) $id;
+            }
+        }
+        $actorRefs = $players->byIds(array_values(array_unique($actorIds)));
 
         return Inertia::render('Alliance/KingdomAllianceDiplomacyContacts', [
-            'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
+            'user' => ['name' => $account->name, 'email' => $account->email],
+            'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $allianceKingdom->number],
+            'tracking' => [
+                'id' => (string) $tracked->id,
+                'name' => $trackedAlliance->currentName,
+                'tag' => $trackedAlliance->currentTag,
+                'state' => $tracked->state->value,
+                'kingdom' => (string) $trackedKingdom->number,
+                'contextCurrent' => $alliance->kingdomId === $tracked->kingdom_id,
             ],
-            'alliance' => $this->allianceSummary($alliance),
-            'tracking' => $this->trackingSummary($tracked, $alliance),
             'channels' => [
                 ['value' => KingdomAllianceContactChannel::InGame->value, 'label' => 'In-game'],
                 ['value' => KingdomAllianceContactChannel::Discord->value, 'label' => 'Discord'],
                 ['value' => KingdomAllianceContactChannel::OtherHandle->value, 'label' => 'Other handle/channel'],
             ],
             'contactLimit' => KingdomAllianceDiplomacyContactQuery::CONTACT_LIMIT,
-            'contacts' => $contacts->contacts($alliance, $tracking)
-                ->map(fn (KingdomAllianceDiplomacyContact $contact): array => $this->contactRow($contact))
-                ->values(),
+            'contacts' => $records->map(fn (KingdomAllianceDiplomacyContact $contact): array => $this->contactRow($contact, $actorRefs))->values(),
         ]);
     }
 
-    public function store(
-        Request $request,
-        AllianceContext $context,
-        SaveKingdomAllianceDiplomacyContact $save,
-        string $tracking,
-    ): RedirectResponse {
-        $save->handle($context->alliance(), $context->player(), $tracking, $this->validated($request));
+    public function store(Request $request, AllianceContext $context, SaveKingdomAllianceDiplomacyContact $save, string $tracking): RedirectResponse
+    {
+        $scope = $context->scope();
+        $save->handle($scope->allianceId, $scope->playerId, $tracking, $this->validated($request));
 
         return back()->with('status', 'kingdom-alliance-diplomacy-contact-saved');
     }
 
-    public function update(
-        Request $request,
-        AllianceContext $context,
-        SaveKingdomAllianceDiplomacyContact $save,
-        string $tracking,
-        string $contact,
-    ): RedirectResponse {
-        $save->handle($context->alliance(), $context->player(), $tracking, $this->validated($request), $contact);
+    public function update(Request $request, AllianceContext $context, SaveKingdomAllianceDiplomacyContact $save, string $tracking, string $contact): RedirectResponse
+    {
+        $scope = $context->scope();
+        $save->handle($scope->allianceId, $scope->playerId, $tracking, $this->validated($request), $contact);
 
         return back()->with('status', 'kingdom-alliance-diplomacy-contact-saved');
     }
 
-    public function deactivate(
-        Request $request,
-        AllianceContext $context,
-        DeactivateKingdomAllianceDiplomacyContact $deactivate,
-        string $tracking,
-        string $contact,
-    ): RedirectResponse {
-        $deactivate->handle($context->alliance(), $context->player(), $tracking, $contact);
+    public function deactivate(Request $request, AllianceContext $context, DeactivateKingdomAllianceDiplomacyContact $deactivate, string $tracking, string $contact): RedirectResponse
+    {
+        $scope = $context->scope();
+        $deactivate->handle($scope->allianceId, $scope->playerId, $tracking, $contact);
 
         return back()->with('status', 'kingdom-alliance-diplomacy-contact-deactivated');
     }
 
-    /**
-     * @return array{
-     *   display_name: string,
-     *   game_role?: string|null,
-     *   channel_type: string,
-     *   handle: string,
-     *   last_verified_at?: string|null,
-     *   manager_notes?: string|null
-     * }
-     */
+    /** @return array{display_name:string,game_role?:string|null,channel_type:string,handle:string,last_verified_at?:string|null,manager_notes?:string|null} */
     private function validated(Request $request): array
     {
-        /** @var array{display_name: string, game_role?: string|null, channel_type: string, handle: string, last_verified_at?: string|null, manager_notes?: string|null} $validated */
+        /** @var array{display_name:string,game_role?:string|null,channel_type:string,handle:string,last_verified_at?:string|null,manager_notes?:string|null} $validated */
         $validated = $request->validate([
             'display_name' => ['required', 'string', 'max:160'],
             'game_role' => ['nullable', 'string', 'max:120'],
@@ -119,32 +120,13 @@ final class KingdomAllianceDiplomacyContactController extends Controller
         return $validated;
     }
 
-    /** @return array{id: string, name: string, kingdom: string|null} */
-    private function allianceSummary(Alliance $alliance): array
+    /** @param array<string,PlayerReference> $players @return array<string,mixed> */
+    private function contactRow(KingdomAllianceDiplomacyContact $contact, array $players): array
     {
-        return [
-            'id' => (string) $alliance->id,
-            'name' => (string) $alliance->name,
-            'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
-        ];
-    }
+        $created = $contact->created_by_player_id === null ? null : ($players[(string) $contact->created_by_player_id] ?? null);
+        $updated = $contact->updated_by_player_id === null ? null : ($players[(string) $contact->updated_by_player_id] ?? null);
+        $deactivated = $contact->deactivated_by_player_id === null ? null : ($players[(string) $contact->deactivated_by_player_id] ?? null);
 
-    /** @return array<string, mixed> */
-    private function trackingSummary(TrackedKingdomAlliance $tracking, Alliance $alliance): array
-    {
-        return [
-            'id' => (string) $tracking->id,
-            'name' => (string) $tracking->kingdomAlliance->current_name,
-            'tag' => $tracking->kingdomAlliance->current_tag,
-            'state' => $tracking->state->value,
-            'kingdom' => (string) $tracking->kingdom->number,
-            'contextCurrent' => $alliance->kingdom_id !== null && $alliance->kingdom_id === $tracking->kingdom_id,
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    private function contactRow(KingdomAllianceDiplomacyContact $contact): array
-    {
         return [
             'id' => (string) $contact->id,
             'displayName' => $contact->display_name,
@@ -154,20 +136,12 @@ final class KingdomAllianceDiplomacyContactController extends Controller
             'state' => $contact->state->value,
             'lastVerifiedAt' => $contact->last_verified_at?->toIso8601String(),
             'managerNotes' => $contact->manager_notes,
-            'createdByName' => $contact->createdBy?->current_name,
-            'updatedByName' => $contact->updatedBy?->current_name,
-            'deactivatedByName' => $contact->deactivatedBy?->current_name,
+            'createdByName' => $created?->currentName,
+            'updatedByName' => $updated?->currentName,
+            'deactivatedByName' => $deactivated?->currentName,
             'createdAt' => $contact->created_at->toIso8601String(),
             'updatedAt' => $contact->updated_at->toIso8601String(),
             'deactivatedAt' => $contact->deactivated_at?->toIso8601String(),
         ];
-    }
-
-    private function user(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
-
-        return $user;
     }
 }

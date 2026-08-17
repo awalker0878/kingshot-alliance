@@ -23,7 +23,7 @@ final readonly class CompleteKingdomIngestionBatch
         string $batchId,
         KingdomIngestionBatchState $state,
         ?string $failureCode = null,
-    ): KingdomIngestionBatch {
+    ): string {
         if ($state === KingdomIngestionBatchState::Pending) {
             throw ValidationException::withMessages(['state' => 'A completed batch cannot remain pending.']);
         }
@@ -36,7 +36,7 @@ final readonly class CompleteKingdomIngestionBatch
             ]);
         }
 
-        return DB::transaction(function () use ($subscriptionId, $batchId, $state, $failureCode): KingdomIngestionBatch {
+        return DB::transaction(function () use ($subscriptionId, $batchId, $state, $failureCode): string {
             $context = $this->mutations->lockSubscription($subscriptionId);
             $subscription = $context->subscription;
             $batch = KingdomIngestionBatch::query()
@@ -47,7 +47,7 @@ final readonly class CompleteKingdomIngestionBatch
 
             if ($batch->state !== KingdomIngestionBatchState::Pending) {
                 if ($batch->state === $state && $batch->failure_code === $failureCode) {
-                    return $batch;
+                    return (string) $batch->id;
                 }
 
                 throw ValidationException::withMessages([
@@ -71,7 +71,7 @@ final readonly class CompleteKingdomIngestionBatch
             $event = 'intelligence.ingestion_batch_completed';
             $this->outbox->record(
                 $event,
-                (string) $context->alliance->id,
+                (string) $context->alliance->allianceId,
                 $batch,
                 [
                     'subscription_id' => (string) $subscription->id,
@@ -87,7 +87,7 @@ final readonly class CompleteKingdomIngestionBatch
                 $event.':'.$batch->id,
             );
 
-            return $batch->refresh();
+            return (string) $batch->id;
         });
     }
 

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionSubscriptionState;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -30,8 +28,6 @@ use Illuminate\Support\Carbon;
  * @property string|null $last_failure_code
  * @property Carbon|null $blocked_at
  * @property string|null $blocked_reason
- * @property-read Alliance $alliance
- * @property-read Kingdom $kingdom
  * @property-read KingdomIngestionBatch|null $latestBatch
  */
 final class KingdomIngestionSubscription extends Model
@@ -72,18 +68,6 @@ final class KingdomIngestionSubscription extends Model
             'circuit_open_until' => 'datetime',
             'blocked_at' => 'datetime',
         ];
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
-    /** @return BelongsTo<Kingdom, $this> */
-    public function kingdom(): BelongsTo
-    {
-        return $this->belongsTo(Kingdom::class);
     }
 
     /** @return HasMany<KingdomIngestionBatch, $this> */

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Ingestion\Actions;
 
 use App\Contexts\GameWorld\Kingdoms\Enums\KingdomAllianceStatus;
-use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomAllianceReferenceQuery;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionBatchState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionCandidateState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionSubscriptionState;
@@ -29,14 +29,15 @@ final readonly class PromoteKingdomIngestionAllianceObservation
     public function __construct(
         private KingdomIngestionMutationState $mutations,
         private KingdomIngestionAdapterRegistry $adapters,
+        private KingdomAllianceReferenceQuery $kingdomAlliances,
         private RecordKingdomAllianceObservation $observations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(string $subscriptionId, string $candidateId): ?KingdomAllianceObservation
+    public function handle(string $subscriptionId, string $candidateId): ?string
     {
-        return DB::transaction(function () use ($subscriptionId, $candidateId): ?KingdomAllianceObservation {
+        return DB::transaction(function () use ($subscriptionId, $candidateId): ?string {
             $context = $this->mutations->lockSubscription($subscriptionId);
             $subscription = $context->subscription;
 
@@ -85,8 +86,7 @@ final readonly class PromoteKingdomIngestionAllianceObservation
 
                 return null;
             }
-            if ($context->alliance->kingdom_id === null
-                || (string) $context->alliance->kingdom_id !== (string) $subscription->kingdom_id) {
+            if ($context->alliance->kingdomId !== (string) $subscription->kingdom_id) {
                 $this->quarantine($candidate, $batch, 'kingdom_context_changed');
 
                 return null;
@@ -102,34 +102,29 @@ final readonly class PromoteKingdomIngestionAllianceObservation
                 return null;
             }
 
-            // Resolve without locking here. RecordKingdomAllianceObservation owns the
-            // destination lock order tracking -> neutral reference -> history.
-            $references = KingdomAlliance::query()
-                ->where('kingdom_id', $subscription->kingdom_id)
-                ->where('game_alliance_id', $candidate->stable_game_id)
-                ->limit(2)
-                ->get();
-            if ($references->isEmpty()) {
+            $references = $this->kingdomAlliances->matchingGameAllianceIdInKingdom(
+                (string) $subscription->kingdom_id,
+                (string) $candidate->stable_game_id,
+                2,
+            );
+            if ($references === []) {
                 $this->quarantine($candidate, $batch, 'unknown_game_alliance');
-
                 return null;
             }
-            if ($references->count() !== 1) {
+            if (count($references) !== 1) {
                 $this->quarantine($candidate, $batch, 'ambiguous_game_alliance_identity');
-
                 return null;
             }
-            $reference = $references->first();
-            if ($reference->status !== KingdomAllianceStatus::Active) {
+            $reference = $references[0];
+            if ($reference->statusObservedAtRead !== KingdomAllianceStatus::Active) {
                 $this->quarantine($candidate, $batch, 'game_alliance_inactive');
-
                 return null;
             }
 
             $trackingRows = TrackedKingdomAlliance::query()
-                ->where('alliance_id', $context->alliance->id)
+                ->where('alliance_id', $context->alliance->allianceId)
                 ->where('kingdom_id', $subscription->kingdom_id)
-                ->where('kingdom_alliance_id', $reference->id)
+                ->where('kingdom_alliance_id', $reference->kingdomAllianceId)
                 ->limit(3)
                 ->get();
             $activeTracking = $trackingRows
@@ -152,8 +147,8 @@ final readonly class PromoteKingdomIngestionAllianceObservation
             $tracking = $activeTracking->first();
 
             try {
-                $observation = $this->observations->handle(
-                    $context->alliance,
+                $observationId = $this->observations->handle(
+                    $context->alliance->allianceId,
                     null,
                     (string) $tracking->id,
                     $this->observationAttributes($candidate),
@@ -179,7 +174,7 @@ final readonly class PromoteKingdomIngestionAllianceObservation
                 'quarantine_code' => null,
                 'rejection_code' => null,
                 'promoted_record_type' => KingdomIngestionTargetKind::AllianceObservation->value,
-                'promoted_record_id' => (string) $observation->id,
+                'promoted_record_id' => $observationId,
                 'promoted_at' => now(),
             ])->save();
 
@@ -187,9 +182,9 @@ final readonly class PromoteKingdomIngestionAllianceObservation
                 'subscription_id' => (string) $subscription->id,
                 'batch_id' => (string) $batch->id,
                 'candidate_id' => (string) $candidate->id,
-                'observation_id' => (string) $observation->id,
+                'observation_id' => $observationId,
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
-                'kingdom_alliance_id' => (string) $reference->id,
+                'kingdom_alliance_id' => $reference->kingdomAllianceId,
                 'stable_game_id' => $candidate->stable_game_id,
                 'adapter_key' => $subscription->adapter_key,
                 'adapter_version' => $subscription->adapter_version,
@@ -199,20 +194,20 @@ final readonly class PromoteKingdomIngestionAllianceObservation
                 'origin' => 'system',
             ];
             $event = 'intelligence.ingestion_candidate_promoted';
-            $this->audit->record($event, null, $candidate, $context->alliance, $metadata);
+            $this->audit->record($event, null, $candidate, $context->alliance->allianceId, $metadata);
             $this->outbox->record(
                 $event,
-                (string) $context->alliance->id,
+                (string) $context->alliance->allianceId,
                 $candidate,
                 $metadata,
                 $event.':'.$candidate->id,
             );
 
-            return $observation;
+            return $observationId;
         });
     }
 
-    private function existingPromotion(KingdomIngestionCandidate $candidate): KingdomAllianceObservation
+    private function existingPromotion(KingdomIngestionCandidate $candidate): string
     {
         if ($candidate->promoted_record_type !== KingdomIngestionTargetKind::AllianceObservation->value
             || $candidate->promoted_record_id === null) {
@@ -221,9 +216,17 @@ final readonly class PromoteKingdomIngestionAllianceObservation
             ]);
         }
 
-        return KingdomAllianceObservation::query()
+        $exists = KingdomAllianceObservation::query()
             ->where('alliance_id', $candidate->alliance_id)
-            ->findOrFail($candidate->promoted_record_id);
+            ->whereKey($candidate->promoted_record_id)
+            ->exists();
+        if (! $exists) {
+            throw ValidationException::withMessages([
+                'candidate' => 'The promoted alliance observation no longer exists.',
+            ]);
+        }
+
+        return (string) $candidate->promoted_record_id;
     }
 
     private function sourceStillApproved(KingdomIngestionSubscription $subscription): bool

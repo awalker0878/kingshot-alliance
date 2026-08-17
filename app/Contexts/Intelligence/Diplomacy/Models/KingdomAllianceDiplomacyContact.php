@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Diplomacy\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceContactChannel;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceContactState;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
@@ -32,9 +29,6 @@ use Illuminate\Support\Carbon;
  * @property string|null $deactivated_by_player_id
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property-read Player|null $createdBy
- * @property-read Player|null $updatedBy
- * @property-read Player|null $deactivatedBy
  */
 final class KingdomAllianceDiplomacyContact extends Model
 {
@@ -71,39 +65,9 @@ final class KingdomAllianceDiplomacyContact extends Model
         ];
     }
 
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
     /** @return BelongsTo<TrackedKingdomAlliance, $this> */
     public function tracking(): BelongsTo
     {
         return $this->belongsTo(TrackedKingdomAlliance::class, 'tracked_kingdom_alliance_id');
-    }
-
-    /** @return BelongsTo<KingdomAlliance, $this> */
-    public function kingdomAlliance(): BelongsTo
-    {
-        return $this->belongsTo(KingdomAlliance::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function createdBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'created_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function updatedBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'updated_by_player_id');
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function deactivatedBy(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'deactivated_by_player_id');
     }
 }

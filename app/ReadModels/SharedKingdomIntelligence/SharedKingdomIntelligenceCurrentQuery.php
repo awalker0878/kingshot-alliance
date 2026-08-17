@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\ReadModels\SharedKingdomIntelligence;
 
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Queries\KingdomAllianceObservationQuery;
@@ -19,7 +19,7 @@ final class SharedKingdomIntelligenceCurrentQuery
     public const CURRENT_LIMIT = 250;
 
     /** @return list<array<string, mixed>> */
-    public function forRecipient(Alliance $recipientAlliance, ?Carbon $asOf = null): array
+    public function forRecipient(AllianceReference $recipientAlliance, ?Carbon $asOf = null): array
     {
         $asOf ??= now();
 
@@ -41,7 +41,7 @@ final class SharedKingdomIntelligenceCurrentQuery
             ->join('kingdom_alliances as game_alliances', 'game_alliances.id', '=', 'tracking.kingdom_alliance_id')
             ->where('targets.state', KingdomIntelligenceShareTargetState::Active->value)
             ->where('shares.state', KingdomIntelligenceShareState::Active->value)
-            ->where('shares.recipient_alliance_id', $recipientAlliance->id)
+            ->where('shares.recipient_alliance_id', $recipientAlliance->allianceId)
             ->where('recipient_alliances.status', AllianceStatus::Active->value)
             ->whereColumn('recipient_alliances.kingdom_id', 'shares.kingdom_id')
             ->where('source_alliances.status', AllianceStatus::Active->value)

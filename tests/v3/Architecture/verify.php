@@ -80,6 +80,25 @@ foreach ($phpFiles($app.'/Contexts') as $file) {
         }
     }
 }
+
+// Business contexts may not import another context's Eloquent models.
+// The authenticated Accounts\Identity\User model is allowed only at an HTTP/authentication boundary.
+foreach ($phpFiles($app.'/Contexts') as $file) {
+    $source = file_get_contents($file) ?: '';
+    $owner = $contextFromPath($file);
+    $normalized = str_replace('\\', '/', $file);
+    foreach ($imports($source) as $import) {
+        $parts = $modelImportParts($import);
+        if ($parts === null || $parts['context'] === $owner) {
+            continue;
+        }
+        $isAuthenticatedUserBoundary = $import === 'App\\Contexts\\Accounts\\Identity\\Models\\User'
+            && str_contains($normalized, '/Http/');
+        if (! $isAuthenticatedUserBoundary) {
+            $record('FOREIGN_CONTEXT_MODEL_IMPORT', $file, $import);
+        }
+    }
+}
 foreach ($phpFiles($app.'/Workflows') as $file) {
     $source = file_get_contents($file) ?: '';
     foreach ($imports($source) as $import) {
@@ -89,6 +108,20 @@ foreach ($phpFiles($app.'/Workflows') as $file) {
     }
     if (preg_match('/\b(DB::transaction|lockForUpdate\s*\(|->save\s*\(|->update\s*\(|->delete\s*\(|::create\s*\()/m', $source) === 1) {
         $record('WORKFLOW_OWNS_WRITE', $file, 'Workflow contains transaction/direct persistence.');
+    }
+}
+
+foreach (['Models', 'Repositories', 'Migrations', 'migrations'] as $forbiddenWorkflowLayer) {
+    foreach (glob($app.'/Workflows/*/'.$forbiddenWorkflowLayer, GLOB_ONLYDIR) ?: [] as $path) {
+        $record('WORKFLOW_OWNS_DOMAIN_LAYER', $path, 'Workflows coordinate contexts and may not own '.$forbiddenWorkflowLayer.'.');
+    }
+}
+foreach ($phpFiles($app.'/Workflows') as $file) {
+    $source = file_get_contents($file) ?: '';
+    foreach ($imports($source) as $import) {
+        if (str_starts_with($import, 'App\\Contexts\\') && (str_ends_with($import, 'Permission') || str_contains($import, '\\Permissions\\'))) {
+            $record('WORKFLOW_INTERPRETS_PERMISSION', $file, $import);
+        }
     }
 }
 
@@ -128,15 +161,20 @@ foreach ($phpFiles($app) as $file) {
     if ($modelShortNames === []) {
         continue;
     }
-    if (preg_match_all('/public\s+function\s+(handle|execute|__invoke)\s*\((.*?)\)\s*(?::|\{)/s', $source, $methods, PREG_SET_ORDER) < 1) {
+    if (preg_match_all('/public\s+function\s+(handle|execute|__invoke)\s*\((.*?)\)\s*(?:\:\s*([^\{]+))?\{/s', $source, $methods, PREG_SET_ORDER) < 1) {
         continue;
     }
     foreach ($methods as $method) {
         $params = $method[2];
+        $returnType = trim($method[3] ?? '');
         foreach ($modelShortNames as $short => $fqcn) {
-            $typePattern = '/(?<![A-Za-z0-9_])'.preg_quote($short, '/').'(?=\s+[\$]|\s*[|&])/' ;
+            $typePattern = '/(?<![A-Za-z0-9_])'.preg_quote($short, '/').'(?=\s+[\$]|\s*[|&])/';
             if (preg_match($typePattern, $params) === 1) {
                 $record('WRITE_CONTRACT_MODEL', $file, $method[1].'() accepts '.$fqcn);
+            }
+            $returnPattern = '/(?<![A-Za-z0-9_])'.preg_quote($short, '/').'(?![A-Za-z0-9_])/';
+            if ($returnType !== '' && preg_match($returnPattern, $returnType) === 1) {
+                $record('WRITE_CONTRACT_RETURNS_MODEL', $file, $method[1].'() returns '.$fqcn);
             }
         }
     }
@@ -171,6 +209,61 @@ foreach ([
             if (preg_match($typePattern, $method[2]) === 1) {
                 $record('WRITE_SERVICE_CONTRACT_MODEL', $file, $method[1].'() accepts '.$fqcn);
             }
+        }
+    }
+}
+
+// Write actions may invoke owner-owned semantic authorization APIs, but may not interpret another context's permission vocabulary.
+foreach ($phpFiles($app.'/Contexts') as $file) {
+    $normalized = str_replace('\\', '/', $file);
+    if (! str_contains($normalized, '/Actions/')) {
+        continue;
+    }
+    $source = file_get_contents($file) ?: '';
+    $owner = $contextFromPath($file);
+    foreach ($imports($source) as $import) {
+        if (! str_starts_with($import, 'App\\Contexts\\')) {
+            continue;
+        }
+        $parts = explode('\\', $import);
+        if (($parts[2] ?? null) === $owner) {
+            continue;
+        }
+        if (str_ends_with($import, 'Permission') || str_contains($import, '\\Permissions\\')) {
+            $record('WRITE_INTERPRETS_FOREIGN_PERMISSION', $file, $import);
+        }
+    }
+}
+
+// MutationAuthority was an interim abstraction and must not be reintroduced.
+foreach ($phpFiles($app) as $file) {
+    $source = file_get_contents($file) ?: '';
+    if (str_contains(basename($file), 'MutationAuthority') || preg_match('/\b(?:class|interface|trait|enum)\s+\w*MutationAuthority\w*/', $source) === 1) {
+        $record('MUTATION_AUTHORITY_REINTRODUCED', $file, 'Use owner write-state/action semantics instead.');
+    }
+}
+
+// Removed V2/V3 bridge namespaces and deleted live-model authority accessors must remain absent.
+$removedSymbols = [
+    'App\\Contexts\\Intelligence\\EventAnalysis',
+    'App\\Contexts\\Intelligence\\Roster\\Queries\\RosterQuery',
+    'App\\Contexts\\Intelligence\\Roster\\Queries\\PlayerSnapshotQuery',
+    'App\\Contexts\\Intelligence\\Roster\\Services\\RosterIntelligence',
+];
+foreach ($phpFiles($app) as $file) {
+    $source = file_get_contents($file) ?: '';
+    foreach ($removedSymbols as $symbol) {
+        if (str_contains($source, $symbol)) {
+            $record('REMOVED_BRIDGE_SYMBOL', $file, $symbol);
+        }
+    }
+}
+$allianceContextFile = $app.'/Contexts/Alliance/Lifecycle/Services/AllianceContext.php';
+if (is_file($allianceContextFile)) {
+    $source = file_get_contents($allianceContextFile) ?: '';
+    foreach (['alliance', 'player'] as $method) {
+        if (preg_match('/public\s+function\s+'.preg_quote($method, '/').'\s*\(/', $source) === 1) {
+            $record('LIVE_MODEL_AUTHORITY_ACCESSOR', $allianceContextFile, $method.'() must not be restored.');
         }
     }
 }

@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Diplomacy\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomAllianceReferenceQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Diplomacy\Actions\TransitionKingdomAllianceDiplomacy;
@@ -14,7 +18,6 @@ use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacy;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyTransition;
 use App\Contexts\Intelligence\Diplomacy\Queries\KingdomAllianceDiplomacyQuery;
-use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -30,65 +33,65 @@ final class KingdomAllianceDiplomacyController extends Controller
         AllianceContext $context,
         AllianceIntelligenceAuthorization $authorization,
         KingdomAllianceDiplomacyQuery $diplomacy,
+        AllianceReferenceQuery $alliances,
+        KingdomReferenceQuery $kingdoms,
+        KingdomAllianceReferenceQuery $kingdomAlliances,
+        PlayerReferenceQuery $players,
+        AccountIdentityQuery $accounts,
         string $tracking,
     ): Response {
-        $user = $this->user($request);
-        $alliance = $context->alliance()->load('kingdom');
-        if (! $authorization->allows($context->player(), $alliance, IntelligencePermission::KingdomManage)) {
+        $scope = $context->scope();
+        if (! $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage)) {
             throw new AuthorizationException;
         }
-
-        $tracked = $diplomacy->tracking($alliance, $tracking);
-        $relationship = $tracked->diplomacy;
-        $history = $diplomacy->history($alliance, $tracking);
+        $account = $accounts->require((int) $request->user()?->getAuthIdentifier());
+        $alliance = $alliances->require($scope->allianceId);
+        $allianceKingdom = $kingdoms->require($alliance->kingdomId);
+        $tracked = $diplomacy->tracking($alliance->allianceId, $tracking);
+        $trackedKingdom = $kingdoms->require((string) $tracked->kingdom_id);
+        $trackedAlliance = $kingdomAlliances->require((string) $tracked->kingdom_alliance_id);
+        $relationship = $diplomacy->relationship($alliance->allianceId, $tracking);
+        $history = $diplomacy->history($alliance->allianceId, $tracking);
+        $playerIds = [];
+        if ($relationship?->last_transition_player_id !== null) $playerIds[] = (string) $relationship->last_transition_player_id;
+        foreach ($history as $transition) {
+            if ($transition->actor_player_id !== null) $playerIds[] = (string) $transition->actor_player_id;
+        }
+        $playerRefs = $players->byIds(array_values(array_unique($playerIds)));
 
         return Inertia::render('Alliance/KingdomAllianceDiplomacy', [
-            'user' => [
-                'name' => (string) $user->name,
-                'email' => (string) $user->email,
+            'user' => ['name' => $account->name, 'email' => $account->email],
+            'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $allianceKingdom->number],
+            'tracking' => [
+                'id' => (string) $tracked->id,
+                'name' => $trackedAlliance->currentName,
+                'tag' => $trackedAlliance->currentTag,
+                'state' => $tracked->state->value,
+                'kingdom' => (string) $trackedKingdom->number,
+                'contextCurrent' => $alliance->kingdomId === $tracked->kingdom_id,
             ],
-            'alliance' => $this->allianceSummary($alliance),
-            'tracking' => $this->trackingSummary($tracked, $alliance),
-            'states' => array_map(
-                static fn (KingdomAllianceDiplomacyState $state): string => $state->value,
-                KingdomAllianceDiplomacyState::cases(),
-            ),
-            'current' => $this->relationshipSummary($relationship, $diplomacy),
+            'states' => array_map(static fn (KingdomAllianceDiplomacyState $state): string => $state->value, KingdomAllianceDiplomacyState::cases()),
+            'current' => $this->relationshipSummary($relationship, $diplomacy, $playerRefs),
             'historyLimit' => KingdomAllianceDiplomacyQuery::HISTORY_LIMIT,
-            'history' => $history
-                ->map(fn (KingdomAllianceDiplomacyTransition $transition): array => $this->transitionRow($transition))
-                ->values(),
+            'history' => $history->map(fn (KingdomAllianceDiplomacyTransition $transition): array => $this->transitionRow($transition, $playerRefs))->values(),
         ]);
     }
 
-    public function transition(
-        Request $request,
-        AllianceContext $context,
-        TransitionKingdomAllianceDiplomacy $transition,
-        string $tracking,
-    ): RedirectResponse {
+    public function transition(Request $request, AllianceContext $context, TransitionKingdomAllianceDiplomacy $transition, string $tracking): RedirectResponse
+    {
         $validated = $this->validated($request);
         $state = KingdomAllianceDiplomacyState::from($validated['state']);
         unset($validated['state']);
-
-        $transition->handle($context->alliance(), $context->player(), $tracking, $state, $validated);
+        $scope = $context->scope();
+        $transition->handle($scope->allianceId, $scope->playerId, $tracking, $state, $validated);
 
         return back()->with('status', 'kingdom-alliance-diplomacy-transitioned');
     }
 
-    /**
-     * @return array{
-     *   state: string,
-     *   effective_at: string,
-     *   review_at?: string|null,
-     *   expires_at?: string|null,
-     *   terms?: string|null,
-     *   rationale?: string|null
-     * }
-     */
+    /** @return array{state:string,effective_at:string,review_at?:string|null,expires_at?:string|null,terms?:string|null,rationale?:string|null} */
     private function validated(Request $request): array
     {
-        /** @var array{state: string, effective_at: string, review_at?: string|null, expires_at?: string|null, terms?: string|null, rationale?: string|null} $validated */
+        /** @var array{state:string,effective_at:string,review_at?:string|null,expires_at?:string|null,terms?:string|null,rationale?:string|null} $validated */
         $validated = $request->validate([
             'state' => ['required', new Enum(KingdomAllianceDiplomacyState::class)],
             'effective_at' => ['required', 'date'],
@@ -101,47 +104,13 @@ final class KingdomAllianceDiplomacyController extends Controller
         return $validated;
     }
 
-    /** @return array{id: string, name: string, kingdom: string|null} */
-    private function allianceSummary(Alliance $alliance): array
+    /** @param array<string,PlayerReference> $players @return array<string,mixed> */
+    private function relationshipSummary(?KingdomAllianceDiplomacy $relationship, KingdomAllianceDiplomacyQuery $diplomacy, array $players): array
     {
-        return [
-            'id' => (string) $alliance->id,
-            'name' => (string) $alliance->name,
-            'kingdom' => $alliance->kingdom === null ? null : (string) $alliance->kingdom->number,
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    private function trackingSummary(TrackedKingdomAlliance $tracking, Alliance $alliance): array
-    {
-        return [
-            'id' => (string) $tracking->id,
-            'name' => (string) $tracking->kingdomAlliance->current_name,
-            'tag' => $tracking->kingdomAlliance->current_tag,
-            'state' => $tracking->state->value,
-            'kingdom' => (string) $tracking->kingdom->number,
-            'contextCurrent' => $alliance->kingdom_id !== null && $alliance->kingdom_id === $tracking->kingdom_id,
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    private function relationshipSummary(
-        ?KingdomAllianceDiplomacy $relationship,
-        KingdomAllianceDiplomacyQuery $diplomacy,
-    ): array {
         if (! $relationship instanceof KingdomAllianceDiplomacy) {
-            return [
-                'exists' => false,
-                'state' => KingdomAllianceDiplomacyState::Unknown->value,
-                'effectiveAt' => null,
-                'reviewAt' => null,
-                'expiresAt' => null,
-                'needsReview' => false,
-                'terms' => null,
-                'rationale' => null,
-                'lastActorName' => null,
-            ];
+            return ['exists' => false, 'state' => KingdomAllianceDiplomacyState::Unknown->value, 'effectiveAt' => null, 'reviewAt' => null, 'expiresAt' => null, 'needsReview' => false, 'terms' => null, 'rationale' => null, 'lastActorName' => null];
         }
+        $actor = $relationship->last_transition_player_id === null ? null : ($players[(string) $relationship->last_transition_player_id] ?? null);
 
         return [
             'exists' => true,
@@ -152,13 +121,15 @@ final class KingdomAllianceDiplomacyController extends Controller
             'needsReview' => $diplomacy->needsReview($relationship),
             'terms' => $relationship->terms,
             'rationale' => $relationship->rationale,
-            'lastActorName' => $relationship->lastTransitionPlayer?->current_name,
+            'lastActorName' => $actor?->currentName,
         ];
     }
 
-    /** @return array<string, mixed> */
-    private function transitionRow(KingdomAllianceDiplomacyTransition $transition): array
+    /** @param array<string,PlayerReference> $players @return array<string,mixed> */
+    private function transitionRow(KingdomAllianceDiplomacyTransition $transition, array $players): array
     {
+        $actor = $transition->actor_player_id === null ? null : ($players[(string) $transition->actor_player_id] ?? null);
+
         return [
             'id' => (string) $transition->id,
             'fromState' => $transition->from_state->value,
@@ -168,16 +139,8 @@ final class KingdomAllianceDiplomacyController extends Controller
             'expiresAt' => $transition->expires_at?->toIso8601String(),
             'terms' => $transition->terms,
             'rationale' => $transition->rationale,
-            'actorName' => $transition->actor?->current_name,
+            'actorName' => $actor?->currentName,
             'recordedAt' => $transition->created_at->toIso8601String(),
         ];
-    }
-
-    private function user(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
-
-        return $user;
     }
 }

@@ -10,7 +10,6 @@ use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
 use App\Contexts\Alliance\Content\Models\ContentItem;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
@@ -25,9 +24,9 @@ final readonly class PublishContentItem
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(string $allianceId, string $actorPlayerId, string $contentItemId, ?Carbon $scheduledFor = null): ContentItem
+    public function handle(string $allianceId, string $actorPlayerId, string $contentItemId, ?Carbon $scheduledFor = null): string
     {
-        return DB::transaction(function () use ($allianceId, $actorPlayerId, $contentItemId, $scheduledFor): ContentItem {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $contentItemId, $scheduledFor): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
@@ -59,7 +58,7 @@ final readonly class PublishContentItem
                 'scheduled_for' => $item->scheduled_for?->toIso8601String(),
             ]);
 
-            return $item->refresh();
+            return (string) $item->id;
         });
     }
 }

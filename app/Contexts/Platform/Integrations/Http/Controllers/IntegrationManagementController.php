@@ -7,6 +7,7 @@ namespace App\Contexts\Platform\Integrations\Http\Controllers;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Platform\AllianceAdministration\Models\AlliancePlatformSetting;
 use App\Contexts\Platform\AllianceAdministration\Services\PlanEntitlementService;
@@ -26,7 +27,10 @@ use Inertia\Response;
 
 final class IntegrationManagementController extends Controller
 {
-    public function __construct(private readonly AccountIdentityQuery $accounts) {}
+    public function __construct(
+        private readonly AccountIdentityQuery $accounts,
+        private readonly AllianceReferenceQuery $alliances,
+    ) {}
 
     public function index(
         Request $request,
@@ -37,9 +41,10 @@ final class IntegrationManagementController extends Controller
         $identifier = $request->user()?->getAuthIdentifier();
         abort_unless(is_numeric($identifier), 401);
         $account = $this->accounts->require((int) $identifier);
-        $alliance = $context->alliance();
-        abort_unless($authorization->allows($context->player(), $alliance, AlliancePermission::Manage), 403);
-        $settings = AlliancePlatformSetting::query()->whereKey($alliance->id)->first();
+        $allianceId = $context->scope()->allianceId;
+        $alliance = $this->alliances->require($allianceId);
+        abort_unless($authorization->allows($context->scope()->playerId, $allianceId, AlliancePermission::Manage), 403);
+        $settings = AlliancePlatformSetting::query()->whereKey($allianceId)->first();
         $apiAccessEnabled = $settings instanceof AlliancePlatformSetting
             ? (bool) $settings->api_access_enabled
             : true;
@@ -52,15 +57,15 @@ final class IntegrationManagementController extends Controller
                 'name' => $account->name,
                 'email' => $account->email,
             ],
-            'alliance' => ['id' => (string) $alliance->id, 'name' => (string) $alliance->name],
+            'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
             'settings' => [
                 'apiAccessEnabled' => $apiAccessEnabled,
                 'webhooksEnabled' => $webhooksEnabled,
             ],
-            'limits' => $entitlements->limits($alliance),
+            'limits' => $entitlements->limits($allianceId),
             'allowedScopes' => CreateApiCredential::allowedScopes(),
             'credentials' => ApiCredential::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->latest()
                 ->get()
                 ->map(static fn (ApiCredential $credential): array => [
@@ -73,7 +78,7 @@ final class IntegrationManagementController extends Controller
                     'revokedAt' => $credential->revoked_at?->toIso8601String(),
                 ])->all(),
             'webhooks' => WebhookSubscription::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->latest()
                 ->get()
                 ->map(static fn (WebhookSubscription $subscription): array => [
@@ -85,7 +90,7 @@ final class IntegrationManagementController extends Controller
                     'revokedAt' => $subscription->revoked_at?->toIso8601String(),
                 ])->all(),
             'recentDeliveries' => WebhookDelivery::query()
-                ->where('alliance_id', $alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->latest()
                 ->limit(50)
                 ->get()
@@ -114,8 +119,8 @@ final class IntegrationManagementController extends Controller
             'expires_at' => ['nullable', 'date'],
         ]);
         $issued = $create->handle(
-            $context->alliance(),
-            $context->player(),
+            $context->scope()->allianceId,
+            $context->scope()->playerId,
             (string) $validated['name'],
             array_values(array_map('strval', $validated['scopes'])),
             isset($validated['expires_at']) ? CarbonImmutable::parse((string) $validated['expires_at'], 'UTC') : null,
@@ -123,8 +128,8 @@ final class IntegrationManagementController extends Controller
 
         return back()
             ->with('issued_api_credential', [
-                'id' => (string) $issued->credential->id,
-                'name' => (string) $issued->credential->name,
+                'id' => $issued->credentialId,
+                'name' => $issued->name,
                 'token' => $issued->token,
             ])
             ->with('status', 'api-credential-created');
@@ -136,9 +141,8 @@ final class IntegrationManagementController extends Controller
         string $credential,
         RevokeApiCredential $revoke,
     ): RedirectResponse {
-        $alliance = $context->alliance();
-        $target = ApiCredential::query()->where('alliance_id', $alliance->id)->findOrFail($credential);
-        $revoke->handle($alliance, $context->player(), $target);
+        $scope = $context->scope();
+        $revoke->handle($scope->allianceId, $scope->playerId, $credential);
 
         return back()->with('status', 'api-credential-revoked');
     }
@@ -152,8 +156,8 @@ final class IntegrationManagementController extends Controller
             'events.*' => ['required', 'string', 'max:120'],
         ]);
         $subscription = $create->handle(
-            $context->alliance(),
-            $context->player(),
+            $context->scope()->allianceId,
+            $context->scope()->playerId,
             (string) $validated['name'],
             (string) $validated['url'],
             array_values(array_map('strval', $validated['events'])),
@@ -161,9 +165,9 @@ final class IntegrationManagementController extends Controller
 
         return back()
             ->with('issued_webhook_secret', [
-                'id' => (string) $subscription->id,
-                'name' => (string) $subscription->name,
-                'secret' => (string) $subscription->signing_secret,
+                'id' => $subscription->subscriptionId,
+                'name' => $subscription->name,
+                'secret' => $subscription->signingSecret,
             ])
             ->with('status', 'webhook-created');
     }
@@ -174,9 +178,8 @@ final class IntegrationManagementController extends Controller
         string $subscription,
         RevokeWebhookSubscription $revoke,
     ): RedirectResponse {
-        $alliance = $context->alliance();
-        $target = WebhookSubscription::query()->where('alliance_id', $alliance->id)->findOrFail($subscription);
-        $revoke->handle($alliance, $context->player(), $target);
+        $scope = $context->scope();
+        $revoke->handle($scope->allianceId, $scope->playerId, $subscription);
 
         return back()->with('status', 'webhook-revoked');
     }

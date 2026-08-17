@@ -11,7 +11,6 @@ use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentApplicationInvite;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentApplicationTokenService;
 use App\Contexts\Alliance\Recruitment\ValueObjects\IssuedRecruitmentApplicationInvite;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;

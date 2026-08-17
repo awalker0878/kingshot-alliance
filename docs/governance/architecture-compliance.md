@@ -43,9 +43,9 @@ Cross-context Eloquent relationships are not the V3 integration mechanism. In pa
 
 ## 4. Context-owned writes
 
-A business write is implemented by the owning capability Action. Cross-context callers use explicit owner Actions/Queries and stable identifiers instead of foreign Models.
+A business write is implemented by the owning capability Action. Cross-context callers use explicit owner Actions/Queries and stable identifiers instead of foreign Models. Public write contracts neither accept nor return Eloquent models.
 
-Authorization services interpret owner permission vocabulary. They do not acquire locks or own transactions.
+Authorization services interpret owner permission vocabulary. They do not acquire locks or own transactions. Foreign write actions call semantic owner authorization methods rather than importing and interpreting another context's permission enum.
 
 `*MutationAuthority` abstractions are not part of V3.
 

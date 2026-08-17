@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\Actions;
 
-use App\Contexts\Alliance\Access\Services\AllianceWriteState;
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Ingestion\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionSubscriptionState;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionSubscription;
@@ -21,36 +18,34 @@ use Illuminate\Validation\ValidationException;
 final readonly class TransitionKingdomIngestionSubscription
 {
     public function __construct(
-        private AllianceWriteState $allianceWriteState,
-        private AllianceIntelligenceAuthorization $authority,
+        private AllianceIntelligenceWriteState $writeState,
         private KingdomIngestionAdapterRegistry $adapters,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(
-        Alliance $alliance,
-        Player $actor,
+        string $allianceId,
+        string $actorPlayerId,
         string $subscriptionId,
         KingdomIngestionSubscriptionState $target,
-    ): KingdomIngestionSubscription {
-        return DB::transaction(function () use ($alliance, $actor, $subscriptionId, $target): KingdomIngestionSubscription {
-            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
-            $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
+    ): string {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $subscriptionId, $target): string {
+            [$scope, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
             $subscription = KingdomIngestionSubscription::query()
-                ->where('alliance_id', $context->alliance->id)
+                ->where('alliance_id', $allianceId)
                 ->whereKey($subscriptionId)
                 ->lockForUpdate()
                 ->firstOrFail();
 
             if ($subscription->state === $target) {
-                return $subscription->load('kingdom');
+                return (string) $subscription->id;
             }
 
             $nextRunAt = $subscription->next_run_at;
             if ($target === KingdomIngestionSubscriptionState::Active) {
-                if ($context->alliance->kingdom_id === null
-                    || (string) $context->alliance->kingdom_id !== (string) $subscription->kingdom_id) {
+                if ($scope->kingdomId === null
+                    || (string) $scope->kingdomId !== (string) $subscription->kingdom_id) {
                     throw ValidationException::withMessages([
                         'state' => 'A subscription can only be activated for the alliance current Kingdom.',
                     ]);
@@ -87,10 +82,10 @@ final readonly class TransitionKingdomIngestionSubscription
             ];
 
             $event = 'intelligence.ingestion_subscription_state_changed';
-            $this->audit->record($event, $context->actor, $subscription, $context->alliance, $metadata);
-            $this->outbox->record($event, (string) $context->alliance->id, $subscription, $metadata);
+            $this->audit->record($event, $actor, $subscription, $allianceId, $metadata);
+            $this->outbox->record($event, (string) $allianceId, $subscription, $metadata);
 
-            return $subscription->refresh()->load('kingdom');
+            return (string) $subscription->id;
         });
     }
 }

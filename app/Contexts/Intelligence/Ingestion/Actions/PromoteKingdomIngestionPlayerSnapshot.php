@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\Actions;
 
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionBatchState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionCandidateState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionSubscriptionState;
@@ -27,14 +27,16 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
     public function __construct(
         private KingdomIngestionMutationState $mutations,
         private KingdomIngestionAdapterRegistry $adapters,
+        private PlayerReferenceQuery $players,
+        private RosterEntryQuery $roster,
         private RecordPlayerSnapshot $snapshots,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
-    public function handle(string $subscriptionId, string $candidateId): ?PlayerSnapshot
+    public function handle(string $subscriptionId, string $candidateId): ?string
     {
-        return DB::transaction(function () use ($subscriptionId, $candidateId): ?PlayerSnapshot {
+        return DB::transaction(function () use ($subscriptionId, $candidateId): ?string {
             $context = $this->mutations->lockSubscription($subscriptionId);
             $subscription = $context->subscription;
 
@@ -85,8 +87,7 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
                 return null;
             }
 
-            if ($context->alliance->kingdom_id === null
-                || (string) $context->alliance->kingdom_id !== (string) $subscription->kingdom_id) {
+            if ($context->alliance->kingdomId !== (string) $subscription->kingdom_id) {
                 $this->quarantine($candidate, $batch, 'kingdom_context_changed');
 
                 return null;
@@ -102,58 +103,42 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
                 return null;
             }
 
-            $playerIds = Player::query()
-                ->where('current_kingdom_id', $subscription->kingdom_id)
-                ->where('game_player_id', $candidate->stable_game_id)
-                ->limit(2)
-                ->pluck('id');
-            if ($playerIds->isEmpty()) {
+            $players = $this->players->matchingGamePlayerIdInKingdom(
+                (string) $subscription->kingdom_id,
+                (string) $candidate->stable_game_id,
+                2,
+            );
+            if ($players === []) {
                 $this->quarantine($candidate, $batch, 'unknown_player');
-
                 return null;
             }
-            if ($playerIds->count() !== 1) {
+            if (count($players) !== 1) {
                 $this->quarantine($candidate, $batch, 'ambiguous_player_identity');
-
                 return null;
             }
-
-            // Player -> roster is the identity/Kingdom movement order used elsewhere.
-            $player = Player::query()
-                ->whereKey($playerIds->first())
-                
-                ->firstOrFail();
-            if ((string) $player->current_kingdom_id !== (string) $subscription->kingdom_id
-                || $player->game_player_id !== $candidate->stable_game_id) {
+            $player = $players[0];
+            if ($player->kingdomId !== (string) $subscription->kingdom_id
+                || $player->gamePlayerId !== $candidate->stable_game_id) {
                 $this->quarantine($candidate, $batch, 'player_identity_changed');
-
                 return null;
             }
 
-            $entries = AllianceRosterEntry::query()
-                ->where('alliance_id', $context->alliance->id)
-                ->where('player_id', $player->id)
-                ->orderBy('id')
-                
-                ->limit(2)
-                ->get();
-            if ($entries->isEmpty()) {
+            $entries = $this->roster->forPlayer($context->alliance->allianceId, $player->playerId, 2);
+            if ($entries === []) {
                 $this->quarantine($candidate, $batch, 'roster_target_missing');
-
                 return null;
             }
-            if ($entries->count() !== 1) {
+            if (count($entries) !== 1) {
                 $this->quarantine($candidate, $batch, 'ambiguous_roster_target');
-
                 return null;
             }
-            $entry = $entries->first();
+            $entry = $entries[0];
 
             try {
                 $snapshot = $this->snapshots->handle(
-                    $context->alliance,
+                    $context->alliance->allianceId,
                     null,
-                    (string) $entry->id,
+                    $entry->rosterEntryId,
                     $this->snapshotAttributes($candidate),
                     'ingestion',
                     null,
@@ -178,7 +163,7 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
                 'quarantine_code' => null,
                 'rejection_code' => null,
                 'promoted_record_type' => KingdomIngestionTargetKind::PlayerSnapshot->value,
-                'promoted_record_id' => (string) $snapshot->id,
+                'promoted_record_id' => $snapshot->snapshotId,
                 'promoted_at' => now(),
             ])->save();
 
@@ -186,9 +171,9 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
                 'subscription_id' => (string) $subscription->id,
                 'batch_id' => (string) $batch->id,
                 'candidate_id' => (string) $candidate->id,
-                'snapshot_id' => (string) $snapshot->id,
-                'roster_entry_id' => (string) $entry->id,
-                'player_id' => (string) $player->id,
+                'snapshot_id' => $snapshot->snapshotId,
+                'roster_entry_id' => $entry->rosterEntryId,
+                'player_id' => $player->playerId,
                 'stable_game_id' => $candidate->stable_game_id,
                 'adapter_key' => $subscription->adapter_key,
                 'adapter_version' => $subscription->adapter_version,
@@ -198,20 +183,20 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
                 'origin' => 'system',
             ];
             $event = 'intelligence.ingestion_candidate_promoted';
-            $this->audit->record($event, null, $candidate, $context->alliance, $metadata);
+            $this->audit->record($event, null, $candidate, $context->alliance->allianceId, $metadata);
             $this->outbox->record(
                 $event,
-                (string) $context->alliance->id,
+                (string) $context->alliance->allianceId,
                 $candidate,
                 $metadata,
                 $event.':'.$candidate->id,
             );
 
-            return $snapshot;
+            return $snapshot->snapshotId;
         });
     }
 
-    private function existingPromotion(KingdomIngestionCandidate $candidate): PlayerSnapshot
+    private function existingPromotion(KingdomIngestionCandidate $candidate): string
     {
         if ($candidate->promoted_record_type !== KingdomIngestionTargetKind::PlayerSnapshot->value
             || $candidate->promoted_record_id === null) {
@@ -220,9 +205,17 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
             ]);
         }
 
-        return PlayerSnapshot::query()
+        $exists = PlayerSnapshot::query()
             ->where('alliance_id', $candidate->alliance_id)
-            ->findOrFail($candidate->promoted_record_id);
+            ->whereKey($candidate->promoted_record_id)
+            ->exists();
+        if (! $exists) {
+            throw ValidationException::withMessages([
+                'candidate' => 'The promoted player snapshot no longer exists.',
+            ]);
+        }
+
+        return (string) $candidate->promoted_record_id;
     }
 
     private function sourceStillApproved(KingdomIngestionSubscription $subscription): bool

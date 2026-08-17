@@ -9,7 +9,6 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentOnboardingItem;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +31,7 @@ final class CreateRecruitmentOnboardingItem
         int $position = 0,
         bool $isRequired = true,
         bool $isActive = true,
-    ): RecruitmentOnboardingItem {
+    ): string {
         $cleanName = trim($name);
         if ($cleanName === '') {
             throw ValidationException::withMessages(['name' => 'An onboarding item name is required.']);
@@ -42,7 +41,7 @@ final class CreateRecruitmentOnboardingItem
             throw ValidationException::withMessages(['position' => 'The onboarding item position is invalid.']);
         }
 
-        return DB::transaction(function () use ($actorPlayerId, $allianceId, $cleanName, $description, $position, $isRequired, $isActive): RecruitmentOnboardingItem {
+        return DB::transaction(function () use ($actorPlayerId, $allianceId, $cleanName, $description, $position, $isRequired, $isActive): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
@@ -66,7 +65,7 @@ final class CreateRecruitmentOnboardingItem
                 'position' => $position,
             ]);
 
-            return $item;
+            return (string) $item->id;
         });
     }
 }

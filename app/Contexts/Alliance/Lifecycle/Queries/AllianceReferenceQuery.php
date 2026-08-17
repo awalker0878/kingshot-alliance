@@ -32,6 +32,18 @@ final class AllianceReferenceQuery
     }
 
     /** @return list<AllianceReference> */
+    public function all(int $limit = 500): array
+    {
+        return Alliance::query()
+            ->orderBy('id')
+            ->limit(max(1, min(5000, $limit)))
+            ->get()
+            ->map(fn (Alliance $alliance): AllianceReference => $this->snapshot($alliance))
+            ->values()
+            ->all();
+    }
+
+    /** @return list<AllianceReference> */
     public function inKingdom(string $kingdomId, bool $activeOnly = false): array
     {
         $query = Alliance::query()

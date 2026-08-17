@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Diplomacy\Models;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -26,10 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $terms
  * @property string|null $rationale
  * @property string|null $last_transition_player_id
- * @property-read Alliance $alliance
  * @property-read TrackedKingdomAlliance $tracking
- * @property-read KingdomAlliance $kingdomAlliance
- * @property-read Player|null $lastTransitionPlayer
  */
 final class KingdomAllianceDiplomacy extends Model
 {
@@ -64,28 +58,10 @@ final class KingdomAllianceDiplomacy extends Model
         ];
     }
 
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
     /** @return BelongsTo<TrackedKingdomAlliance, $this> */
     public function tracking(): BelongsTo
     {
         return $this->belongsTo(TrackedKingdomAlliance::class, 'tracked_kingdom_alliance_id');
-    }
-
-    /** @return BelongsTo<KingdomAlliance, $this> */
-    public function kingdomAlliance(): BelongsTo
-    {
-        return $this->belongsTo(KingdomAlliance::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function lastTransitionPlayer(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'last_transition_player_id');
     }
 
     /** @return HasMany<KingdomAllianceDiplomacyTransition, $this> */

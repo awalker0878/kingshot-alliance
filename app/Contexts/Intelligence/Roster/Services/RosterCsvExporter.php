@@ -4,35 +4,32 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Services;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Membership\Enums\RosterState;
-use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
-use App\Contexts\Intelligence\Roster\Queries\PlayerSnapshotQuery;
-use App\Contexts\Intelligence\Roster\Queries\RosterQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use RuntimeException;
 
 final readonly class RosterCsvExporter
 {
     public function __construct(
-        private RosterQuery $roster,
-        private PlayerSnapshotQuery $snapshots,
+        private AllianceReferenceQuery $alliances,
+        private RosterEntryQuery $roster,
+        private PlayerReferenceQuery $players,
         private AuditRecorder $audit,
     ) {}
 
-    /** @return array{content: string, filename: string, row_count: int, checksum: string} */
-    public function export(Alliance $alliance, Player $actor, bool $includePrivate): array
+    /** @return array{content:string,filename:string,row_count:int,checksum:string} */
+    public function export(string $allianceId, string $actorPlayerId, bool $includePrivate): array
     {
-        $entries = $this->roster->forAlliance($alliance)
-            ->filter(static fn (AllianceRosterEntry $entry): bool => in_array(
-                $entry->state,
-                [RosterState::Active, RosterState::Tracked],
-                true,
-            ))
-            ->values();
-        $latest = $this->snapshots->latestForEntries($alliance, $entries);
+        $alliance = $this->alliances->require($allianceId);
+        $actor = $this->players->require($actorPlayerId);
+        $entries = $this->roster->activeOrTracked($allianceId);
+        $playerRefs = $this->players->byIds(array_map(static fn (RosterEntryReference $entry): string => $entry->playerId, $entries));
+        $latest = $this->latestSnapshots($allianceId, array_map(static fn (RosterEntryReference $entry): string => $entry->rosterEntryId, $entries));
 
         $headers = RosterCsvParser::HEADERS;
         if ($includePrivate) {
@@ -44,31 +41,20 @@ final readonly class RosterCsvExporter
         if ($handle === false) {
             throw new RuntimeException('Unable to allocate roster export buffer.');
         }
-
         fputcsv($handle, $headers, ',', '"', '');
 
         foreach ($entries as $entry) {
-            $snapshot = $latest[(string) $entry->id] ?? null;
-            $row = $this->row($entry, $snapshot);
-
+            $row = $this->row($entry, $playerRefs[$entry->playerId] ?? null, $latest[$entry->rosterEntryId] ?? null);
             if ($includePrivate) {
-                $row['player_id'] = (string) $entry->player_id;
-                $row['manager_notes'] = $entry->manager_notes ?? '';
+                $row['player_id'] = $entry->playerId;
+                $row['manager_notes'] = $entry->managerNotes ?? '';
             }
-
-            fputcsv(
-                $handle,
-                array_map(fn (string $header): string => $this->safeCell((string) ($row[$header] ?? '')), $headers),
-                ',',
-                '"',
-                '',
-            );
+            fputcsv($handle, array_map(fn (string $header): string => $this->safeCell((string) ($row[$header] ?? '')), $headers), ',', '"', '');
         }
 
         rewind($handle);
         $content = stream_get_contents($handle);
         fclose($handle);
-
         if (! is_string($content)) {
             throw new RuntimeException('Unable to read roster export buffer.');
         }
@@ -76,47 +62,56 @@ final readonly class RosterCsvExporter
         $checksum = hash('sha256', $content);
         $metadata = [
             'schema_version' => RosterCsvParser::SCHEMA_VERSION,
-            'row_count' => $entries->count(),
+            'row_count' => count($entries),
             'include_private' => $includePrivate,
             'checksum' => $checksum,
         ];
-        $this->audit->record('intelligence.roster_exported', $actor, $alliance, $alliance, $metadata);
+        $this->audit->record('intelligence.roster_exported', $actor, null, $allianceId, $metadata);
 
         return [
             'content' => $content,
             'filename' => sprintf('%s-roster%s.csv', $alliance->slug, $includePrivate ? '-management' : ''),
-            'row_count' => $entries->count(),
+            'row_count' => count($entries),
             'checksum' => $checksum,
         ];
     }
 
-    /** @return array<string, string> */
-    private function row(AllianceRosterEntry $entry, ?PlayerSnapshot $snapshot): array
+    /** @param list<string> $entryIds @return array<string,PlayerSnapshot> */
+    private function latestSnapshots(string $allianceId, array $entryIds): array
     {
-        if ($snapshot === null) {
-            $name = (string) $entry->observed_name;
-            $power = '';
-            $progressionLevel = '';
-            $allianceTag = '';
-            $capturedAt = '';
-        } else {
-            $name = (string) $snapshot->observed_name;
-            $power = (string) $snapshot->power;
-            $progressionLevel = $snapshot->progression_level ?? '';
-            $allianceTag = $snapshot->observed_alliance_tag ?? '';
-            $capturedAt = $snapshot->captured_at->toIso8601String();
+        if ($entryIds === []) {
+            return [];
+        }
+        $snapshots = PlayerSnapshot::query()
+            ->where('alliance_id', $allianceId)
+            ->whereIn('roster_entry_id', $entryIds)
+            ->whereRaw(
+                'player_snapshots.id = (select latest.id from player_snapshots as latest '
+                .'where latest.alliance_id = player_snapshots.alliance_id '
+                .'and latest.roster_entry_id = player_snapshots.roster_entry_id '
+                .'order by latest.captured_at desc, latest.id desc limit 1)'
+            )->get();
+        $result = [];
+        foreach ($snapshots as $snapshot) {
+            $result[(string) $snapshot->roster_entry_id] = $snapshot;
         }
 
+        return $result;
+    }
+
+    /** @return array<string,string> */
+    private function row(RosterEntryReference $entry, ?PlayerReference $player, ?PlayerSnapshot $snapshot): array
+    {
         return [
-            'game_player_id' => $entry->player->game_player_id ?? '',
-            'name' => $name,
-            'power' => $power,
-            'progression_level' => $progressionLevel,
-            'alliance_tag' => $allianceTag,
-            'game_role' => $entry->game_role ?? '',
-            'state' => $entry->state->value,
-            'joined_at' => $entry->joined_at?->toDateString() ?? '',
-            'captured_at' => $capturedAt,
+            'game_player_id' => $player?->gamePlayerId ?? '',
+            'name' => $snapshot?->observed_name === null ? $entry->observedName : (string) $snapshot->observed_name,
+            'power' => $snapshot === null ? '' : (string) $snapshot->power,
+            'progression_level' => $snapshot?->progression_level ?? '',
+            'alliance_tag' => $snapshot?->observed_alliance_tag ?? '',
+            'game_role' => $entry->gameRole ?? '',
+            'state' => $entry->stateObservedAtRead->value,
+            'joined_at' => $entry->joinedAt ?? '',
+            'captured_at' => $snapshot?->captured_at?->toIso8601String() ?? '',
         ];
     }
 
@@ -125,16 +120,9 @@ final readonly class RosterCsvExporter
         if ($value === '') {
             return '';
         }
-
         $trimmed = ltrim($value, " \t\r\n");
         $first = $trimmed === '' ? '' : $trimmed[0];
-
-        if (
-            in_array($first, ['=', '+', '-', '@'], true)
-            || str_starts_with($value, "\t")
-            || str_starts_with($value, "\r")
-            || str_starts_with($value, "\n")
-        ) {
+        if (in_array($first, ['=', '+', '-', '@'], true) || str_starts_with($value, "\t") || str_starts_with($value, "\r") || str_starts_with($value, "\n")) {
             return "'".$value;
         }
 

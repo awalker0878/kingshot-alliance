@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Diplomacy\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomAllianceReferenceQuery;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceWriteState;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacy;
 use App\Contexts\Intelligence\Diplomacy\Models\KingdomAllianceDiplomacyTransition;
@@ -16,7 +14,6 @@ use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -24,7 +21,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class TransitionKingdomAllianceDiplomacy
 {
     public function __construct(
-        private AllianceIntelligenceAuthorization $authorization,
+        private AllianceIntelligenceWriteState $writeState,
+        private KingdomAllianceReferenceQuery $kingdomAlliances,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -39,20 +37,16 @@ final readonly class TransitionKingdomAllianceDiplomacy
      * } $attributes
      */
     public function handle(
-        Alliance $alliance,
-        Player $actor,
+        string $allianceId,
+        string $actorPlayerId,
         string $trackingId,
         KingdomAllianceDiplomacyState $target,
         array $attributes,
-    ): KingdomAllianceDiplomacy {
-        if (! $this->authorization->allows($actor, $alliance, IntelligencePermission::KingdomManage)) {
-            throw new AuthorizationException;
-        }
-
-        return DB::transaction(function () use ($alliance, $actor, $trackingId, $target, $attributes): KingdomAllianceDiplomacy {
-            $currentAlliance = Alliance::query()->findOrFail($alliance->id);
+    ): string {
+        return DB::transaction(function () use ($allianceId, $actorPlayerId, $trackingId, $target, $attributes): string {
+            [$scope, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
             $tracking = TrackedKingdomAlliance::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $allianceId)
                 ->lockForUpdate()
                 ->findOrFail($trackingId);
 
@@ -62,14 +56,14 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 ]);
             }
 
-            if ($currentAlliance->kingdom_id === null || $tracking->kingdom_id !== $currentAlliance->kingdom_id) {
+            if ((string) $tracking->kingdom_id !== $scope->kingdomId) {
                 throw ValidationException::withMessages([
                     'diplomacy' => 'The tracked alliance belongs to historical Kingdom context. Diplomacy history remains readable, but changes require matching current Kingdom context.',
                 ]);
             }
 
-            $reference = KingdomAlliance::query()->findOrFail($tracking->kingdom_alliance_id);
-            if ($reference->kingdom_id !== $tracking->kingdom_id) {
+            $reference = $this->kingdomAlliances->require((string) $tracking->kingdom_alliance_id);
+            if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
                     'diplomacy' => 'The tracked alliance reference no longer matches its captured Kingdom context.',
                 ]);
@@ -100,7 +94,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
             }
 
             $relationship = KingdomAllianceDiplomacy::query()
-                ->where('alliance_id', $currentAlliance->id)
+                ->where('alliance_id', $allianceId)
                 ->where('tracked_kingdom_alliance_id', $tracking->id)
                 ->lockForUpdate()
                 ->first();
@@ -115,24 +109,24 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 && $this->sameDate($relationship->expires_at, $expiresAt)
                 && $relationship->terms === $terms
                 && $relationship->rationale === $rationale) {
-                return $relationship->load('lastTransitionPlayer:id,current_name');
+                return (string) $relationship->id;
             }
 
             if (! $relationship instanceof KingdomAllianceDiplomacy) {
                 $relationship = KingdomAllianceDiplomacy::query()->create([
                     'alliance_id' => $currentAlliance->id,
                     'tracked_kingdom_alliance_id' => $tracking->id,
-                    'kingdom_alliance_id' => $reference->id,
+                    'kingdom_alliance_id' => $reference->kingdomAllianceId,
                     'current_state' => $target,
                     'effective_at' => $effectiveAt,
                     'review_at' => $reviewAt,
                     'expires_at' => $expiresAt,
                     'terms' => $terms,
                     'rationale' => $rationale,
-                    'last_transition_player_id' => $actor->id,
+                    'last_transition_player_id' => $actor->playerId,
                 ]);
             } else {
-                if ($relationship->kingdom_alliance_id !== $reference->id) {
+                if ($relationship->kingdom_alliance_id !== $reference->kingdomAllianceId) {
                     throw ValidationException::withMessages([
                         'diplomacy' => 'The diplomacy relationship no longer matches the tracked neutral alliance reference.',
                     ]);
@@ -145,7 +139,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                     'expires_at' => $expiresAt,
                     'terms' => $terms,
                     'rationale' => $rationale,
-                    'last_transition_player_id' => $actor->id,
+                    'last_transition_player_id' => $actor->playerId,
                 ])->save();
             }
 
@@ -153,7 +147,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 'alliance_id' => $currentAlliance->id,
                 'diplomacy_relationship_id' => $relationship->id,
                 'tracked_kingdom_alliance_id' => $tracking->id,
-                'kingdom_alliance_id' => $reference->id,
+                'kingdom_alliance_id' => $reference->kingdomAllianceId,
                 'from_state' => $from,
                 'to_state' => $target,
                 'effective_at' => $effectiveAt,
@@ -161,7 +155,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 'expires_at' => $expiresAt,
                 'terms' => $terms,
                 'rationale' => $rationale,
-                'actor_player_id' => $actor->id,
+                'actor_player_id' => $actor->playerId,
                 'created_at' => now(),
             ]);
 
@@ -169,7 +163,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 'diplomacy_relationship_id' => (string) $relationship->id,
                 'diplomacy_transition_id' => (string) $transition->id,
                 'tracked_kingdom_alliance_id' => (string) $tracking->id,
-                'kingdom_alliance_id' => (string) $reference->id,
+                'kingdom_alliance_id' => (string) $reference->kingdomAllianceId,
                 'from_state' => $from->value,
                 'to_state' => $target->value,
                 'effective_at' => $effectiveAt->toIso8601String(),
@@ -177,16 +171,16 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 'expires_at' => $expiresAt?->toIso8601String(),
             ];
             $event = 'kingdoms.diplomacy_transitioned';
-            $this->audit->record($event, $actor, $relationship, $currentAlliance, $metadata);
+            $this->audit->record($event, $actor, $relationship, $allianceId, $metadata);
             $this->outbox->record(
                 $event,
-                (string) $currentAlliance->id,
+                $allianceId,
                 $relationship,
                 $metadata,
                 $event.':'.$transition->id,
             );
 
-            return $relationship->refresh()->load('lastTransitionPlayer:id,current_name');
+            return (string) $relationship->id;
         });
     }
 
