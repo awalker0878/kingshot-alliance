@@ -43,7 +43,7 @@ final readonly class RegisterAccount
             );
 
             $membership = $invitation instanceof Invitation && is_string($invitationToken)
-                ? $this->acceptInvitation->handle($user, $invitationToken)
+                ? $this->acceptInvitation->handle((int) $user->id, (string) $user->email, $invitationToken)
                 : null;
 
             return [

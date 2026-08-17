@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Membership\Actions;
 
-use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
@@ -16,29 +15,27 @@ use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Contexts\Alliance\Membership\Services\InvitationTokenService;
 use App\Contexts\GameWorld\Players\Actions\ClaimPlayerAccount;
-use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use LogicException;
 
 final readonly class AcceptInvitation
 {
     public function __construct(
         private InvitationTokenService $tokens,
+        private PlayerReferenceQuery $players,
         private ClaimPlayerAccount $claimPlayerAccount,
         private AuditRecorder $audit,
     ) {}
 
-    public function handle(User $user, string $token): AllianceMembership
+    public function handle(int $userId, string $userEmail, string $token): AllianceMembership
     {
         $tokenHash = $this->tokens->hash($token);
 
-        // Resolve the immutable routing keys without taking locks so the transaction
-        // can acquire them in the repository-standard lifecycle-first order.
         $candidate = Invitation::query()
             ->select(['id', 'alliance_id'])
             ->where('token_hash', $tokenHash)
@@ -46,7 +43,7 @@ final readonly class AcceptInvitation
             ->where('expires_at', '>', now())
             ->firstOrFail();
 
-        return DB::transaction(function () use ($user, $tokenHash, $candidate): AllianceMembership {
+        return DB::transaction(function () use ($userId, $userEmail, $tokenHash, $candidate): AllianceMembership {
             $alliance = Alliance::query()
                 ->whereKey($candidate->alliance_id)
                 ->sharedLock()
@@ -67,32 +64,19 @@ final readonly class AcceptInvitation
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $currentUser = User::query()
-                ->whereKey($user->id)
-                
-                ->firstOrFail();
-
-            if (! hash_equals(Str::lower((string) $invitation->email), Str::lower((string) $currentUser->email))) {
+            if (! hash_equals(Str::lower((string) $invitation->email), Str::lower($userEmail))) {
                 throw new AuthorizationException;
             }
 
-            $player = $invitation->player()->first();
-            if (! $player instanceof Player) {
-                throw new LogicException('An invitation must reference a Player.');
-            }
+            $player = $this->players->require((string) $invitation->player_id);
 
-            $lockedPlayer = Player::query()
-                ->whereKey($player->id)
-                
-                ->firstOrFail();
-
-            if ($lockedPlayer->user_id !== null && (int) $lockedPlayer->user_id !== (int) $currentUser->id) {
+            if ($player->userId !== null && $player->userId !== $userId) {
                 throw ValidationException::withMessages([
                     'invitation' => 'This Player belongs to another account.',
                 ]);
             }
 
-            if ((string) $lockedPlayer->current_kingdom_id !== (string) $alliance->kingdom_id) {
+            if ($player->kingdomId !== (string) $alliance->kingdom_id) {
                 throw ValidationException::withMessages([
                     'invitation' => 'This Player is no longer in the Alliance Kingdom.',
                 ]);
@@ -100,7 +84,7 @@ final readonly class AcceptInvitation
 
             $roster = AllianceRosterEntry::query()
                 ->where('alliance_id', $alliance->id)
-                ->where('player_id', $lockedPlayer->id)
+                ->where('player_id', $player->playerId)
                 ->where('state', RosterState::Active->value)
                 ->sharedLock()
                 ->first();
@@ -112,7 +96,7 @@ final readonly class AcceptInvitation
             }
 
             $otherActiveMembership = AllianceMembership::query()
-                ->where('player_id', $lockedPlayer->id)
+                ->where('player_id', $player->playerId)
                 ->where('status', MembershipStatus::Active->value)
                 ->where('alliance_id', '!=', $alliance->id)
                 ->lockForUpdate()
@@ -126,14 +110,14 @@ final readonly class AcceptInvitation
 
             $membership = AllianceMembership::query()
                 ->where('alliance_id', $alliance->id)
-                ->where('player_id', $lockedPlayer->id)
+                ->where('player_id', $player->playerId)
                 ->lockForUpdate()
                 ->first();
 
             if ($membership === null) {
                 $membership = AllianceMembership::query()->create([
                     'alliance_id' => $alliance->id,
-                    'player_id' => $lockedPlayer->id,
+                    'player_id' => $player->playerId,
                     'status' => MembershipStatus::Active,
                     'rank' => AllianceRank::R1,
                     'joined_at' => now(),
@@ -147,7 +131,7 @@ final readonly class AcceptInvitation
                 ])->save();
             }
 
-            $lockedPlayer = $this->claimPlayerAccount->handle($lockedPlayer, $currentUser);
+            $claimedPlayer = $this->claimPlayerAccount->handle($player->playerId, $userId);
 
             $invitation->forceFill([
                 'status' => InvitationStatus::Accepted,
@@ -156,7 +140,7 @@ final readonly class AcceptInvitation
 
             $this->audit->record(
                 event: 'invitation.accepted',
-                actor: $lockedPlayer,
+                actor: $claimedPlayer,
                 subject: $invitation,
                 alliance: $alliance,
                 metadata: ['membership_id' => $membership->id],
@@ -173,14 +157,14 @@ final readonly class AcceptInvitation
                     'invitation_id' => $invitation->id,
                     'alliance_id' => $alliance->id,
                     'membership_id' => $membership->id,
-                    'player_id' => $lockedPlayer->id,
+                    'player_id' => $claimedPlayer->playerId,
                 ],
                 'occurred_at' => now(),
                 'available_at' => now(),
                 'attempts' => 0,
             ]);
 
-            return $membership->refresh()->load(['alliance', 'player']);
+            return $membership->refresh()->load('alliance');
         });
     }
 }

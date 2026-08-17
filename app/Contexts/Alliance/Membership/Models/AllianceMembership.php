@@ -8,7 +8,6 @@ use App\Contexts\Alliance\Access\Models\Role;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,7 +22,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $left_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Player $player
  */
 final class AllianceMembership extends Model
 {
@@ -60,12 +58,6 @@ final class AllianceMembership extends Model
     public function alliance(): BelongsTo
     {
         return $this->belongsTo(Alliance::class);
-    }
-
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class);
     }
 
     /** @return BelongsToMany<Role, $this> */
