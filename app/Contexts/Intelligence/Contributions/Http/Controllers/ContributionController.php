@@ -52,7 +52,7 @@ final class ContributionController extends Controller
         $alliance = $alliances->require($scope->allianceId);
         $actor = $players->require($scope->playerId);
 
-        return Inertia::render('Alliance/Contributions/Index', [
+        return Inertia::render('Intelligence/GloryLedger/Index', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'timezone' => $alliance->timezone],
             'player' => ['id' => $actor->playerId, 'name' => $actor->currentName],
@@ -71,7 +71,7 @@ final class ContributionController extends Controller
     ): Response {
         [$user, $scope, $alliance] = $this->requireManager($request, $context, $alliances, $players, $authorization);
 
-        return Inertia::render('Alliance/Contributions/Manage', [
+        return Inertia::render('Intelligence/GloryLedger/Manage', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'timezone' => $alliance->timezone],
             'reporting' => $reports->managementDashboard($scope->allianceId),

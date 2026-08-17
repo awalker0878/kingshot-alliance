@@ -33,7 +33,7 @@ final class EventHistoryController extends Controller
         $validated = $this->validatedFilters($request);
         $filters = $this->filters($validated);
 
-        return Inertia::render('Events/OrganizationHistory', [
+        return Inertia::render('Operations/Events/Chronicle', [
             'user' => $this->identity($user),
             'organization' => [
                 'id' => (string) $alliance->id,
@@ -58,7 +58,7 @@ final class EventHistoryController extends Controller
         $validated = $this->validatedFilters($request);
         $filters = $this->filters($validated);
 
-        return Inertia::render('Events/OrganizationHistory', [
+        return Inertia::render('Operations/Events/Chronicle', [
             'user' => $this->identity($user),
             'organization' => [
                 'id' => (string) $kingdom->id,

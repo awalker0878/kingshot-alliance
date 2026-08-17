@@ -43,7 +43,7 @@ use App\Workflows\AccountOnboarding\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', static fn () => Inertia::render('Home', [
+Route::get('/', static fn () => Inertia::render('Public/Home', [
     'application' => [
         'name' => config('app.name'),
     ],

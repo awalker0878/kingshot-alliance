@@ -24,7 +24,7 @@ final class ProfileController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
-        return Inertia::render('Profile', [
+        return Inertia::render('Accounts/Governor/Profile', [
             'user' => [
                 'name' => $user->name,
                 'email' => $user->email,

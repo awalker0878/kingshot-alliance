@@ -61,7 +61,7 @@ final class RosterReadController extends Controller
         $memberships = $this->memberships($alliance->allianceId);
         $playerRefs = $this->playerReferences($players, $entries, $memberships);
 
-        return Inertia::render('Alliance/Roster', [
+        return Inertia::render('Alliance/Members/Index', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => [
                 'id' => $alliance->allianceId,
@@ -120,7 +120,7 @@ final class RosterReadController extends Controller
             ];
         })->values();
 
-        return Inertia::render('Alliance/RosterManage', [
+        return Inertia::render('Alliance/Members/Manage', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => [
                 'id' => $alliance->allianceId,

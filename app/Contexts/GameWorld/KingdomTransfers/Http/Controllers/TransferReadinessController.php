@@ -54,7 +54,7 @@ final class TransferReadinessController extends Controller
 
         $plan = $plans->currentForAlliance($scope->allianceId);
 
-        return Inertia::render('Alliance/TransferReadinessManage', [
+        return Inertia::render('Kingdom/Transfer/Readiness', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => $this->alliance($alliance, $kingdom),
             'plan' => $plan === null ? null : [

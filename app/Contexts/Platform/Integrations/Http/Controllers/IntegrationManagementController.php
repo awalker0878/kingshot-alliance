@@ -52,7 +52,7 @@ final class IntegrationManagementController extends Controller
             ? (bool) $settings->webhooks_enabled
             : true;
 
-        return Inertia::render('Alliance/Integrations/Manage', [
+        return Inertia::render('Alliance/Connections/Manage', [
             'user' => [
                 'name' => $account->name,
                 'email' => $account->email,

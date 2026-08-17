@@ -14,7 +14,7 @@ withDefaults(
 
 const classes = {
   primary:
-    'border border-blue-400/40 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-950/30 hover:from-blue-400 hover:to-blue-600',
+    'border border-[var(--ks-border-strong)] bg-gradient-to-b from-blue-500 to-blue-700 text-[var(--ks-ivory)] shadow-lg shadow-blue-950/30 hover:from-blue-400 hover:to-blue-600',
   secondary:
     'border border-[var(--ks-border-strong)] bg-[var(--ks-gold-soft)] text-[var(--ks-gold-strong)] hover:bg-[rgba(226,180,77,0.18)]',
   ghost:

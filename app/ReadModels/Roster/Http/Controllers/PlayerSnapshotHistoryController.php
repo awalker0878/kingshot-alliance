@@ -57,7 +57,7 @@ final class PlayerSnapshotHistoryController extends Controller
         $actorRefs = $players->byIds($actorIds);
         $latest = $history->first();
 
-        return Inertia::render('Alliance/RosterHistory', [
+        return Inertia::render('Intelligence/Roster/History', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => [
                 'id' => $alliance->allianceId,

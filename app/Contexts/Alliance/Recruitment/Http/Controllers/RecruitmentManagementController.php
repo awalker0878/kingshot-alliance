@@ -149,7 +149,7 @@ final class RecruitmentManagementController extends Controller
             ];
         }
 
-        return Inertia::render('Alliance/Recruitment/Manage', [
+        return Inertia::render('Alliance/Recruitment/Hall', [
             'user' => [
                 'name' => (string) $user->name,
                 'email' => (string) $user->email,

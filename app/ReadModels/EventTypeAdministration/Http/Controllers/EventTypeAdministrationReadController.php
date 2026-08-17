@@ -33,7 +33,7 @@ final readonly class EventTypeAdministrationReadController
             ->orderBy('slug')
             ->get();
 
-        return Inertia::render('Platform/EventTypes', [
+        return Inertia::render('Citadel/EventCodex/Index', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'eventTypes' => array_values($types->map(static fn (EventType $type): array => [
                 'id' => (string) $type->id,

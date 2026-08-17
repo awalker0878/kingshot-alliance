@@ -43,7 +43,7 @@ final class RosterImportReadController extends Controller
         $alliance = $alliances->require($scope->allianceId);
         $kingdom = $kingdoms->require($alliance->kingdomId);
 
-        return Inertia::render('Alliance/RosterImport', [
+        return Inertia::render('Intelligence/Roster/Import', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $kingdom->number],
             'schema' => [

@@ -62,7 +62,7 @@ final class EventManagementPageController extends Controller
             $reminderAudiences[] = EventReminderAudience::Rostered->value;
         }
 
-        return Inertia::render('Events/Manage', [
+        return Inertia::render('Operations/Events/Manage', [
             'user' => $this->identity($user),
             'event' => $this->managementPayload($record),
             'participants' => $participation->management($record),

@@ -71,7 +71,7 @@ final class DashboardController extends Controller
             }
         }
 
-        return Inertia::render('Dashboard', [
+        return Inertia::render('Command/Overview', [
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,

@@ -72,7 +72,7 @@ final class PublicRecruitmentController extends Controller
 
         $user = $request->user();
 
-        return Inertia::render('Public/RecruitmentApply', [
+        return Inertia::render('Public/Recruitment/Apply', [
             'alliance' => [
                 'name' => (string) $alliance->name,
                 'slug' => (string) $alliance->slug,

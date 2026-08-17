@@ -80,7 +80,7 @@ final class PublicAllianceController extends Controller
             }
         }
 
-        return Inertia::render('Public/Alliance', [
+        return Inertia::render('Public/Alliance/Show', [
             'alliance' => [
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,

@@ -3,22 +3,22 @@ import type { MessageCatalogue } from '../../types';
 const messages = {
   auth: {
     login: {
-      title: 'Sign in',
+      title: 'Enter the Realm',
       email: 'Email',
       password: 'Password',
       remember: 'Remember me',
       forgotPassword: 'Forgot password?',
-      submit: 'Sign in',
-      createAccount: 'Create account',
+      submit: 'Enter the Realm',
+      createAccount: 'Begin as a Governor',
       invitation: 'Have an invitation?',
     },
     register: {
-      title: 'Create account',
+      title: 'Begin as a Governor',
       name: 'Name',
       email: 'Email',
       password: 'Password',
       passwordConfirmation: 'Confirm password',
-      submit: 'Create account',
+      submit: 'Begin as a Governor',
       existingAccount: 'Already have an account?',
     },
     password: {
@@ -35,30 +35,30 @@ const messages = {
     },
     twoFactor: {
       title: 'Two-factor authentication',
-      code: 'Authentication code',
+      code: 'Guard code',
       recoveryCode: 'Recovery code',
       submit: 'Continue',
     },
     invitation: {
-      title: 'Alliance invitation',
+      title: 'Alliance Summons',
       accept: 'Accept invitation',
     },
   },
   authExperience: {
     shell: {
-      headline: 'Built for alliance leaders.',
+      headline: 'Built for Alliance leadership.',
       intro:
-        'Secure access to the tools your alliance uses to coordinate, recruit, and prepare for what comes next.',
+        'Enter the protected command rooms your Alliance uses to recruit Governors, prepare Events, and keep watch on the Kingdom.',
     },
     login: {
-      intro: 'Access every alliance linked to your global account.',
+      intro: 'Enter with your account, then choose the Governor you want to command as.',
       invitationNotice:
-        'Sign in with the invited account to continue accepting your alliance invitation.',
+        'Enter the Realm with the invited account to continue accepting your alliance invitation.',
       needAccount: 'Need an account?',
       register: 'Register',
     },
     register: {
-      intro: 'One global identity can belong to multiple alliances.',
+      intro: 'One account may own several Governors. Alliance rank and Kingdom duty always follow the Governor you choose.',
       invitationNotice:
         'You were invited to {alliance} as {email}. Creating your account will also accept this invitation.',
       invitationOnly:
@@ -68,13 +68,13 @@ const messages = {
       existingAccount: 'Already have an account?',
     },
     invitation: {
-      join: 'Join {alliance}',
+      join: 'Answer {alliance}’s summons',
       forEmail: 'This invitation is for {email}.',
       expires: 'Expires {date}',
       wrongAccount:
-        'You are signed in as {email}. Sign in with the invited email address to accept this invitation.',
-      createAndJoin: 'Create account and join',
-      signInAccept: 'Sign in to accept',
+        'You are signed in as {email}. Enter the Realm with the invited email address to accept this invitation.',
+      createAndJoin: 'Begin as a Governor and join',
+      signInAccept: 'Enter the Realm to accept',
     },
     password: {
       backToSignIn: 'Back to sign in',
@@ -82,7 +82,7 @@ const messages = {
       newPassword: 'New password',
       confirmNewPassword: 'Confirm new password',
       confirmDescription:
-        'This action changes alliance access or permissions, so your password must be reconfirmed.',
+        'This order changes protected Alliance access, so confirm your realm key before continuing.',
     },
     verification: {
       description:
@@ -90,7 +90,7 @@ const messages = {
       sent: 'A fresh verification link has been sent.',
     },
     twoFactor: {
-      kicker: 'Security check',
+      kicker: 'Realm guard',
       description: 'Enter the current six-digit code from your authenticator app.',
       verifyCode: 'Verify code',
       useRecoveryCode: 'Use recovery code',

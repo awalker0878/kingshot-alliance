@@ -23,7 +23,7 @@ final class RegistrationController extends Controller
         $token = trim((string) $request->query('invitation', ''));
         $invitation = $token === '' ? null : $invitations->byToken($token);
 
-        return Inertia::render('Auth/Register', [
+        return Inertia::render('Accounts/Access/Register', [
             'registrationMode' => config('accounts.registration_mode'),
             'invitationToken' => $invitation === null ? null : $token,
             'invitedEmail' => $invitation?->email,

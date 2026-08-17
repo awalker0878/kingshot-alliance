@@ -30,7 +30,7 @@ final class InvitationAcceptanceController extends Controller
         $authId = Auth::id();
         $account = is_numeric($authId) ? $accounts->find((int) $authId) : null;
 
-        return Inertia::render('Auth/Invitation', [
+        return Inertia::render('Accounts/Access/Invitation', [
             'invitation' => [
                 'token' => $token,
                 'email' => $invitation->email,

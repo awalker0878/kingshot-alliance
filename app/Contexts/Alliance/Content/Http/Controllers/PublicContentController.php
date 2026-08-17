@@ -29,7 +29,7 @@ final class PublicContentController extends Controller
         $item = $content->publicBySlug((string) $alliance->id, $contentSlug);
         abort_unless($item !== null, 404);
 
-        return Inertia::render('Public/Content', [
+        return Inertia::render('Public/Alliance/Notice', [
             'alliance' => [
                 'name' => $alliance->name,
                 'slug' => $alliance->slug,

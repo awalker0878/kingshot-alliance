@@ -23,7 +23,7 @@ final class TwoFactorChallengeController extends Controller
             return redirect()->route('login');
         }
 
-        return Inertia::render('Auth/TwoFactorChallenge');
+        return Inertia::render('Accounts/Access/TwoFactorChallenge');
     }
 
     public function store(Request $request, TwoFactorManager $twoFactor, AuditRecorder $audit): RedirectResponse

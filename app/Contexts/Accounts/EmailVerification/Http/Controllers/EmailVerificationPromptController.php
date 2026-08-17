@@ -22,7 +22,7 @@ final class EmailVerificationPromptController extends Controller
             return redirect()->route('dashboard');
         }
 
-        return Inertia::render('Auth/VerifyEmail', [
+        return Inertia::render('Accounts/Access/VerifyEmail', [
             'status' => $request->session()->get('status'),
             'email' => $user->email,
         ]);

@@ -56,7 +56,7 @@ final class KingdomIngestionController extends Controller
             $adapterLabels[$definition['key']] = $definition['label'];
         }
 
-        return Inertia::render('Alliance/KingdomIngestionManage', [
+        return Inertia::render('Intelligence/KingdomWatch/Reports', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $allianceKingdom->number],
             'adapters' => $definitions,

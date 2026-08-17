@@ -32,7 +32,7 @@ final class KingPerkController extends Controller
         $user = $this->authenticated($request);
         $payload = $query->management($this->player(), $event, $request->string('occurrence')->toString() ?: null);
 
-        return Inertia::render('KingPerks/Manage', [
+        return Inertia::render('Kingdom/RoyalCourt/Appointments', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
             ...$payload,
         ]);
@@ -43,7 +43,7 @@ final class KingPerkController extends Controller
         $user = $this->authenticated($request);
         $payload = $query->player($this->player(), $event, $request->string('occurrence')->toString() ?: null);
 
-        return Inertia::render('KingPerks/My', [
+        return Inertia::render('Kingdom/RoyalCourt/MyAppointments', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
             ...$payload,
         ]);

@@ -54,7 +54,7 @@ final class MemberContentController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'slug']);
 
-        return Inertia::render('Alliance/ContentIndex', [
+        return Inertia::render('Alliance/Noticeboard/Index', [
             'user' => [
                 'name' => (string) $user->name,
                 'email' => (string) $user->email,
@@ -95,7 +95,7 @@ final class MemberContentController extends Controller
         $item = $content->memberBySlug($scope->allianceId, $contentSlug);
         abort_unless($item !== null, 404);
 
-        return Inertia::render('Alliance/ContentDetail', [
+        return Inertia::render('Alliance/Noticeboard/Show', [
             'user' => [
                 'name' => (string) $user->name,
                 'email' => (string) $user->email,

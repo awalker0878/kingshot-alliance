@@ -65,7 +65,7 @@ final class TransferPlanController extends Controller
 
         $current = $plans->currentForAlliance($scope->allianceId);
 
-        return Inertia::render('Alliance/TransferPlans', [
+        return Inertia::render('Kingdom/Transfer/Index', [
             'user' => $this->user($account),
             'alliance' => $this->alliance($alliance, $kingdom),
             'canManage' => $transferAuthorization->allows(
@@ -130,7 +130,7 @@ final class TransferPlanController extends Controller
             array_map(static fn (RosterEntryReference $entry): string => $entry->playerId, array_values($completionRoster)),
         ))));
 
-        return Inertia::render('Alliance/TransferPlansManage', [
+        return Inertia::render('Kingdom/Transfer/Manage', [
             'user' => $this->user($account),
             'alliance' => $this->alliance($alliance, $kingdom),
             'plans' => $plans->forAlliance($scope->allianceId)

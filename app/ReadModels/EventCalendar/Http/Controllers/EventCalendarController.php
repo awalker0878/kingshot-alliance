@@ -54,7 +54,7 @@ final class EventCalendarController extends Controller
         $occurrences = $query->calendar($actor);
         $manageableTargets = $visibility->manageableTargetIds($actor);
 
-        return Inertia::render('Events/Index', [
+        return Inertia::render('Operations/Events/Index', [
             'user' => $this->identity($user),
             'userTimezone' => (string) ($user->timezone ?: 'UTC'),
             'events' => $occurrences->map(fn (EventOccurrence $occurrence): array => $this->summary(
@@ -119,7 +119,7 @@ final class EventCalendarController extends Controller
             ];
         }
 
-        return Inertia::render('Events/Show', [
+        return Inertia::render('Operations/Events/Show', [
             'user' => $this->identity($user),
             'userTimezone' => (string) ($user->timezone ?: 'UTC'),
             'event' => [

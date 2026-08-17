@@ -19,7 +19,7 @@ final class AuthenticatedSessionController extends Controller
 {
     public function create(Request $request): Response
     {
-        return Inertia::render('Auth/Login', [
+        return Inertia::render('Accounts/Access/Login', [
             'invitationToken' => trim((string) $request->query('invitation', '')) ?: null,
         ]);
     }

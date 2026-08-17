@@ -35,7 +35,7 @@ const messages = {
       disableTwoFactor: 'Disable two-factor authentication',
       passwordTitle: 'Change password',
       passwordIntro:
-        'Changing your password revokes personal access tokens and invalidates other authenticated sessions.',
+        'Changing your password signs out other devices and closes other active access.',
       currentPassword: 'Current password',
       newPassword: 'New password',
       confirmNewPassword: 'Confirm new password',
@@ -47,10 +47,10 @@ const messages = {
       deleteAccount: 'Account deletion',
     },
     deletion: {
-      eyebrow: 'Account lifecycle',
+      eyebrow: 'Governor record',
       title: 'Account deletion',
       intro:
-        'Deletion uses a seven-day cooling-off period. Active alliance ownership, platform-administrator access, and legal holds can block processing. Processed accounts are anonymized instead of silently removing audit history.',
+        'A seven-day cooling-off period protects the realm record. Active Alliance leadership, Citadel Warden duty, or a legal hold can prevent the request from completing. Completed requests preserve the realm chronicle while removing personal account details.',
       currentRequest: 'Current request',
       status: 'Status',
       eligibleAt: 'Eligible at',

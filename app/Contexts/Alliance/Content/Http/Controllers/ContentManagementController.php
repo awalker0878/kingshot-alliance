@@ -125,7 +125,7 @@ final class ContentManagementController extends Controller
             ];
         }
 
-        return Inertia::render('Alliance/ContentManage', [
+        return Inertia::render('Alliance/Noticeboard/Manage', [
             'user' => [
                 'name' => (string) $user->name,
                 'email' => (string) $user->email,

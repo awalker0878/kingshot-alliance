@@ -189,7 +189,7 @@ final class AllianceOverviewController extends Controller
             ->values()
             ->all();
 
-        return Inertia::render('Alliance/Overview', [
+        return Inertia::render('Alliance/Hall', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
             'alliance' => [
                 'id' => $alliance->allianceId,

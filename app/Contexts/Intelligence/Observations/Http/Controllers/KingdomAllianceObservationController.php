@@ -59,7 +59,7 @@ final class KingdomAllianceObservationController extends Controller
         }
         $actorRefs = $players->byIds(array_values(array_unique($actorIds)));
 
-        return Inertia::render('Alliance/KingdomAllianceHistory', [
+        return Inertia::render('Intelligence/KingdomWatch/History', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $allianceKingdom->number],
             'canManage' => $canManage,

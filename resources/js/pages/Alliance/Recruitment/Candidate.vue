@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 
-import AppLayout from '../../../layouts/AppLayout.vue';
-import { useLocale } from '../../../localization';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { useLocale } from '@/localization';
 
 const props = defineProps<{
   user: { name: string; email: string };
@@ -162,7 +162,7 @@ function stageTone(stage: string): string {
   if (stage === 'declined' || stage === 'withdrawn')
     return 'border-red-400/25 bg-red-500/10 text-red-200';
   if (stage === 'reviewing' || stage === 'interview')
-    return 'border-blue-400/25 bg-blue-500/10 text-blue-200';
+    return 'border-[var(--ks-border)] bg-[var(--ks-teal-soft)] text-[var(--ks-gold-bright)]';
   return 'border-amber-400/25 bg-amber-500/10 text-amber-200';
 }
 
@@ -180,7 +180,7 @@ function onboardingTone(status: string): string {
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div class="max-w-3xl min-w-0">
         <Link
-          class="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-white"
+          class="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--ks-blue-strong)] hover:text-[var(--ks-ivory)]"
           href="/alliance/recruitment"
         >
           ← {{ t('recruitment.backToPipeline') }}
@@ -308,7 +308,7 @@ function onboardingTone(status: string): string {
             />
           </div>
           <button
-            class="min-h-10 w-full rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white"
+            class="min-h-10 w-full rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
             type="submit"
           >
             {{ t('recruitment.updateStage') }}
@@ -385,7 +385,7 @@ function onboardingTone(status: string): string {
               <span
                 v-for="reviewer in reviewers"
                 :key="reviewer.id"
-                class="rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-sm text-blue-200"
+                class="rounded-full border border-[var(--ks-border)] bg-[var(--ks-teal-soft)] px-3 py-1 text-sm text-[var(--ks-gold-bright)]"
                 >{{ reviewer.name }}</span
               >
               <span v-if="!reviewers.length" class="text-sm text-[var(--ks-text-muted)]">{{
@@ -496,7 +496,7 @@ function onboardingTone(status: string): string {
               </option>
             </select>
             <button
-              class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-white"
+              class="rounded-[var(--ks-radius-sm)] bg-[var(--ks-blue)] px-4 py-2 text-sm font-semibold text-[var(--ks-ivory)]"
               type="submit"
             >
               {{ t('recruitment.prepareCommunication') }}

@@ -59,7 +59,7 @@ final class KingdomAllianceDiplomacyController extends Controller
         }
         $playerRefs = $players->byIds(array_values(array_unique($playerIds)));
 
-        return Inertia::render('Alliance/KingdomAllianceDiplomacy', [
+        return Inertia::render('Intelligence/KingdomWatch/Diplomacy', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $allianceKingdom->number],
             'tracking' => [

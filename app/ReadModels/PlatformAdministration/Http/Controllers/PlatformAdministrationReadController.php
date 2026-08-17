@@ -43,7 +43,7 @@ final readonly class PlatformAdministrationReadController
             }
         }
 
-        return Inertia::render('Platform/Administration/Index', [
+        return Inertia::render('Citadel/RealmControl/Index', [
             'user' => [
                 'name' => $account->name,
                 'email' => $account->email,

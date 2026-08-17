@@ -70,7 +70,7 @@ final class TransferCompletionController extends Controller
             array_values($rosterById),
         ))));
 
-        return Inertia::render('Alliance/TransferCompletionManage', [
+        return Inertia::render('Kingdom/Transfer/Completion', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => $this->alliance($alliance, $kingdom),
             'plan' => $plan === null ? null : [

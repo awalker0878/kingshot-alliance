@@ -39,7 +39,7 @@ final class KingdomSettingsController extends Controller
             throw new AuthorizationException;
         }
 
-        return Inertia::render('Alliance/KingdomSettings', [
+        return Inertia::render('Kingdom/RoyalCourt/Settings', [
             'user' => [
                 'name' => (string) $user->name,
                 'email' => (string) $user->email,

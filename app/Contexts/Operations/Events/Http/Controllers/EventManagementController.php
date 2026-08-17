@@ -68,7 +68,7 @@ final class EventManagementController extends Controller
                 ->all();
         }
 
-        return Inertia::render('Events/Create', [
+        return Inertia::render('Operations/Events/Create', [
             'user' => $this->identity($user),
             'contexts' => $creationContexts,
             'typesByScope' => $typesByScope,

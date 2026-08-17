@@ -54,7 +54,7 @@ final class KingdomIntelligenceSharingReadController extends Controller
             ]);
         }
 
-        return Inertia::render('Alliance/KingdomSharing', [
+        return Inertia::render('Intelligence/Sharing/Index', [
             'user' => $this->userSummary($this->account($request)),
             'alliance' => $this->allianceSummary($alliance->allianceId, $alliance->name, $alliance->kingdomId),
             'canManage' => $authorization->allows(
@@ -82,7 +82,7 @@ final class KingdomIntelligenceSharingReadController extends Controller
 
         $alliance = $this->alliances->require($scope->allianceId);
 
-        return Inertia::render('Alliance/KingdomSharingManage', [
+        return Inertia::render('Intelligence/Sharing/Manage', [
             'user' => $this->userSummary($this->account($request)),
             'alliance' => $this->allianceSummary($alliance->allianceId, $alliance->name, $alliance->kingdomId),
             'passwordConfirmUrl' => route('password.confirm'),

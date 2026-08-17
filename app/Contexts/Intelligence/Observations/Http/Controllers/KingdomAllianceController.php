@@ -53,7 +53,7 @@ final class KingdomAllianceController extends Controller
         $kingdom = $kingdoms->require($alliance->kingdomId);
         $tracked = $tracking->forAlliance($alliance->allianceId);
 
-        return Inertia::render('Alliance/KingdomAlliances', [
+        return Inertia::render('Intelligence/KingdomWatch/Index', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => $this->allianceSummary($alliance, $kingdom),
             'canManage' => $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage),
@@ -79,7 +79,7 @@ final class KingdomAllianceController extends Controller
         $kingdom = $kingdoms->require($alliance->kingdomId);
         $tracked = $tracking->forAlliance($alliance->allianceId);
 
-        return Inertia::render('Alliance/KingdomAlliancesManage', [
+        return Inertia::render('Intelligence/KingdomWatch/Tracking', [
             'alliance' => $this->allianceSummary($alliance, $kingdom),
             'tracking' => $this->trackingRows($tracked, $alliance, $kingdoms, $kingdomAlliances, true),
         ]);

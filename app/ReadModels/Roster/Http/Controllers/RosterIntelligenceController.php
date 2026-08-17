@@ -39,7 +39,7 @@ final class RosterIntelligenceController extends Controller
         $canManage = $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage);
         $metrics = $intelligence->forAlliance($alliance->allianceId);
 
-        return Inertia::render('Alliance/RosterIntelligence', [
+        return Inertia::render('Intelligence/Roster/Dossiers', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => [
                 'id' => $alliance->allianceId,

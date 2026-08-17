@@ -78,7 +78,7 @@ final class KingdomRoleController extends Controller
             $players->inKingdom($scope->kingdomId),
         );
 
-        return Inertia::render('Alliance/KingdomRoles', [
+        return Inertia::render('Kingdom/RoyalCourt/Roles', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
             'kingdom' => ['id' => $kingdom->kingdomId, 'number' => $kingdom->number],

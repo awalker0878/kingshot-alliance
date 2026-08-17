@@ -48,41 +48,43 @@ export async function importDomainCatalogue(
 export function domainsForPage(name: string): LocalizationDomain[] {
   const domains = new Set<LocalizationDomain>();
 
-  if (name.startsWith('Auth/')) {
-    domains.add('auth');
-  }
+  if (name.startsWith('Accounts/Access/')) domains.add('auth');
+  if (name.startsWith('Accounts/Governor/')) domains.add('account');
 
-  if (name === 'Profile' || name === 'AccountDeletion') {
-    domains.add('account');
-  }
-
-  if (name === 'Home' || name.startsWith('Public/')) {
+  if (name.startsWith('Public/')) {
     domains.add('public');
-    if (name.includes('Recruitment')) domains.add('recruitment');
-    if (name.includes('Content')) domains.add('content');
+    if (name.startsWith('Public/Recruitment/')) domains.add('recruitment');
+    if (name.startsWith('Public/Alliance/')) domains.add('content');
   }
 
-  if (name.startsWith('Platform/')) {
-    domains.add('platform');
-    if (name === 'Platform/EventTypes') domains.add('events');
-  }
-
-  if (name.startsWith('Events/')) {
-    domains.add('events');
+  if (name.startsWith('Command/')) {
+    domains.add('alliance');
   }
 
   if (name.startsWith('Alliance/')) {
     domains.add('alliance');
-    const page = name.slice('Alliance/'.length);
+    if (name.startsWith('Alliance/Recruitment/')) domains.add('recruitment');
+    if (name.startsWith('Alliance/Noticeboard/')) domains.add('content');
+    if (name.startsWith('Alliance/Connections/')) domains.add('integrations');
+    if (name.startsWith('Alliance/Members/')) domains.add('roster');
+  }
 
-    if (page.startsWith('Events/')) domains.add('events');
-    if (page.startsWith('Contributions/')) domains.add('contributions');
-    if (page.startsWith('Integrations/')) domains.add('integrations');
-    if (page.startsWith('Recruitment/')) domains.add('recruitment');
-    if (page.startsWith('Content')) domains.add('content');
-    if (page.startsWith('Roster') || page.includes('Player')) domains.add('roster');
-    if (page.startsWith('Transfer')) domains.add('transfers');
-    else if (page.startsWith('Kingdom')) domains.add('kingdom');
+  if (name.startsWith('Operations/Events/')) domains.add('events');
+
+  if (name.startsWith('Intelligence/')) {
+    domains.add('kingdom');
+    if (name.startsWith('Intelligence/Roster/')) domains.add('roster');
+    if (name.startsWith('Intelligence/GloryLedger/')) domains.add('contributions');
+  }
+
+  if (name.startsWith('Kingdom/')) {
+    domains.add('kingdom');
+    if (name.startsWith('Kingdom/Transfer/')) domains.add('transfers');
+  }
+
+  if (name.startsWith('Citadel/')) {
+    domains.add('platform');
+    if (name.startsWith('Citadel/EventCodex/')) domains.add('events');
   }
 
   return [...domains];

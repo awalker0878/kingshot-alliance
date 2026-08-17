@@ -47,7 +47,7 @@ final class KingdomAllianceIntelligenceController extends Controller
             IntelligencePermission::KingdomManage,
         );
 
-        return Inertia::render('Alliance/KingdomAllianceIntelligence', [
+        return Inertia::render('Intelligence/KingdomWatch/AllianceDossier', [
             'user' => ['name' => $account->name, 'email' => $account->email],
             'alliance' => [
                 'id' => $alliance->allianceId,
