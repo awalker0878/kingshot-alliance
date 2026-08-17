@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Contexts\Operations\EventCore\Catalog\KingShotEventTypeCatalog;
+use App\Contexts\Operations\Events\Catalog\KingShotEventTypeCatalog;
 use App\Contexts\Operations\Results\Catalog\KingShotEventMetricCatalog;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

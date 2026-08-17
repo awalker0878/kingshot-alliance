@@ -1,52 +1,134 @@
 # Source layout
 
-Status: Current
+Status: Current — Architecture V3
+
+The source tree is capability-first inside bounded contexts so the business architecture is visible directly from `app/Contexts`.
 
 ```text
 app/
-├── Contexts/       # write-owning business contexts
-├── Workflows/      # cross-context command orchestration
-├── ReadModels/     # read-only cross-context composition
-└── Shared/         # business-neutral technical contracts/infrastructure
-
-resources/js/       # Vue/Inertia frontend
-routes/             # HTTP/API/console route registration
-database/           # migrations, factories, seeders
-config/             # Laravel and application configuration
-bootstrap/          # application/provider bootstrapping
-tests/              # architecture, feature and unit tests
-bin/                # setup/check/deploy/backup/restore/rollback helpers
-.github/workflows/  # CI and targeted verification workflows
+├── Contexts/
+│   ├── Accounts/
+│   │   ├── Identity/
+│   │   ├── Registration/
+│   │   ├── Authentication/
+│   │   ├── Credentials/
+│   │   ├── EmailVerification/
+│   │   ├── Profile/
+│   │   └── MultiFactorAuthentication/
+│   │
+│   ├── GameWorld/
+│   │   ├── Players/
+│   │   ├── Kingdoms/
+│   │   ├── Governance/
+│   │   └── KingdomTransfers/
+│   │
+│   ├── Alliance/
+│   │   ├── Lifecycle/
+│   │   ├── Membership/
+│   │   ├── Access/
+│   │   ├── Recruitment/
+│   │   └── Content/
+│   │
+│   ├── Operations/
+│   │   ├── Access/
+│   │   ├── Events/
+│   │   ├── Participation/
+│   │   ├── Polls/
+│   │   ├── Rosters/
+│   │   ├── BattlePlans/
+│   │   ├── Rallies/
+│   │   ├── KingPerks/
+│   │   └── Results/
+│   │
+│   ├── Intelligence/
+│   │   ├── Access/
+│   │   ├── Observations/
+│   │   ├── Ingestion/
+│   │   ├── Roster/
+│   │   ├── Contributions/
+│   │   ├── EventAnalysis/
+│   │   ├── Diplomacy/
+│   │   └── Sharing/
+│   │
+│   ├── Communications/
+│   │   └── Delivery/
+│   │
+│   └── Platform/
+│       ├── Administration/
+│       ├── AllianceAdministration/
+│       ├── DataGovernance/
+│       ├── EventAdministration/
+│       └── Integrations/
+│
+├── Workflows/
+│   ├── AccountOnboarding/
+│   └── KingdomGovernance/
+│
+├── ReadModels/
+│
+└── Shared/
+    └── Infrastructure/
 ```
 
-## `app/Contexts`
-
-Current top-level contexts:
+Other top-level application areas remain conventional Laravel/application structure:
 
 ```text
-Accounts
-GameWorld
-Alliance
-Operations
-Intelligence
-Communications
-Platform
+resources/js/       # Vue/Inertia frontend
+routes/             # route registration only
+database/           # migrations, factories and seeders
+config/             # configuration
+bootstrap/          # application/provider bootstrapping
+tests/              # architecture, feature and unit tests
+bin/                # operational helpers
+.github/workflows/  # CI and verification
 ```
 
-Within a context, capability folders may contain Actions, Models, Queries, Services, Access, HTTP adapters and value objects as appropriate. There is no requirement that every capability use every folder type.
+## Capability internals
 
-## `app/Workflows`
+A capability may contain the technical folders it needs, for example:
 
-Current workflow packages include Kingdom governance/transfer, Player context and registration orchestration. Workflows may coordinate context contracts but do not own the context aggregates.
+```text
+<Capability>/
+├── Actions/
+├── Models/
+├── Queries/
+├── Services/
+├── Policies/
+├── Access/
+├── Http/
+└── Events/
+```
 
-## `app/ReadModels`
+There is no requirement that every capability contain every technical layer.
 
-Contains cross-context projections such as Alliance dashboard, Event calendar/history/management and Kingdom intelligence/settings views. These are read-only composition boundaries.
+## Prohibited context-root technical buckets
 
-## `app/Shared`
+Architecture V3 does not organize a bounded context primarily by framework/technical layer. These paths are prohibited:
 
-Contains small technical access/HTTP contracts, providers and infrastructure such as AuditTrail and Messaging/Outbox. Shared must stay business-neutral and must not import a business context.
+```text
+app/Contexts/<Context>/Actions
+app/Contexts/<Context>/Models
+app/Contexts/<Context>/Queries
+app/Contexts/<Context>/Services
+app/Contexts/<Context>/Policies
+app/Contexts/<Context>/Http
+```
 
-## V1 hard cut
+Code belongs to the capability that owns its behavior.
 
-Architecture V2 does not use `app/Domain`. New V2 code must not reintroduce `App\Domain\*` imports or compatibility facades.
+## Workflows
+
+Only genuine multi-context command processes belong in `app/Workflows`. V3 has two intended workflow packages:
+
+- `AccountOnboarding`
+- `KingdomGovernance`
+
+Player activation/context belongs to `GameWorld/Players`. Kingdom transfers belong to `GameWorld/KingdomTransfers`.
+
+## ReadModels
+
+`app/ReadModels` composes reads across context boundaries. It performs no business writes.
+
+## Shared
+
+`app/Shared/Infrastructure` contains business-neutral infrastructure such as audit, messaging/outbox, runtime/health, security and metrics mechanics where appropriate. Shared does not import business contexts or encode game policy.

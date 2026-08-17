@@ -1,31 +1,44 @@
 # Persistence
 
-Status: Current
+Status: Current — Architecture V3
 
-The application uses PostgreSQL as the relational store. Eloquent models are located with the context/capability that owns the writable fact.
+The application may use one PostgreSQL database, but business persistence ownership follows bounded-context capabilities rather than database proximity.
 
-## Ownership
+## Ownership rule
 
-Database proximity does not make tables shared. A context may reference another context's durable identifier when required, but the owning context remains the only place that should create/change that business fact except through supported application contracts.
+A capability owns the write model and invariants for its business state. Other contexts do not mutate that state through foreign Eloquent models or shared-table reach-through.
 
-Examples:
+Cross-context references should normally use stable scalar identifiers such as:
 
-- Accounts owns User account state.
-- GameWorld owns Player/Kingdom identity and neutral placement/governance state.
-- Alliance owns Alliance membership/rank/role state.
-- Operations owns operational Event state.
-- Intelligence owns observations/analytical history.
-- Communications owns delivery state.
-- Platform owns platform grants/integration administration.
+```text
+user_id
+player_id
+alliance_id
+kingdom_id
+event_id
+```
 
-## Constraints
+A scalar reference does not transfer aggregate ownership.
 
-Use database uniqueness/foreign-key/check constraints where they express invariants that must survive concurrent application requests. Application validation is not a substitute for constraints that protect persistence integrity.
+## Eloquent relationships
+
+Relationships are appropriate inside an ownership boundary where they express the owning model. Cross-context Eloquent navigation is not the integration mechanism for V3.
+
+In particular, GameWorld `Player` must not expose an Eloquent relationship back into Accounts `User`; Player ownership is represented by `user_id` and owner queries/contracts.
+
+## Cross-context access
+
+For reads, use:
+
+- the owner's Query/service contract when a stable owner fact is required; or
+- a ReadModel for cross-context composition.
+
+For writes, call the owning capability Action. Do not import a foreign Model merely because the database is shared.
 
 ## Migrations
 
-Migrations live under `database/migrations`. A migration should reflect the logical owner even though migrations are physically centralized. Schema changes must consider forward deployment, existing data, rollback/recovery and concurrent runtime behavior.
+Database migrations remain under `database/migrations`, but schema ownership must still be identifiable from the capability that writes the data. Migrations do not create a separate architectural layer or imply shared business ownership.
 
-## Read models
+## Constraints
 
-ReadModels may query several owners to compose a projection but do not take ownership of those source records or write back into the source aggregates.
+Database constraints should protect critical persistence invariants where practical. Application Actions remain responsible for business policy, current authorization and transactional sequencing.

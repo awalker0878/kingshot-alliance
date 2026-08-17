@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
-use App\Contexts\Operations\Access\Services\AllianceOperationsMutationAuthority;
+use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
 use App\Contexts\Operations\Rallies\Models\RallyGuidanceRule;
 use App\Contexts\Operations\Rallies\ValueObjects\FormationComposition;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -20,7 +21,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveRallyGuidanceRule
 {
     public function __construct(
-        private AllianceOperationsMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceOperationsAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -59,7 +61,8 @@ final readonly class SaveRallyGuidanceRule
         $heroes = $this->normalizeHeroes($heroes);
 
         return DB::transaction(function () use ($actor, $alliance, $name, $composition, $heroes, $leadRequirements, $joinerGuidance, $source, $rationale, $effectiveFrom, $effectiveUntil, $isActive, $rule): RallyGuidanceRule {
-            $context = $this->authority->require($actor, $alliance, OperationsPermission::EventAllianceManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, OperationsPermission::EventAllianceManage);
 
             $record = $rule instanceof RallyGuidanceRule
                 ? RallyGuidanceRule::query()

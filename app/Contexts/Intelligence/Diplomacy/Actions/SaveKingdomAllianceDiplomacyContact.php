@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Diplomacy\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceContactChannel;
@@ -51,14 +51,14 @@ final readonly class SaveKingdomAllianceDiplomacyContact
         }
 
         return DB::transaction(function () use ($alliance, $actor, $trackingId, $attributes, $contactId): KingdomAllianceDiplomacyContact {
-            $currentAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $currentAlliance = Alliance::query()->findOrFail($alliance->id);
             $tracking = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->lockForUpdate()
                 ->findOrFail($trackingId);
             $this->assertMutableContext($currentAlliance, $tracking);
 
-            $reference = KingdomAlliance::query()->lockForUpdate()->findOrFail($tracking->kingdom_alliance_id);
+            $reference = KingdomAlliance::query()->findOrFail($tracking->kingdom_alliance_id);
             if ($reference->kingdom_id !== $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
                     'contact' => 'The tracked alliance reference no longer matches its captured Kingdom context.',

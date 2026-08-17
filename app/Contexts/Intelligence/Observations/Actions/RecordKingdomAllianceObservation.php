@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Observations\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
@@ -24,7 +25,8 @@ final readonly class RecordKingdomAllianceObservation
     private const MAX_POWER = '9223372036854775807';
 
     public function __construct(
-        private AllianceIntelligenceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceIntelligenceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -65,11 +67,12 @@ final readonly class RecordKingdomAllianceObservation
             if ($source === 'ingestion') {
                 // Automated promotion has no human authority principal. It still uses
                 // the same Alliance lifecycle boundary as manual intelligence writes.
-                $currentAlliance = Alliance::query()->whereKey($alliance->id)->sharedLock()->firstOrFail();
+                $currentAlliance = Alliance::query()->whereKey($alliance->id)->firstOrFail();
                 $currentActor = null;
             } else {
                 /** @var Player $actor */
-                $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
+                $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+                $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
                 $currentAlliance = $context->alliance;
                 $currentActor = $context->actor;
             }
@@ -77,7 +80,7 @@ final readonly class RecordKingdomAllianceObservation
             $tracking = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->whereKey($trackingId)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             if ($tracking->state !== TrackedKingdomAllianceState::Active) {
@@ -96,7 +99,7 @@ final readonly class RecordKingdomAllianceObservation
             // The reference is also the current-name/tag synchronization anchor.
             $reference = KingdomAlliance::query()
                 ->whereKey($tracking->kingdom_alliance_id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
             if ((string) $reference->kingdom_id !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages([

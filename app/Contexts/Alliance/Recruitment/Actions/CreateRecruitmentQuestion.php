@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentQuestionType;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,8 @@ use InvalidArgumentException;
 final class CreateRecruitmentQuestion
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -64,7 +66,8 @@ final class CreateRecruitmentQuestion
             $cleanOptions,
             $isActive,
         ): RecruitmentQuestion {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::RecruitmentManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             $question = RecruitmentQuestion::query()->create([
                 'alliance_id' => $context->alliance->id,

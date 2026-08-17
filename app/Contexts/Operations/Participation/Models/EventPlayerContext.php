@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Models;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Contexts\Accounts\Models\User;
+use App\Contexts\Accounts\Identity\Models\User;
 
 return [
     'defaults' => [

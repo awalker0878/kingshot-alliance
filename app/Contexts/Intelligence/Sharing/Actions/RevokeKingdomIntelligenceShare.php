@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Sharing\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Sharing\Enums\KingdomIntelligenceShareState;
@@ -31,7 +31,7 @@ final readonly class RevokeKingdomIntelligenceShare
         }
 
         return DB::transaction(function () use ($sourceAlliance, $actor, $shareId): KingdomIntelligenceShare {
-            $source = Alliance::query()->whereKey($sourceAlliance->id)->lockForUpdate()->firstOrFail();
+            $source = Alliance::query()->whereKey($sourceAlliance->id)->firstOrFail();
             $share = KingdomIntelligenceShare::query()
                 ->whereKey($shareId)
                 ->where('source_alliance_id', $source->id)

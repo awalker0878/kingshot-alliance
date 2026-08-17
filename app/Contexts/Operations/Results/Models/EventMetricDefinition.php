@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Models;
 
-use App\Contexts\Operations\EventCore\Models\EventTypeScope;
+use App\Contexts\Operations\Events\Models\EventTypeScope;
 use App\Contexts\Operations\Results\Enums\EventMetricAggregation;
 use App\Contexts\Operations\Results\Enums\EventMetricSubject;
 use App\Contexts\Operations\Results\Enums\EventMetricValueType;

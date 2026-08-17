@@ -6,9 +6,9 @@ namespace App\Contexts\Alliance\Content\Http\Controllers;
 
 use App\Contexts\Alliance\Content\Queries\ContentQuery;
 use App\Contexts\Alliance\Content\Services\ContentPresenter;
-use App\Contexts\Alliance\Core\Enums\AllianceStatus;
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Shared\Http\Controller;
+use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;

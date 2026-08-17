@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\EventAnalysis\Queries;
 
-use App\Contexts\Operations\EventCore\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Participation\Models\EventPlayerContext;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use App\Contexts\Operations\Results\Models\EventAllianceResult;

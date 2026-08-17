@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Queries;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use Illuminate\Database\Eloquent\Builder;

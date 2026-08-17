@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Services;
 
-use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Models\Event;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
 use Carbon\CarbonImmutable;
 
 final class EventRegistrationWindow

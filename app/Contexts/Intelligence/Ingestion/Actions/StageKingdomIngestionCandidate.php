@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Intelligence\Ingestion\Contracts\KingdomIngestionAdapter;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionBatchState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionCandidateState;

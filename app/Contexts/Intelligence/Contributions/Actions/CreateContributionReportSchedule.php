@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Contributions\Models\ContributionReportSchedule;
 use App\Contexts\Intelligence\Contributions\Services\ContributionReportExporter;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -21,7 +22,8 @@ use InvalidArgumentException;
 final class CreateContributionReportSchedule
 {
     public function __construct(
-        private readonly AllianceIntelligenceMutationAuthority $authority,
+        private readonly AllianceWriteState $allianceWriteState,
+        private readonly AllianceIntelligenceAuthorization $authority,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
     ) {}
@@ -40,11 +42,12 @@ final class CreateContributionReportSchedule
         }
 
         return DB::transaction(function () use ($actor, $alliance, $recipient, $name, $cadence, $timezone, $nextDueAt): ContributionReportSchedule {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
 
             $currentRecipient = (string) $recipient->id === (string) $context->actor->id
                 ? $context->actor
-                : Player::query()->whereKey($recipient->id)->lockForUpdate()->firstOrFail();
+                : Player::query()->whereKey($recipient->id)->firstOrFail();
             if ((string) $currentRecipient->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
                 throw new InvalidArgumentException('Scheduled report recipient must belong to the Alliance Kingdom.');
             }
@@ -55,7 +58,7 @@ final class CreateContributionReportSchedule
                     ->where('alliance_id', $context->alliance->id)
                     ->where('player_id', $currentRecipient->id)
                     ->where('status', MembershipStatus::Active->value)
-                    ->lockForUpdate()
+                    
                     ->first();
             if (! $recipientMembership instanceof AllianceMembership) {
                 throw new InvalidArgumentException('Scheduled report recipient must be an active Alliance Player.');

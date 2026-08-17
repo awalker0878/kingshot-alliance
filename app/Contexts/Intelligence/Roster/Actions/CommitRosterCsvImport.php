@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Roster\Models\RosterImport;
@@ -117,7 +117,7 @@ final readonly class CommitRosterCsvImport
                     $existing = AllianceRosterEntry::query()
                         ->where('alliance_id', $alliance->id)
                         ->with('player:id,current_kingdom_id,game_player_id,current_name')
-                        ->lockForUpdate()
+                        
                         ->find($entryId);
 
                     if (! $existing instanceof AllianceRosterEntry) {

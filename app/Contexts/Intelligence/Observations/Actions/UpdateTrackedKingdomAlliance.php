@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Observations\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
@@ -44,7 +44,7 @@ final readonly class UpdateTrackedKingdomAlliance
         }
 
         return DB::transaction(function () use ($alliance, $actor, $trackingId, $attributes): TrackedKingdomAlliance {
-            $lockedAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $lockedAlliance = Alliance::query()->findOrFail($alliance->id);
             $tracking = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $lockedAlliance->id)
                 ->lockForUpdate()
@@ -58,7 +58,7 @@ final readonly class UpdateTrackedKingdomAlliance
 
             $this->assertCurrentKingdom($lockedAlliance, $tracking);
 
-            $reference = KingdomAlliance::query()->lockForUpdate()->findOrFail($tracking->kingdom_alliance_id);
+            $reference = KingdomAlliance::query()->findOrFail($tracking->kingdom_alliance_id);
             if ($reference->kingdom_id !== $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
                     'tracking' => 'The tracked alliance identity no longer matches its captured Kingdom context.',

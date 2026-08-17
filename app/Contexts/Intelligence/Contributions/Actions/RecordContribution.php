@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordSource;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordStatus;
 use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
@@ -24,7 +25,8 @@ use InvalidArgumentException;
 final class RecordContribution
 {
     public function __construct(
-        private readonly AllianceIntelligenceMutationAuthority $authority,
+        private readonly AllianceWriteState $allianceWriteState,
+        private readonly AllianceIntelligenceAuthorization $authority,
         private readonly ContributionPeriodResolver $periods,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
@@ -43,19 +45,20 @@ final class RecordContribution
             $permission = $source === ContributionRecordSource::SelfReported
                 ? AlliancePermission::View
                 : IntelligencePermission::ContributionManage;
-            $context = $this->authority->require($actor, $alliance, $permission);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, $permission);
 
             $isActorTarget = (string) $player->id === (string) $context->actor->id;
             if ($source === ContributionRecordSource::SelfReported && ! $isActorTarget) {
                 throw new InvalidArgumentException('Self-reported contributions may only be recorded for the active Player.');
             }
 
-            // AllianceMutationAuthority already stabilized the actor membership. Avoid
-            // re-locking that same actor Player after its membership; target other Players
+            // AllianceWriteState already stabilized the actor membership and Player.
+            // Avoid re-locking that same actor after its membership; target other Players
             // using the normal Player -> target-membership eligibility order.
             $currentPlayer = $isActorTarget
                 ? $context->actor
-                : Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
+                : Player::query()->whereKey($player->id)->firstOrFail();
             if ((string) $currentPlayer->current_kingdom_id !== (string) $context->alliance->kingdom_id) {
                 throw new InvalidArgumentException('Contribution Player must belong to the active Alliance Kingdom.');
             }
@@ -67,7 +70,7 @@ final class RecordContribution
                         ->where('alliance_id', $context->alliance->id)
                         ->where('player_id', $currentPlayer->id)
                         ->where('status', MembershipStatus::Active->value)
-                        ->lockForUpdate()
+                        
                         ->first();
                 if (! $membership instanceof AllianceMembership || $membership->status !== MembershipStatus::Active) {
                     throw new InvalidArgumentException('Manual contributions may only target a current active Alliance Player.');
@@ -77,7 +80,7 @@ final class RecordContribution
             $currentCategory = ContributionCategory::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($category->id)
-                ->sharedLock()
+                
                 ->firstOrFail();
             if (! $currentCategory->is_active) {
                 throw new InvalidArgumentException('Contribution category is inactive.');

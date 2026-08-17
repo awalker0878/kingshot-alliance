@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Services;
 
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\BattlePlans\Models\EventObjective;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventPhase;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Models\EventPhase;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use App\Contexts\Operations\Results\Enums\EventMetricSubject;
 use App\Contexts\Operations\Results\Enums\EventMetricValueType;

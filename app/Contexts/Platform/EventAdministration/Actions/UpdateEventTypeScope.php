@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\EventAdministration\Actions;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\Operations\EventCore\Actions\PersistEventTypeScopeConfiguration;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Enums\EventRecurrencePolicy;
-use App\Contexts\Operations\EventCore\Enums\EventScheduleSource;
-use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
-use App\Contexts\Operations\EventCore\Models\EventTypeScope;
-use App\Contexts\Platform\Access\Services\PlatformMutationAuthority;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
+use App\Contexts\Operations\Events\Actions\PersistEventTypeScopeConfiguration;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventRecurrencePolicy;
+use App\Contexts\Operations\Events\Enums\EventScheduleSource;
+use App\Contexts\Operations\Events\Enums\RecurrenceFrequency;
+use App\Contexts\Operations\Events\Models\EventTypeScope;
+use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
+use App\Contexts\Platform\Administration\Services\PlatformWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,8 @@ use Illuminate\Support\Facades\DB;
 final class UpdateEventTypeScope
 {
     public function __construct(
-        private PlatformMutationAuthority $platformMutations,
+        private PlatformWriteState $platformWriteState,
+        private PlatformAuthorization $platformMutations,
         private PersistEventTypeScopeConfiguration $persistConfiguration,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -30,7 +32,7 @@ final class UpdateEventTypeScope
      * @param  array<string, mixed>  $defaultSettings
      */
     public function handle(
-        User $actor,
+        AccountIdentity $actor,
         EventTypeScope $configuration,
         bool $isActive,
         ?int $defaultDurationMinutes,
@@ -63,7 +65,8 @@ final class UpdateEventTypeScope
             $defaultSettings,
             $capabilities,
         ): EventTypeScope {
-            $context = $this->platformMutations->require($actor);
+            $writeContext = $this->platformWriteState->lock($actor);
+            $context = $this->platformMutations->authorizeContext($writeContext);
             $updated = $this->persistConfiguration->handle(
                 configuration: $configuration,
                 isActive: $isActive,

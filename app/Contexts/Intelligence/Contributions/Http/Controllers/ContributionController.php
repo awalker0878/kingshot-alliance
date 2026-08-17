@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Contributions\Actions\ApproveContributionRecord;
@@ -28,7 +28,7 @@ use App\Contexts\Intelligence\Contributions\Models\ContributionDataQualityFlag;
 use App\Contexts\Intelligence\Contributions\Models\ContributionRecord;
 use App\Contexts\Intelligence\Contributions\Queries\ContributionReportingQuery;
 use App\Contexts\Intelligence\Contributions\Services\ContributionReportExporter;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

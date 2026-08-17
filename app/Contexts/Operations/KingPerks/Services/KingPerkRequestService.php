@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Services;
 
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Models\Event;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPlanStatus;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkPushCategory;
@@ -27,7 +28,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class KingPerkRequestService
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventWriteState $eventWriteState,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -165,7 +167,8 @@ final readonly class KingPerkRequestService
     {
         $route = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($plan->id)->firstOrFail();
         $event = Event::query()->whereKey($route->event_id)->firstOrFail();
-        $context = $this->mutations->requireSelf($actor, $event, $actor);
+        $context = $this->eventWriteState->lockSelfScope($actor, $event, $actor);
+        $this->mutations->authorizeSelf($context, $actor);
         $this->capabilities->require($context->event, EventCapability::KingPerks);
 
         if ((string) $context->actor->current_kingdom_id !== (string) $route->kingdom_id) {
@@ -188,7 +191,8 @@ final readonly class KingPerkRequestService
         $route = KingPerkRequest::query()->select(['id', 'plan_id', 'player_id'])->whereKey($request->id)->firstOrFail();
         $planRoute = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($route->plan_id)->firstOrFail();
         $event = Event::query()->whereKey($planRoute->event_id)->firstOrFail();
-        $context = $this->mutations->requireSelf($actor, $event, $actor);
+        $context = $this->eventWriteState->lockSelfScope($actor, $event, $actor);
+        $this->mutations->authorizeSelf($context, $actor);
         $this->capabilities->require($context->event, EventCapability::KingPerks);
 
         if ((string) $route->player_id !== (string) $context->actor->id
@@ -217,7 +221,8 @@ final readonly class KingPerkRequestService
         $route = KingPerkRequest::query()->select(['id', 'plan_id'])->whereKey($request->id)->firstOrFail();
         $planRoute = KingPerkPlan::query()->select(['id', 'event_id', 'kingdom_id'])->whereKey($route->plan_id)->firstOrFail();
         $event = Event::query()->whereKey($planRoute->event_id)->firstOrFail();
-        $context = $this->mutations->requireManager($actor, $event);
+        $context = $this->eventWriteState->lockEventScope($actor, $event);
+        $this->mutations->authorizeManager($context);
         $this->capabilities->require($context->event, EventCapability::KingPerks);
 
         if (! $context->target instanceof Kingdom

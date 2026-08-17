@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;

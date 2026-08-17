@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Access\Services;
 
-use App\Contexts\Alliance\Core\Enums\AllianceStatus;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
+use App\Contexts\Alliance\Access\ValueObjects\AllianceMutationContext;
+use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
+use Illuminate\Auth\Access\AuthorizationException;
 
 final class AllianceIntelligenceAuthorization
 {
@@ -31,11 +34,25 @@ final class AllianceIntelligenceAuthorization
             && $this->allowsMembership($membership, $alliance, $permission);
     }
 
-    public function allowsMembership(
-        AllianceMembership $membership,
-        Alliance $alliance,
-        IntelligencePermission $permission,
-    ): bool {
+    public function authorizeContext(
+        AllianceMutationContext $context,
+        IntelligencePermission|AlliancePermission $permission,
+    ): void {
+        if ($permission instanceof AlliancePermission) {
+            if ($permission !== AlliancePermission::View) {
+                throw new AuthorizationException;
+            }
+
+            return;
+        }
+
+        if (! $this->allowsMembership($context->membership, $context->alliance, $permission)) {
+            throw new AuthorizationException;
+        }
+    }
+
+    public function allowsMembership(AllianceMembership $membership, Alliance $alliance, IntelligencePermission $permission): bool
+    {
         if ($membership->status !== MembershipStatus::Active
             || (string) $membership->alliance_id !== (string) $alliance->id) {
             return false;

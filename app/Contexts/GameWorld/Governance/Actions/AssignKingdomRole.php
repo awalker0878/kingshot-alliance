@@ -8,9 +8,10 @@ use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
-use App\Contexts\GameWorld\Governance\Services\KingdomMutationAuthority;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
+use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class AssignKingdomRole
 {
     public function __construct(
-        private KingdomMutationAuthority $mutations,
+        private KingdomWriteState $kingdomWriteState,
+        private KingdomAuthorization $mutations,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -31,7 +33,8 @@ final readonly class AssignKingdomRole
         DefaultKingdomRole $roleTemplate,
     ): KingdomRoleAssignment {
         return DB::transaction(function () use ($actor, $kingdom, $target, $roleTemplate): KingdomRoleAssignment {
-            $authority = $this->mutations->require($actor, $kingdom, KingdomPermission::RoleManage);
+            $authority = $this->kingdomWriteState->lockActiveScope($actor, $kingdom);
+            $this->mutations->authorizeContext($authority, KingdomPermission::RoleManage);
             $currentKingdom = $authority->kingdom;
             $currentActor = $authority->actor;
 

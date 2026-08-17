@@ -8,9 +8,9 @@ use App\Contexts\Alliance\Content\Enums\MediaLifecycleStatus;
 use App\Contexts\Alliance\Content\Enums\MediaScanStatus;
 use App\Contexts\Alliance\Content\Models\AllianceBrandingMedia;
 use App\Contexts\Alliance\Content\Models\MediaAsset;
-use App\Contexts\Alliance\Core\Enums\AllianceStatus;
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Shared\Http\Controller;
+use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

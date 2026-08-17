@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Queries;
 
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
 use App\Contexts\Intelligence\Contributions\Models\ContributionRecord;
 use App\Contexts\Intelligence\EventAnalysis\Queries\EventPlayerHistoryQuery;

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,8 @@ use Illuminate\Support\Facades\DB;
 final readonly class MarkRosterEntryLeft
 {
     public function __construct(
-        private AllianceIntelligenceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceIntelligenceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -25,7 +27,8 @@ final readonly class MarkRosterEntryLeft
     public function handle(Alliance $alliance, Player $actor, string $entryId): AllianceRosterEntry
     {
         return DB::transaction(function () use ($alliance, $actor, $entryId): AllianceRosterEntry {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
 
             $routing = AllianceRosterEntry::query()
                 ->select(['id', 'player_id'])
@@ -37,14 +40,14 @@ final readonly class MarkRosterEntryLeft
             // the roster row so leave/manual cleanup cannot race a Player transfer.
             Player::query()
                 ->whereKey($routing->player_id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             $entry = AllianceRosterEntry::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->where('player_id', $routing->player_id)
                 ->whereKey($entryId)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             if ($entry->state === RosterState::Left) {

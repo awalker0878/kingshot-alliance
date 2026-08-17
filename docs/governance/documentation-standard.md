@@ -1,8 +1,8 @@
 # Documentation standard
 
-Status: Current
+Status: Current — Architecture V3
 
-Documentation is organized by **reader intent**, while architecture itself is organized by **bounded context and capability**.
+Documentation describes the **current intended system**. It does not preserve superseded architecture descriptions, compatibility maps or historical decision narratives inside the live docs tree. Repository history provides historical traceability.
 
 ## Canonical top-level groups
 
@@ -17,38 +17,46 @@ docs/
 └── reference/
 ```
 
-The live documentation tree uses these groups only. Architecture decisions live in `architecture/decisions`; bounded contexts and their capabilities live in `architecture/contexts`; security and approval rules live in Governance.
-
 ## What goes where
 
 | Area | Question |
 | --- | --- |
-| Architecture | What is the system, who owns the rule/data, and why? |
-| Codebase | Where/how is that architecture implemented? |
+| Architecture | What are the bounded contexts/capabilities, ownership boundaries and invariants? |
+| Codebase | How and where is the current architecture implemented? |
 | Operations | How is the application deployed, monitored and recovered? |
 | Product | What outcome/capability does the user receive? |
-| Governance | What rules govern changes, security and approval? |
+| Governance | What rules govern engineering, security, verification and approval? |
 | Reference | What lookup-oriented facts are useful without explanatory narrative? |
+
+## Architecture documentation
+
+Architecture is organized around seven bounded contexts containing capabilities. Capability documentation should use the current capability name and ownership boundary.
+
+Do not keep pages whose purpose is to explain a removed package, previous module name, prior architecture version or migration path. When a concept is replaced, update or replace the authoritative current document and remove the obsolete page.
+
+## Codebase documentation
+
+Codebase docs map the current architecture to the current intended source tree. Architecture V3 is capability-first:
+
+```text
+app/Contexts/<Context>/<Capability>/...
+```
+
+Do not document root technical buckets as accepted current structure.
 
 ## Canonical ownership
 
-Every rule has one authoritative home. Other documents link to it instead of restating a competing version.
+Every rule has one authoritative home. Other documents link to it rather than maintaining a competing copy.
 
 - business invariant/ownership: Architecture;
-- implementation path/pattern: Codebase;
-- procedure: Operations;
+- implementation pattern/path: Codebase;
+- operating procedure: Operations;
 - user outcome/terminology: Product;
 - change/security/approval rule: Governance;
-- generated/lookup catalogue: Reference.
-
-## Context documents
-
-A context/capability document normally covers purpose, ownership, actors/authority, invariants, workflow, cross-context dependencies and implementation link. Security, operations, interface and testing material is added where it provides useful context rather than as mandatory repeated subtrees.
-
-## Current truth and decisions
-
-Living architecture is the authoritative description of current behavior and ownership. Decision records capture durable rationale for choices that remain part of the current architecture.
+- mechanical lookup values: Reference.
 
 ## Maintenance trigger
 
-Update documentation when a documented capability, ownership boundary, invariant, public/internal contract, authority rule, persistence/consistency rule, operational procedure, security requirement, configuration/recovery requirement or production status materially changes. Pure internal refactoring within the same documented contract normally needs only codebase/module-map updates if physical location changed.
+Update documentation when a capability, ownership boundary, invariant, source structure, authority rule, integration contract, persistence/consistency rule, operational procedure, security requirement or production status materially changes.
+
+Architecture and implementation changes are incomplete until stale documentation describing removed structures has been deleted or rewritten.

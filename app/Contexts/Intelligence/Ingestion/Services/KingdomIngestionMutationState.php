@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\Services;
 
-use App\Contexts\Alliance\Core\Enums\AllianceStatus;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionSubscription;
 use App\Contexts\Intelligence\Ingestion\ValueObjects\KingdomIngestionMutationContext;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +40,7 @@ final readonly class KingdomIngestionMutationState
             return null;
         }
 
-        $allianceQuery = Alliance::query()->whereKey($route->alliance_id)->sharedLock();
+        $allianceQuery = Alliance::query()->whereKey($route->alliance_id);
         $alliance = $nullable ? $allianceQuery->first() : $allianceQuery->firstOrFail();
         if (! $alliance instanceof Alliance) {
             return null;
@@ -57,7 +57,7 @@ final readonly class KingdomIngestionMutationState
         $subscriptionQuery = KingdomIngestionSubscription::query()
             ->whereKey($route->id)
             ->where('alliance_id', $alliance->id)
-            ->lockForUpdate();
+            ;
         $subscription = $nullable ? $subscriptionQuery->first() : $subscriptionQuery->firstOrFail();
         if (! $subscription instanceof KingdomIngestionSubscription) {
             return null;

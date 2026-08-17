@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Services\EventPlayerContextFreezer;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentRole;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
@@ -24,7 +25,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class RespondRallyAssignment
 {
     public function __construct(
-        private EventMutationAuthority $eventAuthority,
+        private EventWriteState $eventWriteState,
+        private EventAuthorization $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private RallyPlayerEligibility $eligibility,
         private EventPlayerContextFreezer $contexts,
@@ -42,7 +44,8 @@ final readonly class RespondRallyAssignment
         $event = $group->occurrence()->firstOrFail()->event()->firstOrFail();
 
         return DB::transaction(function () use ($actor, $assignment, $player, $status, $group, $event): RallyAssignment {
-            $context = $this->eventAuthority->requireSelf($actor, $event, $player);
+            $context = $this->eventWriteState->lockSelfScope($actor, $event, $player);
+            $this->eventAuthority->authorizeSelf($context, $player);
             $this->capabilities->require($context->event, EventCapability::RallyGuidance);
 
             $occurrence = EventOccurrence::query()

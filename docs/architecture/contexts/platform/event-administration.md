@@ -1,9 +1,13 @@
-# Platform Event administration
+# Platform — EventAdministration
 
-Status: Current  
-Context: Platform  
-Implementation: `app/Contexts/Platform/EventAdministration`
+Status: Current — Architecture V3
 
-Platform Event administration provides cross-tenant/catalogue administration over Event configuration where the product needs a platform-level operator surface.
+Implementation target: `app/Contexts/Platform/EventAdministration`
 
-Operations remains owner of Event runtime semantics, scopes, occurrences, participation and `events.*` authorization. Platform administration orchestrates supported Operations configuration contracts rather than reaching into Operations persistence and redefining Event behavior.
+EventAdministration owns cross-tenant/catalogue administration over Event-type configuration where the product needs a platform-level operator surface.
+
+## Boundary
+
+Operations remains owner of Event runtime semantics, scopes, occurrences, participation and `events.*` authorization.
+
+Platform EventAdministration invokes supported Operations contracts when configuration must affect operational behavior; it does not reach into Operations persistence or redefine Event execution semantics.

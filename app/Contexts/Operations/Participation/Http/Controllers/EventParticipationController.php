@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\GameWorld\Services\PlayerContext;
-use App\Contexts\Operations\EventCore\Queries\EventCalendarQuery;
+use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\Services\PlayerContext;
+use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
 use App\Contexts\Operations\Participation\Actions\CancelEventRegistration;
 use App\Contexts\Operations\Participation\Actions\RecordEventAttendance;
 use App\Contexts\Operations\Participation\Actions\RegisterForEvent;
 use App\Contexts\Operations\Participation\Actions\RespondToEvent;
 use App\Contexts\Operations\Participation\Enums\EventAttendanceStatus;
 use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

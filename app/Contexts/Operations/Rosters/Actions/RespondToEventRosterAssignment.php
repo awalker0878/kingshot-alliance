@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Services\EventPlayerContextFreezer;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
@@ -23,7 +24,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class RespondToEventRosterAssignment
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventWriteState $eventWriteState,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private EventPlayerContextFreezer $contexts,
         private AuditRecorder $audit,
@@ -41,7 +43,8 @@ final readonly class RespondToEventRosterAssignment
         $event = $occurrence->event()->firstOrFail();
 
         return DB::transaction(function () use ($actor, $member, $player, $status, $roster, $occurrence, $event): EventRosterMember {
-            $context = $this->mutations->requireSelf($actor, $event, $player);
+            $context = $this->eventWriteState->lockSelfScope($actor, $event, $player);
+            $this->mutations->authorizeSelf($context, $player);
             $this->capabilities->require($context->event, EventCapability::Rosters);
 
             $lockedOccurrence = EventOccurrence::query()

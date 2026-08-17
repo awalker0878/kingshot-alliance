@@ -1,8 +1,8 @@
 # Bounded contexts
 
-Status: Current
+Status: Current — Architecture V3
 
-Architecture V2 has seven write-owning business contexts:
+Architecture V3 has exactly seven write-owning business contexts:
 
 - [Accounts](accounts/README.md)
 - [GameWorld](game-world/README.md)
@@ -12,6 +12,8 @@ Architecture V2 has seven write-owning business contexts:
 - [Communications](communications/README.md)
 - [Platform](platform/README.md)
 
-These documents define logical ownership. Physical source paths are mapped in [Codebase module map](../../codebase/module-map.md).
+Each context is physically organized by cohesive business capabilities. Technical layers such as Actions, Models, Queries, Services, Policies and Http live inside those capability packages.
 
-Do not add a peer context solely because a noun receives its own model, route, database table or folder.
+`app/Workflows`, `app/ReadModels` and `app/Shared` are not additional bounded contexts.
+
+Do not create a peer context merely because a noun has a model/table/route, and do not create a capability merely to mirror every noun. A capability represents cohesive business behavior inside its context.

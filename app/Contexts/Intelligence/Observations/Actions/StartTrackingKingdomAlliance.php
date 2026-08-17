@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Observations\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Actions\ResolveKingdomAlliance;
-use App\Contexts\GameWorld\Enums\KingdomAllianceStatus;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Kingdoms\Actions\ResolveKingdomAlliance;
+use App\Contexts\GameWorld\Kingdoms\Enums\KingdomAllianceStatus;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
@@ -42,7 +42,7 @@ final readonly class StartTrackingKingdomAlliance
         }
 
         return DB::transaction(function () use ($alliance, $actor, $attributes): TrackedKingdomAlliance {
-            $lockedAlliance = Alliance::query()->lockForUpdate()->findOrFail($alliance->id);
+            $lockedAlliance = Alliance::query()->findOrFail($alliance->id);
 
             if ($lockedAlliance->kingdom_id === null) {
                 throw ValidationException::withMessages([

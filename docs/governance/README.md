@@ -1,15 +1,15 @@
 # Governance
 
-Status: Current
+Status: Current — Architecture V3
 
-Governance contains the rules for changing, securing and approving the system.
+Governance defines the rules used to engineer, verify, secure and approve changes.
 
+- [Architecture V3 compliance](architecture-compliance.md)
 - [Engineering principles](engineering-principles.md)
-- [Architecture V2 compliance](architecture-compliance.md)
-- [Documentation standard](documentation-standard.md)
 - [Definition of Done](definition-of-done.md)
+- [Change impact guide](change-impact.md)
+- [Documentation standard](documentation-standard.md)
 - [Security requirements](security-requirements.md)
 - [Production approval](production-approval.md)
-- [Change impact guide](change-impact.md)
 
-Architecture decisions belong under [Architecture decisions](../architecture/decisions/README.md). Operational procedures belong under [System operations](../operations/README.md).
+Architecture V3 compliance is based on structural and semantic invariants, not a hardcoded capability registry or retained architecture-history documentation.

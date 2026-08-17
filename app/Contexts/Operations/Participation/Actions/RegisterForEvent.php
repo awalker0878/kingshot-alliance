@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityResolver;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventCapabilityResolver;
+use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\Participation\Services\EventPlayerContextFreezer;
@@ -23,7 +24,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class RegisterForEvent
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventWriteState $eventWriteState,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private EventCapabilityResolver $capabilityResolver,
         private EventRegistrationWindow $window,
@@ -37,7 +39,8 @@ final readonly class RegisterForEvent
         $event = $occurrence->event()->firstOrFail();
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $player): EventRegistration {
-            $context = $this->mutations->requireSelf($actor, $event, $player);
+            $context = $this->eventWriteState->lockSelfScope($actor, $event, $player);
+            $this->mutations->authorizeSelf($context, $player);
             $this->capabilities->require($context->event, EventCapability::Registration);
 
             $currentPlayer = $context->actor;

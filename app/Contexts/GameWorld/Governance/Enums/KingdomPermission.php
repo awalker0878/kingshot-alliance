@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Governance\Enums;
 
-use App\Shared\Access\Contracts\Permission;
+use App\Shared\Infrastructure\Access\Contracts\Permission;
 
 enum KingdomPermission: string implements Permission
 {

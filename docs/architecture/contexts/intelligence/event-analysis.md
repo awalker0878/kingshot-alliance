@@ -1,17 +1,17 @@
-# Event analysis
+# Intelligence — EventAnalysis
 
-Status: Current  
-Context: Intelligence  
-Implementation: `app/Contexts/Intelligence/EventAnalysis` and Event-history ReadModels
+Status: Current — Architecture V3
+
+Implementation target: `app/Contexts/Intelligence/EventAnalysis`
 
 EventAnalysis owns analytical history, trends and evidence derived from operational Event facts.
 
 ## Ownership split
 
-- Operations: schedule, occurrences, participation, planning and captured operational results.
-- Intelligence: analytical/history state derived from those facts.
-- ReadModels: read-only composition for screens/history views that need multiple owners.
+- Operations owns schedules, occurrences, participation, planning and captured operational results.
+- Intelligence/EventAnalysis owns analytical/history state derived from those facts.
+- ReadModels own read-only composition for screens/history views that need several owners.
 
-Current membership/placement can govern access to organization-scoped history but does not rewrite the historical Player/Alliance/Kingdom target of the underlying Event fact.
+Current membership/placement may govern access to organization-scoped history but does not rewrite historical Player/Alliance/Kingdom attribution.
 
-Analytical metrics should preserve their event-specific meaning rather than pretending all Event types share one universal contribution score.
+Analytical metrics preserve their Event-specific meaning rather than pretending all Event types share one universal contribution score.

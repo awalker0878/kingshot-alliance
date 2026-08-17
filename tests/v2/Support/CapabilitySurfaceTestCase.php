@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\v2\Support;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -14,6 +15,8 @@ use Tests\v2\TestCase;
 
 abstract class CapabilitySurfaceTestCase extends TestCase
 {
+    use RefreshDatabase;
+
     protected const CAPABILITY = '';
 
     /** @var list<string> */

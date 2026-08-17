@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Membership\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Services\MembershipAdministrationGuard;
-use App\Contexts\Alliance\Policies\AllianceCapacityPolicy;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Membership\Policies\MemberCapacityPolicy;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
@@ -21,9 +22,10 @@ use Illuminate\Validation\ValidationException;
 final readonly class UpdateMembershipStatus
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceAuthorization $authority,
         private MembershipAdministrationGuard $guard,
-        private AllianceCapacityPolicy $entitlements,
+        private MemberCapacityPolicy $entitlements,
         private AuditRecorder $audit,
     ) {}
 
@@ -43,8 +45,9 @@ final readonly class UpdateMembershipStatus
             // Activation can consume Alliance-wide member capacity; suspension/removal
             // only mutate one membership and therefore use the narrow lifecycle boundary.
             $context = $status === MembershipStatus::Active
-                ? $this->authority->requireExclusive($actor, $alliance, AlliancePermission::MembershipManage)
-                : $this->authority->require($actor, $alliance, AlliancePermission::MembershipManage);
+                ? $this->allianceWriteState->lockExclusiveScope($actor, $alliance)
+                : $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::MembershipManage);
 
             if ($status === MembershipStatus::Active) {
                 // Identity-binding operations use Player -> membership everywhere in
@@ -59,7 +62,7 @@ final readonly class UpdateMembershipStatus
 
                 $player = Player::query()
                     ->whereKey($routing->player_id)
-                    ->lockForUpdate()
+                    
                     ->firstOrFail();
 
                 $membership = AllianceMembership::query()
@@ -87,7 +90,7 @@ final readonly class UpdateMembershipStatus
 
             if ($status === MembershipStatus::Active) {
                 if ($previousStatus !== MembershipStatus::Active) {
-                    $this->entitlements->assertMemberCapacity($context->alliance);
+                    $this->entitlements->assertCapacity($context->alliance);
                 }
 
                 if (! $player instanceof Player

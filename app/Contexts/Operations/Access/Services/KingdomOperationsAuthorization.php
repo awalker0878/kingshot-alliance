@@ -5,27 +5,44 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Access\Services;
 
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
-use App\Contexts\GameWorld\Models\Kingdom;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Governance\ValueObjects\KingdomMutationContext;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 
 final class KingdomOperationsAuthorization
 {
     public function allows(Player $actor, Kingdom $kingdom, OperationsPermission $permission): bool
     {
-        if (! in_array($permission, [
+        if (! $this->supports($permission)
+            || (string) $actor->current_kingdom_id !== (string) $kingdom->id) {
+            return false;
+        }
+
+        return $this->hasPermission($actor, $kingdom, $permission);
+    }
+
+    public function authorizeContext(KingdomMutationContext $context, OperationsPermission $permission): void
+    {
+        if (! $this->supports($permission)
+            || ! $this->hasPermission($context->actor, $context->kingdom, $permission)) {
+            throw new AuthorizationException;
+        }
+    }
+
+    private function supports(OperationsPermission $permission): bool
+    {
+        return in_array($permission, [
             OperationsPermission::EventKingdomView,
             OperationsPermission::EventKingdomCreate,
             OperationsPermission::EventKingdomManage,
-        ], true)) {
-            return false;
-        }
+        ], true);
+    }
 
-        if ((string) $actor->current_kingdom_id !== (string) $kingdom->id) {
-            return false;
-        }
-
+    private function hasPermission(Player $actor, Kingdom $kingdom, OperationsPermission $permission): bool
+    {
         return KingdomRoleAssignment::query()
             ->where('kingdom_id', $kingdom->id)
             ->where('player_id', $actor->id)

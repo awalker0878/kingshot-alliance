@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\BattlePlans\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\BattlePlans\Enums\EventObjectiveStatus;
 use App\Contexts\Operations\BattlePlans\Models\EventObjective;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
@@ -21,7 +22,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveEventObjective
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventWriteState $eventWriteState,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -74,7 +76,8 @@ final readonly class SaveEventObjective
         }
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $name, $objectiveType, $description, $priority, $startsAt, $endsAt, $status, $sortOrder, $metadata, $parent, $objective): EventObjective {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Objectives);
 
             // Objective hierarchy/timing is occurrence-owned. Serializing structure on

@@ -1,53 +1,98 @@
 # System overview
 
-Status: Current
+Status: Current — Architecture V3
 
-Kingshot Alliance is a modular Laravel application for coordinating KingShot players, alliances, kingdoms and operational game activities. The architecture separates account identity, game-world identity, alliance operations, live event operations, intelligence/analytics, communications delivery and platform administration.
-
-## Logical layers
+Kingshot Alliance is a modular Laravel application organized around seven write-owning bounded contexts. Each context is physically divided into cohesive business capabilities rather than context-root framework layers.
 
 ```text
 Browser / API / Console
         |
         v
-Application entry points
+Thin HTTP / command adapters
         |
-        +------------------------------+
-        | write-owning bounded contexts|
-        | Accounts                     |
-        | GameWorld                    |
-        | Alliance                     |
-        | Operations                   |
-        | Intelligence                 |
-        | Communications               |
-        | Platform                     |
-        +------------------------------+
+        v
+Context capability Actions
+        |
+        +-------------------------------+
+        | Accounts                      |
+        | GameWorld                     |
+        | Alliance                      |
+        | Operations                    |
+        | Intelligence                  |
+        | Communications                |
+        | Platform                      |
+        +-------------------------------+
              |          |          |
-             |          |          +--> Shared technical infrastructure
-             |          +-------------> Cross-context Workflows
+             |          |          +--> Shared/Infrastructure
+             |          +-------------> Workflows for true multi-owner commands
              +------------------------> ReadModels for composed reads
 ```
 
-## Write-owning contexts
+## Bounded contexts
 
 | Context | Primary responsibility |
 | --- | --- |
-| Accounts | User account identity, authentication and account security. |
-| GameWorld | Neutral Player/Kingdom identity, placement and Kingdom governance facts. |
-| Alliance | Alliance tenant lifecycle, membership, Alliance authority, recruitment and Alliance content. |
-| Operations | Execution-time game coordination: Events, participation, rosters, battle plans, rallies, results, King Perks and reminder policy. |
-| Intelligence | Observational/analytical facts, ingestion, roster intelligence, contribution history, event analysis, diplomacy and sharing. |
-| Communications | Delivery coordination, recipient preferences, retry/idempotency and channel behavior. |
-| Platform | Cross-tenant SaaS administration, lifecycle controls, platform grants, event-type administration and external integrations. |
+| Accounts | User identity, registration, authentication, credentials, verification, profile and MFA. |
+| GameWorld | Player/Kingdom identity, placement/reference facts, Kingdom governance and Kingdom transfers. |
+| Alliance | Alliance lifecycle, membership/leadership, Alliance access, recruitment and content. |
+| Operations | Event execution, participation, polls, rosters, battle plans, rallies, King Perks and results. |
+| Intelligence | Observed/ingested facts, roster/contribution intelligence, event analysis, diplomacy and sharing. |
+| Communications | Generic notification delivery, preferences, channels, retries and idempotency. |
+| Platform | Platform administration, Alliance platform administration, data governance, Event administration and integrations. |
 
-## Composition layers
+## Capability-first source organization
 
-`app/ReadModels` may read from several contexts to produce user-facing projections. It is read-only and cannot transfer aggregate ownership.
+Inside a context, business capability comes before technical implementation layer:
 
-`app/Workflows` coordinates multi-context mutations such as Player context, registration, Kingdom governance and Kingdom transfer. It invokes supported context contracts; it does not own the participating aggregates.
+```text
+Context/
+└── Capability/
+    ├── Actions/
+    ├── Models/
+    ├── Queries/
+    ├── Services/
+    ├── Policies/
+    ├── Http/
+    └── Events/
+```
 
-`app/Shared` provides technical infrastructure such as audit trail and transactional messaging/outbox. Business policy must not migrate into Shared.
+Only the folders required by the capability are created.
 
-## Important naming distinction
+Context-root technical buckets such as `Accounts/Actions`, `Accounts/Models` or `Platform/Services` are not part of V3.
 
-`app/Contexts/Operations` is a **business bounded context** for game/event operations. `docs/operations` is **system operations documentation** for deployment, observability and recovery. They intentionally answer different questions.
+## Command model
+
+The normal write path is:
+
+```text
+HTTP / job / command adapter
+        ↓
+Owning capability Action
+        ↓
+transaction + locks + current authorization
+        ↓
+owner persistence
+        ↓
+outbox/event intent when required
+```
+
+HTTP adapters do not own transactions, direct persistence or domain locking.
+
+## Cross-context commands
+
+A caller does not manipulate another context's Eloquent models. It calls an explicit owner Action/Query and passes stable scalar identifiers such as `user_id`, `player_id`, `alliance_id` and `kingdom_id`.
+
+A command requiring more than one write owner is coordinated through a Workflow. V3 keeps Workflows intentionally small:
+
+- `AccountOnboarding`
+- `KingdomGovernance`
+
+Player activation belongs to `GameWorld/Players`; Kingdom transfer belongs to `GameWorld/KingdomTransfers`.
+
+## Read composition
+
+`app/ReadModels` may combine data from several contexts for a projection. ReadModels are read-only and do not become persistence owners.
+
+## Shared infrastructure
+
+`app/Shared/Infrastructure` contains generic infrastructure such as audit, outbox/messaging and runtime mechanics. It owns no game or platform business policy.

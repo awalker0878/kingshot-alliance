@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\EventAdministration\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Enums\EventRecurrencePolicy;
-use App\Contexts\Operations\EventCore\Enums\EventScheduleSource;
-use App\Contexts\Operations\EventCore\Enums\EventScope;
-use App\Contexts\Operations\EventCore\Enums\RecurrenceFrequency;
-use App\Contexts\Operations\EventCore\Models\EventType;
-use App\Contexts\Operations\EventCore\Models\EventTypeCapability;
-use App\Contexts\Operations\EventCore\Models\EventTypeScope;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventRecurrencePolicy;
+use App\Contexts\Operations\Events\Enums\EventScheduleSource;
+use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\RecurrenceFrequency;
+use App\Contexts\Operations\Events\Models\EventType;
+use App\Contexts\Operations\Events\Models\EventTypeCapability;
+use App\Contexts\Operations\Events\Models\EventTypeScope;
 use App\Contexts\Platform\EventAdministration\Actions\UpdateEventTypeScope;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -24,6 +25,8 @@ use Inertia\Response;
 
 final class EventTypeAdministrationController extends Controller
 {
+    public function __construct(private readonly AccountIdentityQuery $accounts) {}
+
     public function index(Request $request): Response
     {
         $types = EventType::query()
@@ -130,7 +133,7 @@ final class EventTypeAdministrationController extends Controller
         }
 
         $update->handle(
-            actor: $this->user($request),
+            actor: $this->account($request),
             configuration: $configuration,
             isActive: (bool) $validated['is_active'],
             defaultDurationMinutes: isset($validated['default_duration_minutes']) ? (int) $validated['default_duration_minutes'] : null,
@@ -156,19 +159,19 @@ final class EventTypeAdministrationController extends Controller
     /** @return array{name:string,email:string} */
     private function identity(Request $request): array
     {
-        $user = $this->user($request);
+        $account = $this->account($request);
 
         return [
-            'name' => (string) $user->name,
-            'email' => (string) $user->email,
+            'name' => $account->name,
+            'email' => $account->email,
         ];
     }
 
-    private function user(Request $request): User
+    private function account(Request $request): AccountIdentity
     {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
+        $identifier = $request->user()?->getAuthIdentifier();
+        abort_unless(is_numeric($identifier), 401);
 
-        return $user;
+        return $this->accounts->require((int) $identifier);
     }
 }

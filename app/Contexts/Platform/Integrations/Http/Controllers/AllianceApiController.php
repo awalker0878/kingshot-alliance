@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Http\Controllers;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\Operations\EventCore\Enums\EventScope;
-use App\Shared\Http\Controller;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

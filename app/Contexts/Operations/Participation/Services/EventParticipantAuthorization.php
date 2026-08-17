@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Services;
 
-use App\Contexts\Alliance\Core\Enums\AllianceStatus;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
-use App\Contexts\Operations\EventCore\Enums\EventScope;
-use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Services\EventAuthorization;
-use App\Contexts\Operations\EventCore\Services\EventTargetResolver;
+use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Models\Event;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventTargetResolver;
 use Illuminate\Auth\Access\AuthorizationException;
 
 final readonly class EventParticipantAuthorization

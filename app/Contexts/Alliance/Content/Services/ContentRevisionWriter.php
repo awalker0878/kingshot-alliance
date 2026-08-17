@@ -6,7 +6,7 @@ namespace App\Contexts\Alliance\Content\Services;
 
 use App\Contexts\Alliance\Content\Models\ContentItem;
 use App\Contexts\Alliance\Content\Models\ContentRevision;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 
 final class ContentRevisionWriter
 {

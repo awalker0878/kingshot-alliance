@@ -6,11 +6,12 @@ namespace App\Contexts\Alliance\Access\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Models\Role;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class AssignMembershipRole
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceAuthorization $authority,
         private AuditRecorder $audit,
     ) {}
 
@@ -31,7 +33,8 @@ final readonly class AssignMembershipRole
         string $roleId,
     ): AllianceMembership {
         return DB::transaction(function () use ($alliance, $actor, $membershipId, $roleId): AllianceMembership {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::RoleManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::RoleManage);
 
             $membership = AllianceMembership::query()
                 ->where('id', $membershipId)

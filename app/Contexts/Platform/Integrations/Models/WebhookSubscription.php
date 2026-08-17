@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\Integrations\Models;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -46,12 +44,6 @@ final class WebhookSubscription extends Model
             'is_active' => 'boolean',
             'revoked_at' => 'datetime',
         ];
-    }
-
-    /** @return BelongsTo<Alliance, $this> */
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
     }
 
     /** @return HasMany<WebhookDelivery, $this> */

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rosters\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -19,7 +20,8 @@ use Illuminate\Support\Facades\DB;
 final readonly class RemoveEventRosterPlayer
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventWriteState $eventWriteState,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -33,7 +35,8 @@ final readonly class RemoveEventRosterPlayer
         $event = $occurrence->event;
 
         return DB::transaction(function () use ($actor, $member, $roster, $occurrence, $event): EventRosterMember {
-            $context = $this->mutations->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->mutations->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::Rosters);
 
             $lockedOccurrence = EventOccurrence::query()

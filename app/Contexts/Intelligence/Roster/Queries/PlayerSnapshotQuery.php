@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Queries;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
 use Illuminate\Database\Eloquent\Collection;

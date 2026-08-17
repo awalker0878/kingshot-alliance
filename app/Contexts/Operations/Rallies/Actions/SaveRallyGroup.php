@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
-use App\Contexts\Alliance\Core\Enums\AllianceStatus;
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentRole;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
 use App\Contexts\Operations\Rallies\Models\EventRecommendedFormation;
@@ -25,7 +26,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveRallyGroup
 {
     public function __construct(
-        private EventMutationAuthority $eventAuthority,
+        private EventWriteState $eventWriteState,
+        private EventAuthorization $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private RallyAllianceResolver $alliances,
         private AuditRecorder $audit,
@@ -68,7 +70,8 @@ final readonly class SaveRallyGroup
         }
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $allianceId, $name, $maxJoiners, $recommendedFormation, $notes, $sortOrder, $group): RallyGroup {
-            $context = $this->eventAuthority->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->eventAuthority->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::RallyGuidance);
 
             // Group metadata is not occurrence-wide occupancy state. Share-lock the
@@ -83,7 +86,7 @@ final readonly class SaveRallyGroup
             $alliance = Alliance::query()
                 ->whereKey($resolvedAlliance->id)
                 ->where('status', AllianceStatus::Active->value)
-                ->sharedLock()
+                
                 ->firstOrFail();
 
             $formation = null;

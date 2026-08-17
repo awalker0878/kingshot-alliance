@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -23,7 +24,8 @@ final readonly class RecordPlayerSnapshot
     private const MAX_POWER = '9223372036854775807';
 
     public function __construct(
-        private AllianceIntelligenceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceIntelligenceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -59,11 +61,12 @@ final readonly class RecordPlayerSnapshot
 
         return DB::transaction(function () use ($alliance, $actor, $entryId, $attributes, $source, $importId, $provenance): PlayerSnapshot {
             if ($source === 'ingestion') {
-                $currentAlliance = Alliance::query()->whereKey($alliance->id)->sharedLock()->firstOrFail();
+                $currentAlliance = Alliance::query()->whereKey($alliance->id)->firstOrFail();
                 $currentActor = null;
             } else {
                 /** @var Player $actor */
-                $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
+                $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+                $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
                 $currentAlliance = $context->alliance;
                 $currentActor = $context->actor;
             }
@@ -71,7 +74,7 @@ final readonly class RecordPlayerSnapshot
             $entry = AllianceRosterEntry::query()
                 ->where('alliance_id', $currentAlliance->id)
                 ->whereKey($entryId)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             $capturedAt = $this->capturedAt($attributes['captured_at']);

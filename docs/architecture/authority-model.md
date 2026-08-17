@@ -1,40 +1,58 @@
 # Authority model
 
-Status: Current
+Status: Current — Architecture V3
 
-Kingshot Alliance separates **account authority** from **game-domain authority**.
+The application separates account identity from game-domain authority.
 
 ```text
-User (Accounts)
- |
- | owns/claims
- v
-Player (GameWorld)  <---- active Player selected for the request
- |
- +--> current Kingdom / Kingdom governance
- |
- +--> Alliance membership
- |      +--> R1-R5 rank
- |      +--> specialist roles
- |
- +--> Operations authority derived for this Player and scope
- +--> Intelligence authority derived for this Player and scope
-
 User
- +--> Platform Administrator grant (Platform only)
+├── account assurance / authentication
+├── Platform Administrator grant (Platform only)
+└── owns many Players by scalar user_id
+      |
+      └── Active Player
+          ├── Alliance membership / rank / specialist roles
+          ├── Kingdom governance roles
+          ├── Operations authority inputs
+          └── Intelligence authority inputs
 ```
 
-## Rules
+## Account principal
 
-- A `User` is the authenticated account identity and may own multiple Players.
-- The active `Player` is the security principal for game-domain behavior.
-- Authority is never aggregated across every Player owned by one User.
-- Switching active Player changes effective Alliance/Kingdom/game authority to the selected Player's authority.
-- Alliance membership, rank and specialist roles belong to the Player's membership, not the User.
-- Kingdom role assignments are Player-scoped within the concrete Kingdom.
-- Operations and Intelligence own interpretation of their own permission vocabulary. They may consume current Alliance/GameWorld facts but must not delegate their policy semantics back to those contexts.
-- Platform Administrator is a User-scoped cross-tenant SaaS grant and does not bypass Alliance, Kingdom, Operations or Intelligence game authorization.
+Accounts `Identity` owns User identity. Authentication, credentials, verification and MFA establish/assure the operating User account.
 
-## Transaction-time authority
+## Game principal
 
-For protected writes, authorization that depends on mutable scope state must be resolved inside the write transaction after the relevant scope records are locked. Pre-request context is useful for navigation and early rejection; it is not a substitute for transaction-time mutation authority.
+`GameWorld/Players` owns Player identity and active Player selection. The active Player is the security principal for game-domain behavior.
+
+A User may own multiple Players. Authority is never unioned across those Players.
+
+## Ownership reference
+
+Player ownership is represented through scalar `user_id` and supported GameWorld ownership queries/contracts. GameWorld Player does not expose an Eloquent relationship into Accounts User.
+
+## Alliance authority
+
+`Alliance/Access` interprets Alliance permissions using the active Player's current Alliance membership, R1–R5 rank and specialist roles in the concrete Alliance.
+
+## Kingdom authority
+
+`GameWorld/Governance` interprets GameWorld Kingdom governance permissions using current Player-scoped governance assignments in the concrete Kingdom.
+
+## Operations authority
+
+`Operations/Access` owns Operations permission vocabulary. It may consume Alliance/GameWorld facts but decides what those facts authorize for Operations capabilities.
+
+## Intelligence authority
+
+`Intelligence/Access` owns Intelligence permission vocabulary and interpretation.
+
+## Platform authority
+
+`Platform/Administration` owns Platform Administrator authority. It is User-scoped and never bypasses game-domain authorization.
+
+## Mutable write authorization
+
+Request-time actor resolution is not sufficient for a write whose authority can change concurrently. The owning capability Action must revalidate mutable scope/role state inside its write transaction after acquiring the locks required by that owner.
+
+Authorization services interpret permissions; lock acquisition belongs to the owner write path.

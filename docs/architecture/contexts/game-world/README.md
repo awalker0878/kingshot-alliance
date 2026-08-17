@@ -1,18 +1,36 @@
 # GameWorld context
 
-Status: Current  
-Implementation: `app/Contexts/GameWorld`
+Status: Current — Architecture V3
 
-GameWorld is the neutral KingShot identity and governance foundation. It owns durable Player/Kingdom identity, placement/reference state and Kingdom governance primitives without absorbing downstream feature policy.
+Implementation target: `app/Contexts/GameWorld`
+
+GameWorld owns neutral game-world identity, Kingdom reference state, Kingdom governance and Kingdom transfer behavior.
 
 ## Capabilities
 
-- [Player context](player-context.md) — Player claim/ownership and active Player resolution.
-- [Reference and placement state](reference-state.md) — neutral Player, Kingdom and game-Alliance reference facts.
-- [Kingdom governance](kingdom-governance.md) — Kingdom roles, assignments and transaction-time Kingdom mutation authority.
+```text
+GameWorld/
+├── Players/
+├── Kingdoms/
+├── Governance/
+└── KingdomTransfers/
+```
 
-## Boundary
+- **Players** owns Player identity/claim, Player ownership reference and active Player selection.
+- **Kingdoms** owns Kingdom identity and neutral Kingdom/Alliance placement/reference state.
+- **Governance** owns Kingdom roles, assignments and GameWorld governance authorization semantics.
+- **KingdomTransfers** owns Kingdom transfer planning and transfer-domain state.
 
-GameWorld exposes stable IDs and current governance/reference facts. It does not interpret `events.*`, Intelligence or Alliance-specific permission vocabularies for downstream contexts.
+## Identity boundary
 
-Player is the game-domain principal. User is the account principal.
+User is the Accounts principal. Player is the game-domain principal.
+
+GameWorld may retain scalar `user_id` to represent Player ownership, but `Player` does not expose a cross-context Eloquent relationship into Accounts `User`.
+
+## Authority boundary
+
+GameWorld interprets only GameWorld/Kingdom governance permissions. It does not interpret Alliance, Operations or Intelligence permission vocabularies.
+
+## Workflow boundary
+
+Active Player activation belongs to `Players`; it is not a Workflow. Kingdom transfer belongs to `KingdomTransfers`; it is not a Workflow simply because it references other context IDs.

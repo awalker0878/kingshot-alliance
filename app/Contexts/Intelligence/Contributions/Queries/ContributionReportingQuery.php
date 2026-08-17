@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Queries;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordStatus;
 use App\Contexts\Intelligence\Contributions\Models\ContributionCategory;
 use App\Contexts\Intelligence\Contributions\Models\ContributionDataQualityFlag;

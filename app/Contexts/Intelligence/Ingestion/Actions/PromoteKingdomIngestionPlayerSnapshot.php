@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Ingestion\Actions;
 
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionBatchState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionCandidateState;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionSubscriptionState;
@@ -121,7 +121,7 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
             // Player -> roster is the identity/Kingdom movement order used elsewhere.
             $player = Player::query()
                 ->whereKey($playerIds->first())
-                ->lockForUpdate()
+                
                 ->firstOrFail();
             if ((string) $player->current_kingdom_id !== (string) $subscription->kingdom_id
                 || $player->game_player_id !== $candidate->stable_game_id) {
@@ -134,7 +134,7 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
                 ->where('alliance_id', $context->alliance->id)
                 ->where('player_id', $player->id)
                 ->orderBy('id')
-                ->lockForUpdate()
+                
                 ->limit(2)
                 ->get();
             if ($entries->isEmpty()) {

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Contributions\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Contributions\Enums\ContributionRecordStatus;
 use App\Contexts\Intelligence\Contributions\Models\ContributionRecord;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -18,7 +19,8 @@ use InvalidArgumentException;
 final class ReverseContributionRecord
 {
     public function __construct(
-        private readonly AllianceIntelligenceMutationAuthority $authority,
+        private readonly AllianceWriteState $allianceWriteState,
+        private readonly AllianceIntelligenceAuthorization $authority,
         private readonly AuditRecorder $audit,
         private readonly OutboxRecorder $outbox,
     ) {}
@@ -35,7 +37,8 @@ final class ReverseContributionRecord
         }
 
         return DB::transaction(function () use ($actor, $alliance, $record, $reason): ContributionRecord {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::ContributionManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::ContributionManage);
             $locked = ContributionRecord::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($record->id)

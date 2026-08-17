@@ -1,18 +1,18 @@
-# Recruitment
+# Alliance — Recruitment
 
-Status: Current  
-Context: Alliance  
-Implementation: `app/Contexts/Alliance/Recruitment`
+Status: Current — Architecture V3
+
+Implementation target: `app/Contexts/Alliance/Recruitment`
 
 Recruitment owns Alliance candidate/application behavior up to the controlled handoff into Membership.
 
 ## Responsibilities
 
-- recruitment/application intake represented by the current capability;
-- review/decision behavior;
-- Alliance recruiter/reviewer authority;
-- handoff to membership when an accepted candidate is eligible to become a member;
-- retention/anonymization behavior where recruitment records contain applicant data.
+- recruitment/application intake;
+- review and decision behavior;
+- recruiter/reviewer authority;
+- handoff to Membership when an accepted candidate is eligible to become a member;
+- retention/anonymization behavior for recruitment records containing applicant data.
 
 ## Authority
 
@@ -20,4 +20,4 @@ Alliance recruiters/reviewers act through the active Player and concrete Allianc
 
 ## Boundary
 
-Recruitment does not create a parallel membership model. Once membership is created, Membership is the authoritative Alliance relationship.
+Recruitment does not create a parallel membership model. Once membership is created, `Alliance/Membership` is the authoritative Alliance relationship.

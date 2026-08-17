@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Queries;
 
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Models\Event;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Queries\EventEligiblePlayerQuery;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
 use App\Contexts\Operations\Results\Models\EventAllianceResult;

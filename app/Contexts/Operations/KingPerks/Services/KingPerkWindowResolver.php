@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Services;
 
-use App\Contexts\Operations\EventCore\Enums\EventPhaseType;
-use App\Contexts\Operations\EventCore\Enums\EventScope;
-use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Models\EventPhase;
+use App\Contexts\Operations\Events\Enums\EventPhaseType;
+use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Models\Event;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Models\EventPhase;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Validation\ValidationException;

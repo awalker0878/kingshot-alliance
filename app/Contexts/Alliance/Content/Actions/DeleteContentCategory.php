@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Content\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Content\Models\ContentCategory;
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class DeleteContentCategory
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -25,7 +27,8 @@ final readonly class DeleteContentCategory
     public function handle(Alliance $alliance, Player $actor, string $categoryId): void
     {
         DB::transaction(function () use ($alliance, $actor, $categoryId): void {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::ContentManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
 
             $category = ContentCategory::query()
                 ->where('id', $categoryId)

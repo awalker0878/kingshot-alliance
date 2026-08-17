@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Observations\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Observations\Enums\TrackedKingdomAllianceState;
 use App\Contexts\Intelligence\Observations\Models\KingdomAllianceObservation;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
@@ -20,7 +21,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class InvalidateKingdomAllianceObservation
 {
     public function __construct(
-        private AllianceIntelligenceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceIntelligenceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -33,7 +35,8 @@ final readonly class InvalidateKingdomAllianceObservation
         ?string $reason,
     ): KingdomAllianceObservation {
         return DB::transaction(function () use ($alliance, $actor, $trackingId, $observationId, $reason): KingdomAllianceObservation {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
 
             $tracking = TrackedKingdomAlliance::query()
                 ->where('alliance_id', $context->alliance->id)
@@ -56,7 +59,7 @@ final readonly class InvalidateKingdomAllianceObservation
             // Match RecordKingdomAllianceObservation exactly: tracking -> reference -> history.
             $reference = KingdomAlliance::query()
                 ->whereKey($tracking->kingdom_alliance_id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             $observation = KingdomAllianceObservation::query()

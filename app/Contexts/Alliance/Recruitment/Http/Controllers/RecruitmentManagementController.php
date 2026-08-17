@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Http\Controllers;
 
-use App\Contexts\Accounts\Models\User;
+use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Recruitment\Actions\ConfigureRecruitmentSettings;
@@ -26,8 +26,8 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentOnboardingItem;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 use App\Contexts\Alliance\Recruitment\Queries\RecruitmentMetricsQuery;
-use App\Contexts\GameWorld\Models\Player;
-use App\Shared\Http\Controller;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Polls\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Models\EventPoll;
 use App\Contexts\Operations\Polls\Models\EventPollOption;
@@ -23,7 +24,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class CastEventPollVote
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventWriteState $eventWriteState,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -36,7 +38,8 @@ final readonly class CastEventPollVote
         $event = $poll->occurrence->event;
 
         DB::transaction(function () use ($actor, $poll, $event, $player, $optionIds): void {
-            $context = $this->mutations->requireSelf($actor, $event, $player);
+            $context = $this->eventWriteState->lockSelfScope($actor, $event, $player);
+            $this->mutations->authorizeSelf($context, $player);
             $this->capabilities->require($context->event, EventCapability::Polls);
 
             $currentPlayer = $context->actor;

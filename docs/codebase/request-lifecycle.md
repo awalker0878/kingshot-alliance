@@ -1,34 +1,46 @@
 # Request lifecycle
 
-Status: Current
+Status: Current — Architecture V3
 
-A typical authenticated game-domain request follows this shape:
+A normal game-domain request follows this shape:
 
 ```text
-HTTP request
-  -> Laravel route/middleware
+Route
+  -> transport/security middleware
   -> authenticate User
-  -> assign request/correlation context
-  -> resolve active Player where game context is required
-  -> resolve current scope facts
-  -> controller
-  -> owning action/service/query or ReadModel
-  -> transaction + transaction-time mutation authority for writes
-  -> persistence
-  -> audit/outbox intent in same transaction when required
-  -> commit
-  -> response / Inertia render
-  -> asynchronous side effects after commit
+  -> resolve/validate active Player through GameWorld/Players
+  -> capability-local HTTP adapter
+  -> owning capability Action or ReadModel/Workflow
+  -> response
 ```
 
-## Reads
+## Request context
 
-A read belonging to one context should normally use that context's query/service. A screen that genuinely composes several owners should use an explicit ReadModel rather than allowing a controller to become a persistence integration layer.
+Authentication resolves the User account. Game-domain requests that require game authority resolve a concrete active Player owned by that User.
 
-## Writes
+Request context may provide current identifiers and coarse prerequisites, but it is not the final authority for mutable writes.
 
-Controllers should validate/translate HTTP input and call the owning application action. The owning action is responsible for transaction boundaries, target locks, current authority, invariant enforcement and persistence.
+## Write request
 
-## Side effects
+```text
+Controller
+  -> validate input
+  -> invoke capability Action
+       -> begin owner transaction
+       -> lock mutable authority/scope state
+       -> revalidate current permission/invariants
+       -> lock/mutate owner aggregate
+       -> persist audit/outbox intent if required
+       -> commit
+  -> response
+```
 
-Email/reminder/webhook/other retryable side effects should not make the owning transaction depend on remote delivery. Persist durable intent/outbox state, commit, then process asynchronously.
+The Controller does not own the transaction, locks or Eloquent persistence.
+
+## Cross-context command
+
+If one owner can satisfy the command, call that owner's Action directly. If the business process genuinely requires multiple write owners, invoke a Workflow such as `AccountOnboarding` or `KingdomGovernance`.
+
+## Read request
+
+A capability-local Query handles owner reads. A `ReadModel` handles cross-context read composition. ReadModels do not write.

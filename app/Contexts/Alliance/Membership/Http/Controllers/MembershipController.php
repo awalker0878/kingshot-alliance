@@ -6,14 +6,14 @@ namespace App\Contexts\Alliance\Membership\Http\Controllers;
 
 use App\Contexts\Alliance\Access\Actions\AssignMembershipRole;
 use App\Contexts\Alliance\Access\Actions\RemoveMembershipRole;
-use App\Contexts\Alliance\Core\Services\AllianceContext;
+use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Actions\LeaveAlliance;
 use App\Contexts\Alliance\Membership\Actions\TransferAllianceLeadership;
 use App\Contexts\Alliance\Membership\Actions\UpdateAllianceRank;
 use App\Contexts\Alliance\Membership\Actions\UpdateMembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

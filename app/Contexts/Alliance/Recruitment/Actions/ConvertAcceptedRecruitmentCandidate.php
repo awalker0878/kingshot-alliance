@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AlliancePermissionEvaluator;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Services\IssueAllianceInvitation;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentOnboardingStatus;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
@@ -15,7 +16,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidateOnboarding;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentOnboardingItem;
 use App\Contexts\Alliance\Recruitment\ValueObjects\ConvertedRecruitmentCandidate;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -25,7 +26,8 @@ use Illuminate\Validation\ValidationException;
 final class ConvertAcceptedRecruitmentCandidate
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceAuthorization $authority,
         private AlliancePermissionEvaluator $permissions,
         private IssueAllianceInvitation $invitationIssuer,
         private AuditRecorder $audit,
@@ -41,11 +43,8 @@ final class ConvertAcceptedRecruitmentCandidate
         return DB::transaction(function () use ($actor, $alliance, $candidate, $target): ConvertedRecruitmentCandidate {
             // Conversion creates a member-capacity reservation, so acquire the
             // Alliance-wide boundary before candidate/Player child state.
-            $context = $this->authority->requireExclusive(
-                $actor,
-                $alliance,
-                AlliancePermission::RecruitmentManage,
-            );
+            $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             // Conversion composes Recruitment and Memberships. Both permissions must
             // be true on the same locked membership authority snapshot.

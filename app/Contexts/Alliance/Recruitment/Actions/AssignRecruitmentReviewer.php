@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,8 @@ use Illuminate\Validation\ValidationException;
 final class AssignRecruitmentReviewer
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -32,7 +34,8 @@ final class AssignRecruitmentReviewer
         Player $reviewer,
     ): void {
         DB::transaction(function () use ($actor, $alliance, $candidate, $reviewer): void {
-            $context = $this->authority->require($actor, $alliance, AlliancePermission::RecruitmentManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             // Reviewer assignment is a child mutation: share-lock candidate state so
             // independent candidate children can proceed while merge remains exclusive.
@@ -50,7 +53,7 @@ final class AssignRecruitmentReviewer
 
             $lockedReviewer = Player::query()
                 ->whereKey($reviewer->id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             if ((string) $lockedReviewer->current_kingdom_id !== (string) $context->alliance->kingdom_id) {

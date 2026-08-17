@@ -4,30 +4,35 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Access\Services;
 
-use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
-use App\Contexts\GameWorld\Governance\Models\KingdomRole;
-use App\Contexts\GameWorld\Models\Kingdom;
+use App\Contexts\GameWorld\Governance\Actions\GrantKingdomRolePermissions;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
-use App\Shared\Access\Models\Permission;
+use App\Shared\Infrastructure\Access\Models\Permission;
 use Illuminate\Support\Str;
-use RuntimeException;
 
-final class KingdomOperationsRoleProvisioner
+final readonly class KingdomOperationsRoleProvisioner
 {
-    public function provision(Kingdom $kingdom): void
-    {
+    public function __construct(
+        private GrantKingdomRolePermissions $grantRolePermissions,
+    ) {}
+
+    public function provision(
+        string $kingdomId,
+        string $administratorRoleId,
+        string $eventCoordinatorRoleId,
+        string $viewerRoleId,
+    ): void {
         $grants = [
-            DefaultKingdomRole::Administrator->value => [
+            $administratorRoleId => [
                 OperationsPermission::EventKingdomView,
                 OperationsPermission::EventKingdomCreate,
                 OperationsPermission::EventKingdomManage,
             ],
-            DefaultKingdomRole::EventCoordinator->value => [
+            $eventCoordinatorRoleId => [
                 OperationsPermission::EventKingdomView,
                 OperationsPermission::EventKingdomCreate,
                 OperationsPermission::EventKingdomManage,
             ],
-            DefaultKingdomRole::Viewer->value => [
+            $viewerRoleId => [
                 OperationsPermission::EventKingdomView,
             ],
         ];
@@ -49,29 +54,14 @@ final class KingdomOperationsRoleProvisioner
         );
         Permission::query()->upsert($permissionRows, ['key'], ['description']);
 
-        $permissionIdsByKey = Permission::query()
-            ->whereIn('key', array_keys($requiredPermissions))
-            ->pluck('id', 'key');
-
-        foreach ($grants as $roleKey => $permissions) {
-            $role = KingdomRole::query()
-                ->where('kingdom_id', $kingdom->id)
-                ->where('key', $roleKey)
-                ->first();
-            if (! $role instanceof KingdomRole) {
-                throw new RuntimeException('GameWorld Kingdom roles must be provisioned before Operations grants.');
-            }
-
-            $permissionIds = [];
-            foreach ($permissions as $permission) {
-                $permissionId = $permissionIdsByKey->get($permission->key());
-                if (! is_string($permissionId)) {
-                    throw new RuntimeException('An Operations Kingdom permission was not provisioned.');
-                }
-                $permissionIds[] = $permissionId;
-            }
-
-            $role->permissions()->syncWithoutDetaching($permissionIds);
+        $permissionKeysByRoleId = [];
+        foreach ($grants as $roleId => $permissions) {
+            $permissionKeysByRoleId[$roleId] = array_map(
+                static fn (OperationsPermission $permission): string => $permission->key(),
+                $permissions,
+            );
         }
+
+        $this->grantRolePermissions->handle($kingdomId, $permissionKeysByRoleId);
     }
 }

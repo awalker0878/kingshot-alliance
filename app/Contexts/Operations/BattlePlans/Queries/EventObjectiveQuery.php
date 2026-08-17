@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\BattlePlans\Queries;
 
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\BattlePlans\Models\EventObjective;
 use App\Contexts\Operations\BattlePlans\Models\EventObjectiveAssignment;
-use App\Contexts\Operations\EventCore\Models\Event;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Models\Event;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Queries\EventEligiblePlayerQuery;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
 use App\Contexts\Operations\Rosters\Models\EventRoster;

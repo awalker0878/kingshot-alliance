@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Recruitment\Models;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
-use App\Contexts\GameWorld\Models\Player;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -89,12 +88,6 @@ final class RecruitmentCandidate extends Model
         return $this->belongsTo(Alliance::class);
     }
 
-    /** @return BelongsTo<Player, $this> */
-    public function player(): BelongsTo
-    {
-        return $this->belongsTo(Player::class, 'player_id');
-    }
-
     /** @return BelongsTo<RecruitmentApplicationInvite, $this> */
     public function applicationInvite(): BelongsTo
     {
@@ -111,17 +104,6 @@ final class RecruitmentCandidate extends Model
     public function answers(): HasMany
     {
         return $this->hasMany(RecruitmentAnswer::class, 'candidate_id');
-    }
-
-    /** @return BelongsToMany<Player, $this> */
-    public function reviewers(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            Player::class,
-            'recruitment_candidate_reviewers',
-            'candidate_id',
-            'reviewer_player_id',
-        )->withPivot(['id', 'alliance_id', 'assigned_by_player_id'])->withTimestamps();
     }
 
     /** @return HasMany<RecruitmentNote, $this> */

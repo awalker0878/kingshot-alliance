@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Roster\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
-use App\Contexts\GameWorld\Actions\PersistPlayerIdentity;
+use App\Contexts\GameWorld\Players\Actions\PersistPlayerIdentity;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Validation\ValidationException;
 
 final readonly class ResolvePlayer
@@ -39,12 +39,12 @@ final readonly class ResolvePlayer
         $stableId = $stableId === '' ? null : $stableId;
 
         if ($expectedPlayerId !== null) {
-            $expected = Player::query()->lockForUpdate()->findOrFail($expectedPlayerId);
+            $expected = Player::query()->findOrFail($expectedPlayerId);
 
             if ($stableId !== null) {
                 $stableOwner = Player::query()
                     ->where('game_player_id', $stableId)
-                    ->lockForUpdate()
+                    
                     ->first();
 
                 if ($stableOwner instanceof Player && $stableOwner->id !== $expected->id) {
@@ -73,7 +73,7 @@ final readonly class ResolvePlayer
         if ($stableId !== null) {
             $existing = Player::query()
                 ->where('game_player_id', $stableId)
-                ->lockForUpdate()
+                
                 ->first();
 
             if ($existing instanceof Player) {

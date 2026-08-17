@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\BattlePlans\Models;
 
 use App\Contexts\Operations\BattlePlans\Enums\EventObjectiveStatus;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;

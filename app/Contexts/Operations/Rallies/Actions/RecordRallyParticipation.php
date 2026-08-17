@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Models\EventPlayerContext;
 use App\Contexts\Operations\Participation\Services\EventPlayerContextFreezer;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
@@ -23,7 +24,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class RecordRallyParticipation
 {
     public function __construct(
-        private EventMutationAuthority $eventAuthority,
+        private EventWriteState $eventWriteState,
+        private EventAuthorization $eventAuthority,
         private EventCapabilityGuard $capabilities,
         private RallyPlayerEligibility $eligibility,
         private EventPlayerContextFreezer $contexts,
@@ -41,7 +43,8 @@ final readonly class RecordRallyParticipation
         $event = $group->occurrence()->firstOrFail()->event()->firstOrFail();
 
         return DB::transaction(function () use ($actor, $assignment, $status, $group, $event): RallyAssignment {
-            $context = $this->eventAuthority->requireManager($actor, $event);
+            $context = $this->eventWriteState->lockEventScope($actor, $event);
+            $this->eventAuthority->authorizeManager($context);
             $this->capabilities->require($context->event, EventCapability::RallyGuidance);
 
             $occurrence = EventOccurrence::query()
@@ -74,7 +77,7 @@ final readonly class RecordRallyParticipation
 
             if (! $frozenContext instanceof EventPlayerContext) {
                 if ((string) $context->actor->id !== (string) $player->id) {
-                    $player = Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
+                    $player = Player::query()->whereKey($player->id)->firstOrFail();
                 }
                 if (! $this->eligibility->eligible($context->event, $alliance, $player)) {
                     throw ValidationException::withMessages([

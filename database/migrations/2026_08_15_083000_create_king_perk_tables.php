@@ -107,25 +107,6 @@ return new class extends Migration
             $table->index(['plan_id', 'planned_activation_at', 'planned_ends_at']);
         });
 
-        Schema::create('king_perk_reminder_deliveries', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('plan_id')->constrained('king_perk_plans')->cascadeOnDelete();
-            $table->foreignUlid('appointment_id')->nullable()->constrained('king_perk_appointments')->cascadeOnDelete();
-            $table->foreignUlid('skill_plan_id')->nullable()->constrained('king_skill_plans')->cascadeOnDelete();
-            $table->foreignUlid('player_id')->constrained('players')->restrictOnDelete();
-            $table->foreignId('recipient_user_id')->constrained('users')->restrictOnDelete();
-            $table->string('kind', 48);
-            $table->timestampTz('due_at')->index();
-            $table->string('status', 16)->default('queued')->index();
-            $table->string('idempotency_key', 64)->unique();
-            $table->timestampTz('queued_at')->nullable();
-            $table->timestampTz('sent_at')->nullable();
-            $table->timestamps();
-
-            $table->index(['status', 'due_at']);
-            $table->index(['recipient_user_id', 'status']);
-        });
-
         $this->createTemporalGuards();
         $this->registerKingPerksCapability();
     }
@@ -208,7 +189,6 @@ return new class extends Migration
                 ->delete();
         }
 
-        Schema::dropIfExists('king_perk_reminder_deliveries');
         Schema::dropIfExists('king_skill_plans');
         Schema::dropIfExists('king_perk_requests');
         Schema::dropIfExists('king_perk_position_blocks');

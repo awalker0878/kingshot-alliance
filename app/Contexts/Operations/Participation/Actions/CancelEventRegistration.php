@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Models\EventOccurrence;
-use App\Contexts\Operations\EventCore\Services\EventCapabilityGuard;
-use App\Contexts\Operations\EventCore\Services\EventMutationAuthority;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventCapabilityGuard;
+use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -20,7 +21,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class CancelEventRegistration
 {
     public function __construct(
-        private EventMutationAuthority $mutations,
+        private EventWriteState $eventWriteState,
+        private EventAuthorization $mutations,
         private EventCapabilityGuard $capabilities,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -32,7 +34,8 @@ final readonly class CancelEventRegistration
         $event = $occurrence->event;
 
         return DB::transaction(function () use ($actor, $occurrence, $event, $player): EventRegistration {
-            $context = $this->mutations->requireSelf($actor, $event, $player);
+            $context = $this->eventWriteState->lockSelfScope($actor, $event, $player);
+            $this->mutations->authorizeSelf($context, $player);
             $this->capabilities->require($context->event, EventCapability::Registration);
 
             $currentPlayer = $context->actor;

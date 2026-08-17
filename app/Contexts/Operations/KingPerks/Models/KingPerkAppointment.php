@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Models;
 
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\KingPerks\Enums\KingAppointmentType;
 use App\Contexts\Operations\KingPerks\Enums\KingPerkAppointmentStatus;
 use Carbon\CarbonImmutable;

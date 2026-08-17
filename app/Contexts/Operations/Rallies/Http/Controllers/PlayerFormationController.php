@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Http\Controllers;
 
-use App\Contexts\GameWorld\Services\PlayerContext;
+use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\Rallies\Actions\DeletePlayerFormation;
 use App\Contexts\Operations\Rallies\Actions\SavePlayerFormation;
 use App\Contexts\Operations\Rallies\Models\PlayerFormation;
 use App\Contexts\Operations\Rallies\ValueObjects\FormationComposition;
-use App\Shared\Http\Controller;
+use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

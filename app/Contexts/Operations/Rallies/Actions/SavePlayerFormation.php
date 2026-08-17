@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Actions;
 
-use App\Contexts\GameWorld\Governance\Services\PlayerMutationAuthority;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\GameWorld\Governance\Services\PlayerWriteState;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\Rallies\Models\PlayerFormation;
 use App\Contexts\Operations\Rallies\ValueObjects\FormationComposition;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class SavePlayerFormation
 {
     public function __construct(
-        private PlayerMutationAuthority $authority,
+        private PlayerWriteState $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -54,7 +54,7 @@ final readonly class SavePlayerFormation
         return DB::transaction(function () use ($actor, $name, $composition, $heroes, $notes, $isDefault, $formation): PlayerFormation {
             // Player is the natural configuration anchor. It serializes default
             // selection across all of this Player's formations without any Alliance lock.
-            $context = $this->authority->require($actor);
+            $context = $this->authority->lockActor($actor);
 
             $record = $formation instanceof PlayerFormation
                 ? PlayerFormation::query()

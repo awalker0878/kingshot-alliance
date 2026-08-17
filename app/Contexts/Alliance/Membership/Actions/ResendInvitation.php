@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Alliance\Membership\Actions;
 
-use App\Contexts\Accounts\Models\User;
+use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceMutationAuthority;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Membership\Enums\InvitationStatus;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Enums\RosterState;
@@ -16,8 +17,8 @@ use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Contexts\Alliance\Membership\Services\InvitationTokenService;
 use App\Contexts\Alliance\Membership\ValueObjects\IssuedInvitation;
-use App\Contexts\Alliance\Policies\AllianceCapacityPolicy;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Membership\Policies\MemberCapacityPolicy;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
@@ -27,10 +28,11 @@ use Illuminate\Validation\ValidationException;
 final readonly class ResendInvitation
 {
     public function __construct(
-        private AllianceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceAuthorization $authority,
         private InvitationTokenService $tokens,
         private AuditRecorder $audit,
-        private AllianceCapacityPolicy $entitlements,
+        private MemberCapacityPolicy $entitlements,
     ) {}
 
     public function handle(Alliance $alliance, Player $actor, string $invitationId): IssuedInvitation
@@ -38,11 +40,8 @@ final readonly class ResendInvitation
         return DB::transaction(function () use ($alliance, $actor, $invitationId): IssuedInvitation {
             // Resend can revive an expired invitation and therefore reserve member
             // capacity again; serialize it with other capacity-sensitive membership writes.
-            $context = $this->authority->requireExclusive(
-                $actor,
-                $alliance,
-                AlliancePermission::InvitationManage,
-            );
+            $context = $this->allianceWriteState->lockExclusiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, AlliancePermission::InvitationManage);
 
             $invitation = Invitation::query()
                 ->where('id', $invitationId)
@@ -58,14 +57,14 @@ final readonly class ResendInvitation
 
             $target = Player::query()
                 ->whereKey($invitation->player_id)
-                ->lockForUpdate()
+                
                 ->firstOrFail();
 
             $roster = AllianceRosterEntry::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->where('player_id', $target->id)
                 ->where('state', RosterState::Active->value)
-                ->sharedLock()
+                
                 ->first();
 
             if (! $roster instanceof AllianceRosterEntry
@@ -100,7 +99,7 @@ final readonly class ResendInvitation
                 && $invitation->expires_at->isFuture();
 
             if (! $alreadyConsumesCapacity) {
-                $this->entitlements->assertMemberCapacity($context->alliance);
+                $this->entitlements->assertCapacity($context->alliance);
             }
 
             $token = $this->tokens->issue();

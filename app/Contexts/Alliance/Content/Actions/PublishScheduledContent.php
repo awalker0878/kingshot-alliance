@@ -6,8 +6,8 @@ namespace App\Contexts\Alliance\Content\Actions;
 
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
 use App\Contexts\Alliance\Content\Models\ContentItem;
-use App\Contexts\Alliance\Core\Enums\AllianceStatus;
-use App\Contexts\Alliance\Core\Models\Alliance;
+use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;

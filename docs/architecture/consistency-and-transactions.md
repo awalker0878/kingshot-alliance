@@ -1,34 +1,46 @@
 # Consistency and transactions
 
-Status: Current
+Status: Current — Architecture V3
 
-The application uses a shared relational database, but consistency is defined around the aggregate and capability being mutated—not around a global transaction spanning arbitrary contexts.
+Consistency boundaries follow the capability that owns the write.
 
-## Write rule
+## Owner transaction
 
-A protected mutation should generally:
+An owning capability Action is responsible for the transaction required to preserve its invariants:
 
-1. enter the owning application action/service;
-2. start a database transaction;
-3. lock the mutable scope/authority rows needed for the decision;
-4. resolve transaction-time actor and scope authority;
-5. lock the target aggregate rows in a stable order;
-6. enforce invariants;
-7. persist the state change;
-8. append audit/outbox state in the same transaction when required;
-9. commit;
-10. perform retryable side effects asynchronously after commit.
+```text
+Action
+  -> begin transaction
+  -> lock mutable scope/authority state
+  -> assert current owner authorization/invariants
+  -> lock target aggregate in deterministic order
+  -> mutate owner state
+  -> persist audit/outbox intent when required
+  -> commit
+```
 
-## Why transaction-time authority matters
+## Authorization separation
 
-Membership, role, capacity, schedule and lifecycle state can change between the initial HTTP authorization check and the actual write. Mutations therefore cannot rely solely on stale pre-transaction authority snapshots.
+Authorization services interpret the owner's permission vocabulary. They do not own transactions or acquire database locks.
 
-## Cross-context writes
+The owner write path acquires the state/aggregate locks needed to make the authorization decision and write atomic.
 
-A single context must not directly modify another context's aggregate for convenience. When one user intent requires several owners to change, an explicit workflow coordinates supported application contracts. Each owner remains responsible for its invariant and persistence.
+`*MutationAuthority` classes that combine these responsibilities are not part of V3.
 
-## Concurrency
+## HTTP boundary
 
-Use row-level locking or database constraints for invariants that can be violated by concurrent requests. Common examples include membership/role transitions, capacity/waitlist transitions, appointment occupancy, leadership transfer and idempotent delivery claiming.
+Controllers, middleware and route closures do not own business write transactions, direct persistence or business locks.
 
-Lock ordering should be deterministic to reduce deadlocks. Retry behavior must distinguish expected serialization/concurrency conflicts from permanent validation failures.
+## Cross-context consistency
+
+A context does not extend its transaction boundary by reaching through another context's Eloquent model. Cross-context mutation uses explicit owner Actions.
+
+When a process genuinely spans multiple owners, a Workflow coordinates those owner operations. The Workflow does not become persistence owner of participating aggregates.
+
+Where atomic multi-owner database mutation would create ownership leakage, prefer explicit process state and durable events/outbox coordination.
+
+## Side effects
+
+Remote/retryable effects execute after commit. Durable intent that must survive process failure is stored transactionally with the owner state when required.
+
+Consumers must tolerate at-least-once delivery through idempotency/deduplication.

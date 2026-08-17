@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Ingestion\Actions;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Access\Services\AllianceWriteState;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
-use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceMutationAuthority;
+use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Ingestion\Contracts\KingdomIngestionAcquisitionAdapter;
 use App\Contexts\Intelligence\Ingestion\Enums\KingdomIngestionSubscriptionState;
 use App\Contexts\Intelligence\Ingestion\Models\KingdomIngestionSubscription;
@@ -20,7 +21,8 @@ use Illuminate\Validation\ValidationException;
 final readonly class TransitionKingdomIngestionSubscription
 {
     public function __construct(
-        private AllianceIntelligenceMutationAuthority $authority,
+        private AllianceWriteState $allianceWriteState,
+        private AllianceIntelligenceAuthorization $authority,
         private KingdomIngestionAdapterRegistry $adapters,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -33,7 +35,8 @@ final readonly class TransitionKingdomIngestionSubscription
         KingdomIngestionSubscriptionState $target,
     ): KingdomIngestionSubscription {
         return DB::transaction(function () use ($alliance, $actor, $subscriptionId, $target): KingdomIngestionSubscription {
-            $context = $this->authority->require($actor, $alliance, IntelligencePermission::KingdomManage);
+            $context = $this->allianceWriteState->lockActiveScope($actor, $alliance);
+            $this->authority->authorizeContext($context, IntelligencePermission::KingdomManage);
             $subscription = KingdomIngestionSubscription::query()
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($subscriptionId)

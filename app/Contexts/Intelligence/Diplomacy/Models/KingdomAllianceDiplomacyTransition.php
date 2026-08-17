@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Diplomacy\Models;
 
-use App\Contexts\Alliance\Core\Models\Alliance;
-use App\Contexts\GameWorld\Models\KingdomAlliance;
-use App\Contexts\GameWorld\Models\Player;
+use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
+use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Intelligence\Diplomacy\Enums\KingdomAllianceDiplomacyState;
 use App\Contexts\Intelligence\Observations\Models\TrackedKingdomAlliance;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\KingPerks\Catalog;
 
-use App\Contexts\Operations\EventCore\Enums\EventCapability;
-use App\Contexts\Operations\EventCore\Enums\EventScope;
+use App\Contexts\Operations\Events\Enums\EventCapability;
+use App\Contexts\Operations\Events\Enums\EventScope;
 
 final class KingPerkEventCapabilityCatalog
 {
